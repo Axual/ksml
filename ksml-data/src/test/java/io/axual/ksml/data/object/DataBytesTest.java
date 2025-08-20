@@ -50,7 +50,7 @@ class DataBytesTest {
     @Test
     @DisplayName("Constructor defensively copies input array")
     void defensiveCopy() {
-        byte[] src = new byte[]{1, 2, 3};
+        var src = new byte[]{1, 2, 3};
         var db = new DataBytes(src);
         // Mutate source; representation must not change
         src[1] = 42;

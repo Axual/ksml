@@ -31,10 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 
@@ -122,8 +120,8 @@ public final class AvroTestUtil {
      * @throws RuntimeException if the resource cannot be found or parsed
      */
     public static Schema loadSchema(String resourcePath) {
-        String schemaString = loadResourceToString(resourcePath);
-        Schema.Parser parser = new Schema.Parser();
+        var schemaString = loadResourceToString(resourcePath);
+        var parser = new Schema.Parser();
         return parser.parse(schemaString);
     }
 
@@ -135,7 +133,7 @@ public final class AvroTestUtil {
      * @throws RuntimeException if the resource cannot be found
      */
     public static String loadResourceToString(String resourcePath) {
-        try (InputStream is = openResource(resourcePath)) {
+        try (var is = openResource(resourcePath)) {
             if (is == null)
                 throw new IllegalArgumentException("Resource not found: " + resourcePath);
             return readToString(is);
@@ -155,11 +153,11 @@ public final class AvroTestUtil {
      * @throws RuntimeException if the resource cannot be found or parsed
      */
     public static GenericRecord parseRecord(Schema schema, String jsonResourcePath) {
-        try (InputStream is = openResource(jsonResourcePath)) {
+        try (var is = openResource(jsonResourcePath)) {
             if (is == null) throw new IllegalArgumentException("Data resource not found: " + jsonResourcePath);
-            String json = readToString(is);
+            var json = readToString(is);
             Decoder decoder = DecoderFactory.get().jsonDecoder(schema, json);
-            GenericDatumReader<GenericRecord> reader = new GenericDatumReader<>(schema);
+            var reader = new GenericDatumReader<GenericRecord>(schema);
             return reader.read(null, decoder);
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse JSON data: " + jsonResourcePath, e);
@@ -175,7 +173,7 @@ public final class AvroTestUtil {
      */
     public static List<GenericRecord> parseAllRecordsInDir(Schema schema, String dirResourcePath) {
         List<GenericRecord> result = new ArrayList<>();
-        for (String path : listResourceFiles(dirResourcePath)) {
+        for (var path : listResourceFiles(dirResourcePath)) {
             if (path.endsWith(".json")) {
                 result.add(parseRecord(schema, path));
             }
@@ -193,8 +191,8 @@ public final class AvroTestUtil {
      * @return InputStream to the resource, or null if not found
      */
     public static InputStream openResource(String resourcePath) {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        InputStream is = cl.getResourceAsStream(resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath);
+        var cl = Thread.currentThread().getContextClassLoader();
+        var is = cl.getResourceAsStream(resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath);
         if (is != null) return is;
         // Try without leading folder in case caller provides relative like "avro/data/file.json"
         return AvroTestUtil.class.getClassLoader().getResourceAsStream(resourcePath);
@@ -210,21 +208,21 @@ public final class AvroTestUtil {
      * @return list of file resource paths under the given directory; empty if none or on error
      */
     public static List<String> listResourceFiles(String dirResourcePath) {
-        String normalized = dirResourcePath;
+        var normalized = dirResourcePath;
         if (normalized.startsWith("/")) normalized = normalized.substring(1);
         if (!normalized.endsWith("/")) normalized += "/";
         List<String> files = new ArrayList<>();
         try {
-            ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            Enumeration<URL> dirs = cl.getResources(normalized);
+            var cl = Thread.currentThread().getContextClassLoader();
+            var dirs = cl.getResources(normalized);
             while (dirs.hasMoreElements()) {
-                URL url = dirs.nextElement();
+                var url = dirs.nextElement();
                 if (Objects.equals(url.getProtocol(), "file")) {
-                    File dir = new File(url.getPath());
+                    var dir = new File(url.getPath());
                     if (dir.isDirectory()) {
-                        File[] children = dir.listFiles();
+                        var children = dir.listFiles();
                         if (children != null) {
-                            for (File child : children) {
+                            for (var child : children) {
                                 if (child.isFile()) {
                                     files.add(normalized + child.getName());
                                 }
@@ -247,8 +245,8 @@ public final class AvroTestUtil {
      * @throws IOException if reading fails
      */
     private static String readToString(InputStream is) throws IOException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
+        try (var br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            var sb = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) {
                 sb.append(line).append('\n');

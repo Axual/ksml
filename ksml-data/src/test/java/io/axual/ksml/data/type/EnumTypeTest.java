@@ -20,13 +20,14 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataString;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +36,7 @@ class EnumTypeTest {
     @Test
     @DisplayName("Constructor sets container class to String and name/spec to 'enum'; symbols are retained")
     void constructorAndProperties() {
-        EnumType type = new EnumType(List.of(new Symbol("A"), new Symbol("B", "desc", 1)));
+        var type = new EnumType(List.of(new Symbol("A"), new Symbol("B", "desc", 1)));
         assertThat(type)
                 .returns(String.class, EnumType::containerClass)
                 .returns("enum", EnumType::name)
@@ -47,7 +48,7 @@ class EnumTypeTest {
     @Test
     @DisplayName("isAssignableFrom(DataObject) accepts only DataString values matching one of the symbols; null is rejected")
     void isAssignableFromDataObject() {
-        EnumType type = new EnumType(List.of(new Symbol("A"), new Symbol("B")));
+        var type = new EnumType(List.of(new Symbol("A"), new Symbol("B")));
 
         // Matching symbols
         assertThat(type.isAssignableFrom(new DataString("A"))).isTrue();
@@ -63,9 +64,9 @@ class EnumTypeTest {
     @Test
     @DisplayName("isAssignableFrom(DataObject) uses DataObject.toString for comparison (no quotes for internal printing)")
     void comparisonUsesToStringValue() {
-        EnumType type = new EnumType(List.of(new Symbol("hello")));
+        var type = new EnumType(List.of(new Symbol("hello")));
         var ds = new DataString("hello");
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
         softly.assertThat(ds.toString()).isEqualTo("hello");
         softly.assertThat(type.isAssignableFrom(ds)).isTrue();
         softly.assertAll();

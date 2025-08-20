@@ -86,28 +86,28 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case BOOLEAN -> DataSchema.BOOLEAN_SCHEMA;
             case NULL -> DataSchema.NULL_SCHEMA;
             case ENUM -> {
-                final String enumDefault = schema.getEnumDefault();
-                final Symbol defaultSymbol = enumDefault == null ? null : new Symbol(enumDefault);
-                final List<Symbol> symbols = schema.getEnumSymbols().stream().map(Symbol::new).toList();
+                final var enumDefault = schema.getEnumDefault();
+                final var defaultSymbol = enumDefault == null ? null : new Symbol(enumDefault);
+                final var symbols = schema.getEnumSymbols().stream().map(Symbol::new).toList();
 
                 yield new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), symbols, defaultSymbol);
             }
             case ARRAY -> {
-                final Schema elementSchema = schema.getElementType();
-                final DataSchema elementDataSchema = toDataSchema(elementSchema);
+                final var elementSchema = schema.getElementType();
+                final var elementDataSchema = toDataSchema(elementSchema);
                 yield new ListSchema(elementDataSchema);
             }
             case MAP -> {
-                final Schema valueSchema = schema.getValueType();
-                final DataSchema valueDataSchema = toDataSchema(valueSchema);
+                final var valueSchema = schema.getValueType();
+                final var valueDataSchema = toDataSchema(valueSchema);
                 yield new MapSchema(valueDataSchema);
             }
             case UNION -> {
-                final List<Schema> unionSchemas = schema.getTypes();
-                final DataField[] unionDataFields = new DataField[unionSchemas.size()];
-                for (int i = 0; i < unionSchemas.size(); i++) {
-                    final Schema memberSchema = unionSchemas.get(i);
-                    final DataSchema memberDataSchema = switch (memberSchema.getType()) {
+                final var unionSchemas = schema.getTypes();
+                final var unionDataFields = new DataField[unionSchemas.size()];
+                for (var i = 0; i < unionSchemas.size(); i++) {
+                    final var memberSchema = unionSchemas.get(i);
+                    final var memberDataSchema = switch (memberSchema.getType()) {
                         case ENUM, RECORD, FIXED-> toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
                         default -> toDataSchema(memberSchema);
                     };
@@ -161,7 +161,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (schema instanceof UnionSchema unionSchema) {
             var memberSchemas = unionSchema.memberSchemas();
             var avroMemberSchemas = new Schema[memberSchemas.length];
-            for (int i = 0; i < memberSchemas.length; i++) {
+            for (var i = 0; i < memberSchemas.length; i++) {
                 avroMemberSchemas[i] = fromDataSchema(memberSchemas[i].schema());
             }
             return Schema.createUnion(avroMemberSchemas);
@@ -226,11 +226,11 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private SchemaAndRequired convertMemberSchemasToToDataUnionAndRequired(List<Schema> unionTypes) {
         // Determine required based on the first member of the union: required when the first is not NULL
-        final boolean firstIsNull = !unionTypes.isEmpty() && unionTypes.getFirst().getType() == Schema.Type.NULL;
-        final boolean isRequired = !firstIsNull;
+        final var firstIsNull = !unionTypes.isEmpty() && unionTypes.getFirst().getType() == Schema.Type.NULL;
+        final var isRequired = !firstIsNull;
 
         // If the first schema is NULL, remove only that leading NULL from the member types; keep other NULLs intact
-        final List<Schema> memberSchemas = firstIsNull ? unionTypes.subList(1, unionTypes.size()) : unionTypes;
+        final var memberSchemas = firstIsNull ? unionTypes.subList(1, unionTypes.size()) : unionTypes;
 
         if (memberSchemas.isEmpty()) {
             // Apparently only null was supplied, technically possible. Return null schema
@@ -248,7 +248,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private List<DataField> convertAvroSchemaToDataFields(List<Schema> schemas) {
         final var result = new ArrayList<DataField>();
-        for (Schema schema : schemas) {
+        for (var schema : schemas) {
             result.add(new DataField(convertAvroSchemaToDataSchemaAndRequired(schema).schema()));
         }
         return result;
@@ -257,7 +257,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private List<DataField> convertAvroFieldsToDataFields(List<Schema.Field> fields) {
         if (fields == null) return new ArrayList<>();
         final var result = new ArrayList<DataField>(fields.size());
-        for (Schema.Field field : fields) {
+        for (var field : fields) {
             final var schemaAndRequired = convertAvroSchemaToDataSchemaAndRequired(field.schema());
             final var convertedDefault = convertAvroDefaultValueToDataValue(field);
             final var defaultValue = schemaAndRequired.required() || (convertedDefault != null && convertedDefault.value() != null) ? convertedDefault : null;
@@ -329,7 +329,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private Schema[] convertUnionMemberSchemasToAvro(DataSchema[] schemas) {
         final var result = new Schema[schemas.length];
-        for (int index = 0; index < schemas.length; index++) {
+        for (var index = 0; index < schemas.length; index++) {
             result[index] = convertDataSchemaToAvroSchema(schemas[index], true).schema();
         }
         return result;
@@ -338,7 +338,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private List<Schema.Field> convertFieldsToAvroFields(List<DataField> fields) {
         if (fields == null) return new ArrayList<>();
         final var result = new ArrayList<Schema.Field>(fields.size());
-        for (DataField field : fields) {
+        for (var field : fields) {
             result.add(convertDataFieldToAvroField(field));
         }
         return result;

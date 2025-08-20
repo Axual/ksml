@@ -20,11 +20,6 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.SimpleType;
-import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -34,6 +29,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.SimpleType;
+import io.axual.ksml.data.type.UnionType;
 
 import static io.axual.ksml.data.type.UnionType.MemberType;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +54,7 @@ class UnionSerdeTest {
         var seenDeserConfig = new AtomicReference<Map<String, ?>>();
         var seenDeserIsKey = new AtomicReference<Boolean>();
 
-        Serde<Object> spyingSerde = new Serde<>() {
+        var spyingSerde = new Serde<>() {
             @Override
             public Serializer<Object> serializer() {
                 return new Serializer<>() {
@@ -118,11 +119,11 @@ class UnionSerdeTest {
         assertThat(serde.serializer().serialize(TOPIC, DataNull.INSTANCE)).isNull();
 
         // String value goes to String serializer (first member)
-        byte[] sBytes = serde.serializer().serialize(TOPIC, "hello");
+        var sBytes = serde.serializer().serialize(TOPIC, "hello");
         assertThat(new String(sBytes)).isEqualTo("hello");
 
         // Byte value matches second member
-        byte[] bBytes = serde.serializer().serialize(TOPIC, (byte) 0x7F);
+        var bBytes = serde.serializer().serialize(TOPIC, (byte) 0x7F);
         assertThat(bBytes).containsExactly((byte) 0x7F);
     }
 
@@ -163,8 +164,8 @@ class UnionSerdeTest {
         assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isSameAs(DataNull.INSTANCE);
 
         // Bytes that could be read by multiple members should yield the first compatible (String first)
-        byte[] bytes = "A".getBytes();
-        Object out = serde.deserializer().deserialize(TOPIC, bytes);
+        var bytes = "A".getBytes();
+        var out = serde.deserializer().deserialize(TOPIC, bytes);
         assertThat(out).isInstanceOf(String.class).isEqualTo("A");
     }
 
@@ -173,7 +174,7 @@ class UnionSerdeTest {
     void deserializeNoMemberSucceedsThrows() {
         // Define a member whose deserializer always throws
         var throwingType = new SimpleType(Integer.class, "Int");
-        Serde<Object> throwingSerde = new Serde<>() {
+        var throwingSerde = new Serde<>() {
             @Override
             public Serializer<Object> serializer() { return new Serializer<>() { @Override public byte[] serialize(String topic, Object data) { return null; } }; }
             @Override

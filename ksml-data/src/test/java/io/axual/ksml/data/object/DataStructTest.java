@@ -85,7 +85,7 @@ class DataStructTest {
         st.put("num", new DataInteger(5));
         st.put("str", new DataString("hello"));
 
-        AtomicInteger applied = new AtomicInteger(0);
+        var applied = new AtomicInteger(0);
         st.getIfPresent("num", DataInteger.class, v -> applied.incrementAndGet());
         st.getIfPresent("num", DataString.class, v -> applied.addAndGet(100));
         assertThat(applied.get()).isEqualTo(1);

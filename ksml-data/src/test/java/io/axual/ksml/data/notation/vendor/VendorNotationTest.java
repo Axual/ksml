@@ -20,6 +20,11 @@ package io.axual.ksml.data.notation.vendor;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.StringDataObjectMapper;
@@ -28,10 +33,6 @@ import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,8 +51,8 @@ class VendorNotationTest {
     private static VendorNotationContext createContext() {
         var base = new NotationContext("avro", "vendorY", new NativeDataObjectMapper(), new java.util.HashMap<>());
         @SuppressWarnings("unchecked")
-        DataObjectMapper<Object> serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new StringDataObjectMapper();
-        VendorSerdeSupplier supplier = new VendorSerdeSupplier() {
+        var serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new StringDataObjectMapper();
+        var supplier = new VendorSerdeSupplier() {
             @Override
             public String vendorName() { return "vendorY"; }
             @Override

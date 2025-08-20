@@ -20,6 +20,13 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
@@ -29,14 +36,10 @@ import io.axual.ksml.data.serde.DataObjectSerde;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.type.StructType;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AvroNotationTest {
 
@@ -44,8 +47,8 @@ class AvroNotationTest {
         var base = new NotationContext(AvroNotation.NOTATION_NAME, vendorName, new NativeDataObjectMapper(), new HashMap<>());
         // We don't exercise (de)serialization in these tests, so any DataObjectMapper will do.
         @SuppressWarnings("unchecked")
-        DataObjectMapper<Object> serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new NativeDataObjectMapper();
-        VendorSerdeSupplier supplier = new VendorSerdeSupplier() {
+        var serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new NativeDataObjectMapper();
+        var supplier = new VendorSerdeSupplier() {
             @Override
             public String vendorName() { return vendorName; }
             @Override

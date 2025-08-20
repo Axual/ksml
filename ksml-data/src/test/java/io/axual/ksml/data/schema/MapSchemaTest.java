@@ -38,18 +38,18 @@ class MapSchemaTest {
     @Test
     @DisplayName("Value schema getter returns configured schema")
     void valueSchemaGetter() {
-        MapSchema map = new MapSchema(DataSchema.STRING_SCHEMA);
+        var map = new MapSchema(DataSchema.STRING_SCHEMA);
         assertThat(map.valueSchema()).isEqualTo(DataSchema.STRING_SCHEMA);
     }
 
     @Test
     @DisplayName("Assignability is based on value schema assignability")
     void assignabilityPropagatesFromValueSchema() {
-        MapSchema mapOfInt = new MapSchema(DataSchema.INTEGER_SCHEMA);
-        MapSchema mapOfLong = new MapSchema(DataSchema.LONG_SCHEMA);
-        MapSchema mapOfString = new MapSchema(DataSchema.STRING_SCHEMA);
-        MapSchema mapOfFloat = new MapSchema(DataSchema.FLOAT_SCHEMA);
-        MapSchema mapOfDouble = new MapSchema(DataSchema.DOUBLE_SCHEMA);
+        var mapOfInt = new MapSchema(DataSchema.INTEGER_SCHEMA);
+        var mapOfLong = new MapSchema(DataSchema.LONG_SCHEMA);
+        var mapOfString = new MapSchema(DataSchema.STRING_SCHEMA);
+        var mapOfFloat = new MapSchema(DataSchema.FLOAT_SCHEMA);
+        var mapOfDouble = new MapSchema(DataSchema.DOUBLE_SCHEMA);
 
         // integer group: integer accepts from long
         assertThat(mapOfInt.isAssignableFrom(mapOfInt)).isTrue();

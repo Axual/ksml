@@ -29,7 +29,7 @@ class NotationProviderTest {
     @Test
     @DisplayName("default vendorName is null; notationName returns provided name")
     void defaultVendorNameIsNull() {
-        NotationProvider provider = new NotationProvider() {
+        var provider = new NotationProvider() {
             @Override
             public String notationName() {
                 return "avro";

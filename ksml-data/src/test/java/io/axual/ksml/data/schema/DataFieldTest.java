@@ -62,7 +62,7 @@ class DataFieldTest {
     @Test
     @DisplayName("UnionSchema forces field tag to NO_TAG regardless of provided tag")
     void unionSchemaForcesNoTag() {
-        UnionSchema union = new UnionSchema(new DataField("s", DataSchema.STRING_SCHEMA, null, 1));
+        var union = new UnionSchema(new DataField("s", DataSchema.STRING_SCHEMA, null, 1));
         assertThat(new DataField("u", union, "Union field", 99))
                 .returns(DataField.NO_TAG, DataField::tag)
                 .hasToString("u: union (-1)");
@@ -71,7 +71,7 @@ class DataFieldTest {
     @Test
     @DisplayName("Required field with explicit DataValue(null) throws DataException")
     void requiredFieldWithNullDefaultThrows() {
-        final DataValue nullValue = new DataValue(null);
+        final var nullValue = new DataValue(null);
         assertThatThrownBy(() -> new DataField("name", DataSchema.STRING_SCHEMA, null, 0, true, false, nullValue))
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("Default value for field \"name\" can not be null");
@@ -80,7 +80,7 @@ class DataFieldTest {
     @Test
     @DisplayName("Optional field allows explicit DataValue(null) as default")
     void optionalFieldAllowsNullDefaultValue() {
-        DataField field = new DataField("name", DataSchema.STRING_SCHEMA, null, 0, false, false, new DataValue(null));
+        var field = new DataField("name", DataSchema.STRING_SCHEMA, null, 0, false, false, new DataValue(null));
         assertThat(field.defaultValue()).isNotNull();
         assertThat(field.defaultValue().value()).isNull();
     }
@@ -88,7 +88,7 @@ class DataFieldTest {
     @Test
     @DisplayName("hasDoc is true for non-empty, false for null or empty")
     void hasDocBehavior() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
         softly.assertThat(new DataField("x", DataSchema.STRING_SCHEMA, null, 0).hasDoc()).isFalse();
         softly.assertThat(new DataField("x", DataSchema.STRING_SCHEMA, "", 0).hasDoc()).isFalse();
         softly.assertThat(new DataField("x", DataSchema.STRING_SCHEMA, "doc", 0).hasDoc()).isTrue();
@@ -98,12 +98,12 @@ class DataFieldTest {
     @Test
     @DisplayName("isAssignableFrom delegates to underlying schema")
     void isAssignableFromBehavior() {
-        DataField target = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 0);
+        var target = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 0);
         // other with long type is compatible (integer group)
-        DataField otherInt = new DataField("l", DataSchema.LONG_SCHEMA, null, 0);
+        var otherInt = new DataField("l", DataSchema.LONG_SCHEMA, null, 0);
         assertThat(target.isAssignableFrom(otherInt)).isTrue();
         // float is not compatible with integer
-        DataField otherFloat = new DataField("f", DataSchema.FLOAT_SCHEMA, null, 0);
+        var otherFloat = new DataField("f", DataSchema.FLOAT_SCHEMA, null, 0);
         assertThat(target.isAssignableFrom(otherFloat)).isFalse();
         // null is not assignable
         assertThat(target.isAssignableFrom(null)).isFalse();

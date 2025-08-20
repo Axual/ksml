@@ -31,11 +31,11 @@ class UnionTypeTest {
     @Test
     @DisplayName("Constructor builds name/spec from member types; retains tags; container is Object")
     void constructorProperties() {
-        SimpleType intType = new SimpleType(Integer.class, "integer");
-        SimpleType strType = new SimpleType(String.class, "string");
-        UnionType.MemberType m1 = new UnionType.MemberType("i", intType, 10);
-        UnionType.MemberType m2 = new UnionType.MemberType("s", strType, 20);
-        UnionType u = new UnionType(m1, m2);
+        var intType = new SimpleType(Integer.class, "integer");
+        var strType = new SimpleType(String.class, "string");
+        var m1 = new UnionType.MemberType("i", intType, 10);
+        var m2 = new UnionType.MemberType("s", strType, 20);
+        var u = new UnionType(m1, m2);
 
         assertThat(u)
                 .returns(Object.class, UnionType::containerClass)
@@ -53,9 +53,9 @@ class UnionTypeTest {
     @Test
     @DisplayName("isAssignableFrom: Union from member type, from other union (same order), and from values")
     void isAssignableFromBehavior() {
-        SimpleType intType = new SimpleType(Integer.class, "integer");
-        SimpleType strType = new SimpleType(String.class, "string");
-        UnionType u = new UnionType(new UnionType.MemberType("i", intType, 1), new UnionType.MemberType("s", strType, 2));
+        var intType = new SimpleType(Integer.class, "integer");
+        var strType = new SimpleType(String.class, "string");
+        var u = new UnionType(new UnionType.MemberType("i", intType, 1), new UnionType.MemberType("s", strType, 2));
 
         // From member type
         assertThat(u.isAssignableFrom(intType)).isTrue();
@@ -63,12 +63,12 @@ class UnionTypeTest {
         assertThat(u.isAssignableFrom(new SimpleType(Double.class, "double"))).isFalse();
 
         // From other union: types match, tags may differ, order must match
-        UnionType sameOrderDifferentTags = new UnionType(
+        var sameOrderDifferentTags = new UnionType(
                 new UnionType.MemberType("i", intType, 99), new UnionType.MemberType("s", strType, 100));
         assertThat(u.isAssignableFrom(sameOrderDifferentTags)).isTrue();
 
         // Different order should not be assignable as union-to-union
-        UnionType swapped = new UnionType(
+        var swapped = new UnionType(
                 new UnionType.MemberType("s", strType, 2), new UnionType.MemberType("i", intType, 1));
         assertThat(u.isAssignableFrom(swapped)).isFalse();
 
@@ -82,14 +82,14 @@ class UnionTypeTest {
     @Test
     @DisplayName("equals uses mutual assignability and ignores tags; order matters; hashCode consistent per instance")
     void equalsAndHashCode() {
-        SimpleType intType = new SimpleType(Integer.class, "integer");
-        SimpleType strType = new SimpleType(String.class, "string");
-        UnionType a = new UnionType(new UnionType.MemberType("i", intType, 1), new UnionType.MemberType("s", strType, 2));
-        UnionType aDifferentTags = new UnionType(new UnionType.MemberType("i", intType, 10), new UnionType.MemberType("s", strType, 20));
-        UnionType bSwapped = new UnionType(new UnionType.MemberType("s", strType, 2), new UnionType.MemberType("i", intType, 1));
-        UnionType cWider = new UnionType(new UnionType.MemberType("i", new SimpleType(Number.class, "number"), 1), new UnionType.MemberType("s", strType, 2));
+        var intType = new SimpleType(Integer.class, "integer");
+        var strType = new SimpleType(String.class, "string");
+        var a = new UnionType(new UnionType.MemberType("i", intType, 1), new UnionType.MemberType("s", strType, 2));
+        var aDifferentTags = new UnionType(new UnionType.MemberType("i", intType, 10), new UnionType.MemberType("s", strType, 20));
+        var bSwapped = new UnionType(new UnionType.MemberType("s", strType, 2), new UnionType.MemberType("i", intType, 1));
+        var cWider = new UnionType(new UnionType.MemberType("i", new SimpleType(Number.class, "number"), 1), new UnionType.MemberType("s", strType, 2));
 
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
         // Reflexivity
         softly.assertThat(a.equals(a)).isTrue();
         // Same types, same order, tags differ -> equals true

@@ -30,11 +30,11 @@ class ListSchemaTest {
     @Test
     @DisplayName("hasName/name default and explicit name behavior")
     void nameBehavior() {
-        ListSchema unnamed = new ListSchema(DataSchema.STRING_SCHEMA);
+        var unnamed = new ListSchema(DataSchema.STRING_SCHEMA);
         assertThat(unnamed.hasName()).isFalse();
         assertThat(unnamed.name()).isEqualTo("AnonymousListSchema");
 
-        ListSchema named = new ListSchema("MyList", DataSchema.STRING_SCHEMA);
+        var named = new ListSchema("MyList", DataSchema.STRING_SCHEMA);
         assertThat(named.hasName()).isTrue();
         assertThat(named.name()).isEqualTo("MyList");
     }
@@ -42,18 +42,18 @@ class ListSchemaTest {
     @Test
     @DisplayName("toString shows type and element schema")
     void toStringFormat() {
-        ListSchema listOfInt = new ListSchema(DataSchema.INTEGER_SCHEMA);
+        var listOfInt = new ListSchema(DataSchema.INTEGER_SCHEMA);
         assertThat(listOfInt).hasToString("list of integer");
     }
 
     @Test
     @DisplayName("Assignability is based on element schema assignability")
     void assignabilityPropagatesFromElementSchema() {
-        ListSchema listOfInt = new ListSchema(DataSchema.INTEGER_SCHEMA);
-        ListSchema listOfLong = new ListSchema(DataSchema.LONG_SCHEMA);
-        ListSchema listOfString = new ListSchema(DataSchema.STRING_SCHEMA);
-        ListSchema listOfFloat = new ListSchema(DataSchema.FLOAT_SCHEMA);
-        ListSchema listOfDouble = new ListSchema(DataSchema.DOUBLE_SCHEMA);
+        var listOfInt = new ListSchema(DataSchema.INTEGER_SCHEMA);
+        var listOfLong = new ListSchema(DataSchema.LONG_SCHEMA);
+        var listOfString = new ListSchema(DataSchema.STRING_SCHEMA);
+        var listOfFloat = new ListSchema(DataSchema.FLOAT_SCHEMA);
+        var listOfDouble = new ListSchema(DataSchema.DOUBLE_SCHEMA);
 
         // Integers: integer accepts from long
         assertThat(listOfInt.isAssignableFrom(listOfInt)).isTrue();

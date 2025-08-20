@@ -44,7 +44,7 @@ class StructSchemaTest {
         var s = new StructSchema("ns", "Person", null, List.of(requiredInt("id"), optionalStringWithDefault("name")));
         assertThat(s.field(0).name()).isEqualTo("id");
         assertThat(s.field("name")).isNotNull();
-        int originalSize = s.fields().size();
+        var originalSize = s.fields().size();
         // Modify returned list and ensure struct internal state unaffected
         var list = s.fields();
         list.add(requiredInt("age"));

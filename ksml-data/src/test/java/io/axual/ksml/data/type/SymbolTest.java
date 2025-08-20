@@ -32,7 +32,7 @@ class SymbolTest {
     @Test
     @DisplayName("Default constructor sets doc=null and tag=NO_TAG")
     void defaultConstructor() {
-        Symbol s = new Symbol("A");
+        var s = new Symbol("A");
         assertThat(s)
                 .returns("A", Symbol::name)
                 .returns(null, Symbol::doc)
@@ -43,7 +43,7 @@ class SymbolTest {
     @Test
     @DisplayName("hasDoc is true only for non-empty doc")
     void hasDocBehavior() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
         softly.assertThat(new Symbol("A", null, NO_TAG).hasDoc()).isFalse();
         softly.assertThat(new Symbol("A", "", NO_TAG).hasDoc()).isFalse();
         softly.assertThat(new Symbol("A", "desc", NO_TAG).hasDoc()).isTrue();
@@ -53,11 +53,11 @@ class SymbolTest {
     @Test
     @DisplayName("isAssignableFrom requires same name and compatible tags (NO_TAG is wildcard)")
     void isAssignableFromBehavior() {
-        Symbol aNoTag = new Symbol("A", null, NO_TAG);
-        Symbol aNoTag2 = new Symbol("A", null, NO_TAG);
-        Symbol a7 = new Symbol("A", null, 7);
-        Symbol a8 = new Symbol("A", null, 8);
-        Symbol bNoTag = new Symbol("B", null, NO_TAG);
+        var aNoTag = new Symbol("A", null, NO_TAG);
+        var aNoTag2 = new Symbol("A", null, NO_TAG);
+        var a7 = new Symbol("A", null, 7);
+        var a8 = new Symbol("A", null, 8);
+        var bNoTag = new Symbol("B", null, NO_TAG);
 
         // Same name, any NO_TAG acts as wildcard
         assertThat(aNoTag.isAssignableFrom(aNoTag2)).isTrue();

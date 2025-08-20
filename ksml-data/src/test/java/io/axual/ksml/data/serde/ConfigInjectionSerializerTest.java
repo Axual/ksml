@@ -38,7 +38,7 @@ class ConfigInjectionSerializerTest {
     @DisplayName("configure injects extra config entries before delegating; serialize delegates")
     void configIsInjectedAndSerializeDelegates() {
         var seenConfig = new AtomicReference<Map<String, ?>>();
-        Serializer<Object> delegate = new Serializer<>() {
+        var delegate = new Serializer<>() {
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
                 seenConfig.set(configs);

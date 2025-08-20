@@ -34,7 +34,7 @@ class MapTypeTest {
     @Test
     @DisplayName("Default constructor uses UNKNOWN value type, key type STRING, and builds name/spec accordingly")
     void defaultConstructor() {
-        MapType t = new MapType();
+        var t = new MapType();
         assertThat(t)
                 .returns(Map.class, MapType::containerClass)
                 .returns("MapOfUnknown", MapType::name)
@@ -48,8 +48,8 @@ class MapTypeTest {
     @Test
     @DisplayName("Explicit value type determines name/spec and valueType() accessor; keyType remains STRING")
     void explicitValueType() {
-        SimpleType intType = new SimpleType(Integer.class, "integer");
-        MapType t = new MapType(intType);
+        var intType = new SimpleType(Integer.class, "integer");
+        var t = new MapType(intType);
         assertThat(t)
                 .returns("MapOfInteger", MapType::name)
                 .returns("map(integer)", MapType::spec);
@@ -60,20 +60,20 @@ class MapTypeTest {
     @Test
     @DisplayName("Assignability compares value types via ComplexType logic")
     void assignabilityBetweenMaps() {
-        MapType numberMap = new MapType(new SimpleType(Number.class, "number"));
-        MapType integerMap = new MapType(new SimpleType(Integer.class, "integer"));
+        var numberMap = new MapType(new SimpleType(Number.class, "number"));
+        var integerMap = new MapType(new SimpleType(Integer.class, "integer"));
         assertThat(numberMap.isAssignableFrom(integerMap)).isTrue();
         assertThat(integerMap.isAssignableFrom(numberMap)).isFalse();
 
         // Different container class (e.g., ListType) is not assignable
-        ListType listOfNumber = new ListType(new SimpleType(Number.class, "number"));
+        var listOfNumber = new ListType(new SimpleType(Number.class, "number"));
         assertThat(numberMap.isAssignableFrom(listOfNumber)).isFalse();
     }
 
     @Test
     @DisplayName("Assignability from Class uses containerClass.isAssignableFrom(Class)")
     void assignabilityFromClass() {
-        MapType anyMap = new MapType();
+        var anyMap = new MapType();
         assertThat(anyMap.isAssignableFrom(HashMap.class)).isTrue();
         assertThat(anyMap.isAssignableFrom(String.class)).isFalse();
     }
@@ -81,11 +81,11 @@ class MapTypeTest {
     @Test
     @DisplayName("equals checks mutual assignability; hashCode is consistent per instance")
     void equalsAndHashCode() {
-        MapType a1 = new MapType(DataType.UNKNOWN);
-        MapType a2 = new MapType(DataType.UNKNOWN);
-        MapType b = new MapType(new SimpleType(Integer.class, "integer"));
+        var a1 = new MapType(DataType.UNKNOWN);
+        var a2 = new MapType(DataType.UNKNOWN);
+        var b = new MapType(new SimpleType(Integer.class, "integer"));
 
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
         // Reflexivity
         softly.assertThat(a1.equals(a1)).isTrue();
         // Same subtype Unknown -> equal (mutual assignable)

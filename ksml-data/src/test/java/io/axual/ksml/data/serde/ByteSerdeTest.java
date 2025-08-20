@@ -33,11 +33,11 @@ class ByteSerdeTest {
     void serializerSerializesSingleByteOrNull() {
         var serde = new ByteSerde();
 
-        byte[] serializedNull = serde.serializer().serialize(TOPIC, null);
+        var serializedNull = serde.serializer().serialize(TOPIC, null);
         assertThat(serializedNull).isNull();
 
-        byte someValue = (byte) 0x7F;
-        byte[] serializedValue = serde.serializer().serialize(TOPIC, someValue);
+        var someValue = (byte) 0x7F;
+        var serializedValue = serde.serializer().serialize(TOPIC, someValue);
         assertThat(serializedValue).containsExactly(someValue);
     }
 
@@ -46,14 +46,14 @@ class ByteSerdeTest {
     void deserializerReadsFirstByteOrNull() {
         var serde = new ByteSerde();
 
-        Byte deserializedFromNull = (Byte) serde.deserializer().deserialize(TOPIC, null);
+        var deserializedFromNull = (Byte) serde.deserializer().deserialize(TOPIC, null);
         assertThat(deserializedFromNull).isNull();
 
-        Byte deserializedFromEmpty = (Byte) serde.deserializer().deserialize(TOPIC, new byte[]{});
+        var deserializedFromEmpty = (Byte) serde.deserializer().deserialize(TOPIC, new byte[]{});
         assertThat(deserializedFromEmpty).isNull();
 
-        byte[] multiByteArray = new byte[]{(byte) 0x12, (byte) 0x34};
-        Byte deserializedFromMulti = (Byte) serde.deserializer().deserialize(TOPIC, multiByteArray);
+        var multiByteArray = new byte[]{(byte) 0x12, (byte) 0x34};
+        var deserializedFromMulti = (Byte) serde.deserializer().deserialize(TOPIC, multiByteArray);
         assertThat(deserializedFromMulti).isEqualTo((byte) 0x12);
     }
 }

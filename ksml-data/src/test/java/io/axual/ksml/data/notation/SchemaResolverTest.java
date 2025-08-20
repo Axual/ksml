@@ -20,12 +20,13 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.schema.DataSchema;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.schema.DataSchema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,7 +36,7 @@ class SchemaResolverTest {
     @DisplayName("getOrThrow returns schema when present and throws SchemaException with expected message when absent")
     void getOrThrowBehavesAsDocumented() {
         // A tiny resolver backed by a map
-        SchemaResolver<DataSchema> resolver = new SchemaResolver<>() {
+        var resolver = new SchemaResolver<>() {
             private final Map<String, DataSchema> schemas = Map.of(
                     "user", DataSchema.STRING_SCHEMA,
                     "count", DataSchema.LONG_SCHEMA

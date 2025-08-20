@@ -305,7 +305,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataByte")
     void toDataObjectByte() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
 
         // Test with Byte values
         softly.assertThat(mapper.toDataObject(null, (byte) 120))
@@ -341,7 +341,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataShort")
     void toDataObjectShort() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
 
         // Test with Short values
         softly.assertThat(mapper.toDataObject(null, (short) 120))
@@ -377,7 +377,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataInteger")
     void toDataObjectInteger() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
 
         // Test with Integer values
         softly.assertThat(mapper.toDataObject(null, 120))
@@ -413,7 +413,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataLong")
     void toDataObjectLong() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
 
         // Test with Long values
         softly.assertThat(mapper.toDataObject(null, 120L))
@@ -449,7 +449,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Double/Float -> DataDouble")
     void toDataObjectDouble() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
 
         // Test with Double values
         softly.assertThat(mapper.toDataObject(null, 1.5))
@@ -474,7 +474,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Double/Float -> DataFloat")
     void toDataObjectFloat() {
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
 
         // Test with Double values
         softly.assertThat(mapper.toDataObject(null, 2.5F))
@@ -501,7 +501,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: byte[] -> DataBytes")
     void toDataObjectBytes() {
-        byte[] nativeBytes = new byte[]{1, 2};
+        var nativeBytes = new byte[]{1, 2};
         var result = mapper.toDataObject(null, nativeBytes);
         assertThat(result).isInstanceOf(DataBytes.class);
         assertThat(((DataBytes) result).value()).isEqualTo(nativeBytes);

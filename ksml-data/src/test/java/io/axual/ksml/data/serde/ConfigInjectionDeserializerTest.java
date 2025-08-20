@@ -39,7 +39,7 @@ class ConfigInjectionDeserializerTest {
     @DisplayName("configure injects extra config entries before delegating; deserialize delegates for all overloads")
     void configIsInjectedAndDeserializeDelegates() {
         var seenConfig = new AtomicReference<Map<String, ?>>();
-        Deserializer<Object> delegate = new Deserializer<>() {
+        var delegate = new Deserializer<>() {
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
                 seenConfig.set(configs);
@@ -57,7 +57,7 @@ class ConfigInjectionDeserializerTest {
 
             @Override
             public Object deserialize(String topic, org.apache.kafka.common.header.Headers headers, ByteBuffer data) {
-                byte[] arr = new byte[data.remaining()];
+                var arr = new byte[data.remaining()];
                 data.get(arr);
                 return new String(arr);
             }

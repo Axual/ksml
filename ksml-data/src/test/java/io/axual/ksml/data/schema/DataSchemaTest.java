@@ -20,7 +20,6 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.Symbol;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,6 +28,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 import java.util.stream.Stream;
+
+import io.axual.ksml.data.type.Symbol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -76,7 +77,7 @@ class DataSchemaTest {
     @ParameterizedTest(name = "{index}: {0} accepts all integer types")
     @MethodSource("integerSchemas")
     void integerSchemasAreAssignableFromAllIntegerTypes(DataSchema target) {
-        for (DataSchema candidate : new DataSchema[]{
+        for (var candidate : new DataSchema[]{
                 DataSchema.BYTE_SCHEMA,
                 DataSchema.SHORT_SCHEMA,
                 DataSchema.INTEGER_SCHEMA,
@@ -95,7 +96,7 @@ class DataSchemaTest {
     @ParameterizedTest(name = "{index}: {0} accepts all floating-point types")
     @MethodSource("floatingSchemas")
     void floatingSchemasAreAssignableFromAllFloatingTypes(DataSchema target) {
-        for (DataSchema candidate : new DataSchema[]{
+        for (var candidate : new DataSchema[]{
                 DataSchema.FLOAT_SCHEMA,
                 DataSchema.DOUBLE_SCHEMA
         }) {
@@ -130,7 +131,8 @@ class DataSchemaTest {
         @Test
         void equalsAndHashCodeBasedOnType() {
             // Using protected constructor from same package to create another instance with same type
-            DataSchema customString = new DataSchema(DataSchemaConstants.STRING_TYPE) {};
+            var customString = new DataSchema(DataSchemaConstants.STRING_TYPE) {
+            };
             assertThat(customString)
                     .isEqualTo(DataSchema.STRING_SCHEMA)
                     .hasSameHashCodeAs(DataSchema.STRING_SCHEMA);

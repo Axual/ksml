@@ -45,7 +45,7 @@ class HeaderFilterSerdeTest {
         var seenSerializeHeaders = new AtomicReference<Iterable<Header>>();
         var seenDeserializeHeaders = new AtomicReference<Iterable<Header>>();
 
-        Serializer<Object> baseSerializer = new Serializer<>() {
+        var baseSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, org.apache.kafka.common.header.Headers headers, Object data) {
                 seenSerializeHeaders.set(headers);
@@ -54,7 +54,7 @@ class HeaderFilterSerdeTest {
             @Override
             public byte[] serialize(String topic, Object data) { return null; }
         };
-        Deserializer<Object> baseDeserializer = new Deserializer<>() {
+        var baseDeserializer = new Deserializer<>() {
             @Override
             public Object deserialize(String topic, org.apache.kafka.common.header.Headers headers, byte[] data) {
                 seenDeserializeHeaders.set(headers);
@@ -63,14 +63,14 @@ class HeaderFilterSerdeTest {
             @Override
             public Object deserialize(String topic, org.apache.kafka.common.header.Headers headers, ByteBuffer data) {
                 seenDeserializeHeaders.set(headers);
-                byte[] arr = new byte[data.remaining()];
+                var arr = new byte[data.remaining()];
                 data.get(arr);
                 return new String(arr);
             }
             @Override
             public Object deserialize(String topic, byte[] data) { return null; }
         };
-        Serde<Object> base = new Serde<>() {
+        var base = new Serde<>() {
             @Override public Serializer<Object> serializer() { return baseSerializer; }
             @Override public Deserializer<Object> deserializer() { return baseDeserializer; }
         };
@@ -85,7 +85,7 @@ class HeaderFilterSerdeTest {
         });
 
         // Serialize with headers and non-null value: afterwards headers should lose filtered keys
-        byte[] result = serde.serializer().serialize(TOPIC, headers, "value");
+        var result = serde.serializer().serialize(TOPIC, headers, "value");
         assertThat(result).isEqualTo("value".getBytes());
         var remainingKeysAfterSerialize = headers.toArray();
         assertThat(remainingKeysAfterSerialize)
@@ -98,13 +98,13 @@ class HeaderFilterSerdeTest {
                 new RecordHeader("drop", "b".getBytes()),
                 new RecordHeader("other", "c".getBytes())
         });
-        Object out1 = serde.deserializer().deserialize(TOPIC, headersForDeserialize, "x".getBytes());
+        var out1 = serde.deserializer().deserialize(TOPIC, headersForDeserialize, "x".getBytes());
         assertThat(out1).isEqualTo("x");
         assertThat(seenDeserializeHeaders.get()).extracting(Header::key).containsExactly("other");
         // original headers still have all
         assertThat(headersForDeserialize.toArray()).extracting(Header::key).containsExactly("keep", "drop", "other");
 
-        Object out2 = serde.deserializer().deserialize(TOPIC, headersForDeserialize, ByteBuffer.wrap("y".getBytes()));
+        var out2 = serde.deserializer().deserialize(TOPIC, headersForDeserialize, ByteBuffer.wrap("y".getBytes()));
         assertThat(out2).isEqualTo("y");
         assertThat(seenDeserializeHeaders.get()).extracting(Header::key).containsExactly("other");
 
@@ -114,7 +114,7 @@ class HeaderFilterSerdeTest {
                 new RecordHeader("drop", "d".getBytes()),
                 new RecordHeader("other", "o".getBytes())
         });
-        byte[] resultNull = serde.serializer().serialize(TOPIC, headersWhenNull, null);
+        var resultNull = serde.serializer().serialize(TOPIC, headersWhenNull, null);
         assertThat(resultNull).isNull();
         assertThat(headersWhenNull.toArray()).extracting(Header::key).containsExactly("other");
     }
@@ -123,11 +123,11 @@ class HeaderFilterSerdeTest {
     @DisplayName("configure calls are delegated to underlying serializer and deserializer")
     void configureDelegates() {
         var seenConfig = new AtomicReference<Map<String, ?>>();
-        Serializer<Object> baseSerializer = new Serializer<>() {
+        var baseSerializer = new Serializer<>() {
             @Override public void configure(Map<String, ?> configs, boolean isKey) { seenConfig.set(configs); }
             @Override public byte[] serialize(String topic, Object data) { return null; }
         };
-        Deserializer<Object> baseDeserializer = new Deserializer<>() {
+        var baseDeserializer = new Deserializer<>() {
             @Override public void configure(Map<String, ?> configs, boolean isKey) { seenConfig.set(configs); }
             @Override public Object deserialize(String topic, byte[] data) { return null; }
         };

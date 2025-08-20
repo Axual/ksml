@@ -50,7 +50,7 @@ class WrappedSerdeTest {
         var serializerClosed = new AtomicBoolean(false);
         var deserializerClosed = new AtomicBoolean(false);
 
-        Serializer<Object> serializer = new Serializer<>() {
+        var serializer = new Serializer<>() {
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
                 lastConfigured.set(configs);
@@ -59,14 +59,14 @@ class WrappedSerdeTest {
 
             @Override
             public byte[] serialize(String topic, Object data) {
-                byte[] result = (data == null) ? null : data.toString().getBytes();
+                var result = (data == null) ? null : data.toString().getBytes();
                 serializedNoHeaders.set(result);
                 return result;
             }
 
             @Override
             public byte[] serialize(String topic, org.apache.kafka.common.header.Headers headers, Object data) {
-                byte[] result = (data == null) ? null : data.toString().getBytes();
+                var result = (data == null) ? null : data.toString().getBytes();
                 serializedWithHeaders.set(result);
                 return result;
             }
@@ -76,7 +76,7 @@ class WrappedSerdeTest {
                 serializerClosed.set(true);
             }
         };
-        Deserializer<Object> deserializer = new Deserializer<>() {
+        var deserializer = new Deserializer<>() {
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
                 lastConfigured.set(configs);
@@ -99,7 +99,7 @@ class WrappedSerdeTest {
 
             @Override
             public Object deserialize(String topic, org.apache.kafka.common.header.Headers headers, ByteBuffer data) {
-                byte[] arr = new byte[data.remaining()];
+                var arr = new byte[data.remaining()];
                 data.get(arr);
                 var s = new String(arr);
                 deserializedFromBuffer.set(s);
@@ -111,7 +111,7 @@ class WrappedSerdeTest {
                 deserializerClosed.set(true);
             }
         };
-        Serde<Object> base = new Serde<>() {
+        var base = new Serde<>() {
             @Override
             public Serializer<Object> serializer() { return serializer; }
             @Override
@@ -126,16 +126,16 @@ class WrappedSerdeTest {
         assertThat(configuredAsKey.get()).isTrue();
 
         var headers = new RecordHeaders();
-        byte[] bytes1 = wrapped.serializer().serialize(TOPIC, "x");
-        byte[] bytes2 = wrapped.serializer().serialize(TOPIC, headers, "y");
+        var bytes1 = wrapped.serializer().serialize(TOPIC, "x");
+        var bytes2 = wrapped.serializer().serialize(TOPIC, headers, "y");
         assertThat(serializedNoHeaders.get()).isEqualTo("x".getBytes());
         assertThat(serializedWithHeaders.get()).isEqualTo("y".getBytes());
         assertThat(bytes1).isEqualTo("x".getBytes());
         assertThat(bytes2).isEqualTo("y".getBytes());
 
-        Object out1 = wrapped.deserializer().deserialize(TOPIC, "a".getBytes());
-        Object out2 = wrapped.deserializer().deserialize(TOPIC, headers, "b".getBytes());
-        Object out3 = wrapped.deserializer().deserialize(TOPIC, headers, ByteBuffer.wrap("c".getBytes()));
+        var out1 = wrapped.deserializer().deserialize(TOPIC, "a".getBytes());
+        var out2 = wrapped.deserializer().deserialize(TOPIC, headers, "b".getBytes());
+        var out3 = wrapped.deserializer().deserialize(TOPIC, headers, ByteBuffer.wrap("c".getBytes()));
         assertThat(deserializedNoHeaders.get()).isEqualTo("a");
         assertThat(deserializedWithHeaders.get()).isEqualTo("b");
         assertThat(deserializedFromBuffer.get()).isEqualTo("c");

@@ -31,7 +31,7 @@ class SimpleTypeTest {
     @Test
     @DisplayName("Two-arg constructor sets name and spec equally and exposes container class")
     void constructorWithDefaultSpec() {
-        SimpleType t = new SimpleType(Integer.class, "integer");
+        var t = new SimpleType(Integer.class, "integer");
         assertThat(t)
                 .returns(Integer.class, SimpleType::containerClass)
                 .returns("integer", SimpleType::name)
@@ -42,7 +42,7 @@ class SimpleTypeTest {
     @Test
     @DisplayName("Three-arg constructor uses explicit spec and preserves name")
     void constructorWithExplicitSpec() {
-        SimpleType t = new SimpleType(Integer.class, "int32", "INT32");
+        var t = new SimpleType(Integer.class, "int32", "INT32");
         assertThat(t)
                 .returns(Integer.class, SimpleType::containerClass)
                 .returns("int32", SimpleType::name)
@@ -53,13 +53,13 @@ class SimpleTypeTest {
     @Test
     @DisplayName("Assignability between DataTypes follows Java Class.isAssignableFrom")
     void isAssignableFromDataType() {
-        SimpleType numberType = new SimpleType(Number.class, "number");
-        SimpleType integerType = new SimpleType(Integer.class, "integer");
+        var numberType = new SimpleType(Number.class, "number");
+        var integerType = new SimpleType(Integer.class, "integer");
         assertThat(numberType.isAssignableFrom(integerType)).isTrue();
         assertThat(integerType.isAssignableFrom(numberType)).isFalse();
 
         // Non-SimpleType should be rejected: using anonymous DataType not a SimpleType
-        DataType other = new DataType() {
+        var other = new DataType() {
             @Override public Class<?> containerClass() { return Object.class; }
             @Override public String name() { return "X"; }
             @Override public String spec() { return "X"; }
@@ -72,8 +72,8 @@ class SimpleTypeTest {
     @Test
     @DisplayName("Assignability from Class uses containerClass.isAssignableFrom")
     void isAssignableFromClass() {
-        SimpleType numberType = new SimpleType(Number.class, "number");
-        SimpleType integerType = new SimpleType(Integer.class, "integer");
+        var numberType = new SimpleType(Number.class, "number");
+        var integerType = new SimpleType(Integer.class, "integer");
         assertThat(numberType.isAssignableFrom(Integer.class)).isTrue();
         assertThat(integerType.isAssignableFrom(Number.class)).isFalse();
     }
@@ -81,8 +81,8 @@ class SimpleTypeTest {
     @Test
     @DisplayName("Assignability from Object allows null and checks runtime class")
     void isAssignableFromObject() {
-        SimpleType numberType = new SimpleType(Number.class, "number");
-        SimpleType integerType = new SimpleType(Integer.class, "integer");
+        var numberType = new SimpleType(Number.class, "number");
+        var integerType = new SimpleType(Integer.class, "integer");
         assertThat(numberType.isAssignableFrom(Integer.valueOf(123))).isTrue();
         assertThat(integerType.isAssignableFrom(new Object())).isFalse();
         assertThat(integerType.isAssignableFrom((Object) null)).isTrue(); // DataType default allows null
@@ -91,9 +91,9 @@ class SimpleTypeTest {
     @Test
     @DisplayName("equals is reflexive, equal for same container class, and not equal otherwise")
     void equalsBehavior() {
-        SimpleType a1 = new SimpleType(Integer.class, "integer");
-        SimpleType a2 = new SimpleType(Integer.class, "int32", "INT32");
-        SimpleType b = new SimpleType(Number.class, "number");
+        var a1 = new SimpleType(Integer.class, "integer");
+        var a2 = new SimpleType(Integer.class, "int32", "INT32");
+        var b = new SimpleType(Number.class, "number");
 
         // Reflexive
         assertThat(a1).isEqualTo(a1)
@@ -106,10 +106,10 @@ class SimpleTypeTest {
     @Test
     @DisplayName("hashCode is consistent per instance (contract with equals not asserted per current behavior)")
     void hashCodeConsistency() {
-        SimpleType a1 = new SimpleType(Integer.class, "integer");
-        SimpleType a2 = new SimpleType(Integer.class, "int32", "INT32");
+        var a1 = new SimpleType(Integer.class, "integer");
+        var a2 = new SimpleType(Integer.class, "int32", "INT32");
 
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
         softly.assertThat(a1.hashCode()).as("first call").isEqualTo(a1.hashCode());
         softly.assertThat(a2.hashCode()).as("first call a2").isEqualTo(a2.hashCode());
         // We intentionally do not assert that equal objects have the same hashCode because current implementation

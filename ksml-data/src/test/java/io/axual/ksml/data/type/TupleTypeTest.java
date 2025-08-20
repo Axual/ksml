@@ -20,10 +20,11 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.value.Tuple;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import io.axual.ksml.data.value.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,7 +33,7 @@ class TupleTypeTest {
     @Test
     @DisplayName("Constructor builds name/spec from subtypes and uses Tuple as container class")
     void constructorProperties() {
-        TupleType t = new TupleType(io.axual.ksml.data.object.DataString.DATATYPE, io.axual.ksml.data.object.DataInteger.DATATYPE);
+        var t = new TupleType(io.axual.ksml.data.object.DataString.DATATYPE, io.axual.ksml.data.object.DataInteger.DATATYPE);
         assertThat(t)
                 .returns(Tuple.class, TupleType::containerClass)
                 .returns("TupleOfStringAndInteger", TupleType::name)
@@ -46,8 +47,8 @@ class TupleTypeTest {
     @Test
     @DisplayName("Assignability compares each position using ComplexType logic")
     void assignabilityBetweenTuples() {
-        TupleType numberString = new TupleType(new SimpleType(Number.class, "number"), new SimpleType(String.class, "string"));
-        TupleType integerString = new TupleType(new SimpleType(Integer.class, "integer"), new SimpleType(String.class, "string"));
+        var numberString = new TupleType(new SimpleType(Number.class, "number"), new SimpleType(String.class, "string"));
+        var integerString = new TupleType(new SimpleType(Integer.class, "integer"), new SimpleType(String.class, "string"));
         assertThat(numberString.isAssignableFrom(integerString)).isTrue();
         assertThat(integerString.isAssignableFrom(numberString)).isFalse();
     }
@@ -55,7 +56,7 @@ class TupleTypeTest {
     @Test
     @DisplayName("Assignability from Class checks Tuple.class")
     void assignabilityFromClass() {
-        TupleType anyTuple = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
+        var anyTuple = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
         assertThat(anyTuple.isAssignableFrom(Tuple.class)).isTrue();
         assertThat(anyTuple.isAssignableFrom(Object.class)).isFalse();
     }
@@ -63,11 +64,11 @@ class TupleTypeTest {
     @Test
     @DisplayName("equals uses mutual assignability; hashCode consistent per instance")
     void equalsAndHashCode() {
-        TupleType a1 = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
-        TupleType a2 = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
-        TupleType b = new TupleType(new SimpleType(Integer.class, "integer"), new SimpleType(String.class, "string"));
+        var a1 = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
+        var a2 = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
+        var b = new TupleType(new SimpleType(Integer.class, "integer"), new SimpleType(String.class, "string"));
 
-        SoftAssertions softly = new SoftAssertions();
+        var softly = new SoftAssertions();
         softly.assertThat(a1.equals(a1)).isTrue();
         softly.assertThat(a1).isEqualTo(a2);
         softly.assertThat(a1).isNotEqualTo(b);

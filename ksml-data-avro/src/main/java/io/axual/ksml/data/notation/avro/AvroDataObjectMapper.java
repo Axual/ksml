@@ -50,7 +50,6 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -148,19 +147,19 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     // ========================= TO DATAOBJECT HELPERS =========================
 
     private DataObject convertRecordToDataStruct(DataType expected, GenericRecord genericRecord) {
-        Schema avroSchema = genericRecord.getSchema();
-        StructSchema structSchema = (StructSchema) SCHEMA_MAPPER.toDataSchema(avroSchema.getNamespace(), avroSchema.getName(), avroSchema);
-        DataStruct result = new DataStruct(structSchema);
+        var avroSchema = genericRecord.getSchema();
+        var structSchema = (StructSchema) SCHEMA_MAPPER.toDataSchema(avroSchema.getNamespace(), avroSchema.getName(), avroSchema);
+        var result = new DataStruct(structSchema);
 
-        for (Schema.Field field : avroSchema.getFields()) {
-            final String name = field.name();
-            final Object raw = genericRecord.get(name);
-            final DataSchema fieldDataSchema = structSchema.field(name) != null ? structSchema.field(name).schema() : null;
-            final DataType fieldExpectedType = TYPE_SCHEMA_MAPPER.fromDataSchema(fieldDataSchema);
+        for (var field : avroSchema.getFields()) {
+            final var name = field.name();
+            final var raw = genericRecord.get(name);
+            final var fieldDataSchema = structSchema.field(name) != null ? structSchema.field(name).schema() : null;
+            final var fieldExpectedType = TYPE_SCHEMA_MAPPER.fromDataSchema(fieldDataSchema);
 
             if (raw == null) {
                 // Handle optional unions with null defaults based on concrete branch
-                DataObject nullValue = nullForOptionalField(field.schema());
+                var nullValue = nullForOptionalField(field.schema());
                 if (nullValue != null) {
                     result.put(name, nullValue);
                 }
@@ -169,7 +168,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             }
 
             // Non-null value: convert based on runtime type and schema
-            DataObject conv = convertAvroValueToDataObject(fieldExpectedType, raw, field.schema());
+            var conv = convertAvroValueToDataObject(fieldExpectedType, raw, field.schema());
             result.put(name, conv);
         }
         return result;
@@ -191,7 +190,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private DataObject nullForOptionalField(Schema fieldSchema) {
-        Schema effective = unwrapUnionToPrimary(fieldSchema);
+        var effective = unwrapUnionToPrimary(fieldSchema);
         if (effective == null) return null; // not an optional union or ambiguous union
         return switch (effective.getType()) {
             case STRING -> new DataString(null);
@@ -202,9 +201,9 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case BOOLEAN -> new DataBoolean(null);
             case BYTES -> new DataBytes(null);
             case MAP -> {
-                Schema valueSchema = effective.getValueType();
-                DataSchema valueDataSchema = SCHEMA_MAPPER.toDataSchema(null, valueSchema);
-                DataType valueType = TYPE_SCHEMA_MAPPER.fromDataSchema(valueDataSchema);
+                var valueSchema = effective.getValueType();
+                var valueDataSchema = SCHEMA_MAPPER.toDataSchema(null, valueSchema);
+                var valueType = TYPE_SCHEMA_MAPPER.fromDataSchema(valueDataSchema);
                 yield new DataMap(valueType, true);
             }
             // For ARRAY, RECORD, ENUM, FIXED, MAP -> omit field (return null)
@@ -214,7 +213,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Schema unwrapUnionToPrimary(Schema schema) {
         if (schema.getType() != Schema.Type.UNION) return null;
-        List<Schema> types = schema.getTypes();
+        var types = schema.getTypes();
         // Optional pattern: [null, T] or [T, null]
         if (types.size() == 2) {
             if (types.get(0).getType() == Schema.Type.NULL) return types.get(1);
@@ -224,49 +223,49 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private Schema elementSchemaOf(Schema fieldSchema) {
-        Schema s = fieldSchema.getType() == Schema.Type.UNION ? activeNonNullArraySchema(fieldSchema) : fieldSchema;
+        var s = fieldSchema.getType() == Schema.Type.UNION ? activeNonNullArraySchema(fieldSchema) : fieldSchema;
         if (s != null && s.getType() == Schema.Type.ARRAY) return s.getElementType();
         return null;
     }
 
     private Schema activeNonNullArraySchema(Schema unionSchema) {
-        for (Schema s : unionSchema.getTypes()) if (s.getType() == Schema.Type.ARRAY) return s;
+        for (var s : unionSchema.getTypes()) if (s.getType() == Schema.Type.ARRAY) return s;
         return null;
     }
 
     private Schema mapValueSchemaOf(Schema fieldSchema) {
-        Schema s = fieldSchema.getType() == Schema.Type.UNION ? activeNonNullMapSchema(fieldSchema) : fieldSchema;
+        var s = fieldSchema.getType() == Schema.Type.UNION ? activeNonNullMapSchema(fieldSchema) : fieldSchema;
         if (s != null && s.getType() == Schema.Type.MAP) return s.getValueType();
         return null;
     }
 
     private Schema activeNonNullMapSchema(Schema unionSchema) {
-        for (Schema s : unionSchema.getTypes()) if (s.getType() == Schema.Type.MAP) return s;
+        for (var s : unionSchema.getTypes()) if (s.getType() == Schema.Type.MAP) return s;
         return null;
     }
 
     private DataObject convertArrayToDataList(DataType expected, List<?> list, Schema elementSchema) {
-        DataType elemType = elementSchema != null ? dataTypeFromAvroSchema(elementSchema) : DataType.UNKNOWN;
-        DataList result = new DataList(elemType);
-        for (Object el : list) {
+        var elemType = elementSchema != null ? dataTypeFromAvroSchema(elementSchema) : DataType.UNKNOWN;
+        var result = new DataList(elemType);
+        for (var el : list) {
             result.add(toDataObject(elemType, el));
         }
         return result;
     }
 
     private DataObject convertMapToDataMap(DataType expected, Map<?, ?> map, Schema valueSchema) {
-        DataType valType = valueSchema != null ? dataTypeFromAvroSchema(valueSchema) : DataType.UNKNOWN;
-        DataMap result = new DataMap(valType);
-        for (Map.Entry<?, ?> e : map.entrySet()) {
-            String key = e.getKey() instanceof Utf8 u ? u.toString() : String.valueOf(e.getKey());
+        var valType = valueSchema != null ? dataTypeFromAvroSchema(valueSchema) : DataType.UNKNOWN;
+        var result = new DataMap(valType);
+        for (var e : map.entrySet()) {
+            var key = e.getKey() instanceof Utf8 u ? u.toString() : String.valueOf(e.getKey());
             result.put(key, toDataObject(valType, e.getValue()));
         }
         return result;
     }
 
     private static byte[] toByteArray(ByteBuffer buffer) {
-        ByteBuffer dup = buffer.duplicate();
-        byte[] arr = new byte[dup.remaining()];
+        var dup = buffer.duplicate();
+        var arr = new byte[dup.remaining()];
         dup.get(arr);
         return arr;
     }
@@ -288,9 +287,9 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                     new StructType((StructSchema) SCHEMA_MAPPER.toDataSchema(schema.getNamespace(), schema.getName(), schema));
             case UNION -> {
                 // Heuristic: if union is [null, T] return T; otherwise unknown
-                List<Schema> types = schema.getTypes();
+                var types = schema.getTypes();
                 if (types.size() == 2) {
-                    Schema primary = unwrapUnionToPrimary(schema);
+                    var primary = unwrapUnionToPrimary(schema);
                     yield primary != null ? dataTypeFromAvroSchema(primary) : DataType.UNKNOWN;
                 }
                 yield DataType.UNKNOWN;
@@ -329,16 +328,16 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         if (struct.isNull()) return null;
 
         // Build Avro schema from struct type if available
-        StructSchema ksmlSchema = struct.type() != null ? struct.type().schema() : null;
-        Schema avroSchema = ksmlSchema != null ? SCHEMA_MAPPER.fromDataSchema(ksmlSchema) : null;
+        var ksmlSchema = struct.type() != null ? struct.type().schema() : null;
+        var avroSchema = ksmlSchema != null ? SCHEMA_MAPPER.fromDataSchema(ksmlSchema) : null;
         if (avroSchema == null || avroSchema.getType() != Schema.Type.RECORD) {
             // Fallback to native map conversion if no schema
             return convertDataStructToPlainMap(struct);
         }
-        GenericData.Record rec = new GenericData.Record(avroSchema);
-        for (Schema.Field f : avroSchema.getFields()) {
-            DataObject fieldVal = struct.get(f.name());
-            Object avroVal = convertDataObjectToAvroBySchema(fieldVal, f.schema());
+        var rec = new GenericData.Record(avroSchema);
+        for (var f : avroSchema.getFields()) {
+            var fieldVal = struct.get(f.name());
+            var avroVal = convertDataObjectToAvroBySchema(fieldVal, f.schema());
             rec.put(f.name(), avroVal);
         }
         return rec;
@@ -405,9 +404,9 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case UNION -> {
                 if (value instanceof DataNull) return null;
                 // Try to match one of the union branches
-                for (Schema branch : schema.getTypes()) {
+                for (var branch : schema.getTypes()) {
                     if (branch.getType() == Schema.Type.NULL) continue;
-                    Object candidate = convertDataObjectToAvroBySchema(value, branch);
+                    var candidate = convertDataObjectToAvroBySchema(value, branch);
                     if (candidate != null || value instanceof DataNull) return candidate;
                 }
                 // Last resort
@@ -422,7 +421,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     private List<Object> convertDataListToAvroList(DataList list, Schema elementSchema) {
         if (list.isNull()) return null;
         List<Object> out = new ArrayList<>(list.size());
-        for (DataObject el : list) {
+        for (var el : list) {
             out.add(elementSchema != null ? convertDataObjectToAvroBySchema(el, elementSchema) : fromDataObject(el));
         }
         return out;
