@@ -65,7 +65,6 @@ nav:
         - Custom State Stores: tutorials/advanced/custom-state-stores.md
         - Performance Optimization: tutorials/advanced/performance-optimization.md
         - Integration with External Systems: tutorials/advanced/external-integration.md
-        - Advanced Error Handling: tutorials/advanced/advanced-error-handling.md
   - Use Case Guides:
       - Overview: use-cases/index.md
       - Data Transformation: use-cases/data-transformation.md

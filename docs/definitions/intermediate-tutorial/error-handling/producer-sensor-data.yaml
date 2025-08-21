@@ -1,9 +1,7 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
-
-# Simple producer for sensor data with error conditions
+# Producer for try-catch example - generates sensor data with various error conditions
 
 functions:
-  generate_sensors:
+  generate_sensor_data:
     type: generator
     globalCode: |
       import random
@@ -12,32 +10,47 @@ functions:
       global counter
       counter += 1
       
-      sensor_id = f"sensor_{counter % 5 + 1}"
-      
-      # Create different sensor scenarios
-      if "error" in sensor_id or counter % 5 == 0:
-        # Error sensor - null temperature
+      # Generate different sensor scenarios
+      if counter % 5 == 1:
+        # Normal reading
         data = {
-          "sensor_id": sensor_id,
-          "temperature": None,
-          "status": "error"
+          "sensor_id": f"sensor_{counter % 3 + 1}",
+          "temperature": round(random.uniform(20.0, 80.0), 2),
+          "humidity": round(random.uniform(30.0, 90.0), 2)
+        }
+      elif counter % 5 == 2:
+        # Invalid temperature (string instead of number)
+        data = {
+          "sensor_id": f"sensor_{counter % 3 + 1}",
+          "temperature": "invalid",
+          "humidity": round(random.uniform(30.0, 90.0), 2)
+        }
+      elif counter % 5 == 3:
+        # Missing humidity field
+        data = {
+          "sensor_id": f"sensor_{counter % 3 + 1}",
+          "temperature": round(random.uniform(20.0, 80.0), 2)
+        }
+      elif counter % 5 == 4:
+        # Extreme values that should trigger warnings
+        data = {
+          "sensor_id": f"sensor_{counter % 3 + 1}",
+          "temperature": round(random.uniform(100.0, 150.0), 2),
+          "humidity": round(random.uniform(95.0, 100.0), 2)
         }
       else:
-        # Normal sensor
-        data = {
-          "sensor_id": sensor_id,
-          "temperature": round(random.uniform(15.0, 35.0), 1),
-          "status": "normal"
-        }
+        # Null/None data
+        data = None
       
-      key = sensor_id
+      key = f"sensor_{counter % 3 + 1}"
     expression: (key, data)
     resultType: (string, json)
 
 producers:
   sensor_producer:
-    generator: generate_sensors
+    generator: generate_sensor_data
     interval: 2s
+    count: 20
     to:
       topic: sensor_readings
       keyType: string

@@ -13,6 +13,33 @@ KSML joins are built on top of Kafka Streams join operations, providing a YAML-b
 Before starting this tutorial:
 
 - Have [Docker Compose KSML environment setup running](../../getting-started/basics-tutorial.md#choose-your-setup-method)
+- Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
+
+??? info "Topic creation commands - click to expand"
+
+    ```yaml
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_clicks && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_purchases && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic correlated_user_actions && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_conversions && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_clicks_by_product && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_purchases_by_product && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic new_orders && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic customer_data && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic enriched_orders && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_customer_data && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_catalog && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_product_details && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_activity_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_location_data && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic activity_with_location && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_login_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_logout_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_session_analysis && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic customer_profiles && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic customer_preferences && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic enriched_customer_data && \
+    ```
 
 ## Core Join Concepts
 
@@ -113,6 +140,14 @@ Stream-stream joins correlate events from two streams within a specified time wi
 
 Track user shopping behavior by correlating clicks and purchases within a 30-minute window to understand the customer journey.
 
+**What it does:**
+
+- **Produces two streams**: Creates product_clicks (user clicks on products) and product_purchases (user buys products) with user_id keys and timestamps
+- **Joins with time window**: Uses join operation with 30-minute timeDifference to correlate clicks with purchases that happen within 30 minutes
+- **Stores in window stores**: Both streams use 60-minute window stores (2×30min) with retainDuplicates=true to buffer events for correlation
+- **Combines with valueJoiner**: When matching user_id found in both streams within time window, combines click and purchase data into single result
+- **Outputs correlations**: Returns JSON showing both events with conversion analysis (did click lead to purchase, what products involved)
+
 ??? info "Producer: Clicks and Purchases (click to expand)"
 
     ```yaml
@@ -145,11 +180,13 @@ Stream-table joins enrich streaming events with the latest state from a changelo
 
 Enrich order events with customer information by joining the orders stream with a customers table.
 
-**Implementation Challenge:** Orders naturally use order_id as the key, but joining requires customer_id. The solution uses a three-step pattern:
+**What it does:**
 
-1. **Rekey** orders from order_id to customer_id
-2. **Join** with the customers table
-3. **Rekey** back to order_id for downstream processing
+- **Produces orders and customers**: Creates order stream (keyed by order_id) and customer table (keyed by customer_id) with matching customer references
+- **Rekeys for join**: Transforms order key from order_id to customer_id using extract_customer_id function to enable join with customers table
+- **Joins stream with table**: Uses join operation to combine each order with latest customer data from customers table based on customer_id
+- **Combines data**: valueJoiner function merges order details with customer information into enriched result containing both datasets
+- **Restores original key**: Transforms key back from customer_id to order_id using restore_order_key for downstream processing consistency
 
 ??? info "Producer: Orders (click to expand)"
 
@@ -185,6 +222,14 @@ GlobalTable joins enable enrichment with reference data that's replicated across
 
 Enrich orders with product details using a foreign key join with a global product catalog.
 
+**What it does:**
+
+- **Produces orders and products**: Creates order stream with product_id references and product_catalog globalTable with product details  
+- **Uses foreign key mapper**: Extracts product_id from order value using keyValueMapper to look up in product_catalog globalTable
+- **Joins with globalTable**: No co-partitioning needed - globalTable replicated to all instances, joins orders with product details by product_id
+- **Enriches with product data**: Combines order information with product details (name, price, category) from catalog
+- **Outputs enriched orders**: Returns orders enhanced with full product information for downstream processing
+
 ??? info "Producer: Orders and Products (click to expand)"
 
     ```yaml
@@ -205,6 +250,96 @@ The `mapper` function extracts the foreign key from stream records:
 - **Input**: Stream's key and value
 - **Output**: Key to lookup in the GlobalTable
 - **Example**: Extract product_id from order to join with product catalog
+
+## Stream-Table Left Join
+
+Left joins preserve all records from the stream (left side) while adding data from the table (right side) when available. This is useful for enriching events with optional reference data.
+
+### Use Case: Activity Enrichment with Location
+
+Enrich user activity events with location data, preserving all activities even when location information is missing.
+
+**What it does:**
+
+- **Produces activities and locations**: Creates user_activity_events stream and user_location_data table, with some users having location data, others not
+- **Uses leftJoin**: Joins activity stream with location table - preserves all activities even when no location data exists for user
+- **Handles missing data**: valueJoiner receives null for location when user not in location table, includes null-check logic
+- **Enriches optionally**: Adds location data when available, leaves location fields empty/null when not available  
+- **Preserves all activities**: All activity events flow through to output regardless of whether location data exists, maintaining complete activity stream
+
+??? info "Producer: User Activity and Locations (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/joins/producer-user-activity-locations.yaml"
+    %}
+    ```
+
+??? info "Processor: Stream-Table Left Join (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/joins/processor-stream-table-left-join.yaml"
+    %}
+    ```
+
+This example demonstrates:
+
+- **Left join semantics**: All activity events are preserved, even when location data is missing
+- **Graceful null handling**: Unknown locations get default values instead of causing errors
+- **Enrichment metadata**: Tracks whether enrichment data was available
+- **Real-world pattern**: Common scenario where reference data may be incomplete
+
+**Expected Behavior:**
+
+- Activities for users with location data are enriched with country/city information
+- Activities for users without location data get "UNKNOWN" placeholders
+- All activities are preserved regardless of location availability
+
+## Stream-Stream Outer Join
+
+Outer joins capture events from either stream, making them ideal for tracking incomplete or partial interactions between two event types.
+
+### Use Case: Login/Logout Session Analysis
+
+Track user sessions by correlating login and logout events, capturing incomplete sessions where only one event type occurs.
+
+**What it does:**
+
+- **Produces login and logout events**: Creates separate streams for user_login_events and user_logout_events with overlapping but not always matching users
+- **Uses outerJoin**: Correlates events within 10-minute window, captures login-only, logout-only, and complete login+logout sessions
+- **Handles three scenarios**: Complete sessions (both events), LOGIN_ONLY (user logged in, no logout captured), LOGOUT_ONLY (logout without login)
+- **Calculates session data**: For complete sessions computes session duration, for incomplete sessions identifies the pattern and timing
+- **Outputs all patterns**: Returns session analysis showing complete sessions with duration, or incomplete sessions with pattern classification
+
+??? info "Producer: Login and Logout Events (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/joins/producer-login-logout-events.yaml"
+    %}
+    ```
+
+??? info "Processor: Stream-Stream Outer Join (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/joins/processor-stream-stream-outer-join.yaml"
+    %}
+    ```
+
+This example demonstrates:
+
+- **Outer join semantics**: Captures login-only, logout-only, and complete sessions
+- **Session analysis**: Categorizes different session patterns for analytics
+- **Time window correlation**: Uses 10-minute window to correlate related events
+- **Business insights**: Identifies users who login but don't logout (active sessions) or logout without captured login
+
+**Expected Behavior:**
+
+- **COMPLETE sessions**: When both login and logout events occur within the time window
+- **LOGIN_ONLY sessions**: Users who logged in but no logout was captured (active sessions)
+- **LOGOUT_ONLY sessions**: Logout events without corresponding login (users already logged in)
 
 ## Join Type Variants
 

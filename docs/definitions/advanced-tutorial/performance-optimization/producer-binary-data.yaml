@@ -1,0 +1,48 @@
+# Producer for serialization optimization demo - generates binary data for performance
+
+functions:
+  generate_binary_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      import struct
+      event_counter = 0
+      user_ids = list(range(1, 101))  # Numeric user IDs for binary encoding
+    code: |
+      global event_counter, user_ids
+      
+      event_counter += 1
+      user_id = random.choice(user_ids)
+      
+      # Generate data for binary serialization comparison
+      timestamp = int(time.time() * 1000)
+      event_type_id = random.randint(1, 5)  # Encoded event types
+      value = random.randint(1, 10000)
+      score = random.randint(1, 100)
+      
+      # Create structured data in JSON format (better than compact strings for readability)
+      # While JSON has more overhead than binary, it provides better debugging/monitoring
+      event_data = {
+        "user_id": user_id,
+        "timestamp": timestamp,
+        "event_type_id": event_type_id,
+        "value": value,
+        "score": score,
+        "metadata": {
+          "batch": event_counter // 50,
+          "version": 1
+        }
+      }
+      
+    expression: (str(user_id), event_data)
+    resultType: (string, json)
+
+producers:
+  binary_data_producer:
+    generator: generate_binary_events
+    interval: 1s  # High frequency for performance testing
+    to:
+      topic: binary_events
+      keyType: string
+      valueType: json

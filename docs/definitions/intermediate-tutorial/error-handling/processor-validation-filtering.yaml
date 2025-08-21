@@ -1,6 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
-
-# Simple validation and filtering example demonstrating branch and predicate operations
+# Validation and filtering example using branch operation
 
 streams:
   incoming_orders:
@@ -19,50 +17,26 @@ streams:
     valueType: json
 
 functions:
-  is_valid_order:
-    type: predicate
-    code: |
-      # Simple validation - check required fields exist and are valid
-      if value is None or "malformed" in value:
-        return False
-      
-      required_fields = ["order_id", "customer_id", "product_id", "quantity", "price"]
-      for field in required_fields:
-        if field not in value:
-          return False
-      
-      # Check positive values
-      return value.get("quantity", 0) > 0 and value.get("price", 0) > 0
-  
   add_validation_status:
     type: valueTransformer
     code: |
-      # Add validation timestamp
-      value["validated_at"] = "2025-01-01T00:00:00Z"
       value["status"] = "valid"
+      value["validated_at"] = key
     expression: value
     resultType: json
   
-  add_error_info:
+  add_error_details:
     type: valueTransformer
     code: |
-      # Add error information
-      value["validated_at"] = "2025-01-01T00:00:00Z"
       value["status"] = "invalid"
-      
-      # Identify issues
-      issues = []
       if "malformed" in value:
-        issues.append("malformed_data")
+        value["error_reason"] = "malformed_data"
+      elif "product_id" not in value:
+        value["error_reason"] = "missing_required_fields"
+      elif value.get("quantity", 0) <= 0:
+        value["error_reason"] = "invalid_quantity"
       else:
-        required = ["order_id", "customer_id", "product_id", "quantity", "price"]
-        for field in required:
-          if field not in value:
-            issues.append(f"missing_{field}")
-        if value.get("quantity", 0) <= 0:
-          issues.append("invalid_quantity")
-      
-      value["issues"] = issues
+        value["error_reason"] = "validation_failed"
     expression: value
     resultType: json
 
@@ -75,12 +49,23 @@ pipelines:
           code: |
             log.info("Processing order: {}", key)
     branch:
-      - if: is_valid_order
+      # Valid orders branch
+      - if:
+          expression: value and "malformed" not in value and "product_id" in value and value.get("quantity", 0) > 0
         via:
-          - type: mapValues
+          - type: transformValue
             mapper: add_validation_status
+          - type: peek
+            forEach:
+              code: |
+                log.info("VALID ORDER: {}", key)
         to: valid_orders
+      # Invalid orders branch  
       - via:
-          - type: mapValues
-            mapper: add_error_info
+          - type: transformValue
+            mapper: add_error_details
+          - type: peek
+            forEach:
+              code: |
+                log.info("INVALID ORDER: {} - {}", key, value.get("error_reason"))
         to: invalid_orders

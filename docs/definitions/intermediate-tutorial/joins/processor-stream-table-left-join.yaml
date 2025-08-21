@@ -1,0 +1,65 @@
+streams:
+  user_activity:
+    topic: user_activity_events
+    keyType: string  # User ID
+    valueType: json  # Activity details
+
+  enriched_activity:
+    topic: activity_with_location
+    keyType: string  # User ID
+    valueType: json  # Activity enriched with location
+
+tables:
+  user_locations:
+    topic: user_location_data
+    keyType: string  # User ID
+    valueType: json  # Location details
+
+functions:
+  join_activity_with_location:
+    type: valueJoiner
+    globalCode: |
+      import time
+    code: |
+      # Left join: always preserve activity data, add location if available
+      result = {}
+      
+      # Always include activity data (left side)
+      if value1 is not None:
+        result.update(value1)
+      
+      # Add location data if available (right side)
+      if value2 is not None:
+        result["location"] = {
+          "country": value2.get("country"),
+          "city": value2.get("city"),
+          "timezone": value2.get("timezone")
+        }
+      else:
+        # Location not available for this user
+        result["location"] = {
+          "country": "UNKNOWN",
+          "city": "UNKNOWN", 
+          "timezone": "UTC"
+        }
+      
+      # Add enrichment metadata
+      result["enriched"] = value2 is not None
+      result["enriched_at"] = int(time.time() * 1000)
+      
+      new_value = result
+    expression: new_value
+    resultType: json
+
+pipelines:
+  enrich_activity_with_location:
+    from: user_activity
+    via:
+      # Left join with location table - preserves all activities
+      - type: leftJoin
+        table: user_locations
+        valueJoiner: join_activity_with_location
+      - type: peek
+        forEach:
+          code: log.info("ENRICHED ACTIVITY - user={}, activity={}, location={}/{}, enriched={}", key, value.get("activity_type"), value.get("location", {}).get("city"), value.get("location", {}).get("country"), value.get("enriched"))
+    to: enriched_activity

@@ -1,0 +1,66 @@
+functions:
+  generate_login_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      login_counter = 0
+    code: |
+      global login_counter
+      
+      user_ids = ["alice", "bob", "charlie", "diana", "eve"]
+      user_id = random.choice(user_ids)
+      
+      login_event = {
+        "event_id": f"login_{login_counter+1:03d}",
+        "user_id": user_id,
+        "login_time": int(time.time() * 1000),
+        "device": random.choice(["mobile", "desktop", "tablet"]),
+        "ip_address": f"192.168.1.{random.randint(1, 255)}"
+      }
+      
+      login_counter += 1
+      result = (user_id, login_event)
+    expression: result
+    resultType: (string, json)
+
+  generate_logout_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      logout_counter = 0
+    code: |
+      global logout_counter
+      
+      user_ids = ["alice", "bob", "charlie", "frank", "grace"]  # Some different users
+      user_id = random.choice(user_ids)
+      
+      logout_event = {
+        "event_id": f"logout_{logout_counter+1:03d}",
+        "user_id": user_id,
+        "logout_time": int(time.time() * 1000),
+        "session_duration": random.randint(60, 7200)  # 1 min to 2 hours
+      }
+      
+      logout_counter += 1
+      result = (user_id, logout_event)
+    expression: result
+    resultType: (string, json)
+
+producers:
+  login_producer:
+    generator: generate_login_events
+    interval: 2s
+    to:
+      topic: user_login_events
+      keyType: string
+      valueType: json
+
+  logout_producer:
+    generator: generate_logout_events
+    interval: 3s
+    to:
+      topic: user_logout_events
+      keyType: string
+      valueType: json

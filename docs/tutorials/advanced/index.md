@@ -43,15 +43,6 @@ This tutorial focuses on integrating KSML with other systems:
 - Working with message queues
 - Implementing the Kafka Connect pattern in KSML
 
-### [Advanced Error Handling](advanced-error-handling.md)
-
-Learn sophisticated error handling techniques:
-
-- Circuit breaker patterns
-- Retry strategies
-- Error recovery workflows
-- Handling partial failures in distributed systems
-
 ## Learning Path
 
 These advanced tutorials can be approached based on your specific needs and interests. Each tutorial is self-contained but may reference concepts from other advanced or intermediate tutorials.
@@ -63,10 +54,3 @@ After completing these tutorials, you'll have a comprehensive understanding of K
 Now that you've mastered KSML, it's time to apply your knowledge to real-world scenarios:
 
 👉 **Explore [Use Case Guides](../../use-cases/)** to see how KSML solves common business problems and get inspiration for your own projects.
-
-## Additional Resources
-
-- [Core Concepts: Advanced Topics](../../core-concepts/advanced-topics.md) - Detailed explanations of advanced KSML concepts
-- [Reference: Configuration Options](../../reference/configuration-reference.md) - Complete reference for tuning and configuring KSML
-- [Examples Library: Advanced Examples](../../resources/examples-library.md#advanced-examples) - Ready-to-use examples for advanced patterns
-- [Troubleshooting Guide](../../resources/troubleshooting.md) - Solutions for common issues in complex applications

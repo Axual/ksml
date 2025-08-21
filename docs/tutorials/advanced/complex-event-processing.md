@@ -4,130 +4,211 @@ This tutorial explores how to implement complex event processing (CEP) patterns 
 
 ## Introduction to Complex Event Processing
 
-Complex Event Processing (CEP) is a method of tracking and analyzing streams of data about things that happen (events), and deriving conclusions from them. In streaming contexts, CEP allows you to:
+Complex Event Processing (CEP) is a method of tracking and analyzing streams of data to identify patterns, correlate events, and derive higher-level insights. CEP enables real-time decision making by processing events as they occur rather than in batch.
 
-- Detect patterns across multiple events
-- Identify sequences of events that occur over time
-- Correlate events from different sources
-- Derive higher-level insights from lower-level events
+Key capabilities of CEP in KSML:
 
-KSML provides powerful capabilities for implementing CEP patterns through its combination of stateful processing, windowing operations, and Python functions.
+- **Pattern detection**: Identify sequences of events that form meaningful patterns
+- **Temporal analysis**: Detect time-based patterns and relationships
+- **Event correlation**: Connect related events from different sources
+- **Anomaly detection**: Identify unusual patterns or deviations
+- **Stateful processing**: Maintain context across multiple events
 
 ## Prerequisites
 
-Before starting this tutorial, you should:
+Before starting this tutorial:
 
-- Understand intermediate KSML concepts (streams, functions, pipelines)
-- Have completed the [Windowed Operations](../intermediate/windowed-operations.md) tutorial
-- Be familiar with [Joins](../intermediate/joins.md) and [Aggregations](../intermediate/aggregations.md)
-- Have a basic understanding of state management in stream processing
+- Have [Docker Compose KSML environment setup running](../../getting-started/basics-tutorial.md#choose-your-setup-method)
+- Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
 
-## Key CEP Patterns in KSML
+??? info "Topic creation commands - click to expand"
 
-### 1. Pattern Detection
+    ```yaml
+    # Pattern Detection
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic pattern_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic detected_patterns && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temporal_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temporal_patterns && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic system_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic correlated_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_metrics && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic anomalies_detected && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic credit_card_transactions && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic fraud_alerts && \
+    ```
 
-Pattern detection involves identifying specific sequences or combinations of events within a stream:
+## Pattern Detection
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/pattern-detection.yaml" %}
-```
+Pattern detection identifies specific sequences of events within a stream. This example detects an A→B→C pattern across events.
 
-### 2. Temporal Pattern Matching
+**What it does**:
 
-Temporal pattern matching adds time constraints to pattern detection:
+- **Produces events**: Creates events with types A, B, C, D, E - deliberately generates A→B→C sequences for session_001 to demonstrate pattern completion
+- **Tracks sequences**: Uses a state store to remember where each session is in the A→B→C pattern (stores "A", "AB", or deletes when complete)
+- **Detects completion**: When event C arrives and the state shows "AB", it recognizes the full A→B→C pattern is complete
+- **Outputs results**: Only emits a detection message when the complete pattern A→B→C is found, otherwise filters out partial matches
+- **Resets state**: Clears the pattern tracking after successful detection or if the sequence breaks (e.g., gets A→D instead of A→B)
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/temporal-pattern-matching.yaml" %}
-```
+??? info "Pattern Events Producer - click to expand"
 
-### 3. Event Correlation and Enrichment
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/producer-pattern-detection.yaml"
+    %}
+    ```
 
-Event correlation involves combining related events from different streams:
+??? info "Pattern Detection Processor - click to expand"
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/event-correlation-and-enrichment.yaml" %}
-```
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/processor-pattern-detection.yaml"
+    %}
+    ```
 
-### 4. Anomaly Detection
+**Key concepts demonstrated**:
 
-Anomaly detection identifies unusual patterns or deviations from normal behavior:
+- State store usage for tracking partial patterns
+- Sequential event processing
+- Pattern completion and reset logic
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/anomaly-detection.yaml" %}
-```
+## Temporal Pattern Matching
 
-## Practical Example: Fraud Detection System
+Temporal patterns add time constraints to event sequences. This example detects quick checkout behavior (cart→checkout within 5 minutes).
 
-Let's build a complete example that implements a real-time fraud detection system using CEP patterns:
+**What it does**:
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/fraud-detection.yaml" %}
-```
+- **Produces shopping events**: Creates events like "add_to_cart" and "checkout" with realistic timestamps and shopping details
+- **Stores cart events**: When "add_to_cart" happens, saves the cart timestamp and details in state store as JSON
+- **Measures time gaps**: When "checkout" arrives, calculates milliseconds between cart and checkout events  
+- **Classifies by speed**: If checkout happens within 5 minutes (300,000ms) = "QUICK_CHECKOUT", otherwise "SLOW_CHECKOUT"
+- **Outputs results**: Only emits a message when both cart and checkout events are found, showing the time difference and classification
 
-This example:
-1. Processes credit card transactions in real-time
-2. Detects anomalies based on transaction amount, location, frequency, and merchant category
-3. Correlates transactions with user location data to detect impossible travel patterns
-4. Enriches alerts with user context and history
-5. Calculates a risk score and categorizes alerts by risk level
+??? info "Temporal Events Producer - click to expand"
 
-## Advanced CEP Techniques
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/producer-temporal-events.yaml"
+    %}
+    ```
 
-### State Management for Long-Running Patterns
+??? info "Temporal Pattern Processor - click to expand"
 
-For patterns that span long periods, consider using persistent state stores:
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/processor-temporal-pattern.yaml"
+    %}
+    ```
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/long-term-pattern-store.yaml" %}
-```
+**Key concepts demonstrated**:
 
-### Handling Out-of-Order Events
+- Time-based pattern constraints
+- Timestamp extraction and comparison
+- Temporal window analysis
 
-Use windowing with grace periods to handle events that arrive out of order:
+## Event Correlation
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/long-term-pattern-store.yaml" %}
-```
+Event correlation combines related events from different streams to provide enriched context.
 
-### Hierarchical Pattern Detection
+**What it does**:
 
-Implement hierarchical patterns by building higher-level patterns from lower-level ones:
+- **Produces two event streams**: Creates user events (page_view, click, form_submit) and system events (api_call, db_query, error) with the same user IDs
+- **Joins streams by user**: Uses leftJoin to connect system events with the latest user activity for each user ID
+- **Detects specific patterns**: Looks for meaningful combinations like "form_submit + error", "page_view + db_query", or "click + api_call"
+- **Measures timing**: Calculates milliseconds between user action and system response to determine correlation strength (HIGH/MEDIUM)
+- **Outputs correlations**: Only emits results when it finds the specific patterns, showing both events with timing analysis and relationship details
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/hierarchical-pattern-detection.yaml" %}
-```
+??? info "Correlation Events Producer (generates both user and system events) - click to expand"
 
-## Best Practices for Complex Event Processing
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/producer-correlation-events.yaml"
+    %}
+    ```
 
-### Performance Considerations
+??? info "Event Correlation Processor - click to expand"
 
-- **State Size**: CEP often requires maintaining state. Monitor state store sizes and use windowing to limit state growth.
-- **Computation Complexity**: Complex pattern detection can be CPU-intensive. Keep pattern matching logic efficient.
-- **Event Volume**: High-volume streams may require pre-filtering to focus on relevant events.
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/processor-event-correlation.yaml"
+    %}
+    ```
 
-### Design Patterns
+**Key concepts demonstrated**:
 
-- **Pattern Decomposition**: Break complex patterns into simpler sub-patterns that can be detected independently.
-- **Incremental Processing**: Update pattern state incrementally as events arrive rather than reprocessing all events.
-- **Hierarchical Patterns**: Build complex patterns by combining simpler patterns.
+- Stream-table joins for context enrichment
+- Cross-stream event correlation
+- Cause-effect relationship detection
 
-### Error Handling
+## Anomaly Detection
 
-Implement robust error handling to prevent pattern detection failures:
+Anomaly detection identifies unusual patterns using statistical analysis.
 
-```yaml
-{% include "definitions/advanced-tutorial/complex-event-processing/error-handling.yaml" %}
-```
+**What it does**:
+
+- **Produces sensor readings**: Creates temperature values that are normally 40-60°C, but every 20th reading is a spike (90-100°C) and every 25th is a drop (0-10°C)
+- **Tracks statistics per sensor**: Stores running count, sum, sum-of-squares, min, max in state store to calculate mean and standard deviation
+- **Calculates z-scores**: After 10+ readings, computes how many standard deviations each new reading is from the mean
+- **Detects outliers**: When z-score > 3.0, flags as anomaly (spike if above mean, drop if below mean)
+- **Outputs anomalies**: Only emits detection messages when statistical threshold is exceeded, showing z-score, mean, and severity level
+
+??? info "Metrics Producer (with occasional anomalies) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/producer-metrics.yaml"
+    %}
+    ```
+
+??? info "Anomaly Detection Processor - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/processor-anomaly-detection.yaml"
+    %}
+    ```
+
+**Key concepts demonstrated**:
+
+- Statistical anomaly detection (z-score)
+- Running statistics calculation
+- Threshold-based alerting
+
+## Fraud Detection System
+
+A practical example combining multiple CEP techniques for real-time fraud detection.
+
+**What it does**:
+
+- **Produces transactions**: Creates credit card purchases with amounts, merchants, locations - deliberately generates suspicious patterns (high amounts every 15th, rapid transactions every 20th)
+- **Stores transaction history**: Keeps last location, timestamp, and totals for each card number in state store
+- **Scores fraud risk**: Adds points for patterns: +40 for amounts >$5000, +30 for transactions <60s apart, +20 for location changes <1hr, +20 for suspicious merchants
+- **Classifies threats**: If score ≥70 = "FRAUD_ALERT", if 30-69 = "SUSPICIOUS_TRANSACTION", otherwise no output
+- **Outputs alerts**: Only emits results when fraud score thresholds are met, showing detected patterns, risk factors, and recommended actions
+
+??? info "Credit Card Transactions Producer - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/producer-transactions.yaml"
+    %}
+    ```
+
+??? info "Fraud Detection Processor - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/complex-event-processing/processor-fraud-detection.yaml"
+    %}
+    ```
+
+**Key concepts demonstrated**:
+
+- Multi-factor pattern analysis
+- Risk scoring algorithms
+- Transaction velocity checks
+- Geographic anomaly detection
 
 ## Conclusion
 
-Complex Event Processing in KSML allows you to detect sophisticated patterns across multiple events and streams. By combining stateful processing, windowing operations, and custom Python functions, you can implement powerful CEP applications that derive meaningful insights from streaming data.
-
-In the next tutorial, we'll explore [Custom State Stores](custom-state-stores.md) to learn how to implement and optimize state management for advanced stream processing applications.
-
-## Further Reading
-
-- [Core Concepts: Operations](../../core-concepts/operations.md)
-- [Core Concepts: Functions](../../core-concepts/functions.md)
-- [Intermediate Tutorial: Windowed Operations](../intermediate/windowed-operations.md)
-- [Reference: State Stores](../../reference/data-type-reference.md)
+Complex Event Processing in KSML provides capabilities for real-time pattern detection and analysis. By combining state management, temporal operations, and correlation techniques, you can build sophisticated event processing applications that derive actionable insights from streaming data.

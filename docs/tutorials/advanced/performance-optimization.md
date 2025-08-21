@@ -1,80 +1,195 @@
 # Performance Optimization in KSML
 
-This tutorial explores strategies and techniques for optimizing the performance of your KSML applications, helping you
-build efficient, scalable, and resource-friendly stream processing solutions.
+This tutorial covers optimization techniques for KSML applications to improve throughput, reduce latency, and minimize resource usage.
 
-## Introduction to Performance Optimization
+## Introduction
 
-Performance optimization is crucial for stream processing applications that need to handle high volumes of data with low
-latency. Optimizing your KSML applications can help you:
-
-- Process more data with the same resources
-- Reduce processing latency
-- Lower infrastructure costs
-- Handle spikes in data volume
-- Ensure consistent performance under load
-
-This tutorial covers various aspects of performance optimization, from configuration tuning to code-level optimizations.
+Performance optimization helps you process more data efficiently while reducing costs and maintaining low latency under high loads.
 
 ## Prerequisites
 
-Before starting this tutorial, you should:
+Before starting this tutorial:
 
-- Understand intermediate KSML concepts (streams, functions, pipelines)
-- Have completed the [Custom State Stores](custom-state-stores.md) tutorial
-- Be familiar with Kafka Streams concepts
-- Have a basic understanding of JVM performance characteristics
+- Have [Docker Compose KSML environment setup running](../../getting-started/basics-tutorial.md#choose-your-setup-method)
+- Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
 
-## Identifying Performance Bottlenecks
+??? info "Topic creation commands - click to expand"
 
-Before optimizing, it's important to identify where performance bottlenecks exist in your application:
+    ```yaml
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic mixed_quality_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic filtered_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic enriched_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic final_processed_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic binary_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic optimized_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic readable_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_activity && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_metrics_summary && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic high_volume_events && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic processed_events && \
+    ```
 
-### 1. Monitoring Metrics
+## Core Performance Concepts
 
-KSML exposes various metrics that can help identify bottlenecks:
+### Identifying Bottlenecks
 
-```yaml
-functions:
-  monitor_performance:
-    type: forEach
-    code: |
-      # Record processing time
-      start_time = time.time()
-
-      # Process message
-      process_message(key, value)
-
-      # Calculate and record processing time
-      processing_time_ms = (time.time() - start_time) * 1000
-      metrics.timer("message.processing.time").updateMillis(processing_time_ms)
-
-      # Record message size
-      if value is not None:
-        message_size = len(str(value))
-        metrics.meter("message.size").mark(message_size)
-```
-
-Key metrics to monitor include:
+Before optimizing, identify where performance bottlenecks exist:
 
 - **Processing time**: How long it takes to process each message
 - **Throughput**: Messages processed per second
 - **State store size**: How much data is stored in state stores
 - **Memory usage**: JVM heap and non-heap memory
-- **GC activity**: Frequency and duration of garbage collection pauses
+- **GC activity**: Frequency and duration of garbage collection
 
-### 2. Profiling
+### Key Optimization Areas
 
-For more detailed analysis, use profiling tools to identify hotspots in your code:
+1. **Python Function Efficiency**: Optimize code for minimal object creation and fast execution
+2. **State Store Configuration**: Configure stores for your specific workload
+3. **Pipeline Design**: Structure pipelines to filter early and process efficiently
+4. **Data Serialization**: Choose efficient formats and minimize serialization overhead
 
-- **JVM profilers**: Tools like VisualVM, JProfiler, or YourKit
-- **Flame graphs**: For visualizing call stacks and identifying bottlenecks
-- **Distributed tracing**: For tracking performance across multiple services
+## Efficient Processing Patterns
+
+This example demonstrates optimized Python code and efficient data handling techniques.
+
+**What it does:**
+
+- **Produces high-volume events**: Creates user events (click, purchase, view) with categories, values, but also includes low-value events (scroll, hover)
+- **Filters early**: Immediately discards uninteresting events (scroll, hover) to avoid processing overhead downstream
+- **Pre-computes efficiently**: Uses global dictionaries for priority events and category multipliers, calculates scores with minimal object creation
+- **Processes with JSON**: Extracts fields from JSON using `.get()`, builds result objects for Kowl UI readability
+- **Logs selectively**: Only logs high-score events to reduce I/O overhead while maintaining performance visibility
+
+??? info "High-volume producer (compact format) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/producer-high-volume.yaml"
+    %}
+    ```
+
+??? info "Efficient processor (optimized Python) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/processor-efficient-processing.yaml"
+    %}
+    ```
+
+**Key optimization techniques:**
+
+- **Global code optimization**: Pre-compute expensive operations outside processing loops
+- **Early filtering**: Discard unwanted events immediately to reduce downstream processing
+- **Efficient logging**: Log only important events to reduce I/O overhead
+
+### State Store Optimization
+
+This example shows how to configure and use state stores efficiently for high-performance scenarios.
+
+**What it does:**
+
+- **Produces activity events**: Creates user activities (login, page_view, click, purchase, logout) with scores, durations, timestamps in JSON format
+- **Stores metrics compactly**: Converts JSON to compact string format "total_count:login_count:page_view_count:click_count:purchase_count:logout_count:total_score"
+- **Updates efficiently**: Parses compact string to array, updates counters by index mapping, avoids object creation during updates
+- **Uses optimized store**: Configures state store with increased cache size (16MB) and segments (32) for better performance
+- **Outputs JSON summaries**: Returns readable JSON results with averages and totals while keeping internal storage compact
+
+??? info "User metrics producer (activity data) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/producer-user-metrics.yaml"
+    %}
+    ```
+
+??? info "Optimized state processor (compact storage) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/processor-optimized-state.yaml"
+    %}
+    ```
+
+**State store optimizations:**
+
+- **JSON input/output**: Uses JSON for better debugging while maintaining compact string storage internally
+- **Hybrid approach**: JSON for input/output messages, compact strings for state storage efficiency
+- **Increased cache**: Configure larger cache sizes (50MB) for better performance  
+- **Direct field access**: Extract JSON fields using `value.get()` instead of string parsing
+- **Conditional logging**: Log only significant changes to reduce I/O
+
+### Pipeline Optimization
+
+This example demonstrates optimized pipeline design with early filtering and staged processing.
+
+**What it does:**
+
+- **Produces mixed quality events**: Creates events with valid/invalid data, various priorities (high, low, spam), different event types for filtering tests
+- **Filters early**: Uses predicate function to immediately discard invalid events, spam, and bot traffic before expensive processing
+- **Processes in stages**: Stage 1 = lightweight enrichment (add status, extract fields), Stage 2 = heavy processing (complex calculations)
+- **Separates concerns**: Lightweight operations (field extraction) happen first, expensive operations (calculations) happen on filtered data only
+- **Outputs progressively**: filtered_events → enriched_events → final_processed_events, each stage adds more data while maintaining JSON readability
+
+??? info "Mixed events producer (quality testing) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/producer-mixed-events.yaml"
+    %}
+    ```
+
+??? info "Pipeline optimization processor (staged processing) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/processor-pipeline-optimization.yaml"
+    %}
+    ```
+
+**Pipeline design principles:**
+
+- **Filter early**: Remove unwanted data before expensive processing using JSON field checks
+- **Staged processing**: Separate lightweight and heavy operations into different stages
+- **Efficient predicates**: Use `value.get()` for fast field-based filtering
+
+### Serialization Optimization
+
+This example shows efficient data format usage and minimal serialization overhead.
+
+**What it does:**
+
+- **Produces compact data**: Creates events with numeric event_type_ids (1=view, 2=click, 3=purchase) instead of strings for efficiency
+- **Uses lookup tables**: Pre-computes event type mappings in globalCode for fast ID-to-name conversions without string operations
+- **Filters by score**: Early filtering discards events with score <10 to reduce processing volume
+- **Processes by type**: Applies different logic based on event_type_id (purchases get 10% value bonus + 20 score bonus)
+
+??? info "Binary data producer (compact format) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/producer-binary-data.yaml"
+    %}
+    ```
+
+??? info "Serialization optimization processor (efficient parsing) - click to expand"
+
+    ```yaml
+    {%
+      include "../../definitions/advanced-tutorial/performance-optimization/processor-serialization-optimization.yaml"
+    %}
+    ```
+
+**Serialization best practices:**
+
+- **Lookup tables**: Pre-compute mappings to avoid repeated string operations
+- **Progressive transformation**: Transform data from raw → optimized → final readable formats
+- **Field-based access**: Use `value.get()` instead of string parsing for cleaner, faster code
 
 ## Configuration Optimization
 
-### 1. Kafka Streams Configuration
+### Kafka Streams Configuration
 
-Optimize Kafka Streams configuration for your workload:
+Optimize Kafka Streams configuration for your workload based on KSML's internal configuration system:
 
 ```yaml
 runner:
@@ -83,743 +198,333 @@ runner:
     application.id: optimized-ksml-app
     bootstrap.servers: kafka:9092
 
-    # Performance-related settings
-    num.stream.threads: 8
-    cache.max.bytes.buffering: 104857600  # 100MB
-    commit.interval.ms: 30000
-    rocksdb.config.setter: org.example.OptimizedRocksDBConfig
-
-    # Producer settings
-    producer.linger.ms: 100
-    producer.batch.size: 16384
-    producer.buffer.memory: 33554432
-
-    # Consumer settings
-    consumer.fetch.max.bytes: 52428800
-    consumer.max.poll.records: 500
+    # Threading Configuration
+    num.stream.threads: 8                    # Parallel processing threads (default: 1)
+    
+    # State Store Caching
+    cache.max.bytes.buffering: 104857600     # 100MB total cache (default: 10MB)
+    commit.interval.ms: 30000                # Commit frequency in ms (default: 30000)
+    
+    # Topology Optimization
+    topology.optimization: all               # Enable all optimizations (default: all)
+    
+    # Producer Performance Settings
+    producer.linger.ms: 100                  # Wait for batching (default: 0)
+    producer.batch.size: 16384               # Batch size in bytes (default: 16384)
+    producer.buffer.memory: 33554432         # 32MB producer buffer (default: 32MB)
+    producer.acks: 1                         # Acknowledgment level (1 = leader only)
+    
+    # Consumer Performance Settings
+    consumer.fetch.max.bytes: 52428800       # 50MB max fetch (default: 52428800)
+    consumer.max.poll.records: 500           # Records per poll (default: 500)
+    consumer.session.timeout.ms: 45000       # Session timeout (default: 45000)
+    consumer.heartbeat.interval.ms: 3000     # Heartbeat frequency (default: 3000)
+    
+    # Processing Guarantees
+    processing.guarantee: at_least_once       # Options: at_least_once, exactly_once_v2
+    
+    # Error Handling
+    default.deserialization.exception.handler: org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
+    default.production.exception.handler: org.apache.kafka.streams.errors.DefaultProductionExceptionHandler
 ```
 
-Key configuration parameters to tune:
+**Key Configuration Details:**
 
-- **num.stream.threads**: Number of threads for parallel processing
-- **cache.max.bytes.buffering**: Size of the record cache
-- **commit.interval.ms**: How often to commit offsets
-- **rocksdb.config.setter**: Custom RocksDB configuration for state stores
-- **producer/consumer settings**: Tune for throughput or latency as needed
+- **num.stream.threads**: Controls parallelism. Set based on CPU cores and partition count
+- **cache.max.bytes.buffering**: KSML automatically enables caching when `caching: true` is set on stores
+- **topology.optimization**: KSML defaults to `StreamsConfig.OPTIMIZE` for performance
+- **commit.interval.ms**: Balance between throughput and latency. Higher values = better throughput
+- **processing.guarantee**: `exactly_once_v2` provides stronger guarantees but lower performance
 
-### 2. JVM Configuration
+**KSML-Specific Optimizations:**
 
-Optimize JVM settings for stream processing:
+KSML automatically configures several optimizations:
 
-```
--Xms4g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35
-```
+- Custom exception handlers for production and deserialization errors
+- Automatic header cleanup interceptors for all consumers
+- Optimized client suppliers for resolving configurations
+- Built-in metrics reporters with topology enrichment
 
-Key JVM parameters to consider:
+### State Store Configuration
 
-- **Heap size**: Set initial and maximum heap size appropriately
-- **Garbage collector**: G1GC is generally recommended for stream processing
-- **GC tuning**: Minimize pause times for consistent performance
-
-## Data Serialization Optimization
-
-### 1. Choose Efficient Serialization Formats
-
-Select serialization formats based on your needs:
-
-```yaml
-streams:
-  optimized_input:
-    topic: input_data
-    keyType: string
-    valueType: avro:OptimizedRecord  # Using Avro for efficient serialization
-    schemaRegistry: http://schema-registry:8081
-```
-
-Comparison of formats:
-
-- **Avro**: Good balance of size and processing speed, schema evolution
-- **Protobuf**: Compact binary format, efficient serialization/deserialization
-- **JSON**: Human-readable but less efficient
-- **Binary**: Most compact but lacks schema evolution
-
-### 2. Minimize Serialization/Deserialization
-
-Reduce the number of serialization/deserialization operations:
-
-```yaml
-functions:
-  efficient_processing:
-    type: valueTransformer
-    code: |
-      # Process the entire message at once instead of extracting and 
-      # reconstructing individual fields
-      if "status" in value and value["status"] == "active":
-        value["processed"] = True
-        value["score"] = calculate_score(value)
-        return value
-      else:
-        return None
-```
-
-### 3. Use Schema Evolution Carefully
-
-When evolving schemas, consider performance implications:
-
-```yaml
-streams:
-  evolving_data:
-    topic: evolving_records
-    keyType: string
-    valueType: avro:Record
-    schemaRegistry: http://schema-registry:8081
-    schemaRegistryConfig:
-      # Use specific compatibility setting for better performance
-      value.compatibility: FORWARD
-```
-
-## State Store Optimization
-
-### 1. Optimize State Store Configuration
-
-Configure state stores for your specific workload:
+Configure state stores for optimal performance based on KSML's store configuration system:
 
 ```yaml
 stores:
-  optimized_store:
+  # High-performance key-value store
+  optimized_keyvalue_store:
     type: keyValue
     keyType: string
-    valueType: avro:CompactRecord
-    persistent: true
-    caching: true
-    cacheSizeBytes: 104857600  # 100MB
-    logConfig:
-      segment.bytes: 104857600  # 100MB
-      cleanup.policy: compact
-```
-
-### 2. Use Caching Effectively
-
-Configure and use caching to reduce disk I/O:
-
-```yaml
-stores:
-  hot_data_store:
+    valueType: string                # Use string over JSON for performance-critical stores
+    persistent: true                 # Enable durability (uses RocksDB)
+    caching: true                    # Enable caching for frequent access
+    logging: true                    # Enable changelog for fault tolerance
+    timestamped: false               # Disable if timestamps not needed
+    versioned: false                 # Disable if versioning not needed
+    
+  # Memory-optimized store for temporary data
+  temp_cache_store:
     type: keyValue
     keyType: string
-    valueType: json
+    valueType: string
+    persistent: false                # In-memory only for speed
+    caching: true                    # Still enable caching
+    logging: false                   # No changelog needed for temp data
+    
+  # Window store with retention
+  metrics_window_store:
+    type: window
+    keyType: string
+    valueType: json                  # JSON acceptable for metrics
+    windowSize: PT5M                 # 5-minute windows
+    retention: PT1H                  # Keep 1 hour of data
     persistent: true
     caching: true
-    cacheSizeBytes: 268435456  # 256MB
+    logging: true
+    
+  # Session store for user sessions  
+  user_session_store:
+    type: session
+    keyType: string
+    valueType: string                # Compact string format for sessions
+    retention: PT30M                 # 30-minute session timeout
+    persistent: true
+    caching: true
+    logging: true
 ```
 
-### 3. Implement Data Expiration
+**Store Type Performance Characteristics:**
 
-Implement strategies to expire old data:
+| Store Type | Use Case | Performance Notes |
+|------------|----------|-------------------|
+| **keyValue** | General caching, counters, lookups | Fastest access, least memory overhead |
+| **window** | Time-based aggregations | Automatic cleanup, good for time-series |
+| **session** | User sessions, activity tracking | Session-aware, handles gaps automatically |
 
-```yaml
-functions:
-  expire_old_data:
-    type: valueTransformer
-    code: |
-      current_time = int(time.time() * 1000)
-      stored_data = data_store.get(key)
+**Configuration Parameter Details:**
 
-      if stored_data and "timestamp" in stored_data:
-        # Keep data for 30 days
-        if current_time - stored_data["timestamp"] > 30 * 24 * 60 * 60 * 1000:
-          data_store.delete(key)
-          return None
+- **persistent**: 
+      - `true`: Uses RocksDB for disk persistence, survives restarts
+      - `false`: In-memory only, faster but data lost on restart
+  
+- **caching**: 
+      - `true`: KSML enables write caching to reduce downstream traffic
+      - `false`: Direct writes, lower latency but higher network usage
+  
+- **logging**: 
+      - `true`: Creates changelog topic for fault tolerance and exactly-once processing
+      - `false`: No changelog, faster but no fault tolerance
+  
+- **timestamped**: 
+      - `true`: Stores values with timestamps for time-aware processing
+      - `false`: Plain values, more efficient when timestamps not needed
+  
+- **versioned**: 
+      - `true`: Maintains multiple versions of values with configurable retention
+      - `false`: Single version only, more memory efficient
 
-      return value
-    stores:
-      - data_store
-```
+**KSML Store Optimizations:**
 
-## Python Function Optimization
+KSML automatically optimizes store configuration:
 
-### 1. Optimize Python Code
+- Uses efficient Serde types based on configured data types
+- Applies proper supplier selection (persistent vs. in-memory)
+- Configures caching and logging based on specified options
+- Handles timestamped and versioned variants automatically
 
-Write efficient Python code in your functions:
+## Python Function Best Practices
+
+### Optimize Code Structure
 
 ```yaml
 functions:
   optimized_function:
     type: valueTransformer
+    globalCode: |
+      # Pre-compute expensive operations
+      MULTIPLIERS = {"high": 3.0, "medium": 2.0, "low": 1.0}
+      
+      def efficient_calculation(value, priority):
+        return value * MULTIPLIERS.get(priority, 1.0)
+    
     code: |
-      # Use efficient data structures
-      result = {}
-
-      # Pre-compute values when possible
-      multiplier = 10 if value.get("priority") == "high" else 1
-
-      # Use list comprehensions for better performance
-      filtered_items = [item for item in value.get("items", []) if item["quantity"] > 0]
-
-      # Avoid unnecessary string operations
-      for item in filtered_items:
-        item_id = item["id"]  # Use the ID directly instead of string manipulation
-        result[item_id] = item["price"] * item["quantity"] * multiplier
-
-      return {"total": sum(result.values()), "items": result}
+      # Use pre-computed values and avoid object creation
+      priority = value.get("priority", "low")
+      result = efficient_calculation(value.get("amount", 0), priority)
+      return f"processed:{result:.2f}"
 ```
 
-Key Python optimization techniques:
+Key techniques:
 
-- **Use appropriate data structures**: Choose the right data structure for your use case
-- **Minimize object creation**: Reuse objects when possible
+- **Use globalCode**: Pre-compute expensive operations outside the processing loop
+- **Minimize object creation**: Reuse objects and data structures when possible
 - **Use built-in functions**: They're typically faster than custom implementations
 - **Avoid unnecessary computations**: Compute values only when needed
 
-### 2. Minimize External Dependencies
+### Efficient Data Structures
 
-Reduce the use of external libraries in Python functions:
+Choose optimal data structures based on KSML's data type system and your use case:
+
+#### KSML Data Types (Performance Ranking)
+
+```text
+# Fastest - Use for high-throughput scenarios
+keyType: string         # Most efficient for keys
+valueType: string       # Fastest serialization
+
+# Fast - Good balance of performance and functionality  
+keyType: long          # Efficient numeric keys
+valueType: avro:Schema # Efficient binary format with schema
+
+# Moderate - Flexible but more overhead
+keyType: json          # Flexible structure  
+valueType: json        # Easy to work with, good for Kowl UI
+
+# Slower - Use only when necessary
+valueType: xml         # XML processing overhead
+valueType: soap        # SOAP envelope overhead
+```
+
+#### Python Data Structure Guidelines
+
+Optimal patterns for different scenarios:
+
+1. Fast counters/accumulators
+```python
+count = int(store.get(key) or "0")  # String storage, int operations
+count += 1
+store.put(key, str(count))
+```
+
+2. Compact State Representation
+```python
+# Instead of JSON: {"count": 5, "sum": 100, "avg": 20}
+compact_state = f"{count}:{total_sum}:{average}"  # String format
+store.put(key, compact_state)
+```
+
+3. Efficient Collections (limit size)
+```python
+items = json.loads(store.get(key) or "[]")
+items.append(new_item)
+items = items[-100:]  # Keep only last 100 items
+store.put(key, json.dumps(items))
+```
+
+4. Fast Lookup Tables (use globalCode)
+```python
+STATUS_CODES = {1: "active", 2: "inactive", 3: "pending"}  # Pre-computed
+status = STATUS_CODES.get(status_id, "unknown")  # O(1) lookup
+```
+
+5. Efficient String Operations
+```python
+# avoid
+Avoid: result = f"processed:{type}:{user}:{score}"
+# use this instead
+Use: result = "processed:" + type + ":" + user + ":" + str(score)
+```
+
+#### Memory-Efficient Patterns
+
+Optimal memory usage techniques:
+
+1. Reuse Objects
+```python
+result = {"status": "ok", "count": 0}  # Create once in globalCode
+result["count"] = new_count            # Reuse, don't recreate
+```
+
+2. Generator Patterns
+```python
+def process_batch(items):
+    for item in items:  # Memory efficient iteration
+        yield process_item(item)
+```
+3. Lazy Evaluation 
+```python
+expensive_result = None
+if condition_needs_it:  # Only compute when needed
+    expensive_result = expensive_calculation()
+```
+
+4. Compact Data Types
+```python
+# use this:
+timestamp = int(time.time())      # 4-8 bytes
+# instead of this
+timestamp = str(time.time())      # ~20 bytes + overhead
+```
+
+**KSML-Specific Optimizations:**
+
+- **Serde Selection**: KSML automatically chooses optimal serializers based on data type
+- **Union Types**: For flexible schemas, KSML uses efficient UnionSerde implementation  
+- **Type Flattening**: Complex types are automatically flattened for performance
+- **Caching**: Serde instances are cached and reused across operations
+
+**Data Type Performance Comparison:**
+
+| Data Type                 | Serialization Speed | Size Efficiency | Schema Evolution | Use Case |
+|---------------------------|-------------------|-----------------|------------------|----------|
+| **string**                | Fastest | Good | Limited | Simple values, IDs, compact formats |
+| **long/int**              | Fastest | Excellent | None | Counters, timestamps, numeric keys |
+| **avro**                  | Fast | Excellent | Excellent | Complex schemas, production systems |
+| **json**                  | Moderate | Good | Good | Development, debugging, flexible data |
+| **protobuf(coming soon)** | Fast | Excellent | Good | High-performance, cross-language |
+| **xml/soap**              | Slow | Poor | Limited | Legacy systems, specific protocols |
+
+## Monitoring Performance
+
+### Key Metrics to Track
+
+Monitor these metrics to identify performance issues:
 
 ```yaml
 functions:
-  lightweight_function:
-    type: valueTransformer
-    globalCode: |
-      # Import only what's needed
-      from math import sqrt
-
-      # Implement simple functions directly instead of importing libraries
-      def calculate_mean(values):
-          return sum(values) / len(values) if values else 0
-
-      def calculate_stddev(values):
-          mean = calculate_mean(values)
-          variance = sum((x - mean) ** 2 for x in values) / len(values) if values else 0
-          return sqrt(variance)
-
-    code: |
-      # Use the lightweight implementations
-      values = [item["value"] for item in value.get("items", [])]
-      return {
-        "mean": calculate_mean(values),
-        "stddev": calculate_stddev(values)
-      }
-```
-
-### 3. Use Batch Processing
-
-Process data in batches when possible:
-
-```yaml
-functions:
-  batch_processor:
-    type: valueTransformer
-    code: |
-      # Get batch of items
-      items = value.get("items", [])
-
-      # Process in a single pass
-      results = []
-      total = 0
-      count = 0
-
-      for item in items:
-        # Process each item
-        processed = process_item(item)
-        results.append(processed)
-
-        # Update aggregates in the same pass
-        total += processed["value"]
-        count += 1
-
-      # Return batch results
-      return {
-        "results": results,
-        "average": total / count if count > 0 else 0,
-        "count": count
-      }
-```
-
-## Pipeline Design Optimization
-
-### 1. Optimize Pipeline Structure
-
-Design pipelines for optimal performance:
-
-```yaml
-pipelines:
-  # Split processing into stages
-  filter_and_enrich:
-    from: input_stream
-    filter: is_valid_record  # Filter early to reduce downstream processing
-    mapValues: enrich_with_minimal_data  # Add only essential data
-    to: filtered_enriched_stream
-
-  # Process filtered and enriched data
-  process_data:
-    from: filtered_enriched_stream
-    mapValues: compute_intensive_processing  # Heavy processing on reduced dataset
-    to: processed_stream
-```
-
-Key pipeline design principles:
-
-- **Filter early**: Reduce the volume of data flowing through the pipeline
-- **Process in stages**: Break complex processing into simpler stages
-- **Parallelize when possible**: Use multiple pipelines for parallel processing
-- **Minimize state size**: Keep state stores as small as possible
-
-### 2. Use Repartitioning Strategically
-
-Repartition data only when necessary:
-
-```yaml
-pipelines:
-  optimize_partitioning:
-    from: input_stream
-    # Repartition once to optimize downstream joins and aggregations
-    selectKey: extract_optimal_key
-    to: repartitioned_stream
-
-  process_repartitioned:
-    from: repartitioned_stream
-    groupByKey:  # Now working with optimally partitioned data
-    aggregate:
-      initializer: initialize_aggregation
-      aggregator: update_aggregation
-    to: aggregated_results
-```
-
-### 3. Optimize Joins
-
-Implement joins efficiently:
-
-```yaml
-streams:
-  small_reference_data:
-    topic: reference_data
-    keyType: string
-    valueType: json
-    materializedAs: globalTable  # Use GlobalKTable for small reference data
-
-  large_stream:
-    topic: transaction_stream
-    keyType: string
-    valueType: json
-
-pipelines:
-  efficient_join:
-    from: large_stream
-    join:
-      globalTable: small_reference_data  # Join with GlobalKTable for better performance
-      valueJoiner: combine_data
-    to: enriched_stream
-```
-
-## Practical Example: Optimized Real-time Analytics
-
-Let's build a complete example that implements an optimized real-time analytics system:
-
-```yaml
-streams:
-  user_events:
-    topic: user_activity
-    keyType: string  # User ID
-    valueType: avro:UserEvent  # Using Avro for efficient serialization
-    schemaRegistry: http://schema-registry:8081
-
-  product_catalog:
-    topic: product_data
-    keyType: string  # Product ID
-    valueType: avro:Product
-    materializedAs: globalTable  # Use GlobalKTable for reference data
-    schemaRegistry: http://schema-registry:8081
-
-  user_metrics:
-    topic: user_analytics
-    keyType: string  # User ID
-    valueType: avro:UserMetrics
-    schemaRegistry: http://schema-registry:8081
-
-stores:
-  # Store for recent user activity
-  user_activity_store:
-    type: window
-    keyType: string
-    valueType: avro:ActivitySummary
-    windowSize: 1h
-    retainDuplicates: false
-    caching: true
-    cacheSizeBytes: 104857600  # 100MB
-
-  # Store for user profiles
-  user_profile_store:
-    type: keyValue
-    keyType: string
-    valueType: avro:UserProfile
-    persistent: true
-    caching: true
-
-functions:
-  # Filter and categorize events
-  categorize_events:
-    type: keyValueTransformer
-    code: |
-      # Early filtering - skip events we don't care about
-      event_type = value.get("event_type")
-      if event_type not in ["view", "click", "purchase", "search"]:
-        return None
-
-      # Categorize and extract minimal data for downstream processing
-      category = "engagement" if event_type in ["view", "click"] else "conversion"
-
-      # Create a minimal record with only needed fields
-      minimal_record = {
-        "event_id": value.get("event_id"),
-        "timestamp": value.get("timestamp"),
-        "event_type": event_type,
-        "category": category,
-        "product_id": value.get("product_id"),
-        "value": value.get("value", 0)
-      }
-
-      return (key, minimal_record)
-
-  # Update user activity metrics
-  update_user_metrics:
-    type: valueTransformer
-    code: |
-      # Get current window data
-      window_data = user_activity_store.get(key)
-      if window_data is None:
-        window_data = {
-          "event_count": 0,
-          "view_count": 0,
-          "click_count": 0,
-          "purchase_count": 0,
-          "search_count": 0,
-          "total_value": 0,
-          "product_ids": set(),  # Using set for efficient uniqueness check
-          "last_updated": 0
-        }
-
-      # Update metrics efficiently
-      event_type = value.get("event_type")
-      window_data["event_count"] += 1
-      window_data[f"{event_type}_count"] = window_data.get(f"{event_type}_count", 0) + 1
-
-      if "value" in value:
-        window_data["total_value"] += value["value"]
-
-      if "product_id" in value and value["product_id"]:
-        window_data["product_ids"].add(value["product_id"])
-
-      window_data["last_updated"] = max(window_data.get("last_updated", 0), value.get("timestamp", 0))
-
-      # Store updated data
-      user_activity_store.put(key, window_data)
-
-      # For downstream processing, convert set to list
-      result = dict(window_data)
-      result["product_ids"] = list(window_data["product_ids"])
-      result["unique_products"] = len(result["product_ids"])
-
-      return result
-    stores:
-      - user_activity_store
-
-  # Enrich with product data
-  enrich_with_products:
-    type: valueTransformer
-    code: |
-      # Skip if no product IDs or no metrics
-      if not value or "product_ids" not in value or not value["product_ids"]:
-        return value
-
-      # Get product categories (efficiently)
-      product_categories = {}
-      for product_id in value["product_ids"][:5]:  # Limit to top 5 products for efficiency
-        product = product_catalog.get(product_id)
-        if product:
-          category = product.get("category", "unknown")
-          product_categories[category] = product_categories.get(category, 0) + 1
-
-      # Add product category distribution
-      value["top_categories"] = sorted(
-        product_categories.items(), 
-        key=lambda x: x[1], 
-        reverse=True
-      )[:3]  # Keep only top 3 categories
-
-      return value
-    stores:
-      - product_catalog
-
-  # Generate final user metrics
-  generate_user_metrics:
-    type: valueTransformer
-    code: |
-      # Get user profile for context
-      user_profile = user_profile_store.get(key)
-
-      # Create optimized metrics record
-      metrics = {
-        "user_id": key,
-        "timestamp": int(time.time() * 1000),
-        "window_metrics": {
-          "event_count": value.get("event_count", 0),
-          "view_count": value.get("view_count", 0),
-          "click_count": value.get("click_count", 0),
-          "purchase_count": value.get("purchase_count", 0),
-          "search_count": value.get("search_count", 0),
-          "total_value": value.get("total_value", 0),
-          "unique_products": value.get("unique_products", 0)
-        }
-      }
-
-      # Add user segment if profile exists
-      if user_profile:
-        metrics["user_segment"] = user_profile.get("segment", "unknown")
-        metrics["account_age_days"] = user_profile.get("account_age_days", 0)
-
-      # Add product category insights if available
-      if "top_categories" in value:
-        metrics["top_categories"] = value["top_categories"]
-
-      # Calculate derived metrics efficiently
-      if metrics["window_metrics"]["view_count"] > 0:
-        metrics["window_metrics"]["click_through_rate"] = (
-          metrics["window_metrics"]["click_count"] / 
-          metrics["window_metrics"]["view_count"]
-        )
-
-      if metrics["window_metrics"]["click_count"] > 0:
-        metrics["window_metrics"]["conversion_rate"] = (
-          metrics["window_metrics"]["purchase_count"] / 
-          metrics["window_metrics"]["click_count"]
-        )
-
-      return metrics
-    stores:
-      - user_profile_store
-
-pipelines:
-  # Stage 1: Filter and categorize events
-  filter_events:
-    from: user_events
-    transformKeyValue: categorize_events
-    filter: is_not_null
-    to: categorized_events
-
-  # Stage 2: Update user metrics
-  update_metrics:
-    from: categorized_events
-    mapValues: update_user_metrics
-    to: user_activity_metrics
-
-  # Stage 3: Enrich with product data
-  enrich_metrics:
-    from: user_activity_metrics
-    mapValues: enrich_with_products
-    to: enriched_metrics
-
-  # Stage 4: Generate final user metrics
-  finalize_metrics:
-    from: enriched_metrics
-    mapValues: generate_user_metrics
-    to: user_metrics
-
-runner:
-  type: streams
-  config:
-    application.id: optimized-analytics
-    bootstrap.servers: kafka:9092
-
-    # Performance configuration
-    num.stream.threads: 8
-    cache.max.bytes.buffering: 104857600  # 100MB
-    commit.interval.ms: 30000
-
-    # Producer settings
-    producer.linger.ms: 100
-    producer.batch.size: 16384
-
-    # Consumer settings
-    consumer.fetch.max.bytes: 52428800
-    consumer.max.poll.records: 500
-```
-
-This example:
-
-1. Uses Avro for efficient serialization
-2. Implements early filtering to reduce data volume
-3. Processes data in stages for better parallelism
-4. Uses optimized state stores with appropriate caching
-5. Minimizes data copying and transformation
-6. Uses efficient data structures (sets for uniqueness checks)
-7. Limits processing of large collections (top 5 products, top 3 categories)
-8. Includes optimized Kafka Streams configuration
-
-## Advanced Optimization Techniques
-
-### 1. Custom Serializers/Deserializers
-
-Implement custom serializers for specialized data types:
-
-```yaml
-streams:
-  specialized_data:
-    topic: specialized_events
-    keyType: string
-    valueType: custom
-    serdes:
-      value: org.example.HighPerformanceSerializer
-```
-
-### 2. Memory-Mapped Files
-
-For very large state stores, consider memory-mapped files:
-
-```yaml
-stores:
-  large_state_store:
-    type: custom
-    implementation: org.example.MMapStateStore
-    config:
-      file.path: /data/large-state
-      max.size.bytes: 10737418240  # 10GB
-```
-
-### 3. Off-Heap Memory
-
-Use off-heap memory for large state stores:
-
-```yaml
-runner:
-  type: streams
-  config:
-    application.id: offheap-optimized-app
-    bootstrap.servers: kafka:9092
-
-    # RocksDB configuration for off-heap memory
-    rocksdb.config.setter: org.example.OffHeapRocksDBConfig
-
-    # JVM settings (would be set in the JVM arguments)
-    # -XX:MaxDirectMemorySize=10G
-```
-
-## Monitoring and Continuous Optimization
-
-### 1. Implement Comprehensive Metrics
-
-Track detailed performance metrics:
-
-```yaml
-functions:
-  performance_metrics:
+  performance_monitor:
     type: forEach
     code: |
-      # Record message processing metrics
+      # Record processing time
       start_time = time.time()
-
-      # Process message
       process_message(key, value)
-
-      # Record metrics
-      processing_time_ms = (time.time() - start_time) * 1000
-      metrics.timer("processing.time").updateMillis(processing_time_ms)
-
-      # Record message size
-      message_size = len(str(value)) if value else 0
-      metrics.meter("message.size").mark(message_size)
-
-      # Record message counts by type
-      event_type = value.get("event_type", "unknown")
-      metrics.counter(f"messages.{event_type}").increment()
+      processing_time = (time.time() - start_time) * 1000
+      
+      # Log performance metrics periodically
+      if processing_time > 100:  # Log slow operations
+        log.warn("Slow processing detected: {:.2f}ms for key {}", processing_time, key)
 ```
 
-### 2. Implement Health Checks
+Important metrics:
 
-Add health checks to monitor application health:
+- **Processing latency**: Time to process individual messages
+- **Throughput**: Messages processed per second
+- **Memory usage**: JVM heap utilization
+- **State store size**: Growth rate and total size
+- **Error rates**: Failed processing attempts
 
-```yaml
-functions:
-  health_check:
-    type: forEach
-    globalCode: |
-      last_processed_time = int(time.time() * 1000)
-      processed_count = 0
+## Best Practices Summary
 
-    code: |
-      global last_processed_time, processed_count
+### Do's
 
-      # Update processing metrics
-      current_time = int(time.time() * 1000)
-      last_processed_time = current_time
-      processed_count += 1
+- **Measure first**: Establish baselines before optimizing
+- **Filter early**: Remove unwanted data as soon as possible
+- **Use caching**: Configure appropriate cache sizes for state stores
+- **Optimize hot paths**: Focus on frequently executed code
+- **Pre-compute values**: Move expensive operations to globalCode
+- **Choose efficient formats**: Use compact data representations
 
-      # Expose health metrics
-      metrics.gauge("health.last_processed_time").set(last_processed_time)
-      metrics.gauge("health.processed_count").set(processed_count)
-      metrics.gauge("health.lag_ms").set(current_time - value.get("timestamp", current_time))
-```
+### Don'ts
 
-### 3. Implement Adaptive Optimization
-
-Implement adaptive optimization based on runtime conditions:
-
-```yaml
-functions:
-  adaptive_processing:
-    type: valueTransformer
-    globalCode: |
-      import threading
-
-      # Monitor system load
-      system_load = 0.0
-
-      def update_system_load():
-          global system_load
-          while True:
-              # Get CPU load (simplified example)
-              system_load = get_cpu_load()
-              time.sleep(5)
-
-      # Start monitoring thread
-      monitor_thread = threading.Thread(target=update_system_load)
-      monitor_thread.daemon = True
-      monitor_thread.start()
-
-    code: |
-      global system_load
-
-      # Adapt processing based on system load
-      if system_load > 0.8:  # High load
-          # Use simplified processing
-          return simple_processing(value)
-      else:
-          # Use full processing
-          return full_processing(value)
-```
-
-## Best Practices for Performance Optimization
-
-- **Measure before optimizing**: Establish baselines and identify bottlenecks
-- **Optimize incrementally**: Make one change at a time and measure the impact
-- **Focus on hot spots**: Optimize the most frequently executed code paths
-- **Consider trade-offs**: Balance throughput, latency, and resource usage
-- **Test with realistic data**: Use production-like data volumes and patterns
-- **Monitor continuously**: Track performance metrics over time
-- **Scale horizontally**: Add more instances for linear scaling
-- **Optimize data flow**: Minimize data movement and transformation
+- **Don't over-optimize**: Focus on actual bottlenecks, not theoretical ones
+- **Don't ignore trade-offs**: Balance throughput, latency, and resource usage
+- **Don't optimize without measuring**: Always measure the impact of changes
+- **Don't create unnecessary objects**: Reuse data structures when possible
+- **Don't log excessively**: Reduce I/O overhead from logging
+- **Don't use complex serialization**: Avoid JSON when simple formats suffice
 
 ## Conclusion
 
-Performance optimization in KSML involves a combination of configuration tuning, code optimization, and architectural
-design. By applying the techniques covered in this tutorial, you can build KSML applications that efficiently process
-high volumes of data with low latency.
+Performance optimization in KSML involves a combination of efficient Python code, optimized configuration, and smart pipeline design. By applying these techniques systematically and measuring their impact, you can build KSML applications that efficiently process high volumes of data with consistent performance.
 
-In the next tutorial, we'll explore [Integration with External Systems](external-integration.md) to learn how to connect
-your KSML applications with databases, APIs, and other external systems.
-
-## Further Reading
-
-- [Core Concepts: Operations](../../core-concepts/operations.md)
-- [Core Concepts: Functions](../../core-concepts/functions.md)
-- [Advanced Tutorial: Custom State Stores](custom-state-stores.md)
-- [Reference: Configuration Options](../../reference/configuration-reference.md)
+The key is to start with measurement, identify actual bottlenecks, and apply optimizations incrementally while monitoring their effectiveness.

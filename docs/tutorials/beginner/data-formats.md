@@ -5,7 +5,6 @@ Learn how to process, convert, and validate data using KSML's supported formats 
 ## Prerequisites
 
 - Basic understanding of Kafka concepts (topics, messages)
-- Completed the [Building a Simple Data Pipeline](simple-pipeline.md) tutorial
 - Familiarity with basic KSML concepts (streams, functions, pipelines)
 
 ## Supported Data Formats
@@ -43,6 +42,7 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
 ### Setup Requirements
 
 - Create `docker-compose.yml` with schema registry and pre-created topics 
+- **Note**: This tutorial requires a different docker-compose.yml than other tutorials because AVRO format needs a schema registry to store and manage schema definitions 
 
 ??? info "Docker Compose Configuration (click to expand)"
 

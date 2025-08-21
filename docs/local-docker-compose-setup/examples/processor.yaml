@@ -1,68 +1,91 @@
 streams:
-  product_clicks:
-    topic: product_clicks
+  service_requests:
+    topic: service_requests
     keyType: string
     valueType: json
-
-  product_purchases:
-    topic: product_purchases
+    
+  service_responses:
+    topic: service_responses
     keyType: string
     valueType: json
-
-  correlated_user_actions:
-    topic: correlated_user_actions
+    
+  circuit_events:
+    topic: circuit_events
     keyType: string
     valueType: json
 
 functions:
-  correlate_click_and_purchase:
-    type: valueJoiner
+  circuit_breaker_handler:
+    type: valueTransformer
+    globalCode: |
+      # Circuit breaker state
+      failure_count = 0
+      circuit_state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+      
     code: |
-      result = {}
-
-      # Add click data
-      if value1 is not None:
-        result["click"] = value1
-
-      # Add purchase data
-      if value2 is not None:
-        result["purchase"] = value2
-
-      # Calculate conversion if both exist
-      if value1 is not None and value2 is not None:
-        result["converted"] = True
-        click_time = value1.get("timestamp", 0)
-        purchase_time = value2.get("timestamp", 0)
-        result["conversion_time_ms"] = purchase_time - click_time
+      global failure_count, circuit_state
+      
+      request_id = value.get("request_id", "unknown")
+      should_succeed = value.get("should_succeed", True)
+      
+      # Handle request based on circuit state
+      if circuit_state == "OPEN":
+        # Circuit is open - reject request immediately
+        result = {
+          "request_id": request_id,
+          "status": "circuit_open",
+          "circuit_state": circuit_state,
+          "failure_count": failure_count
+        }
       else:
-        result["converted"] = False
-
-      new_value = result
-    expression: new_value
+        # Try to process request
+        if should_succeed:
+          # Request succeeds - reset failure count
+          failure_count = 0
+          circuit_state = "CLOSED"
+          result = {
+            "request_id": request_id,
+            "status": "success", 
+            "circuit_state": circuit_state
+          }
+        else:
+          # Request fails
+          failure_count += 1
+          if failure_count >= 3:
+            circuit_state = "OPEN"
+            
+          result = {
+            "request_id": request_id,
+            "status": "failure",
+            "circuit_state": circuit_state,
+            "failure_count": failure_count
+          }
+    
+    expression: result
     resultType: json
 
 pipelines:
-  match_clicks_with_purchases:
-    from: product_clicks
+  circuit_breaker_processor:
+    from: service_requests
     via:
-      - type: join
-        stream: product_purchases
-        valueJoiner: correlate_click_and_purchase
-        timeDifference: 30m  # Look for purchases within 30 minutes of a click
-        grace: 5m  # Grace period for late events
-        thisStore:
-          name: clicks_join_store
-          type: window
-          windowSize: 60m  # Must be 2*timeDifference
-          retention: 65m   # Must be 2*timeDifference + grace = 60m + 5m
-          retainDuplicates: true
-        otherStore:
-          name: purchases_join_store
-          type: window
-          windowSize: 60m  # Must be 2*timeDifference
-          retention: 65m   # Must be 2*timeDifference + grace = 60m + 5m
-          retainDuplicates: true
+      - type: transformValue
+        mapper: circuit_breaker_handler
       - type: peek
         forEach:
-          code: log.info("CORRELATION - user={}, converted={}, click_product={}, purchase_product={}", key, value.get("converted"), value.get("click", {}).get("product_id"), value.get("purchase", {}).get("product_id"))
-    to: correlated_user_actions
+          code: |
+            status = value.get("status", "unknown")
+            circuit_state = value.get("circuit_state", "unknown")
+            req_id = value.get("request_id", "unknown")
+            
+            if status == "circuit_open":
+              log.warn("CIRCUIT OPEN - {}: Request rejected", req_id)
+            elif status == "success":
+              log.info("REQUEST OK - {} [{}]", req_id, circuit_state)
+            else:
+              failures = value.get("failure_count", 0)
+              log.error("REQUEST FAILED - {} [{}]: {} failures", req_id, circuit_state, failures)
+    branch:
+      - if:
+          expression: value.get("status") == "success"
+        to: service_responses
+      - to: circuit_events

@@ -1,0 +1,69 @@
+# Producer for anomaly detection - generates metrics with occasional anomalies
+
+functions:
+  generate_metrics:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      import math
+      metric_counter = 0
+      sensors = ["sensor_001", "sensor_002", "sensor_003"]
+    code: |
+      global metric_counter, sensors
+      
+      metric_counter += 1
+      sensor_id = random.choice(sensors)
+      
+      # Generate normal values with occasional anomalies
+      if metric_counter % 20 == 0:
+        # Anomaly - spike
+        value = random.uniform(90, 100)
+      elif metric_counter % 25 == 0:
+        # Anomaly - drop
+        value = random.uniform(0, 10)
+      else:
+        # Normal range with some variation
+        base = 50 + 10 * math.sin(metric_counter / 10)
+        value = base + random.uniform(-5, 5)
+      
+      current_timestamp = int(time.time() * 1000)
+      
+      # Create structured JSON metric for better readability in Kowl UI
+      metric = {
+        "sensor_id": sensor_id,
+        "value": round(value, 2),
+        "timestamp": current_timestamp,
+        "metric_id": f"metric_{metric_counter:04d}",
+        "sensor_type": "temperature",
+        "unit": "celsius",
+        "location": f"zone_{random.randint(1, 5)}",
+        "source": "sensor_network",
+        "metadata": {
+          "simulation": True,
+          "anomaly_detection": True,
+          "normal_range": [40, 60]
+        }
+      }
+      
+      # Add anomaly indicators for testing
+      if metric_counter % 20 == 0:
+        metric["anomaly_type"] = "spike"
+        metric["expected_anomaly"] = True
+      elif metric_counter % 25 == 0:
+        metric["anomaly_type"] = "drop" 
+        metric["expected_anomaly"] = True
+      else:
+        metric["expected_anomaly"] = False
+      
+    expression: (sensor_id, metric)
+    resultType: (string, json)
+
+producers:
+  metrics_producer:
+    generator: generate_metrics
+    interval: 1s
+    to:
+      topic: sensor_metrics
+      keyType: string
+      valueType: json

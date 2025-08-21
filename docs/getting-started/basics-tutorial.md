@@ -40,7 +40,7 @@ Download the pre-configured tutorial files and start immediately:
 4. Skip to [Step 5: Run Your Pipeline](#step-5-run-your-pipeline-definitions)
 
 **Option B: Step-by-Step Tutorial**
-Follow the detailed instructions below to create everything from scratch and learn each component.
+Use the docker-compose.yml from the [Quick Start Tutorial](quick-start.md) and manually create/modify the producer and processor definitions as described below to learn each component step by step.
 
 ---
 

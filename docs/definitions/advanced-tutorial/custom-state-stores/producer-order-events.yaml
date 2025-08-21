@@ -1,0 +1,40 @@
+# Producer for multi-store demo - generates order processing events as pipe-delimited strings
+
+functions:
+  generate_order_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      order_counter = 0
+      products = ["prod_A", "prod_B", "prod_C", "prod_D"]
+      statuses = ["created", "paid", "shipped", "delivered", "cancelled"]
+    code: |
+      global order_counter, products, statuses
+      
+      order_counter += 1
+      
+      # Generate order event as pipe-delimited string: "status:product_id:quantity:price:timestamp"
+      status = random.choice(statuses)
+      product_id = random.choice(products)
+      quantity = random.randint(1, 5)
+      price = round(random.uniform(10.0, 100.0), 2)
+      timestamp = int(time.time() * 1000)
+      
+      # Create pipe-delimited string format expected by processor
+      order_value = f"{status}:{product_id}:{quantity}:{price}:{timestamp}"
+      order_key = f"order_{order_counter:04d}"
+      
+      log.info("Generating order: key={}, value={}", order_key, order_value)
+      
+    expression: (order_key, order_value)
+    resultType: (string, string)
+
+producers:
+  order_event_producer:
+    generator: generate_order_events
+    interval: 2s
+    to:
+      topic: order_events
+      keyType: string
+      valueType: string

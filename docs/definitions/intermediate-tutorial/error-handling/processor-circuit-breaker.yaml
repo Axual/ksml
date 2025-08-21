@@ -1,129 +1,125 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
-
-# Circuit breaker pattern demonstrating failure handling and state management
+# Circuit breaker pattern to prevent cascading failures
 
 streams:
-  api_requests:
-    topic: api_requests
+  service_requests:
+    topic: service_requests
     keyType: string
     valueType: json
     
-  api_responses:
-    topic: api_responses
+  service_responses:
+    topic: service_responses
     keyType: string
     valueType: json
     
-  circuit_breaker_events:
-    topic: circuit_breaker_events
+  circuit_events:
+    topic: circuit_events
     keyType: string
     valueType: json
 
 functions:
-  circuit_breaker_processor:
+  circuit_breaker_handler:
     type: valueTransformer
     globalCode: |
+      # Circuit breaker state
       failure_count = 0
-      circuit_open = False
       success_count = 0
+      circuit_state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+      last_failure_time = 0
+      
+      # Configuration
+      FAILURE_THRESHOLD = 3
+      SUCCESS_THRESHOLD = 2
+      TIMEOUT_MS = 10000  # 10 seconds
+      
     code: |
-      global failure_count, circuit_open, success_count
+      global failure_count, success_count, circuit_state, last_failure_time
       
-      request_id = value.get("request_id")
-      request_type = value.get("request_type", "unknown")
+      import time
+      current_time = int(time.time() * 1000)
       
-      log.info("Processing request {} of type {} - Circuit: {}, Failures: {}", 
-               request_id, request_type, 
-               "OPEN" if circuit_open else "CLOSED", failure_count)
+      request_id = value.get("request_id", "unknown")
+      should_succeed = value.get("should_succeed", True)
       
-      # Check if circuit is open
-      if circuit_open:
-        circuit_event = {
-          "request_id": request_id,
-          "event_type": "circuit_open",
-          "status": "rejected", 
-          "error": "Circuit breaker is open - rejecting request",
-          "failure_count": failure_count,
-          "circuit_state": "OPEN",
-          "timestamp": value.get("timestamp"),
-          "original_request": value
-        }
-        log.warn("CIRCUIT OPEN: Rejecting request {}", request_id)
-        return circuit_event
-      
-      # Circuit is closed, try to process request
-      try:
-        # Simulate service call - fail for failing_service type
-        if request_type == "failing_service":
-          raise RuntimeError(f"External service unavailable for {request_type}")
+      # Check if we should transition from OPEN to HALF_OPEN
+      if circuit_state == "OPEN" and (current_time - last_failure_time) > TIMEOUT_MS:
+        circuit_state = "HALF_OPEN"
+        success_count = 0
         
-        # Success case
-        success_count += 1
-        failure_count = 0  # Reset failure count on success
-        
+      # Handle request based on circuit state
+      if circuit_state == "OPEN":
+        # Circuit is open - reject request immediately
         result = {
           "request_id": request_id,
-          "status": "success",
-          "response": f"Successfully processed {request_type}",
-          "data": value.get("data"),
-          "circuit_state": "CLOSED",
-          "timestamp": value.get("timestamp")
-        }
-        
-        log.info("SUCCESS: Request {} processed successfully", request_id)
-        return result
-        
-      except Exception as e:
-        # Handle failures
-        failure_count += 1
-        
-        circuit_event = {
-          "request_id": request_id,
-          "event_type": "service_failure",
-          "status": "failed",
-          "error": str(e),
+          "status": "circuit_open",
+          "circuit_state": circuit_state,
           "failure_count": failure_count,
-          "circuit_state": "CLOSED",
-          "timestamp": value.get("timestamp"),
-          "original_request": value
+          "message": "Circuit breaker is OPEN - request rejected"
         }
-        
-        # Check if we should open the circuit
-        if failure_count >= 3:
-          circuit_open = True
-          circuit_event["event_type"] = "circuit_opened"
-          circuit_event["circuit_state"] = "OPEN"
-          log.warn("CIRCUIT BREAKER OPENED: {} consecutive failures", failure_count)
+      else:
+        # Circuit is CLOSED or HALF_OPEN - try to process request
+        if should_succeed:
+          # Request succeeds
+          success_count += 1
+          
+          if circuit_state == "HALF_OPEN" and success_count >= SUCCESS_THRESHOLD:
+            # Reset circuit breaker
+            circuit_state = "CLOSED"
+            failure_count = 0
+            success_count = 0
+            
+          result = {
+            "request_id": request_id,
+            "status": "success",
+            "circuit_state": circuit_state,
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "service": value.get("service")
+          }
         else:
-          log.warn("FAILURE {}: Request {} failed - {} more failures to open circuit", 
-                   failure_count, request_id, 3 - failure_count)
-        
-        return circuit_event
-        
-    expression: result if 'result' in locals() else circuit_event
+          # Request fails
+          failure_count += 1
+          success_count = 0
+          last_failure_time = current_time
+          
+          if failure_count >= FAILURE_THRESHOLD:
+            circuit_state = "OPEN"
+            
+          result = {
+            "request_id": request_id,
+            "status": "failure",
+            "circuit_state": circuit_state,
+            "failure_count": failure_count,
+            "error_type": value.get("error_type", "unknown"),
+            "service": value.get("service")
+          }
+    
+    expression: result
     resultType: json
-  
-  is_success:
-    type: predicate
-    expression: value.get("status") == "success"
 
 pipelines:
-  circuit_breaker_demo:
-    from: api_requests
+  circuit_breaker_processor:
+    from: service_requests
     via:
-      - type: mapValues
-        mapper: circuit_breaker_processor
+      - type: transformValue
+        mapper: circuit_breaker_handler
+      - type: peek
+        forEach:
+          code: |
+            status = value.get("status", "unknown")
+            circuit_state = value.get("circuit_state", "unknown")
+            req_id = value.get("request_id", "unknown")
+            
+            if status == "circuit_open":
+              log.warn("CIRCUIT OPEN - {}: Request rejected", req_id)
+            elif status == "success":
+              log.info("REQUEST OK - {} [{}]: Success", req_id, circuit_state)
+            else:
+              failures = value.get("failure_count", 0)
+              log.error("REQUEST FAILED - {} [{}]: {} failures", req_id, circuit_state, failures)
     branch:
-      - if: is_success
-        via:
-          - type: peek
-            forEach:
-              code: |
-                log.info("SUCCESS ROUTED: {} to api_responses", value.get("request_id"))
-        to: api_responses
-      - via:
-          - type: peek
-            forEach:
-              code: |
-                log.info("EVENT ROUTED: {} ({}) to circuit_breaker_events", 
-                       value.get("request_id"), value.get("event_type"))
-        to: circuit_breaker_events
+      # Route successful requests
+      - if:
+          expression: value.get("status") == "success"
+        to: service_responses
+      # Route circuit breaker events and failures
+      - to: circuit_events

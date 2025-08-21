@@ -8,6 +8,17 @@ Before we begin:
 
 - Please make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
 - We recommend to have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
+- Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
+
+??? info "Topic creation commands - click to expand"
+
+    ```yaml
+    # Logging and Monitoring Tutorial
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_logging_input && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_logging_output && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_monitoring_output && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_error_handled_output && \
+    ```
 
 ## Basic Logging with Different Levels
 

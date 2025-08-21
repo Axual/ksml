@@ -1,0 +1,69 @@
+tables:
+  customer_profiles:
+    topic: customer_profiles
+    keyType: string  # Customer ID
+    valueType: json  # Profile data
+
+  customer_preferences:
+    topic: customer_preferences
+    keyType: string  # Customer ID
+    valueType: json  # Preference data
+
+streams:
+  enriched_customer_data:
+    topic: enriched_customer_data
+    keyType: string  # Customer ID
+    valueType: json  # Combined profile and preferences
+
+functions:
+  combine_profile_and_preferences:
+    type: valueJoiner
+    globalCode: |
+      import time
+    code: |
+      # Inner join: only combine when both profile and preferences exist
+      result = {}
+      
+      # Combine profile data (value1) and preferences data (value2)
+      if value1 is not None and value2 is not None:
+        result = {
+          "customer_id": value1.get("customer_id"),
+          "profile": {
+            "name": value1.get("name"),
+            "email": value1.get("email"),
+            "tier": value1.get("tier"),
+            "registration_date": value1.get("registration_date"),
+            "address": value1.get("address")
+          },
+          "preferences": {
+            "newsletter_subscribed": value2.get("newsletter_subscribed"),
+            "preferred_categories": value2.get("preferred_categories"),
+            "communication_channel": value2.get("communication_channel"),
+            "language": value2.get("language"),
+            "notifications": value2.get("notifications")
+          },
+          "joined_at": int(time.time() * 1000),
+          "data_complete": True
+        }
+      else:
+        # This shouldn't happen in an inner join, but safety check
+        result = None
+      
+      new_value = result
+    expression: new_value
+    resultType: json
+
+pipelines:
+  join_customer_data:
+    from: customer_profiles
+    via:
+      # Inner join with customer preferences
+      - type: join
+        table: customer_preferences
+        valueJoiner: combine_profile_and_preferences
+      # Convert table to stream to enable peek operation
+      - type: toStream
+      - type: peek
+        forEach:
+          code: log.info("CUSTOMER DATA JOIN - customer={}, tier={}, categories={}, channel={}", key, value.get("profile", {}).get("tier"), value.get("preferences", {}).get("preferred_categories"), value.get("preferences", {}).get("communication_channel"))
+    to: enriched_customer_data
