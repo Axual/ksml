@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
 streams:
   transactions:
     topic: credit_card_transactions
@@ -13,11 +15,13 @@ stores:
   customer_transaction_history:
     type: keyValue
     persistent: true
+    keyType: string
+    valueType: json
 
 ## Functions
 functions:
   ml_fraud_prediction:
-    type: mapValues
+    type: valueTransformer
     parameters:
       - name: value
         type: object

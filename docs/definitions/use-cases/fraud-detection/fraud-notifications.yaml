@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
 streams:
   fraud_alerts:
     topic: fraud_alerts
@@ -47,5 +49,5 @@ pipelines:
         if:
           expression: value.get("final_risk_score", 0) > 30  # Only notify on medium to high risk
       - type: transformValue
-        mapper: generate_alert
+        mapper: generate_notification
     to: fraud_notifications

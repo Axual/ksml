@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
 streams:
   transactions:
     topic: credit_card_transactions
@@ -18,6 +20,8 @@ stores:
   customer_transaction_history:
     type: keyValue
     persistent: true
+    keyType: string
+    valueType: json
 
 ## Functions
 functions:
@@ -76,6 +80,33 @@ functions:
     resultType: struct
     stores:
       - customer_transaction_history
+
+  calculate_fraud_score:
+    type: valueTransformer
+    code: |
+      # Base risk score from the alert
+      risk_score = value.get("risk_score", 0)
+      
+      # Additional factors
+      alert_type = value.get("alert_type", "")
+      
+      # Adjust score based on transaction type
+      if value.get("transaction_type") == "online":
+        risk_score += 10
+      
+      # Adjust score based on merchant category
+      high_risk_categories = ["electronics", "jewelry", "digital_goods"]
+      if value.get("merchant", {}).get("category") in high_risk_categories:
+        risk_score += 15
+      
+      # Cap the score at 100
+      risk_score = min(100, risk_score)
+      
+      # Add the calculated score to the alert
+      value["final_risk_score"] = risk_score
+      value["is_likely_fraud"] = risk_score > 70
+
+
 ## End of Functions
 
 pipelines:

@@ -32,6 +32,28 @@ Imagine you're building a fraud detection system for a financial institution tha
 3. Generate real-time alerts for high-risk activities
 4. Maintain a low rate of false positives
 
+## Define the topics for the use case
+
+In earlier tutorials, you created a Docker Compose file with all the necessary containers. For this use case guide, some other topics
+are needed.
+To have these created, open the `docker-compose.yml` in the examples directory, and find the definitions for the `kafka-setup` container
+which creates the topics.
+<br>
+Change the definition so that the startup command for the setup container (the `command` section) looks like the following:
+
+??? info "`command` section for the kafka-setup container"
+
+    ```yaml
+    command: "bash -c 'echo Creating topics... && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic credit_card_transactions && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic high_value_transactions && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic unusual_location_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic transaction_velocity_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic transaction_pattern_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic fraud_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic fraud_notifications'"
+    ```
+
 ## Defining the Data Model
 
 Our transaction data will have the following structure:
@@ -61,11 +83,14 @@ Our transaction data will have the following structure:
 
 ## Creating the KSML Definition
 
-Now, let's create our KSML definition file:
+Now, let's create our KSML definition file. This defines operations that check for transactions coming from unusual
+locations, coming at an unsual speed, or are for a high amount:
 
-```yaml
-{% include "../definitions/use-cases/fraud-detection/fraud-detection.yaml" %}
-```
+??? info "Basic fraud detection pipeline (click to expand)"
+
+    ```yaml
+    {% include "../definitions/use-cases/fraud-detection/fraud-detection.yaml" %}
+    ```
 
 ## Advanced Fraud Detection Techniques
 
@@ -73,37 +98,43 @@ Now, let's create our KSML definition file:
 
 To detect complex fraud patterns, you can implement more sophisticated algorithms:
 
-```yaml
-{%
-  include "../definitions/use-cases/fraud-detection/fraud-pattern-detection.yaml"
-  start="## Functions"
-  end="## End of Functions"
-%}
-```
+??? info "Advanced fraud detection pattern recognition (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/fraud-detection/fraud-pattern-detection.yaml"
+      start="## Functions"
+      end="## End of Functions"
+    %}
+    ```
 
 ### Machine Learning Integration
 
 For more advanced fraud detection, you can integrate machine learning models:
 
-```yaml
-{%
-  include "../definitions/use-cases/fraud-detection/fraud-detection-machine-learning.yaml"
-  start="## Functions"
-  end="## End of Functions"
-%}
-```
+??? info "Machine learning integration (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/fraud-detection/fraud-detection-machine-learning.yaml"
+      start="## Functions"
+      end="## End of Functions"
+    %}
+    ```
 
 ## Real-time Alerting
 
 To make your fraud detection system actionable, you need to generate alerts:
 
-```yaml
-{%
-  include "../definitions/use-cases/fraud-detection/fraud-notifications.yaml"
-  start="## Functions"
-  end="## End of Functions"
-%}
-```
+??? info "Real time alerting code (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/fraud-detection/fraud-notifications.yaml"
+      start="## Functions"
+      end="## End of Functions"
+    %}
+    ```
 
 ## Testing and Validation
 

@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
 streams:
   transactions:
     topic: credit_card_transactions
@@ -28,10 +30,14 @@ stores:
   customer_transaction_history:
     type: keyValue
     persistent: true
+    keyType: string
+    valueType: json
 
   card_location_history:
     type: keyValue
     persistent: true
+    keyType: string
+    valueType: json
 
 functions:
   check_high_value:
@@ -53,7 +59,7 @@ functions:
   create_high_value_alert:
     type: valueTransformer
     code: |
-      return {
+      result = {
         "transaction_id": value.get("transaction_id"),
         "timestamp": value.get("timestamp"),
         "customer_id": value.get("customer_id"),
@@ -63,6 +69,7 @@ functions:
         "alert_type": "high_value_transaction",
         "risk_score": min(100, value.get("amount") / 10)  # Simple scoring based on amount
       }
+    expression: result
     resultType: struct
 
   check_unusual_location:
@@ -74,6 +81,7 @@ functions:
       
       # Get location history for this card
       location_history = card_location_history.get(card_id)
+      unusual_location = False
       
       if location_history is None:
         # First transaction for this card, initialize history
@@ -83,43 +91,40 @@ functions:
           "last_transaction_time": value.get("timestamp")
         }
         card_location_history.put(card_id, location_history)
-        return None  # No alert for first transaction
+      else:
+        # Check for unusual location
+        time_since_last = value.get("timestamp") - location_history.get("last_transaction_time", 0)
       
-      # Check for unusual location
-      unusual_location = False
-      time_since_last = value.get("timestamp") - location_history.get("last_transaction_time", 0)
+        # If transaction is in a different country than any in history
+        if current_country not in location_history.get("last_countries", []):
+          unusual_location = True
       
-      # If transaction is in a different country than any in history
-      if current_country not in location_history.get("last_countries", []):
-        unusual_location = True
+        # If transaction is in a different state and happened within 2 hours of last transaction
+        elif (current_state not in location_history.get("last_states", []) and time_since_last < 7200000):  # 2 hours in milliseconds
+          unusual_location = True
       
-      # If transaction is in a different state and happened within 2 hours of last transaction
-      elif (current_state not in location_history.get("last_states", []) and 
-            time_since_last < 7200000):  # 2 hours in milliseconds
-        unusual_location = True
+        # Update location history (keep last 3)
+        last_countries = location_history.get("last_countries", [])
+        if current_country not in last_countries:
+          last_countries.append(current_country)
+        if len(last_countries) > 3:
+          last_countries = last_countries[-3:]
       
-      # Update location history (keep last 3)
-      last_countries = location_history.get("last_countries", [])
-      if current_country not in last_countries:
-        last_countries.append(current_country)
-      if len(last_countries) > 3:
-        last_countries = last_countries[-3:]
+        last_states = location_history.get("last_states", [])
+        if current_state not in last_states:
+          last_states.append(current_state)
+        if len(last_states) > 3:
+          last_states = last_states[-3:]
       
-      last_states = location_history.get("last_states", [])
-      if current_state not in last_states:
-        last_states.append(current_state)
-      if len(last_states) > 3:
-        last_states = last_states[-3:]
-      
-      location_history = {
-        "last_countries": last_countries,
-        "last_states": last_states,
-        "last_transaction_time": value.get("timestamp")
-      }
-      card_location_history.put(card_id, location_history)
+        location_history = {
+          "last_countries": last_countries,
+          "last_states": last_states,
+          "last_transaction_time": value.get("timestamp")
+        }
+        card_location_history.put(card_id, location_history)
       
       if unusual_location:
-        return {
+        result = {
           "transaction_id": value.get("transaction_id"),
           "timestamp": value.get("timestamp"),
           "customer_id": value.get("customer_id"),
@@ -136,9 +141,11 @@ functions:
           "alert_type": "unusual_location",
           "risk_score": 70 if current_country not in location_history.get("last_countries", [])[:-1] else 40
         }
+      else:
+        result = None
 
-      return None
-    resultType: struct
+    resultType: json
+    expression: result
     stores:
       - card_location_history
 
@@ -147,6 +154,7 @@ functions:
     code: |
       card_id = value.get("card_id")
       current_time = value.get("timestamp")
+      result = None
       
       # Get transaction history for this card
       history = customer_transaction_history.get(card_id)
@@ -160,53 +168,54 @@ functions:
           "total_amount_24h": value.get("amount", 0)
         }
         customer_transaction_history.put(card_id, history)
-        return None  # No alert for first transaction
+        result = None  # No alert for first transaction
+      else:
       
-      # Update transaction history
-      transaction_times = history.get("transaction_times", [])
-      transaction_times.append(current_time)
+        # Update transaction history
+        transaction_times = history.get("transaction_times", [])
+        transaction_times.append(current_time)
       
-      # Keep only transactions from the last 24 hours
-      one_day_ago = current_time - 86400000  # 24 hours in milliseconds
-      transaction_times = [t for t in transaction_times if t > one_day_ago]
+        # Keep only transactions from the last 24 hours
+        one_day_ago = current_time - 86400000  # 24 hours in milliseconds
+        transaction_times = [t for t in transaction_times if t > one_day_ago]
       
-      # Count transactions in the last hour
-      one_hour_ago = current_time - 3600000  # 1 hour in milliseconds
-      transaction_count_1h = sum(1 for t in transaction_times if t > one_hour_ago)
+        # Count transactions in the last hour
+        one_hour_ago = current_time - 3600000  # 1 hour in milliseconds
+        transaction_count_1h = sum(1 for t in transaction_times if t > one_hour_ago)
       
-      # Calculate total amount in the last 24 hours
-      total_amount_24h = history.get("total_amount_24h", 0) + value.get("amount", 0)
-      if len(transaction_times) < len(history.get("transaction_times", [])):
-        # Some transactions dropped out of the 24h window, recalculate total
-        # In a real system, you would store individual transaction amounts
-        # This is simplified for the example
-        total_amount_24h = value.get("amount", 0) * len(transaction_times)
+        # Calculate total amount in the last 24 hours
+        total_amount_24h = history.get("total_amount_24h", 0) + value.get("amount", 0)
+        if len(transaction_times) < len(history.get("transaction_times", [])):
+          # Some transactions dropped out of the 24h window, recalculate total
+          # In a real system, you would store individual transaction amounts
+          # This is simplified for the example
+          total_amount_24h = value.get("amount", 0) * len(transaction_times)
       
-      # Update history
-      history = {
-        "transaction_times": transaction_times,
-        "transaction_count_1h": transaction_count_1h,
-        "transaction_count_24h": len(transaction_times),
-        "total_amount_24h": total_amount_24h
-      }
-      customer_transaction_history.put(card_id, history)
-      
-      # More than 5 transactions in an hour
-      if transaction_count_1h > 5:
-        return {
-          "transaction_id": value.get("transaction_id"),
-          "timestamp": value.get("timestamp"),
-          "customer_id": value.get("customer_id"),
-          "card_id": card_id,
-          "transactions_last_hour": transaction_count_1h,
-          "transactions_last_day": len(transaction_times),
-          "total_amount_24h": total_amount_24h,
-          "alert_type": "high_transaction_velocity",
-          "risk_score": min(100, transaction_count_1h * 10)
+        # Update history
+        history = {
+          "transaction_times": transaction_times,
+          "transaction_count_1h": transaction_count_1h,
+          "transaction_count_24h": len(transaction_times),
+          "total_amount_24h": total_amount_24h
         }
+        customer_transaction_history.put(card_id, history)
       
-      return None
-    resultType: struct
+        # More than 5 transactions in an hour
+        if transaction_count_1h > 5:
+          result = {
+            "transaction_id": value.get("transaction_id"),
+            "timestamp": value.get("timestamp"),
+            "customer_id": value.get("customer_id"),
+            "card_id": card_id,
+            "transactions_last_hour": transaction_count_1h,
+            "transactions_last_day": len(transaction_times),
+            "total_amount_24h": total_amount_24h,
+            "alert_type": "high_transaction_velocity",
+            "risk_score": min(100, transaction_count_1h * 10)
+          }
+
+    resultType: json
+    expression: result
     stores:
       - customer_transaction_history
 
@@ -234,9 +243,9 @@ functions:
       # Add the calculated score to the alert
       value["final_risk_score"] = risk_score
       value["is_likely_fraud"] = risk_score > 70
-      
-      return value
-    resultType: struct
+
+    expression: value
+    resultType: json
 
 pipelines:
   # Pipeline for high-value transaction detection
