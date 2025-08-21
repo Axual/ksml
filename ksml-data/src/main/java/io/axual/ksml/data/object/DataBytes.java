@@ -25,6 +25,19 @@ import io.axual.ksml.data.type.SimpleType;
 
 import java.util.Arrays;
 
+/**
+ * Represents a wrapper for a byte-array value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataBytes} class encapsulates a {@code byte[]} value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data. It enables
+ * binary values to be used as {@link DataObject} types, making them compatible with the
+ * framework and allowing for standardized processing.</p>
+ *
+ * <p>For safety, input arrays are defensively copied on construction to preserve immutability
+ * of the internal representation.</p>
+ *
+ * @see DataObject
+ */
 public class DataBytes extends DataPrimitive<byte[]> {
     public static final SimpleType DATATYPE = new SimpleType(byte[].class, DataSchemaConstants.BYTES_TYPE);
 

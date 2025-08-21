@@ -21,22 +21,24 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.ListType;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 
+import javax.annotation.Nonnull;
+
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+
 /**
  * Represents a list of {@link DataObject} instances within the {@link DataObject} framework.
  *
  * <p>The {@code DataList} class provides a structured wrapper for handling collections
- * of {@link DataObject} elements. It extends the functionality of Java's {@code ArrayList}
- * while maintaining type metadata for each element, ensuring compatibility with the
- * schema-driven {@code DataObject} framework.</p>
+ * of {@link DataObject} elements. It builds on the functionality of Java's {@code ArrayList}
+ * while validating type metadata for each element, ensuring compatibility with the
+ * type-driven {@code DataObject} framework.</p>
  *
  * @see DataObject
  * @see ListType
@@ -53,7 +55,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
     private final ArrayList<DataObject> contents;
 
     /**
-     * The schema type information for this {@code DataList} instance, represented by a {@link ListType}.
+     * The value type information for this {@code DataList} instance, represented by a {@link ListType}.
      */
     @JsonIgnore
     private final ListType type;
@@ -69,7 +71,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * Constructs an empty {@code DataList} with the specified value type.
      *
      * <p>This constructor allows defining the type of elements the list should contain,
-     * enabling schema validation during data processing.</p>
+     * enabling type validation during data processing.</p>
      *
      * @param valueType The {@link DataType} of the elements to be stored in the list.
      */
@@ -200,13 +202,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
     public boolean equals(Object other) {
         if (!(other instanceof DataList otherList)) return false;
         if (!type.isAssignableFrom(otherList.type)) return false;
-        if (contents.size() != otherList.contents.size()) return false;
-        for (int index = 0; index < contents.size(); index++) {
-            final var element = contents.get(index);
-            final var otherElement = otherList.contents.get(index);
-            if (!element.equals(otherElement)) return false;
-        }
-        return true;
+        return Objects.equals(this.contents, otherList.contents);
     }
 
     @Override

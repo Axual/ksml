@@ -20,8 +20,16 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+
 import io.axual.ksml.client.producer.ResolvingProducer;
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
@@ -31,14 +39,8 @@ import io.axual.ksml.runner.producer.ExecutableProducer;
 import io.axual.ksml.runner.producer.IntervalSchedule;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
-
+import static java.util.Optional.ofNullable;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
@@ -57,20 +59,6 @@ public class KafkaProducerRunner implements Runner {
             Map<String, TopologyDefinition> definitions,
             Map<String, String> kafkaConfig,
             PythonContextConfig pythonContextConfig) {
-        public Config(final Map<String, TopologyDefinition> definitions,
-                      final Map<String, String> kafkaConfig,
-                      final PythonContextConfig pythonContextConfig) {
-            var processedKafkaConfig = new HashMap<>(kafkaConfig);
-            this.definitions = definitions;
-            // Check if a resolving client is required
-            if (ResolvingClientConfig.configRequiresResolving(processedKafkaConfig)) {
-                log.info("Using resolving clients for producer processing");
-                // Replace the deprecated configuration keys with the current ones
-                ResolvingClientConfig.replaceDeprecatedConfigKeys(processedKafkaConfig);
-            }
-            this.kafkaConfig = processedKafkaConfig;
-            this.pythonContextConfig = pythonContextConfig;
-        }
     }
 
     public KafkaProducerRunner(Config config) {
@@ -102,9 +90,9 @@ public class KafkaProducerRunner implements Runner {
             config.definitions.forEach((defName, definition) -> {
                 // Log the start of the producer
                 log.info("Starting producer definition: name={}, version={}, namespace={}",
-                        definition.name() != null ? definition.name() : UNDEFINED,
-                        definition.version() != null ? definition.version() : UNDEFINED,
-                        definition.namespace() != null ? definition.namespace() : UNDEFINED);
+                        ofNullable(definition.name()).orElse(UNDEFINED),
+                        ofNullable(definition.version()).orElse(UNDEFINED),
+                        ofNullable(definition.namespace()).orElse(UNDEFINED));
                 // Set up the Python context for this definition
                 final var context = new PythonContext(config.pythonContextConfig());
                 // Pre-register all functions in the Python context
@@ -113,7 +101,7 @@ public class KafkaProducerRunner implements Runner {
                 definition.producers().forEach((name, producer) -> {
                     var ep = ExecutableProducer.forProducer(context, definition.namespace(), name, producer, config.kafkaConfig);
                     scheduler.schedule(ep);
-                    log.info("Scheduled producer: {} {}", name, producer.interval() == null ? "once" : producer.interval().toMillis() + "ms");
+                    log.info("Scheduled producer: {} {}", name, ofNullable(producer.interval()).map(ms -> ms.toMillis() + "ms").orElse("once"));
                 });
             });
         } catch (Exception e) {

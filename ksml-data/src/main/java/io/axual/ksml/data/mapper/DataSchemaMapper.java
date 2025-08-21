@@ -22,16 +22,50 @@ package io.axual.ksml.data.mapper;
 
 import io.axual.ksml.data.schema.DataSchema;
 
+/**
+ * Maps between native Java values of type T and the KSML DataSchema model.
+ * Implementations convert to and from the neutral DataSchema representation,
+ * optionally using a namespace and name for schema identification.
+ *
+ * @param <T> The native value type handled by this schema mapper
+ */
 public interface DataSchemaMapper<T> {
+    /**
+     * Converts a native value to a DataSchema, with optional namespace and name.
+     *
+     * @param namespace optional schema namespace, may be null
+     * @param name      optional schema name, may be null
+     * @param value     the native value whose schema should be derived
+     * @return the corresponding DataSchema
+     */
     DataSchema toDataSchema(String namespace, String name, T value);
 
+    /**
+     * Converts a native value to a DataSchema using only a name.
+     *
+     * @param name  the schema name, may be null
+     * @param value the native value whose schema should be derived
+     * @return the corresponding DataSchema
+     */
     default DataSchema toDataSchema(String name, T value) {
         return toDataSchema(null, name, value);
     }
 
+    /**
+     * Converts a native value to a DataSchema without a namespace or name.
+     *
+     * @param value the native value whose schema should be derived
+     * @return the corresponding DataSchema
+     */
     default DataSchema toDataSchema(T value) {
         return toDataSchema(null, null, value);
     }
 
+    /**
+     * Converts a DataSchema back to its native representation.
+     *
+     * @param schema the DataSchema to convert
+     * @return the native value of type T that corresponds to the schema
+     */
     T fromDataSchema(DataSchema schema);
 }

@@ -1,0 +1,6 @@
+{
+  "strs": ["x"],
+  "intMap": {"n": 9},
+  "singleUnion": {"int": 42},
+  "unionList": []
+}

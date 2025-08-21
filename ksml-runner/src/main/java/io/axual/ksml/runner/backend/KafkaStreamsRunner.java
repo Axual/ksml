@@ -98,9 +98,7 @@ public class KafkaStreamsRunner implements Runner {
             var processedKafkaConfig = new HashMap<>(kafkaConfig);
             // Check if a resolving client is required
             if (ResolvingClientConfig.configRequiresResolving(processedKafkaConfig)) {
-                log.info("Using resolving clients for producer processing");
-                // Replace the deprecated configuration keys with the current ones
-                ResolvingClientConfig.replaceDeprecatedConfigKeys(processedKafkaConfig);
+                log.info("Using resolving Kafka clients");
                 processedKafkaConfig.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
             }
             this.kafkaConfig = processedKafkaConfig;
@@ -129,7 +127,7 @@ public class KafkaStreamsRunner implements Runner {
         final var streamsProps = getStreamsConfig(config.kafkaConfig, config.storageDirectory, config.appServer);
 
         final var defaultAppId = "ksmlApplicationId";
-        final var applicationId = config.kafkaConfig != null ? config.kafkaConfig.getOrDefault(StreamsConfig.APPLICATION_ID_CONFIG, defaultAppId).toString() : defaultAppId;
+        final var applicationId = config.kafkaConfig != null ? config.kafkaConfig.getOrDefault(StreamsConfig.APPLICATION_ID_CONFIG, defaultAppId) : defaultAppId;
 
         final var streamsConfig = new StreamsConfig(streamsProps);
         final var topologyConfig = new TopologyConfig(streamsConfig);

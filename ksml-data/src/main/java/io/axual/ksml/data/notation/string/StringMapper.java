@@ -20,8 +20,26 @@ package io.axual.ksml.data.notation.string;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Bidirectional mapping between String representation and a target type T.
+ * Useful for notations that serialize to textual form.
+ *
+ * @param <T> the target mapped type
+ */
 public interface StringMapper<T> {
+    /**
+     * Parses a value from its String representation.
+     *
+     * @param value the string form
+     * @return the parsed value
+     */
     T fromString(String value);
 
+    /**
+     * Converts a value to its String representation.
+     *
+     * @param value the value to convert
+     * @return the string form
+     */
     String toString(T value);
 }

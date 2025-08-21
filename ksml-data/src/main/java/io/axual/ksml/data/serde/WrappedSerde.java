@@ -29,6 +29,12 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+/**
+ * Simple Serde wrapper that exposes a delegate's serializer and deserializer while
+ * routing configuration calls to both. This is useful when a Serde instance needs
+ * to be adapted or passed around while keeping control over configure/close
+ * delegation in a single place.
+ */
 public class WrappedSerde implements Serde<Object> {
     private final Serializer<Object> delegateSerializer;
     private final Deserializer<Object> delegateDeserializer;
@@ -37,6 +43,11 @@ public class WrappedSerde implements Serde<Object> {
     @Getter
     private final Deserializer<Object> deserializer;
 
+    /**
+     * Constructs a WrappedSerde delegating to the given Serde.
+     *
+     * @param delegate the underlying Serde whose serializer and deserializer are exposed
+     */
     public WrappedSerde(Serde<Object> delegate) {
         this.delegateSerializer = delegate.serializer();
         this.delegateDeserializer = delegate.deserializer();
@@ -89,6 +100,9 @@ public class WrappedSerde implements Serde<Object> {
         };
     }
 
+    /**
+     * Configures both the delegate serializer and deserializer with the same configuration.
+     */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
         delegateSerializer.configure(configs, isKey);

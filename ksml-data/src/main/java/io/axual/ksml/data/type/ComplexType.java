@@ -25,6 +25,13 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * Base class for composite {@link DataType} implementations that have one or more sub-types.
+ * <p>
+ * Examples include lists, maps, tuples, unions and structs. ComplexType provides helpers to
+ * build readable names/specs and implements assignability rules that compare the container
+ * class and all sub-types.
+ */
 @Getter
 public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;

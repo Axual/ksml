@@ -28,25 +28,73 @@ import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
 
 import javax.annotation.Nullable;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+/**
+ * Utility class for converting KSML DataObject instances between different DataType targets.
+ * <p>
+ * Conversion is performed recursively for complex types (lists, maps, structs, tuples) and can
+ * optionally leverage Notation-specific converters to bridge between notations before applying
+ * type compatibility conversions.
+ */
 public class ConvertUtil {
     private final NativeDataObjectMapper dataObjectMapper;
     private final DataTypeDataSchemaMapper dataSchemaMapper;
 
+    /**
+     * Create a new ConvertUtil.
+     *
+     * @param dataObjectMapper  mapper to convert between native values and KSML DataObject values
+     * @param dataSchemaMapper  mapper to convert between KSML DataType and notation-specific schemas
+     */
     public ConvertUtil(NativeDataObjectMapper dataObjectMapper, DataTypeDataSchemaMapper dataSchemaMapper) {
         this.dataObjectMapper = dataObjectMapper;
         this.dataSchemaMapper = dataSchemaMapper;
     }
 
+    /**
+     * Convert a value to the given target type.
+     *
+     * <p>This method uses recursive conversion for complex types and may fall back to
+     * compatibility conversions when needed.
+     *
+     * @param targetType the desired target DataType
+     * @param value      the input value as DataObject
+     * @return the converted DataObject; if no conversion is needed, returns the original value
+     * @throws io.axual.ksml.data.exception.DataException if conversion cannot be performed
+     */
     public DataObject convert(DataType targetType, DataObject value) {
         return convert(targetType, value, false);
     }
 
+    /**
+     * Convert a value to the given target type, optionally allowing conversion failure.
+     *
+     * @param targetType the desired target DataType
+     * @param value      the input value as DataObject
+     * @param allowFail  if true, return null when conversion is not possible; otherwise throw
+     * @return the converted DataObject or null if allowFail is true and conversion is not possible
+     * @throws io.axual.ksml.data.exception.DataException if allowFail is false and conversion fails
+     */
     public DataObject convert(DataType targetType, DataObject value, boolean allowFail) {
         return convert(null, null, targetType, value, allowFail);
     }
 
+    /**
+     * Convert a value to the given target type using the provided source and target notations.
+     *
+     * <p>The method first attempts notation-level conversion via Notation.converter(), then applies
+     * type compatibility conversion as needed. Complex types are handled recursively.
+     *
+     * @param sourceNotation the notation of the input value; may be null if unknown
+     * @param targetNotation the desired target notation; may be null to skip notation conversion
+     * @param targetType     the desired target DataType
+     * @param value          the input value as DataObject
+     * @param allowFail      if true, return null when conversion is not possible; otherwise throw
+     * @return the converted DataObject, or null if allowFail is true and conversion is not possible
+     * @throws io.axual.ksml.data.exception.DataException if allowFail is false and conversion fails
+     */
     public DataObject convert(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value, boolean allowFail) {
         // If no conversion is possible or necessary, then just return the value object
         if (targetType == null || value == null) return value;
@@ -69,6 +117,11 @@ public class ConvertUtil {
             return convertList(targetListType, valueList, allowFail);
         }
 
+        // Recurse into maps
+        if (targetType instanceof MapType targetMapType && value instanceof DataMap valueMap) {
+            return convertMap(targetMapType, valueMap, allowFail);
+        }
+
         // Recurse into structs
         if (targetType instanceof StructType targetStructType && value instanceof DataStruct valueStruct) {
             return convertStruct(targetStructType, valueStruct, allowFail);
@@ -83,7 +136,7 @@ public class ConvertUtil {
 
         // When we reach this point, real data conversion needs to happen
 
-        // First step is to use the converters from the notations to convert the type into the desired target type
+        // The first step is to use the converters from the notations to convert the type into the desired target type
         var convertedValue = applyNotationConverters(sourceNotation, targetNotation, targetType, value);
 
         // If the notation conversion was good enough, then return that result
@@ -124,8 +177,8 @@ public class ConvertUtil {
         // Convert from anything to string
         if (targetType == DataString.DATATYPE) return new DataString(value.toString());
 
-        // Come up with default values if we convert from Null
         final var result = switch (value) {
+            // Come up with default values if we convert from Null
             case null -> convertNullToDataObject(targetType);
             case DataNull ignored -> convertNullToDataObject(targetType);
             // Convert numbers to their proper specific type
@@ -163,9 +216,18 @@ public class ConvertUtil {
             }
             // Convert from String to anything through recursion using the same target type
             case DataString stringValue -> convertStringToDataObject(targetType, stringValue.value(), allowFail);
-            // Convert list without a value type to a list with a specific value type
+            // Convert a list without a value type to a list with a specific value type
             case DataList listValue when targetType instanceof ListType targetListType ->
                     convertList(targetListType, listValue, allowFail);
+            // Convert a map with one value type to a map with another value type
+            case DataMap mapValue when targetType instanceof MapType targetMapType ->
+                    convertMap(targetMapType, mapValue, allowFail);
+            // Convert a map to a struct
+            case DataMap mapValue when targetType instanceof StructType targetStructType ->
+                    convertMapToStruct(targetStructType, mapValue, allowFail);
+            // Convert a struct to a map
+            case DataStruct structValue when targetType instanceof MapType targetMapType ->
+                    convertStructToMap(targetMapType, structValue, allowFail);
             // Convert from schemaless structs to a struct with a schema
             case DataStruct structValue when targetType instanceof StructType targetStructType ->
                     convertStruct(targetStructType, structValue, allowFail);
@@ -175,7 +237,7 @@ public class ConvertUtil {
 
         if (result == null) {
             if (allowFail) return null;
-            throw convertError(targetType, value != null ? value.type() : DataNull.DATATYPE, value);
+            throw convertError(value != null ? value.type() : DataNull.DATATYPE, targetType, value);
         }
         return result;
     }
@@ -194,6 +256,7 @@ public class ConvertUtil {
         return switch (expected) {
             case EnumType ignored -> new DataString(value);
             case ListType listType -> convertStringToDataList(listType, value, allowFail);
+            case MapType mapType -> convertStringToDataMap(mapType, value, allowFail);
             case StructType structType -> convertStringToDataStruct(structType, value, allowFail);
             case TupleType tupleType -> convertStringToDataTuple(tupleType, value, allowFail);
             case UnionType unionType -> convertStringToUnionMemberType(unionType, value, allowFail);
@@ -226,6 +289,18 @@ public class ConvertUtil {
         return result;
     }
 
+    private DataMap convertStringToDataMap(MapType mapType, String value, boolean allowFail) {
+        if (value == null || value.isEmpty()) return null;
+        final var map = JsonNodeUtil.convertStringToMap(value);
+        if (map == null) {
+            if (!allowFail) throw convertError(DataString.DATATYPE, mapType, DataString.from(value));
+            return null;
+        }
+        final var result = new DataMap(mapType.valueType());
+        map.forEach((key, val) -> result.put(key, dataObjectMapper.toDataObject(mapType.valueType(), val)));
+        return result;
+    }
+
     @Nullable
     private DataStruct convertStringToDataStruct(StructType structType, String value, boolean allowFail) {
         if (value == null || value.isEmpty()) return null;
@@ -235,13 +310,7 @@ public class ConvertUtil {
             return null;
         }
         final var result = new DataStruct(structType.schema());
-        for (final var entry : map.entrySet()) {
-            final var targetType = structType.fieldType(entry.getKey(), DataType.UNKNOWN, DataType.UNKNOWN);
-            final var targetValue = dataObjectMapper.toDataObject(targetType, entry.getValue());
-            if (!targetType.isAssignableFrom(targetValue))
-                throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
-            result.put(entry.getKey(), targetValue);
-        }
+        map.forEach(structFiller(structType, result, allowFail));
         return result;
     }
 
@@ -298,47 +367,72 @@ public class ConvertUtil {
             case ListType listType -> new DataList(listType.valueType(), true);
             case StructType structType -> new DataStruct(structType.schema(), true);
             case UnionType ignored -> DataNull.INSTANCE;
+            case MapType mapType -> new DataMap(mapType.valueType(), true);
+            case EnumType ignored -> DataNull.INSTANCE;
             default -> throw new DataException("Can not convert NULL to " + expected);
         };
     }
 
     private DataObject convertList(ListType expected, DataList value, boolean allowFail) {
-        // If the target list type does not have a specific value type, then simply return
-        final var expectedValueType = expected.valueType();
-        if (expectedValueType == null || expectedValueType == DataType.UNKNOWN) return value;
-
-        // Create a new List with the give value type
-        final var result = new DataList(expectedValueType, value.isNull());
+        // Create a new List with the given value type
+        final var result = new DataList(expected.valueType(), value.isNull());
         // Copy all list elements into the new list, possibly making sub-elements compatible
-        for (int index = 0; index < value.size(); index++) {
-            result.add(convertDataObject(expected.valueType(), value.get(index), allowFail));
-        }
+        value.forEach(element -> result.add(convertDataObject(expected.valueType(), element, allowFail)));
         // Return the List with made-compatible elements
         return result;
     }
 
-    private DataObject convertStruct(StructType expected, DataStruct value, boolean allowFail) {
-        // Don't recurse into Structs without a schema, just return those plainly
-        final var schema = expected.schema();
-        if (schema == null) return value;
+    private DataMap convertMap(MapType expected, DataMap value, boolean allowFail) {
+        // Create a new Map with the given value type
+        final var result = new DataMap(expected.valueType(), value.isNull());
+        // Copy all map elements into the new map, possibly making sub-elements compatible
+        value.forEach((key, val) -> result.put(key, convertDataObject(expected.valueType(), val, allowFail)));
+        // Return the Map with made-compatible elements
+        return result;
+    }
 
-        // Create a new Struct with the same schema type
+    private DataStruct convertMapToStruct(StructType expected, DataMap value, boolean allowFail) {
+        // Create a new Struct with the expected schema type
         final var result = new DataStruct(expected.schema(), value.isNull());
-
         // Copy all struct fields into the new struct, possibly making sub-elements compatible
-        for (final var entry : value.entrySet()) {
-            // Determine the new value type
-            final var field = schema.field(entry.getKey());
-            // Only copy if the field exists in the target structure
-            if (field != null) {
-                final var fieldType = dataSchemaMapper.fromDataSchema(field.schema());
-                // Convert to that type if necessary
-                result.put(entry.getKey(), convertDataObject(fieldType, entry.getValue(), allowFail));
-            }
-        }
-
+        value.forEach(structFiller(expected, result, allowFail));
         // Return the Struct with compatible fields
         return result;
+    }
+
+    private DataMap convertStructToMap(MapType expected, DataStruct value, boolean allowFail) {
+        // Create a new Map with the given value type
+        final var result = new DataMap(expected.valueType(), value.isNull());
+        // Copy all map elements into the new map, possibly making sub-elements compatible
+        value.forEach((key, val) -> result.put(key, convertDataObject(expected.valueType(), val, allowFail)));
+        // Return the Map with made-compatible elements
+        return result;
+    }
+
+    private DataStruct convertStruct(StructType expected, DataStruct value, boolean allowFail) {
+        // Create a new Struct with the expected schema type
+        final var result = new DataStruct(expected.schema(), value.isNull());
+        // Copy all struct fields into the new struct, possibly making sub-elements compatible
+        value.forEach(structFiller(expected, result, allowFail));
+        // Return the Struct with compatible fields
+        return result;
+    }
+
+    private BiConsumer<String, Object> structFiller(StructType expected, DataStruct result, boolean allowFail) {
+        return (key, value) -> {
+            // If the expected struct type contains a schema, then only copy fields defined by the schema
+            if (expected.schema() != null) {
+                final var field = expected.schema().field(key);
+                // Only copy if the field exists in the target structure
+                if (field != null) {
+                    final var fieldType = dataSchemaMapper.fromDataSchema(field.schema());
+                    // Convert to that type if necessary
+                    result.put(key, convertDataObject(fieldType, dataObjectMapper.toDataObject(value), allowFail));
+                }
+            } else {
+                result.put(key, dataObjectMapper.toDataObject(value));
+            }
+        };
     }
 
     private DataObject convertTuple(TupleType expected, DataTuple value, boolean allowFail) {

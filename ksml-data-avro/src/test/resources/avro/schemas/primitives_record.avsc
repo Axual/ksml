@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "Primitives",
+  "namespace": "io.axual.test",
+  "doc": "Record covering primitive Avro types",
+  "fields": [
+    { "name": "str", "type": "string" },
+    { "name": "i", "type": "int" },
+    { "name": "l", "type": "long" },
+    { "name": "f", "type": "float" },
+    { "name": "d", "type": "double" },
+    { "name": "b", "type": "boolean" },
+    { "name": "bytes", "type": "bytes" }
+  ]
+}

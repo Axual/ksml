@@ -23,7 +23,20 @@ package io.axual.ksml.data.notation;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.schema.DataSchema;
 
+/**
+ * Resolves schemas by name. Implementations typically look up parsed DataSchema instances
+ * from a registry, cache, or local collection.
+ *
+ * @param <T> the type of DataSchema handled by the resolver
+ */
 public interface SchemaResolver<T extends DataSchema> extends ReferenceResolver<T> {
+    /**
+     * Returns the schema for the given name or throws when it is not found.
+     *
+     * @param schemaName the schema name
+     * @return the resolved schema
+     * @throws SchemaException when the schema is unknown
+     */
     default T getOrThrow(String schemaName) {
         final var result = get(schemaName);
         if (result == null) throw new SchemaException("Unknown schema: " + schemaName);

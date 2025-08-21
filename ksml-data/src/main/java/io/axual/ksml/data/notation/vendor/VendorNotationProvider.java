@@ -23,6 +23,9 @@ package io.axual.ksml.data.notation.vendor;
 import io.axual.ksml.data.notation.NotationProvider;
 import lombok.Getter;
 
+/**
+ * Convenience base for NotationProvider implementations that are vendor-specific.
+ */
 @Getter
 public abstract class VendorNotationProvider implements NotationProvider {
     private final String notationName;
