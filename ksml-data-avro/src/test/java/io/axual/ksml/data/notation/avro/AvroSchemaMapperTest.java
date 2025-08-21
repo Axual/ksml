@@ -52,13 +52,12 @@ import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_COLLECTI
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_LOGICAL_TYPES;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_OPTIONAL;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_PRIMITIVES;
-import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 
 /**
  * Unit tests for AvroSchemaMapper schema conversion rules.
- *
+ * <p>
  * References:
  * - ksml-data/DEVELOPER_GUIDE.md for KSML Schema model
  * - AvroTestUtil to load Avro schemas from resources
@@ -260,17 +259,6 @@ class AvroSchemaMapperTest {
         }
     }
 
-    static UnionSchema optionalSchema(DataSchema... dataSchemas) {
-        requireNonNull(dataSchemas);
-        if (dataSchemas.length == 0) throw new IllegalArgumentException("No data schemas provided");
-
-        final var dataFields = new DataField[dataSchemas.length + 1];
-        dataFields[0] = new DataField(DataSchema.NULL_SCHEMA);
-        for (var i = 1; i <= dataSchemas.length; i++) {
-            dataFields[i] = new DataField(dataSchemas[i - 1]);
-        }
-        return new UnionSchema(dataFields);
-    }
 
     @Test
     @DisplayName("Verify null and null schema avro conversions")
@@ -465,16 +453,6 @@ class AvroSchemaMapperTest {
 
         // add Null last to make it nullable
         schemas.add(new DataField(DataSchema.NULL_SCHEMA));
-        return new UnionSchema(schemas.toArray(new DataField[0]));
-    }
-
-    // Create a KSML DataSchema counterpart of the Avro optional schemas
-    static UnionSchema ksmlOptional(DataSchema dataSchema, DataSchema... additionalSchemas) {
-        final var schemas = new ArrayList<DataField>();
-        // add Null as first type to make it optional
-        schemas.add(new DataField(DataSchema.NULL_SCHEMA));
-        addSchemas(dataSchema, additionalSchemas, schemas);
-
         return new UnionSchema(schemas.toArray(new DataField[0]));
     }
 

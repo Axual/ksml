@@ -144,7 +144,7 @@ public final class AvroTestUtil {
 
     /**
      * Parse a single JSON-encoded Avro record from a resource using the provided schema.
-     *
+     * <p>
      * The JSON must follow Avro's JSON encoding rules for the given schema.
      *
      * @param schema            Avro schema that describes the record structure
@@ -183,7 +183,7 @@ public final class AvroTestUtil {
 
     /**
      * Open a classpath resource as an InputStream.
-     *
+     * <p>
      * This method first uses the thread context ClassLoader and then the class' ClassLoader as a fallback.
      * The provided path may start with a leading slash or be relative (both are supported).
      *
@@ -200,7 +200,7 @@ public final class AvroTestUtil {
 
     /**
      * List files directly under a classpath directory (non-recursive).
-     *
+     * <p>
      * Only file URLs are supported (typical for running tests from the filesystem). Returned entries are
      * classpath-relative paths constructed by concatenating the directory path and file name.
      *

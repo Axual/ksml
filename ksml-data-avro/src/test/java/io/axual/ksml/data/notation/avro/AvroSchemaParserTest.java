@@ -44,7 +44,7 @@ class AvroSchemaParserTest {
 
     @Test
     @DisplayName("Wrong parse type exception")
-    void parseIncorrectSchema() {;
+    void parseIncorrectSchema() {
         final var avroStringSchema = SchemaFormatter.format("json/pretty",Schema.create(Schema.Type.STRING));
         assertThatCode(()->schemaParser.parse("TEST_CONTEXT","string", avroStringSchema))
                 .isInstanceOf(SchemaException.class);
