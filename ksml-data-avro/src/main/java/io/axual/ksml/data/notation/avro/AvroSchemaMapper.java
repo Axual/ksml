@@ -108,7 +108,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                 for (var i = 0; i < unionSchemas.size(); i++) {
                     final var memberSchema = unionSchemas.get(i);
                     final var memberDataSchema = switch (memberSchema.getType()) {
-                        case ENUM, RECORD, FIXED-> toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
+                        case ENUM, RECORD, FIXED ->
+                                toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
                         default -> toDataSchema(memberSchema);
                     };
                     unionDataFields[i] = new DataField(memberDataSchema);
@@ -132,7 +133,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
      */
     @Override
     public Schema fromDataSchema(DataSchema schema) {
-        if(schema == null) {
+        if (schema == null) {
             return AVRO_NULL_TYPE;
         }
         if (schema instanceof StructSchema structSchema) {
@@ -233,17 +234,17 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         final var memberSchemas = firstIsNull ? unionTypes.subList(1, unionTypes.size()) : unionTypes;
 
         if (memberSchemas.isEmpty()) {
-            // Apparently only null was supplied, technically possible. Return null schema
+            // Apparently only null was supplied, technically possible. Return optional null schema
             return new SchemaAndRequired(DataSchema.NULL_SCHEMA, isRequired);
         }
-        if(memberSchemas.size() > 1){
-            // Create a new union schema with the adjusted member list
-            return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(memberSchemas).toArray(DataField[]::new)), isRequired);
+
+        if (memberSchemas.size() == 1) {
+            // Only one member left, return that schema
+            return new SchemaAndRequired(toDataSchema(memberSchemas.getFirst()), isRequired);
         }
 
-        // Only one member left, return that schema
-        return new SchemaAndRequired(toDataSchema(memberSchemas.getFirst()), isRequired);
-
+        // Create a new union schema with the potentially adjusted member list
+        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(memberSchemas).toArray(DataField[]::new)), isRequired);
     }
 
     private List<DataField> convertAvroSchemaToDataFields(List<Schema> schemas) {
