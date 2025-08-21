@@ -61,6 +61,7 @@ public class DataSchemaConstants {
     public static final String LIST_TYPE = "list";
     public static final String MAP_TYPE = "map";
     public static final String STRUCT_TYPE = "struct";
+    public static final String TUPLE_TYPE = "tuple";
     public static final String UNION_TYPE = "union";
 
     private static final Set<String> TYPES = new HashSet<>();
@@ -82,6 +83,7 @@ public class DataSchemaConstants {
         TYPES.add(LIST_TYPE);
         TYPES.add(MAP_TYPE);
         TYPES.add(STRUCT_TYPE);
+        TYPES.add(TUPLE_TYPE);
         TYPES.add(UNION_TYPE);
     }
 

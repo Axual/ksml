@@ -22,6 +22,7 @@ package io.axual.ksml.data.value;
 
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
@@ -35,8 +36,7 @@ public class Tuple<T> {
 
     @SafeVarargs
     public Tuple(T... elements) {
-        this.elements = Arrays.asList(elements);
-//        this.elements = List.of(elements);
+        this.elements = Collections.unmodifiableList(Arrays.asList(elements));
     }
 
     @Override
