@@ -130,12 +130,6 @@ class KafkaProducerRunnerTest {
                 "key.serializer", ByteArraySerializer.class,
                 "value.serializer", ByteArraySerializer.class
         );
-        final var inputConfigWithCompatPatterns = Map.of(
-                ResolvingClientConfig.COMPAT_TOPIC_PATTERN_CONFIG, "{AnotherKey}-{topic}",
-                ResolvingClientConfig.COMPAT_GROUP_ID_PATTERN_CONFIG, "{AnotherKey}-{group.id}",
-                ResolvingClientConfig.COMPAT_TRANSACTIONAL_ID_PATTERN_CONFIG, "{AnotherKey}-{transactional.id}",
-                "AnotherKey", "value"
-        );
         final var inputConfigWithCurrentPatterns = Map.of(
                 ResolvingClientConfig.TOPIC_PATTERN_CONFIG, "{AnotherKey}-{topic}",
                 ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG, "{AnotherKey}-{group.id}",
@@ -153,13 +147,10 @@ class KafkaProducerRunnerTest {
 
         return Stream.of(
                 Arguments.of(named("NO PATTERN - Producing can stop based on a condition", "produce-test-condition.yaml"), inputConfigWithoutPatterns, expectedConfigWithoutPatterns, 2),
-                Arguments.of(named("COMPAT PATTERN - Producing can stop based on a condition", "produce-test-condition.yaml"), inputConfigWithCompatPatterns, expectedConfigWithCurrentPattern, 2),
                 Arguments.of(named("CURRENT PATTERN - Producing can stop based on a condition", "produce-test-condition.yaml"), inputConfigWithCurrentPatterns, expectedConfigWithCurrentPattern, 2),
                 Arguments.of(named("NO PATTERN - A fixed count of records can be produced", "produce-test-count-3.yaml"), inputConfigWithoutPatterns, expectedConfigWithoutPatterns, 3),
-                Arguments.of(named("COMPAT PATTERN - A fixed count of records can be produced", "produce-test-count-3.yaml"), inputConfigWithCompatPatterns, expectedConfigWithCurrentPattern, 3),
                 Arguments.of(named("CURRENT PATTERN - A fixed count of records can be produced", "produce-test-count-3.yaml"), inputConfigWithCurrentPatterns, expectedConfigWithCurrentPattern, 3),
                 Arguments.of(named("NO PATTERN - when `interval` is omitted only 1 record is produced", "produce-test-single.yaml"), inputConfigWithoutPatterns, expectedConfigWithoutPatterns, 1),
-                Arguments.of(named("COMPAT PATTERN - when `interval` is omitted only 1 record is produced", "produce-test-single.yaml"), inputConfigWithCompatPatterns, expectedConfigWithCurrentPattern, 1),
                 Arguments.of(named("CURRENT PATTERN - when `interval` is omitted only 1 record is produced", "produce-test-single.yaml"), inputConfigWithCurrentPatterns, expectedConfigWithCurrentPattern, 1)
         );
     }

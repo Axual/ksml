@@ -22,29 +22,58 @@ package io.axual.ksml.data.object;
 
 import io.axual.ksml.data.type.DataType;
 
+/**
+ * Defines the common abstraction for all values that participate in the KSML data model.
+ *
+ * <p>Implementations wrap concrete values (primitives and structured types) and carry
+ * their {@link DataType} metadata so values can be validated, printed and processed in a
+ * schema-aware way across the framework.</p>
+ */
 public interface DataObject {
+    /**
+     * Returns the {@link DataType} that describes this value.
+     */
     DataType type();
 
+    /**
+     * Printer options controlling how values are rendered to strings.
+     */
     enum Printer {
+        /** Internal formatting for logs and debug output. */
         INTERNAL,
+        /** External formatting without schema names. */
         EXTERNAL_NO_SCHEMA,
+        /** External formatting with schema on the top-level value only. */
         EXTERNAL_TOP_SCHEMA,
+        /** External formatting with schema for all nested values. */
         EXTERNAL_ALL_SCHEMA;
 
+        /**
+         * Derives the printer to use for nested child objects relative to this printer.
+         */
         public Printer childObjectPrinter() {
             if (this == INTERNAL) return EXTERNAL_NO_SCHEMA;
             return this == EXTERNAL_ALL_SCHEMA ? EXTERNAL_ALL_SCHEMA : EXTERNAL_NO_SCHEMA;
         }
 
+        /**
+         * Returns the schema prefix that must always be shown for the given value.
+         */
         public String forceSchemaString(DataObject value) {
             return value.type().name() + ": ";
         }
 
+        /**
+         * Returns the schema prefix according to the current printer mode.
+         */
         public String schemaString(DataObject value) {
             if (this == INTERNAL || this == EXTERNAL_NO_SCHEMA) return "";
             return forceSchemaString(value);
         }
     }
 
+    /**
+     * Returns a string representation according to the provided {@link Printer} mode.
+     */
     String toString(Printer printer);
 }

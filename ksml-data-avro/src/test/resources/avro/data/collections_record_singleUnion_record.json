@@ -1,0 +1,6 @@
+{
+  "strs": ["y"],
+  "intMap": {"a": 1},
+  "singleUnion": {"io.axual.test.X": {"id": 7, "name": "seven"}},
+  "unionList": []
+}

@@ -24,7 +24,18 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * Utility functions for working with lists.
+ */
 public class ListUtil {
+    /**
+     * Find the first element in the list that matches the given predicate.
+     *
+     * @param list    the list to search
+     * @param matcher predicate used to test elements
+     * @param <V>     element type
+     * @return the first matching element, or null if none match
+     */
     public static <V> V find(List<V> list, Predicate<V> matcher) {
         for (final var entry : list) {
             if (matcher.test(entry)) return entry;
@@ -32,6 +43,15 @@ public class ListUtil {
         return null;
     }
 
+    /**
+     * Map the elements of a list using the provided mapper function.
+     *
+     * @param list   the source list
+     * @param mapper function to transform elements
+     * @param <T>    source element type
+     * @param <R>    result element type
+     * @return a new list containing mapped elements
+     */
     public static <T, R> List<R> map(List<T> list, Function<T, R> mapper) {
         return list.stream().map(mapper).toList();
     }

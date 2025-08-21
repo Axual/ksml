@@ -21,10 +21,11 @@ package io.axual.ksml.data.value;
  */
 
 
+import java.util.Arrays;
+import java.util.List;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.util.List;
 
 // This class implements a Tuple with any number of elements
 @EqualsAndHashCode
@@ -34,7 +35,8 @@ public class Tuple<T> {
 
     @SafeVarargs
     public Tuple(T... elements) {
-        this.elements = List.of(elements);
+        this.elements = Arrays.asList(elements);
+//        this.elements = List.of(elements);
     }
 
     @Override

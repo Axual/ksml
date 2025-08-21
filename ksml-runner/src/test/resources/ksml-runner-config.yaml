@@ -1,10 +1,13 @@
 ksml:
-  configDirectory: .
+  configDirectory: "."
   definitions:
-    example: src/test/resources/example-definition.yaml
+    example: "src/test/resources/example-definition.yaml"
 
 kafka:
-  bootstrap.servers: broker:9093
-  application.id: io.ksml.example.processor
-  schema.registry.url: http://schema_registry:8081
-  acks: all
+  bootstrap.servers: "broker:9093"
+  application.id: "io.ksml.example.processor"
+  schema.registry.url: "http://schema_registry:8081"
+  acks: "all"
+  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"

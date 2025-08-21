@@ -26,7 +26,17 @@ import io.axual.ksml.data.schema.DataSchemaConstants;
 
 import java.util.Map;
 
+/**
+ * A {@link ComplexType} representing a map with String keys and a configurable value type.
+ * <p>
+ * The map type follows {@link io.axual.ksml.data.schema.DataSchemaConstants#MAP_TYPE} semantics
+ * where keys are strings and values are typed according to the provided value {@link DataType}.
+ */
 public class MapType extends ComplexType {
+    public MapType() {
+        this(DataType.UNKNOWN);
+    }
+
     public MapType(DataType valueType) {
         super(Map.class,
                 buildName("Map", valueType),

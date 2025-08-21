@@ -28,6 +28,10 @@ import lombok.Getter;
 
 import java.util.Objects;
 
+/**
+ * Base implementation for Notation that stores common context and helpers.
+ * Subclasses specialize serialization, conversion, and schema parsing behavior.
+ */
 @Getter
 public abstract class BaseNotation implements Notation {
     private final NotationContext context;
@@ -45,6 +49,11 @@ public abstract class BaseNotation implements Notation {
         this.schemaParser = schemaParser;
     }
 
+    /**
+     * The display/identifier name for this notation instance derived from its context.
+     *
+     * @return the notation name
+     */
     public String name() {
         return context.name();
     }

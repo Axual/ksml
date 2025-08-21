@@ -1,0 +1,24 @@
+{
+  "type": "record",
+  "name": "OptionalFields",
+  "namespace": "io.axual.test",
+  "doc": "Record where each field is optional (union of null and a single concrete type) covering primitives and basic complex types",
+  "fields": [
+    { "name": "optStr",   "type": ["null", "string"], "default": null },
+    { "name": "optInt",   "type": ["null", "int"],    "default": null },
+    { "name": "optLong",  "type": ["null", "long"],   "default": null },
+    { "name": "optFloat", "type": ["null", "float"],  "default": null },
+    { "name": "optDouble","type": ["null", "double"], "default": null },
+    { "name": "optBool",  "type": ["null", "boolean"],"default": null },
+    { "name": "optBytes", "type": ["null", "bytes"],  "default": null },
+
+    { "name": "optStrList", "type": ["null", {"type": "array", "items": "string"}], "default": null },
+    { "name": "optIntMap",  "type": ["null", {"type": "map",   "values": "int"}],   "default": null },
+
+    { "name": "optRec", "type": ["null", {"type": "record", "name": "OptInner", "fields": [
+      {"name": "id", "type": "int"}
+    ]}], "default": null },
+
+    { "name": "optEnum", "type": ["null", {"type": "enum", "name": "OptColor", "symbols": ["RED","GREEN","BLUE"]}], "default": null }
+  ]
+}

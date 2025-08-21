@@ -123,7 +123,7 @@ public class PythonFunction extends UserFunction {
             }
         } catch (Exception e) {
             logCall(parameters, null);
-            throw FatalError.reportAndExit(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage())));
+            throw FatalError.reportAndExit(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage()), e));
         }
     }
 

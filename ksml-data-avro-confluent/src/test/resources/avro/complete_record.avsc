@@ -1,0 +1,35 @@
+{
+  "type": "record",
+  "name": "CompleteRecord",
+  "namespace": "io.axual.test",
+  "doc": "Record containing the most used combinations of scenarios covering primitives and complex types",
+  "fields": [
+    { "name": "reqStr", "type": "string" },
+    { "name": "reqInt", "type": "int" },
+    { "name": "reqLong", "type": "long" },
+    { "name": "reqFloat", "type": "float" },
+    { "name": "reqDouble", "type": "double" },
+    { "name": "reqBool", "type": "boolean" },
+    { "name": "reqBytes", "type": "bytes" },
+    { "name": "reqRec", "type": { "type": "record", "name": "InnerRecord", "fields": [{"name": "location", "type": "string"}]}},
+    { "name": "reqEnum", "type": ["null", { "type": "enum", "name": "Color", "symbols": ["RED","GREEN","BLUE"]}], "default": null },
+    { "name": "reqListString", "type": { "type": "array", "items": "string"} },
+    { "name": "reqMapInt", "type": { "type": "map", "values": "int"} },
+    { "name": "reqUnion", "type": ["string", "int", "InnerRecord"]},
+    { "name": "optStr",   "type": ["null", "string"], "default": null },
+    { "name": "optInt",   "type": ["null", "int"],    "default": null },
+    { "name": "optLong",  "type": ["null", "long"],   "default": null },
+    { "name": "optFloat", "type": ["null", "float"],  "default": null },
+    { "name": "optDouble","type": ["null", "double"], "default": null },
+    { "name": "optBool",  "type": ["null", "boolean"],"default": null },
+    { "name": "optBytes", "type": ["null", "bytes"],  "default": null },
+    { "name": "optStrList", "type": ["null", {"type": "array", "items": "string"}], "default": null },
+    { "name": "optIntMap",  "type": ["null", {"type": "map",   "values": "int"}],   "default": null },
+    { "name": "optRec", "type": ["null","InnerRecord"], ",default": null },
+    { "name": "optEnum", "type": ["null", "Color"], ",default": null },
+    { "name": "optListString", "type": ["null", { "type": "array", "items": "string"}], ",default": null },
+    { "name": "optMapInt", "type": ["null", { "type": "map", "values": "int"}], "default": null},
+    { "name": "optUnion", "type": ["null", "string", "int", "InnerRecord"], "default": null}
+
+  ]
+}

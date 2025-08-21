@@ -24,11 +24,15 @@ package io.axual.ksml.runner.config;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Singular;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,35 +51,31 @@ public class KSMLRunnerConfig {
     private KafkaConfig kafkaConfig;
 
     public String applicationId() {
-        return kafkaConfig.applicationId;
+        return kafkaConfig.applicationId();
     }
 
     public Map<String, String> kafkaConfig() {
-        final var result = new HashMap<>(kafkaConfig.kafkaConfig());
-        result.put("application.id", kafkaConfig.applicationId());
-        return result;
+        return kafkaConfig.config();
     }
 
     @Data
-    public static class KafkaConfig {
-        @JsonProperty("app.id")
-        @JsonAlias({"applicationId", "application.id"})
-        private String applicationId;
+    static class KafkaConfig {
+        private final String applicationId;
 
-        @JsonIgnore
-        private Map<String, String> kafkaConfig = new HashMap<>();
+        private final Map<String, String> config;
 
-        // Capture all other fields that Jackson do not match other members
-        @JsonAnyGetter
-        public Map<String, String> kafkaConfig() {
-            final var result = new HashMap<>(kafkaConfig);
+        @Builder
+        @Jacksonized
+        private KafkaConfig(@JsonProperty("app.id")
+                            @JsonAlias({"applicationId", "application.id"}) String applicationId, @JsonAnySetter @Singular() Map<String, String> kafkaConfigs) {
+            this.applicationId = applicationId;
+            final var result = new HashMap<>(kafkaConfigs);
+            if (ResolvingClientConfig.configRequiresResolving(result)) {
+                ResolvingClientConfig.replaceDeprecatedConfigKeys(result);
+            }
+            // Add the application id back to the map
             result.put("application.id", applicationId);
-            return result;
-        }
-
-        @JsonAnySetter
-        public void setOtherField(String name, String value) {
-            kafkaConfig.put(name, value);
+            this.config = Collections.unmodifiableMap(result);
         }
     }
 }

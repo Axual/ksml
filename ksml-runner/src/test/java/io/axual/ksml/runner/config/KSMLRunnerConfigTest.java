@@ -27,7 +27,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class KSMLRunnerConfigTest {
@@ -47,7 +49,17 @@ class KSMLRunnerConfigTest {
         final var ksmlRunnerConfig = objectMapper.readValue(yaml, KSMLRunnerConfig.class);
 
         assertNotNull(ksmlRunnerConfig.ksmlConfig());
-        assertNotNull(ksmlRunnerConfig.kafkaConfig());
+        final var expectedKafkaConfig = new HashMap<String, String>();
+        expectedKafkaConfig.put("bootstrap.servers","broker:9093");
+        expectedKafkaConfig.put("application.id","io.ksml.example.processor");
+        expectedKafkaConfig.put("schema.registry.url","http://schema_registry:8081");
+        expectedKafkaConfig.put("acks","all");
+        expectedKafkaConfig.put("axual.topic.pattern","{tenant}-{instance}-{environment}-{topic}");
+        expectedKafkaConfig.put("axual.group.id.pattern","{tenant}-{instance}-{environment}-{group.id}");
+        expectedKafkaConfig.put("axual.transactional.id.pattern","{tenant}-{instance}-{environment}-{transactional.id}");
+        assertThat(ksmlRunnerConfig.kafkaConfig())
+                .isNotNull()
+                .containsExactlyInAnyOrderEntriesOf(expectedKafkaConfig);
     }
 
     @Test

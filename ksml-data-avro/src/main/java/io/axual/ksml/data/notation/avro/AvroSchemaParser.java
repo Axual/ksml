@@ -27,10 +27,24 @@ import io.axual.ksml.data.schema.StructSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 
+/**
+ * Parses Avro schema JSON strings (.avsc) into KSML DataSchema instances.
+ *
+ * <p>Ensures the top-level Avro schema maps to a StructSchema, throwing SchemaException otherwise.</p>
+ */
 @Slf4j
 public class AvroSchemaParser implements Notation.SchemaParser {
     private static final AvroSchemaMapper MAPPER = new AvroSchemaMapper();
 
+    /**
+     * Parse a textual Avro schema into KSML DataSchema.
+     *
+     * @param contextName a logical context identifier (e.g., vendor subject/context); not used by this parser
+     * @param schemaName  the schema name used for mapping and validation
+     * @param schemaString the Avro schema JSON text (.avsc content)
+     * @return a StructSchema converted from the Avro schema
+     * @throws SchemaException when the result is not a StructSchema
+     */
     @Override
     public DataSchema parse(String contextName, String schemaName, String schemaString) {
         final var parsedSchema = new Schema.Parser().parse(schemaString);

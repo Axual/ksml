@@ -27,6 +27,13 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
+/**
+ * Serde for representing a KSML Data Null value over Kafka.
+ * <p>
+ * Serialization always produces a null byte array. Deserialization accepts null or empty
+ * byte arrays and returns the KSML {@link io.axual.ksml.data.value.Null#NULL} sentinel. Any
+ * non-empty input will result in a DataException.
+ */
 @Getter
 public class NullSerde implements Serde<Object> {
     private static final byte[] SERIALIZED_NULL = null;

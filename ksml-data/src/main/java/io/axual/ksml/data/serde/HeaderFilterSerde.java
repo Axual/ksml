@@ -32,6 +32,14 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Serde wrapper that filters specific Kafka record headers during serialization and deserialization.
+ * <p>
+ * When serializing with headers provided, this class delegates to the underlying serializer and then
+ * removes any headers whose keys are listed in {@link #filteredHeaders}. When deserializing with headers,
+ * it creates a copy of the headers with the filtered keys removed before delegating to the underlying
+ * deserializer. This allows hiding or stripping sensitive or unwanted headers from downstream processing.
+ */
 public class HeaderFilterSerde implements Serde<Object> {
     @Getter
     private final Serializer<Object> serializer;
@@ -41,6 +49,12 @@ public class HeaderFilterSerde implements Serde<Object> {
     @Setter
     public Set<String> filteredHeaders;
 
+    /**
+     * Creates a HeaderFilterSerde that delegates to the provided Serde and filters headers
+     * according to {@link #filteredHeaders}.
+     *
+     * @param delegate the underlying Serde to wrap
+     */
     public HeaderFilterSerde(Serde<Object> delegate) {
         serializer = new Serializer<>() {
             private final Serializer<Object> delegateSerializer = delegate.serializer();
@@ -102,6 +116,9 @@ public class HeaderFilterSerde implements Serde<Object> {
         };
     }
 
+    /**
+     * Configures both the wrapped serializer and deserializer.
+     */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
         serializer.configure(configs, isKey);

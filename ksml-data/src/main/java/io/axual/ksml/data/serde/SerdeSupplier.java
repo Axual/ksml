@@ -23,6 +23,17 @@ package io.axual.ksml.data.serde;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 
+/**
+ * A strategy interface to obtain a Kafka Serde for a specific KSML DataType and key/value role.
+ * Implementations typically choose appropriate underlying Serdes based on the data model.
+ */
 public interface SerdeSupplier {
+    /**
+     * Returns a Serde capable of handling the given KSML DataType.
+     *
+     * @param type  the KSML data type to support
+     * @param isKey whether the Serde will be used for keys (true) or values (false)
+     * @return a Serde<Object> suitable for the given type and role
+     */
     Serde<Object> get(DataType type, boolean isKey);
 }

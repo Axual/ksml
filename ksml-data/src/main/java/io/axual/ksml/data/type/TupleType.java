@@ -22,6 +22,9 @@ package io.axual.ksml.data.type;
 
 import io.axual.ksml.data.value.Tuple;
 
+/**
+ * A {@link ComplexType} representing a positional tuple consisting of the provided sub-types.
+ */
 public class TupleType extends ComplexType {
     public TupleType(DataType... subTypes) {
         this("Tuple", subTypes);

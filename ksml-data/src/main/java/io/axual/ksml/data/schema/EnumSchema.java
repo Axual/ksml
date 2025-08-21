@@ -51,7 +51,7 @@ public class EnumSchema extends NamedSchema {
      * If no explicit value is provided, this can be {@code null}.
      * </p>
      */
-    private final String defaultValue;
+    private final Symbol defaultValue;
 
     /**
      * Constructs a new {@code EnumSchema} with the given namespace, name, documentation, and symbols.
@@ -77,7 +77,7 @@ public class EnumSchema extends NamedSchema {
      * @param symbols      The list of symbols (values) allowed in this enumeration schema.
      * @param defaultValue The optional default value for this schema.
      */
-    public EnumSchema(String namespace, String name, String doc, List<Symbol> symbols, String defaultValue) {
+    public EnumSchema(String namespace, String name, String doc, List<Symbol> symbols, Symbol defaultValue) {
         super(DataSchemaConstants.ENUM_TYPE, namespace, name, doc);
         this.symbols = symbols;
         this.defaultValue = defaultValue;
