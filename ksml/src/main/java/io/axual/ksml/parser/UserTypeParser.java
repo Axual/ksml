@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.axual.ksml.data.schema.DataSchemaConstants.MAP_TYPE;
+import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 public class UserTypeParser {
     private static final String NOTATION_SEPARATOR = ":";
@@ -47,6 +47,9 @@ public class UserTypeParser {
     private static final String SQUARE_BRACKET_OPEN = "[";
     private static final String SQUARE_BRACKET_CLOSE = "]";
     private static final String ENUM_TYPE = DataSchemaConstants.ENUM_TYPE;
+    private static final String LIST_TYPE = DataSchemaConstants.LIST_TYPE;
+    private static final String MAP_TYPE = DataSchemaConstants.MAP_TYPE;
+    private static final String TUPLE_TYPE = DataSchemaConstants.TUPLE_TYPE;
     private static final String UNION_TYPE = DataSchemaConstants.UNION_TYPE;
     private static final String WINDOWED_TYPE = DataSchemaDSL.WINDOWED_TYPE;
     private static final String ALLOWED_LITERAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
@@ -56,7 +59,7 @@ public class UserTypeParser {
     }
 
     public static UserType parse(String type) {
-        final var types = parseListOfTypesAndNotation(type, UserType.DEFAULT_NOTATION);
+        final var types = parseListOfTypesAndNotation(type, DEFAULT_NOTATION);
         if (types.length == 1) {
             return types[0];
         }
@@ -105,34 +108,40 @@ public class UserTypeParser {
             return new UserType(notation, internalType);
         }
 
-        // List type
+        // [type]
         if (dataType.startsWith(SQUARE_BRACKET_OPEN)) {
             if (!dataType.endsWith(SQUARE_BRACKET_CLOSE)) {
                 throw new ParseException("List type not properly closed: " + dataType);
             }
-            // Parse the type in brackets separately as the type of list elements. Notation overrides are not allowed
-            // for list elements. If specified (eg. "[avro:SomeSchema]") then the notation is ignored.
-            final var valueType = parseTypeAndNotation(dataType.substring(1, dataType.length() - 1), notation);
-            // Return as a list of parsed value types using notation specified by the above parsed parent list type
-            return new UserType(notation, new ListType(valueType.dataType()));
+            // Parse the type in brackets separately as the type of list elements
+            final var valueTypeStr = dataType.substring(1, dataType.length() - 1);
+            final var valueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION).dataType();
+            // Return a typed list
+            return new UserType(notation, new ListType(valueType));
         }
 
-        // Tuple type
-        if (dataType.startsWith(ROUND_BRACKET_OPEN)) {
+        // list(type)
+        if (dataType.startsWith(LIST_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Tuple type not properly closed: " + dataType);
+                throw new ParseException("List type not properly closed: " + dataType);
             }
-            final var valueTypes = parseListOfTypesAndNotation(dataType.substring(1, dataType.length() - 1), notation);
-            return new UserType(notation, new UserTupleType(valueTypes));
+            // Parse the type in brackets separately as the type of list elements
+            final var valueTypeStr = dataType.substring(LIST_TYPE.length() + 1, dataType.length() - 1);
+            final var valueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION).dataType();
+            // Return a typed list
+            return new UserType(notation, new ListType(valueType));
         }
 
-        // enum(literal1,literal2,...)
+        // enum(literal1, literal2,...)
         if (dataType.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
                 throw new ParseException("Enum type not properly closed: " + dataType);
             }
-            final var literals = dataType.substring(ENUM_TYPE.length() + 1, dataType.length() - 1);
-            return new UserType(notation, new EnumType(parseListOfLiterals(literals).stream().map(Symbol::new).toList()));
+            // Parse the literals in brackets separately as possible enum values
+            final var literalsStr = dataType.substring(ENUM_TYPE.length() + 1, dataType.length() - 1);
+            final var literals = parseListOfLiterals(literalsStr).stream().map(Symbol::new).toList();
+            // Return a new enum type with those literals
+            return new UserType(notation, new EnumType(literals));
         }
 
         // map(type)
@@ -140,17 +149,23 @@ public class UserTypeParser {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
                 throw new ParseException("Map type not properly closed: " + dataType);
             }
-            final var valueType = dataType.substring(MAP_TYPE.length() + 1, dataType.length() - 1);
-            return new UserType(notation, new MapType(parseType(valueType)));
+            // Parse the type in brackets separately as the type of map elements
+            final var valueTypeStr = dataType.substring(MAP_TYPE.length() + 1, dataType.length() - 1);
+            final var valueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION).dataType();
+            // Return a typed map
+            return new UserType(notation, new MapType(valueType));
         }
 
-        // union(type1,type2,...)
+        // union(type1, type2,...)
         if (dataType.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
                 throw new ParseException("Union type not properly closed: " + dataType);
             }
-            final var unionSubtypes = dataType.substring(UNION_TYPE.length() + 1, dataType.length() - 1);
-            return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(parseListOfTypesAndNotation(unionSubtypes, notation))).map(UnionType.MemberType::new).toArray(UnionType.MemberType[]::new)));
+            // Parse the types in brackets separately as the union's member types
+            final var memberTypesStr = dataType.substring(UNION_TYPE.length() + 1, dataType.length() - 1);
+            final var memberTypes = parseListOfTypesAndNotation(memberTypesStr, DEFAULT_NOTATION);
+            // Return a new union type with parsed member types
+            return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(memberTypes)).map(UnionType.MemberType::new).toArray(UnionType.MemberType[]::new)));
         }
 
         // windowed(type)
@@ -158,8 +173,35 @@ public class UserTypeParser {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
                 throw new ParseException("Windowed type not properly closed: " + dataType);
             }
-            final var windowedType = dataType.substring(WINDOWED_TYPE.length() + 1, dataType.length() - 1);
-            return new UserType(notation, new WindowedType(parseType(windowedType)));
+            // Parse the type in brackets separately as the type of the windowed key
+            final var windowedTypeStr = dataType.substring(WINDOWED_TYPE.length() + 1, dataType.length() - 1);
+            final var windowedType = parseTypeAndNotation(windowedTypeStr, DEFAULT_NOTATION).dataType();
+            // Return a typed windowed object
+            return new UserType(notation, new WindowedType(windowedType));
+        }
+
+        // (type1, type2, ...)
+        if (dataType.startsWith(ROUND_BRACKET_OPEN)) {
+            if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+                throw new ParseException("Tuple type not properly closed: " + dataType);
+            }
+            // Parse the type in brackets separately as the tuple's element types
+            final var elementTypesStr = dataType.substring(1, dataType.length() - 1);
+            final var elementTypes = parseListOfTypesAndNotation(elementTypesStr, DEFAULT_NOTATION);
+            // Return a new tuple type with parsed element types
+            return new UserType(notation, new UserTupleType(elementTypes));
+        }
+
+        // tuple(type1, type2, ...)
+        if (dataType.startsWith(TUPLE_TYPE + ROUND_BRACKET_OPEN)) {
+            if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+                throw new ParseException("Tuple type not properly closed: " + dataType);
+            }
+            // Parse the type in brackets separately as the tuple's element types
+            final var elementTypesStr = dataType.substring(TUPLE_TYPE.length() + 1, dataType.length() - 1);
+            final var elementTypes = parseListOfTypesAndNotation(elementTypesStr, DEFAULT_NOTATION);
+            // Return a new tuple type with parsed element types
+            return new UserType(notation, new UserTupleType(elementTypes));
         }
 
         // Notation type with or without specific schema

@@ -1,0 +1,81 @@
+# Test pipeline for PR #285 - new list() and tuple() type syntax
+streams:
+  input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+    
+  output_list:
+    topic: output_list_topic
+    keyType: string
+    valueType: string
+    
+  output_tuple:
+    topic: output_tuple_topic  
+    keyType: string
+    valueType: string
+    
+  output_list_of_tuples:
+    topic: output_list_of_tuples_topic
+    keyType: string
+    valueType: string
+
+functions:
+  # Test tuple() syntax - should be equivalent to (type1, type2)
+  tuple_function_syntax:
+    type: keyValueTransformer
+    code: |
+      # Return a tuple using new tuple(string, string) syntax
+      new_key = f"tuple_{key}"
+      new_value = f"tuple_{value}"
+    expression: (new_key, new_value)
+    resultType: tuple(string, string)
+    
+  # Test nested list(tuple()) syntax - returns list of values
+  nested_list_tuple:
+    type: keyValueToValueListTransformer
+    code: |
+      # Return list of values using new syntax
+      result = []
+      for i in range(3):
+        result.append(f"{key}_{i}_{value}")
+    expression: result
+    resultType: list(string)  # List of strings using new syntax
+    
+  # Test complex list(tuple(keyType,valueType)) syntax
+  list_of_tuples_function:
+    type: keyValueToKeyValueListTransformer
+    code: |
+      # Return list of key-value tuples using new nested syntax
+      result = []
+      for i in range(2):
+        new_key = f"{key}_tuple_{i}"
+        new_value = f"{value}_modified_{i}"
+        result.append((new_key, new_value))
+    expression: result
+    resultType: list(tuple(string, string))
+
+pipelines:
+  # Simple pipeline to test tuple() syntax  
+  test_tuple_function:
+    from: input
+    via:
+      - type: transformKeyValue
+        mapper: tuple_function_syntax
+    to: output_tuple
+    
+  # Pipeline to test nested list() syntax
+  test_nested_syntax:
+    from: input
+    via:
+      - type: transformKeyValueToValueList
+        mapper: nested_list_tuple
+    to: output_list
+    
+  # Pipeline to test complex list(tuple()) syntax
+  test_list_of_tuples:
+    from: input
+    via:
+      - type: transformKeyValueToKeyValueList
+        mapper: list_of_tuples_function
+    to: output_list_of_tuples
