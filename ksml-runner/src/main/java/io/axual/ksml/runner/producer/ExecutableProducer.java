@@ -22,6 +22,7 @@ package io.axual.ksml.runner.producer;
 
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.definition.ProducerDefinition;
@@ -65,6 +66,7 @@ public class ExecutableProducer {
     private final Serializer<Object> valueSerializer;
     private long batchCount = 0;
     private boolean stopProducing = false;
+    private final List<Pair<DataObject, DataObject>> messageQueue = new LinkedList<>();
 
     private ExecutableProducer(UserFunction generator,
                                ProducerStrategy producerStrategy,
@@ -206,33 +208,58 @@ public class ExecutableProducer {
     }
 
     private Pair<DataObject, DataObject> generateMessage() {
-        final var result = generator.apply();
-        if (result instanceof DataTuple tuple && tuple.elements().size() == 2) {
-            var key = tuple.elements().get(0);
-            var value = tuple.elements().get(1);
+        // Get a message for the queue of generated messages, or generate new messages first and then fetch
+        // from the queue
+        if (messageQueue.isEmpty()) messageQueue.addAll(generateMessages());
+        // Return the first element of the queue, or null if none present
+        return messageQueue.isEmpty() ? null : messageQueue.removeFirst();
+    }
 
-            if (producerStrategy.validateMessage(key, value)) {
-                // keep produced key and value to determine rescheduling later
-                key = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, key, keyType);
-                value = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, value, valueType);
-
-                var okay = true;
-
-                if (key != null && !keyType.dataType().isAssignableFrom(key.type())) {
-                    log.error("Wrong topic key type: expected={} key={}", keyType, key.type());
-                    okay = false;
+    private List<Pair<DataObject, DataObject>> generateMessages() {
+        final var result = new ArrayList<Pair<DataObject, DataObject>>();
+        final var generated = generator.apply();
+        if (generated instanceof DataTuple tuple && tuple.elements().size() == 2) {
+            final var msg = shapeMessage(tuple);
+            if (msg != null) result.add(msg);
+        }
+        if (generated instanceof DataList list) {
+            for (DataObject element : list) {
+                if (element instanceof DataTuple tuple && tuple.elements().size() == 2) {
+                    final var msg = shapeMessage(tuple);
+                    if (msg != null) result.add(msg);
+                } else {
+                    log.warn("Skipping invalid message: {}", element);
                 }
-                if (value != null && !valueType.dataType().isAssignableFrom(value.type())) {
-                    log.error("Wrong topic value type: expected={} value={}", valueType, value.type());
-                    okay = false;
-                }
-
-                if (okay) {
-                    return new Pair<>(key, value);
-                }
-            } else {
-                log.warn("Skipping invalid message: key={} value={}", key, value);
             }
+        }
+        return result;
+    }
+
+    private Pair<DataObject, DataObject> shapeMessage(DataTuple tuple) {
+        var key = tuple.elements().get(0);
+        var value = tuple.elements().get(1);
+
+        if (producerStrategy.validateMessage(key, value)) {
+            // keep produced key and value to determine rescheduling later
+            key = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, key, keyType);
+            value = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, value, valueType);
+
+            var okay = true;
+
+            if (key != null && !keyType.dataType().isAssignableFrom(key.type())) {
+                log.error("Wrong topic key type: expected={} key={}", keyType, key.type());
+                okay = false;
+            }
+            if (value != null && !valueType.dataType().isAssignableFrom(value.type())) {
+                log.error("Wrong topic value type: expected={} value={}", valueType, value.type());
+                okay = false;
+            }
+
+            if (okay) {
+                return new Pair<>(key, value);
+            }
+        } else {
+            log.warn("Skipping invalid message: key={} value={}", key, value);
         }
         return null;
     }

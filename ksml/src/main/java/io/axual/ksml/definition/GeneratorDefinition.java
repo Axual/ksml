@@ -29,6 +29,6 @@ public class GeneratorDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_GENERATOR)
                 .withParameters(NO_PARAMETERS)
-                .withTupleResult());
+                .withTupleOrListOfTuplesResult());
     }
 }
