@@ -353,7 +353,9 @@ pipelines:
         with: large_stream_2
         # Missing proper key selection
     to: joined_output
+```
 
+```yaml
 # Better: Ensure proper keying for efficient joins
 pipelines:
   efficient_join:

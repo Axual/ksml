@@ -68,24 +68,6 @@ pipelines:
   circuit_breaker_processor:
     from: service_requests
     via:
-      - type: transformValue
-        mapper: circuit_breaker_handler
-      - type: peek
-        forEach:
-          code: |
-            status = value.get("status", "unknown")
-            circuit_state = value.get("circuit_state", "unknown")
-            req_id = value.get("request_id", "unknown")
-            
-            if status == "circuit_open":
-              log.warn("CIRCUIT OPEN - {}: Request rejected", req_id)
-            elif status == "success":
-              log.info("REQUEST OK - {} [{}]", req_id, circuit_state)
-            else:
-              failures = value.get("failure_count", 0)
-              log.error("REQUEST FAILED - {} [{}]: {} failures", req_id, circuit_state, failures)
-    branch:
-      - if:
-          expression: value.get("status") == "success"
-        to: service_responses
-      - to: circuit_events
+      - type: transformKeyValueToValueList
+        mapper: explode_order_items
+    to: items_output

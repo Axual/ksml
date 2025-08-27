@@ -1,0 +1,25 @@
+streams:
+  order_batches_input:
+    topic: order_batches
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: order_batches_input
+    via:
+      - type: flatMap
+        mapper:
+          resultType: "[(string,json)]"
+          code: |
+            return [(f"{value['order_id']}_{i['item_id']}", {
+              "order_id": value['order_id'],
+              "customer_id": value['customer_id'],
+              "item_id": i['item_id'],
+              "quantity": i['quantity'],
+              "total": i['quantity'] * i['price']
+            }) for i in value['items']]
+    to:
+      topic: individual_items
+      keyType: string
+      valueType: json

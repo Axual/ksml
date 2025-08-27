@@ -6,22 +6,27 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 - [Quick Start](getting-started/quick-start.md)
 - [Understanding KSML](getting-started/introduction.md)
 
-## 2. Core Concepts
-- [Overview](core-concepts/index.md)
-- [Data Types](reference/data-type-reference.md)
-- [Notations](reference/notation-reference.md)
-- [Stream Types](reference/stream-type-reference.md)
-- [Functions](core-concepts/functions.md)
-- [Pipelines](core-concepts/pipelines.md)
-- [Operations](core-concepts/operations.md)
-
-## 3. Tutorials
+## 2. Tutorials
+- [Overview](tutorials/index.md)
 - [KSML Basics Tutorial](getting-started/basics-tutorial.md)
 - [Beginner Tutorials](tutorials/beginner/index.md)
+      - [Filtering and Transforming](tutorials/beginner/filtering-transforming.md)
+      - [Different Data Formats](tutorials/beginner/data-formats.md)
+      - [Logging and Monitoring](tutorials/beginner/logging-monitoring.md)
 - [Intermediate Tutorials](tutorials/intermediate/index.md)
+      - [Branching](tutorials/intermediate/branching.md)
+      - [Aggregations](tutorials/intermediate/aggregations.md)
+      - [Joins](tutorials/intermediate/joins.md)
+      - [Windowing](tutorials/intermediate/windowing.md)
+      - [Error Handling](tutorials/intermediate/error-handling.md)
+      - [State Stores](tutorials/intermediate/state-stores.md)
 - [Advanced Tutorials](tutorials/advanced/index.md)
+      - [Complex Event Processing](tutorials/advanced/complex-event-processing.md)
+      - [Custom State Stores](tutorials/advanced/custom-state-stores.md)
+      - [Performance Optimization](tutorials/advanced/performance-optimization.md)
+      - [Integration with External Systems](tutorials/advanced/external-integration.md)
 
-## 4. Use Case Guides
+## 3. Use Case Guides
 - [Overview](use-cases/index.md)
 - [Data Transformation](use-cases/data-transformation.md)
 - [Event-Driven Applications](use-cases/event-driven-applications.md)
@@ -30,19 +35,23 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 - [Real-time Analytics](use-cases/real-time-analytics.md)
 - [Fraud Detection](use-cases/fraud-detection.md)
 
-## 5. Reference
+## 4. References
 - [Overview](reference/index.md)
 - [KSML Language Reference](reference/language-reference.md)
-- [Functions Reference](reference/function-reference.md)
-- [Operations Reference](reference/operation-reference.md)
+- [Stream Type Reference](reference/stream-type-reference.md)
+- [Data Type Reference](reference/data-type-reference.md)
+- [Notation Reference](reference/notation-reference.md)
+- [Function Reference](reference/function-reference.md)
+- [Operation Reference](reference/operation-reference.md)
+- [Pipelines](reference/pipelines.md)
 - [Configuration Reference](reference/configuration-reference.md)
 
-## 6. Resources
+## 5. Resources
 - [Examples Library](resources/examples-library.md)
 - [Troubleshooting Guide](resources/troubleshooting.md)
 - [Migration Guide](resources/migration.md)
 - [Community and Support](resources/community.md)
-- [Advanced Installation Guide (Optional)](getting-started/advanced-installation.md)
+- [Advanced Installation](getting-started/advanced-installation.md)
 
 ## Latest Release
 - [Release Notes](release-notes.md)

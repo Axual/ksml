@@ -1,0 +1,63 @@
+streams:
+  mixed_sensors:
+    topic: mixed_sensor_data
+    keyType: string
+    valueType: json
+  temperature_data:
+    topic: temperature_sensors
+    keyType: string
+    valueType: json
+  humidity_data:
+    topic: humidity_sensors
+    keyType: string
+    valueType: json
+  pressure_data:
+    topic: pressure_sensors
+    keyType: string
+    valueType: json
+  critical_alerts:
+    topic: critical_sensor_alerts
+    keyType: string
+    valueType: json
+
+functions:
+  route_by_sensor_type:
+    type: topicNameExtractor
+    code: |
+      if value is None:
+        return "unknown_sensor_data"
+      
+      sensor_type = value.get("sensor_type", "unknown")
+      alert_level = value.get("alert_level", "normal")
+      
+      # Route critical alerts to dedicated topic regardless of sensor type
+      if alert_level == "critical":
+        log.warn("Critical alert from sensor {}: {} reading = {}", 
+                 value.get("sensor_id"), sensor_type, value.get("reading"))
+        return "critical_sensor_alerts"
+      
+      # Route by sensor type for normal and warning levels
+      if sensor_type == "temperature":
+        return "temperature_sensors"
+      elif sensor_type == "humidity":
+        return "humidity_sensors" 
+      elif sensor_type == "pressure":
+        return "pressure_sensors"
+      else:
+        return "unknown_sensor_data"
+        
+  log_routing:
+    type: forEach
+    code: |
+      log.info("Sensor data: {} type={} level={} reading={}", 
+               key, value.get("sensor_type"), 
+               value.get("alert_level"), value.get("reading"))
+
+pipelines:
+  route_sensor_data:
+    from: mixed_sensors
+    via:
+      - type: peek
+        forEach: log_routing
+    toTopicNameExtractor:
+      topicNameExtractor: route_by_sensor_type

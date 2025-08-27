@@ -389,8 +389,8 @@ Congratulations! You've built your first KSML data pipeline. Here are some ways 
 
 ### Explore More Advanced Concepts:
 
-- Learn about [stateful operations](../core-concepts/operations.md#stateful-operations) like aggregations and joins
-- Explore [windowing operations](../core-concepts/operations.md#windowing-operations) for time-based processing
+- Learn about [stateful operations](../reference/operation-reference.md#stateful-aggregation-operations) like aggregations and joins
+- Explore [windowing operations](../reference/operation-reference.md#windowing-operations) for time-based processing
 - Try working with different [data formats](../reference/stream-type-reference.md)
 
 ### Continue Your Learning Journey:

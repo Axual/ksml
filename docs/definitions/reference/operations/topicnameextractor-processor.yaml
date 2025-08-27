@@ -1,0 +1,43 @@
+streams:
+  system_events:
+    topic: system_events
+    keyType: string
+    valueType: json
+  
+  critical_alerts:
+    topic: critical_alerts
+    keyType: string
+    valueType: json
+  
+  error_logs:
+    topic: error_logs
+    keyType: string
+    valueType: json
+  
+  warning_logs:
+    topic: warning_logs
+    keyType: string
+    valueType: json
+  
+  info_logs:
+    topic: info_logs
+    keyType: string
+    valueType: json
+
+functions:
+  route_by_severity:
+    type: topicNameExtractor
+    code: |
+      if value is None: return "info_logs"
+      sev = value.get("severity", "INFO")
+      if sev == "CRITICAL":
+        log.error("CRITICAL: {}", value.get("message"))
+      return {"CRITICAL": "critical_alerts", "ERROR": "error_logs", 
+              "WARNING": "warning_logs"}.get(sev, "info_logs")
+    resultType: string
+
+pipelines:
+  route_system_events:
+    from: system_events
+    toTopicNameExtractor:
+      topicNameExtractor: route_by_severity

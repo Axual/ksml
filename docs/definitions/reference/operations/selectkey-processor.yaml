@@ -1,0 +1,19 @@
+streams:
+  user_events:
+    topic: user_events
+    keyType: string
+    valueType: json
+  
+  user_keyed_events:
+    topic: user_keyed_events
+    keyType: string
+    valueType: json
+
+pipelines:
+  rekey_user_events:
+    from: user_events
+    via:
+      - type: selectKey
+        mapper:
+          expression: value.get("user_id")
+    to: user_keyed_events

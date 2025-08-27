@@ -34,15 +34,6 @@ nav:
   - Getting Started:
       - Quick Start: getting-started/quick-start.md
       - Understanding KSML: getting-started/introduction.md
-  - Core Concepts:
-      - Overview: core-concepts/index.md
-      - Data Types: reference/data-type-reference.md
-      - Notations: reference/notation-reference.md
-      - Functions: core-concepts/functions.md
-      - Pipelines: core-concepts/pipelines.md
-      - Operations: core-concepts/operations.md
-      - Error Handling: core-concepts/error-handling.md
-      - Advanced Topics: core-concepts/advanced-topics.md
   - Tutorials:
       - Overview: tutorials/index.md
       - KSML Basics Tutorial: getting-started/basics-tutorial.md
@@ -75,13 +66,14 @@ nav:
       - Fraud Detection: use-cases/fraud-detection.md
   - References:
       - Overview: reference/index.md
-      - Configuration Reference: reference/configuration-reference.md
       - KSML Language Reference: reference/language-reference.md
       - Stream Type Reference: reference/stream-type-reference.md
       - Data Type Reference: reference/data-type-reference.md
       - Notation Reference: reference/notation-reference.md
       - Function Reference: reference/function-reference.md
       - Operation Reference: reference/operation-reference.md
+      - Pipelines: reference/pipelines.md
+      - Configuration Reference: reference/configuration-reference.md
   - Resources:
       - Examples Library: resources/examples-library.md
       - Troubleshooting Guide: resources/troubleshooting.md
