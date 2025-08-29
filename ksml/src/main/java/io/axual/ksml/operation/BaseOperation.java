@@ -370,9 +370,10 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected Repartitioned<Object, Object> repartitionedOf(StreamDataType k, StreamDataType v, Integer numberOfPartitions, StreamPartitioner<Object, Object> partitioner) {
-        if (partitioner == null) return null;
-        var repartitioned = Repartitioned.with(k.serde(), v.serde()).withStreamPartitioner(partitioner);
+        if (partitioner == null && numberOfPartitions == null) return null;
+        var repartitioned = Repartitioned.with(k.serde(), v.serde());
         if (numberOfPartitions != null) repartitioned = repartitioned.withNumberOfPartitions(numberOfPartitions);
+        if (partitioner != null) repartitioned = repartitioned.withStreamPartitioner(partitioner);
         if (name != null) repartitioned = repartitioned.withName(name);
         return repartitioned;
     }
