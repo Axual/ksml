@@ -87,6 +87,10 @@ public class FunctionDefinition extends AbstractDefinition {
         return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType != null ? resultType : defaultResultType, storeNames);
     }
 
+    public FunctionDefinition withResultType(UserType resultType) {
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+    }
+
     public FunctionDefinition withDefaultExpression(String expression) {
         return withDefaultExpression(new String[]{expression});
     }

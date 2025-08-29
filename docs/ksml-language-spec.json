@@ -1969,6 +1969,10 @@
           "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
           "type" : "boolean"
         },
+        "name" : {
+          "description" : "*(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.",
+          "type" : "string"
+        },
         "persistent" : {
           "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
           "type" : "boolean"
@@ -2017,6 +2021,10 @@
         "logging" : {
           "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
           "type" : "boolean"
+        },
+        "name" : {
+          "description" : "*(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.",
+          "type" : "string"
         },
         "persistent" : {
           "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",

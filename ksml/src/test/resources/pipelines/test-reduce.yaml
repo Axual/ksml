@@ -23,6 +23,7 @@ pipelines:
       - type: reduce
         reducer:
           expression: value1 + value2
+          resultType: string
       - type: toStream
       - type: peek
         forEach: print_message

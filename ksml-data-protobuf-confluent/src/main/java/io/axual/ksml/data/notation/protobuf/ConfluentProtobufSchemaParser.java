@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.protobuf;
  */
 
 
-import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 

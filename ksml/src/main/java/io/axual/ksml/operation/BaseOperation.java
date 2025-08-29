@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
@@ -261,7 +260,7 @@ public abstract class BaseOperation implements StreamOperation {
         if (function == null) return null;
 
         // Check if the resultType of the function can be assigned to the expectedResult
-        final var functionResultType = function.resultType() != null ? function.resultType() : new UserType(DataNull.DATATYPE);
+        final var functionResultType = function.resultType() != null ? function.resultType() : new UserType(expectedResultType);
         checkType(functionType + " resultType", functionResultType, assignableTo(expectedResultType));
 
         // Check if the number of parameters is as expected
@@ -289,7 +288,7 @@ public abstract class BaseOperation implements StreamOperation {
         // Copy the remainder of the parameters into the new array
         System.arraycopy(function.parameters(), parameters.length, newParams, parameters.length, function.parameters().length - parameters.length);
         // Update the function with its new parameter types
-        return context.createUserFunction(function.withParameters(newParams));
+        return context.createUserFunction(function.withResultType(functionResultType).withParameters(newParams));
     }
 
     protected void checkTuple(String faultDescription, UserType type, DataType... elements) {

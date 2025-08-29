@@ -29,7 +29,6 @@ import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserPredicate;
 import org.apache.kafka.streams.kstream.KTable;
 

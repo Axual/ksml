@@ -740,6 +740,7 @@
       - *integer*
       - *string*
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise.
+  - **`name`** *(string)*: *(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise.
   - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**
@@ -755,6 +756,7 @@
       - *integer*
       - *string*
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise.
+  - **`name`** *(string)*: *(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise.
   - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**

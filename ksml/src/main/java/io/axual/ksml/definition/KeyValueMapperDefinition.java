@@ -22,7 +22,6 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.user.UserKeyTransformer;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
@@ -31,6 +30,6 @@ public class KeyValueMapperDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_KEYVALUEMAPPER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
-                .withDefaultResultType(UserKeyTransformer.EXPECTED_RESULT_TYPE));
+                .validateResultTypeDefined());
     }
 }

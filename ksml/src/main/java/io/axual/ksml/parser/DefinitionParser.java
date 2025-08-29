@@ -24,6 +24,7 @@ import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.util.ListUtil;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.util.SchemaUtil;
@@ -52,7 +53,11 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     @Override
     public final T parse(ParseNode node) {
         if (parser == null) parser = parser();
-        return parser.parse(node);
+        try {
+            return parser.parse(node);
+        } catch (Exception e) {
+            throw FatalError.report(e);
+        }
     }
 
     @Override

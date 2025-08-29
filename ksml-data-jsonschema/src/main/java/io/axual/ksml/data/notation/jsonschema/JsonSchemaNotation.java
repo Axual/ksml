@@ -20,22 +20,14 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.vendor.VendorNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonSchemaLoader;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
-import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.util.JsonNodeUtil;
-
-import java.util.Map;
 
 public class JsonSchemaNotation extends VendorNotation {
     public static final String NOTATION_NAME = "jsonschema";

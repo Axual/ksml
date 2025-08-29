@@ -35,7 +35,7 @@ import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 import java.util.ArrayList;
 
 public class UserKeyValueToValueListTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Iterable<Object>> {
-    public static final DataType EXPECTED_RESULT_TYPE = new ListType(DataType.UNKNOWN);
+    private static final DataType EXPECTED_RESULT_TYPE = new ListType(DataType.UNKNOWN);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyValueToValueListTransformer(UserFunction function, MetricTags tags) {

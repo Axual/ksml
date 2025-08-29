@@ -351,7 +351,6 @@ public class KSMLDSL {
         // Type names used in the exported JSON Schema
         public static final String FUNCTION_TYPE = "FunctionType";
         public static final String WITH_PREFIX = "With";
-        public static final String WITH_IMPLICIT_NAME_POSTFIX = WITH_PREFIX + "ImplicitStoreType";
         public static final String WITH_IMPLICIT_STORE_TYPE_POSTFIX = WITH_PREFIX + "ImplicitStoreType";
         public static final String WITH_IMPLICIT_KEY_AND_VALUE_TYPE = WITH_PREFIX + "ImplicitKeyAndValueType";
         public static final String WITH_STREAM = WITH_PREFIX + "Stream";

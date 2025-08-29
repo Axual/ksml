@@ -26,18 +26,23 @@ import lombok.extern.slf4j.Slf4j;
 public class FatalError {
 
     public static final String NEW_LINE = System.lineSeparator();
-    public static final String LOG_ITEM_SEPARATOR = "==========="+NEW_LINE;
+    public static final String LOG_ITEM_SEPARATOR = "===========" + NEW_LINE;
 
     private FatalError() {
     }
 
-    public static RuntimeException reportAndExit(Throwable t) {
+    public static RuntimeException report(Throwable t) {
         var messageBuilder = new StringBuilder().append(NEW_LINE);
         messageBuilder.append("FatalError").append(NEW_LINE).append(LOG_ITEM_SEPARATOR);
         printExceptionDetails(messageBuilder, t);
         log.error(messageBuilder.toString());
-        System.exit(1);
         return new RuntimeException(t.getMessage());
+    }
+
+    public static RuntimeException reportAndExit(Throwable t) {
+        final var result = report(t);
+        System.exit(1);
+        return result;
     }
 
     private static void printExceptionDetails(StringBuilder messageBuilder, Throwable t) {
