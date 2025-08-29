@@ -31,7 +31,7 @@ import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object, Object, Object> {
-    private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+    public static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyTransformer(UserFunction function, MetricTags tags) {

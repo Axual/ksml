@@ -9,6 +9,10 @@ streams:
     valueType: avro:SensorData
     offsetResetPolicy: latest
 
+stores:
+  mystore:
+    keyType:
+
 pipelines:
   main:
     from: sensor_source

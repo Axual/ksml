@@ -23,6 +23,7 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
@@ -30,11 +31,13 @@ import io.axual.ksml.python.Invoker;
 import java.util.function.UnaryOperator;
 
 public class UserForeignKeyExtractor extends Invoker implements UnaryOperator<Object> {
+    private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserForeignKeyExtractor(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_FOREIGN_KEY_EXTRACTOR);
         verifyParameterCount(1);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override

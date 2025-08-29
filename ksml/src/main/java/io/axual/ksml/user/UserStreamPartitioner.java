@@ -26,6 +26,8 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
@@ -36,7 +38,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
-    private static final DataType EXPECTED_RESULT_TYPE = DataInteger.DATATYPE;
+    public static final DataType EXPECTED_RESULT_TYPE = new UnionType(
+            new UnionType.MemberType("singlePartition", DataInteger.DATATYPE, 1),
+            new UnionType.MemberType("setOfPartitions", new ListType(DataInteger.DATATYPE), 2));
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserStreamPartitioner(UserFunction function, MetricTags tags) {

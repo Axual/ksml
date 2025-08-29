@@ -21,9 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.type.UserTupleType;
 import io.axual.ksml.type.UserType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -80,51 +79,54 @@ public class FunctionDefinition extends AbstractDefinition {
         return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
-    public FunctionDefinition withoutResult() {
-        return withResult(null);
+    public FunctionDefinition withDefaultResultType(DataType defaultResultType) {
+        return withDefaultResultType(new UserType(defaultResultType));
     }
 
-    public FunctionDefinition withResult(UserType resultType) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, resultType != null ? expression : EMPTY_STRING_ARRAY, resultType, storeNames);
+    public FunctionDefinition withDefaultResultType(UserType defaultResultType) {
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType != null ? resultType : defaultResultType, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
         return withDefaultExpression(new String[]{expression});
     }
 
-    public FunctionDefinition withDefaultExpression(String[] expression) {
-        if (this.expression == null) {
-            return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
-        }
+    public FunctionDefinition withDefaultExpression(String[] defaultExpression) {
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression != null ? expression : defaultExpression, resultType, storeNames);
+    }
+
+    public FunctionDefinition validateNoResultTypeDefined() {
+        if (resultType != null)
+            throw functionResultError("Function can not return a result");
         return this;
     }
 
-    public FunctionDefinition withAResult() {
+    public FunctionDefinition validateResultTypeDefined() {
         if (resultType == null)
             throw functionResultError("Function has no defined resultType");
         return this;
     }
 
-    public FunctionDefinition withListResult() {
-        final var definition = withAResult();
-        final var result = ListType.createFrom(definition.resultType().dataType());
-        if (result != null) return withResult(new UserType(definition.resultType().notation(), result));
-        throw functionResultError("Function type requires a list \"[valueType]\" result type");
-    }
-
-    public FunctionDefinition withTupleResult() {
-        final var definition = this.withAResult();
-        if (definition.resultType().dataType() instanceof UserTupleType) return definition;
-        throw functionResultError("Function type requires a tuple \"(keyType,valueType)\" result type");
-    }
-
-    public FunctionDefinition withTupleOrListOfTuplesResult() {
-        final var definition = this.withAResult();
-        if (definition.resultType().dataType() instanceof UserTupleType
-                || (definition.resultType().dataType() instanceof ListType listResult
-                && listResult.valueType() instanceof UserTupleType)) return definition;
-        throw functionResultError("Function type requires a tuple \"(keyType,valueType)\", or list of tuples \"[(keyType,valueType)]\" result type");
-    }
+//    public FunctionDefinition withListResult() {
+//        final var definition = validateResultTypeDefined();
+//        final var result = ListType.createFrom(definition.resultType().dataType());
+//        if (result != null) return withResult(new UserType(definition.resultType().notation(), result));
+//        throw functionResultError("Function type requires a list \"[valueType]\" result type");
+//    }
+//
+//    public FunctionDefinition withTupleResult() {
+//        final var definition = this.validateResultTypeDefined();
+//        if (definition.resultType().dataType() instanceof UserTupleType) return definition;
+//        throw functionResultError("Function type requires a tuple \"(keyType,valueType)\" result type");
+//    }
+//
+//    public FunctionDefinition withTupleOrListOfTuplesResult() {
+//        final var definition = this.validateResultTypeDefined();
+//        if (definition.resultType().dataType() instanceof UserTupleType
+//                || (definition.resultType().dataType() instanceof ListType listResult
+//                && listResult.valueType() instanceof UserTupleType)) return definition;
+//        throw functionResultError("Function type requires a tuple \"(keyType,valueType)\", or list of tuples \"[(keyType,valueType)]\" result type");
+//    }
 
     protected TopologyException functionResultError(String message) {
         throw new TopologyException(message + ": function=" + name() + ", type=" + type() + ", resultType=" + resultType());

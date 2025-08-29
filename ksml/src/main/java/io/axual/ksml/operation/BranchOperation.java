@@ -53,7 +53,7 @@ public class BranchOperation extends BaseOperation {
         final var predicates = new ArrayList<Predicate<Object, Object>>(branches.size());
         for (final BranchDefinition branch : branches) {
             if (branch.predicate() != null) {
-                final var pred = userFunctionOf(context, PREDICATE_NAME, branch.predicate(), equalTo(DataBoolean.DATATYPE), superOf(k), superOf(v));
+                final var pred = userFunctionOf(context, PREDICATE_NAME, branch.predicate(), UserPredicate.EXPECTED_RESULT_TYPE, superOf(k), superOf(v));
                 predicates.add(new UserPredicate(pred, tags));
             } else {
                 predicates.add((key, value) -> true);

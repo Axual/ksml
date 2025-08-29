@@ -21,13 +21,13 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.data.type.RecordMetadata;
+import io.axual.ksml.definition.DefinitionConstants;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformMetadataProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserMetadataTransformer;
 import org.apache.kafka.streams.kstream.KStream;
 
@@ -51,8 +51,8 @@ public class TransformMetadataOperation extends BaseOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var meta = new UserType(RecordMetadata.DATATYPE);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(meta), superOf(k.flatten()), superOf(v.flatten()), superOf(meta));
+        final var meta = DefinitionConstants.METADATA_TYPE;
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, meta, superOf(k.flatten()), superOf(v.flatten()), superOf(meta));
         final var userMap = new UserMetadataTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(

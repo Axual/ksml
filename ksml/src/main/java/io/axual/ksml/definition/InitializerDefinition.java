@@ -30,6 +30,6 @@ public class InitializerDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_INITIALIZER)
                 .withParameters(mergeParameters(NO_PARAMETERS, definition.parameters()))
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

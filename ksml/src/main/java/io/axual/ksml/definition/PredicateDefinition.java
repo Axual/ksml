@@ -21,9 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.type.UserType;
+import io.axual.ksml.user.UserPredicate;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
@@ -33,6 +32,6 @@ public class PredicateDefinition extends FunctionDefinition {
                 .withType(KSMLDSL.Functions.TYPE_PREDICATE)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression("True")
-                .withResult(new UserType(definition.resultType().notation(), DataBoolean.DATATYPE)));
+                .withDefaultResultType(UserPredicate.EXPECTED_RESULT_TYPE));
     }
 }

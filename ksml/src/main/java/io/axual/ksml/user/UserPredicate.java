@@ -32,7 +32,7 @@ import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.kstream.Predicate;
 
 public class UserPredicate extends Invoker implements Predicate<Object, Object> {
-    private static final DataType EXPECTED_RESULT_TYPE = DataBoolean.DATATYPE;
+    public static final DataType EXPECTED_RESULT_TYPE = DataBoolean.DATATYPE;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserPredicate(UserFunction function, MetricTags tags) {

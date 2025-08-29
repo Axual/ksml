@@ -15,9 +15,7 @@
 
     <properties>
         <prometheus.version>1.0.1</prometheus.version>
-        <prometheus-instrumentation.version>1.3.10</prometheus-instrumentation.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <prometheus-instrumentation.version>1.4.1</prometheus-instrumentation.version>
         <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
     </properties>

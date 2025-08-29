@@ -22,15 +22,19 @@ package io.axual.ksml.user;
 
 
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Initializer;
 
 public class UserInitializer extends Invoker implements Initializer<Object> {
+    private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+
     public UserInitializer(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_INITIALIZER);
         verifyParameterCount(0);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override

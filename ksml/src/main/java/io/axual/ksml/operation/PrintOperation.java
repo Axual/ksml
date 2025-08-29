@@ -49,7 +49,7 @@ public class PrintOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, equalTo(DataString.DATATYPE), superOf(k), superOf(v));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, UserKeyValuePrinter.EXPECTED_RESULT_TYPE, superOf(k), superOf(v));
         final var userMap = map != null ? new UserKeyValuePrinter(map, tags) : null;
         final var printed = printedOf(filename, label, userMap);
         input.stream.print(printed);

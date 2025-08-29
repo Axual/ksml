@@ -70,7 +70,7 @@
     </modules>
 
     <properties>
-        <!-- compile, runtime and provided dependency versions -->
+        <!-- Compile, runtime and provided dependency versions -->
         <apache.avro.version>1.12.0</apache.avro.version>
         <apache.commons.text.version>1.14.0</apache.commons.text.version>
         <apache.commons.compress.version>1.28.0</apache.commons.compress.version>
@@ -84,7 +84,7 @@
         <jackson.version>2.19.2</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
-        <jersey.version>3.1.10</jersey.version>
+        <jersey.version>3.1.11</jersey.version>
         <logback.version>1.5.18</logback.version>
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
         <lombok.version>1.18.38</lombok.version>
@@ -93,54 +93,52 @@
         <slf4j.version>2.1.0-alpha1</slf4j.version>
         <wire.version>5.2.0</wire.version>
 
-        <!-- test dependency versions -->
-        <junit.version>5.13.4</junit.version>
-        <hamcrest.version>3.0</hamcrest.version>
-        <assertj.version>3.27.3</assertj.version>
-        <mockito-core.version>5.18.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.18.0</mockito-junit-jupiter.version>
-        <junit-pioneer.version>2.3.0</junit-pioneer.version>
+        <!-- Test dependency versions -->
+        <assertj.version>3.27.4</assertj.version>
         <awaitility.version>4.3.0</awaitility.version>
+        <hamcrest.version>3.0</hamcrest.version>
+        <junit-pioneer.version>2.3.0</junit-pioneer.version>
+        <junit.version>5.13.4</junit.version>
+        <mockito-core.version>5.19.0</mockito-core.version>
+        <mockito-junit-jupiter.version>5.18.0</mockito-junit-jupiter.version>
 
-        <!-- project and java version settings -->
+        <!-- Project and java version settings -->
         <java.source.version>21</java.source.version>
         <java.target.version>21</java.target.version>
         <java.release.version>21</java.release.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- plugin versions -->
+        <!-- Maven plugin versions -->
         <maven.dependency.plugin.version>3.8.1</maven.dependency.plugin.version>
         <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
-        <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
-        <maven.install.plugin.version>3.1.4</maven.install.plugin.version>
         <maven.enforcer.plugin.version>3.6.1</maven.enforcer.plugin.version>
         <maven.exec.plugin.version>3.5.1</maven.exec.plugin.version>
+        <maven.failsafe.plugin.version>3.5.3</maven.failsafe.plugin.version>
+        <maven.install.plugin.version>3.1.4</maven.install.plugin.version>
+        <maven.jacoco.plugin.version>0.8.13</maven.jacoco.plugin.version>
+        <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
+        <maven.javadoc.plugin.version>3.11.3</maven.javadoc.plugin.version>
         <maven.license.plugin.version>2.6.0</maven.license.plugin.version>
+        <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <maven.versions.plugin.version>2.18.0</maven.versions.plugin.version>
 
-        <maven.javadoc.plugin.version>3.11.2</maven.javadoc.plugin.version>
-        <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
-        <maven.failsafe.plugin.version>3.5.3</maven.failsafe.plugin.version>
-        <maven.jacoco.plugin.version>0.8.13</maven.jacoco.plugin.version>
-
-        <!-- following properties filled at build time by jacoco -->
+        <!-- Following properties filled at build time by jacoco -->
         <surefireArgLine/>
         <failsafeArgLine/>
 
-        <!-- license properties -->
+        <!-- License properties -->
         <license.licensename>apache_v2</license.licensename>
 
-        <!-- sonarcloud properties -->
+        <!-- SonarCloud properties -->
         <sonar.organization>axual</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.jacoco.xmlReportPaths>ksml/target/site/jacoco/jacoco.xml
-        </sonar.jacoco.xmlReportPaths>
+        <sonar.jacoco.xmlReportPaths>ksml/target/site/jacoco/jacoco.xml</sonar.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>

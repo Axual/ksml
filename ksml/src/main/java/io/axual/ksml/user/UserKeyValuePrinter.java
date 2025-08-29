@@ -30,7 +30,7 @@ import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyValuePrinter extends Invoker implements KeyValueMapper<Object, Object, String> {
-    private static final DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+    public static final DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyValuePrinter(UserFunction function, MetricTags tags) {

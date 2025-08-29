@@ -48,7 +48,7 @@ public class GlobalTableDefinitionParser extends BaseTableDefinitionParser<Globa
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
-                    return new GlobalTableDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner, store != null ? store.with(topic, keyType, valueType) : null);
+                    return new GlobalTableDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
                 });
 
         return structsParser(
@@ -64,7 +64,7 @@ public class GlobalTableDefinitionParser extends BaseTableDefinitionParser<Globa
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     // If a backing store is used, then align its name, keyType and valueType to the topic
-                    return new GlobalTableDefinition(topic, keyType, valueType, null, null, partitioner, store != null ? store.with(topic, keyType, valueType) : null);
+                    return new GlobalTableDefinition(topic, keyType, valueType, null, null, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
                 });
     }
 }

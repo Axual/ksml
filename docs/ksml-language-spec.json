@@ -49,16 +49,16 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
+            "$ref" : "#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the result aggregation"
+          "description" : "Materialized view of the result aggregation"
         },
         "subtractor" : {
           "anyOf" : [ {
@@ -74,7 +74,7 @@
           "enum" : [ "aggregate" ]
         }
       },
-      "required" : [ "initializer", "type" ],
+      "required" : [ "initializer", "store", "type" ],
       "title" : "AggregateOperation",
       "type" : "object"
     },
@@ -487,13 +487,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
+            "$ref" : "#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the count operation's result"
@@ -528,7 +528,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
@@ -563,7 +563,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
@@ -1035,7 +1035,7 @@
       "description" : "Contains a definition of a globalTable, which can be referenced by producers and pipelines",
       "properties" : {
         "keyType" : {
-          "description" : "The key type of the globalTable",
+          "description" : "*(optional)* The key type of the globalTable",
           "type" : "string"
         },
         "offsetResetPolicy" : {
@@ -1074,11 +1074,11 @@
           "type" : "string"
         },
         "valueType" : {
-          "description" : "The value type of the globalTable",
+          "description" : "*(optional)* The value type of the globalTable",
           "type" : "string"
         }
       },
-      "required" : [ "keyType", "topic", "valueType" ],
+      "required" : [ "topic" ],
       "title" : "GlobalTableDefinition",
       "type" : "object"
     },
@@ -1133,7 +1133,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the grouped stream"
@@ -1168,7 +1168,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the grouped stream or table"
@@ -1371,7 +1371,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the joined stream"
@@ -1389,7 +1389,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the source stream"
@@ -1467,7 +1467,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the joined table (only used for Table-Table joins)"
@@ -1949,7 +1949,7 @@
       "title" : "KeyValueStateStoreDefinition",
       "type" : "object"
     },
-    "KeyValueStateStoreDefinitionWithImplicitStoreType" : {
+    "KeyValueStateStoreDefinitionWithImplicitKeyAndValueType" : {
       "additionalProperties" : false,
       "description" : "Definition of a keyValue state store",
       "properties" : {
@@ -1965,17 +1965,9 @@
           } ],
           "description" : "*(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative)"
         },
-        "keyType" : {
-          "description" : "*(optional)* The key type of the keyValue store",
-          "type" : "string"
-        },
         "logging" : {
           "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
           "type" : "boolean"
-        },
-        "name" : {
-          "description" : "*(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.",
-          "type" : "string"
         },
         "persistent" : {
           "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
@@ -1997,16 +1989,13 @@
           "description" : "The type of the state store",
           "enum" : [ "keyValue" ]
         },
-        "valueType" : {
-          "description" : "*(optional)* The value type of the keyValue store",
-          "type" : "string"
-        },
         "versioned" : {
           "description" : "*(optional)* \"true\" if elements in the store are versioned, \"false\" otherwise",
           "type" : "boolean"
         }
       },
-      "title" : "KeyValueStateStoreDefinitionWithImplicitStoreType",
+      "required" : [ "type" ],
+      "title" : "KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
       "type" : "object"
     },
     "KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType" : {
@@ -2538,7 +2527,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the leftJoined stream"
@@ -2556,7 +2545,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the source stream"
@@ -2634,7 +2623,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the leftJoined table (only used for Table-Table joins)"
@@ -2976,7 +2965,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the outerJoined stream"
@@ -2994,7 +2983,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the source stream"
@@ -3037,7 +3026,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the outerJoined table"
@@ -3550,7 +3539,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"
@@ -3594,13 +3583,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
+            "$ref" : "#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"
@@ -3778,7 +3767,7 @@
           "type" : "boolean"
         },
         "keyType" : {
-          "description" : "*(optional)* The key type of the session store",
+          "description" : "The key type of the session store",
           "type" : "string"
         },
         "logging" : {
@@ -3810,12 +3799,53 @@
           "enum" : [ "session" ]
         },
         "valueType" : {
-          "description" : "*(optional)* The value type of the session store",
+          "description" : "The value type of the session store",
           "type" : "string"
         }
       },
-      "required" : [ "type" ],
+      "required" : [ "keyType", "type", "valueType" ],
       "title" : "SessionStateStoreDefinition",
+      "type" : "object"
+    },
+    "SessionStateStoreDefinitionWithImplicitKeyAndValueType" : {
+      "additionalProperties" : false,
+      "description" : "Definition of a session state store",
+      "properties" : {
+        "caching" : {
+          "description" : "*(optional)* \"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "type" : "boolean"
+        },
+        "logging" : {
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "name" : {
+          "description" : "*(optional)* The name of the session store. If this field is not defined, then the name is derived from the context.",
+          "type" : "string"
+        },
+        "persistent" : {
+          "description" : "*(optional)* \"true\" if this session store needs to be stored on disk, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "retention" : {
+          "anyOf" : [ {
+            "type" : "integer"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* The duration for which elements in the session store are retained"
+        },
+        "timestamped" : {
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "type" : {
+          "description" : "The type of the state store",
+          "enum" : [ "session" ]
+        }
+      },
+      "required" : [ "type" ],
+      "title" : "SessionStateStoreDefinitionWithImplicitKeyAndValueType",
       "type" : "object"
     },
     "StreamDefinition" : {
@@ -4103,7 +4133,7 @@
       "description" : "Contains a definition of a table, which can be referenced by producers and pipelines",
       "properties" : {
         "keyType" : {
-          "description" : "The key type of the table",
+          "description" : "*(optional)* The key type of the table",
           "type" : "string"
         },
         "offsetResetPolicy" : {
@@ -4142,11 +4172,11 @@
           "type" : "string"
         },
         "valueType" : {
-          "description" : "The value type of the table",
+          "description" : "*(optional)* The value type of the table",
           "type" : "string"
         }
       },
-      "required" : [ "keyType", "topic", "valueType" ],
+      "required" : [ "topic" ],
       "title" : "TableDefinition",
       "type" : "object"
     },
@@ -4352,7 +4382,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the result table"
@@ -4763,7 +4793,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the transformed table (only applies to tables, ignored for streams)"
@@ -5202,7 +5232,7 @@
           "type" : "boolean"
         },
         "keyType" : {
-          "description" : "*(optional)* The key type of the window store",
+          "description" : "The key type of the window store",
           "type" : "string"
         },
         "logging" : {
@@ -5238,8 +5268,61 @@
           "enum" : [ "window" ]
         },
         "valueType" : {
-          "description" : "*(optional)* The value type of the window store",
+          "description" : "The value type of the window store",
           "type" : "string"
+        },
+        "windowSize" : {
+          "anyOf" : [ {
+            "type" : "integer"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* Size of the windows (cannot be negative)"
+        }
+      },
+      "required" : [ "keyType", "type", "valueType" ],
+      "title" : "WindowStateStoreDefinition",
+      "type" : "object"
+    },
+    "WindowStateStoreDefinitionWithImplicitKeyAndValueType" : {
+      "additionalProperties" : false,
+      "description" : "Definition of a window state store",
+      "properties" : {
+        "caching" : {
+          "description" : "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "type" : "boolean"
+        },
+        "logging" : {
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "name" : {
+          "description" : "*(optional)* The name of the window store. If this field is not defined, then the name is derived from the context.",
+          "type" : "string"
+        },
+        "persistent" : {
+          "description" : "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "retainDuplicates" : {
+          "description" : "*(optional)* Whether or not to retain duplicates",
+          "type" : "boolean"
+        },
+        "retention" : {
+          "anyOf" : [ {
+            "type" : "integer"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* The duration for which elements in the window store are retained"
+        },
+        "timestamped" : {
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "type" : {
+          "description" : "The type of the state store",
+          "enum" : [ "window" ]
         },
         "windowSize" : {
           "anyOf" : [ {
@@ -5251,20 +5334,16 @@
         }
       },
       "required" : [ "type" ],
-      "title" : "WindowStateStoreDefinition",
+      "title" : "WindowStateStoreDefinitionWithImplicitKeyAndValueType",
       "type" : "object"
     },
-    "WindowStateStoreDefinitionWithImplicitStoreType" : {
+    "WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType" : {
       "additionalProperties" : false,
       "description" : "Definition of a window state store",
       "properties" : {
         "caching" : {
           "description" : "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly",
           "type" : "boolean"
-        },
-        "keyType" : {
-          "description" : "*(optional)* The key type of the window store",
-          "type" : "string"
         },
         "logging" : {
           "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise",
@@ -5298,10 +5377,6 @@
           "description" : "The type of the state store",
           "enum" : [ "window" ]
         },
-        "valueType" : {
-          "description" : "*(optional)* The value type of the window store",
-          "type" : "string"
-        },
         "windowSize" : {
           "anyOf" : [ {
             "type" : "integer"
@@ -5311,7 +5386,7 @@
           "description" : "*(optional)* Size of the windows (cannot be negative)"
         }
       },
-      "title" : "WindowStateStoreDefinitionWithImplicitStoreType",
+      "title" : "WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
       "type" : "object"
     }
   },

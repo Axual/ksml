@@ -62,6 +62,10 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected static <V> StructsParser<V> optional(StructsParser<V> parser) {
+        return optional(parser, null);
+    }
+
+    protected static <V> StructsParser<V> optional(StructsParser<V> parser, V valueIfMissing) {
         final var newSchemas = new ArrayList<StructSchema>();
         for (final var schema : parser.schemas()) {
             if (!schema.fields().isEmpty()) {
@@ -73,7 +77,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                 newSchemas.add(schema);
             }
         }
-        return StructsParser.of(node -> node != null ? parser.parse(node) : null, newSchemas);
+        return StructsParser.of(node -> node != null ? parser.parse(node) : valueIfMissing, newSchemas);
     }
 
     protected static StructSchema structSchema(Class<?> clazz, String doc, List<DataField> fields) {
@@ -199,12 +203,17 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected StructsParser<UserType> userTypeField(String childName, String doc) {
+        return userTypeField(childName, doc, null);
+    }
+
+    protected StructsParser<UserType> userTypeField(String childName, String doc, UserType defaultValue) {
         final var stringParser = stringField(childName, null, doc);
         final var field = new DataField(childName, DataSchema.STRING_SCHEMA, doc, DataField.NO_TAG, true, false, null);
         final var schemas = structSchema((String) null, null, List.of(field));
         return StructsParser.of(node -> {
-                    final var type = UserTypeParser.parse(stringParser.parse(node));
-                    return type != null ? type : UserType.UNKNOWN;
+                    final var content = stringParser.parse(node);
+                    if (content == null) return defaultValue;
+                    return UserTypeParser.parse(content);
                 },
                 schemas);
     }

@@ -30,6 +30,6 @@ public class ReducerDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_REDUCER)
                 .withParameters(mergeParameters(TWO_VALUE_PARAMETERS, definition.parameters()))
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

@@ -110,7 +110,7 @@ public abstract class BaseOperation implements StreamOperation {
         boolean compare(DataType type);
     }
 
-    protected record TypeComparator(UserType type, TypeCompatibilityChecker checker, String faultDescription) {
+    protected record TypeComparator(DataType type, TypeCompatibilityChecker checker, String faultDescription) {
     }
 
     protected TopologyException topologyError(String message) {
@@ -186,14 +186,26 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected TypeComparator equalTo(UserType compareType) {
-        return new TypeComparator(
-                compareType,
-                myDataType -> compareType.dataType().isAssignableFrom(myDataType) && myDataType.isAssignableFrom(compareType.dataType()),
-                "of type " + compareType);
+        return equalTo(compareType.dataType());
     }
 
     protected TypeComparator equalTo(DataType compareType) {
-        return equalTo(new UserType(compareType));
+        return new TypeComparator(
+                compareType,
+                myDataType -> compareType.isAssignableFrom(myDataType) && myDataType.isAssignableFrom(compareType),
+                "of type " + compareType);
+    }
+
+    protected TypeComparator assignableTo(StreamDataType compareType) {
+        return assignableTo(compareType.userType());
+    }
+
+    protected TypeComparator assignableTo(UserType compareType) {
+        return assignableTo(compareType.dataType());
+    }
+
+    protected TypeComparator assignableTo(DataType compareType) {
+        return new TypeComparator(compareType, compareType::isAssignableFrom, "assignable to " + compareType);
     }
 
     protected TypeComparator superOf(StreamDataType compareType) {
@@ -201,9 +213,12 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected TypeComparator superOf(UserType compareType) {
-        return new TypeComparator(
-                compareType,
-                myDataType -> myDataType.isAssignableFrom(compareType.dataType()),
+        return superOf(compareType.dataType());
+    }
+
+    protected TypeComparator superOf(DataType compareType) {
+        return new TypeComparator(compareType,
+                myDataType -> myDataType.isAssignableFrom(compareType),
                 "(superclass of) type " + compareType);
     }
 
@@ -212,10 +227,11 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected TypeComparator subOf(UserType compareType) {
-        return new TypeComparator(
-                compareType,
-                myDataType -> compareType.dataType().isAssignableFrom(myDataType),
-                "(subclass of) type " + compareType);
+        return subOf(compareType.dataType());
+    }
+
+    protected TypeComparator subOf(DataType compareType) {
+        return new TypeComparator(compareType, compareType::isAssignableFrom, "(subclass of) type " + compareType);
     }
 
     protected void checkType(String subject, StreamDataType type, TypeComparator comparator) {
@@ -232,24 +248,21 @@ public abstract class BaseOperation implements StreamOperation {
         }
     }
 
-    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, StreamDataType resultType, TypeComparator... parameters) {
-        return userFunctionOf(context, functionType, function, superOf(resultType), parameters);
+    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, StreamDataType expectedResultType, TypeComparator... parameters) {
+        return userFunctionOf(context, functionType, function, expectedResultType.userType(), parameters);
     }
 
-    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, UserType resultType, TypeComparator... parameters) {
-        return userFunctionOf(context, functionType, function, superOf(resultType), parameters);
+    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, UserType expectedResultType, TypeComparator... parameters) {
+        return userFunctionOf(context, functionType, function, expectedResultType.dataType(), parameters);
     }
 
-    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, TypeComparator resultType, TypeComparator... parameters) {
+    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, DataType expectedResultType, TypeComparator... parameters) {
         // Check if the function is defined
         if (function == null) return null;
 
-        // Check if the resultType of the function is as expected
-        checkType(functionType + " resultType", (function.resultType() != null ? function.resultType() : new UserType(UserType.DEFAULT_NOTATION, DataNull.DATATYPE)), resultType);
-        // Update the applied result type of the function with the (more specific) supplied result type
-        function = function.resultType() != null
-                ? function.withResult(resultType.type())
-                : function;
+        // Check if the resultType of the function can be assigned to the expectedResult
+        final var functionResultType = function.resultType() != null ? function.resultType() : new UserType(DataNull.DATATYPE);
+        checkType(functionType + " resultType", functionResultType, assignableTo(expectedResultType));
 
         // Check if the number of parameters is as expected
         int fixedParamCount = Arrays.stream(function.parameters()).map(p -> p.isOptional() ? 0 : 1).reduce(Integer::sum).orElse(0);
@@ -271,7 +284,7 @@ public abstract class BaseOperation implements StreamOperation {
         // Replace the fixed parameters in the array
         for (int index = 0; index < parameters.length; index++) {
             final var param = function.parameters()[index];
-            newParams[index] = new ParameterDefinition(param.name(), parameters[index].type().dataType(), param.isOptional(), param.defaultValue());
+            newParams[index] = new ParameterDefinition(param.name(), parameters[index].type(), param.isOptional(), param.defaultValue());
         }
         // Copy the remainder of the parameters into the new array
         System.arraycopy(function.parameters(), parameters.length, newParams, parameters.length, function.parameters().length - parameters.length);
@@ -448,8 +461,8 @@ public abstract class BaseOperation implements StreamOperation {
         if (store == null) return null;
         if (store instanceof KeyValueStateStoreDefinition keyValueStore) {
             validateStore(store, keyType, valueType);
-            final var storeKeyType = keyType != null ? keyType : keyValueStore.keyType();
-            final var storeValueType = valueType != null ? valueType : keyValueStore.valueType();
+            final var storeKeyType = keyValueStore.keyType() != null ? keyValueStore.keyType() : keyType;
+            final var storeValueType = keyValueStore.valueType() != null ? keyValueStore.valueType() : valueType;
             return new KeyValueStateStoreDefinition(
                     keyValueStore.name(),
                     keyValueStore.persistent(),

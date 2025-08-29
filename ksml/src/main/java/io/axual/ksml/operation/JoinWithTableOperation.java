@@ -73,7 +73,7 @@ public class JoinWithTableOperation extends StoreOperation {
         final var vt = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
         checkType("Join table keyType", kt, equalTo(k));
-        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vt));
+        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
         final var joined = joinedOf(k, v, vt, gracePeriod);
         final var userJoiner = valueJoinerWithKey(joiner, tags);
         final KStream<Object, Object> output = joined != null
@@ -92,7 +92,7 @@ public class JoinWithTableOperation extends StoreOperation {
         final var vo = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
         checkType("Join table keyType", ko, equalTo(k));
-        final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, equalTo(v), equalTo(ko));
+        final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, v, equalTo(ko));
         if (fkExtract != null) {
             /*    Kafka Streams method signature:
              *    <VO, VR> KTable<K, VR> join(
@@ -104,11 +104,11 @@ public class JoinWithTableOperation extends StoreOperation {
              */
 
             final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
             final var userJoiner = valueJoiner(joiner, tags);
-            final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+            final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
             final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
-            final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+            final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
             final var userOtherPart = part != null ? new UserStreamPartitioner(otherPart, tags) : null;
             final var tableJoined = tableJoinedOf(userPart, userOtherPart);
             final var kvStore = validateKeyValueStore(store(), k, vr);
@@ -130,7 +130,7 @@ public class JoinWithTableOperation extends StoreOperation {
              *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
              */
 
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
             final var userJoiner = valueJoiner(joiner, tags);
             final var kvStore = validateKeyValueStore(store(), k, vr);
             final var mat = materializedOf(context, kvStore);

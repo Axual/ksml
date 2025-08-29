@@ -133,8 +133,7 @@ public class StoreUtil {
 
     private static <V, S extends StateStore> MaterializedStore<V, S> materialize(Materialized<Object, V, S> mat, StateStoreDefinition store) {
         final var keySerde = new StreamDataType(store.keyType(), true).serde();
-        @SuppressWarnings("unchecked")
-        final var valueSerde = (Serde<V>) new StreamDataType(store.valueType(), false).serde();
+        @SuppressWarnings("unchecked") final var valueSerde = (Serde<V>) new StreamDataType(store.valueType(), false).serde();
         mat = mat.withKeySerde(keySerde).withValueSerde(valueSerde);
         mat = store.caching() ? mat.withCachingEnabled() : mat.withCachingDisabled();
         mat = store.logging() ? mat.withLoggingEnabled(new HashMap<>()) : mat.withLoggingDisabled();

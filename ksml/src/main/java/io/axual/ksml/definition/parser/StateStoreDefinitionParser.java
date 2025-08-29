@@ -32,24 +32,24 @@ import java.util.Map;
 import static io.axual.ksml.dsl.KSMLDSL.Stores;
 
 public class StateStoreDefinitionParser extends ChoiceParser<StateStoreDefinition> {
-    public StateStoreDefinitionParser(boolean isTableBackingStore) {
-        this(null, isTableBackingStore);
+    public StateStoreDefinitionParser(boolean requireKeyValueType) {
+        this(null, requireKeyValueType);
     }
 
-    public StateStoreDefinitionParser(StoreType expectedType, boolean isTableBackingStore) {
-        super(Stores.TYPE, StoreType.class.getSimpleName(), "state store", null, types(expectedType, isTableBackingStore));
+    public StateStoreDefinitionParser(StoreType expectedType, boolean requireKeyValueType) {
+        super(Stores.TYPE, StoreType.class.getSimpleName(), "state store", null, types(expectedType, requireKeyValueType));
     }
 
-    private static Map<String, StructsParser<? extends StateStoreDefinition>> types(StoreType expectedType, boolean isTableBackingStore) {
+    private static Map<String, StructsParser<? extends StateStoreDefinition>> types(StoreType expectedType, boolean requireKeyValueType) {
         final var result = new HashMap<String, StructsParser<? extends StateStoreDefinition>>();
         if (expectedType == null || expectedType == StoreType.KEYVALUE_STORE) {
-            result.put(StoreType.KEYVALUE_STORE.externalName(), new KeyValueStateStoreDefinitionParser(expectedType == null, isTableBackingStore));
+            result.put(StoreType.KEYVALUE_STORE.externalName(), new KeyValueStateStoreDefinitionParser(expectedType == null, requireKeyValueType));
         }
         if (expectedType == null || expectedType == StoreType.SESSION_STORE) {
-            result.put(StoreType.SESSION_STORE.externalName(), new SessionStateStoreDefinitionParser(expectedType == null));
+            result.put(StoreType.SESSION_STORE.externalName(), new SessionStateStoreDefinitionParser(expectedType == null, requireKeyValueType));
         }
         if (expectedType == null || expectedType == StoreType.WINDOW_STORE) {
-            result.put(StoreType.WINDOW_STORE.externalName(), new WindowStateStoreDefinitionParser(expectedType == null));
+            result.put(StoreType.WINDOW_STORE.externalName(), new WindowStateStoreDefinitionParser(expectedType == null, requireKeyValueType));
         }
         return result;
     }

@@ -52,7 +52,7 @@ public class FilterOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k.flatten()), superOf(v.flatten()));
+        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, DataBoolean.DATATYPE, superOf(k.flatten()), superOf(v.flatten()));
         final var userPred = new UserPredicate(pred, tags);
         final var storeNames = predicate.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
@@ -76,7 +76,7 @@ public class FilterOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, DataBoolean.DATATYPE, superOf(k), superOf(v));
         final var userPred = new UserPredicate(pred, tags);
         final var kvStore = validateKeyValueStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);

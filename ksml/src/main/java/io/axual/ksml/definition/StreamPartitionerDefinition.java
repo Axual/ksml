@@ -21,11 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.type.UserType;
+import io.axual.ksml.user.UserStreamPartitioner;
 
 import static io.axual.ksml.definition.DefinitionConstants.STREAM_PARTITIONER_PARAMETERS;
 
@@ -34,10 +31,6 @@ public class StreamPartitionerDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_STREAMPARTITIONER)
                 .withParameters(mergeParameters(STREAM_PARTITIONER_PARAMETERS, definition.parameters()))
-                .withResult(new UserType(
-                        definition.resultType().notation(),
-                        new UnionType(
-                                new UnionType.MemberType("singlePartition", DataInteger.DATATYPE, 1),
-                                new UnionType.MemberType("setOfPartitions", new ListType(DataInteger.DATATYPE), 2)))));
+                .withDefaultResultType(UserStreamPartitioner.EXPECTED_RESULT_TYPE));
     }
 }

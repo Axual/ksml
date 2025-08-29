@@ -22,14 +22,24 @@ package io.axual.ksml.user;
 
 
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.type.UserTupleType;
+import io.axual.ksml.type.UserType;
 
 public class UserGenerator extends Invoker {
+    public static final DataType EXPECTED_RESULT_TYPE = new UnionType(
+            new UnionType.MemberType("singleMessage", new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN), 1),
+            new UnionType.MemberType("listOfMessages", new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)), 2));
+
     public UserGenerator(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_GENERATOR);
         verifyParameterCount(0);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     public DataObject apply() {
