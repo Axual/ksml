@@ -162,7 +162,8 @@ class JsonDataObjectMapperTest {
                 Arguments.of(named("int", 123), DataInteger.class, 123),
                 Arguments.of(named("long", 1234567890123L), DataLong.class, 1234567890123L),
                 Arguments.of(named("double", 12.5d), DataDouble.class, 12.5d),
-                Arguments.of(named("float", 3.5f), DataDouble.class, 3.5d)
+                Arguments.of(named("float", 3.5f), DataDouble.class, 3.5d),
+                Arguments.of(named("Null field", null), DataNull.class, null)
         );
     }
 
