@@ -175,7 +175,7 @@ public abstract class BaseOperation implements StreamOperation {
     // result is the first non-UNKNOWN, or otherwise the last entry in the array.
     protected UserType firstSpecificType(UserType... types) {
         for (int index = 0; index < types.length - 1; index++) {
-            if (types[index].dataType() != DataType.UNKNOWN) return types[index];
+            if (types[index] != null && types[index].dataType() != DataType.UNKNOWN) return types[index];
         }
         return types[types.length - 1];
     }
