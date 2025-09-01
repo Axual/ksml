@@ -1,0 +1,93 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+streams:
+  transactions:
+    topic: ecommerce_transactions
+    keyType: string  # transaction_id
+    valueType: json  # transaction data
+
+# set up global data and a function that will loop over it once
+functions:
+  generate_transactions:
+    type: generic
+    resultType: boolean
+    expression: False
+    globalCode: |
+      global count
+      count = 0
+      global done
+      done = False
+      global orders
+      orders = [
+        {
+          "transaction_id": "12345",
+          "timestamp": 1625097600000,
+          "customer_id": "cust-789",
+          "product_id": "prod-456",
+          "product_category": "electronics",
+          "quantity": 1,
+          "price": 499.99,
+          "region": "north_america",
+          "marketing_channel": "social_media"
+        },
+        {
+          "transaction_id": "12346",
+          "timestamp": 1625097606000,
+          "customer_id": "cust-788",
+          "product_id": "prod-457",
+          "product_category": "gardening",
+          "quantity": 1,
+          "price": 229.99,
+          "region": "europe",
+          "marketing_channel": "social_media"
+        },
+        {
+          "transaction_id": "12349",
+          "timestamp": 1625097606000,
+          "customer_id": "cust-788",
+          "product_id": "prod-457",
+          "product_category": "electronics",
+          "quantity": 1,
+          "price": 229.99,
+          "region": "europe",
+          "marketing_channel": "social_media"
+        },
+        {
+          "transaction_id": "12347",
+          "timestamp": 1625097612000,
+          "customer_id": "cust-789",
+          "product_id": "prod-458",
+          "product_category": "gardening",
+          "quantity": 1,
+          "price": 12.99,
+          "region": "north_america",
+          "marketing_channel": "social_media"
+        }
+      ]
+      nr_orders = len(orders)
+      
+      def nextOrder():
+         global count
+         global done
+         result = orders[count]
+         count = count + 1
+         if count >= len(orders):
+           count = 0
+           done = True    # loop once over the data
+         return result
+
+producers:
+  produce_order:
+    to: transactions
+    interval: 7000  # Emit every 7 seconds to ensure windows close
+    until:
+      expression:
+        done
+    generator:
+      code: |
+        order = nextOrder()
+      expression: '(str(count), order)'
+      resultType: (string, json)
+
+
+

@@ -47,10 +47,8 @@ Change the definition so that the startup command for the setup container (the `
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ecommerce_transactions && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sales_by_category && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic avg_order_value && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic transactions_by_region && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic conversion_by_channel'"
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic transactions_by_region'"
     ```
-
 
 ## Defining the Data Model
 
@@ -76,140 +74,36 @@ Now, let's create our KSML definition file:
 
 ??? info "pipeline definition for real tima analytics (click to expand)"
 
-      ```yaml
-      streams:
-        transactions:
-          topic: ecommerce_transactions
-          keyType: string  # transaction_id
-          valueType: json  # transaction data
-          
-        sales_by_category:
-          topic: sales_by_category
-          keyType: string  # product_category
-          valueType: json  # aggregated sales data
-          
-        avg_order_value:
-          topic: avg_order_value
-          keyType: string  # time window
-          valueType: json  # average order value
-          
-        transactions_by_region:
-          topic: transactions_by_region
-          keyType: string  # region
-          valueType: json  # transaction count
-          
-        conversion_by_channel:
-          topic: conversion_by_channel
-          keyType: string  # marketing_channel
-          valueType: json  # conversion metrics
-      
-      functions:
-        extract_category:
-          type: mapValues
-          parameters:
-            - name: value
-              type: object
-          code: |
-            return value.get("product_category")
-            
-        calculate_total:
-          type: aggregate
-          parameters:
-            - name: value
-              type: object
-            - name: aggregate
-              type: object
-          code: |
-            if aggregate is None:
-              return {"total_sales": value.get("price") * value.get("quantity"), "count": 1}
-            else:
-              return {
-                "total_sales": aggregate.get("total_sales") + (value.get("price") * value.get("quantity")),
-                "count": aggregate.get("count") + 1
-              }
-      
-      pipelines:
-        # Pipeline for sales by category
-        sales_by_category_pipeline:
-          from: transactions
-          via:
-            - type: selectKey
-              keySelector:
-                expression: value.get("product_category")
-            - type: groupByKey
-            - type: aggregate
-              initializer:
-                expression: {"total_sales": 0, "count": 0}
-              aggregator:
-                code: calculate_total(value, aggregate)
-          to: sales_by_category
-          
-        # Pipeline for average order value (windowed)
-        avg_order_value_pipeline:
-          from: transactions
-          via:
-            - type: groupByKey
-            - type: windowedBy
-              timeDifference: 60000  # 1 minute window
-            - type: aggregate
-              initializer:
-                expression: {"total_sales": 0, "count": 0}
-              aggregator:
-                code: calculate_total(value, aggregate)
-            - type: mapValues
-              mapper:
-                expression: {"avg_order_value": aggregate.get("total_sales") / aggregate.get("count")}
-          to: avg_order_value
-          
-        # Pipeline for transactions by region
-        transactions_by_region_pipeline:
-          from: transactions
-          via:
-            - type: selectKey
-              keySelector:
-                expression: value.get("region")
-            - type: groupByKey
-            - type: count
-          to: transactions_by_region
-          
-        # Pipeline for conversion by marketing channel
-        conversion_by_channel_pipeline:
-          from: transactions
-          via:
-            - type: selectKey
-              keySelector:
-                expression: value.get("marketing_channel")
-            - type: groupByKey
-            - type: aggregate
-              initializer:
-                expression: {"views": 0, "purchases": 1, "conversion_rate": 0}
-              aggregator:
-                code: |
-                  if aggregate is None:
-                    return {"views": 0, "purchases": 1, "conversion_rate": 0}
-                  else:
-                    purchases = aggregate.get("purchases") + 1
-                    views = aggregate.get("views")
-                    return {
-                      "views": views,
-                      "purchases": purchases,
-                      "conversion_rate": purchases / views if views > 0 else 0
-                    }
-          to: conversion_by_channel
-      ```
+    ```yaml
+    {% 
+       include "../definitions/use-cases/real-time-analytics/analytics.yaml" 
+     %}
+    ```
 
 ## Running the Application
+
+You can use the following producer pipeline example as a starting point to write some simulated sale data; it will write
+four hard coded sales records into the input stream and exit.
+
+??? info "example-data-producer.yaml (click to expand)"
+
+    ```yaml
+    {% 
+       include "../definitions/use-cases/real-time-analytics/example-producer.yaml" 
+     %}
+    ```
 
 To run the application:
 
 1. Save the KSML definition to `definitions/analytics.yaml`
-2. Create a configuration file at `config/application.properties` with your Kafka connection details
-3. Start the Docker Compose environment: `docker-compose up -d`
-4. Monitor the output topics to see the real-time analytics results
+2. Add the `example-data-producer.yaml` above if desired, or create test data in some other way
+3. Create a configuration file at `config/application.properties` with your Kafka connection details
+4. Start the Docker Compose environment: `docker-compose up -d`
+5. Monitor the output topics to see the real-time analytics results
 
 ## Visualizing the Results
 
-You can connect the output topics to visualization tools like:
+Setting up visualizations is outside the scope of this tutorial. You can connect the output topics to visualization tools like:
 
 - Grafana
 - Kibana
