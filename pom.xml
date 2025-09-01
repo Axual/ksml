@@ -78,7 +78,7 @@
         <apicurio.version>2.6.13.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
         <confluent.version>8.0.0</confluent.version>
-        <dropwizard.version>4.2.33</dropwizard.version>
+        <dropwizard.version>4.2.36</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.2</graalvm.version>
         <guava.version>33.4.8-jre</guava.version>
@@ -94,7 +94,7 @@
         <protobuf.version>3.25.8</protobuf.version>
         <saaj.version>3.0.4</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
-        <wire.version>5.2.0</wire.version>
+        <wire.version>5.3.11</wire.version>
 
         <!-- Test dependency versions -->
         <assertj.version>3.27.4</assertj.version>
