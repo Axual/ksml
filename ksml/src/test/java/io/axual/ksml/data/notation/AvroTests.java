@@ -20,11 +20,9 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.apicurio.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.AvroSchemaMapper;
-import io.axual.ksml.data.notation.avro.apicurio.ApicurioAvroNotationProvider;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import org.junit.jupiter.api.Test;

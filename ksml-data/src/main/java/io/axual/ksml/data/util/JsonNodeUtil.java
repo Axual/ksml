@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.value.Tuple;
 
 import javax.annotation.Nullable;

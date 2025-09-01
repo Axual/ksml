@@ -31,6 +31,6 @@ public class KeyValueTransformerDefinition extends FunctionDefinition {
                 .withType(KSMLDSL.Functions.TYPE_KEYVALUETRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression("(key,value)")
-                .withTupleResult());
+                .validateResultTypeDefined());
     }
 }

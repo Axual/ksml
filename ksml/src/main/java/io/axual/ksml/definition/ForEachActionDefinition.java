@@ -30,6 +30,6 @@ public class ForEachActionDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_FOREACHACTION)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
-                .withoutResult());
+                .validateNoResultTypeDefined());
     }
 }

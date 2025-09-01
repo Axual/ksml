@@ -20,9 +20,8 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.type.UserType;
+import io.axual.ksml.user.UserKeyValuePrinter;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
@@ -31,6 +30,6 @@ public class KeyValuePrinterDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_KEYVALUEPRINTER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
-                .withResult(new UserType(DataString.DATATYPE)));
+                .withDefaultResultType(UserKeyValuePrinter.EXPECTED_RESULT_TYPE));
     }
 }

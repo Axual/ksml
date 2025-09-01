@@ -31,6 +31,6 @@ public class KeyValueToKeyValueListTransformerDefinition extends FunctionDefinit
                 .withType(KSMLDSL.Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression("[(key,value)]")
-                .withListResult());
+                .validateResultTypeDefined());
     }
 }

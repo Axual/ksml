@@ -56,7 +56,7 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var mapperResultType = firstSpecificType(mapper, new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN))));
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(mapperResultType), superOf(k), superOf(v));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, mapperResultType, superOf(k), superOf(v));
 
         if (mapperResultType.dataType() instanceof ListType mapperResultListType &&
                 mapperResultListType.valueType() instanceof UserTupleType mapperResultListTupleValueType &&

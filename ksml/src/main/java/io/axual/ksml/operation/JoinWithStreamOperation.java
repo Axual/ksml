@@ -61,7 +61,7 @@ public class JoinWithStreamOperation extends DualStoreOperation {
         final var vo = otherStream.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
         checkType("Join stream keyType", ko, equalTo(k));
-        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
+        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
         final var thisStore = validateWindowStore(thisStore(), k, vr);
         final var otherStore = validateWindowStore(otherStore(), k, vr);
         final var streamJoined = streamJoinedOf(thisStore, otherStore, k, v, vo, joinWindows);

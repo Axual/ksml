@@ -46,8 +46,8 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
         this.name = name;
         this.persistent = persistent != null && persistent;
         this.timestamped = timestamped != null && timestamped;
-        this.keyType = keyType != null ? keyType : UserType.UNKNOWN;
-        this.valueType = valueType != null ? valueType : UserType.UNKNOWN;
+        this.keyType = keyType;
+        this.valueType = valueType;
         this.caching = caching != null && caching;
         this.logging = logging != null && logging;
     }

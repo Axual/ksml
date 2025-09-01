@@ -60,7 +60,7 @@ public class ToOperation extends BaseOperation {
         // Perform a dataType check to see if the key/value data types received matches the stream definition's types
         checkType("Target topic keyType", kt, superOf(k));
         checkType("Target topic valueType", vt, superOf(v));
-        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
         final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
         final var produced = producedOf(kt, vt, userPart);
         if (produced != null)

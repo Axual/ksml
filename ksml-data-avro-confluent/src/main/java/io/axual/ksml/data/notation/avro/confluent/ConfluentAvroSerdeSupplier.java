@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.avro.confluent;
  */
 
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;

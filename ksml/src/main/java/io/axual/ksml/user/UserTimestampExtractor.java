@@ -39,7 +39,7 @@ import org.apache.kafka.streams.processor.TimestampExtractor;
 
 @Slf4j
 public class UserTimestampExtractor extends Invoker implements TimestampExtractor {
-    private static final DataType EXPECTED_RESULT_TYPE = DataLong.DATATYPE;
+    public static final DataType EXPECTED_RESULT_TYPE = DataLong.DATATYPE;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserTimestampExtractor(UserFunction function, MetricTags tags) {

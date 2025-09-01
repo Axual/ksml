@@ -27,6 +27,7 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.serialization.Serde;
+import org.jetbrains.annotations.NotNull;
 
 public record StreamDataType(UserType userType, boolean isKey) {
     private static final DataTypeFlattener FLATTENER = new DataTypeFlattener();
@@ -39,6 +40,7 @@ public record StreamDataType(UserType userType, boolean isKey) {
         return isKey ? FLATTENER.flatten(this) : this;
     }
 
+    @NotNull
     @Override
     public String toString() {
         var schemaName = userType.dataType().name();

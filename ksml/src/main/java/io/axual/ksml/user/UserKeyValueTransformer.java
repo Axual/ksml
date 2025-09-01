@@ -32,7 +32,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<Object, Object, KeyValue<Object, Object>> {
-    private static final DataType EXPECTED_RESULT_TYPE = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
+    public static final DataType EXPECTED_RESULT_TYPE = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyValueTransformer(UserFunction function, MetricTags tags) {

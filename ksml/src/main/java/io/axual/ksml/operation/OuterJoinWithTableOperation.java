@@ -58,7 +58,7 @@ public class OuterJoinWithTableOperation extends StoreOperation {
         final var vo = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
         checkType("Join table keyType", ko, equalTo(k));
-        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
+        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
         final var userJoiner = valueJoiner(joiner, tags);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);

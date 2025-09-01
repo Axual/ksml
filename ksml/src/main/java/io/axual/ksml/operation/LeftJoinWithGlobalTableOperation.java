@@ -62,8 +62,8 @@ public class LeftJoinWithGlobalTableOperation extends BaseOperation {
         final var gv = otherGlobalKTable.valueType();
         final var rv = streamDataTypeOf(firstSpecificType(valueJoiner, gv, v), false);
         checkType("Join globalKTable keyType", gk, equalTo(k));
-        final var sel = userFunctionOf(context, KEYSELECTOR_NAME, keySelector, subOf(gk), superOf(k), superOf(v));
-        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(rv), superOf(k), superOf(v), superOf(gv));
+        final var sel = userFunctionOf(context, KEYSELECTOR_NAME, keySelector, gk, superOf(k), superOf(v));
+        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, rv, superOf(k), superOf(v), superOf(gv));
         final var userSel = new UserKeyTransformer(sel, tags);
         final var userJoiner = valueJoinerWithKey(joiner, tags);
         final var named = namedOf();

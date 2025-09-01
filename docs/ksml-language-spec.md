@@ -64,12 +64,12 @@
       - *string*
       - *object*: Refer to *[#/definitions/MergerDefinitionWithImplicitStoreType](#definitions/MergerDefinitionWithImplicitStoreType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the result aggregation.
+  - **`store`**: Materialized view of the result aggregation.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType)*.
   - **`subtractor`**: *(optional)* (GroupedTable) A function that removes a record from the aggregation result.
     - **Any of**
       - *string*
@@ -208,9 +208,9 @@
   - **`store`**: *(optional)* Materialized view of the count operation's result.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["count"]`.
 - <a id="definitions/FilterNotOperation"></a>**`FilterNotOperation`** *(object)*: Filter records based on the inverse result of a predicate function. Cannot contain additional properties.
   - **`if`**: A function that returns "false" when records are accepted, "true" otherwise.
@@ -221,7 +221,7 @@
   - **`store`**: *(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams).
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["filterNot"]`.
 - <a id="definitions/FilterOperation"></a>**`FilterOperation`** *(object)*: Filter records based on a predicate function. Cannot contain additional properties.
   - **`if`**: A function that returns "true" when records are accepted, "false" otherwise.
@@ -232,7 +232,7 @@
   - **`store`**: *(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams).
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["filter"]`.
 - <a id="definitions/ForEachActionDefinition"></a>**`ForEachActionDefinition`** *(object)*: Defines a foreach action function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the foreach action.
@@ -404,7 +404,7 @@
   - **`resultType`** *(string)*: *(optional)* The data type returned by the generic function. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["generic"]`.
 - <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a globalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string, required)*: The key type of the globalTable.
+  - **`keyType`** *(string)*: *(optional)* The key type of the globalTable.
   - **`offsetResetPolicy`** *(string)*: *(optional)* The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted).
   - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
     - **Any of**
@@ -419,7 +419,7 @@
       - *string*
       - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitStoreType](#definitions/TimestampExtractorDefinitionWithImplicitStoreType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this globalTable.
-  - **`valueType`** *(string, required)*: The value type of the globalTable.
+  - **`valueType`** *(string)*: *(optional)* The value type of the globalTable.
 - <a id="definitions/GlobalTableDefinitionAsJoinTarget"></a>**`GlobalTableDefinitionAsJoinTarget`** *(object)*: Reference to a globalTable in a join operation. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the globalTable.
   - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
@@ -437,7 +437,7 @@
   - **`store`**: *(optional)* Materialized view of the grouped stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["groupByKey"]`.
 - <a id="definitions/GroupByOperation"></a>**`GroupByOperation`** *(object)*: Operation to group all messages with together based on a keying function. Cannot contain additional properties.
   - **`mapper`**: Function to map records to a key they can be grouped on.
@@ -448,7 +448,7 @@
   - **`store`**: *(optional)* Materialized view of the grouped stream or table.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["groupBy"]`.
 - <a id="definitions/InitializerDefinition"></a>**`InitializerDefinition`** *(object)*: Defines a initializer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the initializer.
@@ -521,7 +521,7 @@
   - **`otherStore`**: Materialized view of the joined stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`stream`**: A reference to the stream, or an inline definition of the stream to join with.
     - **Any of**
       - *string*
@@ -529,7 +529,7 @@
   - **`thisStore`**: Materialized view of the source stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`timeDifference`**: The maximum time difference for a join over two streams on the same key.
     - **Any of**
       - *integer*
@@ -560,7 +560,7 @@
   - **`store`**: *(optional)* Materialized view of the joined table (only used for Table-Table joins).
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`table`**: A reference to the table, or an inline definition of the table to join with.
     - **Any of**
       - *string*
@@ -733,13 +733,12 @@
   - **`type`**: The type of the state store. Must be one of: `["keyValue"]`.
   - **`valueType`** *(string)*: *(optional)* The value type of the keyValue store.
   - **`versioned`** *(boolean)*: *(optional)* "true" if elements in the store are versioned, "false" otherwise.
-- <a id="definitions/KeyValueStateStoreDefinitionWithImplicitStoreType"></a>**`KeyValueStateStoreDefinitionWithImplicitStoreType`** *(object)*: Definition of a keyValue state store. Cannot contain additional properties.
+- <a id="definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType"></a>**`KeyValueStateStoreDefinitionWithImplicitKeyAndValueType`** *(object)*: Definition of a keyValue state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly.
   - **`historyRetention`**: *(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative).
     - **Any of**
       - *integer*
       - *string*
-  - **`keyType`** *(string)*: *(optional)* The key type of the keyValue store.
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise.
   - **`name`** *(string)*: *(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise.
@@ -749,7 +748,6 @@
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["keyValue"]`.
-  - **`valueType`** *(string)*: *(optional)* The value type of the keyValue store.
   - **`versioned`** *(boolean)*: *(optional)* "true" if elements in the store are versioned, "false" otherwise.
 - <a id="definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType"></a>**`KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType`** *(object)*: Definition of a keyValue state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly.
@@ -758,6 +756,7 @@
       - *integer*
       - *string*
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise.
+  - **`name`** *(string)*: *(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise.
   - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**
@@ -943,7 +942,7 @@
   - **`otherStore`**: Materialized view of the leftJoined stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`stream`**: A reference to the stream, or an inline definition of the stream to leftJoin with.
     - **Any of**
       - *string*
@@ -951,7 +950,7 @@
   - **`thisStore`**: Materialized view of the source stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`timeDifference`**: The maximum time difference for a leftJoin over two streams on the same key.
     - **Any of**
       - *integer*
@@ -982,7 +981,7 @@
   - **`store`**: *(optional)* Materialized view of the leftJoined table (only used for Table-Table joins).
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`table`**: A reference to the table, or an inline definition of the table to join with.
     - **Any of**
       - *string*
@@ -1106,7 +1105,7 @@
   - **`otherStore`**: Materialized view of the outerJoined stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`stream`**: A reference to the stream, or an inline definition of the stream to outerJoin with.
     - **Any of**
       - *string*
@@ -1114,7 +1113,7 @@
   - **`thisStore`**: Materialized view of the source stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`timeDifference`**: The maximum time difference for an outerJoin over two streams on the same key.
     - **Any of**
       - *integer*
@@ -1129,7 +1128,7 @@
   - **`store`**: *(optional)* Materialized view of the outerJoined table.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`table`**: A reference to the table, or an inline definition of the table to outerJoin with.
     - **Any of**
       - *string*
@@ -1303,7 +1302,7 @@
   - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`subtractor`**: A function that removes a record from the aggregate result.
     - **Any of**
       - *string*
@@ -1318,9 +1317,9 @@
   - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType](#definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["reduce"]`.
 - <a id="definitions/ReducerDefinition"></a>**`ReducerDefinition`** *(object)*: Defines a reducer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the reducer.
@@ -1379,7 +1378,7 @@
   - **`type`**: The type of the operation. Must be one of: `["repartition"]`.
 - <a id="definitions/SessionStateStoreDefinition"></a>**`SessionStateStoreDefinition`** *(object)*: Definition of a session state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the session store need to be buffered and periodically released, "false" to emit all changes directly.
-  - **`keyType`** *(string)*: *(optional)* The key type of the session store.
+  - **`keyType`** *(string, required)*: The key type of the session store.
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this session store, "false" otherwise.
   - **`name`** *(string)*: *(optional)* The name of the session store. If this field is not defined, then the name is derived from the context.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this session store needs to be stored on disk, "false" otherwise.
@@ -1389,7 +1388,18 @@
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["session"]`.
-  - **`valueType`** *(string)*: *(optional)* The value type of the session store.
+  - **`valueType`** *(string, required)*: The value type of the session store.
+- <a id="definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType"></a>**`SessionStateStoreDefinitionWithImplicitKeyAndValueType`** *(object)*: Definition of a session state store. Cannot contain additional properties.
+  - **`caching`** *(boolean)*: *(optional)* "true" if changed to the session store need to be buffered and periodically released, "false" to emit all changes directly.
+  - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this session store, "false" otherwise.
+  - **`name`** *(string)*: *(optional)* The name of the session store. If this field is not defined, then the name is derived from the context.
+  - **`persistent`** *(boolean)*: *(optional)* "true" if this session store needs to be stored on disk, "false" otherwise.
+  - **`retention`**: *(optional)* The duration for which elements in the session store are retained.
+    - **Any of**
+      - *integer*
+      - *string*
+  - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
+  - **`type`**: The type of the state store. Must be one of: `["session"]`.
 - <a id="definitions/StreamDefinition"></a>**`StreamDefinition`** *(object)*: Contains a definition of a Stream, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the stream.
   - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
@@ -1478,7 +1488,7 @@
   - **`type`**: The type of the operation. Must be one of: `["suppress"]`.
   - **`until`**: The until of the Operation to suppress messages in the source stream until a certain limit is reached. Must be one of: `["windowCloses"]`.
 - <a id="definitions/TableDefinition"></a>**`TableDefinition`** *(object)*: Contains a definition of a table, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string, required)*: The key type of the table.
+  - **`keyType`** *(string)*: *(optional)* The key type of the table.
   - **`offsetResetPolicy`** *(string)*: *(optional)* The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted).
   - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
     - **Any of**
@@ -1493,7 +1503,7 @@
       - *string*
       - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitStoreType](#definitions/TimestampExtractorDefinitionWithImplicitStoreType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
-  - **`valueType`** *(string, required)*: The value type of the table.
+  - **`valueType`** *(string)*: *(optional)* The value type of the table.
 - <a id="definitions/TableDefinitionAsJoinTarget"></a>**`TableDefinitionAsJoinTarget`** *(object)*: Reference to a table in a join operation. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the table.
   - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
@@ -1565,7 +1575,7 @@
   - **`store`**: *(optional)* Materialized view of the result table.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["toTable"]`.
 - <a id="definitions/ToTopicDefinition"></a>**`ToTopicDefinition`** *(object)*: Writes out pipeline messages to a topic. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the topic.
@@ -1692,7 +1702,7 @@
   - **`store`**: *(optional)* Materialized view of the transformed table (only applies to tables, ignored for streams).
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
   - **`type`**: The type of the operation. Must be one of: `["mapValue", "transformValue", "mapValues"]`.
 - <a id="definitions/ValueJoinerDefinition"></a>**`ValueJoinerDefinition`** *(object)*: Defines a value joiner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the value joiner.
@@ -1845,7 +1855,7 @@
   - **`windowType`**: The windowType of the time window. Must be one of: `["tumbling"]`.
 - <a id="definitions/WindowStateStoreDefinition"></a>**`WindowStateStoreDefinition`** *(object)*: Definition of a window state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly.
-  - **`keyType`** *(string)*: *(optional)* The key type of the window store.
+  - **`keyType`** *(string, required)*: The key type of the window store.
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this window store, "false" otherwise.
   - **`name`** *(string)*: *(optional)* The name of the window store. If this field is not defined, then the name is derived from the context.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this window store needs to be stored on disk, "false" otherwise.
@@ -1856,14 +1866,13 @@
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["window"]`.
-  - **`valueType`** *(string)*: *(optional)* The value type of the window store.
+  - **`valueType`** *(string, required)*: The value type of the window store.
   - **`windowSize`**: *(optional)* Size of the windows (cannot be negative).
     - **Any of**
       - *integer*
       - *string*
-- <a id="definitions/WindowStateStoreDefinitionWithImplicitStoreType"></a>**`WindowStateStoreDefinitionWithImplicitStoreType`** *(object)*: Definition of a window state store. Cannot contain additional properties.
+- <a id="definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType"></a>**`WindowStateStoreDefinitionWithImplicitKeyAndValueType`** *(object)*: Definition of a window state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly.
-  - **`keyType`** *(string)*: *(optional)* The key type of the window store.
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this window store, "false" otherwise.
   - **`name`** *(string)*: *(optional)* The name of the window store. If this field is not defined, then the name is derived from the context.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this window store needs to be stored on disk, "false" otherwise.
@@ -1874,7 +1883,22 @@
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["window"]`.
-  - **`valueType`** *(string)*: *(optional)* The value type of the window store.
+  - **`windowSize`**: *(optional)* Size of the windows (cannot be negative).
+    - **Any of**
+      - *integer*
+      - *string*
+- <a id="definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType"></a>**`WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType`** *(object)*: Definition of a window state store. Cannot contain additional properties.
+  - **`caching`** *(boolean)*: *(optional)* "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly.
+  - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this window store, "false" otherwise.
+  - **`name`** *(string)*: *(optional)* The name of the window store. If this field is not defined, then the name is derived from the context.
+  - **`persistent`** *(boolean)*: *(optional)* "true" if this window store needs to be stored on disk, "false" otherwise.
+  - **`retainDuplicates`** *(boolean)*: *(optional)* Whether or not to retain duplicates.
+  - **`retention`**: *(optional)* The duration for which elements in the window store are retained.
+    - **Any of**
+      - *integer*
+      - *string*
+  - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
+  - **`type`**: The type of the state store. Must be one of: `["window"]`.
   - **`windowSize`**: *(optional)* Size of the windows (cannot be negative).
     - **Any of**
       - *integer*

@@ -21,9 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.type.UserType;
+import io.axual.ksml.user.UserTimestampExtractor;
 
 import static io.axual.ksml.definition.DefinitionConstants.TIMESTAMP_EXTRACTOR_PARAMETERS;
 
@@ -32,6 +31,6 @@ public class TimestampExtractorDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_TIMESTAMPEXTRACTOR)
                 .withParameters(mergeParameters(TIMESTAMP_EXTRACTOR_PARAMETERS, definition.parameters()))
-                .withResult(new UserType(definition.resultType().notation(), DataLong.DATATYPE)));
+                .withDefaultResultType(UserTimestampExtractor.EXPECTED_RESULT_TYPE));
     }
 }

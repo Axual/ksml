@@ -20,7 +20,6 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;

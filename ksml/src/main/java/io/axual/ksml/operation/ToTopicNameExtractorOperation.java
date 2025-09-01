@@ -60,7 +60,7 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
         final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
         final var extract = userFunctionOf(context, TOPIC_NAME_EXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
         final var userExtract = new UserTopicNameExtractor(extract, tags);
-        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
         final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
         final var produced = producedOf(k, v, userPart);
         if (produced != null)

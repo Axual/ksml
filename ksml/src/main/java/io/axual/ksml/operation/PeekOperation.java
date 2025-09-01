@@ -44,7 +44,7 @@ public class PeekOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        final var action = userFunctionOf(context, FOREACHACTION_NAME, forEachAction, equalTo(DataNull.DATATYPE), superOf(k.flatten()), superOf(v.flatten()));
+        final var action = userFunctionOf(context, FOREACHACTION_NAME, forEachAction, DataNull.DATATYPE, superOf(k.flatten()), superOf(v.flatten()));
         final var userAction = new UserForeachAction(action, tags);
         final var storeNames = forEachAction.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(

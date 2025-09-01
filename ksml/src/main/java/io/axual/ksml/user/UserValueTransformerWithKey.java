@@ -24,6 +24,7 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
@@ -32,6 +33,7 @@ import org.apache.kafka.streams.kstream.ValueTransformerWithKey;
 import org.apache.kafka.streams.processor.ProcessorContext;
 
 public class UserValueTransformerWithKey extends Invoker implements ValueTransformerWithKey<Object, Object, DataObject> {
+    private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserValueTransformerWithKey(UserFunction function, MetricTags tags) {

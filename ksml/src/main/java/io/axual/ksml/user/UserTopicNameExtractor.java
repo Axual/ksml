@@ -36,7 +36,7 @@ import org.apache.kafka.streams.processor.TopicNameExtractor;
 
 @Slf4j
 public class UserTopicNameExtractor extends Invoker implements TopicNameExtractor<Object, Object> {
-    private static final DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+    public static final DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
     private static final RecordContextDataObjectMapper RECORD_CONTEXT_MAPPER = new RecordContextDataObjectMapper();
 

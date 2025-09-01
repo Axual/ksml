@@ -58,7 +58,7 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
             throw new TopologyException("Function should return a list of values, but currently returns " + vrs);
         }
         final var vr = streamDataTypeOf(vrList.valueType(), false);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(vrs), superOf(k.flatten()), superOf(v.flatten()));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, vrs, superOf(k.flatten()), superOf(v.flatten()));
         final var userMap = new UserKeyValueToValueListTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(

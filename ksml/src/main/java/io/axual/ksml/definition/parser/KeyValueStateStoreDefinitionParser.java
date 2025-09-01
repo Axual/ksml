@@ -28,12 +28,12 @@ import io.axual.ksml.parser.StructsParser;
 
 public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValueStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireStoreType;
-    private final boolean isTableBackingStore;
+    private final boolean requireKeyValueType;
     private String defaultShortName;
 
-    public KeyValueStateStoreDefinitionParser(boolean requireStoreType, boolean isTableBackingStore) {
+    public KeyValueStateStoreDefinitionParser(boolean requireStoreType, boolean requireKeyValueType) {
         this.requireStoreType = requireStoreType;
-        this.isTableBackingStore = isTableBackingStore;
+        this.requireKeyValueType = requireKeyValueType;
     }
 
     @Override
@@ -50,9 +50,10 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
         final var loggingField = optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise"));
 
         // Determine this parser's name by the two input booleans
-        final var parserPostfix = (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX) + (isTableBackingStore ? KSMLDSL.Types.WITH_IMPLICIT_KEY_AND_VALUE_TYPE : "");
+        final var parserPostfix = (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX)
+                + (requireKeyValueType ? "" : KSMLDSL.Types.WITH_IMPLICIT_KEY_AND_VALUE_TYPE);
 
-        if (!isTableBackingStore) return structsParser(
+        if (requireKeyValueType) return structsParser(
                 // Parse the state store including name, keyType and valueType
                 KeyValueStateStoreDefinition.class,
                 parserPostfix,
@@ -77,6 +78,7 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 KeyValueStateStoreDefinition.class,
                 parserPostfix,
                 "Definition of a keyValue state store",
+                nameField,
                 persistentField,
                 timestampField,
                 versionedField,
@@ -84,8 +86,8 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 segmentIntervalField,
                 cachingField,
                 loggingField,
-                (persistent, timestamped, versioned, history, segment, caching, logging, tags) -> {
-                    final var name = validateName("KeyValue state store", null, defaultShortName);
+                (name, persistent, timestamped, versioned, history, segment, caching, logging, tags) -> {
+                    name = validateName("KeyValue state store", name, defaultShortName);
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, null, null, caching, logging);
                 });
     }

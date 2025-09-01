@@ -30,6 +30,6 @@ public class ValueJoinerDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_VALUEJOINER)
                 .withParameters(mergeParameters(KEY_AND_TWO_VALUE_PARAMETERS, definition.parameters()))
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

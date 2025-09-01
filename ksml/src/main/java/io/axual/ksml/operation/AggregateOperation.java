@@ -62,6 +62,7 @@ public class AggregateOperation extends StoreOperation {
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
@@ -92,6 +93,8 @@ public class AggregateOperation extends StoreOperation {
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(adder, ADDER_NAME.toLowerCase());
+        checkNotNull(subtractor, SUBTRACTOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(initializer, adder, subtractor), false);
@@ -126,6 +129,8 @@ public class AggregateOperation extends StoreOperation {
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
+        checkNotNull(merger, MERGER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator, merger), false);
@@ -160,6 +165,7 @@ public class AggregateOperation extends StoreOperation {
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
@@ -220,6 +226,7 @@ public class AggregateOperation extends StoreOperation {
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(merger, MERGER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
