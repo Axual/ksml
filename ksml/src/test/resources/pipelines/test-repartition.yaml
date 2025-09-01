@@ -1,0 +1,54 @@
+# Test for issue 288: Repartition Operation Requires Partitioner Despite Being Optional  
+# This test verifies that repartition works with just numberOfPartitions (without custom partitioner)
+# AFTER PR 300 fix: repartition should work with only numberOfPartitions parameter
+
+streams:
+  activities_input:
+    topic: user_activities
+    keyType: string
+    valueType: json
+
+stores:
+  user_activity_counts:
+    type: keyValue
+    keyType: string
+    valueType: long
+    persistent: true
+    timestamped: false
+    caching: false
+
+pipelines:
+  main:
+    from: activities_input
+    via:
+      # Map key from region to user_id
+      - type: mapKey
+        mapper:
+          expression: value["user_id"]
+          resultType: string
+      
+      # Repartition with only numberOfPartitions (no partitioner)
+      # This should work but currently fails with "Partitioner must be defined"
+      - type: repartition
+        numberOfPartitions: 4
+      
+      # Group by the new key (user_id)
+      - type: groupByKey
+      
+      # Count activities per user
+      - type: count
+        store: user_activity_counts
+      
+      # Convert to stream for output
+      - type: toStream
+      
+      # Convert count (long) to string for output
+      - type: mapValues
+        mapper:
+          expression: str(value)
+          resultType: string
+            
+    to:
+      topic: user_activity_counts
+      keyType: string
+      valueType: string
