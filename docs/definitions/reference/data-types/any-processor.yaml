@@ -1,0 +1,82 @@
+# Demonstrates 'any' type usage in KSML functions
+# 
+# This example shows how to use the 'any' or '?' type in function signatures when
+# processing variable data types. The 'any' type allows functions to accept any
+# type of input and perform generic operations.
+streams:
+  mixed_data:
+    topic: mixed_data
+    keyType: string
+    valueType: json  # Input stream with variable JSON structures
+  
+  processed_data:
+    topic: processed_data
+    keyType: string
+    valueType: json  # Output processed data
+
+functions:
+  process_any_data:
+    type: valueTransformer
+    code: |
+      # This function demonstrates processing data of unknown/variable types
+      # The 'any' type allows us to accept any input and handle it generically
+      
+      # Since we're dealing with JSON, value will be a dict
+      if isinstance(value, dict):
+        # Add processing metadata regardless of original structure
+        processed = {
+          "original_data": value,
+          "processing_time": time.time(),
+          "processed_by": "any_type_processor"
+        }
+        
+        # Add specific handling based on data type field if present
+        if "type" in value:
+          data_type = value["type"]
+          if data_type == "user_action":
+            processed["category"] = "user_events"
+          elif data_type == "order":
+            processed["category"] = "business_events"
+          elif data_type == "metric":
+            processed["category"] = "system_metrics"
+          else:
+            processed["category"] = "unknown"
+        else:
+          processed["category"] = "untyped_data"
+        
+        log.info(f"Processed {processed.get('category', 'unknown')} data for key: {key}")
+        return processed
+      else:
+        # Handle non-dict values
+        return {
+          "original_data": value,
+          "processing_time": time.time(),
+          "processed_by": "any_type_processor",
+          "category": "non_dict_data",
+          "data_type": str(type(value).__name__)
+        }
+    
+    # Function parameter uses 'any' type to accept variable input
+    # Alternative syntax: parameterType: "?" 
+    parameterType: "any"
+    resultType: "json"
+    globalCode: |
+      import time
+
+pipelines:
+  process_mixed_data:
+    from: mixed_data
+    via:
+      # Transform values using the any-type function
+      - type: transformValue
+        mapper: process_any_data
+      
+      # Log the results
+      - type: peek
+        forEach:
+          code: |
+            category = value.get("category", "unknown")
+            original_type = value.get("original_data", {}).get("type", "unknown")
+            log.info(f"Processed {category} data (original: {original_type}) for user: {key}")
+    
+    to: processed_data

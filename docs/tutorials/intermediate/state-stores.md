@@ -32,11 +32,13 @@ State stores can be backed by RocksDB (persistent) or kept in memory (non-persis
 
 ## State Store Types
 
-KSML supports three main types of state stores:
+KSML supports three types of state stores, each optimized for specific use cases:
 
-1. **keyValue**: General-purpose key-value storage for aggregations and lookups
-2. **window**: Time-windowed storage that automatically expires old data
-3. **session**: Session-based storage that groups events by activity sessions
+| Type | Description | Use Cases | Examples                                                                                                  |
+|------|-------------|-----------|-----------------------------------------------------------------------------------------------------------|
+| `keyValue` | Simple key-value storage | General lookups, non-windowed aggregations, manual state management | [`keyValue` type state store](#1-predefined-store-configuration)                                 |
+| `window` | Time-windowed storage with automatic expiry | Time-based aggregations, windowed joins, temporal analytics | [`window` type state store](aggregations.md#windowed-aggregation-example)       |
+| `session` | Session-based storage with activity gaps | User session tracking, activity-based grouping | [`session` type state store](windowing.md#session-window-user-activity-analysis) |
 
 ## Configuration Methods
 
@@ -125,6 +127,31 @@ This example demonstrates:
 | `logging`    | `boolean` | `false` | Enable changelog topic for fault tolerance |
 | `timestamped`| `boolean` | `false` | Include timestamps with values (keyValue/window stores) |
 | `versioned`  | `boolean` | `false` | Enable versioning for keyValue stores |
+
+### Window Store Specific Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `windowSize` | Duration | Yes | - | Size of the time window (must match operation's window duration) |
+| `retention` | Duration | No | - | How long to retain window data (should be > windowSize + grace period) |
+| `retainDuplicates` | Boolean | No | `false` | Whether to keep duplicate entries in windows |
+
+### KeyValue Store Specific Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `versioned` | Boolean | No | `false` | If `true`, maintains version history of values |
+| `historyRetention` | Duration | No (Yes if versioned) | - | How long to keep old versions |
+| `segmentInterval` | Duration | No | - | Segment size for versioned stores |
+
+**Important:** Versioned stores (`versioned: true`) cannot have caching enabled (`caching: false` is required).
+
+### Session Store Specific Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `retention` | Duration | No | - | How long to retain session data |
+
 
 ### Retention and Cleanup
 

@@ -718,4 +718,4 @@ Choose the appropriate aggregation type based on your use case, and always consi
 
 ## Further Reading
 
-- [Reference: Stateful Operations](../../reference/operation-reference.md/#stateful-operations)
+- [Reference: Stateful Operations](../../reference/operation-reference.md/#stateful-aggregation-operations)

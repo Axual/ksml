@@ -427,10 +427,14 @@ Performs an inner join between two streams.
 
 #### Parameters
 
-| Parameter    | Type   | Required | Description                                                           |
-|--------------|--------|----------|-----------------------------------------------------------------------|
-| `with`       | String | Yes      | The name of the stream to join with                                   |
-| `windowSize` | Long   | No       | The size of the join window in milliseconds (for stream-stream joins) |
+| Parameter        | Type     | Required | Description                                                           |
+|------------------|----------|----------|-----------------------------------------------------------------------|
+| `stream`         | String   | Yes      | The name of the stream to join with                                   |
+| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins)          |
+| `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
+| `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
+| `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
+| `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
 
 ##### **See it in action**:
 
@@ -442,10 +446,14 @@ Performs a left join between two streams.
 
 #### Parameters
 
-| Parameter    | Type   | Required | Description                                                           |
-|--------------|--------|----------|-----------------------------------------------------------------------|
-| `with`       | String | Yes      | The name of the stream to join with                                   |
-| `windowSize` | Long   | No       | The size of the join window in milliseconds (for stream-stream joins) |
+| Parameter        | Type     | Required | Description                                                           |
+|------------------|----------|----------|-----------------------------------------------------------------------|
+| `stream`         | String   | Yes      | The name of the stream to join with                                   |
+| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins)          |
+| `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
+| `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
+| `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
+| `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
 
 ##### **See it in action**:
 
@@ -457,10 +465,14 @@ Performs an outer join between two streams.
 
 #### Parameters
 
-| Parameter    | Type   | Required | Description                                                           |
-|--------------|--------|----------|-----------------------------------------------------------------------|
-| `with`       | String | Yes      | The name of the stream to join with                                   |
-| `windowSize` | Long   | No       | The size of the join window in milliseconds (for stream-stream joins) |
+| Parameter        | Type     | Required | Description                                                           |
+|------------------|----------|----------|-----------------------------------------------------------------------|
+| `stream`         | String   | Yes      | The name of the stream to join with                                   |
+| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins)          |
+| `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
+| `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
+| `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
+| `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
 
 ##### **See it in action**:
 

@@ -1,0 +1,55 @@
+# Demonstrates struct data type manipulation in KSML
+streams:
+  user_profiles:
+    topic: user_profiles
+    keyType: string
+    valueType: struct  # Input as struct type
+  
+  enriched_profiles:
+    topic: enriched_profiles
+    keyType: string
+    valueType: struct  # Output as struct type
+
+functions:
+  enrich_user_profile:
+    type: valueTransformer
+    code: |
+      # Working with struct data (dictionary)
+      # Access nested struct fields
+      preferences = value.get("preferences", {})
+      
+      # Create enriched struct with additional fields
+      enriched = {
+        "user_id": value.get("user_id"),
+        "name": value.get("name"),
+        "age": value.get("age"),
+        "email": value.get("email"),
+        "age_group": "young" if value.get("age", 0) < 30 else "adult",
+        "subscription_status": "active" if preferences.get("newsletter", False) else "inactive",
+        "original_preferences": preferences,
+        "enriched_at": int(time.time() * 1000)
+      }
+      return enriched
+    resultType: struct  # Function returns struct type
+    globalCode: |
+      import time
+
+pipelines:
+  enrich_profiles:
+    from: user_profiles
+    via:
+      # Transform struct to enriched struct
+      - type: transformValue
+        mapper: enrich_user_profile
+      
+      # Log the enriched struct
+      - type: peek
+        forEach:
+          code: |
+            log.info("Enriched profile: {} - {} ({} years, {})", 
+                     key, 
+                     value.get("name"),
+                     value.get("age"),
+                     value.get("subscription_status"))
+    
+    to: enriched_profiles

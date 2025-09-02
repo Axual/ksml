@@ -51,9 +51,3 @@ We recommend following these tutorials in order, as each one builds on concepts 
 After completing these beginner tutorials, you're ready to move on to more advanced topics:
 
 👉 **Continue to [Intermediate Tutorials](../intermediate/index.md)** to learn about aggregations, joins, and windowing operations.
-
-## Additional Resources
-
-- [KSML Core Concepts](../../reference/stream-type-reference.md) - Deeper explanations of KSML components
-- [Examples Library](../../resources/examples-library.md) - Ready-to-use examples for common patterns
-- [Operations Reference](../../reference/operation-reference.md) - Complete reference for all KSML operations

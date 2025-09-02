@@ -6,50 +6,38 @@ Understanding these fundamental components will give you a solid foundation for 
 
 ## Reference Sections
 
-### [KSML Language Reference](language-reference.md)
+### [KSML Definition Reference](definition-reference.md)
 
-Complete documentation of the KSML language syntax and structure:
+Complete documentation for writing KSML definitions:
 
 - YAML structure and formatting
+- Stream types (KStream, KTable, GlobalKTable)
 - Definition file organization
 - Syntax rules and conventions
-- Schema validation
-- Common syntax patterns
-
-### [Stream Type Reference](stream-type-reference.md)
-
-Learn about the fundamental building blocks of KSML applications:
-
-- Understanding stream types (KStream, KTable, GlobalKTable)
-- Choosing the right stream type
+- Data types and schemas
 - Best practices
-- Examples
 
-### [Data Type Reference](data-type-reference.md)
+### [Pipeline Reference](pipeline-reference.md)
 
-Detailed information about all supported data types in KSML:
+Comprehensive guide to pipeline structure and data flow in KSML:
 
-- Primitive data types
-- Complex data types
-- Schema management
-- Key and value types
-- Function parameter types
-- Function result types
-- Type conversion
-- Serialization and deserialization
-- Custom data types
+- Pipeline structure and components
+- Input and output configurations
+- Connecting and branching pipelines
+- Best practices for pipeline design
+- Duration specifications and patterns
 
-### [Notation Reference](notation-reference.md)
+### [Data Types and Notations Reference](data-and-formats-reference.md)
 
-Find out how to use different notations for Kafka topics:
+Comprehensive guide to data types and notation formats in KSML:
 
-- Key and value types
-- Working with different data formats (Avro, JSON, CSV, etc.)
-- Schema management
-- Serialization and deserialization
-- Introduction to notations
-- How to configure notations
-- List of available supported variations
+- Primitive data types (boolean, int, string, etc.)
+- Complex data types (enum, list, struct, tuple, union, windowed)
+- Notation formats (JSON, Avro, CSV, XML, Binary, SOAP, Protobuf)
+- Schema management (local files vs schema registry)
+- Type conversion and format conversion
+- Best practices for data handling
+- Common patterns and examples
 
 ### [Function Reference](function-reference.md)
 
@@ -81,15 +69,17 @@ Learn about the various operations you can perform on your data:
   - Common use cases
   - Performance considerations
 
-### [Pipelines](pipelines.md)
+### [State Store Reference](state-store-reference.md)
 
-Explore how data flows through KSML applications:
+Understand how to work with stateful processing in KSML:
 
-- Pipeline structure and components
-- Input and output configurations
-- Connecting pipelines
-- Best practices for pipeline design
-- Error handling in pipelines
+- State store types (KeyValue, Window, Session)
+- Store configuration options
+- Persistence and caching
+- Using stores in functions
+- Store queries and management
+- Performance tuning
+- Best practices for stateful operations
 
 ### [Configuration Reference](configuration-reference.md)
 
@@ -107,10 +97,11 @@ Complete documentation of KSML configuration options:
 
 You can read through these reference topics in order for a comprehensive understanding, or jump to specific topics as needed:
 
-1. Start with [KSML Language Reference](language-reference.md) and [Stream Type Reference](stream-type-reference.md) to understand the basic structure and data model
-2. Move on to [Data Types](data-type-reference.md) and [Notations](notation-reference.md) to learn about data handling
-3. Explore [Functions](function-reference.md) to see how to implement custom logic
+1. Start with [KSML Definition Reference](definition-reference.md) to understand the basic structure, stream types, and data model
+2. Study [Pipeline Reference](pipeline-reference.md) to learn how data flows through your application
+3. Explore [Functions](function-reference.md) to see how to implement custom logic in Python
 4. Learn about [Operations](operation-reference.md) to understand all the ways you can process your data
-5. Study [Pipelines](pipelines.md) to learn how data flows through your application
-6. Review advanced tutorials for production-ready applications
-7. Finish with [Configuration Reference](configuration-reference.md) for deployment settings
+5. Review [Data Types and Notations](data-and-formats-reference.md) to learn about data handling and notation formats
+6. Understand [State Stores](state-store-reference.md) for stateful processing and data persistence
+7. Review advanced tutorials for production-ready applications
+8. Finish with [Configuration Reference](configuration-reference.md) for deployment settings

@@ -512,7 +512,7 @@ Don't ignore exceptions without proper handling:
 
 If you're still experiencing issues after trying the solutions in this guide:
 
-1. **Check the Documentation**: Review the [KSML Language Reference](../reference/language-reference.md) and [Operations Reference](../reference/operation-reference.md)
+1. **Check the Documentation**: Review the [KSML Definition Reference](../reference/definition-reference.md) and [Operations Reference](../reference/operation-reference.md)
 2. **Search the Community Forums**: Look for similar issues in the community forums
 3. **Examine Logs**: Check the KSML runner logs for detailed error information
 4. **Create a Minimal Example**: Create a simplified version of your pipeline that reproduces the issue

@@ -1,12 +1,15 @@
 # Pipeline Reference
 
-This document provides a comprehensive reference for pipelines in KSML. It covers pipeline structure, configuration options, and best practices.
+This page provides comprehensive reference documentation for pipelines in KSML - the heart of stream processing logic.
 
 ## What is a Pipeline?
 
-In KSML, pipelines form the heart of stream processing logic. A pipeline defines how data flows from one or more input streams through a series of operations and finally to one or more output destinations.
+In KSML, a pipeline defines how data flows from one or more input streams through a series of operations and finally to one or more output destinations.
+
+Think of a pipeline as a recipe that describes exactly how data should be processed from start to finish.
 
 Pipelines connect:
+
 - **Sources**: Where data comes from (Kafka topics via streams, tables, or global tables)
 - **Operations**: What happens to the data (transformations, filters, aggregations, etc.)
 - **Sinks**: Where the processed data goes (output topics, other pipelines, functions, etc.)
@@ -29,17 +32,40 @@ pipelines:
 
 This structure makes pipelines easy to read and understand, with a clear flow from source to operations to sink.
 
+## Pipeline Properties
+
+Each pipeline in the `pipelines` section has these main properties:
+
+| Property               | Type           | Required | Description                                                                             |
+|------------------------|----------------|----------|-----------------------------------------------------------------------------------------|
+| `name`                 | String         | No       | Pipeline name. If not defined, derived from context                                     |
+| `from`                 | String/Object  | Yes      | The source stream(s), table(s), or pipeline(s). Can be a reference or inline definition |
+| `via`                  | Array          | No       | List of operations to apply to the data                                                 |
+| `to`                   | String/Object  | No*      | The destination stream or topic. Can be a reference or inline definition                |
+| `as`                   | String         | No*      | Name to save the result for later pipelines                                             |
+| `branch`               | Array          | No*      | Split the pipeline based on conditions                                                  |
+| `forEach`              | Object         | No*      | Process each message with a function                                                    |
+| `print`                | Boolean/Object | No*      | Output messages for debugging (simple boolean or complex object)                        |
+| `toTopicNameExtractor` | Object         | No*      | Dynamically determine the output topic                                                  |
+
+*At least one sink type (`to`, `as`, `branch`, `forEach`, `print`, or `toTopicNameExtractor`) is required.
+
 ## Pipeline Components
 
-### Sources
+### Sources: Where Data Comes From
 
 The source of a pipeline is specified with the `from` keyword. It defines where the pipeline gets its data from:
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `from` | String or Array | Yes | The source stream, table, or pipeline name(s) |
+| `from` | String/Object | Yes | The source stream, table, or pipeline name. Can be a reference or inline definition |
+
+```yaml
+from: user_clicks_stream
+```
 
 A source can be:
+
 - A **stream** (KStream): For event-based processing
 - A **table** (KTable): For state-based processing
 - A **globalTable** (GlobalKTable): For reference data
@@ -47,39 +73,32 @@ A source can be:
 
 Sources must be defined elsewhere in your KSML file (in the `streams`, `tables`, or `globalTables` sections) or be the result of a previous pipeline.
 
-#### Example
+**Full example with `from`**
+
+- [Example with `from`](../tutorials/intermediate/aggregations.md#4-cogroup)
+
+**Note:** KSML does not support multiple sources in the `from` field. For joins, use a single source and specify the join target using the `table` parameter in join operations:
 
 ```yaml
-# Single source
-from: user_clicks_stream
+# Correct syntax for joins
+from: orders_stream
+via:
+  - type: join
+    table: customers_table  # Join target specified here
+    valueJoiner: join_function
 ```
 
-```yaml
-# Multiple sources (for joins)
-from:
-  - orders_stream
-  - customers_stream
-```
+**Learn more about joins**
 
-### Operations
+- [Joins` tutorial](../tutorials/intermediate/joins.md)
+
+### Operations: Transforming the Data
 
 Operations are defined in the `via` section as a list of transformations to apply to the data:
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `via` | Array | No | List of operations to apply to the data |
-
-Each operation:
-- Has a `type` that defines what it does
-- Takes parameters specific to that operation type
-- Receives data from the previous operation (or the source)
-- Passes its output to the next operation (or the sink)
-
-Operations are applied in sequence, creating a processing pipeline where data flows from one operation to the next.
-
-For a complete list of available operations, see the [Operations Reference](operation-reference.md).
-
-#### Example
 
 ```yaml
 via:
@@ -91,31 +110,44 @@ via:
       expression: {"user": key, "amount": value.get('amount'), "currency": "USD"}
 ```
 
-### Sinks
+Each operation:
 
-The sink defines where the processed data should be sent:
+- Has a `type` that defines what it does
+- Takes parameters specific to that operation type
+- Receives data from the previous operation (or the source)
+- Passes its output to the next operation (or the sink)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `to` | String | No* | The destination stream or topic name |
-| `as` | String | No* | Name to save the result for use in later pipelines |
-| `branch` | Array | No* | Split the pipeline based on conditions |
-| `forEach` | Object | No* | Process each message with a function (terminal operation) |
-| `print` | Boolean | No* | Output messages for debugging |
-| `toTopicNameExtractor` | Object | No* | Dynamically determine the output topic |
+Operations are applied in sequence, creating a processing pipeline where data flows from one operation to the next.
+
+For a complete list of available operations, see the [Operation Reference](operation-reference.md).
+
+**Full example with `via`**
+
+- [Example with `via`](../tutorials/intermediate/aggregations.md#4-cogroup)
+
+### Sinks: Where Data Goes
+
+The sink defines where the processed data should be sent. KSML supports several sink types:
+
+| Parameter              | Type           | Required | Description                                               |
+|------------------------|----------------|----------|-----------------------------------------------------------|
+| `to`                   | String/Object  | No*      | The destination stream or topic name. Can be a reference or inline definition |
+| `as`                   | String         | No*      | Name to save the result for use in later pipelines        |
+| `branch`               | Array          | No*      | Split the pipeline based on conditions                    |
+| `forEach`              | Object         | No*      | Process each message with a function (terminal operation) |
+| `print`                | Boolean/Object | No*      | Output messages for debugging (simple boolean or complex object with filename, label, mapper) |
+| `toTopicNameExtractor` | Object         | No*      | Dynamically determine the output topic                    |
 
 *At least one sink type is required.
 
-#### Example: Simple Sink
-
 ```yaml
-to: processed_orders_stream
+to: processed_orders_stream  # Send to a predefined stream
 ```
 
-#### Example: Branch Sink
+Or more complex sinks:
 
 ```yaml
-branch:
+branch:  # Split the pipeline based on conditions
   - if:
       expression: value.get('type') == 'purchase'
     to: purchases_stream
@@ -125,42 +157,162 @@ branch:
   - to: other_events_stream  # Default branch
 ```
 
-#### Example: Dynamic Topic Sink
-
 ```yaml
-toTopicNameExtractor:
+toTopicNameExtractor:  # Dynamic topic routing
   expression: "events-" + value.get('category').lower()
 ```
 
-## Pipeline Patterns
+Common sink types include:
+
+- `to`: Send to a predefined stream, table, or topic
+- `as`: Save the result under a name for use in later pipelines
+- `branch`: Split the pipeline based on conditions
+- `forEach`: Process each message with a function (terminal operation)
+- `print`: Output messages for debugging
+- `toTopicNameExtractor`: Dynamically determine the output topic
+
+**Examples:**
+
+- `to`, `as`: [Example with `to`, `as`](../tutorials/intermediate/aggregations.md#4-cogroup)
+- `branch`: [Example with `branch`](../tutorials/intermediate/branching.md) 
+- `forEach`, `print`, `toTopicNameExtractor`: [Operation examples](../reference/operation-reference.md)
+
+## Pipeline Patterns and Techniques
+
+### When to Use `via` vs Multiple Pipelines
+
+One of the decisions in KSML is whether to use a single pipeline with multiple `via` operations or break processing into multiple connected pipelines. Here's when to use each approach:
+
+#### Use `via` (Single Pipeline) When:
+
+**✅ Operations are tightly coupled and belong together logically**
+```yaml
+# Good: One logical process - "validate and enrich user data"
+pipelines:
+  validate_and_enrich_user:
+    from: raw_user_data
+    via:
+      - type: filter           # Remove invalid data
+        if: 
+          expression: value.get('email') is not None
+      - type: transformValue   # Add computed field based on validation
+        mapper: add_user_status
+      - type: peek            # Log the final result
+        forEach:
+          code: |
+            log.info("Processed user: {}", key)
+    to: valid_users
+```
+
+**✅ Simple sequential processing with no reuse needs**
+```yaml
+# Good: Straightforward data transformation
+pipelines:
+  format_sensor_data:
+    from: raw_sensor_readings
+    via:
+      - type: transformValue
+        mapper: convert_temperature_units
+      - type: transformValue  
+        mapper: add_timestamp_formatting
+      - type: filter
+        if:
+          expression: value.get('temperature') > -50
+    to: formatted_sensor_data
+```
+
+#### Use Multiple Pipelines When:
+
+**✅ You need to reuse intermediate results**
+```yaml
+# Good: Filtered data used by multiple downstream processes
+pipelines:
+  filter_high_value_orders:
+    from: all_orders
+    via:
+      - type: filter
+        if:
+          expression: value.get('total') > 1000
+    as: high_value_orders  # Save for reuse
+
+  send_vip_notifications:
+    from: high_value_orders  # Reuse filtered data
+    via:
+      - type: transformValue
+        mapper: create_vip_notification
+    to: vip_notifications
+
+  update_customer_tier:
+    from: high_value_orders  # Reuse same filtered data
+    via:
+      - type: transformValue
+        mapper: calculate_customer_tier
+    to: customer_tier_updates
+```
+
+**✅ Different processing responsibilities should be separated**
+```yaml
+# Good: Separate data cleaning from business logic
+pipelines:
+  # Responsibility: Data standardization and validation
+  data_cleaning:
+    from: raw_transactions
+    via:
+      - type: filter
+        if:
+          expression: value.get('amount') > 0
+      - type: transformValue
+        mapper: standardize_format
+    as: clean_transactions
+
+  # Responsibility: Business rule application
+  fraud_detection:
+    from: clean_transactions
+    via:
+      - type: transformValue
+        mapper: calculate_fraud_score
+      - type: filter
+        if:
+          expression: value.get('fraud_score') < 0.8
+    to: verified_transactions
+```
 
 ### Connecting Pipelines
 
-KSML allows you to connect pipelines together, creating more complex processing flows:
+ KSML makes it easy to connect pipelines together. The key is using the `as:` parameter to save intermediate results:
 
 ```yaml
 pipelines:
+  # Pipeline 1: Save intermediate result with 'as:'
   filter_high_value_orders:
     from: orders_stream
     via:
       - type: filter
         if:
           expression: value.get('total') > 1000
-    as: high_value_orders  # Save the result for use in another pipeline
+    as: high_value_orders  # ← Save result for other pipelines
 
+  # Pipeline 2: Use the saved result as input
   process_high_value_orders:
-    from: high_value_orders  # Use the result from the previous pipeline
+    from: high_value_orders  # ← Reference the saved result
     via:
-      - type: mapValues
+      - type: transformValue
         mapper:
           expression: {"orderId": value.get('id'), "amount": value.get('total'), "priority": "high"}
     to: priority_orders_stream
 ```
 
-This approach allows you to:
-- Break complex logic into smaller, more manageable pieces
-- Reuse intermediate results in multiple downstream pipelines
-- Create cleaner, more maintainable code
+**When to connect pipelines:**
+
+- Multiple consumers need the same filtered/processed data
+- Different processing responsibilities should be separated  
+- Complex logic benefits from being broken into stages
+
+**When to use `via` instead:**
+
+- Operations are part of one business process
+- No need to reuse intermediate results
+- You want lower latency (no intermediate topics)
 
 ### Branching Pipelines
 
@@ -184,6 +336,7 @@ pipelines:
 ```
 
 This is useful for:
+
 - Routing different types of events to different destinations
 - Implementing content-based routing patterns
 - Creating specialized processing flows for different data types
@@ -201,201 +354,162 @@ pipelines:
 ```
 
 This is useful for:
+
 - Partitioning data across multiple topics
 - Creating topic hierarchies
 - Implementing multi-tenant architectures
 
-## Best Practices
+**Full example with `toTopicNameExtractor`**
 
-### 1. Keep Pipelines Focused
+- [Example with `toTopicNameExtractor`](../reference/operation-reference.md#totopicnameextractor)
 
-Each pipeline should have a clear, single responsibility:
+## Stream and Table Configuration
+
+Pipelines reference streams, tables, and globalTables that can be defined in two ways:
+
+### 1. Pre-defined (Referenced by Name)
+
+Define once, use multiple times:
 
 ```yaml
-# Good: Focused pipeline
+streams:
+  sensor_source:
+    topic: ksml_sensordata
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+
 pipelines:
-  enrich_user_events:
-    from: raw_user_events
-    via:
-      - type: join
-        with: user_profiles
-        valueJoiner:
-          expression: {"event": value1, "user": value2}
-    to: enriched_user_events
+  my_pipeline:
+    from: sensor_source  # Reference by name
+    to: processed_output
 ```
 
-### 2. Use Meaningful Names
+### 2. Inline Definition
 
-Choose descriptive names for pipelines and intermediate results:
+Define directly where needed:
 
 ```yaml
-# Good: Clear naming
 pipelines:
-  filter_active_users:
-    from: user_events
-    via:
-      - type: filter
-        if:
-          expression: value.get('status') == 'active'
-    as: active_user_events
+  my_pipeline:
+    from:
+      topic: ksml_sensordata  # Inline definition
+      keyType: string
+      valueType: avro:SensorData
+      offsetResetPolicy: latest
+    to:
+      topic: processed_output
+      keyType: string
+      valueType: json
 ```
 
-### 3. Chain Pipelines for Complex Logic
+For comprehensive documentation on configuring streams, tables, and their properties (offsetResetPolicy, timestampExtractor, partitioner, etc.), see:
 
-Break complex processing into multiple pipelines:
+→ [Data Sources and Targets - Complete Reference](definition-reference.md#data-sources-and-targets)
+
+## Duration Specification in pipeline
+
+Some pipeline operations require specifying time durations. In KSML, durations are expressed using a simple format:
+
+```
+###x
+```
+
+Where:
+
+- `###` is a positive number
+- `x` is an optional time unit:
+    - (none): milliseconds
+    - `s`: seconds
+    - `m`: minutes
+    - `h`: hours
+    - `d`: days
+    - `w`: weeks
+
+Examples:
+```
+100   # 100 milliseconds
+30s   # 30 seconds
+5m    # 5 minutes
+2h    # 2 hours
+1d    # 1 day
+4w    # 4 weeks
+```
+
+Durations are commonly used in windowing operations:
+
+```yaml
+- type: windowByTime
+  windowType: hopping
+  duration: 5m        # 5-minute windows
+  advanceBy: 1m       # Advancing every minute (sliding window)
+```
+
+**Full examples for `duration`**
+
+- [Example with `duration`](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
+
+
+## State Store Specification in Pipelines
+
+State stores maintain data across multiple messages, enabling stateful operations like aggregations, counts, and joins. They can be defined in two ways:
+
+### 1. Inline State Store (Within Operations)
+
+Define directly in stateful operations when you need custom store configuration:
 
 ```yaml
 pipelines:
-  # Step 1: Filter and enrich
-  prepare_data:
-    from: raw_data
-    via:
-      - type: filter
-        # Filter logic
-      - type: join
-        # Enrichment logic
-    as: prepared_data
-
-  # Step 2: Transform
-  transform_data:
-    from: prepared_data
-    via:
-      - type: mapValues
-        # Transformation logic
-    as: transformed_data
-
-  # Step 3: Aggregate
-  aggregate_data:
-    from: transformed_data
+  count_clicks_5min:
+    from: user_clicks
     via:
       - type: groupByKey
-      - type: aggregate
-        # Aggregation logic
-    to: aggregated_results
+      - type: windowByTime
+        windowType: tumbling
+        duration: 5m
+        grace: 30s
+      - type: count
+        store:                    # Inline store definition
+          name: click_counts_5min
+          type: window            # Window store for windowed aggregations
+          windowSize: 5m          # Must match window duration
+          retention: 30m          # How long to keep window data
+          caching: false          # Disable caching for real-time updates
+
 ```
+##### **See it in action**:
 
-### 4. Use Comments for Complex Logic
+- [Tutorial: Windowing](../tutorials/intermediate/windowing.md)
 
-Add comments to explain complex operations:
+### 2. Pre-defined State Store (In `stores` Section)
+
+Define once for reuse across multiple operations or direct access in functions:
 
 ```yaml
-pipelines:
-  process_transactions:
-    from: transactions
-    via:
-      # Filter out test transactions
-      - type: filter
-        if:
-          expression: not value.get('isTest', False)
+stores:
+  stats_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
 
-      # Convert amounts to standard currency
-      - type: mapValues
-        mapper:
-          functionRef: convert_to_usd
-
-      # Group by user for aggregation
-      - type: groupBy
-        keySelector:
-          expression: value.get('userId')
-    to: processed_transactions
+functions:
+  detect_anomalies:
+    type: valueTransformer
+    stores:
+      - stats_store
 ```
 
-### 5. Consider Performance Implications
+##### **See pre-defined state store in action**:
 
-Be mindful of operations that can impact performance:
+- [Example for pre-defined state store: Anomaly Detection](../tutorials/advanced/complex-event-processing.md#anomaly-detection)
 
-```yaml
-# Better: Ensure proper keying for efficient joins
-pipelines:
-  efficient_join:
-    from: large_stream_1
-    via:
-      - type: selectKey
-        keySelector:
-          expression: value.get('joinKey')
-      - type: join
-        with: large_stream_2
-        # Now the streams are properly keyed
-    to: joined_output
-```
+### Examples
 
-## Examples
+**Full example with windowed state store:**
 
-### Example 1: Simple Filtering and Transformation
+- [Windowed Aggregations with State Stores](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
 
-```yaml
-pipelines:
-  process_sensor_readings:
-    from: raw_sensor_readings
-    via:
-      # Filter out readings with errors
-      - type: filter
-        if:
-          expression: value.get('error') is None
+**Comprehensive state store documentation:**
 
-      # Convert temperature from Celsius to Fahrenheit
-      - type: mapValues
-        mapper:
-          expression: {
-            "sensorId": value.get('sensorId'),
-            "timestamp": value.get('timestamp'),
-            "tempF": value.get('tempC') * 9/5 + 32,
-            "humidity": value.get('humidity')
-          }
-    to: processed_sensor_readings
-```
-
-### Example 2: Joining Streams
-
-```yaml
-pipelines:
-  enrich_orders:
-    from: orders
-    via:
-      # Join with customer information
-      - type: join
-        with: customers
-        valueJoiner:
-          expression: {
-            "orderId": value1.get('orderId'),
-            "products": value1.get('products'),
-            "total": value1.get('total'),
-            "customer": {
-              "id": key,
-              "name": value2.get('name'),
-              "email": value2.get('email')
-            }
-          }
-    to: enriched_orders
-```
-
-### Example 3: Aggregation
-
-```yaml
-pipelines:
-  calculate_sales_by_category:
-    from: sales
-    via:
-      # Group by product category
-      - type: groupBy
-        keySelector:
-          expression: value.get('category')
-
-      # Sum the sales amounts
-      - type: aggregate
-        initializer:
-          expression: {"count": 0, "total": 0.0}
-        aggregator:
-          expression: {
-            "count": aggregate.get('count') + 1,
-            "total": aggregate.get('total') + value.get('amount')
-          }
-    to: sales_by_category
-```
-
-## Related Topics
-
-- [KSML Language Reference](language-reference.md)
-- [Operations Reference](operation-reference.md)
-- [Functions Reference](function-reference.md)
-- [State Store Reference](state-store-reference.md)
+- [State Stores Reference](state-store-reference.md)

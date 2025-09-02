@@ -1,9 +1,0 @@
-functions:
-  celsius_to_fahrenheit:
-    type: valueTransformer
-    code: |
-      if value is not None and 'temperature' in value:
-        celsius = value['temperature']
-        value['temperature_f'] = (celsius * 9/5) + 32
-      return value
-    resultType: struct

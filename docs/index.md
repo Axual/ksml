@@ -37,21 +37,13 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 
 ## 4. References
 - [Overview](reference/index.md)
-- [KSML Language Reference](reference/language-reference.md)
-- [Stream Type Reference](reference/stream-type-reference.md)
-- [Data Type Reference](reference/data-type-reference.md)
-- [Notation Reference](reference/notation-reference.md)
+- [KSML Definition Reference](reference/definition-reference.md)
+- [Pipelines](reference/pipeline-reference.md)
 - [Function Reference](reference/function-reference.md)
 - [Operation Reference](reference/operation-reference.md)
-- [Pipelines](reference/pipelines.md)
+- [Data Types and Notations Reference](reference/data-and-formats-reference.md)
+- [State Store Reference](reference/state-store-reference.md)
 - [Configuration Reference](reference/configuration-reference.md)
-
-## 5. Resources
-- [Examples Library](resources/examples-library.md)
-- [Troubleshooting Guide](resources/troubleshooting.md)
-- [Migration Guide](resources/migration.md)
-- [Community and Support](resources/community.md)
-- [Advanced Installation](getting-started/advanced-installation.md)
 
 ## Latest Release
 - [Release Notes](release-notes.md)

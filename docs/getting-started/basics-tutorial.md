@@ -87,7 +87,7 @@ KSML supports various data types and notations including:
 - `json`: For JSON-formatted data
 - `avro`: For Avro-formatted data (requires schema)
 - `binary`: For raw binary data
-- And [more](../reference/data-type-reference.md)
+- And [more](../reference/data-and-formats-reference.md)
 
 ## Step 2: Create a Simple Function
 
@@ -387,15 +387,8 @@ Congratulations! You've built your first KSML data pipeline. Here are some ways 
 2. Add more fields to the transformed output
 3. Create a second pipeline that processes the data differently
 
-### Explore More Advanced Concepts:
-
-- Learn about [stateful operations](../reference/operation-reference.md#stateful-aggregation-operations) like aggregations and joins
-- Explore [windowing operations](../reference/operation-reference.md#windowing-operations) for time-based processing
-- Try working with different [data formats](../reference/stream-type-reference.md)
-
 ### Continue Your Learning Journey:
 
 - Check out the [beginner tutorials](../tutorials/beginner/index.md) for more guided examples
-- Explore the [examples library](../resources/examples-library.md) for inspiration
 - Dive into the [reference documentation](../reference/operation-reference.md) to learn about all available
   operations

@@ -1,4 +1,0 @@
-functions:
-  temperature_filter:
-    type: predicate
-    expression: value.get('temperature', 0) > 30

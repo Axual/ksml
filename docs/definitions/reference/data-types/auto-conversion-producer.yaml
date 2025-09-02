@@ -1,0 +1,37 @@
+# Producer for automatic type conversion example
+# Generates test data for demonstrating function result type conversion
+
+streams:
+  sensor_data:
+    topic: sensor_data
+    keyType: string
+    valueType: json
+
+functions:
+  generate_sensor_data:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+      cities = ["Amsterdam", "Rotterdam", "Utrecht", "The Hague"]
+    code: |
+      global counter, cities
+      counter += 1
+      
+      # Create sensor data
+      data = {
+        "sensor_id": f"sensor_{counter}",
+        "temperature": round(random.uniform(15.0, 30.0), 1),
+        "humidity": round(random.uniform(40.0, 80.0), 1),
+        "city": random.choice(cities),
+        "timestamp": counter * 1000
+      }
+      
+      return (data["sensor_id"], data)
+    resultType: "(string, json)"
+
+producers:
+  sensor_generator:
+    generator: generate_sensor_data
+    interval: 2s
+    to: sensor_data

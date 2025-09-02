@@ -1,7 +1,0 @@
-stores:
-  long_term_pattern_store:
-    type: keyValue
-    keyType: string
-    valueType: json
-    persistent: true
-    historyRetention: 7d  # Keep state for 7 days

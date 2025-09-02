@@ -11,7 +11,7 @@ The first place to look for answers is the KSML documentation:
 - [Getting Started Guide](../getting-started/introduction.md) - For beginners
 - [Reference Documentation](../reference/index.md) - For understanding KSML fundamentals
 - [Tutorials](../tutorials/index.md) - For hands-on learning
-- [Language Reference](../reference/language-reference.md) - For detailed specifications
+- [Language Reference](../reference/definition-reference.md) - For detailed specifications
 - [Troubleshooting Guide](troubleshooting.md) - For solving common issues
 
 ### Community Forums

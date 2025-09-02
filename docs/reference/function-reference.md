@@ -2,6 +2,22 @@
 
 This document provides a comprehensive reference for all function types available in KSML. Functions in KSML allow you to implement custom logic for processing your streaming data using Python, making stream processing accessible to data scientists, analysts, and developers who may not be familiar with Java or Kafka Streams API.
 
+## Function Definition Structure
+
+Functions are defined in the `functions` section of your KSML definition file. Each function has the following properties:
+
+| Property     | Type      | Required  | Description                                                                                    |
+|--------------|-----------|-----------|------------------------------------------------------------------------------------------------|
+| `type`       | String    | Yes       | The type of function (predicate, mapper, aggregator, etc.)                                     |
+| `parameters` | Array     | No        | **Additional** custom parameters to add to the function's built-in parameters (see note below) |
+| `globalCode` | String    | No        | Python code executed once upon startup                                                         |
+| `code`       | String    | No        | Python code implementing the function                                                          |
+| `expression` | String    | No        | An expression that the function will return as value                                           |
+| `resultType` | Data type | Sometimes | The data type returned by the function. Required when it cannot be derived from function type. |
+| `stores`     | Array     | No        | List of state stores the function can access                                                   |
+
+**Note about parameters:** Every function type has built-in parameters that are automatically provided by KSML (e.g., `key` and `value` for most function types). The `parameters` property is only needed when you want to add custom parameters beyond these built-in ones. These additional parameters can then be passed when calling the function from Python code.
+
 ## What are Functions in KSML?
 
 Functions provide the flexibility to go beyond built-in operations and implement specific business logic, transformations, and data processing requirements. They are written in Python and executed within the KSML runtime, combining the power of Kafka Streams with the simplicity and expressiveness of Python.
@@ -120,6 +136,71 @@ functions:
 ```
 
 
+## Function Parameters
+
+### Built-in vs Custom Parameters
+
+Every function type in KSML has **built-in parameters** that are automatically provided by KSML. These are implicitly available in your function code without needing to declare them:
+
+Most function types (like `forEach`, `predicate`, `valueTransformer`) automatically receive:
+
+  - `key` - The record key
+  - `value` - The record value
+
+Some specialized types have different built-in parameters:
+
+  - `aggregator`: receives `key`, `value`, and `aggregate`
+  - `merger`: receives `key`, `aggregate1`, and `aggregate2`
+  - `initializer`: receives no parameters
+
+### Adding Custom Parameters
+
+The `parameters` property allows you to **add custom parameters** beyond the built-in ones. This is useful when:
+
+1. **Creating reusable functions** that can behave differently based on configuration
+2. **Calling functions from Python code** with specific arguments
+3. **Using the `generic` function type** which has no built-in parameters
+
+#### Example WITHOUT custom parameters:
+```yaml
+functions:
+  simple_logger:
+    type: forEach
+    # Only uses built-in key and value parameters
+    code: |
+      log.info("Processing: key={}, value={}", key, value)
+```
+
+#### Example WITH custom parameters:
+```yaml
+functions:
+  configurable_logger:
+    type: forEach
+    parameters:  # ADDS 'prefix' to the built-in key and value
+      - name: prefix
+        type: string
+    code: |
+      log.info("{}: key={}, value={}", prefix, key, value)
+```
+
+When calling this function from Python:
+```python
+# The custom parameter is passed along with built-in ones
+configurable_logger(key, value, prefix="DEBUG")
+```
+
+### Parameter Definition Structure
+
+When defining custom parameters:
+
+```yaml
+parameters:
+  - name: parameter_name   # Name of the parameter
+    type: parameter_type   # Data type (string, int, double, etc.)
+```
+
+**Important:** The `parameters` property **adds to** the built-in parameters - it doesn't replace them. Built-in parameters like `key` and `value` are still available in your function code.
+
 ## Function Execution Context
 
 When your Python functions execute, they have access to:
@@ -193,6 +274,10 @@ Processes each message for side effects like logging, without changing the messa
 
 None (the function is called for its side effects)
 
+```yaml
+--8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
+```
+
 **See how `forEach` is used in an example definition**: 
 
 - [Tutorial: Filtering and Transforming Example](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
@@ -215,6 +300,16 @@ New key for the output message
 
 #### Example
 
+**Function Definition:**
+
+```yaml
+--8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
+```
+
+This function extracts the region from transaction data to use as the new message key, enabling region-based partitioning.
+
+**Complete Working Example:**
+
 ??? info "Producer - Regional Transaction Data (click to expand)"
 
     ```yaml
@@ -231,9 +326,9 @@ New key for the output message
     %}
     ```
 
-**See how `keyTransformer` is used in an example definition**:
+**Additional Example:**
 
-- [Tutorial: Stream Table Join Example](../tutorials/intermediate/joins.md#use-case-order-enrichment)
+See how `keyTransformer` is used for stream-table joins: [Stream Table Join Tutorial](../tutorials/intermediate/joins.md#use-case-order-enrichment)
 
 ### keyValueToKeyValueListTransformer
 

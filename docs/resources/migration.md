@@ -514,7 +514,7 @@ pipelines:
 
 ## Related Resources
 
-- [KSML Language Reference](../reference/language-reference.md)
+- [KSML Definition Reference](../reference/definition-reference.md)
 - [Operations Reference](../reference/operation-reference.md)
 - [Functions Reference](../reference/function-reference.md)
 - [Configuration Reference](../reference/configuration-reference.md)

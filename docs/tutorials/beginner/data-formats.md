@@ -1,6 +1,8 @@
 # Working with Different Data Formats
 
-Learn how to process, convert, and validate data using KSML's supported formats including JSON, Avro, CSV, XML, Binary, and SOAP.
+Learn how to process, convert, and validate data using KSML's supported formats through practical, hands-on examples. This tutorial provides complete working examples for each data format.
+
+For comprehensive syntax reference and format details, see the [Data Types and Formats Reference](../../reference/data-and-formats-reference.md).
 
 ## Prerequisites
 
@@ -318,46 +320,16 @@ This processor demonstrates multiple format conversions (Avro → JSON → Strin
     %}
     ```
 
-### Implicit Conversion
+### Format Conversion and Multiple Formats
 
-KSML automatically converts between formats when stream input/output types differ:
-
-```yaml
-pipelines:
-  implicit_conversion:
-    from: avro_input  # Stream with Avro format
-    to: xml_output    # Stream with XML format
-    # The conversion happens automatically
-```
-
-## Working with Multiple Formats in a Single Pipeline
-
-Process different data formats within one KSML definition using separate pipelines.
-
-This producer generates both JSON config data and Avro sensor data:
-
-??? info "Producer definition (click to expand)"
-
-    ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-multiple-formats.yaml"
-    %}
-    ```
-
-This processor shows two pipelines handling different formats (Avro and JSON) and combining results:
-
-??? info "Processor definition for working with multiple formats in a single pipeline (click to expand)"
-
-    ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-multiple-formats.yaml"
-    %}
-    ```
+For comprehensive information on format conversion requirements, chaining conversions, and working with multiple formats in a single pipeline, see the [Data Types and Formats Reference - Type Conversion](../../reference/data-and-formats-reference.md#type-conversion) section.
 
 
 ## Conclusion
 
-You've learned to work with KSML's data formats: JSON, Avro, CSV, XML, Binary, and SOAP. Key concepts include format specification, schema usage, conversion operations, and multi-format pipelines.
+You've learned to work with KSML's data formats through practical examples: JSON, Avro, CSV, XML, Binary, and SOAP. Key concepts covered include format specification, schema usage, conversion operations, and multi-format pipelines.
+
+For complete syntax reference, type definitions, and advanced format features, refer to the [Data Types and Formats Reference](../../reference/data-and-formats-reference.md).
 
 ## Next Steps
 

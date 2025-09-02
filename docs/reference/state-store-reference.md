@@ -1,394 +1,281 @@
 # State Store Reference
 
-This document provides a comprehensive reference for state stores in KSML. It covers state store types, configuration options, and best practices.
+State stores enable stateful stream processing in KSML by maintaining data across multiple messages. This reference covers state store configuration, usage patterns, and best practices.
+
+For hands-on tutorials, please check out:
+
+- [State Stores Intermediate Tutorial](../tutorials/intermediate/state-stores.md)
+- [Custom State Stores Advanced Tutorial](../tutorials/advanced/custom-state-stores.md) 
 
 ## What are State Stores?
 
-State stores are a critical component of stateful stream processing applications. They allow your application to:
+State stores allow KSML applications to:
 
-- Maintain data across multiple messages and events
-- Track historical information for context-aware processing
-- Implement stateful operations like aggregations and joins
-- Build sophisticated business logic that depends on previous events
-
-In KSML, state stores are used by stateful operations such as aggregations, joins, and windowed operations to maintain state between records.
+- Maintain state between messages for aggregations, counts, and joins
+- Track historical information for context-aware processing  
+- Build complex business logic that depends on previous events
 
 ## State Store Types
 
-KSML supports several types of state stores:
+KSML supports three types of state stores, each optimized for specific use cases:
 
-| Type | Description | Use Cases |
-|------|-------------|-----------|
-| `keyValue` | Simple stores that map keys to values | General-purpose state storage, lookups |
-| `window` | Stores that organize data by time windows | Time-based aggregations, windowed joins |
-| `session` | Stores that organize data by session windows | Session-based analytics, user activity tracking |
+| Type | Description | Use Cases | Examples                                                                                                          |
+|------|-------------|-----------|-------------------------------------------------------------------------------------------------------------------|
+| `keyValue` | Simple key-value storage | General lookups, non-windowed aggregations, manual state management | [`keyValue` type state store](../tutorials/intermediate/state-stores.md#1-predefined-store-configuration) |
+| `window` | Time-windowed storage with automatic expiry | Time-based aggregations, windowed joins, temporal analytics | [`window` type state store](../tutorials/intermediate/aggregations.md#windowed-aggregation-example)               |
+| `session` | Session-based storage with activity gaps | User session tracking, activity-based grouping | [`session` type state store](../tutorials/intermediate/windowing.md#session-window-user-activity-analysis)                                             |
 
-## State Store Configuration
+## Configuration Methods
 
-State stores in KSML are defined in the `stores` section of your KSML definition file:
+### 1. Pre-defined State Stores
 
-```yaml
-stores:
-  my_store_name:
-    type: keyValue
-    keyType: string
-    valueType: json
-    persistent: true
-    caching: true
-```
-
-### Configuration Parameters
-
-| Parameter | Type | Default | Required | Description |
-|-----------|------|---------|----------|-------------|
-| `name` | String | _none_ | Optional | The name of the state store. If not specified, the operation's name will be used. |
-| `type` | String | _none_ | Required | The type of state store. Possible values: `keyValue`, `window`, `session`. |
-| `persistent` | Boolean | `false` | Optional | When `true`, the state store is persisted to disk. When `false`, the state store is in-memory only. |
-| `timestamped` | Boolean | `false` | Optional | (Only relevant for keyValue and window stores) When `true`, all messages in the state store are timestamped. |
-| `versioned` | Boolean | `false` | Optional | (Only relevant for keyValue stores) When `true`, elements in the store are versioned. |
-| `keyType` | String | _none_ | Required | The key type of the state store. See [Data Types Reference](data-type-reference.md) for more information. |
-| `valueType` | String | _none_ | Required | The value type of the state store. See [Data Types Reference](data-type-reference.md) for more information. |
-| `caching` | Boolean | `false` | Optional | When `true`, the state store caches entries. When `false`, all changes to the state store will be emitted immediately. |
-| `logging` | Boolean | `false` | Optional | When `true`, state changes are written to a changelog topic. When `false`, no changelog topic is written. |
-| `retention` | Duration | _none_ | Optional | (Only relevant for window and session stores) How long to retain data in the store. |
-| `windowSize` | Duration | _none_ | Optional | (Only relevant for window stores) The size of the window. |
-| `grace` | Duration | _none_ | Optional | (Only relevant for window stores) The grace period for late-arriving data. |
-
-### Example Configurations
-
-#### Key-Value Store
+Define once in the `stores` section, reuse across operations:
 
 ```yaml
-stores:
-  user_profile_store:
-    type: keyValue
-    keyType: string
-    valueType: json
-    persistent: true
-    caching: true
-    logging: true
+--8<-- "definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
 ```
-
-#### Window Store
 
 ```yaml
-stores:
-  sales_metrics_store:
-    type: window
-    keyType: string
-    valueType: json
-    windowSize: 1h
-    retention: 24h
-    persistent: true
-    caching: true
+--8<-- "definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
 ```
 
-#### Session Store
+**Full example:**
+
+- [Pre-defined State Stores Tutorial](../tutorials/intermediate/state-stores.md#1-predefined-store-configuration)
+
+### 2. Inline State Stores
+
+Define directly within operations for custom configurations:
 
 ```yaml
-stores:
-  user_session_store:
-    type: session
-    keyType: string
-    valueType: json
-    retention: 24h
-    persistent: true
+--8<-- "definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml:58:67"
 ```
 
-## Using State Stores in Operations
+**Full example:**
 
-State stores are used by stateful operations in KSML. You can reference a state store in an operation using the `store` parameter:
+- [Inline State Stores Tutorial](../tutorials/intermediate/state-stores.md#2-inline-store-configuration)
+
+## Configuration Parameters
+
+### Common Parameters (All Store Types)
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | String | No | Operation name | Unique identifier for the state store |
+| `type` | String | Yes | - | Store type: `keyValue`, `window`, or `session` |
+| `keyType` | String | Yes | - | Data type for keys (see [Data Types Reference](data-and-formats-reference.md)) |
+| `valueType` | String | Yes | - | Data type for values |
+| `persistent` | Boolean | No | `false` | If `true`, survives application restarts |
+| `caching` | Boolean | No | `false` | If `true`, improves read performance but delays updates |
+| `logging` | Boolean | No | `false` | If `true`, creates changelog topic for recovery |
+| `timestamped` | Boolean | No | `false` | If `true`, stores timestamp with each entry |
+
+### Window Store Specific Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `windowSize` | Duration | Yes | - | Size of the time window (must match operation's window duration) |
+| `retention` | Duration | No | - | How long to retain window data (should be > windowSize + grace period) |
+| `retainDuplicates` | Boolean | No | `false` | Whether to keep duplicate entries in windows |
+
+### KeyValue Store Specific Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `versioned` | Boolean | No | `false` | If `true`, maintains version history of values |
+| `historyRetention` | Duration | No (Yes if versioned) | - | How long to keep old versions |
+| `segmentInterval` | Duration | No | - | Segment size for versioned stores |
+
+**Important:** Versioned stores (`versioned: true`) cannot have caching enabled (`caching: false` is required).
+
+### Session Store Specific Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `retention` | Duration | No | - | How long to retain session data |
+
+## Usage in Operations
+
+### With Aggregations
+
+State stores are automatically used by aggregation operations:
 
 ```yaml
 pipelines:
-  aggregate_sales:
-    from: sales_stream
+  calculate_statistics:
+    from: payment_stream
     via:
-      - type: groupBy
-        keySelector:
-          expression: value.get('category')
+      - type: groupByKey
       - type: aggregate
-        store: sales_by_category_store  # Reference to a state store
-        initializer:
-          expression: {"count": 0, "total": 0.0}
-        aggregator:
-          expression: {
-            "count": aggregate.get('count') + 1,
-            "total": aggregate.get('total') + value.get('amount')
-          }
-    to: aggregated_sales
-```
-
-You can also define a state store inline within an operation:
-
-```yaml
-pipelines:
-  aggregate_sales:
-    from: sales_stream
-    via:
-      - type: groupBy
-        keySelector:
-          expression: value.get('category')
-      - type: aggregate
-        store:  # Inline state store definition
+        store:
           type: keyValue
-          keyType: string
-          valueType: json
-          persistent: true
-          caching: true
-        initializer:
-          expression: {"count": 0, "total": 0.0}
-        aggregator:
-          expression: {
-            "count": aggregate.get('count') + 1,
-            "total": aggregate.get('total') + value.get('amount')
-          }
-    to: aggregated_sales
+          retention: 1h
+          caching: false
 ```
 
-## Advanced State Store Features
+**Full example:**
 
-### Custom Serialization
+- [Aggregations with State Stores](../tutorials/intermediate/aggregations.md#complex-aggregate-json-format)
 
-For complex data types or special performance requirements, you can implement custom serialization:
+### With Manual State Access
+
+Access state stores directly in functions for custom caching, enrichment, and state management:
 
 ```yaml
 stores:
-  custom_serialized_store:
-    type: keyValue
-    keyType: string
-    valueType: custom
-    persistent: true
-    serdes:
-      key: org.example.CustomKeySerializer
-      value: org.example.CustomValueSerializer
-```
-
-### Tiered Storage
-
-You can implement tiered storage for different access patterns:
-
-```yaml
-stores:
-  # Hot data (in-memory, fast access)
-  hot_data_store:
-    type: keyValue
-    keyType: string
-    valueType: json
-    persistent: false
-    caching: true
-
-  # Warm data (persistent with caching)
-  warm_data_store:
+  user_profile_cache:
+    name: user_profile_cache
     type: keyValue
     keyType: string
     valueType: json
     persistent: true
-    caching: true
-
-  # Cold data (persistent without caching)
-  cold_data_store:
-    type: keyValue
-    keyType: string
-    valueType: json
-    persistent: true
-    caching: false
-```
-
-## Best Practices
-
-### 1. Choose the Right Store Type
-
-Select the appropriate store type for your use case:
-- Use `keyValue` for simple key-value lookups
-- Use `window` for time-based aggregations
-- Use `session` for user session tracking
-
-### 2. Configure Persistence Appropriately
-
-- Use `persistent: true` for critical data that must survive application restarts
-- Use `persistent: false` for temporary data or when performance is critical
-
-### 3. Optimize Caching
-
-- Enable caching (`caching: true`) for frequently accessed data
-- Disable caching for data that changes frequently or when immediate updates are required
-
-### 4. Manage State Size
-
-- Set appropriate retention periods for windowed stores
-- Implement cleanup logic for old or unused data
-- Consider partitioning large states across multiple instances
-
-### 5. Error Handling
-
-Implement robust error handling for state store operations:
-
-```yaml
-functions:
-  robust_state_access:
-    type: valueTransformer
-    code: |
-      try:
-        # Access state store
-        stored_value = my_store.get(key)
-
-        # Process with state
-        result = process_with_state(value, stored_value)
-
-        # Update state
-        my_store.put(key, updated_state)
-
-        return result
-      except Exception as e:
-        log.error("Error accessing state store: {}", str(e))
-        # Return fallback value or original input
-        return value
-    stores:
-      - my_store
-```
-
-## Examples
-
-### Example 1: User Profile Store
-
-```yaml
-stores:
-  user_profiles:
-    type: keyValue
-    keyType: string  # User ID
-    valueType: json  # User profile data
-    persistent: true
-    caching: true
     logging: true
+    retention: 1h
+```
 
+
+```yaml
 functions:
-  update_user_profile:
+  enrich_and_cache:
     type: valueTransformer
     code: |
-      user_id = key
-      profile_update = value
-
-      # Get existing profile
-      existing_profile = user_profiles.get(user_id)
-      if existing_profile is None:
-        existing_profile = {
-          "created_at": int(time.time() * 1000),
-          "attributes": {}
-        }
-
-      # Update profile with new data
-      if "attributes" in profile_update:
-        for attr_key, attr_value in profile_update["attributes"].items():
-          existing_profile["attributes"][attr_key] = attr_value
-
-      # Add metadata
-      existing_profile["last_updated"] = int(time.time() * 1000)
-
-      # Store updated profile
-      user_profiles.put(user_id, existing_profile)
-
-      return existing_profile
-    stores:
-      - user_profiles
+      # Get cached data for this user
+      cached_data = user_profile_cache.get(key)
 ```
 
-### Example 2: Windowed Metrics
+**Full example**
 
+??? info "State Store with Manual State Access (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/intermediate-tutorial/state-stores/producer-user-events.yaml"
+    %}
+    ```
+
+??? info "State Store with Manual State Access (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/intermediate-tutorial/state-stores/processor-manual-store.yaml"
+    %}
+    ```
+
+This example demonstrates:
+
+- **Store declaration**: List store names in the function's `stores` parameter
+- **State retrieval**: Use `store_name.get(key)` to read cached data
+- **State storage**: Use `store_name.put(key, value)` to update cache
+- **Null handling**: Check if `cached_data is not None` for first-time detection
+
+**Key functions:**
+
+- `store.get(key)` - Retrieve value from state store (returns None if not found)
+- `store.put(key, value)` - Store key-value pair in state store
+
+### With Session Operations
+
+Session stores track user activity with inactivity gaps and automatic timeout:
 ```yaml
-stores:
-  metrics_store:
-    type: window
-    keyType: string  # Metric name
-    valueType: json  # Metric values
-    windowSize: 5m
-    retention: 1d
-    persistent: true
-
 pipelines:
-  calculate_metrics:
-    from: events_stream
+  user_session_analysis:
+    from: user_clicks
     via:
-      - type: groupBy
-        keySelector:
-          expression: value.get('metric_name')
-      - type: windowedBy
-        timeWindows:
-          size: 5m
-      - type: aggregate
-        store: metrics_store
-        initializer:
-          expression: {"count": 0, "sum": 0, "min": null, "max": null}
-        aggregator:
-          code: |
-            metric_value = value.get('metric_value', 0)
-            
-            if aggregate is None:
-              return {
-                "count": 1,
-                "sum": metric_value,
-                "min": metric_value,
-                "max": metric_value
-              }
-            else:
-              return {
-                "count": aggregate.get('count', 0) + 1,
-                "sum": aggregate.get('sum', 0) + metric_value,
-                "min": min(aggregate.get('min', metric_value), metric_value),
-                "max": max(aggregate.get('max', metric_value), metric_value)
-              }
-    to: windowed_metrics
-```
-
-### Example 3: Session Tracking
-
-```yaml
-stores:
-  user_sessions:
-    type: session
-    keyType: string  # User ID
-    valueType: json  # Session data
-    retention: 24h
-    persistent: true
-
-pipelines:
-  track_user_sessions:
-    from: user_activity
-    via:
-      - type: groupByKey  # Group by user ID
+      - type: groupByKey
       - type: windowBySession
-        inactivityGap: 30m  # 30 minute inactivity defines a new session
-      - type: aggregate
-        store: user_sessions
-        initializer:
-          expression: {"events": [], "start_time": 0, "end_time": 0}
-        aggregator:
-          code: |
-            current_time = value.get('timestamp', int(time.time() * 1000))
-            
-            if aggregate is None:
-              return {
-                "events": [value],
-                "start_time": current_time,
-                "end_time": current_time
-              }
-            else:
-              events = aggregate.get('events', [])
-              events.append(value)
-              
-              return {
-                "events": events,
-                "start_time": aggregate.get('start_time'),
-                "end_time": current_time,
-                "duration_ms": current_time - aggregate.get('start_time'),
-                "event_count": len(events)
-              }
-    to: user_session_analytics
+        inactivityGap: 2m  # Close session after 2 minutes of inactivity
+        grace: 30s
+      - type: count
+        store:
+          name: user_sessions
+          type: session
+          retention: 1h
+          caching: false
 ```
 
-## Related Topics
+**Full example:**
 
-- [KSML Language Reference](language-reference.md)
-- [Operations Reference](operation-reference.md)
-- [Pipeline Reference](pipeline-reference.md)
-- [Data Types Reference](data-type-reference.md)
+- [Session store type example](../tutorials/intermediate/windowing.md#session-window-user-activity-analysis)
+
+**Session store patterns:**
+
+- **Activity tracking**: Monitor user engagement and session duration
+- **Timeout detection**: Identify inactive sessions for cleanup
+- **State aggregation**: Accumulate metrics within session boundaries
+
+### With Windowed Operations
+
+Window stores require specific configuration that varies by operation type:
+
+#### For Aggregations (Count, Aggregate, etc.)
+
+```yaml
+pipelines:
+  count_clicks_5min:
+    from: user_clicks
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 5m
+        grace: 30s
+      - type: count
+        store:
+          name: click_counts_5min
+          type: window
+          windowSize: 5m          # Must match window duration
+          retention: 35m          # windowSize + grace + buffer
+          caching: false
+```
+
+#### For Stream-Stream Joins
+
+```yaml
+pipelines:
+  join_streams:
+    from: stream1
+    via:
+      - type: join
+        stream: stream2
+        timeDifference: 15m
+        grace: 5m
+        thisStore:
+          type: window
+          windowSize: 30m         # Must be 2 × timeDifference
+          retention: 35m          # 2 × timeDifference + grace
+          retainDuplicates: true
+```
+
+### Retention Guidelines
+
+**For Window Aggregations:**
+```
+retention = windowSize + gracePeriod + processingBuffer
+```
+
+**For Stream-Stream Joins:**
+```
+windowSize = 2 × timeDifference
+retention = 2 × timeDifference + gracePeriod
+```
+
+**Full examples:**
+
+- [Windowed Aggregations](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
+- [Stream-Stream Joins](../tutorials/intermediate/joins.md#stream-stream-join)
+
+## Performance Considerations
+
+### Caching Impact
+
+| Setting | Behavior | Use When |
+|---------|----------|----------|
+| `caching: true` | Batches updates, reduces downstream load | High-throughput with acceptable latency |
+| `caching: false` | Immediate emission of all updates | Real-time requirements, debugging |
+
+### Persistence Trade-offs
+
+| Setting | Pros | Cons | Use When |
+|---------|------|------|----------|
+| `persistent: true` | Survives restarts, enables recovery | Slower, uses disk space | Production, critical state |
+| `persistent: false` | Fast, memory-only | Lost on restart | Temporary state, caching |
