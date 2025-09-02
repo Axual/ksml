@@ -60,11 +60,7 @@ public class ProducerStrategy {
         }
 
         // Set the message count
-        messageCount = definition.messageCount() != null
-                ? definition.messageCount() >= 1
-                ? definition.messageCount()
-                : 1
-                : INFINITE;
+        messageCount = definition.messageCount() != null ? Math.max(definition.messageCount(), 1) : INFINITE;
 
         // Set the batch size
         if (definition.batchSize() != null) {
@@ -89,11 +85,10 @@ public class ProducerStrategy {
     }
 
     private UserPredicate userPredicateFrom(FunctionDefinition function, PythonContext context, String namespace, String name, MetricTags tags) {
-        return function != null
-                ? function.name() != null
-                ? new UserPredicate(PythonFunction.forPredicate(context, namespace, function.name(), function), tags)
-                : new UserPredicate(PythonFunction.forPredicate(context, namespace, name, function), tags)
-                : null;
+        if (function == null) return null;
+        return new UserPredicate(
+                PythonFunction.forPredicate(context, namespace, function.name() != null ? function.name() : name, function),
+                tags);
     }
 
     public boolean shouldReschedule() {
