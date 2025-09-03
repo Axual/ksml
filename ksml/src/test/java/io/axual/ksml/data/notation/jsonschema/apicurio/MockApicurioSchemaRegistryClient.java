@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.apicurio;
+package io.axual.ksml.data.notation.jsonschema.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,7 +21,28 @@ package io.axual.ksml.data.notation.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.rest.v2.beans.*;
+import io.apicurio.registry.rest.v2.beans.ArtifactContent;
+import io.apicurio.registry.rest.v2.beans.ArtifactMetaData;
+import io.apicurio.registry.rest.v2.beans.ArtifactOwner;
+import io.apicurio.registry.rest.v2.beans.ArtifactReference;
+import io.apicurio.registry.rest.v2.beans.ArtifactSearchResults;
+import io.apicurio.registry.rest.v2.beans.Comment;
+import io.apicurio.registry.rest.v2.beans.ConfigurationProperty;
+import io.apicurio.registry.rest.v2.beans.EditableMetaData;
+import io.apicurio.registry.rest.v2.beans.GroupMetaData;
+import io.apicurio.registry.rest.v2.beans.GroupSearchResults;
+import io.apicurio.registry.rest.v2.beans.IfExists;
+import io.apicurio.registry.rest.v2.beans.LogConfiguration;
+import io.apicurio.registry.rest.v2.beans.NamedLogConfiguration;
+import io.apicurio.registry.rest.v2.beans.NewComment;
+import io.apicurio.registry.rest.v2.beans.RoleMapping;
+import io.apicurio.registry.rest.v2.beans.Rule;
+import io.apicurio.registry.rest.v2.beans.SortBy;
+import io.apicurio.registry.rest.v2.beans.SortOrder;
+import io.apicurio.registry.rest.v2.beans.UpdateState;
+import io.apicurio.registry.rest.v2.beans.UserInfo;
+import io.apicurio.registry.rest.v2.beans.VersionMetaData;
+import io.apicurio.registry.rest.v2.beans.VersionSearchResults;
 import io.apicurio.registry.serde.SerdeConfig;
 import io.apicurio.registry.types.RoleType;
 import io.apicurio.registry.types.RuleType;
@@ -35,12 +56,14 @@ import java.util.Map;
 
 public class MockApicurioSchemaRegistryClient implements RegistryClient {
     private long lastGlobalId = 0;
+    private long lastContentId = 10000;
 
     private record RegistryEntry(long globalId, long contentId, String artifactId, byte[] schema) {
     }
 
     private final Map<String, RegistryEntry> entryByArtifactId = new HashMap<>();
     private final Map<Long, RegistryEntry> entryByGlobalId = new HashMap<>();
+    private final Map<Long, RegistryEntry> entryByContentId = new HashMap<>();
     private final Map<Long, List<ArtifactReference>> references = new HashMap<>();
 
     public Map<String, String> configs() {
@@ -215,10 +238,11 @@ public class MockApicurioSchemaRegistryClient implements RegistryClient {
         try {
             if (!entryByArtifactId.containsKey(artifactId)) {
                 final var globalId = ++lastGlobalId;
-                final var contentId = globalId + 10000;
+                final var contentId = ++lastContentId;
                 final var entry = new RegistryEntry(globalId, contentId, artifactId, data.readAllBytes());
                 entryByArtifactId.put(artifactId, entry);
-                entryByGlobalId.put(lastGlobalId, entry);
+                entryByGlobalId.put(globalId, entry);
+                entryByContentId.put(contentId, entry);
             }
             final var entry = entryByArtifactId.get(artifactId);
             return ArtifactMetaData.builder()
@@ -264,18 +288,19 @@ public class MockApicurioSchemaRegistryClient implements RegistryClient {
 
     @Override
     public InputStream getContentById(long contentId) {
-        throw error();
+        final var schema = entryByContentId.get(contentId);
+        return (schema != null) ? new ByteArrayInputStream(schema.schema) : null;
     }
 
     @Override
     public InputStream getContentByGlobalId(long globalId) {
-        throw error();
+        final var schema = entryByGlobalId.get(globalId);
+        return (schema != null) ? new ByteArrayInputStream(schema.schema) : null;
     }
 
     @Override
     public InputStream getContentByGlobalId(long globalId, Boolean canonical, Boolean dereference) {
-        final var schema = entryByGlobalId.get(globalId);
-        return (schema != null) ? new ByteArrayInputStream(schema.schema) : null;
+        throw error();
     }
 
     @Override
@@ -426,7 +451,8 @@ public class MockApicurioSchemaRegistryClient implements RegistryClient {
 
     @Override
     public List<ArtifactReference> getArtifactReferencesByContentId(long contentId) {
-        throw error();
+        final var result = references.get(contentId);
+        return result != null ? result : List.of();
     }
 
     @Override

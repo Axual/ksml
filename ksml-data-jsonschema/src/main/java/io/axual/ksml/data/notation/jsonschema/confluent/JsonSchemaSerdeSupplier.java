@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.jsonschema;
+package io.axual.ksml.data.notation.jsonschema.confluent;
 
 /*-
  * ========================LICENSE_START=================================

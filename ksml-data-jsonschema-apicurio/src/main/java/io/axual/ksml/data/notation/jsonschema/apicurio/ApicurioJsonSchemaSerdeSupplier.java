@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.jsonschema;
+package io.axual.ksml.data.notation.jsonschema.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
@@ -23,10 +23,14 @@ package io.axual.ksml.data.notation.jsonschema;
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaDeserializer;
 import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaSerializer;
+import io.axual.ksml.data.notation.jsonschema.confluent.JsonSchemaSerdeSupplier;
+import io.axual.ksml.data.serde.ConfigInjectionSerde;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+
+import java.util.Map;
 
 public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
     // Registry Client is mocked by tests
@@ -48,8 +52,28 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return Serdes.serdeFrom(
-                registryClient != null ? new JsonSchemaKafkaSerializer<>(registryClient) : new JsonSchemaKafkaSerializer<>(),
-                registryClient != null ? new JsonSchemaKafkaDeserializer<>(registryClient) : new JsonSchemaKafkaDeserializer<>());
+        return new ApicurioJsonSchemaSerde(registryClient);
+    }
+
+    static class ApicurioJsonSchemaSerde extends ConfigInjectionSerde {
+        public ApicurioJsonSchemaSerde(RegistryClient registryClient) {
+            this(Serdes.serdeFrom(
+                    registryClient != null ? new JsonSchemaKafkaSerializer<>(registryClient) : new JsonSchemaKafkaSerializer<>(),
+                    registryClient != null ? new JsonSchemaKafkaDeserializer<>(registryClient) : new JsonSchemaKafkaDeserializer<>()));
+        }
+
+        public ApicurioJsonSchemaSerde(Serde<Object> delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
+            // Enable payload encoding by default
+            configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
+            configs.putIfAbsent("apicurio.registry.headers.enabled", false);
+            configs.putIfAbsent("apicurio.registry.as-confluent", true);
+            configs.putIfAbsent("apicurio.registry.use-id", "contentId");
+            return configs;
+        }
     }
 }

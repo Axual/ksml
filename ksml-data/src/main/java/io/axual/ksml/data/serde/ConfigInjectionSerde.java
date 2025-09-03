@@ -54,25 +54,25 @@ public class ConfigInjectionSerde implements Serde<Object> {
     public ConfigInjectionSerde(Serializer<Object> serializer, Deserializer<Object> deserializer) {
         this.serializer = new ConfigInjectionSerializer(serializer) {
             @Override
-            protected Map<String, ?> modifyConfigs(Map<String, ?> configs, boolean isKey) {
+            protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
                 return ConfigInjectionSerde.this.modifyConfigs(configs, isKey);
             }
         };
         this.deserializer = new ConfigInjectionDeserializer(deserializer) {
             @Override
-            protected Map<String, ?> modifyConfigs(Map<String, ?> configs, boolean isKey) {
+            protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
                 return ConfigInjectionSerde.this.modifyConfigs(configs, isKey);
             }
         };
     }
 
     @Override
-    public void configure(final Map<String, ?> configs, final boolean isKey) {
+    public void configure(Map<String, ?> configs, boolean isKey) {
         serializer.configure(configs, isKey);
         deserializer.configure(configs, isKey);
     }
 
-    protected Map<String, ?> modifyConfigs(Map<String, ?> configs, boolean isKey) {
+    protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
         return configs;
     }
 }
