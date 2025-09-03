@@ -35,6 +35,7 @@ pipelines:
           resultType: long
         aggregator:
           expression: aggregatedValue+1
+          resultType: long
       - type: toStream
       - type: peek
         forEach:

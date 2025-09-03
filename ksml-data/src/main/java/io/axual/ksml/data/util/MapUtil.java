@@ -27,7 +27,16 @@ package io.axual.ksml.data.util;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utility functions for working with maps.
+ */
 public class MapUtil {
+    /**
+     * Create a new map with String keys by converting the keys of the input map via toString().
+     *
+     * @param map the input map with arbitrary key types
+     * @return a map with String keys and the same values as the input
+     */
     public static Map<String, Object> stringKeys(Map<?, ?> map) {
         final var result = new HashMap<String, Object>();
         map.forEach((key, value) -> result.put(key != null ? key.toString() : null, value));

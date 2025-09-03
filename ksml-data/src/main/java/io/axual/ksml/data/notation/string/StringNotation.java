@@ -28,6 +28,9 @@ import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 
+/**
+ * Base notation implementation for notations that internally serialize to textual String form.
+ */
 public abstract class StringNotation extends BaseNotation {
     private final DataObjectMapper<String> stringMapper;
 
@@ -38,6 +41,13 @@ public abstract class StringNotation extends BaseNotation {
         this.stringMapper = stringMapper;
     }
 
+    /**
+     * Creates a StringSerde configured for the requested data type and key/value role.
+     *
+     * @param type the data type to serialize/deserialize
+     * @param isKey whether the serde will be used for keys (true) or values (false)
+     * @return a configured String-backed Serde
+     */
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
         final var result = new StringSerde(context().nativeDataObjectMapper(), stringMapper, type);

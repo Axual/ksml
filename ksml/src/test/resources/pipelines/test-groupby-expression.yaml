@@ -22,6 +22,7 @@ pipelines:
         name: group_by_city
         mapper:
           expression: "value['city']"
+          resultType: string
       - type: aggregate
         store: aggregate_store
         initializer:

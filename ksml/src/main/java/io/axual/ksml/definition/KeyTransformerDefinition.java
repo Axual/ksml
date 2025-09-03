@@ -32,6 +32,6 @@ public class KeyTransformerDefinition extends FunctionDefinition {
                 .withType(KSMLDSL.Functions.TYPE_KEYTRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression(PARAM_KEY)
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

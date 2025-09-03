@@ -22,6 +22,14 @@ package io.axual.ksml.data.notation.vendor;
 
 import io.axual.ksml.data.serde.SerdeSupplier;
 
+/**
+ * Extension of SerdeSupplier that exposes the vendor identity for the underlying serde implementation.
+ */
 public interface VendorSerdeSupplier extends SerdeSupplier {
+    /**
+     * The vendor name for the supplied serdes.
+     *
+     * @return vendor name
+     */
     String vendorName();
 }

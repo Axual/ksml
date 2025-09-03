@@ -1,0 +1,42 @@
+# Test for issue 287: StreamPartitioner Type Inference
+# This test verifies that streamPartitioner functions with explicit resultType: integer work correctly
+# AFTER PR 300 fix: resultType is properly enforced and no longer inferred as UnionOfIntegerOrListOfInteger
+
+streams:
+  user_events:
+    topic: user_events
+    keyType: string
+    valueType: json
+
+functions:
+  partition_by_user_type:
+    type: streamPartitioner
+    code: |
+      if value and "user_type" in value:
+        user_type = value["user_type"]
+        if user_type == "admin":
+          return 0
+        elif user_type == "premium":
+          return 1
+        elif user_type == "standard":
+          return 2
+        else:
+          return 3
+      else:
+        return 0
+    resultType: integer
+
+pipelines:
+  distribute_user_events:
+    from: user_events
+    via:
+      # Add a simple transformation to ensure records flow through the pipeline
+      - type: map
+        mapper:
+          expression: (key, value)
+          resultType: (string, json)
+    to:
+      topic: partitioned_user_events
+      keyType: string
+      valueType: json
+      partitioner: partition_by_user_type

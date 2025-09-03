@@ -27,32 +27,66 @@ import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 
 public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowStateStoreDefinition> implements NamedObjectParser {
-    private final boolean requireType;
+    private final boolean requireStoreType;
+    private final boolean requireKeyValueType;
     private String defaultShortName;
 
-    public WindowStateStoreDefinitionParser(boolean requireType) {
-        this.requireType = requireType;
+    public WindowStateStoreDefinitionParser(boolean requireStoreType, boolean requireKeyValueType) {
+        this.requireStoreType = requireStoreType;
+        this.requireKeyValueType = requireKeyValueType;
     }
 
     @Override
     protected StructsParser<WindowStateStoreDefinition> parser() {
-        return structsParser(
+        final var nameField = optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context."));
+        final var persistentField = optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise"));
+        final var timestampedField = optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
+        final var retentionField = optional(durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the window store are retained"));
+        final var windowSizeField = optional(durationField(KSMLDSL.Stores.WINDOW_SIZE, "Size of the windows (cannot be negative)"));
+        final var retainDuplicatesField = optional(booleanField(KSMLDSL.Stores.RETAIN_DUPLICATES, "Whether or not to retain duplicates"));
+        final var keyTypeField = userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the window store");
+        final var valueTypeField = userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the window store");
+        final var cachingField = optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly"));
+        final var loggingField = optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise"));
+
+        // Determine this parser's name by the two input booleans
+        final var parserPostfix = (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX)
+                + (requireKeyValueType ? "" : KSMLDSL.Types.WITH_IMPLICIT_KEY_AND_VALUE_TYPE);
+
+        if (requireKeyValueType) return structsParser(
                 WindowStateStoreDefinition.class,
-                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX,
+                parserPostfix,
                 "Definition of a window state store",
-                optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context.")),
-                optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise")),
-                optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise")),
-                optional(durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the window store are retained")),
-                optional(durationField(KSMLDSL.Stores.WINDOW_SIZE, "Size of the windows (cannot be negative)")),
-                optional(booleanField(KSMLDSL.Stores.RETAIN_DUPLICATES, "Whether or not to retain duplicates")),
-                optional(userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the window store")),
-                optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the window store")),
-                optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly")),
-                optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise")),
+                nameField,
+                persistentField,
+                timestampedField,
+                retentionField,
+                windowSizeField,
+                retainDuplicatesField,
+                keyTypeField,
+                valueTypeField,
+                cachingField,
+                loggingField,
                 (name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging, tags) -> {
                     name = validateName("Window state store", name, defaultShortName);
                     return new WindowStateStoreDefinition(name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging);
+                });
+
+        return structsParser(
+                WindowStateStoreDefinition.class,
+                parserPostfix,
+                "Definition of a window state store",
+                nameField,
+                persistentField,
+                timestampedField,
+                retentionField,
+                windowSizeField,
+                retainDuplicatesField,
+                cachingField,
+                loggingField,
+                (name, persistent, timestamped, retention, windowSize, retainDuplicates, caching, logging, tags) -> {
+                    name = validateName("Window state store", name, defaultShortName);
+                    return new WindowStateStoreDefinition(name, persistent, timestamped, retention, windowSize, retainDuplicates, null, null, caching, logging);
                 });
     }
 

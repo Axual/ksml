@@ -20,12 +20,32 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Service Provider Interface (SPI) for creating Notation instances.
+ * Implementations are discovered/configured by the hosting environment.
+ */
 public interface NotationProvider {
+    /**
+     * The logical name of the notation that this provider supplies.
+     *
+     * @return the notation name (eg. "avro", "jsonschema", "protobuf")
+     */
     String notationName();
 
+    /**
+     * Optional vendor name when this provider is vendor-specific.
+     *
+     * @return the vendor name, or null if not vendor-specific
+     */
     default String vendorName() {
         return null;
     }
 
+    /**
+     * Creates a new Notation instance for the given context.
+     *
+     * @param notationContext configuration and helpers for the notation
+     * @return a new Notation
+     */
     Notation createNotation(NotationContext notationContext);
 }

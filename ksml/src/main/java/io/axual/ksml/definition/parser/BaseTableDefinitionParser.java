@@ -51,11 +51,11 @@ public abstract class BaseTableDefinitionParser<T> extends TopologyBaseResourceA
     }
 
     protected StructsParser<UserType> keyField() {
-        return userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the " + tableType);
+        return optional(userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the " + tableType), UserType.UNKNOWN);
     }
 
     protected StructsParser<UserType> valueField() {
-        return userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the " + tableType);
+        return optional(userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the " + tableType), UserType.UNKNOWN);
     }
 
     protected StructsParser<FunctionDefinition> timestampExtractorField() {
@@ -71,7 +71,7 @@ public abstract class BaseTableDefinitionParser<T> extends TopologyBaseResourceA
     }
 
     protected StructsParser<KeyValueStateStoreDefinition> storeField() {
-        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, true);
+        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, false);
         final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Streams.STORE, "KeyValue state store definition", null, storeParser);
         final var schemas = optional(resourceParser).schemas();
         return new StructsParser<>() {

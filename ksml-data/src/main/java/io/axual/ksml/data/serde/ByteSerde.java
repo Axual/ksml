@@ -25,9 +25,16 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
+/**
+ * A simple Serde that serializes and deserializes single Java Byte values.
+ * <p>
+ * Serialization: if the data is null, null is returned as byte array; otherwise a single-byte array
+ * containing the Byte value is produced. Deserialization returns the first byte as a Byte object or
+ * null if the input is null or empty.
+ */
 @Getter
 public class ByteSerde implements Serde<Object> {
-    private static final byte[] EMPTY = new byte[0];
+    private static final byte[] EMPTY = null;
     private final Serializer<Object> serializer = (topic, data) -> {
         if (data == null) return EMPTY;
         return new byte[]{(Byte) data};

@@ -30,6 +30,6 @@ public class ForeignKeyExtractorDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_FOREIGN_KEY_EXTRACTOR)
                 .withParameters(mergeParameters(FOREIGN_KEY_EXTRACTOR_PARAMETERS, definition.parameters()))
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

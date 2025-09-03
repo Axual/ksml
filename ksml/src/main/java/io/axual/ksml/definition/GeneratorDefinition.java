@@ -21,6 +21,7 @@ package io.axual.ksml.definition;
  */
 
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.user.UserGenerator;
 
 import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
 
@@ -29,6 +30,6 @@ public class GeneratorDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_GENERATOR)
                 .withParameters(NO_PARAMETERS)
-                .withTupleResult());
+                .withDefaultResultType(UserGenerator.EXPECTED_RESULT_TYPE));
     }
 }

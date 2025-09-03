@@ -27,15 +27,30 @@ import org.apache.kafka.common.serialization.Serializer;
 
 import java.util.Map;
 
+/**
+ * Serde wrapper that injects or mutates configuration for both its serializer and
+ * deserializer by delegating to ConfigInjectionSerializer and ConfigInjectionDeserializer.
+ */
 @Getter
 public class ConfigInjectionSerde implements Serde<Object> {
     private final Serializer<Object> serializer;
     private final Deserializer<Object> deserializer;
 
+    /**
+     * Creates a ConfigInjectionSerde using a delegate Serde.
+     *
+     * @param delegate the underlying Serde to wrap
+     */
     public ConfigInjectionSerde(Serde<Object> delegate) {
         this(delegate.serializer(), delegate.deserializer());
     }
 
+    /**
+     * Creates a ConfigInjectionSerde from separate serializer and deserializer delegates.
+     *
+     * @param serializer   the underlying Serializer to wrap
+     * @param deserializer the underlying Deserializer to wrap
+     */
     public ConfigInjectionSerde(Serializer<Object> serializer, Deserializer<Object> deserializer) {
         this.serializer = new ConfigInjectionSerializer(serializer) {
             @Override
@@ -49,6 +64,12 @@ public class ConfigInjectionSerde implements Serde<Object> {
                 return ConfigInjectionSerde.this.modifyConfigs(configs, isKey);
             }
         };
+    }
+
+    @Override
+    public void configure(final Map<String, ?> configs, final boolean isKey) {
+        serializer.configure(configs, isKey);
+        deserializer.configure(configs, isKey);
     }
 
     protected Map<String, ?> modifyConfigs(Map<String, ?> configs, boolean isKey) {

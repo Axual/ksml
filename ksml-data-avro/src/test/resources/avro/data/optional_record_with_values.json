@@ -1,0 +1,13 @@
+{
+  "optStr": {"string": "hello"},
+  "optInt": {"int": 10},
+  "optLong": {"long": 9999999999},
+  "optFloat": {"float": 3.5},
+  "optDouble": {"double": 6.25},
+  "optBool": {"boolean": true},
+  "optBytes": {"bytes": "AQI="},
+  "optStrList": {"array": ["x", "y"]},
+  "optIntMap": {"map": {"a": 1, "b": 2}},
+  "optRec": {"io.axual.test.OptInner": {"id": 5}},
+  "optEnum": {"io.axual.test.OptColor": "GREEN"}
+}

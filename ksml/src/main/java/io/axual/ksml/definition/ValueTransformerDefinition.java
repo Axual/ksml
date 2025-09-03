@@ -32,6 +32,6 @@ public class ValueTransformerDefinition extends FunctionDefinition {
                 .withType(KSMLDSL.Functions.TYPE_VALUETRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression(PARAM_VALUE)
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

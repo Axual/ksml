@@ -28,6 +28,15 @@ import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
+/**
+ * A {@link ComplexType} representing a tagged union (sum type) composed of multiple member types.
+ * <p>
+ * Assignability succeeds when either:
+ * - the other type is an equivalent union (member-wise assignable in both directions), or
+ * - the value/type is assignable to at least one of the union's member types.
+ * <p>
+ * The nested {@link MemberType} record describes an individual member of the union.
+ */
 @Getter
 public class UnionType extends ComplexType {
     private final MemberType[] memberTypes;
@@ -64,7 +73,7 @@ public class UnionType extends ComplexType {
 
         // If the union did not match in its entirety, then check for assignable subtypes
         for (var memberType : memberTypes) {
-            if (memberType.type.isAssignableFrom(type)) return true;
+            if (memberType.type().isAssignableFrom(type)) return true;
         }
         return false;
     }
@@ -73,9 +82,9 @@ public class UnionType extends ComplexType {
         var otherMemberTypes = other.memberTypes();
         if (memberTypes.length != otherMemberTypes.length) return false;
         for (int index = 0; index < memberTypes.length; index++) {
-            if (!memberTypes[index].type.isAssignableFrom(otherMemberTypes[index]))
+            if (!memberTypes[index].type().isAssignableFrom(otherMemberTypes[index].type()))
                 return false;
-            if (!otherMemberTypes[index].type.isAssignableFrom(memberTypes[index]))
+            if (!otherMemberTypes[index].type().isAssignableFrom(memberTypes[index].type()))
                 return false;
         }
         return true;
@@ -84,7 +93,7 @@ public class UnionType extends ComplexType {
     @Override
     public boolean isAssignableFrom(Object value) {
         for (final var memberType : memberTypes) {
-            if (memberType.type.isAssignableFrom(value)) return true;
+            if (memberType.type().isAssignableFrom(value)) return true;
         }
         return false;
     }

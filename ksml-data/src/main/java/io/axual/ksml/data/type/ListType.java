@@ -22,6 +22,9 @@ package io.axual.ksml.data.type;
 
 import java.util.List;
 
+/**
+ * A {@link ComplexType} representing a list/array type with a single element type.
+ */
 public class ListType extends ComplexType {
     public ListType() {
         this(DataType.UNKNOWN);

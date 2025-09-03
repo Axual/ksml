@@ -30,6 +30,6 @@ public class KeyValueMapperDefinition extends FunctionDefinition {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_KEYVALUEMAPPER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

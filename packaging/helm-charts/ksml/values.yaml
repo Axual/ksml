@@ -44,7 +44,6 @@ ksmlRunnerConfig:
   # -- Create the storageDirectory if it does not exist.
   createStorageDirectory: true
 
-
   # -- KSML Error handling settings. Error Handling can be defined for consume, produce and processing errors.
   errorHandling:
     # -- Error handling settings for consume related errors.
@@ -92,6 +91,66 @@ ksmlRunnerConfig:
 #  kafka:
 #    application.id: my-streaming-app
 #    bootstrap.servers: "localhost:9092"
+  # -- Map of available Schema Registries
+  schemaRegistries: {}
+    # Definition of an Apicurio schema registry
+    # apicurio:
+      # config:
+        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+        # apicurio.registry.request.ssl.keystore.type: JKS
+        # apicurio.registry.request.ssl.keystore.password: password
+        # apicurio.registry.request.ssl.key.password: password
+        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+        # apicurio.registry.request.ssl.truststore.type: JKS
+        # apicurio.registry.request.ssl.truststore.password: password
+
+    # Definition of a Confluent schema registry
+    # confluent:
+      # config:
+        # Example SSL configuration for Confluent schema registry
+        # schema.registry.ssl.protocol: TLSv1.3
+        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+        # schema.registry.ssl.endpoint.identification.algorithm: ""
+        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+        # schema.registry.ssl.keystore.type: JKS
+        # schema.registry.ssl.key.password: password
+        # schema.registry.ssl.keystore.password: password
+        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+        # schema.registry.ssl.truststore.type: JKS
+        # schema.registry.ssl.truststore.password: password
+
+  # -- Map of SerDes available to handle which notation types
+  notations: {}
+    # Definition for "avro" notation
+    # avro:
+      # type: confluent_avro          # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      # schemaRegistry: confluent
+      # config:
+        # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+        # normalize.schemas: true
+        # auto.register.schemas: false
+
+    # Definition for "apicurio_avro" notation. With this entry, you can use a type like "apicurio_avro:SchemaName" in your
+    # KSML definition, which then uses the Apicurio implementation for AVRO.
+    # apicurio_avro:
+      # type: apicurio_avro           # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      # schemaRegistry: apicurio
+      # config:
+      # Apicurio Avro serialisation settings
+      # apicurio.registry.avro.encoding: "BINARY"
+      # apicurio.registry.headers.enabled: "true"
+      # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
+      # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
+
+    # Definition for "apicurio_protobuf" notation. With this entry, you can use a type like "apicurio_protobuf:SchemaName" in your
+    # KSML definition, which then uses the Apicurio implementation for ProtoBuf.
+    # apicurio_protobuf:
+    # type: apicurio_protobuf           # For AVRO there are two implementations: apicurio_protobuf and confluent_protobuf
+    # schemaRegistry: apicurio
+    # config:
+    # Apicurio Avro serialisation settings
+
 
 # -- KSML Pipeline or Producer definition files. See https://axual.github.io/ksml/introduction.html
 ksmlDefinitions: {}
@@ -240,7 +299,6 @@ volumeMounts: []
 
 # -- Additional volumeClaimTemplates for the stateful.
 volumeClaimTemplates: []
-
 
 # -- Selector which must match a node's labels for the pod to be scheduled on that node.
 nodeSelector: {}

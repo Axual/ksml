@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "LogicalTypes",
+  "namespace": "io.axual.test",
+  "doc": "Record covering common logical types",
+  "fields": [
+    { "name": "date", "type": {"type": "int", "logicalType": "date"} },
+    { "name": "timeMillis", "type": {"type": "int", "logicalType": "time-millis"} },
+    { "name": "tsMillis", "type": {"type": "long", "logicalType": "timestamp-millis"} },
+    { "name": "uuid", "type": {"type": "string", "logicalType": "uuid"} },
+    { "name": "decimal", "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2} }
+  ]
+}

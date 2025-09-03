@@ -28,6 +28,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.schema.NativeDataSchemaMapper;
 
@@ -49,11 +50,11 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     }
 
     @Override
-    protected StructType inferStructTypeFromNativeMap(Map<?, ?> map, DataSchema expected) {
+    protected DataType inferDataTypeFromNativeMap(Map<?, ?> map, DataSchema expected) {
         final var schema = inferStructSchemaFromNativeMap(map);
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema != null) throw new DataException("Map can not be converted to " + schema);
-        return super.inferStructTypeFromNativeMap(map, expected);
+        return super.inferDataTypeFromNativeMap(map, expected);
     }
 
     private DataSchema inferStructSchemaFromNativeMap(Map<?, ?> map) {
@@ -62,7 +63,7 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
 
         // The "@schema" field overrides the entire schema library. If this field is filled, then
         // we assume the entire schema is contained within the map itself. Therefore, we do not
-        // consult the schema library, but instead directly decode the schema from the field.
+        // consult the schema library but instead directly decode the schema from the field.
         if (map.containsKey(STRUCT_SCHEMA_FIELD)) {
             final var nativeSchema = map.get(STRUCT_SCHEMA_FIELD);
             return NATIVE_DATA_SCHEMA_MAPPER.toDataSchema("dummy", nativeSchema);
@@ -90,12 +91,12 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     @Nullable
     @Override
     public Map<String, Object> convertDataStructToMap(DataStruct struct) {
-        // Don't call the super, but divert all recursion into nested structures to a separate mapper to prevent
+        // Don't call the superclass, but divert all recursions into nested structures to a separate mapper to prevent
         // recursive inclusion of schema info
         final var result = recursiveDataObjectMapper.convertDataStructToMap(struct);
         if (result == null) return null;
 
-        // Convert schema to native format by encoding it in meta fields
+        // Convert schema to native format by encoding it in metadata fields
         final var schema = struct.type().schema();
         if (schema != null && includeSchemaInfo) {
             result.put(STRUCT_TYPE_FIELD, schema.name());

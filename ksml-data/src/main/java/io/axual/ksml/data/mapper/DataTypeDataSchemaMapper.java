@@ -27,7 +27,21 @@ import io.axual.ksml.data.type.*;
 
 import java.util.List;
 
+/**
+ * Maps between KSML DataType and DataSchema representations.
+ * This implementation provides a bidirectional conversion used throughout the
+ * data layer to describe and materialize schemas from types and vice versa.
+ */
 public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
+    /**
+     * Converts a DataType into a DataSchema.
+     *
+     * @param namespace optional namespace to use for named schema types, may be null
+     * @param name      optional name to use for named schema types, may be null
+     * @param type      the DataType to convert
+     * @return the resulting DataSchema
+     * @throws SchemaException if the data type can not be converted into a schema
+     */
     public DataSchema toDataSchema(String namespace, String name, DataType type) {
         if (type == DataType.UNKNOWN) return DataSchema.ANY_SCHEMA;
         if (type == DataNull.DATATYPE) return DataSchema.NULL_SCHEMA;
@@ -45,11 +59,10 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
             return new EnumSchema(null, enumType.name(), "", enumType.symbols());
         if (type instanceof ListType listType)
             return new ListSchema(toDataSchema(listType.valueType()));
-        // Check structs first, since they are a subclass of maps
-        if (type instanceof StructType structType)
-            return structType.schema() != null ? new StructSchema(structType.schema()) : StructSchema.SCHEMALESS;
         if (type instanceof MapType mapType)
             return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
+        if (type instanceof StructType structType)
+            return structType.schema() != null ? new StructSchema(structType.schema()) : StructSchema.SCHEMALESS;
         if (type instanceof TupleType tupleType)
             return new TupleSchema(tupleType, this);
         if (type instanceof UnionType unionType) {
@@ -67,6 +80,13 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         throw new SchemaException("Can not convert dataType " + type + " to a schema");
     }
 
+    /**
+     * Converts a DataSchema into a DataType.
+     *
+     * @param schema the DataSchema to convert
+     * @return the resulting DataType
+     * @throws SchemaException if the schema can not be converted into a data type
+     */
     public DataType fromDataSchema(DataSchema schema) {
         if (schema == null) return DataType.UNKNOWN;
         if (schema == DataSchema.ANY_SCHEMA) return DataType.UNKNOWN;

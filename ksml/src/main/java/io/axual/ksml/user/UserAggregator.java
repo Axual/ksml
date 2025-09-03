@@ -35,6 +35,7 @@ public class UserAggregator extends Invoker implements Aggregator<Object, Object
     public UserAggregator(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_AGGREGATOR);
         verifyParameterCount(3);
+        verifyResultType(function.parameters[2].type());
     }
 
     @Override

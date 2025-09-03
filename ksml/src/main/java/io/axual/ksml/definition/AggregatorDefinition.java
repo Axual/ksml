@@ -32,6 +32,6 @@ public class AggregatorDefinition extends FunctionDefinition {
                 .withType(KSMLDSL.Functions.TYPE_AGGREGATOR)
                 .withParameters(mergeParameters(KEY_VALUE_AGGREGATED_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression(PARAM_AGGREGATED_VALUE)
-                .withAResult());
+                .validateResultTypeDefined());
     }
 }

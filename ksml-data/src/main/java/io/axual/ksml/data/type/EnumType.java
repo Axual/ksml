@@ -28,6 +28,12 @@ import lombok.Getter;
 
 import java.util.List;
 
+/**
+ * A {@link SimpleType} representing an enumeration of allowed string symbols.
+ * <p>
+ * Values are considered assignable only when they are strings that match one of the configured
+ * {@link EnumType.Symbol} entries.
+ */
 @Getter
 @EqualsAndHashCode
 public class EnumType extends SimpleType {

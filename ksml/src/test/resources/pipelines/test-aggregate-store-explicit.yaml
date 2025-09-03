@@ -1,0 +1,43 @@
+# Test for issue 292: Aggregate operations do not infer store definition
+# This test verifies that aggregate operations work with explicit store definitions
+# AFTER PR 300 fix: store parameter is now REQUIRED for aggregate operations (breaking change)
+
+streams:
+  transactions:
+    topic: transactions
+    keyType: string
+    valueType: json
+
+pipelines:
+  # Pipeline: Non-windowed aggregation with explicit store
+  category_aggregation:
+    from: transactions
+    via:
+      - type: groupBy
+        mapper:
+          expression: value["category"]
+          resultType: string
+      
+      # Aggregate with explicit store definition (required by PR 300)
+      - type: aggregate
+        store:
+          name: category_store
+          type: keyValue
+          keyType: string
+          valueType: json
+        initializer:
+          expression: '{"total_sales": 0, "count": 0}'
+          resultType: json
+        aggregator:
+          code: |
+            aggregatedValue["total_sales"] = aggregatedValue.get("total_sales", 0) + value["amount"]
+            aggregatedValue["count"] = aggregatedValue.get("count", 0) + 1
+          expression: aggregatedValue
+          resultType: json
+      
+      - type: toStream
+    
+    to:
+      topic: category_aggregates
+      keyType: string
+      valueType: json

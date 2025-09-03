@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.value.Tuple;
 
 import javax.annotation.Nullable;
@@ -35,21 +34,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Utility methods for converting between Jackson JsonNode trees and native Java structures
+ * (List, Map, primitives), as well as simple KSML value helpers.
+ */
 public class JsonNodeUtil {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    /**
+     * Parse a JSON array string into a Java List of native values.
+     *
+     * @param value JSON string representing an array; if null, returns a JSON null node mapped to null
+     * @return a List of native values if parsing succeeds and the input is a JSON array; otherwise null
+     */
     @Nullable
     public static List<Object> convertStringToList(String value) {
         final var tree = convertStringToJsonNode(value);
         return tree != null && tree.isArray() ? convertArrayNodeToList((ArrayNode) tree) : null;
     }
 
+    /**
+     * Parse a JSON object string into a Java Map with String keys and native values.
+     *
+     * @param value JSON string representing an object; if null, returns a JSON null node mapped to null
+     * @return a Map<String, Object> if parsing succeeds and the input is a JSON object; otherwise null
+     */
     @Nullable
     public static Map<String, Object> convertStringToMap(String value) {
         final var tree = convertStringToJsonNode(value);
         return tree != null && tree.isObject() ? convertObjectNodeToMap((ObjectNode) tree) : null;
     }
 
+    /**
+     * Parse a string into a Jackson JsonNode.
+     *
+     * @param value JSON string; if null, returns a JSON null node
+     * @return the parsed JsonNode if successful; otherwise null
+     */
     @Nullable
     public static JsonNode convertStringToJsonNode(String value) {
         if (value == null) return NullNode.getInstance(); // Allow null strings as input, returning null as native output
@@ -61,6 +82,13 @@ public class JsonNodeUtil {
         return null;
     }
 
+    /**
+     * Convert native Java values (List, Map, primitives) into a JsonNode tree.
+     *
+     * @param value native value to convert; null yields a JSON null node
+     * @return a JsonNode representing the input value
+     * @throws io.axual.ksml.data.exception.DataException if the type is unsupported
+     */
     public static JsonNode convertNativeToJsonNode(Object value) {
         if (value == null) return NullNode.getInstance();
         if (value instanceof List<?> list) return convertListToJsonNode(list);
@@ -136,6 +164,13 @@ public class JsonNodeUtil {
         throw new DataException("Can not add value to ObjectNode: " + value.getClass().getSimpleName());
     }
 
+    /**
+     * Convert a JsonNode tree into native Java values.
+     *
+     * @param node the JsonNode to convert; arrays yield List and objects yield Map
+     * @return native Java representation of the JsonNode
+     * @throws io.axual.ksml.data.exception.DataException if the node type is unsupported
+     */
     public static Object convertJsonNodeToNative(JsonNode node) {
         if (node.isArray()) return convertArrayNodeToList((ArrayNode) node);
         if (node.isObject()) return convertObjectNodeToMap((ObjectNode) node);
