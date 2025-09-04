@@ -370,14 +370,14 @@ This example demonstrates splitting batch orders into individual orders with uni
 data into individual records.
 
 ??? info "Producer - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
-```yaml
-{% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
-```
+      ```yaml
+      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
+      ```
 
 ??? info "Processor - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
-```yaml
-{% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
-```
+      ```yaml
+      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
+      ```
 
 ### keyValueToValueListTransformer
 
