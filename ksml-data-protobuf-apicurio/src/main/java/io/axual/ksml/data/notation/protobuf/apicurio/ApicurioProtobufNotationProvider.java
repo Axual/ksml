@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.jsonschema.apicurio;
+package io.axual.ksml.data.notation.protobuf.apicurio;
 
 /*-
  * ========================LICENSE_START=================================

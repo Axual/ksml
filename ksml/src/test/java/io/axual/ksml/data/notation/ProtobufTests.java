@@ -20,12 +20,12 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.jsonschema.apicurio.ApicurioProtobufDescriptorFileElementMapper;
-import io.axual.ksml.data.notation.jsonschema.apicurio.ApicurioProtobufNotationProvider;
 import io.axual.ksml.data.notation.jsonschema.apicurio.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
+import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufDescriptorFileElementMapper;
+import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufNotationProvider;
 import io.axual.ksml.data.notation.protobuf.confluent.ConfluentProtobufDescriptorFileElementMapper;
 import org.junit.jupiter.api.Test;
 

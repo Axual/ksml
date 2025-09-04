@@ -22,9 +22,28 @@ package io.axual.ksml.python;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.SchemaResolver;
-import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.util.MapUtil;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.execution.ExecutionContext;
@@ -71,7 +90,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
             }
         }
         // Handle the nullType scenario
-        if(hasNullType) {
+        if (hasNullType) {
             var result = toDataObject(DataNull.DATATYPE, value);
             if (result != null) return result;
         }
@@ -166,11 +185,11 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
         if (object instanceof DataFloat val) return Value.asValue(val.value());
         if (object instanceof DataDouble val) return Value.asValue(val.value());
         if (object instanceof DataBytes val) {
-            // Convert the contained byte array to a list, so it can be converted to a Python list by the PythonFunction
-            // wrapper code downstream...
-            final var bytes = new ArrayList<Byte>(val.value().length);
-            for (byte b : val.value()) bytes.add(b);
-            return Value.asValue(bytes);
+            // Convert the contained byte array to a list of unsigned bytes (as short), so it can be converted to a
+            // Python list by the PythonFunction wrapper code downstream...
+            final var values = new ArrayList<Short>(val.value().length);
+            for (byte b : val.value()) values.add(b >= 0 ? (short) b : (short) (256 + b));
+            return Value.asValue(values);
         }
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val) return Value.asValue(convertDataListToList(val));

@@ -73,6 +73,7 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
             configs.putIfAbsent("apicurio.registry.headers.enabled", false);
             configs.putIfAbsent("apicurio.registry.as-confluent", true);
             configs.putIfAbsent("apicurio.registry.use-id", "contentId");
+            configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
             return configs;
         }
     }
