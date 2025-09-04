@@ -220,18 +220,18 @@ parameters like `key` and `value` are still available in your function code.
 When your Python functions execute, they have access to:
 
 - **Logger**: For outputting information to application logs
-  - `log.<log-level>("Debug message")` - <log_level> can be debug, info, warn, error, trace
+    - `log.<log-level>("Debug message")` - <log_level> can be debug, info, warn, error, trace
 
 - **Metrics**: For monitoring function performance and behavior
-  - `metrics.counter("name").increment()` - Count occurrences
-  - `metrics.gauge("name").record(value)` - Record values
-  - `with metrics.timer("name"):` - Measure execution time
+    - `metrics.counter("name").increment()` - Count occurrences
+    - `metrics.gauge("name").record(value)` - Record values
+    - `with metrics.timer("name"):` - Measure execution time
 
 - **State Stores**: For maintaining state between function invocations (when configured)
-  - `store.get(key)` - Retrieve value from store
-  - `store.put(key, value)` - Store a value
-  - `store.delete(key)` - Remove a value
-  - Must be declared in the function's `stores` parameter
+    - `store.get(key)` - Retrieve value from store
+    - `store.put(key, value)` - Store a value
+    - `store.delete(key)` - Remove a value
+    - Must be declared in the function's `stores` parameter
 
 This execution context provides the tools needed for debugging, monitoring, and implementing stateful processing.
 
@@ -370,11 +370,13 @@ This example demonstrates splitting batch orders into individual orders with uni
 data into individual records.
 
 ??? info "Producer - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
+
       ```yaml
       {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
       ```
 
 ??? info "Processor - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
+
       ```yaml
       {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
       ```
