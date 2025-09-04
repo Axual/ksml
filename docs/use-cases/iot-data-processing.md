@@ -56,6 +56,7 @@ Change the definition so that the startup command for the setup container (the `
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_alerts && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic device_status && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic energy_consumption && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic proximity_alerts && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic building_analytics'"
     ```
 
@@ -101,17 +102,21 @@ Now, let's create our KSML definition file:
 
 IoT applications often involve geospatial data processing. Here's how to handle location-based analytics with KSML:
 
-```yaml
-{% include "../definitions/use-cases/iot-data-processing/processing-geospatial-data.yaml" %}
-```
+??? info "Example `processing-geospatial-data.yaml` (click to expand)"
+
+    ```yaml
+    {% include "../definitions/use-cases/iot-data-processing/processing-geospatial-data.yaml" %}
+    ```
 
 ## Implementing Device State Tracking
 
 For many IoT applications, tracking device state over time is crucial. Here's how to implement this using KSML's state stores:
 
-```yaml
-{% include "../definitions/use-cases/iot-data-processing/device-state-tracking.yaml" %}
-```
+??? info "Example `device-starte-tracking.yaml` (click to expand)"
+
+    ```yaml
+    {% include "../definitions/use-cases/iot-data-processing/device-state-tracking.yaml" %}
+    ```
 
 ## Edge-to-Cloud Processing
 
