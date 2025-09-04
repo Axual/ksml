@@ -22,8 +22,8 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
 
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.jsonschema.confluent.JsonSchemaDataObjectMapper;
-import io.axual.ksml.data.notation.jsonschema.confluent.JsonSchemaNotation;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaDataObjectMapper;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 

@@ -23,7 +23,7 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaDeserializer;
 import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaSerializer;
-import io.axual.ksml.data.notation.jsonschema.confluent.JsonSchemaSerdeSupplier;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
