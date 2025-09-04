@@ -281,7 +281,6 @@ class JsonSchemaMapperTest {
         softAssertJsonStringField(softly, rootNode, "/$defs/ObjectWithSimpleInnerAdditional/additionalProperties/type", "object");
         softAssertJsonStringField(softly, rootNode, "/$defs/ObjectWithSimpleInnerAdditional/additionalProperties/$ref", "#/$defs/ReallySimpleInner");
 
-
         softly.assertAll();
     }
 
@@ -333,6 +332,7 @@ class JsonSchemaMapperTest {
         final var struct = assertThat(mapper.toDataSchema("ns", "ComplexFeatures", json))
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .returns("ComplexFeatures", StructSchema::name)
+                .returns("Example object with more complex fields", StructSchema::doc)
                 .returns(true, StructSchema::areAdditionalFieldsAllowed)
                 .returns(new DataField(ANY_SCHEMA), StructSchema::additionalField)
                 .actual();
@@ -344,6 +344,18 @@ class JsonSchemaMapperTest {
         // Required String field
         softlyDataSchema.assertThat(struct.field("reqStr"))
                 .isEqualTo(new DataField("reqStr", STRING_SCHEMA, null, DataField.NO_TAG, true));
+
+        // Primitive checks
+        softlyDataSchema.assertThat(struct.field("str"))
+                .isEqualTo(new DataField("str", STRING_SCHEMA, null, DataField.NO_TAG, false));
+        softlyDataSchema.assertThat(struct.field("bool"))
+                .isEqualTo(new DataField("bool", BOOLEAN_SCHEMA, null, DataField.NO_TAG, false));
+        softlyDataSchema.assertThat(struct.field("int"))
+                .isEqualTo(new DataField("int", LONG_SCHEMA, null, DataField.NO_TAG, false));
+        softlyDataSchema.assertThat(struct.field("num"))
+                .isEqualTo(new DataField("num", DOUBLE_SCHEMA, null, DataField.NO_TAG, false));
+        softlyDataSchema.assertThat(struct.field("nullField"))
+                .isEqualTo(new DataField("nullField", NULL_SCHEMA, null, DataField.NO_TAG, false));
 
         // Arrays
         softlyDataSchema.assertThat(struct.field("arrayAny"))
@@ -363,33 +375,107 @@ class JsonSchemaMapperTest {
                 ) , null, DataField.NO_TAG, false));
 
         // $ref to internal definition
-        assertThat(struct.field("innerRef"))
-
+        softlyDataSchema.assertThat(struct.field("innerRef"))
                         .isEqualTo(new DataField("innerRef", new StructSchema(null,null,null,List.of(
                                 new DataField("x", STRING_SCHEMA, null, DataField.NO_TAG, true),
                                 new DataField("y", LONG_SCHEMA, null, DataField.NO_TAG, false)
                         )) , null, DataField.NO_TAG, false));
 
         // Complex array items: union of enum and object
-        assertThat(struct.field("arrComplex").schema()).isInstanceOf(ListSchema.class);
-        var arrItem = ((ListSchema) struct.field("arrComplex").schema()).valueSchema();
-        assertThat(arrItem).isInstanceOf(UnionSchema.class);
-        var arrUnion = (UnionSchema) arrItem;
-        assertThat(arrUnion.contains(STRING_SCHEMA)).isFalse(); // should be enum + object only
-        // Ensure an enum member present with symbols A,B
-        var hasEnumAB = false;
-        var hasObjectWithV = false;
-        for (var f : arrUnion.memberSchemas()) {
-            if (f.schema() instanceof EnumSchema e) {
-                hasEnumAB = e.symbols().stream().map(Symbol::name).sorted().toList().equals(List.of("A", "B"));
-            } else if (f.schema() instanceof StructSchema s) {
-                hasObjectWithV = s.field("v") != null && s.field("v").schema().equals(DOUBLE_SCHEMA);
-            }
-        }
-        assertThat(hasEnumAB).isTrue();
-        assertThat(hasObjectWithV).isTrue();
+        softlyDataSchema.assertThat(struct.field("arrComplex"))
+                        .isEqualTo(new DataField("arrComplex",new ListSchema(
+                                new UnionSchema(
+                                        new DataField(new EnumSchema(null,null,null,List.of(Symbol.of("A"),Symbol.of("B")))),
+                                        new DataField(new StructSchema(null,null,null,List.of(
+                                                new DataField("v",DOUBLE_SCHEMA)
+                                        )))
+                                )
+                        ),null,DataField.NO_TAG,false));
 
         softlyDataSchema.assertAll();
+
+        // Verify conversion back to JsonSchema
+        final var jsonString = assertThat(mapper.fromDataSchema(struct))
+                .isNotBlank()
+                .actual();
+
+        final var rootNode = assertThatObject(JACKSON.readTree(jsonString))
+                .returns(true, JsonNode::isObject)
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .actual();
+
+        // Use soft assertions to get feedback on multiple field issues at once
+        final var softlyJson = new SoftAssertions();
+        softlyJson.assertThat(rootNode)
+                .hasSize(7);
+        // Assert the root object data
+        softAssertJsonStringField(softlyJson, rootNode, "/title", "ComplexFeatures");
+        softAssertJsonStringField(softlyJson, rootNode, "/description", "Example object with more complex fields");
+        softAssertJsonStringField(softlyJson, rootNode, "/type", "object");
+        softAssertJsonBooleanField(softlyJson, rootNode, "/additionalProperties", true);
+        softlyJson.assertThatObject(rootNode.at("/properties"))
+                .returns(false, JsonNode::isMissingNode)
+                .returns(true, JsonNode::isObject)
+                .extracting(JsonNode::properties, InstanceOfAssertFactories.set(Map.Entry.class))
+                .extracting(Map.Entry::getKey)
+                .containsExactlyInAnyOrder("str", "bool", "int", "num", "nullField", "reqStr", "arrayAny", "arrayString", "color","idUnion", "innerRef", "arrComplex");
+        softlyJson.assertThatObject(rootNode.at("/required"))
+                .returns(false, JsonNode::isMissingNode)
+                .returns(true, JsonNode::isArray)
+                .asInstanceOf(InstanceOfAssertFactories.type(ArrayNode.class))
+                .returns(1, ArrayNode::size)
+                .extracting(node -> node.get(0))
+                .isNotNull()
+                .returns(true, JsonNode::isTextual)
+                .returns("reqStr", JsonNode::asText);
+
+        // Assert the single expected object definition
+        softAssertJsonStringField(softlyJson, rootNode, "/$defs/AnonymousStructSchema/title", "AnonymousStructSchema");
+        softAssertJsonStringField(softlyJson, rootNode, "/$defs/AnonymousStructSchema/type", "object");
+        softAssertJsonBooleanField(softlyJson, rootNode, "/$defs/AnonymousStructSchema/additionalProperties", true);
+        softlyJson.assertThatObject(rootNode.at("/$defs/AnonymousStructSchema/properties"))
+                .returns(false, JsonNode::isMissingNode)
+                .returns(true, JsonNode::isObject)
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .returns(1, ObjectNode::size);
+        softAssertJsonStringField(softlyJson, rootNode, "/$defs/AnonymousStructSchema/properties/v/type", "number");
+
+        // Verify properties arrComplex enum A and B array
+        // Verify properties arrComplex anonymous struct schema
+        // Verify properties arrayAny
+        // Verify properties arrayString
+        // Verify properties color enum
+        // Verify properties idUnion union
+        softlyJson.assertThatObject(rootNode.at("/properties/idUnion/anyOf"))
+                .returns(false, JsonNode::isMissingNode)
+                .returns(true, JsonNode::isArray)
+                .asInstanceOf(InstanceOfAssertFactories.type(ArrayNode.class))
+                .returns(2, ArrayNode::size);
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/idUnion/anyOf/0/type", "integer");
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/idUnion/anyOf/1/type", "string");
+
+        // Verify properties bool/type
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/bool/type", "boolean");
+        // Verify properties innerRef reference object
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/innerRef/type", "object");
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/innerRef/$ref", "#/$defs/AnonymousStructSchema");
+        // Verify properties int type
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/int/type", "integer");
+        // Verify properties nullField type
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/nullField/type", "null");
+        // Verify properties num type
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/num/type", "number");
+        // Verify properties reqStr type
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/reqStr/type", "string");
+        // Verify properties str type
+        softAssertJsonStringField(softlyJson, rootNode, "/properties/str/type", "string");
+
+
+
+
+
+
+        softlyJson.assertAll();
     }
 //
 //    @Test

@@ -1,5 +1,6 @@
 {
   "title": "ComplexFeatures",
+  "description": "Example object with more complex fields",
   "type": "object",
   "properties": {
     "str": {
