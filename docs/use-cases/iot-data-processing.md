@@ -57,7 +57,9 @@ Change the definition so that the startup command for the setup container (the `
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic device_status && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic energy_consumption && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic proximity_alerts && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic building_analytics'"
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic building_analytics && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic edge_processed_readings && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic room_temperature_stats'"
     ```
 
 ## Defining the Data Model
@@ -126,17 +128,21 @@ IoT architectures often involve processing at the edge before sending data to th
 
 At the edge, you might want to filter, aggregate, and compress data before sending it to the cloud:
 
-```yaml
-{% include "../definitions/use-cases/iot-data-processing/edge-processing.yaml" %}
-```
+??? info "Example `edge-processing.yaml` (click to expand)"
+
+    ```yaml
+    {% include "../definitions/use-cases/iot-data-processing/edge-processing.yaml" %}
+    ```
 
 ### Cloud Processing
 
 In the cloud, you can perform more complex analytics and aggregations:
 
-```yaml
-{% include "../definitions/use-cases/iot-data-processing/cloud-processing.yaml" %}
-```
+??? info "Example `cloud-processing.yaml` (click to expand)"
+
+    ```yaml
+    {% include "../definitions/use-cases/iot-data-processing/cloud-processing.yaml" %}
+    ```
 
 ## Testing and Validation
 

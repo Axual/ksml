@@ -2,7 +2,8 @@ ksml:
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
-    iot-data-processing: processing-geospatial-data.yaml
+    iot-edge-processing: edge-processing.yaml
+    iot-cloud-processing: cloud-processing.yaml
     test_producer: sample-data-generator.yaml
   storageDirectory: /ksml/state  # Directory for state stores (inside /ksml which is writable because /ksml is the mounted working directory)
   createStorageDirectory: true    # Create the directory if it doesn't exist
