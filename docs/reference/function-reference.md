@@ -8,7 +8,7 @@ Functions are defined in the `functions` section of your KSML definition file. E
 
 | Property     | Type      | Required  | Description                                                                                    |
 |--------------|-----------|-----------|------------------------------------------------------------------------------------------------|
-| `type`       | String    | Yes       | The type of function (predicate, mapper, aggregator, etc.)                                     |
+| `type`       | String    | Yes       | The type of function (predicate, aggregator, valueJoiner, etc.)                                |
 | `parameters` | Array     | No        | **Additional** custom parameters to add to the function's built-in parameters (see note below) |
 | `globalCode` | String    | No        | Python code executed once upon startup                                                         |
 | `code`       | String    | No        | Python code implementing the function                                                          |
