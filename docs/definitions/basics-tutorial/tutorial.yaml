@@ -29,7 +29,7 @@ functions:
         type: string
     code: |
       msg = prefix + " message" if isinstance(prefix, str) and prefix != "" else "Message"
-      log.info(msg + ": key={}, value={}", key, value)
+      log.info("{}: key={}, value={}", msg, key, value)
 ## End of Functions
 
 ## Pipelines
