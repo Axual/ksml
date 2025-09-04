@@ -39,6 +39,26 @@ You want to process this data in real-time to:
 3. Track device health and identify maintenance needs
 4. Generate aggregated analytics for building performance
 
+## Define the topics for the use case
+
+In earlier tutorials, you created a Docker Compose file with all the necessary containers. For this use case guide, some other topics
+are needed.
+To have these created, open the `docker-compose.yml` in the examples directory, and find the definitions for the `kafka-setup` container
+which creates the topics.
+<br>
+Change the definition so that the startup command for the setup container (the `command` section) looks like the following:
+
+??? info "`command` section for the kafka-setup container (click to expand)"
+
+    ```yaml
+    command: "bash -c 'echo Creating topics... && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic iot_sensor_readings && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic device_status && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic energy_consumption && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic building_analytics'"
+    ```
+
 ## Defining the Data Model
 
 Our IoT sensor data will have the following structure:
@@ -59,7 +79,8 @@ Our IoT sensor data will have the following structure:
   },
   "readings": {
     "temperature": 22.5,
-    "humidity": 45.2
+    "humidity": 45.2,
+    "energy": 70
   },
   "battery_level": 87,
   "status": "active"
@@ -70,9 +91,11 @@ Our IoT sensor data will have the following structure:
 
 Now, let's create our KSML definition file:
 
-```yaml
-{% include "../definitions/use-cases/iot-data-processing/iot-data-processing.yaml" %}
-```
+??? info "KSML data processing pipeline `iot-data-processing.yaml`"
+
+    ```yaml
+    {% include "../definitions/use-cases/iot-data-processing/iot-data-processing.yaml" %}
+    ```
 
 ## Processing Geospatial Data
 
@@ -118,6 +141,16 @@ To test your IoT data processing pipeline:
 2. Deploy your KSML application using the [proper configuration](../reference/configuration-reference.md)
 3. Monitor the output topics to verify correct processing
 4. Use visualization tools to display the processed data
+
+The following producer pipeline can serve as a starting point to generate sample data. This pipeline wll produce sample
+measurements from three separate rooms with two sensors each, containing randomized data. Occasionally some outlier values
+are generated so that the alerts will be visible.
+
+??? info "`sample-data-generator.yaml` (click to expand)"
+
+    ```yaml
+    {% include "../definitions/use-cases/iot-data-processing/sample-data-generator.yaml" %}
+    ```
 
 ## Production Considerations
 

@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
 streams:
   sensor_readings:
     topic: iot_sensor_readings
@@ -96,17 +98,22 @@ pipelines:
         mapper:
           expression: value.get("location", {}).get("building") + "-" + str(value.get("location", {}).get("floor"))
       - type: aggregate
+        store:
+          name: energy_consumption_store
+          type: keyValue
+          keyType: string
+          valueType: json
         initializer:
           expression: |
             {"total_consumption": 0, "count": 0}
+          resultType: json
         aggregator:
-          code: |
-            total = aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0)
-            count = aggregatedValue.get("count") + 1
           expression: |
             {
-              "total_consumption": total,
-              "count": count,
-              "average": total / count
+              "total_consumption": aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0),
+              "count": aggregatedValue.get("count") + 1,
+              "average": (aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0)) / (aggregatedValue.get("count") + 1)
             }
+          resultType: json
+      - type: toStream
     to: energy_consumption
