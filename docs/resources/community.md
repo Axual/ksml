@@ -8,18 +8,18 @@ Welcome to the KSML community! This guide provides information on how to get hel
 
 The first place to look for answers is the KSML documentation:
 
-- [Getting Started Guide](../getting-started/introduction.md) - For beginners
-- [Reference Documentation](../reference/index.md) - For understanding KSML fundamentals
-- [Tutorials](../tutorials/index.md) - For hands-on learning
-- [Language Reference](../reference/definition-reference.md) - For detailed specifications
-- [Troubleshooting Guide](troubleshooting.md) - For solving common issues
+- [Getting Started Guide](../getting-started/introduction.md) for beginners
+- [Reference Documentation](../reference/index.md) for understanding KSML fundamentals
+- [Tutorials](../tutorials/index.md) for hands-on learning
+- [KSML Definition Reference](../reference/definition-reference.md) for a full explanation of the KSML definition syntax
+- [Troubleshooting Guide](troubleshooting.md) for solving common issues
 
 ### Community Forums
 
 Join our community forums to ask questions, share your experiences, and connect with other KSML users:
 
-- [KSML Discussion Forum](https://github.com/axual/ksml/discussions) - For general questions and discussions
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/ksml) - Use the `ksml` tag for technical questions
+- [KSML Discussion Forum](https://github.com/axual/ksml/discussions) for general questions and discussions
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/ksml) for troubleshooting, use the `ksml` tag for technical questions
 
 ### Issue Tracker
 
@@ -134,9 +134,9 @@ All community members are expected to adhere to our [Code of Conduct](https://gi
 
 ### Release Information
 
-- [Release Notes](../release-notes.md) - Detailed information about each release
-- [GitHub Releases](https://github.com/axual/ksml/releases) - Release announcements and assets
-- [Roadmap](https://github.com/axual/ksml/projects) - Upcoming features and improvements
+- [Release Notes](../release-notes.md) for detailed information about each release
+- [GitHub Releases](https://github.com/axual/ksml/releases) for release announcements and assets
+- [Roadmap](https://github.com/axual/ksml/projects) for upcoming features and improvements
 
 ### Social Media
 
@@ -144,7 +144,7 @@ Follow us on social media for updates, tips, and community highlights:
 
 - [Twitter](https://twitter.com/axual)
 - [LinkedIn](https://www.linkedin.com/company/axual)
-- [YouTube](https://www.youtube.com/channel/UCXyjVGmLJkUAJDvaNYa6Hcw) - Tutorials and presentations
+- [YouTube](https://www.youtube.com/channel/UCXyjVGmLJkUAJDvaNYa6Hcw) for tutorials and presentations
 
 ## Events and Meetups
 

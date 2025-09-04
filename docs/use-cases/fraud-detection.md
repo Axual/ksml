@@ -162,4 +162,4 @@ For more advanced fraud detection scenarios, explore:
 
 - [Complex Event Processing](../tutorials/advanced/complex-event-processing.md) for detecting multi-stage fraud patterns
 - [External Service Integration](../tutorials/advanced/external-integration.md) for incorporating third-party risk scores
-- [KSML Definition Reference](../reference/definition-reference.md) for the full explanation of KSML definition syntax
+- [KSML Definition Reference](../reference/definition-reference.md) for a full explanation of the KSML definition syntax

@@ -138,4 +138,4 @@ For more advanced IoT scenarios, explore:
 
 - [Complex Event Processing](../tutorials/advanced/complex-event-processing.md) for pattern detection
 - [Custom Functions](../reference/function-reference.md) for domain-specific processing
-- [KSML Definition Reference](../reference/definition-reference.md) for the full explanation of KSML definition syntax
+- [KSML Definition Reference](../reference/definition-reference.md) for a full explanation of the KSML definition syntax

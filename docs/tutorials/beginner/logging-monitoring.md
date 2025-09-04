@@ -145,6 +145,6 @@ Effective logging and monitoring enable you to track pipeline behavior, diagnose
 
 ## Next Steps
 
-- [Error Handling and Recovery](../intermediate/error-handling.md) - Advanced error handling techniques
-- [Performance Optimization](../advanced/performance-optimization.md) - Optimize pipeline performance  
-- [Intermediate Tutorials](../intermediate/index.md) - More advanced KSML features
+- [Error Handling and Recovery](../intermediate/error-handling.md) for advanced error handling techniques
+- [Performance Optimization](../advanced/performance-optimization.md) for optimizing pipeline performance  
+- [Intermediate Tutorials](../intermediate/index.md) for more advanced KSML features

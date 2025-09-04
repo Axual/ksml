@@ -333,6 +333,6 @@ For complete syntax reference, type definitions, and advanced format features, r
 
 ## Next Steps
 
-- [Logging and Monitoring](logging-monitoring.md) - Add effective logging to pipelines
-- [Intermediate Tutorials](../intermediate/index.md) - Advanced KSML features
-- [KSML Examples](../../resources/examples-library.md) - More data format examples
+- [Logging and Monitoring](logging-monitoring.md) for adding effective logging to pipelines
+- [Intermediate Tutorials](../intermediate/index.md) for advanced KSML features
+- [KSML Examples](../../resources/examples-library.md) for more data format examples

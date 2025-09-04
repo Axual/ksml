@@ -1,10 +1,13 @@
 # Function Reference
 
-This document provides a comprehensive reference for all function types available in KSML. Functions in KSML allow you to implement custom logic for processing your streaming data using Python, making stream processing accessible to data scientists, analysts, and developers who may not be familiar with Java or Kafka Streams API.
+This document provides a comprehensive reference for all function types available in KSML. Functions in KSML allow you
+to implement custom logic for processing your streaming data using Python, making stream processing accessible to data
+scientists, analysts, and developers who may not be familiar with Java or Kafka Streams API.
 
 ## Function Definition Structure
 
-Functions are defined in the `functions` section of your KSML definition file. Each function has the following properties:
+Functions are defined in the `functions` section of your KSML definition file. Each function has the following
+properties:
 
 | Property     | Type      | Required  | Description                                                                                    |
 |--------------|-----------|-----------|------------------------------------------------------------------------------------------------|
@@ -16,15 +19,21 @@ Functions are defined in the `functions` section of your KSML definition file. E
 | `resultType` | Data type | Sometimes | The data type returned by the function. Required when it cannot be derived from function type. |
 | `stores`     | Array     | No        | List of state stores the function can access                                                   |
 
-**Note about parameters:** Every function type has built-in parameters that are automatically provided by KSML (e.g., `key` and `value` for most function types). The `parameters` property is only needed when you want to add custom parameters beyond these built-in ones. These additional parameters can then be passed when calling the function from Python code.
+**Note about parameters:** Every function type has built-in parameters that are automatically provided by KSML (e.g.,
+`key` and `value` for most function types). The `parameters` property is only needed when you want to add custom
+parameters beyond these built-in ones. These additional parameters can then be passed when calling the function from
+Python code.
 
 ## What are Functions in KSML?
 
-Functions provide the flexibility to go beyond built-in operations and implement specific business logic, transformations, and data processing requirements. They are written in Python and executed within the KSML runtime, combining the power of Kafka Streams with the simplicity and expressiveness of Python.
+Functions provide the flexibility to go beyond built-in operations and implement specific business logic,
+transformations, and data processing requirements. They are written in Python and executed within the KSML runtime,
+combining the power of Kafka Streams with the simplicity and expressiveness of Python.
 
 ## Writing Python Functions
 
 ### Example KSML Function Definition
+
 ??? info "Example KSML Function Definition"
 
       ```yaml
@@ -80,7 +89,8 @@ Functions provide the flexibility to go beyond built-in operations and implement
           resultType: boolean
       ```
 
-KSML functions are defined in the `functions` section of your KSML definition file. A typical function definition includes:
+KSML functions are defined in the `functions` section of your KSML definition file. A typical function definition
+includes:
 
 - **Type**: Specifies the function's purpose and behavior
 - **Parameters**: Input parameters the function accepts (defined by the function type)
@@ -135,23 +145,23 @@ functions:
     resultType: struct
 ```
 
-
 ## Function Parameters
 
 ### Built-in vs Custom Parameters
 
-Every function type in KSML has **built-in parameters** that are automatically provided by KSML. These are implicitly available in your function code without needing to declare them:
+Every function type in KSML has **built-in parameters** that are automatically provided by KSML. These are implicitly
+available in your function code without needing to declare them:
 
 Most function types (like `forEach`, `predicate`, `valueTransformer`) automatically receive:
 
-  - `key` - The record key
-  - `value` - The record value
+- `key` - The record key
+- `value` - The record value
 
 Some specialized types have different built-in parameters:
 
-  - `aggregator`: receives `key`, `value`, and `aggregate`
-  - `merger`: receives `key`, `aggregate1`, and `aggregate2`
-  - `initializer`: receives no parameters
+- `aggregator`: receives `key`, `value`, and `aggregate`
+- `merger`: receives `key`, `aggregate1`, and `aggregate2`
+- `initializer`: receives no parameters
 
 ### Adding Custom Parameters
 
@@ -162,6 +172,7 @@ The `parameters` property allows you to **add custom parameters** beyond the bui
 3. **Using the `generic` function type** which has no built-in parameters
 
 #### Example WITHOUT custom parameters:
+
 ```yaml
 functions:
   simple_logger:
@@ -172,11 +183,12 @@ functions:
 ```
 
 #### Example WITH custom parameters:
+
 ```yaml
 functions:
   configurable_logger:
     type: forEach
-    parameters:  # ADDS 'prefix' to the built-in key and value
+    parameters: # ADDS 'prefix' to the built-in key and value
       - name: prefix
         type: string
     code: |
@@ -184,6 +196,7 @@ functions:
 ```
 
 When calling this function from Python:
+
 ```python
 # The custom parameter is passed along with built-in ones
 configurable_logger(key, value, prefix="DEBUG")
@@ -199,63 +212,65 @@ parameters:
     type: parameter_type   # Data type (string, int, double, etc.)
 ```
 
-**Important:** The `parameters` property **adds to** the built-in parameters - it doesn't replace them. Built-in parameters like `key` and `value` are still available in your function code.
+**Important:** The `parameters` property **adds to** the built-in parameters - it doesn't replace them. Built-in
+parameters like `key` and `value` are still available in your function code.
 
 ## Function Execution Context
 
 When your Python functions execute, they have access to:
 
 - **Logger**: For outputting information to application logs
-      - `log.<log-level>("Debug message")` - <log_level> can be debug, info, warn, error, trace
+  - `log.<log-level>("Debug message")` - <log_level> can be debug, info, warn, error, trace
 
 - **Metrics**: For monitoring function performance and behavior
-      - `metrics.counter("name").increment()` - Count occurrences
-      - `metrics.gauge("name").record(value)` - Record values
-      - `with metrics.timer("name"):` - Measure execution time
+  - `metrics.counter("name").increment()` - Count occurrences
+  - `metrics.gauge("name").record(value)` - Record values
+  - `with metrics.timer("name"):` - Measure execution time
 
 - **State Stores**: For maintaining state between function invocations (when configured)
-      - `store.get(key)` - Retrieve value from store
-      - `store.put(key, value)` - Store a value
-      - `store.delete(key)` - Remove a value
-      - Must be declared in the function's `stores` parameter
+  - `store.get(key)` - Retrieve value from store
+  - `store.put(key, value)` - Store a value
+  - `store.delete(key)` - Remove a value
+  - Must be declared in the function's `stores` parameter
 
 This execution context provides the tools needed for debugging, monitoring, and implementing stateful processing.
 
 ## Function Types Overview
 
-KSML supports 21 function types, each designed for specific purposes in stream processing. Functions can range from simple one-liners to complex implementations with multiple operations:
+KSML supports 21 function types, each designed for specific purposes in stream processing. Functions can range from
+simple one-liners to complex implementations with multiple operations:
 
-| Function Type                                                           | Purpose                                              | Used In                                     |
-|-------------------------------------------------------------------------|------------------------------------------------------|---------------------------------------------|
-| **Functions for stateless operations**                                  |                                                      |                                             |
-| [forEach](#foreach)                                                     | Process each message for side effects                | peek                                        |
-| [keyTransformer](#keytransformer)                                       | Convert a key to another type or value               | mapKey, selectKey, toStream, transformKey   |
-| [keyValueToKeyValueListTransformer](#keyvaluetokeyvaluelisttransformer) | Convert key and value to a list of key/values        | flatMap, transformKeyValueToKeyValueList    |
-| [keyValueToValueListTransformer](#keyvaluetovaluelisttransformer)       | Convert key and value to a list of values            | flatMapValues, transformKeyValueToValueList |
-| [keyValueTransformer](#keyvaluetransformer)                             | Convert key and value to another key and value       | flatMapValues, transformKeyValueToValueList |
-| [predicate](#predicate)                                                 | Return true/false based on message content           | filter, branch                              |
-| [valueTransformer](#valuetransformer)                                   | Convert value to another type or value               | mapValue, mapValues, transformValue         |
-|                                                                         |                                                      |                                             |
-| **Functions for stateful operations**                                   |                                                      |                                             |
-| [aggregator](#aggregator)                                               | Incrementally build aggregated results               | aggregate                                   |
-| [initializer](#initializer)                                             | Provide initial values for aggregations              | aggregate                                   |
-| [merger](#merger)                                                       | Merge two aggregation results into one               | aggregate                                   |
-| [reducer](#reducer)                                                     | Combine two values into one                          | reduce                                      |
-|                                                                         |                                                      |                                             |
-| **Special Purpose Functions**                                           |                                                      |                                             |
-| [foreignKeyExtractor](#foreignkeyextractor)                             | Extract a key from a join table's record             | join, leftJoin                              |
-| [generator](#generator)                                                 | Function used in producers to generate a message     | producer                                    |
-| [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value     | groupBy, join, leftJoin                     |
-| [keyValuePrinter](#keyvalueprinter)                                     | Output key and value                                 | print                                       |
-| [metadataTransformer](#metadatatransformer)                             | Convert Kafka headers and timestamps                 | transformMetadata                           |
-| [valueJoiner](#valuejoiner)                                             | Combine data from multiple streams                   | join, leftJoin, outerJoin                   |
-|                                                                         |                                                      |                                             |
-| **Stream Related Functions**                                            |                                                      |                                             |
-| [timestampExtractor](#timestampextractor)                               | Extract timestamps from messages                     | stream, table, globalTable                  |
-| [topicNameExtractor](#topicnameextractor)                               | Derive a target topic name from key and value        | toTopicNameExtractor                        |
-|                                                                         |                                                      |                                             |
-| **Other Functions**                                                     |                                                      |                                             |
-| [generic](#generic)                                                     | Generic custom function                              |                                             |
+| Function Type                                                           | Purpose                                          | Used In                                     |
+|-------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------|
+| **Functions for stateless operations**                                  |                                                  |                                             |
+| [forEach](#foreach)                                                     | Process each message for side effects            | peek                                        |
+| [keyTransformer](#keytransformer)                                       | Convert a key to another type or value           | mapKey, selectKey, toStream, transformKey   |
+| [keyValueToKeyValueListTransformer](#keyvaluetokeyvaluelisttransformer) | Convert key and value to a list of key/values    | flatMap, transformKeyValueToKeyValueList    |
+| [keyValueToValueListTransformer](#keyvaluetovaluelisttransformer)       | Convert key and value to a list of values        | flatMapValues, transformKeyValueToValueList |
+| [keyValueTransformer](#keyvaluetransformer)                             | Convert key and value to another key and value   | flatMapValues, transformKeyValueToValueList |
+| [predicate](#predicate)                                                 | Return true/false based on message content       | filter, branch                              |
+| [valueTransformer](#valuetransformer)                                   | Convert value to another type or value           | mapValue, mapValues, transformValue         |
+|                                                                         |                                                  |                                             |
+| **Functions for stateful operations**                                   |                                                  |                                             |
+| [aggregator](#aggregator)                                               | Incrementally build aggregated results           | aggregate                                   |
+| [initializer](#initializer)                                             | Provide initial values for aggregations          | aggregate                                   |
+| [merger](#merger)                                                       | Merge two aggregation results into one           | aggregate                                   |
+| [reducer](#reducer)                                                     | Combine two values into one                      | reduce                                      |
+|                                                                         |                                                  |                                             |
+| **Special Purpose Functions**                                           |                                                  |                                             |
+| [foreignKeyExtractor](#foreignkeyextractor)                             | Extract a key from a join table's record         | join, leftJoin                              |
+| [generator](#generator)                                                 | Function used in producers to generate a message | producer                                    |
+| [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value | groupBy, join, leftJoin                     |
+| [keyValuePrinter](#keyvalueprinter)                                     | Output key and value                             | print                                       |
+| [metadataTransformer](#metadatatransformer)                             | Convert Kafka headers and timestamps             | transformMetadata                           |
+| [valueJoiner](#valuejoiner)                                             | Combine data from multiple streams               | join, leftJoin, outerJoin                   |
+|                                                                         |                                                  |                                             |
+| **Stream Related Functions**                                            |                                                  |                                             |
+| [timestampExtractor](#timestampextractor)                               | Extract timestamps from messages                 | stream, table, globalTable                  |
+| [topicNameExtractor](#topicnameextractor)                               | Derive a target topic name from key and value    | toTopicNameExtractor                        |
+|                                                                         |                                                  |                                             |
+| **Other Functions**                                                     |                                                  |                                             |
+| [generic](#generic)                                                     | Generic custom function                          |                                             |
 
 ## Functions for stateless operations
 
@@ -278,7 +293,7 @@ None (the function is called for its side effects)
 --8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
 ```
 
-**See how `forEach` is used in an example definition**: 
+**See how `forEach` is used in an example definition**:
 
 - [Tutorial: Filtering and Transforming Example](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
 
@@ -306,7 +321,8 @@ New key for the output message
 --8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
 ```
 
-This function extracts the region from transaction data to use as the new message key, enabling region-based partitioning.
+This function extracts the region from transaction data to use as the new message key, enabling region-based
+partitioning.
 
 **Complete Working Example:**
 
@@ -328,11 +344,14 @@ This function extracts the region from transaction data to use as the new messag
 
 **Additional Example:**
 
-See how `keyTransformer` is used for stream-table joins: [Stream Table Join Tutorial](../tutorials/intermediate/joins.md#use-case-order-enrichment)
+See how `keyTransformer` is used for stream-table
+joins: [Stream Table Join Tutorial](../tutorials/intermediate/joins.md#use-case-order-enrichment)
 
 ### keyValueToKeyValueListTransformer
 
-Takes one message and converts it into a list of output messages, which then get sent to the output stream. Unlike `keyValueToValueListTransformer`, this function can create new keys for each output message, enabling data reshaping and repartitioning.
+Takes one message and converts it into a list of output messages, which then get sent to the output stream. Unlike
+`keyValueToValueListTransformer`, this function can create new keys for each output message, enabling data reshaping and
+repartitioning.
 
 #### Parameters
 
@@ -347,17 +366,18 @@ A list of key-value pairs `[(key1, value1), (key2, value2), ...]`
 
 #### Example
 
-This example demonstrates splitting batch orders into individual orders with unique keys, useful for processing bulk data into individual records.
+This example demonstrates splitting batch orders into individual orders with unique keys, useful for processing bulk
+data into individual records.
 
 ??? info "Producer - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
-      ```yaml
-      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
-      ```
+```yaml
+{% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
+```
 
 ??? info "Processor - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
-      ```yaml
-      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
-      ```
+```yaml
+{% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
+```
 
 ### keyValueToValueListTransformer
 
@@ -412,7 +432,8 @@ A tuple of (new_key, new_value)
 
 **See how `keyValueTransformer` is used in an example definition**:
 
-- [Async Integration Pattern with `keyValueTransformer`](../tutorials/advanced/external-integration.md#async-integration-pattern)
+- [Async Integration Pattern with
+  `keyValueTransformer`](../tutorials/advanced/external-integration.md#async-integration-pattern)
 
 ### predicate
 
@@ -431,9 +452,10 @@ Boolean (true or false)
 
 #### Example
 
-**See it in action**: 
+**See it in action**:
 
-- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques) - predicate functions for data filtering
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
+  for predicate functions for data filtering
 
 ### valueTransformer
 
@@ -452,9 +474,10 @@ New value for the output message
 
 #### Example
 
-**See it in action**: 
+**See it in action**:
 
-- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#applying-multiple-transformations) - valueTransformer for data enrichment
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#applying-multiple-transformations)
+  for understanding valueTransformer for data enrichment
 
 ## Functions for stateful operations
 
@@ -476,9 +499,10 @@ New aggregated value
 
 #### Example
 
-**See it in action**: 
+**See it in action**:
 
-- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#aggregate-example) - comprehensive aggregator function examples
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#aggregate-example) for comprehensive aggregator
+  function examples
 
 ### initializer
 
@@ -528,8 +552,8 @@ The merged aggregation result
     {% include "../definitions/reference/functions/merger-example-processor.yaml" %}
     ```
 
-
-The merger function is specifically designed for session window aggregations where late-arriving events can merge previously separate sessions. This example demonstrates user activity tracking with session-based counting.
+The merger function is specifically designed for session window aggregations where late-arriving events can merge
+previously separate sessions. This example demonstrates user activity tracking with session-based counting.
 
 **What the example does:**
 
@@ -604,7 +628,8 @@ The key to look up in the table being joined with
     {% include "../definitions/reference/functions/foreignkeyextractor-processor.yaml" %}
     ```
 
-The foreignKeyExtractor enables table joins where the join key is embedded within the record value rather than being the record key. This example demonstrates order enrichment by joining with customer data using a foreign key relationship.
+The foreignKeyExtractor enables table joins where the join key is embedded within the record value rather than being the
+record key. This example demonstrates order enrichment by joining with customer data using a foreign key relationship.
 
 **Example**
 
@@ -635,7 +660,7 @@ When running this example, you'll see log messages like:
 This pattern is commonly used for:
 
 - Order enrichment with customer details
-- Transaction enrichment with account information  
+- Transaction enrichment with account information
 - Event enrichment with user profiles
 - Any scenario where records contain foreign key references
 
@@ -692,7 +717,8 @@ String to be written to file or stdout
 
 #### Example
 
-The keyValuePrinter formats records for human-readable output to stdout or files. This example shows converting sales data into formatted reports for monitoring and debugging.
+The keyValuePrinter formats records for human-readable output to stdout or files. This example shows converting sales
+data into formatted reports for monitoring and debugging.
 
 ??? info "Producer - Sales Data Generation (click to expand)"
 
@@ -762,6 +788,7 @@ Modified metadata for the output message
 **This example:**
 
 - Shows metadata enrichment in stream processing.
+
 * Generates realistic API events (endpoints + status codes)
 * Enriches headers with timestamps, severity, processor ID
 * Classifies events (critical/warning/info) by status code
@@ -781,14 +808,16 @@ When running this example, you'll see enriched events with additional headers:
 
 ### valueJoiner
 
-Combines values from two streams or tables during join operations, creating enriched records that contain data from both sources. The function must handle cases where one or both values might be null, depending on the join type (inner, left, outer). This function has access to the join key for context-aware value combination.
+Combines values from two streams or tables during join operations, creating enriched records that contain data from both
+sources. The function must handle cases where one or both values might be null, depending on the join type (inner, left,
+outer). This function has access to the join key for context-aware value combination.
 
 #### Parameters
 
-| Parameter | Type | Description                      |
-|-----------|------|----------------------------------|
-| key       | Any  | The join key used to match records |
-| value1    | Any  | The value from the first stream/table |
+| Parameter | Type | Description                            |
+|-----------|------|----------------------------------------|
+| key       | Any  | The join key used to match records     |
+| value1    | Any  | The value from the first stream/table  |
 | value2    | Any  | The value from the second stream/table |
 
 #### Return Value
@@ -797,7 +826,7 @@ Combined value
 
 #### Example
 
-- [Tutorial: Joins](../tutorials/intermediate/joins.md#core-join-concepts) - valueJoiner functions for stream enrichment
+- [Tutorial: Joins](../tutorials/intermediate/joins.md#core-join-concepts) for learning about stream enrichment
 
 ## Stream Related Functions
 
@@ -807,10 +836,10 @@ Extracts timestamps from messages for time-based operations.
 
 #### Parameters
 
-| Parameter         | Type   | Description                                      |
-|-------------------|--------|--------------------------------------------------|
+| Parameter         | Type   | Description                                                       |
+|-------------------|--------|-------------------------------------------------------------------|
 | record            | Object | The ConsumerRecord containing key, value, timestamp, and metadata |
-| previousTimestamp | Long   | The previous timestamp (can be used as fallback) |
+| previousTimestamp | Long   | The previous timestamp (can be used as fallback)                  |
 
 #### Return Value
 
@@ -847,12 +876,14 @@ Demonstrates custom timestamp extraction for event-time processing:
 When running this example, you'll see events processed in time order:
 
 - `Event processed in time order: event_0001 (event_time=1755974335641, delay=155s)`
-- `Event processed in time order: event_0002 (event_time=1755974539885, delay=41s)`  
+- `Event processed in time order: event_0002 (event_time=1755974539885, delay=41s)`
 - Log messages showing: "Using event timestamp: 1755974601885 for event_0015"
 
 ### topicNameExtractor
 
-Dynamically determines the target topic for message routing based on record content. This enables intelligent message distribution, multi-tenancy support, and content-based routing patterns without requiring separate processing pipelines. The function has access to record context for advanced routing decisions.
+Dynamically determines the target topic for message routing based on record content. This enables intelligent message
+distribution, multi-tenancy support, and content-based routing patterns without requiring separate processing pipelines.
+The function has access to record context for advanced routing decisions.
 
 #### Parameters
 
@@ -957,7 +988,7 @@ Demonstrates how to create reusable business logic with generic functions:
 When running these examples, you will see:
 
 - Product data being generated with random base prices and discount rates
-- Log messages showing: "Processed product: prod_001 - Original: $856.58, Final: $922.50, Saved: $128.49" 
+- Log messages showing: "Processed product: prod_001 - Original: $856.58, Final: $922.50, Saved: $128.49"
 - Each product enriched with detailed pricing calculations including tax
 - Generic function providing consistent pricing logic across all products
 
@@ -973,22 +1004,23 @@ When running these examples, you will see:
 
 ## How KSML Functions Relate to Kafka Streams
 
-KSML functions are Python implementations that map directly to Kafka Streams Java interfaces. Understanding this relationship helps you leverage Kafka Streams documentation and concepts:
+KSML functions are Python implementations that map directly to Kafka Streams Java interfaces. Understanding this
+relationship helps you leverage Kafka Streams documentation and concepts:
 
 ### Direct Mappings
 
-| KSML Function Type | Kafka Streams Interface | Purpose |
-|-------------------|-------------------------|---------|
-| predicate | `Predicate<K,V>` | Filter records based on conditions |
-| valueTransformer | `ValueTransformer<V,VR>` / `ValueMapper<V,VR>` | Transform values |
-| keyTransformer | `KeyValueMapper<K,V,KR>` | Transform keys |
-| keyValueTransformer | `KeyValueMapper<K,V,KeyValue<KR,VR>>` | Transform both key and value |
-| forEach | `ForeachAction<K,V>` | Process records for side effects |
-| aggregator | `Aggregator<K,V,VA>` | Aggregate records incrementally |
-| initializer | `Initializer<VA>` | Provide initial aggregation values |
-| reducer | `Reducer<V>` | Combine values of same type |
-| merger | `Merger<K,V>` | Merge aggregation results |
-| valueJoiner | `ValueJoiner<V1,V2,VR>` | Join values from two streams |
-| timestampExtractor | `TimestampExtractor` | Extract event time from records |
-| foreignKeyExtractor | `Function<V,FK>` | Extract foreign key for joins |
-| topicNameExtractor | `TopicNameExtractor<K,V>` | Dynamic topic routing |
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
+| predicate           | `Predicate<K,V>`                               | Filter records based on conditions |
+| valueTransformer    | `ValueTransformer<V,VR>` / `ValueMapper<V,VR>` | Transform values                   |
+| keyTransformer      | `KeyValueMapper<K,V,KR>`                       | Transform keys                     |
+| keyValueTransformer | `KeyValueMapper<K,V,KeyValue<KR,VR>>`          | Transform both key and value       |
+| forEach             | `ForeachAction<K,V>`                           | Process records for side effects   |
+| aggregator          | `Aggregator<K,V,VA>`                           | Aggregate records incrementally    |
+| initializer         | `Initializer<VA>`                              | Provide initial aggregation values |
+| reducer             | `Reducer<V>`                                   | Combine values of same type        |
+| merger              | `Merger<K,V>`                                  | Merge aggregation results          |
+| valueJoiner         | `ValueJoiner<V1,V2,VR>`                        | Join values from two streams       |
+| timestampExtractor  | `TimestampExtractor`                           | Extract event time from records    |
+| foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
+| topicNameExtractor  | `TopicNameExtractor<K,V>`                      | Dynamic topic routing              |

@@ -102,8 +102,7 @@ functions:
 
 **See it in action**:
 
-- [List example](../reference/function-reference.md#keyvaluetovaluelisttransformer) - predicate functions for data filtering
-
+- [List example](../reference/function-reference.md#keyvaluetovaluelisttransformer) for predicate functions for data filtering
 
 
 #### Struct
