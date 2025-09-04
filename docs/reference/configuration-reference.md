@@ -427,8 +427,8 @@ kafka:
   axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
   
   # Pattern variables
-  tenant: "my-tenant"
-  instance: "my-instance"
+  tenant: "mytenant"
+  instance: "myinstance"
   environment: "dev"
 ```
 
