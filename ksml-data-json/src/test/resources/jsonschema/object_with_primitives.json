@@ -1,0 +1,22 @@
+{
+  "title": "ObjWithPrims",
+  "description": "Example object with primitive fields",
+  "type": "object",
+  "properties": {
+    "aString": {
+      "type": "string"
+    },
+    "aBoolean": {
+      "type": "boolean"
+    },
+    "anInteger": {
+      "type": "integer"
+    },
+    "aNumber": {
+      "type": "number"
+    },
+    "aNull": {
+      "type": "null"
+    }
+  }
+}

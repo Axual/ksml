@@ -1,0 +1,94 @@
+{
+  "title": "ComplexFeatures",
+  "type": "object",
+  "properties": {
+    "str": {
+      "type": "string"
+    },
+    "bool": {
+      "type": "boolean"
+    },
+    "int": {
+      "type": "integer"
+    },
+    "num": {
+      "type": "number"
+    },
+    "nullField": {
+      "type": "null"
+    },
+    "reqStr": {
+      "type": "string"
+    },
+    "arrayAny": {
+      "type": "array"
+    },
+    "arrayString": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "color": {
+      "enum": [
+        "RED",
+        "GREEN",
+        "BLUE"
+      ]
+    },
+    "idUnion": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "innerRef": {
+      "type": "object",
+      "$ref": "#/definitions/Inner"
+    },
+    "arrComplex": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "enum": [
+              "A",
+              "B"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "v": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "reqStr"
+  ],
+  "definitions": {
+    "Inner": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "string"
+        },
+        "y": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "x"
+      ]
+    }
+  }
+}
