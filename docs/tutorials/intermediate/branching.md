@@ -343,4 +343,4 @@ Branching in KSML provides powerful conditional routing capabilities that map di
 
 ## Next Steps
 
-- [Reference: Branch Operations](../../reference/operation-reference.md/#branch-operations)
+- [Reference: Branch Operations](../../reference/operation-reference.md/#branching-and-merging)

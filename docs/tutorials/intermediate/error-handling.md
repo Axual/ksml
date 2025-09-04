@@ -221,4 +221,4 @@ Prevent cascading failures by temporarily stopping calls to failing services, al
 
 - [Stream Processing Operations Reference](../../reference/operation-reference.md)
 - [Function Types Reference](../../reference/function-reference.md)
-- [Advanced Stream Processing Patterns](../advanced/)
+- [Advanced Stream Processing Patterns](../advanced/index.md)

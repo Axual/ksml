@@ -53,4 +53,4 @@ After completing these tutorials, you'll have a comprehensive understanding of K
 
 Now that you've mastered KSML, it's time to apply your knowledge to real-world scenarios:
 
-👉 **Explore [Use Case Guides](../../use-cases/)** to see how KSML solves common business problems and get inspiration for your own projects.
+👉 **Explore [Use Case Guides](../../use-cases/index.md)** to see how KSML solves common business problems and get inspiration for your own projects.

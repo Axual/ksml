@@ -20,7 +20,7 @@ Before starting this guide, you should:
 - Understand basic KSML concepts (streams, functions, pipelines)
 - Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
 - Be familiar with [Aggregations](../tutorials/intermediate/aggregations.md)
-- Have a basic understanding of [Windowed Operations](../tutorials/intermediate/windowed-operations.md)
+- Have a basic understanding of [Windowed Operations](../tutorials/intermediate/windowing.md)
 - Be familiar with [State Stores](../tutorials/intermediate/state-stores.md)
 
 ## The Use Case
@@ -131,8 +131,6 @@ To make your fraud detection system actionable, you need to generate alerts:
     ```yaml
     {%
       include "../definitions/use-cases/fraud-detection/fraud-notifications.yaml"
-      start="## Functions"
-      end="## End of Functions"
     %}
     ```
 
@@ -141,7 +139,7 @@ To make your fraud detection system actionable, you need to generate alerts:
 To test your fraud detection system:
 
 1. Generate sample transaction data with known fraud patterns
-2. Deploy your KSML application using the [KSML Runner](../reference/runner-reference.md)
+2. Deploy your KSML application using the [proper configuration](../reference/configuration-reference.md)
 3. Monitor the alert topics to verify detection accuracy
 4. Adjust thresholds and rules to balance detection rate and false positives
 
@@ -162,6 +160,6 @@ KSML provides a powerful platform for building sophisticated fraud detection sys
 
 For more advanced fraud detection scenarios, explore:
 
-- [Machine Learning Integration](../tutorials/advanced/ml-integration.md) for more sophisticated fraud models
 - [Complex Event Processing](../tutorials/advanced/complex-event-processing.md) for detecting multi-stage fraud patterns
-- [External Service Integration](../tutorials/advanced/external-services.md) for incorporating third-party risk scores
+- [External Service Integration](../tutorials/advanced/external-integration.md) for incorporating third-party risk scores
+- [KSML Definition Reference](../reference/definition-reference.md) for the full explanation of KSML definition syntax

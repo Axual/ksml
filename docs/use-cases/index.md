@@ -75,6 +75,6 @@ You can follow these guides end-to-end to implement the complete solution, or ad
 ## Additional Resources
 
 - [Examples Library](../resources/examples-library.md) - Ready-to-use examples for common patterns
-- [Core Concepts](../reference/stream-type-reference.md) - Detailed explanations of KSML components
+- [KSML Definition Reference](../reference/definition-reference.md) - Full explanation of KSML definition syntax
 - [Reference Documentation](../reference/operation-reference.md) - Complete reference for all KSML operations
 - [Community and Support](../resources/community.md) - Connect with other KSML users and get help

@@ -115,7 +115,7 @@ In the cloud, you can perform more complex analytics and aggregations:
 To test your IoT data processing pipeline:
 
 1. Generate sample IoT data using a simulator or replay historical data
-2. Deploy your KSML application using the [KSML Runner](../reference/runner-reference.md)
+2. Deploy your KSML application using the [proper configuration](../reference/configuration-reference.md)
 3. Monitor the output topics to verify correct processing
 4. Use visualization tools to display the processed data
 
@@ -136,6 +136,6 @@ KSML provides a powerful and flexible way to process IoT data streams. By combin
 
 For more advanced IoT scenarios, explore:
 
-- [Machine Learning Integration](../tutorials/advanced/ml-integration.md) for predictive maintenance
 - [Complex Event Processing](../tutorials/advanced/complex-event-processing.md) for pattern detection
-- [Custom Functions](../tutorials/advanced/custom-functions.md) for domain-specific processing
+- [Custom Functions](../reference/function-reference.md) for domain-specific processing
+- [KSML Definition Reference](../reference/definition-reference.md) for the full explanation of KSML definition syntax

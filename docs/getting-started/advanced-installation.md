@@ -249,4 +249,4 @@ Once you have KSML set up in your environment:
 
 - Return to the [Installation Guide](quick-start.md) for the quick start
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to learn KSML concepts
-- Explore the [Core Concepts](../reference/stream-type-reference.md) documentation
+- Explore the [KSML Definition Reference](../reference/definition-reference.md) documentation
