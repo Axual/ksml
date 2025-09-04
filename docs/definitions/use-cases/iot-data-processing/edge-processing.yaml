@@ -1,3 +1,16 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+streams:
+  raw_sensor_readings:
+    topic: iot_sensor_readings
+    keyType: string
+    valueType: json
+
+  edge_processed_readings:
+    topic: edge_processed_readings
+    keyType: string
+    valueType: json
+
 pipelines:
   edge_preprocessing:
     from: raw_sensor_readings
@@ -5,8 +18,9 @@ pipelines:
       - type: filter
         if:
           code: |
-            # Only forward significant changes
-            return value.get("readings", {}).get("temperature_change") > 0.5
+            # Forward temperatures outside comfortable range (more data for cloud analytics)
+            temp = value.get("readings", {}).get("temperature")
+            return temp is not None and (temp < 18.0 or temp > 26.0)
       - type: transformValue
         mapper:
           code: |
