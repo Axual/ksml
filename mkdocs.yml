@@ -9,6 +9,7 @@ theme:
     - content.code.copy
 
 plugins:
+  - search
   - include-markdown:
       encoding: ascii
       preserve_includer_indent: true
