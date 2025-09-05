@@ -43,6 +43,24 @@ import io.axual.ksml.data.type.Symbol;
 
 import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
+/**
+ * Mapper between JSON Schema text and KSML DataSchema.
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Parse a JSON Schema document (as String or DataStruct) into {@link DataSchema}, producing
+ *       a {@link StructSchema} with fields, required markers, additionalProperties, lists, unions, and enums.</li>
+ *   <li>Generate a JSON Schema (as a DataStruct or compact String) from a {@link DataSchema}, including
+ *       definitions when fields reference reusable structures.</li>
+ * </ul>
+ *
+ * <p>Design notes:</p>
+ * <ul>
+ *   <li>Parsing happens via {@link JsonDataObjectMapper} to get a DataStruct view of the input JSON.</li>
+ *   <li>A simple ReferenceResolver supports local $ref paths within the same JSON document.</li>
+ *   <li>Only a subset of JSON Schema keywords is handled as required by KSML.</li>
+ * </ul>
+ */
 public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String TITLE_NAME = "title";
     private static final String DESCRIPTION_NAME = "description";
@@ -66,10 +84,27 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String STRING_TYPE = "string";
     private final JsonDataObjectMapper mapper;
 
+    /**
+     * Creates a mapper for JSON Schema <-> DataSchema conversions.
+     *
+     * @param prettyPrint when true, JSON emitted by {@link #fromDataSchema(DataSchema)} is formatted
+     */
     public JsonSchemaMapper(boolean prettyPrint) {
         mapper = new JsonDataObjectMapper(prettyPrint);
     }
 
+    /**
+     * Parses a JSON Schema document (string) into a KSML {@link DataSchema}.
+     *
+     * <p>The JSON is first converted to a DataStruct via {@link JsonDataObjectMapper}, after which
+     * this mapper interprets JSON Schema keywords and builds a {@link StructSchema} or related types.</p>
+     *
+     * @param namespace the target namespace for the resulting StructSchema
+     * @param name the default schema name used when no explicit title is present
+     * @param value the JSON Schema document as a String
+     * @return the parsed DataSchema
+     * @throws IllegalArgumentException when the input does not parse into a DataStruct
+     */
     @Override
     public DataSchema toDataSchema(String namespace, String name, String value) {
         // Convert JSON to internal DataObject format
@@ -95,6 +130,15 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return toDataSchema(namespace, name, schemaStruct, referenceResolver);
     }
 
+    /**
+     * Internal parse step that interprets a JSON Schema represented as a DataStruct.
+     *
+     * @param namespace target namespace for the resulting StructSchema
+     * @param name default name when title is absent
+     * @param schema the JSON Schema as DataStruct
+     * @param referenceResolver resolves local $ref paths within the same document
+     * @return a DataSchema equivalent
+     */
     private DataSchema toDataSchema(String namespace, String name, DataStruct schema, ReferenceResolver<DataStruct> referenceResolver) {
         final var title = schema.getAsString(TITLE_NAME);
         final var doc = schema.getAsString(DESCRIPTION_NAME);
@@ -130,6 +174,14 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
                 .build();
     }
 
+    /**
+     * Converts JSON Schema 'properties' into a list of KSML DataFields.
+     *
+     * @param properties a DataStruct mapping property names to their JSON Schema specs
+     * @param requiredProperties set of required property names
+     * @param referenceResolver resolver for local $ref targets
+     * @return list of DataField instances in no particular order
+     */
     private List<DataField> convertFields(DataStruct properties, Set<String> requiredProperties, ReferenceResolver<DataStruct> referenceResolver) {
         var result = new ArrayList<DataField>();
         for (var entry : properties.entrySet()) {
@@ -144,6 +196,10 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
+    /**
+     * Converts a JSON Schema type specification (as DataStruct) into a KSML {@link DataSchema}.
+     * Supports anyOf (unions), enum, primitive types, arrays (items) and objects (with optional $ref).
+     */
     private DataSchema convertType(DataStruct specStruct, ReferenceResolver<DataStruct> referenceResolver) {
         final var anyOf = specStruct.get(ANY_OF_NAME);
         if (anyOf instanceof DataList anyOfList) {
@@ -186,6 +242,10 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         };
     }
 
+    /**
+     * Converts a JSON Schema 'array' specification into a {@link ListSchema}.
+     * Uses 'items' to define the value schema; defaults to ANY when missing.
+     */
     private ListSchema toListSchema(DataStruct spec, ReferenceResolver<DataStruct> referenceResolver) {
         var items = spec.get(ITEMS_NAME);
         if (items instanceof DataStruct itemsStruct) {
@@ -195,6 +255,10 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return new ListSchema(DataSchema.ANY_SCHEMA);
     }
 
+    /**
+     * Generates a JSON Schema document (as String) from a KSML {@link DataSchema}.
+     * Only {@link StructSchema} is emitted; other schema kinds return null.
+     */
     @Override
     public String fromDataSchema(DataSchema schema) {
         if (schema instanceof StructSchema structSchema) {
@@ -206,10 +270,20 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return null;
     }
 
+    /**
+     * Minimal callback used to collect/declare reusable schema definitions when generating JSON Schema.
+     */
     private interface DefinitionLibrary {
+        /**
+         * Registers a definition by name if absent, with its corresponding JSON Schema (as DataStruct).
+         */
         void put(String name, DataStruct schema);
     }
 
+    /**
+     * Translates a {@link StructSchema} into a JSON Schema represented as DataStruct.
+     * Populates $defs with referenced structures if any are encountered.
+     */
     private DataStruct fromDataSchema(StructSchema structSchema) {
         final var definitions = new DataStruct();
         final var result = fromDataSchema(structSchema, definitions::putIfAbsent);
@@ -219,6 +293,10 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
+    /**
+     * Translates a {@link StructSchema} into a JSON Schema DataStruct, using a definition library
+     * to collect reusable structures by name and reference them via $ref.
+     */
     private DataStruct fromDataSchema(StructSchema structSchema, DefinitionLibrary definitions) {
         final var result = new DataStruct();
         final var title = structSchema.name();

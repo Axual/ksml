@@ -47,6 +47,14 @@ import static io.axual.ksml.data.schema.DataSchema.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatObject;
 
+/**
+ * Tests for {@link JsonSchemaMapper} validating JSON Schema <-> KSML DataSchema conversions.
+ *
+ * <p>These tests use AssertJ chained assertions and SoftAssertions to verify multiple
+ * properties in one go, similar to other tests in this module. Representative
+ * JSON Schema samples are parsed into StructSchema/DataSchema and converted back
+ * to JSON to assert round-trip fidelity.</p>
+ */
 @DisplayName("JsonSchemaMapper - JSON Schema <-> KSML DataSchema")
 class JsonSchemaMapperTest {
     private static final ObjectMapper JACKSON = new ObjectMapper();

@@ -51,6 +51,14 @@ import io.axual.ksml.data.type.DataType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 
+/**
+ * Tests for {@link JsonDataObjectMapper} verifying JSON <-> DataObject conversions.
+ *
+ * <p>Scenarios covered: round-trips for JSON objects and arrays, null handling,
+ * and primitive value mapping. JSON trees are compared using Jackson to ensure
+ * semantic equality. Assertions follow the AssertJ chained style used in the
+ * module's other tests (e.g., JsonSchemaMapperTest).</p>
+ */
 @DisplayName("JsonDataObjectMapper - JSON <-> DataObject conversions")
 class JsonDataObjectMapperTest {
     private static final ObjectMapper JACKSON = new ObjectMapper();
