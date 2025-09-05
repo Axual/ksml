@@ -55,6 +55,7 @@ class ApicurioJsonSchemaSerdeSupplierTest {
         configs.putIfAbsent("apicurio.registry.headers.enabled", "myconfig");
         configs.putIfAbsent("apicurio.registry.as-confluent", "myconfig");
         configs.putIfAbsent("apicurio.registry.use-id", "myconfig");
+        configs.putIfAbsent("apicurio.registry.serdes.json-schema.validation-enabled", "false");
         serde.configure(configs, false);
         // Capture the config map passed into the delegate serializer
         verify(delegateSerializer).configure(configCaptor.capture(), any(Boolean.class));
@@ -63,6 +64,7 @@ class ApicurioJsonSchemaSerdeSupplierTest {
         assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.headers.enabled"));
         assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.as-confluent"));
         assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.use-id"));
+        assertEquals("false", modifiedConfigs.get("apicurio.registry.serdes.json-schema.validation-enabled"));
     }
 
     @Test
@@ -87,6 +89,7 @@ class ApicurioJsonSchemaSerdeSupplierTest {
         assertEquals("io.apicurio.registry.serde.strategy.TopicIdStrategy", modifiedConfigs.get("apicurio.registry.artifact-resolver-strategy"));
         assertEquals(false, modifiedConfigs.get("apicurio.registry.headers.enabled"), "Expected default config enabling payload encoding");
         assertEquals(true, modifiedConfigs.get("apicurio.registry.as-confluent"), "Expected default config enabling Confluent compatibility");
+        assertEquals(true, modifiedConfigs.get("apicurio.registry.serdes.json-schema.validation-enabled"), "Expected default config enabling json schema validation");
         assertEquals("contentId", modifiedConfigs.get("apicurio.registry.use-id"), "Expected default config using contentId as schema id");
         // New: default id-handler should be injected as well
         assertEquals("io.apicurio.registry.serde.Legacy4ByteIdHandler", modifiedConfigs.get("apicurio.registry.id-handler"), "Expected default id handler to be set");
