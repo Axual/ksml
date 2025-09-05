@@ -72,7 +72,7 @@ public class ApicurioProtobufSerdeSupplier implements ProtobufSerdeSupplier {
         }
 
         @Override
-        public Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
+        protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
             // Configure header filtering
             final String messageTypeHeaderName;
             if (isKey) {

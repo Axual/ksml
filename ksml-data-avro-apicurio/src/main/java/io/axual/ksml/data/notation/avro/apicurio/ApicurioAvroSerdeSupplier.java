@@ -61,7 +61,7 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
         }
 
         @Override
-        public Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
+        protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
             // Enable payload encoding by default
             configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
             configs.putIfAbsent("apicurio.registry.headers.enabled", false);
