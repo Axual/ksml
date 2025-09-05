@@ -1,8 +1,11 @@
 # Function Reference
 
-This document provides a comprehensive reference for all function types available in KSML. Functions in KSML allow you
-to implement custom logic for processing your streaming data using Python, making stream processing accessible to data
-scientists, analysts, and developers who may not be familiar with Java or Kafka Streams API.
+KSML functions let you implement custom stream-processing logic in Python.
+They make it easier for data scientists, analysts, and developers to process streaming data 
+without needing Java or the Kafka Streams API.
+
+Functions extend built-in operations, enabling custom business logic, transformations, and
+processing within the KSML runtime- combining Kafka Streams’ power with Python’s simplicity.
 
 ## Function Definition Structure
 
@@ -24,13 +27,7 @@ properties:
 parameters beyond these built-in ones. These additional parameters can then be passed when calling the function from
 Python code.
 
-## What are Functions in KSML?
-
-Functions provide the flexibility to go beyond built-in operations and implement specific business logic,
-transformations, and data processing requirements. They are written in Python and executed within the KSML runtime,
-combining the power of Kafka Streams with the simplicity and expressiveness of Python.
-
-## Writing Python Functions
+## Writing KSML Functions
 
 ### Example KSML Function Definition
 
@@ -215,30 +212,9 @@ parameters:
 **Important:** The `parameters` property **adds to** the built-in parameters - it doesn't replace them. Built-in
 parameters like `key` and `value` are still available in your function code.
 
-## Function Execution Context
-
-When your Python functions execute, they have access to:
-
-- **Logger**: For outputting information to application logs
-    - `log.<log-level>("Debug message")` - <log_level> can be debug, info, warn, error, trace
-
-- **Metrics**: For monitoring function performance and behavior
-    - `metrics.counter("name").increment()` - Count occurrences
-    - `metrics.gauge("name").record(value)` - Record values
-    - `with metrics.timer("name"):` - Measure execution time
-
-- **State Stores**: For maintaining state between function invocations (when configured)
-    - `store.get(key)` - Retrieve value from store
-    - `store.put(key, value)` - Store a value
-    - `store.delete(key)` - Remove a value
-    - Must be declared in the function's `stores` parameter
-
-This execution context provides the tools needed for debugging, monitoring, and implementing stateful processing.
-
 ## Function Types Overview
 
-KSML supports 21 function types, each designed for specific purposes in stream processing. Functions can range from
-simple one-liners to complex implementations with multiple operations:
+Below is a table with all 21 function types in KSML.
 
 | Function Type                                                           | Purpose                                          | Used In                                     |
 |-------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------|
@@ -293,7 +269,7 @@ None (the function is called for its side effects)
 --8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
 ```
 
-**See how `forEach` is used in an example definition**:
+**Full example for `forEach`**:
 
 - [Tutorial: Filtering and Transforming Example](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
 
@@ -326,7 +302,7 @@ partitioning.
 
 **Complete Working Example:**
 
-??? info "Producer - Regional Transaction Data (click to expand)"
+??? info "Producer - `keyTransformer` example (click to expand)"
 
     ```yaml
     {%
@@ -334,7 +310,7 @@ partitioning.
     %}
     ```
 
-??? info "Processor - Repartition by Region (click to expand)"
+??? info "Processor - `keyTransformer` example (click to expand)"
 
     ```yaml
     {%
@@ -344,8 +320,7 @@ partitioning.
 
 **Additional Example:**
 
-See how `keyTransformer` is used for stream-table
-joins: [Stream Table Join Tutorial](../tutorials/intermediate/joins.md#use-case-order-enrichment)
+**Full example for `keyTransformer`**: [Stream Table Join Tutorial](../tutorials/intermediate/joins.md#use-case-order-enrichment)
 
 ### keyValueToKeyValueListTransformer
 
@@ -365,6 +340,10 @@ repartitioning.
 A list of key-value pairs `[(key1, value1), (key2, value2), ...]`
 
 #### Example
+
+```yaml
+--8<-- "definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml:12:42"
+```
 
 This example demonstrates splitting batch orders into individual orders with unique keys, useful for processing bulk
 data into individual records.
@@ -399,7 +378,11 @@ A list of values `[value1, value2, ...]` that will be combined with the original
 
 #### Example
 
-??? info "Producer - Order Data with Items (click to expand)"
+```yaml
+--8<-- "definitions/reference/functions/keyvaluetovaluelisttransformer-processor.yaml:12:40"
+```
+
+??? info "Producer - `keyValueToValueListTransformer` example (click to expand)"
 
     ```yaml
     {%
@@ -407,7 +390,7 @@ A list of values `[value1, value2, ...]` that will be combined with the original
     %}
     ```
 
-??? info "Processor - Explode Order Items (click to expand)"
+??? info "Processor - `keyValueToValueListTransformer` example (click to expand)"
 
     ```yaml
     {%
@@ -432,7 +415,11 @@ A tuple of (new_key, new_value)
 
 #### Example
 
-**See how `keyValueTransformer` is used in an example definition**:
+```yaml
+--8<-- "definitions/advanced-tutorial/external-integration/processor-async-integration.yaml:25:93"
+```
+
+**Full example for `keyValueTransformer`**:
 
 - [Async Integration Pattern with
   `keyValueTransformer`](../tutorials/advanced/external-integration.md#async-integration-pattern)
@@ -454,7 +441,11 @@ Boolean (true or false)
 
 #### Example
 
-**See it in action**:
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml:12:25"
+```
+
+**Full example for `predicate`**:
 
 - [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
   for predicate functions for data filtering
@@ -476,7 +467,11 @@ New value for the output message
 
 #### Example
 
-**See it in action**:
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:24:34"
+```
+
+**Full example for `valueTransformer`**:
 
 - [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#applying-multiple-transformations)
   for understanding valueTransformer for data enrichment
@@ -501,7 +496,11 @@ New aggregated value
 
 #### Example
 
-**See it in action**:
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:26:45"
+```
+
+**Full example for `aggregator`**:
 
 - [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#aggregate-example) for comprehensive aggregator
   function examples
@@ -520,7 +519,11 @@ Initial value for aggregation
 
 #### Example
 
-**See it in action**:
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:13:24"
+```
+
+**Full example for `initializer`**:
 
 - [Example for `initializer`](../tutorials/intermediate/aggregations.md#complex-example-regional-sales-analytics)
 
@@ -542,13 +545,18 @@ The merged aggregation result
 
 #### Example
 
-??? info "Producer - Session Activity Events (click to expand)"
+```yaml
+--8<-- "definitions/reference/functions/merger-example-processor.yaml:23:35"
+```
+
+
+??? info "Producer - `merger` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/merger-example-producer.yaml" %}
     ```
 
-??? info "Processor - Session Window with Merger (click to expand)"
+??? info "Processor - `merger` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/merger-example-processor.yaml" %}
@@ -596,7 +604,13 @@ Combines two values into one.
 
 Combined value
 
-**See how `reducer` is used in an example definition**:
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-reduce.yaml:24:30"
+```
+
+**Full example for `reducer`**:
 
 - [Example for `reducer` function](../tutorials/intermediate/aggregations.md#human-readable-reduce-json-format)
 
@@ -618,13 +632,18 @@ The key to look up in the table being joined with
 
 #### Example
 
-??? info "Producer - Orders and Customers (click to expand)"
+```yaml
+--8<-- "definitions/reference/functions/foreignkeyextractor-processor.yaml:15:26"
+```
+
+
+??? info "Producer - `foreignKeyExtractor` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/foreignkeyextractor-producer.yaml" %}
     ```
 
-??? info "Processor - Table Join with ForeignKeyExtractor (click to expand)"
+??? info "Processor - `foreignKeyExtractor` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/foreignkeyextractor-processor.yaml" %}
@@ -678,7 +697,13 @@ None
 
 A tuple of (key, value) representing the generated message
 
-#### See how `generator` is used in an example definition:
+#### Example
+
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml:2:16"
+```
+
+**Full example for `generator`**:
 
 - [Example: Generating JSON data](../tutorials/beginner/filtering-transforming.md#creating-test-data)
 - [Example: Generating AVRO data](../tutorials/beginner/data-formats.md#working-with-avro-data)
@@ -698,7 +723,13 @@ Transforms both the key and value of a record.
 
 Tuple of (new_key, new_value)
 
-#### See how `keyValueMapper` is used in an example definition:
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:19:25"
+```
+
+**Full example for `keyValueMapper`**:
 
 - [Example: Product Catalog Enrichment](../tutorials/intermediate/joins.md#use-case-product-catalog-enrichment)
 
@@ -722,13 +753,13 @@ String to be written to file or stdout
 The keyValuePrinter formats records for human-readable output to stdout or files. This example shows converting sales
 data into formatted reports for monitoring and debugging.
 
-??? info "Producer - Sales Data Generation (click to expand)"
+??? info "Producer - `keyValuePrinter` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/keyvalueprinter-producer.yaml" %}
     ```
 
-??? info "Processor - Sales Report Formatting (click to expand)"
+??? info "Processor - `keyValuePrinter` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/keyvalueprinter-processor.yaml" %}
@@ -775,13 +806,17 @@ Modified metadata for the output message
 
 #### Example
 
-??? info "Producer - API Event Generation (click to expand)"
+```yaml
+--8<-- "definitions/reference/functions/metadatatransformer-processor.yaml:8:32"
+```
+
+??? info "Producer - `metadataTransformer` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/metadatatransformer-producer.yaml" %}
     ```
 
-??? info "Processor - Header Enrichment and Processing (click to expand)"
+??? info "Processor - `metadataTransformer` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/metadatatransformer-processor.yaml" %}
@@ -828,6 +863,12 @@ Combined value
 
 #### Example
 
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:27:47"
+```
+
+**Full example for `valueJoiner`**:
+
 - [Tutorial: Joins](../tutorials/intermediate/joins.md#core-join-concepts) for learning about stream enrichment
 
 ## Stream Related Functions
@@ -849,13 +890,17 @@ Timestamp in milliseconds (long)
 
 #### Example
 
-??? info "Producer - Events with Custom Timestamps (click to expand)"
+```yaml
+--8<-- "definitions/reference/functions/timestampextractor-processor.yaml:7:35"
+```
+
+??? info "Producer - `timestampExtractor` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/timestampextractor-producer.yaml" %}
     ```
 
-??? info "Processor - Extract Event Time (click to expand)"
+??? info "Processor - `timestampExtractor` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/timestampextractor-processor.yaml" %}
@@ -901,13 +946,17 @@ String representing the topic name to send the message to
 
 #### Example
 
-??? info "Producer - Mixed Sensor Data (click to expand)"
+```yaml
+--8<-- "definitions/reference/functions/topicnameextractor-processor.yaml:24:47"
+```
+
+??? info "Producer - `topicNameExtractor` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/topicnameextractor-producer.yaml" %}
     ```
 
-??? info "Processor - Dynamic Topic Routing (click to expand)"
+??? info "Processor - `topicNameExtractor` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/topicnameextractor-processor.yaml" %}
@@ -956,13 +1005,17 @@ Any value, depending on the function's purpose
 
 #### Example
 
-??? info "Producer - Product Data Generation (click to expand)"
+```yaml
+--8<-- "definitions/reference/functions/generic-processor.yaml:8:34"
+```
+
+??? info "Producer - `generic` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/generic-producer.yaml" %}
     ```
 
-??? info "Processor - Price Calculation with Generic Function (click to expand)"
+??? info "Processor - `generic` example (click to expand)"
 
     ```yaml
     {% include "../definitions/reference/functions/generic-processor.yaml" %}
@@ -994,16 +1047,6 @@ When running these examples, you will see:
 - Each product enriched with detailed pricing calculations including tax
 - Generic function providing consistent pricing logic across all products
 
-## Best Practices
-
-1. **Keep functions focused**: Each function should do one thing well
-2. **Handle errors gracefully**: Use try/except blocks to prevent pipeline failures
-3. **Consider performance**: Python functions introduce some overhead, so keep them efficient
-4. **Use appropriate function types**: Choose the right function type for your use case
-5. **Leverage state stores**: For complex stateful operations, use state stores rather than global variables
-6. **Document your functions**: Add comments to explain complex logic and business rules
-7. **Test thoroughly**: Write unit tests for your functions to ensure they behave as expected
-
 ## How KSML Functions Relate to Kafka Streams
 
 KSML functions are Python implementations that map directly to Kafka Streams Java interfaces. Understanding this
@@ -1026,3 +1069,23 @@ relationship helps you leverage Kafka Streams documentation and concepts:
 | timestampExtractor  | `TimestampExtractor`                           | Extract event time from records    |
 | foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
 | topicNameExtractor  | `TopicNameExtractor<K,V>`                      | Dynamic topic routing              |
+
+## Function Execution Context
+
+When your Python functions execute, they have access to:
+
+- **Logger**: For outputting information to application logs
+    - `log.<log-level>("Debug message")` - <log_level> can be debug, info, warn, error, trace
+
+- **Metrics**: For monitoring function performance and behavior
+    - `metrics.counter("name").increment()` - Count occurrences
+    - `metrics.gauge("name").record(value)` - Record values
+    - `with metrics.timer("name"):` - Measure execution time
+
+- **State Stores**: For maintaining state between function invocations (when configured)
+    - `store.get(key)` - Retrieve value from store
+    - `store.put(key, value)` - Store a value
+    - `store.delete(key)` - Remove a value
+    - Must be declared in the function's `stores` parameter
+
+This execution context provides the tools needed for debugging, monitoring, and implementing stateful processing.

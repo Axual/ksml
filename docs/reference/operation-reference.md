@@ -87,9 +87,15 @@ The `mapper` can be defined using:
 - `expression`: A simple expression returning a tuple (key, value)
 - `code`: A Python code block returning a tuple (key, value)
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:67:68"
+```
+
+**Full example for `map`**:
+
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#applying-multiple-transformations)
 
 ### `mapValues`
 
@@ -106,9 +112,15 @@ The `mapper` can be defined using:
 - `expression`: A simple expression
 - `code`: A Python code block
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Branching](../tutorials/intermediate/branching.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/branching/processor-order-processing.yaml:94:95"
+```
+
+**Full example for `mapValues`**:
+
+- [Tutorial: Branching](../tutorials/intermediate/branching.md#example-2-multi-condition-data-processing-pipeline)
 
 ### `mapKey`
 
@@ -124,9 +136,15 @@ The `mapper` can be defined using:
 - `expression`: A simple expression returning the new key
 - `code`: A Python code block returning the new key
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Branching](../tutorials/intermediate/branching.md)
+```yaml
+--8<-- "definitions/reference/functions/keytransformer-processor.yaml:29:30"
+```
+
+**Full example for `mapKey`**:
+
+- [Function Reference: keyTransformer](function-reference.md#keytransformer) - Shows mapKey used with keyTransformer function
 
 ### `flatMap`
 
@@ -145,9 +163,13 @@ The `mapper` must specify:
 
 #### Example
 
+```yaml
+--8<-- "definitions/reference/operations/flatmap-processor.yaml:11:21"
+```
+
 This example splits order batches containing multiple items into individual item records:
 
-??? info "Producer definition (click to expand)"
+??? info "Producer - `flatMap` example (click to expand)"
 
     ```yaml
     {%
@@ -155,7 +177,7 @@ This example splits order batches containing multiple items into individual item
     %}
     ```
 
-??? info "Processor definition (click to expand)"
+??? info "Processor - `flatMap` example (click to expand)"
 
     ```yaml
     {%
@@ -171,24 +193,28 @@ This example splits order batches containing multiple items into individual item
 
 ### `selectKey`
 
-Changes the key of each record without modifying the value. This operation is useful for repartitioning data or preparing streams for joins based on different key attributes.
+Changes the key of each record without modifying the value. This operation extracts a new key from the existing key and/or value, enabling data repartitioning and preparation for joins based on different key attributes.
 
 #### Parameters
 
 | Parameter | Type   | Required | Description                                    |
 |-----------|--------|----------|------------------------------------------------|
-| `mapper`  | Object | Yes      | Specifies how to extract the new key from the record |
+| `mapper`  | Object | Yes      | Specifies how to derive the new key from the key/value |
 
 The `mapper` can be defined using:
 
-- `expression`: A simple expression returning the new key
-- `code`: A Python code block returning the new key
+- `expression`: A simple expression returning the new key (can use both `key` and `value`)
+- `code`: A Python code block returning the new key (can use both `key` and `value`)
 
 #### Example
 
+```yaml
+--8<-- "definitions/reference/operations/selectkey-processor.yaml:16:18"
+```
+
 This example demonstrates changing the key from session_id to user_id for better data organization:
 
-??? info "Producer definition (click to expand)"
+??? info "Producer - `selectKey` example (click to expand)"
 
     ```yaml
     {%
@@ -196,7 +222,7 @@ This example demonstrates changing the key from session_id to user_id for better
     %}
     ```
 
-??? info "Processor definition (click to expand)"
+??? info "Processor - `selectKey` example (click to expand)"
 
     ```yaml
     {%
@@ -220,9 +246,15 @@ Transforms the key using a custom transformer function.
 |-----------|--------|----------|-----------------------------------|
 | `mapper`  | String | Yes      | Name of the key transformer function |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-stream-table-join.yaml:58:59"
+```
+
+**Full example for `transformKey`**:
+
+- [Tutorial: Joins](../tutorials/intermediate/joins.md#use-case-order-enrichment)
 
 ### `transformValue`
 
@@ -234,9 +266,15 @@ Transforms the value using a custom transformer function.
 |-----------|--------|----------|--------------------------------------|
 | `mapper`  | String | Yes      | Name of the value transformer function |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:71:72"
+```
+
+**Full example for `transformValue`**:
+
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#applying-multiple-transformations)
 
 ## Filtering Operations
 
@@ -257,7 +295,13 @@ The `if` can be defined using:
 - `expression`: A simple boolean expression
 - `code`: A Python code block returning a boolean
 
-##### **See it in action**:
+#### Example
+
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml:31:32"
+```
+
+**Full example for `filter`**:
 
 - [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
 
@@ -275,9 +319,13 @@ The `if` parameter must reference a predicate function that returns a boolean.
 
 #### Example
 
+```yaml
+--8<-- "definitions/reference/operations/filternot-processor.yaml:25:26"
+```
+
 This example filters out products with "inactive" status, keeping all other products:
 
-??? info "Producer definition (click to expand)"
+??? info "Producer - `filterNot` example (click to expand)"
 
     ```yaml
     {%
@@ -285,7 +333,7 @@ This example filters out products with "inactive" status, keeping all other prod
     %}
     ```
 
-??? info "Processor definition (click to expand)"
+??? info "Processor - `filterNot` example (click to expand)"
 
     ```yaml
     {%
@@ -313,9 +361,15 @@ Converts the key to a different data format.
 |-----------|--------|----------|--------------------------|
 | `into`    | String | Yes      | Target format for the key |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Windowing](../tutorials/intermediate/windowing.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml:31:32"
+```
+
+**Full example for `convertKey`**:
+
+- [Tutorial: Windowing](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
 
 ### `convertValue`
 
@@ -327,9 +381,15 @@ Converts the value to a different data format.
 |-----------|--------|----------|----------------------------|
 | `into`    | String | Yes      | Target format for the value |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Data Formats](../tutorials/beginner/data-formats.md)
+```yaml
+--8<-- "definitions/beginner-tutorial/different-data-formats/processor-converting.yaml:28:29"
+```
+
+**Full example for `convertValue`**:
+
+- [Tutorial: Data Formats](../tutorials/beginner/data-formats.md#working-with-avro-data)
 
 ## Grouping & Partitioning Operations
 
@@ -349,9 +409,15 @@ The `keySelector` can be defined using:
 - `expression`: A simple expression returning the grouping key
 - `code`: A Python code block returning the grouping key
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml:48:57"
+```
+
+**Full example for `groupBy`**:
+
+- [Tutorial: State Stores](../tutorials/intermediate/state-stores.md#2-inline-store-configuration)
 
 ### `groupByKey`
 
@@ -361,9 +427,15 @@ Groups records by their existing key for subsequent aggregation operations.
 
 None. This operation is typically followed by an aggregation operation.
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-simple.yaml:22:22"
+```
+
+**Full example for `groupByKey`**:
+
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#count-example)
 
 
 ## Stateful Aggregation Operations
@@ -386,6 +458,16 @@ Both `initializer` and `aggregator` can be defined using:
 - `expression`: A simple expression
 - `code`: A Python code block
 
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-sales-analytics.yaml:91:97"
+```
+
+**Full example for `aggregate`**:
+
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#complex-example-regional-sales-analytics)
+
 ### `count`
 
 Counts the number of records for each key.
@@ -394,9 +476,15 @@ Counts the number of records for each key.
 
 None.
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-count.yaml:17:17"
+```
+
+**Full example for `count`**:
+
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#count-example)
 
 ### `reduce`
 
@@ -413,9 +501,15 @@ The `reducer` can be defined using:
 - `expression`: A simple expression
 - `code`: A Python code block
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-reduce.yaml:62:63"
+```
+
+**Full example for `reduce`**:
+
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#simple-reduce-binary-format)
 
 ## Join Operations
 
@@ -436,9 +530,15 @@ Performs an inner join between two streams.
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Joins](../tutorials/intermediate/joins.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-stream-stream-join-working.yaml:48:64"
+```
+
+**Full example for `join`**:
+
+- [Tutorial: Joins](../tutorials/intermediate/joins.md#use-case-user-behavior-analysis)
 
 ### `leftJoin`
 
@@ -455,9 +555,15 @@ Performs a left join between two streams.
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Joins](../tutorials/intermediate/joins.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-stream-table-left-join.yaml:59:61"
+```
+
+**Full example for `leftJoin`**:
+
+- [Tutorial: Joins](../tutorials/intermediate/joins.md#use-case-activity-enrichment-with-location)
 
 ### `outerJoin`
 
@@ -474,9 +580,15 @@ Performs an outer join between two streams.
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Joins](../tutorials/intermediate/joins.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-stream-stream-outer-join.yaml:74:90"
+```
+
+**Full example for `outerJoin`**:
+
+- [Tutorial: Joins](../tutorials/intermediate/joins.md#stream-stream-outer-join)
 
 ## Windowing Operations
 
@@ -495,9 +607,15 @@ Groups records into time windows.
 | `advanceBy`      | Long     | No       | Only required for `hopping` windows, how often to advance the window |
 | `grace`          | Long     | No       | Grace period for late-arriving data                                  |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Windowing](../tutorials/intermediate/windowing.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml:19:22"
+```
+
+**Full example for `windowByTime`**:
+
+- [Tutorial: Windowing](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
 
 ### `windowBySession`
 
@@ -511,9 +629,15 @@ to the same session.
 | `inactivityGap` | Duration | Yes      | The maximum duration between events before they are seen as belonging to a different session |
 | `grace`         | Long     | No       | Grace period for late-arriving data                                                          |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Windowing](../tutorials/intermediate/windowing.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/windowing/processor-session-activity.yaml:19:21"
+```
+
+**Full example for `windowBySession`**:
+
+- [Tutorial: Windowing](../tutorials/intermediate/windowing.md#session-window-user-activity-analysis)
 
 ## Output Operations
 
@@ -531,9 +655,15 @@ Sends records to a specific Kafka topic.
 | `keyType` | String | No       | The data type of the key          |
 | `valueType` | String | No     | The data type of the value        |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Data Formats](../tutorials/beginner/data-formats.md)
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:77:77"
+```
+
+**Full example for `to`**:
+
+- [Full example for `to`](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
 
 ### `toTopicNameExtractor`
 
@@ -547,9 +677,13 @@ Sends records to topics determined dynamically based on the record content. This
 
 #### Example
 
+```yaml
+--8<-- "definitions/reference/operations/topicnameextractor-processor.yaml:42:43"
+```
+
 This example demonstrates routing system events to different topics based on severity level:
 
-??? info "Producer definition (click to expand)"
+??? info "Producer - `toTopicNameExtractor` example (click to expand)"
 
     ```yaml
     {%
@@ -557,7 +691,7 @@ This example demonstrates routing system events to different topics based on sev
     %}
     ```
 
-??? info "Processor definition (click to expand)"
+??? info "Processor - `toTopicNameExtractor` example (click to expand)"
 
     ```yaml
     {%
@@ -585,9 +719,15 @@ Processes each record with a side effect, typically used for logging or external
 The `forEach` can be defined using:
 - `code`: A Python code block performing the side effect
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-complex-filtering-multiple-filters.yaml:27:29"
+```
+
+**Full example for `forEach`**:
+
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#using-multiple-filters)
 
 ### `print`
 
@@ -602,9 +742,13 @@ Prints each record to stdout for debugging purposes. This operation can use a cu
 
 #### Example
 
+```yaml
+--8<-- "definitions/reference/operations/print-processor.yaml:20:22"
+```
+
 This example demonstrates printing debug messages with color-coded log levels and custom formatting:
 
-??? info "Producer definition (click to expand)"
+??? info "Producer - `print` example (click to expand)"
 
     ```yaml
     {%
@@ -612,7 +756,7 @@ This example demonstrates printing debug messages with color-coded log levels an
     %}
     ```
 
-??? info "Processor definition (click to expand)"
+??? info "Processor - `print` example (click to expand)"
 
     ```yaml
     {%
@@ -648,9 +792,15 @@ The tag `branches` does not exist in the KSML language, but is meant to represen
 | `if`       | Predicate | Yes      | A condition which can evaluate to True or False. When True, the message is sent down the branch's pipeline |
 | `pipeline` | Pipeline  | Yes      | A pipeline that contains a list of processing steps to send the message through                            |
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Branching](../tutorials/intermediate/branching.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/branching/processor-order-processing.yaml:90:"
+```
+
+**Full example for `branch`**:
+
+- [Tutorial: Branching](../tutorials/intermediate/branching.md#example-2-multi-condition-data-processing-pipeline)
 
 ### `peek`
 
@@ -667,9 +817,15 @@ The `forEach` can be defined using:
 - `expression`: A simple expression (rarely used for peek)
 - `code`: A Python code block performing the side effect
 
-##### **See it in action**:
+#### Example
 
-- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
+```yaml
+--8<-- "definitions/intermediate-tutorial/branching/processor-order-processing.yaml:96:100"
+```
+
+**Full example for `peek`**:
+
+- [Tutorial: Branching](../tutorials/intermediate/branching.md#example-2-multi-condition-data-processing-pipeline)
 
 ## Combining Operations
 

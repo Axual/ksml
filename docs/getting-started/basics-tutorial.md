@@ -60,13 +60,11 @@ Let's create each section step by step.
 
 First, let's create a new file `tutorial.yaml` and start by defining the input and output streams for our pipeline:
 
-```yaml
-{%
-  include "../definitions/basics-tutorial/tutorial.yaml"
-  start="## Streams"
-  end="## End of Streams"
-%}
-```
+??? info "Input and output streams for our pipeline (click to expand)"
+
+    ```yaml
+    --8<-- "definitions/basics-tutorial/tutorial.yaml:0:9"
+    ```
 
 This defines:
 
@@ -96,11 +94,7 @@ Next, let's add functions to filter, transform and log messages as they flow thr
 ??? info "Functions to filter, transform and log messages to filter (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/basics-tutorial/tutorial.yaml"
-      start="## Functions"
-      end="## End of Functions"
-    %}
+    --8<-- "definitions/basics-tutorial/tutorial.yaml:11:29"
     ```
 
 We defined three uniquely named functions:
@@ -142,13 +136,11 @@ Functions in KSML:
 
 Now, let's add the pipeline that processes our data:
 
-```yaml
-{%
-  include "../definitions/basics-tutorial/tutorial.yaml"
-  start="## Pipelines"
-  end="## End of Pipelines"
-%}
-```
+??? info "Adding Pipelines (click to expand)"
+
+    ```yaml
+    --8<-- "definitions/basics-tutorial/tutorial.yaml:31:44"
+    ```
 
 This pipeline:
 
@@ -164,13 +156,11 @@ Let's break down each operation:
 
 #### Filter Operation
 
-```yaml
-{%
-  include "../definitions/basics-tutorial/tutorial.yaml"
-  start="## Filter Operation"
-  end="## End of Filter Operation"
-%}
-```
+??? info "Adding Filters (click to expand)"
+
+    ```yaml
+    --8<-- "definitions/basics-tutorial/tutorial.yaml:35:36"
+    ```
 
 The filter operation:
 
@@ -180,13 +170,11 @@ The filter operation:
 
 #### Transform Value Operation
 
-```yaml
-{%
-  include "../definitions/basics-tutorial/tutorial.yaml"
-  start="## Transform Value Operation"
-  end="## End of Transform Value Operation"
-%}
-```
+??? info "Adding Transforming Value Operation (click to expand)"
+
+    ```yaml
+    --8<-- "definitions/basics-tutorial/tutorial.yaml:37:38"
+    ```
 
 The transformValue operation:
 
@@ -203,13 +191,11 @@ purposes.
 
 #### Peek Operation
 
-```yaml
-{%
-  include "../definitions/basics-tutorial/tutorial.yaml"
-  start="## Peek Operation"
-  end="## End of Peek Operation"
-%}
-```
+??? info "Adding Peek Operation (click to expand)"
+
+    ```yaml
+    --8<-- "definitions/basics-tutorial/tutorial.yaml:39:43"
+    ```
 
 The peek operation:
 
@@ -329,31 +315,7 @@ Create a new file called `producer.yaml` in your `examples/` directory:
 ??? info "Producer Definition - producer.yaml (click to expand)"
 
     ```yaml
-    functions:
-      generate_temperature_message:
-        type: generator
-        globalCode: |
-          import random
-          sensorCounter = 0
-        code: |
-          global sensorCounter
-
-          key = "sensor" + str(sensorCounter)         # Simulate 10 sensors "sensor0" to "sensor9"
-          sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
-
-          value = {"temperature": random.randrange(150)}
-        expression: (key, value)                      # Return a message tuple with the key and value
-        resultType: (string, json)                    # Indicate the type of key and value
-
-    producers:
-      # Produce a temperature message every 3 seconds
-      temperature_producer:
-        generator: generate_temperature_message
-        interval: 3s
-        to:
-          topic: temperature_data
-          keyType: string
-          valueType: json
+    {% include "../definitions/basics-tutorial/producer.yaml" %}
     ```
 
 Now update your `ksml-runner.yaml` to include the producer definition:

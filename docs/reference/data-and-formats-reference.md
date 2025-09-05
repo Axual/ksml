@@ -79,7 +79,11 @@ A list contains multiple elements of the same type.
 
 **Syntax:**
 ```yaml
+# Standard bracket notation
 valueType: "[<element_type>]"
+
+# Alternative function notation (avoids YAML validation warnings)
+valueType: list(<element_type>)
 ```
 
 **Example:**
@@ -88,7 +92,12 @@ streams:
   tags_stream:
     topic: tags
     keyType: string
-    valueType: "[string]"
+    valueType: "[string]"        # Standard notation
+  
+  categories_stream:
+    topic: categories
+    keyType: string
+    valueType: list(string)      # Alternative notation (no quotes needed)
 ```
 
 In Python code, a list is represented as a Python list:
@@ -97,13 +106,133 @@ functions:
   extract_tags:
     type: keyValueToValueListTransformer
     expression: value.get("tags", [])
-    resultType: "[string]"
+    resultType: "[string]"      # Standard notation
+  
+  extract_categories:
+    type: keyValueToValueListTransformer
+    expression: value.get("categories", [])
+    resultType: list(string)    # Alternative notation (no quotes needed)
 ```
 
 **See it in action**:
 
 - [List example](../reference/function-reference.md#keyvaluetovaluelisttransformer) for predicate functions for data filtering
 
+#### Example
+
+```yaml
+--8<-- "definitions/reference/data-types/list-tuple-simple-processor.yaml:13:23"
+```
+
+This example demonstrates using `list(int)` syntax in function result types to avoid YAML validation warnings:
+
+??? info "Producer - `list()` syntax example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/data-types/list-tuple-simple-producer.yaml"
+    %}
+    ```
+
+??? info "Processor - `list()` syntax example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/data-types/list-tuple-simple-processor.yaml"
+    %}
+    ```
+
+**What this example does:**
+
+- **Producer** uses `resultType: tuple(string, json)` instead of `"(string, json)"` to avoid quotes
+- **Processor** uses `resultType: list(int)` instead of `"[int]"` to avoid YAML validation warnings
+- **Functionality** remains identical - the new syntax is purely for YAML compatibility
+
+#### Map
+
+A map contains key-value pairs where keys are always strings and values are of a specified type.
+
+**Syntax:**
+```yaml
+valueType: "map(<value_type>)"
+```
+
+**Example:**
+```yaml
+streams:
+  user_preferences:
+    topic: user-preferences
+    keyType: string
+    valueType: "map(string)"  # Map with string keys and string values
+
+  scores:
+    topic: scores
+    keyType: string
+    valueType: "map(int)"     # Map with string keys and integer values
+```
+
+In Python code, a map is represented as a Python dictionary:
+```yaml
+functions:
+  create_preferences:
+    type: valueTransformer
+    code: |
+      return {
+        "theme": value.get("selected_theme", "default"),
+        "language": value.get("user_language", "en"),
+        "notifications": value.get("notify_enabled", "true")
+      }
+    expression: result
+    resultType: "map(string)"
+
+  calculate_scores:
+    type: valueTransformer
+    code: |
+      return {
+        "math": 85,
+        "science": 92,
+        "english": 78
+      }
+    expression: result
+    resultType: "map(int)"
+```
+
+**Key characteristics:**
+
+- Keys are always strings (this is enforced by the type system)
+- All values must be of the same type as specified in `map(<value_type>)`
+- Useful for representing configuration objects, dictionaries, and key-value stores
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/data-types/map-producer.yaml:37:46"
+```
+
+This simple example demonstrates using `map(string)` and `map(int)` types in stream definitions and function result types:
+
+??? info "Producer - `map` example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/data-types/map-producer.yaml"
+    %}
+    ```
+
+??? info "Processor - `map` example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/data-types/map-processor.yaml"
+    %}
+    ```
+
+**What this example does:**
+
+- **Stream definitions** use `valueType: "map(string)"` and `valueType: "map(int)"` to define strongly-typed maps
+- **Function result types** use `resultType: "(string, map(string))"` to return maps with type safety
+- **Processing functions** use `resultType: "map(string)"` and `resultType: "map(int)"` to transform and validate map contents
+- Demonstrates how the `map(valuetype)` syntax ensures all values in a map conform to the specified type
 
 #### Struct
 
@@ -159,7 +288,11 @@ A tuple combines multiple elements of different types into a single value.
 
 **Syntax:**
 ```yaml
+# Standard bracket notation
 valueType: "(<type1>, <type2>, ...)"
+
+# Alternative function notation (avoids YAML validation warnings)
+valueType: tuple(<type1>, <type2>, ...)
 ```
 
 **Example:**
@@ -168,7 +301,12 @@ streams:
   sensor_stream:
     topic: sensor-data
     keyType: string
-    valueType: "(string, avro:SensorData)"
+    valueType: "(string, avro:SensorData)"     # Standard notation
+  
+  coordinate_stream:
+    topic: coordinates
+    keyType: string
+    valueType: tuple(double, double)           # Alternative notation (no quotes needed)
 ```
 
 In Python code, a tuple is represented as a Python tuple:
@@ -177,12 +315,47 @@ functions:
   create_user_age_pair:
     type: keyValueTransformer
     expression: (value.get("name"), value.get("age"))
-    resultType: "(string, int)"
+    resultType: "(string, int)"               # Standard notation
+  
+  create_coordinate_pair:
+    type: keyValueTransformer
+    expression: (value.get("lat"), value.get("lng"))
+    resultType: tuple(double, double)         # Alternative notation (no quotes needed)
 ```
 
 **See it in action**:
 
 - [Tuple example](../reference/function-reference.md#foreignkeyextractor)
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/data-types/list-tuple-simple-producer.yaml:2:15"
+```
+
+This example demonstrates using `tuple(string, json)` syntax in function result types to avoid YAML validation warnings:
+
+??? info "Producer - `tuple()` syntax example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/data-types/list-tuple-simple-producer.yaml"
+    %}
+    ```
+
+??? info "Processor - `tuple()` syntax example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/data-types/list-tuple-simple-processor.yaml"
+    %}
+    ```
+
+**What this example does:**
+
+- **Producer function** uses `resultType: tuple(string, json)` instead of `"(string, json)"` to avoid quotes
+- **Processor function** uses `resultType: list(int)` to demonstrate both new syntaxes working together
+- **No functional difference** - the new syntax provides YAML-friendly alternatives
 
 #### Union
 
@@ -758,6 +931,9 @@ When defining types in KSML (for `keyType`, `valueType`, `resultType`, or any ot
    # enum types - MUST have quotes
    valueType: "enum(PENDING, PROCESSING, SHIPPED)"
    
+   # map types - MUST have quotes
+   valueType: "map(string)"
+   
    # windowed types without notation prefix - MUST have quotes  
    keyType: "windowed(string)"
    
@@ -793,7 +969,18 @@ When defining types in KSML (for `keyType`, `valueType`, `resultType`, or any ot
    resultType: "(string, json)"    # Also works with quotes
    ```
 
-3. **Notation:schema combinations (notation prefix makes quotes unnecessary):**
+3. **Function-style type declarations (avoid YAML validation warnings):**
+   ```yaml
+   # list() syntax - no quotes needed
+   valueType: list(string)         # Alternative to "[string]"
+   resultType: list(tuple(string, int))  # Alternative to "[(string, int)]"
+   
+   # tuple() syntax - no quotes needed  
+   valueType: tuple(string, int)   # Alternative to "(string, int)"
+   resultType: tuple(double, double, string)  # Alternative to "(double, double, string)"
+   ```
+
+4. **Notation:schema combinations (notation prefix makes quotes unnecessary):**
    ```yaml
    valueType: avro:SensorData         # Works without quotes
    keyType: json:windowed(string)     # Notation prefix handles complexity
@@ -804,8 +991,9 @@ When defining types in KSML (for `keyType`, `valueType`, `resultType`, or any ot
 ### Why These Rules Exist:
 
 - **YAML parsing**: Without quotes, YAML interprets `enum(A,B,C)` as a function call, causing parsing errors. The quotes tell YAML to treat it as a string literal.
-- **KSML parsing**: The UserTypeParser in KSML specifically looks for patterns like `enum(`, `windowed(`, `union(` at the start of strings to determine the type.
+- **KSML parsing**: The UserTypeParser in KSML specifically looks for patterns like `enum(`, `windowed(`, `union(`, `list(`, `tuple(` at the start of strings to determine the type.
 - **Notation prefix**: When using `json:windowed(string)`, the colon acts as a delimiter that YAML handles correctly without quotes.
+- **Function syntax alternatives**: The `list()` and `tuple()` syntax provides YAML-friendly alternatives that don't trigger validation warnings, unlike bracket notation which YAML interprets as list/tuple literals.
 
 ### Examples from Real KSML Code:
 
@@ -831,6 +1019,14 @@ functions:
   my_transformer:
     type: valueTransformer  
     resultType: "enum(SUCCESS, FAILURE)"     # Enum type - quotes required
+  
+  my_list_transformer:
+    type: valueTransformer
+    resultType: list(string)                 # Alternative list syntax - no quotes needed
+  
+  my_tuple_transformer:
+    type: valueTransformer
+    resultType: tuple(string, int, double)   # Alternative tuple syntax - no quotes needed
 ```
 
 ### Quick Reference:
@@ -838,9 +1034,12 @@ functions:
 | Type Pattern | Quotes Required? | Example |
 |-------------|-----------------|----------|
 | `enum(...)` | **Yes** | `"enum(ACTIVE, INACTIVE)"` |
+| `map(...)` | **Yes** | `"map(string)"` |
 | `windowed(...)` | **Yes** (without notation) | `"windowed(string)"` |
 | `union(...)` | **Yes** | `"union(null, string)"` |
 | `[(...)]` | **Yes** | `"[(string, json)]"` |
+| `list(...)` | **No** | `list(string)` |
+| `tuple(...)` | **No** | `tuple(string, int)` |
 | `(type1, type2)` | **Optional** | `(string, json)` or `"(string, json)"` |
 | `notation:type` | **Optional** | `avro:SensorData` |
 | `notation:windowed(...)` | **Optional** | `json:windowed(string)` |

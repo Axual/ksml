@@ -45,33 +45,12 @@ ksml:
 To let KSML produce random test data with the correct format, let's create a file `producer.yaml` and add this producer definition
 
 ??? info "Test Data Producer Configuration (click to expand)"
-
     ```yaml
-    functions:
-      generate_tutorial_data:
-        type: generator
-        globalCode: |
-          import random
-          sensor_id = 0
-          locations = ["server_room", "warehouse", "data_center"]
-        code: |
-          global sensor_id, locations
-          key = "sensor" + str(sensor_id)
-          sensor_id = (sensor_id + 1) % 5
-          location = random.choice(locations)
-          sensors = {"temperature": random.randrange(150), "humidity": random.randrange(90), "location": location}
-          value = {"sensors": sensors}
-        expression: (key, value)
-        resultType: (string, json)
-    producers:
-      data_producer:
-        generator: generate_tutorial_data
-        interval: 3s
-        to:
-          topic: tutorial_input
-          keyType: string
-          valueType: json
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml"
+    %}
     ```
+
 This will generate simulated sensor data for temperature and humidity, in different locations. The JSON input test data, that we will start from with our filtering and transformations, looks like this:
 ```json
 {
@@ -90,38 +69,10 @@ This will generate simulated sensor data for temperature and humidity, in differ
 Let's start by creating a file `processor.yaml` that filters on multiple conditions:
 
 ??? info "Multiple Filter Conditions Example (click to expand)"
-
     ```yaml
-    streams:
-      input_stream:
-        topic: tutorial_input
-        keyType: string
-        valueType: json
-      output_stream:
-        topic: filtered_data
-        keyType: string
-        valueType: json
-
-    functions:
-      temperature_filtered:
-        type: predicate
-        expression: value.get('sensors', {}).get('temperature') > 20 and value.get('sensors', {}).get('humidity') < 80 and value.get('sensors', {}).get('location') == 'warehouse'
-      log_message:
-        type: forEach
-        code: |
-          log.info("Processed message: key={}, value={}", key, value)
-
-    pipelines:
-      filtering_pipeline:
-        from: input_stream
-        via:
-          - type: filter
-            if: temperature_filtered
-          - type: peek
-            forEach:
-              code: |
-                log_message(key, value)
-        to: output_stream
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/processor-complex-filtering-multiple-filters.yaml"
+    %}
     ```
 
 This filter only passes messages where:
@@ -155,39 +106,9 @@ By following the same as in previous section, let's try to create a custom filte
 ??? info "Custom Filter Function Example (click to expand)"
 
     ```yaml
-    streams:
-      input_stream:
-        topic: tutorial_input
-        keyType: string
-        valueType: json
-      alerts_stream:
-        topic: alerts_stream
-        keyType: string
-        valueType: json
-
-    functions:
-      is_critical_sensor:
-        type: predicate
-        code: |
-          # Check location
-          if value.get('sensors', {}).get('location') not in ['server_room', 'data_center']:
-            return False
-
-          # Check temperature threshold based on location
-          if value.get('sensors', {}).get('location') == 'server_room' and value.get('sensors', {}).get('temperature') > 20:
-            return True
-          if value.get('sensors', {}).get('location') == 'data_center' and value.get('sensors', {}).get('temperature') > 30:
-            return True
-
-          return False
-
-    pipelines:
-      critical_alerts:
-        from: input_stream
-        via:
-          - type: filter
-            if: is_critical_sensor
-        to: alerts_stream
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml"
+    %}
     ```
 
 This function implements complex business logic to determine if a sensor reading indicates a critical situation that requires an alert.
@@ -199,41 +120,9 @@ Sometimes your filter conditions might encounter malformed data. Here's how to h
 ??? info "Error Handling in Filters Example (click to expand)"
 
     ```yaml
-    streams:
-      input_stream:
-        topic: tutorial_input
-        keyType: string
-        valueType: json
-      alerts_stream:
-        topic: alerts_stream
-        keyType: string
-        valueType: json
-
-    functions:
-      safe_filter:
-        type: predicate
-        code: |
-          try:
-            sensors = value.get('sensors', {})
-            temperature = sensors.get('temperature')
-            humidity = sensors.get('humidity')
-
-            if temperature is None or humidity is None:
-              log.warn("Missing required fields in message: {}", value)
-              return False
-
-            return temperature > 70 and humidity < 50
-          except Exception as e:
-            log.error("Error in filter: {} - Message: {}", str(e), value)
-            return False
-
-    pipelines:
-      robust_filtering:
-        from: input_stream
-        via:
-          - type: filter
-            if: safe_filter
-        to: alerts_stream
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-error-handling.yaml"
+    %}
     ```
 
 This approach ensures that malformed messages are logged and filtered out rather than causing the pipeline to fail.
@@ -249,52 +138,9 @@ For these examples, let's use a different KSML producer definition:
 ??? info "Enhanced Producer Configuration (click to expand)"
 
     ```yaml
-    producers:
-        data_producer:
-          generator: generate_tutorial_data
-          interval: 3s
-          to:
-            topic: tutorial_input
-            keyType: string
-            valueType: json
-    functions:
-      generate_tutorial_data:
-        type: generator
-        globalCode: |
-          import random, time
-          sensor_id = 0
-          locations = ["server_room", "warehouse", "data_center"]
-        code: |
-          global sensor_id, locations
-          key = "sensor" + str(sensor_id)
-          sensor_id = (sensor_id + 1) % 5
-          location = random.choice(locations)
-
-          # Each sensor value is now a dict with 'value' and 'unit'
-          sensors = {
-            "temperature": {
-              "value": random.randint(60, 100),
-              "unit": "F"
-            },
-            "humidity": {
-              "value": random.randint(20, 90),
-              "unit": "%"
-            },
-            "location": {
-              "value": location,
-              "unit": "text"
-            }
-          }
-
-          # Add a timestamp in the expected metadata format
-          value = {
-            "metadata": {
-              "timestamp": int(time.time() * 1000)
-            },
-            "sensors": sensors
-          }
-        expression: (key, value)
-        resultType: (string, json)
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/producer-filtering-transforming-advanced.yaml"
+    %}
     ```
 
 This produces messages like these:
@@ -331,55 +177,9 @@ Let's look at how to transform data with nested structures:
 ??? info "Nested Data Transformation Example (click to expand)"
 
     ```yaml
-    streams:
-      input_stream:
-        topic: tutorial_input
-        keyType: string
-        valueType: json
-      output_stream:
-        topic: filtered_data
-        keyType: string
-        valueType: json
-
-    functions:
-      transform_nested_data:
-        type: keyValueMapper
-        code: |
-          # Create a new structure with flattened and transformed data
-          result = {
-            "device_id": key,
-            "timestamp": value.get('metadata', {}).get('timestamp'),
-            "readings": {}
-          }
-
-          # Extract and transform sensor readings
-          sensors = value.get('sensors', {})
-          for sensor_type, reading in sensors.items():
-            # Convert temperature from F to C if needed
-            if sensor_type == 'temperature' and reading.get('unit') == 'F':
-              celsius = (reading.get('value') - 32) * 5/9
-              result['readings'][sensor_type] = {
-                'value': round(celsius, 2),
-                'unit': 'C',
-                'original_value': reading.get('value'),
-                'original_unit': 'F'
-              }
-            else:
-              result['readings'][sensor_type] = reading
-
-          # Keep the same key
-          new_key = key
-          new_value = result
-        expression: (new_key, new_value)
-        resultType: (string, json)
-
-    pipelines:
-      transform_pipeline:
-        from: input_stream
-        via:
-          - type: map
-            mapper: transform_nested_data
-        to: output_stream
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-nested.yaml"
+    %}
     ```
 
 INPUT message:
@@ -452,83 +252,9 @@ You can chain multiple transformations to break down complex logic into manageab
 ??? info "Multiple Transformations Pipeline Example (click to expand)"
 
     ```yaml
-    streams:
-      input_stream:
-        topic: tutorial_input
-        keyType: string
-        valueType: json
-      output_stream:
-        topic: filtered_data
-        keyType: string
-        valueType: json
-
-    functions:
-      extract_fields:
-        type: keyValueMapper
-        code: |
-          extracted = {
-            "device_id": key,
-            "temperature": value.get('sensors', {}).get('temperature', {}).get('value'),
-            "humidity": value.get('sensors', {}).get('humidity', {}).get('value'),
-            "timestamp": value.get('metadata', {}).get('timestamp')
-          }
-        expression: (key, extracted)
-        resultType: (string, json)
-
-      convert_temperature:
-        type: valueTransformer
-        code: |
-          result = {
-            "device_id": value.get('device_id'),
-            "temperature_c": round((value.get('temperature') - 32) * 5/9, 2) if value.get('temperature') else None,
-            "humidity": value.get('humidity'),
-            "timestamp": value.get('timestamp')
-          }
-        expression: result
-        resultType: json
-
-      add_heat_index:
-        type: valueTransformer
-        code: |
-          temp_c = value.get('temperature_c')
-          humidity = value.get('humidity')
-
-          # Calculate heat index if we have both temperature and humidity
-          if temp_c is not None and humidity is not None:
-            # Convert back to F for heat index calculation
-            temp_f = temp_c * 1.8 + 32
-            # Simplified heat index formula
-            heat_index = temp_f - 0.55 * (1 - humidity / 100) * (temp_f - 58)
-            heat_index_c = round((heat_index - 32) * 5/9, 2)
-          else:
-            heat_index_c = None
-
-          result = {
-            "device_id": value.get('device_id'),
-            "temperature_c": temp_c,
-            "humidity": humidity,
-            "heat_index_c": heat_index_c,
-            "timestamp": value.get('timestamp')
-          }
-        expression: result
-        resultType: json
-
-    pipelines:
-      multi_transform_pipeline:
-        from: input_stream
-        via:
-          # Step 1: Extract relevant fields
-          - type: map
-            mapper: extract_fields
-
-          # Step 2: Convert temperature from F to C
-          - type: transformValue
-            mapper: convert_temperature
-
-          # Step 3: Add calculated fields
-          - type: transformValue
-            mapper: add_heat_index
-        to: output_stream
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml"
+    %}
     ```
 
 INPUT message:
@@ -614,89 +340,9 @@ When processing streaming data, it's crucial to handle errors gracefully without
 ??? info "Error Handling in Transformations Example (click to expand)"
 
     ```yaml
-    streams:
-      input_stream:
-        topic: tutorial_input
-        keyType: string
-        valueType: json
-      output_stream:
-        topic: filtered_data
-        keyType: string
-        valueType: json
-      error_stream:
-        topic: alerts_stream
-        keyType: string
-        valueType: json
-
-    functions:
-      safe_transform:
-        type: keyValueMapper
-        code: |
-          import json
-          try:
-            # Safely extract nested sensor data
-            sensors = value.get('sensors', {})
-            temperature_data = sensors.get('temperature', {})
-
-            # Check if temperature exists and has a value
-            if not temperature_data or 'value' not in temperature_data:
-              error_msg = {
-                "error": "Missing temperature data",
-                "device_id": key,
-                "original": value,
-                "status": "error"
-              }
-              new_key = key
-              new_value = error_msg
-            else:
-              # Extract values safely
-              temp_f = temperature_data.get('value')
-              temp_unit = temperature_data.get('unit', 'F')
-
-              # Only convert if unit is Fahrenheit
-              if temp_unit == 'F':
-                temp_c = round((temp_f - 32) * 5/9, 2)
-              else:
-                temp_c = temp_f  # Assume it's already in Celsius
-
-              # Build successful result
-              result = {
-                "device_id": key,
-                "temperature_f": temp_f,
-                "temperature_c": temp_c,
-                "humidity": sensors.get('humidity', {}).get('value'),
-                "timestamp": value.get('metadata', {}).get('timestamp'),
-                "status": "processed"
-              }
-              new_key = key
-              new_value = result
-
-          except Exception as e:
-            # Catch any unexpected errors
-            error_msg = {
-              "error": f"Transformation error: {str(e)}",
-              "device_id": key,
-              "original": value,
-              "status": "error"
-            }
-            new_key = key
-            new_value = error_msg
-        expression: (new_key, new_value)
-        resultType: (string, json)
-
-    pipelines:
-      robust_transformation:
-        from: input_stream
-        via:
-          - type: map
-            mapper: safe_transform
-        branch:
-          - if:
-              expression: value.get('status') == 'processed'
-            to: output_stream
-          - if:
-              expression: value.get('status') == 'error'
-            to: error_stream
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-error-handling2.yaml"
+    %}
     ```
 
 #### Example Data Flow
@@ -820,143 +466,9 @@ Let's put everything together in a complete example:
 ??? info "Complete Filtering and Transformation Pipeline (click to expand)"
 
     ```yaml
-    streams:
-       sensor_data:
-          topic: tutorial_input
-          keyType: string
-          valueType: json
-       processed_data:
-          topic: filtered_data
-          keyType: string
-          valueType: json
-       error_data:
-          topic: alerts_stream
-          keyType: string
-          valueType: json
-
-    functions:
-       validate_sensor_data:
-          type: predicate
-          code: |
-             try:
-               # Check if all required fields are present in the nested structure
-               sensors = value.get('sensors', {})
-               metadata = value.get('metadata', {})
-
-               # Check if temperature data exists and has a value
-               if 'temperature' not in sensors or 'value' not in sensors['temperature']:
-                 print(f"Missing temperature data in message: {value}")
-                 result = False
-               elif 'humidity' not in sensors or 'value' not in sensors['humidity']:
-                 print(f"Missing humidity data in message: {value}")
-                 result = False
-               elif 'timestamp' not in metadata:
-                 print(f"Missing timestamp in message: {value}")
-                 result = False
-               else:
-                 # Validate temperature range
-                 temp_value = sensors['temperature']['value']
-                 if not isinstance(temp_value, (int, float)) or temp_value < -100 or temp_value > 200:
-                   print(f"Invalid temperature value: {temp_value}")
-                   result = False
-                 else:
-                   # Validate humidity range
-                   humidity_value = sensors['humidity']['value']
-                   if not isinstance(humidity_value, (int, float)) or humidity_value < 0 or humidity_value > 100:
-                     print(f"Invalid humidity value: {humidity_value}")
-                     result = False
-                   else:
-                     result = True
-             except Exception as e:
-               print(f"Error validating sensor data: {str(e)} - Message: {value}")
-               result = False
-          expression: result
-          resultType: boolean
-
-       transform_sensor_data:
-          type: keyValueTransformer
-          code: |
-             import time
-             from datetime import datetime
-
-             try:
-               # Extract nested sensor data
-               sensors = value.get('sensors', {})
-               metadata = value.get('metadata', {})
-
-               # Get temperature and convert from F to C
-               temp_f = sensors.get('temperature', {}).get('value', 0)
-               temp_c = (temp_f - 32) * 5/9
-
-               # Get humidity
-               humidity = sensors.get('humidity', {}).get('value', 0)
-
-               # Calculate heat index (simplified formula)
-               heat_index = temp_c * 1.8 + 32 - 0.55 * (1 - humidity / 100)
-
-               # Get location
-               location = sensors.get('location', {}).get('value', 'unknown')
-
-               # Format timestamp
-               timestamp = metadata.get('timestamp', 0)
-               if isinstance(timestamp, (int, float)):
-                 # Convert Unix timestamp to ISO format
-                 formatted_time = datetime.fromtimestamp(timestamp / 1000).isoformat()
-               else:
-                 formatted_time = str(timestamp)
-
-               transformed = {
-                 "sensor_id": key,
-                 "location": location,
-                 "readings": {
-                   "temperature": {
-                     "celsius": round(temp_c, 2),
-                     "fahrenheit": temp_f
-                   },
-                   "humidity": humidity,
-                   "heat_index": round(heat_index, 2)
-                 },
-                 "timestamp": formatted_time,
-                 "processed_at": int(time.time() * 1000)
-               }
-               new_key = key
-               new_value = transformed
-             except Exception as e:
-               error_data = {
-                 "error": str(e),
-                 "original": value,
-                 "sensor_id": key,
-                 "timestamp": int(time.time() * 1000)
-               }
-               new_key = key
-               new_value = error_data
-          expression: (new_key, new_value)
-          resultType: (string, json)
-
-       log_processed_data:
-          type: forEach
-          code: |
-             readings = value.get('readings', {})
-             temp = readings.get('temperature', {}).get('celsius')
-             humidity = readings.get('humidity')
-             sensor_id = value.get('sensor_id')
-             print(f"Processed sensor data for {sensor_id}: temp={temp}°C, humidity={humidity}%")
-
-    pipelines:
-       process_sensor_data:
-          from: sensor_data
-          via:
-             - type: filter
-               if: validate_sensor_data
-             - type: transformKeyValue
-               mapper: transform_sensor_data
-             - type: peek
-               forEach: log_processed_data
-          branch:
-             - if:
-                  expression: "'error' in value"
-               to: error_data
-             - to: processed_data
+    {%
+      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml"
+    %}
     ```
 
 #### Example Data Flow
