@@ -44,10 +44,9 @@ class ConfigInjectionSerdeTest {
         final var captureModifiedDeserializer = new ConfigCaptureDeserializer();
         final var captureModifiedSerde = new ConfigInjectionSerde(Serdes.serdeFrom(captureModifiedSerializer, captureModifiedDeserializer)) {
             @Override
-            protected Map<String, ?> modifyConfigs(final Map<String, ?> configs, final boolean isKey) {
-                var map = new HashMap<String, Object>(configs);
-                map.put("isKey", Boolean.toString(isKey));
-                return map;
+            protected Map<String, Object> modifyConfigs(final Map<String, Object> configs, final boolean isKey) {
+                configs.put("isKey", Boolean.toString(isKey));
+                return configs;
             }
         };
 

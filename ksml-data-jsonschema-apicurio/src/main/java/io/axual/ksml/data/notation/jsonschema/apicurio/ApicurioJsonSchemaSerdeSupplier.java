@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.avro.apicurio;
+package io.axual.ksml.data.notation.jsonschema.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - AVRO Apicurio
+ * KSML Data Library - JSON Schema Apicurio
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -21,21 +21,27 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
-import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
-import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
+import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaDeserializer;
+import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaSerializer;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
 import io.axual.ksml.data.type.DataType;
+import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 
 import java.util.Map;
 
-public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
+public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
     // Registry Client is mocked by tests
+    @Getter
     private final RegistryClient registryClient;
 
-    public ApicurioAvroSerdeSupplier(RegistryClient registryClient) {
+    public ApicurioJsonSchemaSerdeSupplier() {
+        this(null);
+    }
+
+    public ApicurioJsonSchemaSerdeSupplier(RegistryClient registryClient) {
         this.registryClient = registryClient;
     }
 
@@ -46,17 +52,17 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new ApicurioAvroSerde(registryClient);
+        return new ApicurioJsonSchemaSerde(registryClient);
     }
 
-    static class ApicurioAvroSerde extends ConfigInjectionSerde {
-        public ApicurioAvroSerde(RegistryClient registryClient) {
+    static class ApicurioJsonSchemaSerde extends ConfigInjectionSerde {
+        public ApicurioJsonSchemaSerde(RegistryClient registryClient) {
             this(Serdes.serdeFrom(
-                    registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>(),
-                    registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>()));
+                    registryClient != null ? new JsonSchemaKafkaSerializer<>(registryClient) : new JsonSchemaKafkaSerializer<>(),
+                    registryClient != null ? new JsonSchemaKafkaDeserializer<>(registryClient) : new JsonSchemaKafkaDeserializer<>()));
         }
 
-        public ApicurioAvroSerde(Serde<Object> delegate) {
+        public ApicurioJsonSchemaSerde(Serde<Object> delegate) {
             super(delegate);
         }
 

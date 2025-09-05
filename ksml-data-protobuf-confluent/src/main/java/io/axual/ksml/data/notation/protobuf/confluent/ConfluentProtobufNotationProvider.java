@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.protobuf;
+package io.axual.ksml.data.notation.protobuf.confluent;
 
 /*-
  * ========================LICENSE_START=================================
@@ -22,6 +22,8 @@ package io.axual.ksml.data.notation.protobuf;
 
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
+import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;

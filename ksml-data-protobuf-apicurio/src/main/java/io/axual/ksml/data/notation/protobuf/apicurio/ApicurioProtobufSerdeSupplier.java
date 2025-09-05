@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.avro.apicurio;
+package io.axual.ksml.data.notation.protobuf.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - AVRO Apicurio
+ * KSML Data Library - Protobuf Apicurio
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -21,21 +21,28 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
-import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
-import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
+import io.apicurio.registry.serde.SerdeConfig;
+import io.apicurio.registry.serde.SerdeHeaders;
+import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
+import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
+import io.axual.ksml.data.notation.protobuf.ProtobufSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
+import io.axual.ksml.data.serde.HeaderFilterSerde;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 
 import java.util.Map;
+import java.util.Set;
 
-public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
-    // Registry Client is mocked by tests
+public class ApicurioProtobufSerdeSupplier implements ProtobufSerdeSupplier {
     private final RegistryClient registryClient;
 
-    public ApicurioAvroSerdeSupplier(RegistryClient registryClient) {
+    public ApicurioProtobufSerdeSupplier() {
+        this(null);
+    }
+
+    public ApicurioProtobufSerdeSupplier(RegistryClient registryClient) {
         this.registryClient = registryClient;
     }
 
@@ -46,22 +53,35 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new ApicurioAvroSerde(registryClient);
+        return new ApicurioProtobufSerde(registryClient);
     }
 
-    static class ApicurioAvroSerde extends ConfigInjectionSerde {
-        public ApicurioAvroSerde(RegistryClient registryClient) {
-            this(Serdes.serdeFrom(
-                    registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>(),
-                    registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>()));
+    static class ApicurioProtobufSerde extends ConfigInjectionSerde {
+        private final HeaderFilterSerde delegate;
+
+        @SuppressWarnings("unchecked")
+        public ApicurioProtobufSerde(RegistryClient registryClient) {
+            this(new HeaderFilterSerde((Serde) Serdes.serdeFrom(
+                    registryClient != null ? new ProtobufKafkaSerializer<>(registryClient) : new ProtobufKafkaSerializer<>(),
+                    registryClient != null ? new ProtobufKafkaDeserializer<>(registryClient) : new ProtobufKafkaDeserializer<>())));
         }
 
-        public ApicurioAvroSerde(Serde<Object> delegate) {
+        public ApicurioProtobufSerde(HeaderFilterSerde delegate) {
             super(delegate);
+            this.delegate = delegate;
         }
 
         @Override
         protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
+            // Configure header filtering
+            final String messageTypeHeaderName;
+            if (isKey) {
+                messageTypeHeaderName = configs.getOrDefault(SerdeConfig.HEADER_KEY_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_KEY_MESSAGE_TYPE).toString();
+            } else {
+                messageTypeHeaderName = configs.getOrDefault(SerdeConfig.HEADER_VALUE_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_VALUE_MESSAGE_TYPE).toString();
+            }
+            delegate.filteredHeaders(Set.of(messageTypeHeaderName));
+
             // Enable payload encoding by default
             configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
             configs.putIfAbsent("apicurio.registry.headers.enabled", false);

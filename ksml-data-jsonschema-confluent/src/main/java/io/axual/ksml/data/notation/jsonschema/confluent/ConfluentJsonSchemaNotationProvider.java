@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.protobuf;
+package io.axual.ksml.data.notation.jsonschema.confluent;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - Protobuf Apicurio
+ * KSML Data Library - JSON Schema Confluent
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,34 +20,25 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaDataObjectMapper;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
-import lombok.Getter;
 
-public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
+public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider {
     // Registry Client is mocked by tests
-    @Getter
-    private final RegistryClient registryClient;
-
-    public ApicurioProtobufNotationProvider() {
-        this(null);
-    }
-
-    public ApicurioProtobufNotationProvider(RegistryClient registryClient) {
-        super(ProtobufNotation.NOTATION_NAME, "apicurio");
-        this.registryClient = registryClient;
+    public ConfluentJsonSchemaNotationProvider() {
+        super(JsonSchemaNotation.NOTATION_NAME, "confluent");
     }
 
     @Override
     public Notation createNotation(NotationContext context) {
-        return new ProtobufNotation(
+        return new JsonSchemaNotation(
                 new VendorNotationContext(
                         context,
-                        new ApicurioProtobufSerdeSupplier(registryClient),
-                        new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper())),
-                new ApicurioProtobufSchemaParser());
+                        new ConfluentJsonSchemaSerdeSupplier(),
+                        new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
     }
 }

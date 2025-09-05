@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.protobuf;
+package io.axual.ksml.data.notation.jsonschema.confluent;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - Protobuf Confluent
+ * KSML Data Library - JSON Schema Confluent
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,24 +20,24 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
+import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
+import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 
-public class ConfluentProtobufSerdeSupplier implements ProtobufSerdeSupplier {
-    // Registry Client is mocked by tests
+public class ConfluentJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
     @Getter
     private final SchemaRegistryClient registryClient;
 
-    public ConfluentProtobufSerdeSupplier() {
+    public ConfluentJsonSchemaSerdeSupplier() {
         this(null);
     }
 
-    public ConfluentProtobufSerdeSupplier(SchemaRegistryClient registryClient) {
+    public ConfluentJsonSchemaSerdeSupplier(SchemaRegistryClient registryClient) {
         this.registryClient = registryClient;
     }
 
@@ -48,8 +48,8 @@ public class ConfluentProtobufSerdeSupplier implements ProtobufSerdeSupplier {
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return (Serde) Serdes.serdeFrom(
-                registryClient != null ? new KafkaProtobufSerializer<>(registryClient) : new KafkaProtobufSerializer<>(),
-                registryClient != null ? new KafkaProtobufDeserializer<>(registryClient) : new KafkaProtobufDeserializer<>());
+        return Serdes.serdeFrom(
+                registryClient != null ? new KafkaJsonSchemaSerializer<>(registryClient) : new KafkaJsonSchemaSerializer<>(),
+                registryClient != null ? new KafkaJsonSchemaDeserializer<>(registryClient) : new KafkaJsonSchemaDeserializer<>());
     }
 }

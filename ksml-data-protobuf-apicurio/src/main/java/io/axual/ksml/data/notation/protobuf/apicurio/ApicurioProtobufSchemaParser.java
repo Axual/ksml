@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.protobuf;
+package io.axual.ksml.data.notation.protobuf.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,19 +21,21 @@ package io.axual.ksml.data.notation.protobuf;
  */
 
 
+import io.axual.ksml.data.notation.protobuf.ProtobufSchema;
+import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
+import io.axual.ksml.data.notation.protobuf.ProtobufSchemaParser;
 import io.axual.ksml.data.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+
 @Slf4j
-public class ConfluentProtobufSchemaParser implements ProtobufSchemaParser {
-    private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper(new ConfluentProtobufDescriptorFileElementMapper());
+public class ApicurioProtobufSchemaParser implements ProtobufSchemaParser {
+    private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper(new ApicurioProtobufDescriptorFileElementMapper());
 
     @Override
     public DataSchema parse(String contextName, String schemaName, String schemaString) {
-        return null;
-//        final var schema = new io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider().parseSchema(schemaString, Collections.emptyList());
-//        schema.
-//        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaString.getBytes(), Collections.emptyMap());
-//        return MAPPER.toDataSchema(schemaName, new ProtobufSchema(proto.getFileDescriptor(), proto.getProtoFileElement()));
+        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaString.getBytes(), Collections.emptyMap());
+        return MAPPER.toDataSchema(schemaName, new ProtobufSchema(proto.getFileDescriptor(), proto.getProtoFileElement()));
     }
 }

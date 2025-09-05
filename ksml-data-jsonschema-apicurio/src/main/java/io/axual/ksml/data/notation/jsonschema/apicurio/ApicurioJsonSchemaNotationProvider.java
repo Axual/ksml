@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.jsonschema;
+package io.axual.ksml.data.notation.jsonschema.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - JSON Schema Confluent
+ * KSML Data Library - JSON Schema Apicurio
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -22,13 +22,14 @@ package io.axual.ksml.data.notation.jsonschema;
 
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaDataObjectMapper;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 
-public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider {
-    // Registry Client is mocked by tests
-    public ConfluentJsonSchemaNotationProvider() {
-        super(JsonSchemaNotation.NOTATION_NAME, "confluent");
+public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
+    public ApicurioJsonSchemaNotationProvider() {
+        super(JsonSchemaNotation.NOTATION_NAME, "apicurio");
     }
 
     @Override
@@ -36,7 +37,7 @@ public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider 
         return new JsonSchemaNotation(
                 new VendorNotationContext(
                         context,
-                        new ConfluentJsonSchemaSerdeSupplier(),
+                        new ApicurioJsonSchemaSerdeSupplier(),
                         new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
     }
 }

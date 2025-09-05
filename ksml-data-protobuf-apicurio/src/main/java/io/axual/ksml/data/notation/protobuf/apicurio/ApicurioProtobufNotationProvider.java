@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.jsonschema;
+package io.axual.ksml.data.notation.protobuf.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - JSON Schema Apicurio
+ * KSML Data Library - Protobuf Apicurio
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,22 +20,36 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.rest.client.RegistryClient;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
+import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+import lombok.Getter;
 
-public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
-    public ApicurioJsonSchemaNotationProvider() {
-        super(JsonSchemaNotation.NOTATION_NAME, "apicurio");
+public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
+    // Registry Client is mocked by tests
+    @Getter
+    private final RegistryClient registryClient;
+
+    public ApicurioProtobufNotationProvider() {
+        this(null);
+    }
+
+    public ApicurioProtobufNotationProvider(RegistryClient registryClient) {
+        super(ProtobufNotation.NOTATION_NAME, "apicurio");
+        this.registryClient = registryClient;
     }
 
     @Override
     public Notation createNotation(NotationContext context) {
-        return new JsonSchemaNotation(
+        return new ProtobufNotation(
                 new VendorNotationContext(
                         context,
-                        new ApicurioJsonSchemaSerdeSupplier(),
-                        new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
+                        new ApicurioProtobufSerdeSupplier(registryClient),
+                        new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper())),
+                new ApicurioProtobufSchemaParser());
     }
 }

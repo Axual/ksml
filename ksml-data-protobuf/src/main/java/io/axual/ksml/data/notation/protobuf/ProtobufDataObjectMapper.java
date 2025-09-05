@@ -73,7 +73,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
 
     @Override
     public Object fromDataObject(DataObject value) {
-        if (value instanceof DataStruct struct) {
+        if (value instanceof DataStruct struct && !struct.isNull()) {
             return convertDataStructToMessage(struct);
         }
         return super.fromDataObject(value);

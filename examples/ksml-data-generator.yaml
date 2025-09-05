@@ -44,6 +44,8 @@ ksml:
     apicurio:
       config:
       # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+      apicurio.registry.schema-resolver: io.apicurio.registry.resolver.DefaultSchemaResolver  # default schema resolver
+      apicurio.registry.headers.enabled: false                                                # use payload encoding
       # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
       # apicurio.registry.request.ssl.keystore.type: JKS
       # apicurio.registry.request.ssl.keystore.password: password
@@ -86,7 +88,7 @@ ksml:
       config:
       # Apicurio Avro serialisation settings
       # apicurio.registry.avro.encoding: "BINARY"
-      # apicurio.registry.headers.enabled: "true"
+      # apicurio.registry.headers.enabled: false
       # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
       # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
 
@@ -104,6 +106,7 @@ ksml:
       ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
       config:
         apicurio.registry.auto-register: true
+        apicurio.registry.headers.enabled: false
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
