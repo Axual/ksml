@@ -103,7 +103,6 @@ Next, let's add functions to filter, transform and log messages as they flow thr
     %}
     ```
 
-
 We defined three uniquely named functions:
 
 **`temperature_above_threshold`** function:
@@ -116,13 +115,13 @@ We defined three uniquely named functions:
 **`fahrenheit_to_celsius`** function:
 
 - Is of type `valueTransformer`, which means it [always gets](../reference/function-reference.md#valuetransformer)
-  two parameters `key` and `value`, and does not return a value
+  two parameters `key` and `value`, and returns a (modified, or transformed) value for the next processing step
 - Uses the `expression` tag to define the value to return, in this case renaming `temperature` to `temp_fahrenheit` and
   adding a field called `temp_celsius`
 
 **`log_message`** function:
 
-- Is of type `forEach`, which means it [always gets](../reference/function-reference.md#foreach)  two parameters
+- Is of type `forEach`, which means it [always gets](../reference/function-reference.md#foreach) two parameters
   `key` and `value`, and does not return a value
 - Takes an extra parameter `prefix` of type `string`
 - Checks if the `prefix` variable is of the correct type, and not empty, and if so, uses it to compose a description for
@@ -276,6 +275,7 @@ docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9
 ```
 
 Then enter messages in the format `key:value`:
+
 ```
 sensor1:{"temperature": 75}
 sensor2:{"temperature": 65}
