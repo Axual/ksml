@@ -24,12 +24,39 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Loads/parses JSON Schema text into KSML {@link DataSchema} using {@link JsonSchemaMapper}.
+ *
+ * <p>This class implements {@link Notation.SchemaParser} for the JSON notation. It delegates all
+ * parsing work to {@link JsonSchemaMapper} while keeping the notation SPI interface clean.</p>
+ *
+ * <p>Notes on parameters:</p>
+ * <ul>
+ *   <li>{@code contextName}: a human-friendly namespace or context; currently not used for parsing but
+ *       kept for future diagnostics or resolver strategies.</li>
+ *   <li>{@code schemaName}: the logical name/title of the schema; passed to the mapper to label the schema.</li>
+ *   <li>{@code schemaString}: the JSON Schema document as a string.</li>
+ * </ul>
+ */
 @Slf4j
 public class JsonSchemaLoader implements Notation.SchemaParser {
+    /**
+     * Mapper handling JSON Schema <-> DataSchema mapping.
+     */
     private static final JsonSchemaMapper MAPPER = new JsonSchemaMapper(false);
 
+    /**
+     * Parses a JSON Schema string into a {@link DataSchema}.
+     *
+     * @param contextName a human-readable context or namespace (currently informational only)
+     * @param schemaName  the logical name of the schema to parse
+     * @param schemaString the JSON Schema document as a string
+     * @return the parsed {@link DataSchema}
+     * @throws io.axual.ksml.data.exception.DataException if the schema can not be parsed
+     */
     @Override
     public DataSchema parse(String contextName, String schemaName, String schemaString) {
+        // Delegate actual parsing to the dedicated mapper. The contextName is not used at the moment.
         return MAPPER.toDataSchema(schemaName, schemaString);
     }
 }
