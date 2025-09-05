@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.serde.HeaderFilterSerde;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -30,9 +29,16 @@ import org.mockito.ArgumentCaptor;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import io.axual.ksml.data.serde.HeaderFilterSerde;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ApicurioJsonSchemaSerdeSupplierTest {
     @Test
@@ -62,7 +68,7 @@ class ApicurioJsonSchemaSerdeSupplierTest {
     @Test
     void testSuppliedPropertiesExtendedWithDefaults() {
         // Set up mocks
-        HeaderFilterSerde headerFilterSerde = mock(HeaderFilterSerde.class);
+        var headerFilterSerde = mock(HeaderFilterSerde.class);
         Serializer<Object> delegateSerializer = mock(Serializer.class);
         Deserializer<Object> delegateDeserializer = mock(Deserializer.class);
         ArgumentCaptor<Map<String, Object>> configCaptor = ArgumentCaptor.forClass(Map.class);
@@ -82,5 +88,42 @@ class ApicurioJsonSchemaSerdeSupplierTest {
         assertEquals(false, modifiedConfigs.get("apicurio.registry.headers.enabled"), "Expected default config enabling payload encoding");
         assertEquals(true, modifiedConfigs.get("apicurio.registry.as-confluent"), "Expected default config enabling Confluent compatibility");
         assertEquals("contentId", modifiedConfigs.get("apicurio.registry.use-id"), "Expected default config using contentId as schema id");
+        // New: default id-handler should be injected as well
+        assertEquals("io.apicurio.registry.serde.Legacy4ByteIdHandler", modifiedConfigs.get("apicurio.registry.id-handler"), "Expected default id handler to be set");
+    }
+
+    @Test
+    void testUserProvidedIdHandlerPreserved() {
+        // Set up mocks
+        Serializer<Object> delegateSerializer = mock(Serializer.class);
+        Deserializer<Object> delegateDeserializer = mock(Deserializer.class);
+        ArgumentCaptor<Map<String, Object>> configCaptor = ArgumentCaptor.forClass(Map.class);
+        final var serde = new ApicurioJsonSchemaSerdeSupplier.ApicurioJsonSchemaSerde(Serdes.serdeFrom(delegateSerializer, delegateDeserializer));
+
+        // Provide a custom id-handler which should not be overwritten
+        final var configs = new HashMap<String, String>();
+        configs.put("apicurio.registry.id-handler", "my.custom.IdHandler");
+        serde.configure(configs, false);
+
+        verify(delegateSerializer).configure(configCaptor.capture(), any(Boolean.class));
+        final var modifiedConfigs = configCaptor.getValue();
+        assertEquals("my.custom.IdHandler", modifiedConfigs.get("apicurio.registry.id-handler"));
+    }
+
+    @Test
+    void testSupplierBasics_vendorNameAndSerdeNotNull() {
+        final var supplier = new ApicurioJsonSchemaSerdeSupplier();
+        assertEquals("apicurio", supplier.vendorName());
+        final var serde = supplier.get(new io.axual.ksml.data.type.StructType(), false);
+        assertNotNull(serde);
+        assertNotNull(serde.serializer());
+        assertNotNull(serde.deserializer());
+    }
+
+    @Test
+    void testSupplierRegistryClientGetter() {
+        final var client = mock(io.apicurio.registry.rest.client.RegistryClient.class);
+        final var supplier = new ApicurioJsonSchemaSerdeSupplier(client);
+        assertSame(client, supplier.registryClient());
     }
 }

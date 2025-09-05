@@ -27,14 +27,25 @@ import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 
+/**
+ * NotationProvider for JSON Schema using the Confluent Schema Registry vendor.
+ *
+ * <p>Exposes notationName = "jsonschema" and vendorName = "confluent" via
+ * the {@link VendorNotationProvider} base class.</p>
+ *
+ * <p>When asked to create a notation, this provider wires a {@link JsonSchemaNotation}
+ * with a {@link ConfluentJsonSchemaSerdeSupplier} and a {@link JsonSchemaDataObjectMapper}
+ * using the {@link io.axual.ksml.data.mapper.NativeDataObjectMapper} from the provided
+ * {@link NotationContext}.</p>
+ */
 public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider {
-    // Registry Client is mocked by tests
     public ConfluentJsonSchemaNotationProvider() {
         super(JsonSchemaNotation.NOTATION_NAME, "confluent");
     }
 
     @Override
     public Notation createNotation(NotationContext context) {
+        // Build a VendorNotationContext combining the base context with vendor serde and mapper
         return new JsonSchemaNotation(
                 new VendorNotationContext(
                         context,
