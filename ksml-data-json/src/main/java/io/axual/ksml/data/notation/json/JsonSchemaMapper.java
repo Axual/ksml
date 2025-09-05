@@ -284,7 +284,10 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             target.put(TYPE_NAME, new DataString(ARRAY_TYPE));
             final var subStruct = new DataStruct();
             convertType(listSchema.valueSchema(), false, null, subStruct, definitions);
-            target.put(ITEMS_NAME, subStruct);
+            if(subStruct.size()>0) {
+                // only add if the list values exist
+                target.put(ITEMS_NAME, subStruct);
+            }
         }
         if (schema instanceof MapSchema mapSchema) {
             target.put(TYPE_NAME, new DataString(OBJECT_TYPE));
