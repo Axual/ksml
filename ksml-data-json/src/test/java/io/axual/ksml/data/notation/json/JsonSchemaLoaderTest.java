@@ -54,13 +54,13 @@ class JsonSchemaLoaderTest {
     @DisplayName("Parses object_with_primitives.json to StructSchema with expected fields")
     void parsesPrimitivesObject() throws Exception {
         // Load JSON Schema resource used elsewhere in tests
-        String json = readResource("/jsonschema/object_with_primitives.json");
+        var json = readResource("/jsonschema/object_with_primitives.json");
 
         // When
-        DataSchema schema = loader.parse("ns", "ObjWithPrims", json);
+        var schema = loader.parse("ns", "ObjWithPrims", json);
 
         // Then: verify StructSchema name and key properties using chained assertions
-        StructSchema struct = assertThat(schema)
+        var struct = assertThat(schema)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .returns("ObjWithPrims", StructSchema::name)

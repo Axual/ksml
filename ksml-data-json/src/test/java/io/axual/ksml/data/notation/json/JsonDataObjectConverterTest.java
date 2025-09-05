@@ -20,10 +20,7 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
@@ -36,7 +33,6 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.ListType;
@@ -82,10 +78,10 @@ class JsonDataObjectConverterTest {
         struct.put("nil", DataNull.INSTANCE);
 
         // When converting to a DataString
-        DataObject out = converter.convert(struct, DataString.DATATYPE);
+        var out = converter.convert(struct, DataString.DATATYPE);
 
         // Then
-        String jsonString = assertThat(out)
+        var jsonString = assertThat(out)
                 .isInstanceOf(DataString.class)
                 .asInstanceOf(InstanceOfAssertFactories.type(DataString.class))
                 .extracting(DataString::value, InstanceOfAssertFactories.STRING)
@@ -93,16 +89,16 @@ class JsonDataObjectConverterTest {
                 .actual();
 
         // Compare JSON trees using Jackson
-        ObjectNode expected = JACKSON.createObjectNode();
+        var expected = JACKSON.createObjectNode();
         expected.put("str", "hello");
         expected.put("int", 42);
-        ArrayNode arr = JACKSON.createArrayNode().add(1).add(2).add(3);
+        var arr = JACKSON.createArrayNode().add(1).add(2).add(3);
         expected.set("arr", arr);
         expected.set("obj", JACKSON.createObjectNode().put("a", 1).put("b", 2));
         expected.put("bool", true);
         expected.putNull("nil");
 
-        JsonNode actual = JACKSON.readTree(jsonString);
+        var actual = JACKSON.readTree(jsonString);
         assertThat(actual).isEqualTo(expected);
     }
 
@@ -118,21 +114,21 @@ class JsonDataObjectConverterTest {
         obj.put("y", new DataInteger(2));
         list.add(obj);
 
-        DataObject out = converter.convert(list, DataString.DATATYPE);
+        var out = converter.convert(list, DataString.DATATYPE);
 
-        String jsonString = assertThat(out)
+        var jsonString = assertThat(out)
                 .isInstanceOf(DataString.class)
                 .asInstanceOf(InstanceOfAssertFactories.type(DataString.class))
                 .extracting(DataString::value, InstanceOfAssertFactories.STRING)
                 .isNotBlank()
                 .actual();
 
-        ArrayNode expected = JACKSON.createArrayNode();
+        var expected = JACKSON.createArrayNode();
         expected.add(10);
         expected.add("abc");
         expected.add(true);
         expected.add(JACKSON.createObjectNode().put("x", 1).put("y", 2));
-        JsonNode actual = JACKSON.readTree(jsonString);
+        var actual = JACKSON.readTree(jsonString);
         assertThat(actual).isEqualTo(expected);
     }
 
@@ -146,42 +142,42 @@ class JsonDataObjectConverterTest {
         nested.put("a", new DataInteger(10));
         map.put("obj", nested);
 
-        DataObject out = converter.convert(map, DataString.DATATYPE);
+        var out = converter.convert(map, DataString.DATATYPE);
 
-        String jsonString = assertThat(out)
+        var jsonString = assertThat(out)
                 .isInstanceOf(DataString.class)
                 .asInstanceOf(InstanceOfAssertFactories.type(DataString.class))
                 .extracting(DataString::value, InstanceOfAssertFactories.STRING)
                 .isNotBlank()
                 .actual();
 
-        ObjectNode expected = JACKSON.createObjectNode();
+        var expected = JACKSON.createObjectNode();
         expected.put("k1", 1);
         expected.put("k2", "v2");
         expected.set("obj", JACKSON.createObjectNode().put("a", 10));
-        JsonNode actual = JACKSON.readTree(jsonString);
+        var actual = JACKSON.readTree(jsonString);
         assertThat(actual).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("DataString JSON -> StructType/DataStruct")
     void stringToStruct() throws Exception {
-        ObjectNode root = JACKSON.createObjectNode();
+        var root = JACKSON.createObjectNode();
         root.put("s", "hello");
         root.put("n", 123);
         root.set("obj", JACKSON.createObjectNode().put("a", 1));
-        String json = JACKSON.writeValueAsString(root);
+        var json = JACKSON.writeValueAsString(root);
 
         // When converting to a StructType (schemaless)
-        DataObject out = converter.convert(new DataString(json), new StructType());
+        var out = converter.convert(new DataString(json), new StructType());
 
         var softly = new SoftAssertions();
         softly.assertThat(out).isInstanceOf(DataStruct.class);
 
         // Round-trip using the mapper to validate content equivalence
-        String roundTrip = mapper.fromDataObject(out);
-        JsonNode treeIn = JACKSON.readTree(json);
-        JsonNode treeOut = JACKSON.readTree(roundTrip);
+        var roundTrip = mapper.fromDataObject(out);
+        var treeIn = JACKSON.readTree(json);
+        var treeOut = JACKSON.readTree(roundTrip);
         softly.assertThat(treeOut).isEqualTo(treeIn);
         softly.assertAll();
     }
@@ -189,36 +185,36 @@ class JsonDataObjectConverterTest {
     @Test
     @DisplayName("DataString JSON array -> ListType/DataList")
     void stringToList() throws Exception {
-        ArrayNode arr = JACKSON.createArrayNode();
+        var arr = JACKSON.createArrayNode();
         arr.add(1);
         arr.add("x");
         arr.add(JACKSON.createObjectNode().put("a", 1));
-        String json = JACKSON.writeValueAsString(arr);
+        var json = JACKSON.writeValueAsString(arr);
 
-        DataObject out = converter.convert(new DataString(json), new ListType());
+        var out = converter.convert(new DataString(json), new ListType());
         assertThat(out).isInstanceOf(DataList.class);
 
-        String roundTrip = mapper.fromDataObject(out);
-        JsonNode treeIn = JACKSON.readTree(json);
-        JsonNode treeOut = JACKSON.readTree(roundTrip);
+        var roundTrip = mapper.fromDataObject(out);
+        var treeIn = JACKSON.readTree(json);
+        var treeOut = JACKSON.readTree(roundTrip);
         assertThat(treeOut).isEqualTo(treeIn);
     }
 
     @Test
     @DisplayName("DataString JSON object -> MapType/DataMap")
     void stringToMap() throws Exception {
-        ObjectNode obj = JACKSON.createObjectNode();
+        var obj = JACKSON.createObjectNode();
         obj.put("a", 1);
         obj.put("b", 2);
         obj.set("c", JACKSON.createObjectNode().put("x", 5));
-        String json = JACKSON.writeValueAsString(obj);
+        var json = JACKSON.writeValueAsString(obj);
 
-        DataObject out = converter.convert(new DataString(json), new MapType());
+        var out = converter.convert(new DataString(json), new MapType());
         assertThat(out).isInstanceOf(DataMap.class);
 
-        String roundTrip = mapper.fromDataObject(out);
-        JsonNode treeIn = JACKSON.readTree(json);
-        JsonNode treeOut = JACKSON.readTree(roundTrip);
+        var roundTrip = mapper.fromDataObject(out);
+        var treeIn = JACKSON.readTree(json);
+        var treeOut = JACKSON.readTree(roundTrip);
         assertThat(treeOut).isEqualTo(treeIn);
     }
 
@@ -232,15 +228,15 @@ class JsonDataObjectConverterTest {
         );
 
         // Case 1: JSON object should yield DataStruct
-        String jsonObj = "{\"a\":1,\"b\":2}";
-        DataObject out1 = converter.convert(new DataString(jsonObj), union);
+        var jsonObj = "{\"a\":1,\"b\":2}";
+        var out1 = converter.convert(new DataString(jsonObj), union);
         // Use soft assertions to validate multiple expectations at once
         var softly = new SoftAssertions();
         softly.assertThat(out1).isInstanceOf(DataStruct.class);
 
         // Case 2: JSON array should yield DataList
-        String jsonArr = "[1,2,3]";
-        DataObject out2 = converter.convert(new DataString(jsonArr), union);
+        var jsonArr = "[1,2,3]";
+        var out2 = converter.convert(new DataString(jsonArr), union);
         softly.assertThat(out2).isInstanceOf(DataList.class);
         softly.assertAll();
     }

@@ -25,8 +25,8 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.base.BaseNotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,14 +53,14 @@ class JsonNotationProviderTest {
         var context = new NotationContext(JsonNotation.NOTATION_NAME);
 
         // When
-        Notation notation = provider.createNotation(context);
+        var notation = provider.createNotation(context);
 
         // Then: verify type and key properties via chained assertions
         assertThat(notation)
                 .asInstanceOf(InstanceOfAssertFactories.type(JsonNotation.class))
-                .returns("json", n -> n.name())
-                .returns(".json", n -> n.filenameExtension())
-                .returns(JsonNotation.DEFAULT_TYPE, n -> n.defaultType());
+                .returns("json", BaseNotation::name)
+                .returns(".json", BaseNotation::filenameExtension)
+                .returns(JsonNotation.DEFAULT_TYPE, JsonNotation::defaultType);
 
         // And: verify converter and schema parser are of expected JSON-specific types
         var softly = new SoftAssertions();

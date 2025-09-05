@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.json;
+package io.axual.ksml.data.notation.jsonschema;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library - JSON Schema
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,10 +20,12 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,8 +37,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
@@ -45,27 +50,30 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.StructType;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Named.named;
 
-/**
- * Tests for {@link JsonDataObjectMapper} verifying JSON <-> DataObject conversions.
- *
- * <p>Scenarios covered: round-trips for JSON objects and arrays, null handling,
- * and primitive value mapping. JSON trees are compared using Jackson to ensure
- * semantic equality. Assertions follow the AssertJ chained style used in the
- * module's other tests (e.g., JsonSchemaMapperTest).</p>
- */
-@DisplayName("JsonDataObjectMapper - JSON <-> DataObject conversions")
-class JsonDataObjectMapperTest {
+class JsonSchemaDataObjectMapperTest {
     private static final ObjectMapper JACKSON = new ObjectMapper();
 
-    private final JsonDataObjectMapper mapper = new JsonDataObjectMapper(false);
+    private final NativeDataObjectMapper objectMapper = new NativeDataObjectMapper();
+    private final JsonSchemaDataObjectMapper mapper = new JsonSchemaDataObjectMapper(objectMapper);
 
     @Test
-    @DisplayName("Converts JSON object string to DataStruct and back (round-trip)")
-    void objectRoundTrip() throws Exception {
+    @DisplayName("Unsupported value object throws exception")
+    void invalidValue() {
+        final var expectedType = new StructType();
+        assertThatCode(() -> mapper.toDataObject(expectedType, "Invalid value"))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Cannot convert value to DataObject");
+    }
+
+    @Test
+    @DisplayName("Converts JSON object to DataStruct and back (round-trip)")
+    void objectRoundTrip() {
         // Build JSON object with mixed primitives and nested structures
         var root = JACKSON.createObjectNode();
         root.put("str", "hello");
@@ -77,26 +85,17 @@ class JsonDataObjectMapperTest {
         root.set("obj", JACKSON.createObjectNode().put("a", 1).put("b", 2));
         root.putNull("nil");
 
-        var json = JACKSON.writeValueAsString(root);
+        var data = mapper.toDataObject(null, root);
 
-        // When
-        var data = mapper.toDataObject(null, json);
-
-        // Then: should be a DataStruct
         assertThat(data).isInstanceOf(DataStruct.class);
-
-        // And when converting back to JSON string
-        var jsonOut = mapper.fromDataObject(data);
-
-        // Validate by parsing with Jackson and comparing trees
-        var treeIn = JACKSON.readTree(json);
-        var treeOut = JACKSON.readTree(jsonOut);
-        assertThat(treeOut).isEqualTo(treeIn);
+        // And when converting back to compare original root to converted back
+        assertThat(mapper.fromDataObject(data))
+                .isEqualTo(root);
     }
 
     @Test
     @DisplayName("Converts JSON array string to DataList and back (round-trip)")
-    void arrayRoundTrip() throws Exception {
+    void arrayRoundTrip() {
         var arr = JACKSON.createArrayNode();
         arr.add(10);
         arr.add("abc");
@@ -106,15 +105,11 @@ class JsonDataObjectMapperTest {
         obj.put("y", 2);
         arr.add(obj);
 
-        var json = JACKSON.writeValueAsString(arr);
-
-        var data = mapper.toDataObject(null, json);
+        var data = mapper.toDataObject(null, arr);
         assertThat(data).isInstanceOf(DataList.class);
-
-        var jsonOut = mapper.fromDataObject(data);
-        var treeIn = JACKSON.readTree(json);
-        var treeOut = JACKSON.readTree(jsonOut);
-        assertThat(treeOut).isEqualTo(treeIn);
+        // And when converting back to compare original root to converted back
+        assertThat(mapper.fromDataObject(data))
+                .isEqualTo(arr);
     }
 
     @Test
@@ -124,23 +119,24 @@ class JsonDataObjectMapperTest {
         assertThat(data).isInstanceOf(DataNull.class);
         assertThat(((DataNull) data).value()).isNull();
 
-        // Back to JSON string: JsonStringMapper returns null for null native value
-        var jsonOut = mapper.fromDataObject(data);
-        assertThat(jsonOut).isNull();
+        // Back to JSON node: JsonStringMapper returns null for null native value
+        assertThat(mapper.fromDataObject(data))
+                .isNotNull()
+                .asInstanceOf(InstanceOfAssertFactories.type(JsonNode.class))
+                .returns(true, JsonNode::isNull);
     }
 
     @ParameterizedTest(name = "{index} => {0}")
     @MethodSource("primitiveCases")
     @DisplayName("Correct DataObject type and value, and object round-trip")
     void primitiveFieldRoundTrip(Object primitiveValue,
-                                 Class<? extends DataObject> expectedDataObjectClass, Object expectedValue) throws Exception {
+                                 Class<? extends DataObject> expectedDataObjectClass, Object expectedValue)  {
         // Build object with one field named value
-        var obj = JACKSON.createObjectNode();
-        putValue(obj, "value", primitiveValue);
-        var json = JACKSON.writeValueAsString(obj);
+        var root = JACKSON.createObjectNode();
+        putValue(root, "value", primitiveValue);
 
         // Map to DataObject
-        var data = mapper.toDataObject(null, json);
+        var data = mapper.toDataObject(null, root);
         assertThat(data).isInstanceOf(DataStruct.class);
         var valueDo = ((DataStruct) data).get("value");
         assertThat(valueDo).isInstanceOf(expectedDataObjectClass);
@@ -152,11 +148,9 @@ class JsonDataObjectMapperTest {
                 .extracting(DataPrimitive::value)
                 .isEqualTo(expectedValue);
 
-        // Round-trip back to JSON string and compare
-        var jsonOut = mapper.fromDataObject(data);
-        var treeIn = JACKSON.readTree(json);
-        var treeOut = JACKSON.readTree(jsonOut);
-        assertThat(treeOut).isEqualTo(treeIn);
+        // Back to JSON node: JsonStringMapper returns null for null native value
+        assertThat(mapper.fromDataObject(data)).isEqualTo(root);
+
     }
 
     // Parameters for primitive tests: description, native value, expected DataObject class
@@ -168,7 +162,7 @@ class JsonDataObjectMapperTest {
                 Arguments.of(named("int", 123), DataInteger.class, 123),
                 Arguments.of(named("long", 1234567890123L), DataLong.class, 1234567890123L),
                 Arguments.of(named("double", 12.5d), DataDouble.class, 12.5d),
-                Arguments.of(named("float", 3.5f), DataDouble.class, 3.5d),
+                Arguments.of(named("float", 3.5f), DataFloat.class, 3.5f),
                 Arguments.of(named("Null field", null), DataNull.class, null)
         );
     }

@@ -118,7 +118,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             final var parts = path.split("/");
             if (parts.length <= 1 || !parts[0].equals("#")) return null;
             var result = schemaStruct;
-            for (int i = 1; i < parts.length; i++) {
+            for (var i = 1; i < parts.length; i++) {
                 final var sub = result.get(parts[i]);
                 if (!(sub instanceof DataStruct subStruct)) return null;
                 result = subStruct;
@@ -152,7 +152,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             }
         }
 
-        DataSchema additionalPropertiesSchema = DataSchema.ANY_SCHEMA;
+        var additionalPropertiesSchema = DataSchema.ANY_SCHEMA;
         var areAdditionalPropertiesAllowed = true;
         final var additionalProperties = schema.get(ADDITIONAL_PROPERTIES);
         if (additionalProperties instanceof DataBoolean dataBoolean) {
@@ -204,7 +204,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         final var anyOf = specStruct.get(ANY_OF_NAME);
         if (anyOf instanceof DataList anyOfList) {
             final var memberSchemas = new DataField[anyOfList.size()];
-            for (int index = 0; index < anyOfList.size(); index++) {
+            for (var index = 0; index < anyOfList.size(); index++) {
                 final var anyOfMember = anyOfList.get(index);
                 if (anyOfMember instanceof DataStruct anyOfMemberStruct)
                     memberSchemas[index] = new DataField(null, convertType(anyOfMemberStruct, referenceResolver));
@@ -346,7 +346,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             target.put(TYPE_NAME, new DataString(NUMBER_TYPE));
         if (schema == DataSchema.STRING_SCHEMA) {
             if (constant && defaultValue != null && defaultValue.value() != null) {
-                DataList enumList = new DataList();
+                var enumList = new DataList();
                 enumList.add(new DataString(defaultValue.value().toString()));
                 target.put(ENUM_NAME, enumList);
             } else {
@@ -354,7 +354,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             }
         }
         if (schema instanceof EnumSchema enumSchema) {
-            DataList enumList = new DataList();
+            var enumList = new DataList();
             enumSchema.symbols().forEach(symbol -> enumList.add(new DataString(symbol.name())));
             target.put(ENUM_NAME, enumList);
         }

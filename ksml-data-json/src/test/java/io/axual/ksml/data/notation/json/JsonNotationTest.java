@@ -27,12 +27,12 @@ import org.junit.jupiter.api.Test;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.notation.base.BaseNotation;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.object.DataString;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,10 +59,10 @@ class JsonNotationTest {
 
         // Then: verify defaults and wiring using chained assertions
         assertThat(notation)
-                .returns("json", n -> n.name())
-                .returns(".json", n -> n.filenameExtension())
-                .returns(JsonNotation.DEFAULT_TYPE, n -> n.defaultType())
-                .extracting(n -> n.converter(), InstanceOfAssertFactories.type(JsonDataObjectConverter.class))
+                .returns("json", BaseNotation::name)
+                .returns(".json", BaseNotation::filenameExtension)
+                .returns(JsonNotation.DEFAULT_TYPE, JsonNotation::defaultType)
+                .extracting(BaseNotation::converter, InstanceOfAssertFactories.type(JsonDataObjectConverter.class))
                 .isNotNull();
 
         // And: schema parser is JsonSchemaLoader
@@ -89,7 +89,7 @@ class JsonNotationTest {
         softly.assertThat(notation.serde(new StructType(), false)).isInstanceOf(JsonSerde.class);
 
         // DEFAULT_TYPE is a union of Struct|List and should be accepted directly
-        DataType defaultUnion = JsonNotation.DEFAULT_TYPE;
+        var defaultUnion = JsonNotation.DEFAULT_TYPE;
         softly.assertThat(notation.serde(defaultUnion, false)).isInstanceOf(JsonSerde.class);
 
         // A different union that is assignable from DEFAULT_TYPE should also be supported
