@@ -26,25 +26,56 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.util.ConvertUtil;
 import io.axual.ksml.data.util.JsonNodeUtil;
 
+/**
+ * Maps between Jackson {@link JsonNode} trees and KSML {@link DataObject}s for JSON Schema usage.
+ *
+ * <p>This mapper serves vendor-backed JSON Schema serdes that choose to expose
+ * parsed JSON values as Jackson JsonNode at their boundary. It converts:</n>
+ * <ul>
+ *   <li>JsonNode -> native Map/List/primitives -> DataObject using {@link NativeDataObjectMapper}</li>
+ *   <li>DataObject -> native Map/List/primitives -> JsonNode</li>
+ * </ul>
+ *
+ * <p>Behavioral notes:</p>
+ * <ul>
+ *   <li>Null input maps to a {@code DataNull} according to the expected type (via {@link ConvertUtil}).</li>
+ *   <li>Only JsonNode inputs are supported for {@link #toDataObject(DataType, Object)}; other types cause a {@link DataException}.</li>
+ * </ul>
+ */
 public class JsonSchemaDataObjectMapper implements DataObjectMapper<Object> {
     private final NativeDataObjectMapper nativeMapper;
 
+    /** Creates a mapper using the provided {@link NativeDataObjectMapper} for native conversions. */
     public JsonSchemaDataObjectMapper(NativeDataObjectMapper nativeMapper) {
         this.nativeMapper = nativeMapper;
     }
 
+    /**
+     * Converts an input value to a {@link DataObject}. Only {@link JsonNode} or {@code null} are accepted.
+     */
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
+        if (value == null) {
+            // Allow nulls (eg. Kafka tombstones), honoring the expected type.
+            return ConvertUtil.convertNullToDataObject(expected);
+        }
         if (value instanceof JsonNode jsonNode) {
+            // First convert JsonNode to native Java (Map/List/primitives), then to DataObject.
             return nativeMapper.toDataObject(expected, JsonNodeUtil.convertJsonNodeToNative(jsonNode));
         }
+        // Keep error concise; include the value to aid debugging in tests.
         throw new DataException("Cannot convert value to DataObject: " + value);
     }
 
+    /**
+     * Converts a {@link DataObject} to a Jackson {@link JsonNode} tree by first mapping to native Java.
+     */
     @Override
     public Object fromDataObject(DataObject value) {
+        // Map DataObject -> native -> JsonNode
         return JsonNodeUtil.convertNativeToJsonNode(nativeMapper.fromDataObject(value));
     }
 }

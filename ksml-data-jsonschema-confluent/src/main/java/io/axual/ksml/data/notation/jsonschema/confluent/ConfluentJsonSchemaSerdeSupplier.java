@@ -20,16 +20,27 @@ package io.axual.ksml.data.notation.jsonschema.confluent;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import lombok.Getter;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
 
+/**
+ * JsonSchema Serde supplier for the Confluent Schema Registry vendor implementation.
+ *
+ * <p>Implements {@link JsonSchemaSerdeSupplier} to provide a Kafka {@link Serde} backed by
+ * Confluent's JsonSchema serializer/deserializer. An optional {@link SchemaRegistryClient}
+ * can be supplied (handy for tests); otherwise default constructors are used.</p>
+ */
 public class ConfluentJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
+    /**
+     * Optional Confluent schema registry client; primarily used by tests.
+     */
     @Getter
     private final SchemaRegistryClient registryClient;
 
@@ -48,6 +59,7 @@ public class ConfluentJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
+        // Return serde composed of Confluent JsonSchema serializer/deserializer
         return Serdes.serdeFrom(
                 registryClient != null ? new KafkaJsonSchemaSerializer<>(registryClient) : new KafkaJsonSchemaSerializer<>(),
                 registryClient != null ? new KafkaJsonSchemaDeserializer<>(registryClient) : new KafkaJsonSchemaDeserializer<>());

@@ -32,8 +32,20 @@ import org.apache.kafka.common.serialization.Serdes;
 
 import java.util.Map;
 
+/**
+ * JsonSchema Serde supplier for the Apicurio Registry vendor implementation.
+ *
+ * <p>This class implements {@link JsonSchemaSerdeSupplier} and produces a Kafka {@link Serde}
+ * backed by Apicurio's JsonSchema serializer/deserializer. It optionally accepts a
+ * {@link RegistryClient} (useful for testing) and defaults to constructing
+ * serializer/deserializer instances without an explicit client when null.</p>
+ *
+ * <p>The returned Serde is wrapped in a {@link ConfigInjectionSerde} to apply sensible default
+ * configuration keys for Apicurio (artifact resolver strategy, headers mode, confluent compatibility,
+ * and id handling). User-provided configuration always takes precedence.</p>
+ */
 public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
-    // Registry Client is mocked by tests
+    /** Optional Apicurio registry client; primarily used by tests. */
     @Getter
     private final RegistryClient registryClient;
 
@@ -52,9 +64,13 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
+        // Create a serde that injects Apicurio defaults while honoring user-supplied configs
         return new ApicurioJsonSchemaSerde(registryClient);
     }
 
+    /**
+     * Serde wrapper that injects default Apicurio configuration where not provided by the user.
+     */
     static class ApicurioJsonSchemaSerde extends ConfigInjectionSerde {
         public ApicurioJsonSchemaSerde(RegistryClient registryClient) {
             this(Serdes.serdeFrom(
@@ -74,6 +90,7 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
             configs.putIfAbsent("apicurio.registry.as-confluent", true);
             configs.putIfAbsent("apicurio.registry.use-id", "contentId");
             configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
+            configs.putIfAbsent("apicurio.registry.serdes.json-schema.validation-enabled", true);
             return configs;
         }
     }
