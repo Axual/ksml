@@ -1,0 +1,94 @@
+{
+  "title": "AdditionalProps",
+  "description": "Test object to verify that additional properties are accepted",
+  "type": "object",
+  "properties": {
+    "anyAdditional": {
+      "type": "object",
+      "$ref": "#/$defs/InnerWithAnyAdditional"
+    },
+    "noAdditional": {
+      "type": "object",
+      "$ref": "#/$defs/InnerWithNoAdditional"
+    },
+    "stringAdditional": {
+      "type": "object",
+      "$ref": "#/$defs/InnerWithStringAdditional"
+    },
+    "objectAdditional": {
+      "type": "object",
+      "$ref": "#/$defs/InnerWithSimpleInnerAdditional"
+    }
+  },
+  "$defs": {
+    "SimpleInner": {
+      "type": "object",
+      "title": "ReallySimpleInner",
+      "properties": {
+        "x": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "x"
+      ]
+    },
+    "InnerWithAnyAdditional": {
+      "type": "object",
+      "title": "ObjectWithAnyAdditional",
+      "properties": {
+        "x": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "x"
+      ],
+      "additionalProperties": true
+    },
+    "InnerWithNoAdditional": {
+      "type": "object",
+      "title": "ObjectWithNoAdditional",
+      "properties": {
+        "x": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "x"
+      ],
+      "additionalProperties": false
+    },
+    "InnerWithStringAdditional": {
+      "type": "object",
+      "title": "ObjectWithStringAdditional",
+      "properties": {
+        "x": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "x"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "InnerWithSimpleInnerAdditional": {
+      "type": "object",
+      "title": "ObjectWithSimpleInnerAdditional",
+      "properties": {
+        "x": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "x"
+      ],
+      "additionalProperties": {
+        "type": "object",
+        "$ref": "#/$defs/SimpleInner"
+      }
+    }
+  }
+}

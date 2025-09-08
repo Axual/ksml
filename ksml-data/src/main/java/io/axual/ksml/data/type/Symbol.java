@@ -36,4 +36,8 @@ public record Symbol(String name, String doc, int tag) {
         if (tag == NO_TAG || other.tag == NO_TAG) return true;
         return tag == other.tag;
     }
+
+    public static Symbol of(String symbol) {
+        return new Symbol(symbol);
+    }
 }
