@@ -24,6 +24,7 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Deserializer;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,7 +43,7 @@ public class ConfigInjectionDeserializer implements Deserializer<Object> {
         this.delegate = delegate;
     }
 
-    protected Map<String, ?> modifyConfigs(Map<String, ?> configs, boolean isKey) {
+    protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
         return configs;
     }
 
@@ -54,7 +55,7 @@ public class ConfigInjectionDeserializer implements Deserializer<Object> {
      */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-        delegate.configure(modifyConfigs(configs, isKey), isKey);
+        delegate.configure(modifyConfigs(new HashMap<>(configs), isKey), isKey);
     }
 
     /**

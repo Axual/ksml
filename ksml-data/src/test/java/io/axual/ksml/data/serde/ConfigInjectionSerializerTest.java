@@ -25,7 +25,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -57,12 +56,10 @@ class ConfigInjectionSerializerTest {
 
         var configInjecting = new ConfigInjectionSerializer(delegate) {
             @Override
-            protected Map<String, ?> modifyConfigs(Map<String, ?> configs, boolean isKey) {
-                var copy = new HashMap<String, Object>();
-                copy.putAll(configs);
-                copy.put("injected", "yes");
-                copy.put("isKey", isKey);
-                return copy;
+            protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
+                configs.put("injected", "yes");
+                configs.put("isKey", isKey);
+                return configs;
             }
         };
 

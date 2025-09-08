@@ -29,13 +29,32 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
 
+/**
+ * JSON Schema notation implementation for KSML using vendor-backed serdes.
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Expose the notation name {@link #NOTATION_NAME} ("jsonschema").</li>
+ *   <li>Define the default data type as a union of {@link StructType} and {@link ListType}
+ *       to support both JSON objects and arrays.</li>
+ *   <li>Wire a converter ({@link JsonDataObjectConverter}) and schema parser ({@link JsonSchemaLoader}).</li>
+ *   <li>Create vendor-backed serdes via {@link VendorNotation} when types are assignable from the default type.</li>
+ * </ul>
+ */
 public class JsonSchemaNotation extends VendorNotation {
+    /** Canonical notation name for JSON Schema. */
     public static final String NOTATION_NAME = "jsonschema";
+    /** Default supported data type: union of Struct and List. */
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UnionType.MemberType(new StructType()),
             new UnionType.MemberType(new ListType()));
 
+    /**
+     * Creates a JsonSchemaNotation with the provided vendor context.
+     * The filename extension is ".json" to match JSON Schema files.
+     */
     public JsonSchemaNotation(VendorNotationContext context) {
+        // Wire the VendorNotation with JSON-specific converter and schema loader.
         super(context,  ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
     }
 }

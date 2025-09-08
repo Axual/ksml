@@ -87,7 +87,7 @@ ksml:
       config:
       # Apicurio Avro serialisation settings
       # apicurio.registry.avro.encoding: "BINARY"
-      # apicurio.registry.headers.enabled: "true"
+      # apicurio.registry.headers.enabled: false
       # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
       # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
 
@@ -97,6 +97,7 @@ ksml:
       schemaRegistry: apicurio
       config:
         apicurio.registry.auto-register: true
+        apicurio.registry.headers.enabled: false
 
     # Definition for "protobuf" notation
     protobuf:                       # Definition for "protobuf" notation
@@ -105,6 +106,7 @@ ksml:
       ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
       config:
         apicurio.registry.auto-register: true
+        apicurio.registry.headers.enabled: false
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
