@@ -1,0 +1,36 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# This example shows how to read from a binary stream, manipulate specific bytes and output
+# messages on a target stream. For validation purposes a second pipeline outputs the manipulated
+# results.
+
+# Concrete use case for this manipulation can be the manual override of a schema id, when the source
+# message contains a schema id that is not locally recognized. By changing bytes 1-4 in the value,
+# one can override the schema id for further downstream processing.
+
+# Yes, this is hacky, but it may serve a purpose for cases where binary message copies are made from
+# remote Kafka clusters with their own (possibly conflicting) schema ids.
+
+streams:
+  source:
+    topic: ksml_sensordata_protobuf
+    keyType: bytes
+    valueType: bytes
+    offsetResetPolicy: latest
+
+pipelines:
+  main:
+    from: source
+    via:
+      - type: transformMetadata
+        mapper:
+          globalCode: |
+            from datetime import datetime
+          code: |
+            del metadata["@schema"]
+            del metadata["@type"]
+            key = "["+", ".join(f'{x:02X}' for x in key)+"]" if key is not None else "null"
+            value = "["+", ".join(f'{x:02X}' for x in value)+"]" if value is not None else "null"
+            dt = datetime.fromtimestamp(metadata["timestamp"]/1000)
+            timestamp = f'{metadata["timestamp"]} ({dt.strftime("%d-%m-%Y @ %H:%M:%S")})'
+            log.info("NEW MESSAGE\n  timestamp={}\n  headers={}\n  key={}\n  value={}", timestamp, metadata["headers"], key, value)
