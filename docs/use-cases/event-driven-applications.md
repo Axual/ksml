@@ -107,9 +107,13 @@ In this tutorial, we'll build an event-driven inventory management system for an
 
 Now, let's create our KSML definition file:
 
-```yaml
-{% include "../definitions/use-cases/event-driven-applications/inventory-event-processors.yaml" %}
-```
+??? info "Inventory event processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/event-driven-applications/inventory-event-processors.yaml"
+    %}
+    ```
 
 ## Setting up the producers for test data
 
@@ -119,9 +123,13 @@ The definition consists of two producers. The first producer is a _single shot p
 for the `product_catalog` topic. The second producer produces a message every second to the `order_events` topic, using
 a randomly generated product order:
 
-```yaml
-{% include "../definitions/use-cases/event-driven-applications/product-and-order-event-producer.yaml" %}
-```
+??? info "Product and order event producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/event-driven-applications/product-and-order-event-producer.yaml"
+    %}
+    ```
 
 ## Running the Application
 
@@ -135,9 +143,13 @@ To run the application:
    [`customer-data-producer.yaml`](../definitions/use-cases/data-transformation/customer-data-producer.yaml).
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
 
-```yaml
-{% include "../definitions/use-cases/data-transformation/ksml-runner.yaml" %}
-```
+??? info "KSML runner configuration (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/data-transformation/ksml-runner.yaml"
+    %}
+    ```
 
 4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.
 5. Start the `legacy_customer_data_producer` to produce some sample data to the input topic.

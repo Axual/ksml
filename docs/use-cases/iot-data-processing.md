@@ -94,7 +94,7 @@ Our IoT sensor data will have the following structure:
 
 Now, let's create our KSML definition file:
 
-??? info "KSML data processing pipeline `iot-data-processing.yaml`"
+??? info "IoT data processor (click to expand)"
 
     ```yaml
     {% include "../definitions/use-cases/iot-data-processing/iot-data-processing.yaml" %}
@@ -104,7 +104,7 @@ Now, let's create our KSML definition file:
 
 IoT applications often involve geospatial data processing. Here's how to handle location-based analytics with KSML:
 
-??? info "Example `processing-geospatial-data.yaml` (click to expand)"
+??? info "Geospatial data processor (click to expand)"
 
     ```yaml
     {% include "../definitions/use-cases/iot-data-processing/processing-geospatial-data.yaml" %}
@@ -114,7 +114,7 @@ IoT applications often involve geospatial data processing. Here's how to handle 
 
 For many IoT applications, tracking device state over time is crucial. Here's how to implement this using KSML's state stores:
 
-??? info "Example `device-starte-tracking.yaml` (click to expand)"
+??? info "Device state tracking processor (click to expand)"
 
     ```yaml
     {% include "../definitions/use-cases/iot-data-processing/device-state-tracking.yaml" %}
@@ -128,7 +128,7 @@ IoT architectures often involve processing at the edge before sending data to th
 
 At the edge, you might want to filter, aggregate, and compress data before sending it to the cloud:
 
-??? info "Example `edge-processing.yaml` (click to expand)"
+??? info "Edge processing pipeline (click to expand)"
 
     ```yaml
     {% include "../definitions/use-cases/iot-data-processing/edge-processing.yaml" %}
@@ -138,7 +138,7 @@ At the edge, you might want to filter, aggregate, and compress data before sendi
 
 In the cloud, you can perform more complex analytics and aggregations:
 
-??? info "Example `cloud-processing.yaml` (click to expand)"
+??? info "Cloud processing pipeline (click to expand)"
 
     ```yaml
     {% include "../definitions/use-cases/iot-data-processing/cloud-processing.yaml" %}
@@ -157,7 +157,7 @@ The following producer pipeline can serve as a starting point to generate sample
 measurements from three separate rooms with two sensors each, containing randomized data. Occasionally some outlier values
 are generated so that the alerts will be visible.
 
-??? info "`sample-data-generator.yaml` (click to expand)"
+??? info "IoT sample data generator (click to expand)"
 
     ```yaml
     {% include "../definitions/use-cases/iot-data-processing/sample-data-generator.yaml" %}

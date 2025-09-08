@@ -41,7 +41,7 @@ which creates the topics.
 <br>
 Change the definition so that the startup command for the setup container (the `command` section) looks like the following:
 
-??? info "`command` section for the kafka-setup container"
+??? info "`command` section for the kafka-setup container (click to expand)"
 
     ```yaml
     command: "bash -c 'echo Creating topics... && \
@@ -98,7 +98,7 @@ locations, coming at an unsual speed, or are for a high amount:
 
 To detect complex fraud patterns, you can implement more sophisticated algorithms:
 
-??? info "Advanced fraud detection pattern recognition (click to expand)"
+??? info "Pattern recognition processor (click to expand)"
 
     ```yaml
     {%
@@ -112,7 +112,7 @@ To detect complex fraud patterns, you can implement more sophisticated algorithm
 
 For more advanced fraud detection, you can integrate machine learning models:
 
-??? info "Machine learning integration (click to expand)"
+??? info "Machine learning fraud detector (click to expand)"
 
     ```yaml
     {%
@@ -126,7 +126,7 @@ For more advanced fraud detection, you can integrate machine learning models:
 
 To make your fraud detection system actionable, you need to generate alerts:
 
-??? info "Real time alerting code (click to expand)"
+??? info "Real-time alerting processor (click to expand)"
 
     ```yaml
     {%

@@ -111,9 +111,13 @@ You want to transform the data into this format:
 
 Now, let's create our KSML definition file:
 
-```yaml
-{% include "../definitions/use-cases/data-transformation/data-transformation.yaml" %}
-```
+??? info "Data transformation processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/data-transformation/data-transformation.yaml"
+    %}
+    ```
 
 ## Setting up two producers for test data
 
@@ -121,16 +125,24 @@ To test out the topology above, we create two test data producers.
 
 The first producer is a _single shot producer_ that generates data for the `customer_segments` topic:
 
-```yaml
-{% include "../definitions/use-cases/data-transformation/segment-data-producer.yaml" %}
-```
+??? info "Segment data producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/data-transformation/segment-data-producer.yaml"
+    %}
+    ```
 
 The second producer produces a message every second to the `legacy_customer_data` topic, using a randomly chosen
 segment:
 
-```yaml
-{% include "../definitions/use-cases/data-transformation/customer-data-producer.yaml" %}
-```
+??? info "Customer data producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/data-transformation/customer-data-producer.yaml"
+    %}
+    ```
 
 ## Running the Application
 
@@ -144,9 +156,13 @@ To run the application:
    [`customer-data-producer.yaml`](../definitions/use-cases/data-transformation/customer-data-producer.yaml).
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
 
-```yaml
-{% include "../definitions/use-cases/data-transformation/ksml-runner.yaml" %}
-```
+??? info "KSML runner configuration (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/data-transformation/ksml-runner.yaml"
+    %}
+    ```
 
 4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.
 5. Start the `legacy_customer_data_producer` to produce some sample data to the input topic.

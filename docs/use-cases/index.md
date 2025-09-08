@@ -24,14 +24,6 @@ Learn how to build event-driven applications with KSML:
 - Command-query responsibility segregation (CQRS)
 - Event notification systems
 
-### [Microservices Integration](microservices-integration.md)
-
-This guide focuses on using KSML to integrate microservices:
-
-- Service-to-service communication
-- Event-based integration patterns
-- Implementing saga patterns
-- Building resilient microservice architectures
 
 ### [IoT Data Processing](iot-data-processing.md)
 

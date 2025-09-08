@@ -30,7 +30,6 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 - [Overview](use-cases/index.md)
 - [Data Transformation](use-cases/data-transformation.md)
 - [Event-Driven Applications](use-cases/event-driven-applications.md)
-- [Microservices Integration](use-cases/microservices-integration.md)
 - [IoT Data Processing](use-cases/iot-data-processing.md)
 - [Real-time Analytics](use-cases/real-time-analytics.md)
 - [Fraud Detection](use-cases/fraud-detection.md)

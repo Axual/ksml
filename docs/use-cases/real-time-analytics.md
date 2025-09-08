@@ -72,7 +72,7 @@ Our transaction data will have the following structure:
 
 Now, let's create our KSML definition file:
 
-??? info "pipeline definition for real tima analytics (click to expand)"
+??? info "Real-time analytics processor (click to expand)"
 
     ```yaml
     {% 
@@ -85,7 +85,7 @@ Now, let's create our KSML definition file:
 You can use the following producer pipeline example as a starting point to write some simulated sale data; it will write
 four hard coded sales records into the input stream and exit.
 
-??? info "example-data-producer.yaml (click to expand)"
+??? info "Transaction data producer (click to expand)"
 
     ```yaml
     {% 
