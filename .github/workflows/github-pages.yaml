@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - doc-rewrite
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:
