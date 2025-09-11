@@ -20,7 +20,6 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.base.CharMatcher;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataInteger;
@@ -35,6 +34,8 @@ import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
+
+import java.awt.event.KeyEvent;
 
 import static io.axual.ksml.dsl.HeaderSchema.HEADER_SCHEMA;
 import static io.axual.ksml.dsl.HeaderSchema.HEADER_SCHEMA_KEY_FIELD;
@@ -102,13 +103,18 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
     private boolean isRealString(String value) {
         for (var index = 0; index < value.length(); index++) {
             final var ch = value.charAt(index);
-            if (!Character.isLetterOrDigit(ch)
-                    && !CharMatcher.breakingWhitespace().matches(ch)
-                    && !CharMatcher.whitespace().matches(ch)) {
-                return false;
-            }
+            if (!isPrintableChar(ch)) return false;
         }
         return true;
+    }
+
+    // From https://stackoverflow.com/questions/220547/printable-char-in-java
+    private boolean isPrintableChar(char c) {
+        Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
+        return (!Character.isISOControl(c)) &&
+                c != KeyEvent.CHAR_UNDEFINED &&
+                block != null &&
+                block != Character.UnicodeBlock.SPECIALS;
     }
 
     @Override
