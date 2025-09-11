@@ -27,7 +27,9 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      base_path: ["docs"]
+      base_path:
+        - docs                        # the default docs dir
+        - ksml/src/test/resources     # test resources (sibling of docs)
       check_paths: true
   - pymdownx.superfences
   - pymdownx.details

@@ -1,0 +1,27 @@
+ksml:
+  definitions:
+    jsonschema-producer: jsonschema-producer.yaml
+    jsonschema-processor: jsonschema-processor.yaml
+  schemaRegistries:
+    my_confluent_registry:
+      config:
+        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
+    my_apicurio_registry:
+      config:
+        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
+  notations:
+    avro:
+      type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      schemaRegistry: my_confluent_registry
+      config:
+        normalize.schemas: true
+        auto.register.schemas: true
+    jsonschema:
+      type: apicurio_jsonschema     # For JSON Schema, only apicurio_jsonschema is valid
+      schemaRegistry: my_apicurio_registry
+      config: {}
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.example.producer
+  security.protocol: PLAINTEXT
+  acks: all

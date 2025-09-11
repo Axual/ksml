@@ -115,7 +115,7 @@ The `mapper` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/branching/processor-order-processing.yaml:94:95"
+--8<-- "docs-examples/intermediate-tutorial/branching/processor-order-processing.yaml:94:95"
 ```
 
 **Full example for `mapValues`**:
@@ -795,7 +795,7 @@ The tag `branches` does not exist in the KSML language, but is meant to represen
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/branching/processor-order-processing.yaml:90:"
+--8<-- "docs-examples/intermediate-tutorial/branching/processor-order-processing.yaml:90:"
 ```
 
 **Full example for `branch`**:
@@ -820,7 +820,7 @@ The `forEach` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/branching/processor-order-processing.yaml:96:100"
+--8<-- "docs-examples/intermediate-tutorial/branching/processor-order-processing.yaml:96:100"
 ```
 
 **Full example for `peek`**:

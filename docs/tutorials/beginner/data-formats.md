@@ -122,6 +122,88 @@ This processor transforms Avro data (uppercases sensor names) while maintaining 
     %} 
     ```
 
+## Working with JsonSchema Data
+
+JsonSchema provides structured JSON data validation with schema registry support and strict type enforcement, enabling schema evolution and compatibility checks.
+
+### Setup Requirements for JsonSchema
+
+JsonSchema requires a specialized setup. Here we show how to support both Avro and JsonSchema together, with manual schema registration. Of course supporting Avro is not required for supporting JsonSchema, this is just an example. Use this complete Docker Compose configuration:
+
+??? info "Complete Docker Compose setup with JsonSchema support (click to expand)"
+
+    ```yaml
+    {%
+      include "../../local-docker-compose-setup-with-sr-jsonschema/docker-compose.yml"
+    %}
+    ```
+
+**Key differences from basic Avro setup:**
+
+- Includes automatic JsonSchema schema registration service (`schema-registration`)
+- Creates topics for both Avro and JsonSchema examples
+- Uses Apicurio Schema Registry with both Confluent compatibility API and native Apicurio API endpoints
+
+Create the required Kafka UI configuration file for schema registry integration:
+
+??? info "Kafka UI Configuration (kowl-ui-config.yaml) (click to expand)"
+
+    ```yaml
+    {%
+      include "../../local-docker-compose-setup-with-sr-jsonschema/kowl-ui-config.yaml"
+    %}
+    ```
+
+**Note:** This configuration file is essential for the Kafka UI (Kowl) to connect to both Kafka brokers and the schema registry for viewing schemas and deserializing messages.
+
+Configure KSML runner to work with both Avro and JsonSchema registries:
+
+??? info "Complete KSML Runner configuration for JsonSchema (click to expand)"
+
+    ```yaml
+    {%
+      include "../../local-docker-compose-setup-with-sr-jsonschema/examples/ksml-runner.yaml"
+    %}
+    ```
+
+**Important configuration details:**
+
+- Defines **two schema registries**: `my_confluent_registry` (for the Confluent Avro notation) and `my_apicurio_registry` (for JsonSchema)
+- Shows how to configure **both `confluent_avro` and `apicurio_jsonschema`** notations in the same application
+- JsonSchema schemas must be **manually registered** with Apicurio (auto-registration not supported by Apicurio)
+
+### JsonSchema Examples
+
+This producer generates JSON data that KSML validates against JsonSchema format using the schema registry:
+
+??? info "Producer definition for JsonSchema messages (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/beginner-tutorial/different-data-formats/producer-jsonschema.yaml"
+    %}
+    ```
+
+Create `examples/SensorData.json` schema file (JSON Schema format, manually registered via Docker service):
+
+??? info "JsonSchema Schema for examples below (click to expand)"
+
+    ```json
+    {%
+      include "../../definitions/beginner-tutorial/different-data-formats/SensorData.json"
+    %}
+    ```
+
+This processor transforms JsonSchema data (adds processing timestamp and uppercase sensor ID) then converts to JSON format:
+
+??? info "JsonSchema transformation processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/beginner-tutorial/different-data-formats/processor-jsonschema.yaml"
+    %}
+    ```
+
 ## Working with JSON Data
 
 JSON provides flexible, human-readable structured data without schema validation requirements.
