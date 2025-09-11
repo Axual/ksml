@@ -45,7 +45,9 @@ import java.util.Map;
  * and id handling). User-provided configuration always takes precedence.</p>
  */
 public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
-    /** Optional Apicurio registry client; primarily used by tests. */
+    /**
+     * Optional Apicurio registry client; primarily used by tests.
+     */
     @Getter
     private final RegistryClient registryClient;
 
@@ -84,13 +86,15 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
 
         @Override
         protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
-            // Enable payload encoding by default
-            configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
-            configs.putIfAbsent("apicurio.registry.headers.enabled", false);
-            configs.putIfAbsent("apicurio.registry.as-confluent", true);
-            configs.putIfAbsent("apicurio.registry.use-id", "contentId");
-            configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
-            configs.putIfAbsent("apicurio.registry.serdes.json-schema.validation-enabled", true);
+            if (configs.getOrDefault("apicurio.registry.headers.enabled", false) == Boolean.FALSE) {
+                // Enable payload encoding in a Confluent compatible way
+                configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
+                configs.putIfAbsent("apicurio.registry.headers.enabled", false);
+                configs.putIfAbsent("apicurio.registry.as-confluent", true);
+                configs.putIfAbsent("apicurio.registry.use-id", "contentId");
+                configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
+                configs.putIfAbsent("apicurio.registry.serdes.json-schema.validation-enabled", true);
+            }
             return configs;
         }
     }

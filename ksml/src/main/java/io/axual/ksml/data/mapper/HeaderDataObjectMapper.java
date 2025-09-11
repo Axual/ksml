@@ -20,13 +20,27 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
-import static io.axual.ksml.dsl.HeaderSchema.*;
+import java.awt.event.KeyEvent;
+
+import static io.axual.ksml.dsl.HeaderSchema.HEADER_SCHEMA;
+import static io.axual.ksml.dsl.HeaderSchema.HEADER_SCHEMA_KEY_FIELD;
+import static io.axual.ksml.dsl.HeaderSchema.HEADER_SCHEMA_VALUE_FIELD;
+import static io.axual.ksml.dsl.HeaderSchema.HEADER_TYPE;
 
 public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
     private static final StringSerde STRING_SERDE = new StringSerde(new NativeDataObjectMapper());
@@ -45,8 +59,9 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
 
     private DataObject convertHeaderValue(byte[] value) {
         try {
-            var result = STRING_SERDE.deserializer().deserialize(null, value);
-            return result != null ? new DataString(result.toString()) : DataNull.INSTANCE;
+            final var result = STRING_SERDE.deserializer().deserialize(null, value);
+            if (result == null) return DataNull.INSTANCE;
+            return isRealString(result.toString()) ? new DataString(result.toString()) : new DataBytes(value);
         } catch (Exception e) {
             return new DataBytes(value);
         }
@@ -59,7 +74,47 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
         if (value instanceof DataBytes val) {
             return val.value();
         }
+        if (value instanceof DataList list) {
+            final var bytes = new byte[list.size()];
+            for (var index = 0; index < list.size(); index++) {
+                final var element = list.get(index);
+                switch (element) {
+                    case DataByte val:
+                        bytes[index] = val.value();
+                        break;
+                    case DataShort val:
+                        bytes[index] = val.value().byteValue();
+                        break;
+                    case DataInteger val:
+                        bytes[index] = val.value().byteValue();
+                        break;
+                    case DataLong val:
+                        bytes[index] = val.value().byteValue();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Can not convert binary header: " + value);
+                }
+            }
+            return bytes;
+        }
         throw new IllegalArgumentException("Unsupported Kafka Header value type: " + value.type());
+    }
+
+    private boolean isRealString(String value) {
+        for (var index = 0; index < value.length(); index++) {
+            final var ch = value.charAt(index);
+            if (!isPrintableChar(ch)) return false;
+        }
+        return true;
+    }
+
+    // From https://stackoverflow.com/questions/220547/printable-char-in-java
+    private boolean isPrintableChar(char c) {
+        Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
+        return (!Character.isISOControl(c)) &&
+                c != KeyEvent.CHAR_UNDEFINED &&
+                block != null &&
+                block != Character.UnicodeBlock.SPECIALS;
     }
 
     @Override

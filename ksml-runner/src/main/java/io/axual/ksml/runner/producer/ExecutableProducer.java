@@ -41,10 +41,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serializer;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -86,6 +93,9 @@ public class ExecutableProducer {
         this.partitioner = partitioner != null ? new UserStreamPartitioner(partitioner, tags) : null;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
+    }
+
+    private record GeneratedMessage(Headers headers, byte[] key, byte[] value) {
     }
 
     /**
@@ -138,16 +148,16 @@ public class ExecutableProducer {
                     // If a partitioner is defined, then call the function and generate producer records for every
                     // partition the message is sent to
                     final var numPartitions = producer.partitionsFor(topic).size();
-                    Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.left(), message.right(), numPartitions);
+                    Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.key(), message.value(), numPartitions);
                     if (partitions.isPresent()) {
                         for (int partition : partitions.get()) {
-                            ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, partition, message.left(), message.right());
+                            ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, partition, message.key(), message.value(), message.headers());
                             futures.add(producer.send(rec));
                         }
                     }
                 } else {
                     // No partitioner is defined, so create just one producer record without specifying a partition
-                    ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, message.left(), message.right());
+                    ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, null, message.key(), message.value(), message.headers());
                     futures.add(producer.send(rec));
                 }
             }
@@ -168,8 +178,8 @@ public class ExecutableProducer {
         }
     }
 
-    private List<Pair<byte[], byte[]>> generateBatch() {
-        final var result = new ArrayList<Pair<byte[], byte[]>>();
+    private List<GeneratedMessage> generateBatch() {
+        final var result = new ArrayList<GeneratedMessage>();
         for (int index = 0; index < producerStrategy.batchSize(); index++) {
             Pair<DataObject, DataObject> message = null;
             for (int t = 0; t < 10; t++) {
@@ -187,11 +197,12 @@ public class ExecutableProducer {
                 log.info("Message: key={}, value={}", keyStr, valueStr);
 
                 // Serialize the message
-                var serializedKey = keySerializer.serialize(topic, key);
-                var serializedValue = valueSerializer.serialize(topic, value);
+                final var headers = new RecordHeaders();
+                final var serializedKey = keySerializer.serialize(topic, headers, key);
+                final var serializedValue = valueSerializer.serialize(topic, headers, value);
 
                 // Add the serialized message to the batch
-                result.add(new Pair<>(serializedKey, serializedValue));
+                result.add(new GeneratedMessage(headers, serializedKey, serializedValue));
 
                 // Check if this should be the last message produced
                 if (!producerStrategy.continueAfterMessage(key, value)) {

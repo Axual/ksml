@@ -39,4 +39,3 @@ public class MetadataTransformerDefinitionParser extends FunctionDefinitionParse
                 (function, tags) -> new MetadataTransformerDefinition(function));
     }
 }
-

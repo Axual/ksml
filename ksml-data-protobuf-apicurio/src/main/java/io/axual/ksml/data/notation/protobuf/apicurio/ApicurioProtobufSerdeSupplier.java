@@ -82,12 +82,14 @@ public class ApicurioProtobufSerdeSupplier implements ProtobufSerdeSupplier {
             }
             delegate.filteredHeaders(Set.of(messageTypeHeaderName));
 
-            // Enable payload encoding by default
-            configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
-            configs.putIfAbsent("apicurio.registry.headers.enabled", false);
-            configs.putIfAbsent("apicurio.registry.as-confluent", true);
-            configs.putIfAbsent("apicurio.registry.use-id", "contentId");
-            configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
+            if (configs.getOrDefault("apicurio.registry.headers.enabled", false) == Boolean.FALSE) {
+                // Enable payload encoding in a Confluent compatible way
+                configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
+                configs.putIfAbsent("apicurio.registry.headers.enabled", false);
+                configs.putIfAbsent("apicurio.registry.as-confluent", true);
+                configs.putIfAbsent("apicurio.registry.use-id", "contentId");
+                configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
+            }
             return configs;
         }
     }
