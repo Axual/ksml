@@ -46,7 +46,7 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
-    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true);
+    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true, new PythonDataObjectMapper(false, null));
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;

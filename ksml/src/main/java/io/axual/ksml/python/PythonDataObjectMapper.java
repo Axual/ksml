@@ -21,6 +21,7 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.SchemaResolver;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -57,8 +58,8 @@ import java.util.Map;
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     private static final SchemaResolver<DataSchema> SCHEMA_RESOLVER = schemaName -> ExecutionContext.INSTANCE.schemaLibrary().getSchema(schemaName, false);
 
-    public PythonDataObjectMapper(boolean includeSchemaInfo) {
-        super(SCHEMA_RESOLVER, includeSchemaInfo);
+    public PythonDataObjectMapper(boolean includeSchemaInfo, NativeDataObjectMapper recursiveDataObjectMapper) {
+        super(SCHEMA_RESOLVER, includeSchemaInfo, recursiveDataObjectMapper);
     }
 
     @Override

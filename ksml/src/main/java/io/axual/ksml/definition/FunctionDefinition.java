@@ -92,7 +92,7 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withDefaultExpression(String[] defaultExpression) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression != null ? expression : defaultExpression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression, resultType, storeNames);
     }
 
     public FunctionDefinition validateNoResultTypeDefined() {
