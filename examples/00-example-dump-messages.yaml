@@ -27,17 +27,18 @@ pipelines:
           globalCode: |
             from datetime import datetime
             def to_hex(value):
-              return "["+", ".join(f'{x:02X}' for x in value)+"]" if value is not None else "null"
+              return "[" + ", ".join(f'{x:02X}' for x in value) + "]" if value is not None else "null"
           code: |
             del metadata["@schema"]
             del metadata["@type"]
             key = to_hex(key)
             value = to_hex(value)
             dt = datetime.fromtimestamp(metadata["timestamp"]/1000)
-            if isinstance(metadata["headers"], dict):
+            if isinstance(metadata["headers"], list):
               headers = dict()
-              for key, value in metadata["headers"]:
-                headers[key] = to_hex(value) if isinstance(value, list) else value
+              for header in metadata["headers"]:
+                if isinstance(header, dict):
+                  headers[header["key"]] = to_hex(header["value"]) if isinstance(header["value"], list) else header["value"]
             else:
               headers = metadata["headers"]
             timestamp = f'{metadata["timestamp"]} ({dt.strftime("%d-%m-%Y @ %H:%M:%S")})'
