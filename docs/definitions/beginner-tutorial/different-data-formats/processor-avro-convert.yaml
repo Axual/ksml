@@ -14,13 +14,14 @@ pipelines:
   avro_to_json_pipeline:
     from: avro_input
     via:
-      # Log the incoming AVRO data
+      # Log the incoming Avro data
       - type: peek
         forEach:
           code: |
             if value is not None:
-              log.info("Original AVRO: sensor={}, type={}, value={}{}",
-                      value.get("name"), value.get("type"), value.get("value"), value.get("unit"))
+              log.info("Original Avro: sensor={}, type={}, value={}{}, timestamp={}, owner={}",
+                      value.get("name"), value.get("type"), value.get("value"), value.get("unit"), 
+                      value.get("timestamp"), value.get("owner"))
             else:
               log.info("Received null message with key={}", key)
 
@@ -33,7 +34,8 @@ pipelines:
         forEach:
           code: |
             if value is not None:
-              log.info("Converted to JSON: sensor={}, city={}", value.get("name"), value.get("city"))
+              log.info("Converted to JSON: sensor={}, type={}, city={}, color={}", 
+                      value.get("name"), value.get("type"), value.get("city"), value.get("color"))
             else:
               log.info("JSON conversion result: null")
 

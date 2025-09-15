@@ -83,6 +83,7 @@ services:
 
   kafka-ui:
     image: quay.io/cloudhut/kowl:master
+    platform: linux/amd64
     container_name: kowl
     restart: always
     ports:

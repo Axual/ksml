@@ -17,15 +17,15 @@ streams:
     valueType: json
 
 pipelines:
-  # Pipeline 1: Process AVRO data and convert to JSON
+  # Pipeline 1: Process Avro data and convert to JSON
   avro_processing:
     from: avro_sensor_stream
     via:
-      # Log AVRO input
+      # Log Avro input
       - type: peek
         forEach:
           code: |
-            log.info("AVRO sensor: name={}, type={}, value={}{}",
+            log.info("Avro sensor: name={}, type={}, value={}{}",
                     value.get("name"), value.get("type"),
                     value.get("value"), value.get("unit"))
 
@@ -35,7 +35,7 @@ pipelines:
           type: valueTransformer
           code: |
             result = dict(value) if value else {}
-            result["source_format"] = "AVRO"
+            result["source_format"] = "Avro"
           expression: result
           resultType: json
 

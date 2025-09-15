@@ -27,10 +27,10 @@ functions:
       if random.randrange(20) == 0:
         value = None
     expression: (key, value)                      # Return a message tuple with the key and value
-    resultType: (string, json)                    # Generate as JSON, KSML will convert to AVRO
+    resultType: (string, json)                    # Generate as JSON, KSML will convert to Avro
 
 producers:
-  # Produce AVRO sensor data messages every 3 seconds
+  # Produce Avro sensor data messages every 3 seconds
   sensordata_avro_producer:
     generator: generate_sensordata_message
     interval: 3s

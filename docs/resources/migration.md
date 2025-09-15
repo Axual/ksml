@@ -335,7 +335,7 @@ pipelines:
 
 4. **Configure Serialization**
    - Set up appropriate serialization formats in KSML
-   - Configure schema registry if using AVRO
+   - Configure schema registry if using Avro
 
 5. **Test and Validate**
    - Compare the output of both implementations

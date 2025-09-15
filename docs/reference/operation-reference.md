@@ -15,10 +15,10 @@ KSML supports 28 operations for stream processing. Each operation serves a speci
 | Operation | Purpose | Common Use Cases |
 |-----------|---------|------------------|
 | **Stateless Transformation Operations** | | |
-| [map](#map) | Transform both key and value | Change message format, enrich data |
-| [mapValues](#mapvalues) | Transform only the value (preserves key) | Modify payload without affecting partitioning |
-| [mapKey](#mapkey) | Transform only the key | Change partitioning key |
 | [flatMap](#flatmap) | Transform one record into multiple records | Split batch messages, expand arrays |
+| [map](#map) | Transform both key and value | Change message format, enrich data |
+| [mapKey](#mapkey) | Transform only the key | Change partitioning key |
+| [mapValues](#mapvalues) | Transform only the value (preserves key) | Modify payload without affecting partitioning |
 | [selectKey](#selectkey) | Select a new key from the value | Extract key from message content |
 | [transformKey](#transformkey) | Transform key using custom function | Complex key transformations |
 | [transformValue](#transformvalue) | Transform value using custom function | Complex value transformations |
@@ -34,6 +34,7 @@ KSML supports 28 operations for stream processing. Each operation serves a speci
 | **Grouping & Partitioning Operations** | | |
 | [groupBy](#groupby) | Group by a new key | Prepare for aggregation with new key |
 | [groupByKey](#groupbykey) | Group by existing key | Prepare for aggregation |
+| [repartition](#repartition) | Redistribute records across partitions | Custom partitioning logic |
 | | | |
 | **Stateful Aggregation Operations** | | |
 | [aggregate](#aggregate) | Build custom aggregations | Complex calculations, custom state |
@@ -43,17 +44,18 @@ KSML supports 28 operations for stream processing. Each operation serves a speci
 | **Join Operations** | | |
 | [join](#join) | Inner join two streams | Correlate related events |
 | [leftJoin](#leftjoin) | Left outer join two streams | Include all left records |
+| [merge](#merge) | Combine multiple streams into one | Stream unification |
 | [outerJoin](#outerjoin) | Full outer join two streams | Include all records from both sides |
 | | | |
 | **Windowing Operations** | | |
-| [windowByTime](#windowbytime) | Group into fixed time windows | Time-based aggregations |
 | [windowBySession](#windowbysession) | Group into session windows | User session analysis |
+| [windowByTime](#windowbytime) | Group into fixed time windows | Time-based aggregations |
 | | | |
 | **Output Operations** | | |
-| [to](#to) | Send to a specific topic | Write results to Kafka |
-| [toTopicNameExtractor](#totopicnameextractor) | Send to dynamically determined topic | Route to different topics |
 | [forEach](#foreach) | Process without producing output | Side effects, external calls |
 | [print](#print) | Print to console | Debugging, monitoring |
+| [to](#to) | Send to a specific topic | Write results to Kafka |
+| [toTopicNameExtractor](#totopicnameextractor) | Send to dynamically determined topic | Route to different topics |
 | | | |
 | **Control Flow Operations** | | |
 | [branch](#branch) | Split stream into multiple branches | Conditional routing |
@@ -437,6 +439,76 @@ None. This operation is typically followed by an aggregation operation.
 
 - [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#count-example)
 
+### `repartition`
+
+Redistributes records across partitions, optionally using custom partitioning logic. This operation allows you to control data distribution for performance optimization or to meet specific processing requirements.
+
+#### Parameters
+
+| Parameter | Type   | Required | Description                       |
+|-----------|--------|----------|-----------------------------------|
+| `numberOfPartitions` | Integer | No | Number of partitions for redistribution |
+| `partitioner` | String | No    | Function name for custom partitioning logic |
+
+#### Example
+
+> **Note:**
+> 
+> To test this repartition example, ensure your topics have sufficient partitions. The example requires **minimum 4 partitions** since it redistributes to 4 partitions (0-3). Update your docker-compose.yml:
+> 
+> ```bash
+> kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 4 --replication-factor 1 --topic user_activities
+> kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 4 --replication-factor 1 --topic repartitioned_activities
+> ```
+
+```yaml
+--8<-- "definitions/reference/operations/repartition-example-processor.yaml:73:76"
+```
+
+??? info "Producer - `repartition` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/operations/repartition-example-producer.yaml" %}
+    ```
+
+??? info "Processor - `repartition` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/operations/repartition-example-processor.yaml" %}
+    ```
+
+The repartition operation demonstrates data redistribution by changing keys from regions to user IDs, then using custom partitioning logic to distribute activities based on user patterns. This ensures related user activities are processed together while optimizing partition utilization.
+
+**What the example does:**
+
+Demonstrates intelligent data redistribution for user-centric processing:
+
+* Changes partitioning strategy from region-based to user-based keys
+* Applies custom partitioning logic based on user ID patterns
+* Routes even user numbers (002, 004) to partitions 0-1
+* Routes odd user numbers (001, 003, 005) to partitions 2-3
+* Producer generates activities initially keyed by region for realistic repartitioning scenario
+
+**Key Features:**
+
+* Dynamic key transformation from region to user_id
+* Custom partition calculation based on user patterns
+* Guaranteed co-location of activities for the same user
+* Processing metadata tracking for observability
+* Explicit partition count handling (4 partitions total)
+* Fallback to partition 0 for edge cases
+
+**Expected Results:**
+
+When running this example, you'll see log messages like:
+
+- `"Generated activity: activity_0001 for user user_001 in region south - type: purchase"` - Producer creating activities
+- `"Changing key from region 'south' to user_id 'user_001'"` - Key transformation
+- `"Repartitioned activity user_001: Repartitioned by user: user_001 -> user-based partitioning applied"` - Successful repartitioning
+- User_001 and user_003 (odd numbers) go to partitions 2-3
+- User_002 and user_004 (even numbers) go to partitions 0-1
+- Activities for the same user are guaranteed to be processed in order
+
 
 ## Stateful Aggregation Operations
 
@@ -529,6 +601,8 @@ Performs an inner join between two streams.
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
+| `partitioner`    | String   | No       | Function name for custom partitioning of current stream             |
+| `otherPartitioner` | String | No       | Function name for custom partitioning of join stream/table          |
 
 #### Example
 
@@ -554,6 +628,8 @@ Performs a left join between two streams.
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
+| `partitioner`    | String   | No       | Function name for custom partitioning of current stream             |
+| `otherPartitioner` | String | No       | Function name for custom partitioning of join stream/table          |
 
 #### Example
 
@@ -564,6 +640,63 @@ Performs a left join between two streams.
 **Full example for `leftJoin`**:
 
 - [Tutorial: Joins](../tutorials/intermediate/joins.md#use-case-activity-enrichment-with-location)
+
+### `merge`
+
+Merges multiple streams with identical key and value types into a single unified stream. The merge operation combines streams without any joining logic - it simply forwards all records from all input streams to the output stream in the order they arrive.
+
+#### Parameters
+
+| Parameter | Type   | Required | Description                                          |
+|-----------|--------|----------|------------------------------------------------------|
+| `stream`  | String | Yes      | The name of the stream to merge with the main stream |
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/operations/merge-example-processor.yaml:36:37"
+```
+
+??? info "Producer - `merge` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/operations/merge-example-producer.yaml" %}
+    ```
+
+??? info "Processor - `merge` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/operations/merge-example-processor.yaml" %}
+    ```
+
+**What This Example Does:**
+
+The example demonstrates merging two independent streams (`stream_a` and `stream_b`) into a single processing pipeline. Both producers generate messages with a color key and JSON values containing an id, color, and source field. The merge operation combines both streams so that messages from either stream flow through the same downstream processing.
+
+**How the Merge Operation Works:**
+
+- **Stream Union**: The merge operation creates a simple union of multiple streams - all records from all input streams are forwarded to the output
+- **No Transformation**: Records pass through unchanged, maintaining their original keys and values
+- **Interleaved Processing**: Messages from different streams are processed as they arrive, interleaved based on timing
+- **Shared Pipeline**: After merging, both streams share the same downstream operations (in this example, the peek operation logs all messages)
+
+**Important Notes:**
+
+- All streams being merged must have identical key and value types
+- Records maintain their original timestamps and ordering per stream
+- No complex joining logic - this is a simple stream union operation
+- Can merge any number of streams by chaining multiple merge operations
+
+**Expected Results:**
+
+When running this example, you'll see interleaved log messages like:
+
+- `"Generated message from stream A: stream_a_1 - color: green"` - Producer A creating messages every 3 seconds
+- `"Generated message from stream B: stream_b_2 - color: blue"` - Producer B creating messages every 2 seconds  
+- `"Merged message: stream_a_1 from stream_a - color: green"` - Merged pipeline processing stream A messages
+- `"Merged message: stream_b_2 from stream_b - color: blue"` - Same pipeline processing stream B messages
+
+Both streams flow through the unified pipeline after merging, demonstrating how merge combines multiple data sources for shared processing.
 
 ### `outerJoin`
 
@@ -579,6 +712,8 @@ Performs an outer join between two streams.
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
+| `partitioner`    | String   | No       | Function name for custom partitioning of current stream             |
+| `otherPartitioner` | String | No       | Function name for custom partitioning of join stream/table          |
 
 #### Example
 
@@ -654,6 +789,7 @@ Sends records to a specific Kafka topic.
 | `topic`   | String | Yes      | The name of the target topic      |
 | `keyType` | String | No       | The data type of the key          |
 | `valueType` | String | No     | The data type of the value        |
+| `partitioner` | String | No    | Function name for custom partitioning logic |
 
 #### Example
 
@@ -661,9 +797,19 @@ Sends records to a specific Kafka topic.
 --8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:77:77"
 ```
 
+#### Example with Custom Partitioner
+
+```yaml
+--8<-- "definitions/reference/functions/streampartitioner-example-processor.yaml:85:89"
+```
+
 **Full example for `to`**:
 
-- [Full example for `to`](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
+
+**Full example for `to` with partitioner**:
+
+- [streamPartitioner Function Reference](function-reference.md#streampartitioner)
 
 ### `toTopicNameExtractor`
 
@@ -674,6 +820,7 @@ Sends records to topics determined dynamically based on the record content. This
 | Parameter              | Type   | Required | Description                                           |
 |------------------------|--------|----------|-------------------------------------------------------|
 | `topicNameExtractor`   | String | Yes      | Name of the function that determines the topic name   |
+| `partitioner`          | String | No       | Function name for custom partitioning logic          |
 
 #### Example
 
@@ -893,3 +1040,77 @@ pipelines:
 - **Be careful with window sizes**: Large windows can consume significant memory.
 - **Handle errors gracefully**: Use error handling operations to prevent pipeline failures.
 - **Monitor performance**: Keep an eye on throughput and latency, especially for stateful operations.
+
+## How KSML Operations Relate to Kafka Streams
+
+KSML operations are YAML-based wrappers around Kafka Streams topology operations. Understanding this relationship helps you leverage Kafka Streams documentation and concepts:
+
+### Direct Mappings
+
+#### Stateless Transformation Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| filter | `KStream.processValues()` / `KTable.filter()` | Filter records based on conditions |
+| filterNot | `KStream.processValues()` / `KTable.filterNot()` | Filter out matching records |
+| flatMap | `KStream.process()` | Transform one record to multiple records |
+| map | `KStream.process()` | Transform both key and value |
+| mapKey | `KStream.process()` | Transform only the key |
+| mapValues | `KStream.processValues()` / `KTable.transformValues()` | Transform only the value |
+| selectKey | `KStream.process()` | Select new key from record content |
+| transformKey | `KStream.process()` | Transform key using custom function |
+| transformValue | `KStream.processValues()` | Transform value using custom function |
+
+#### Format Conversion Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| convertKey | `KStream.processValues()` | Convert key data format |
+| convertValue | `KStream.processValues()` | Convert value data format |
+
+#### Grouping & Partitioning Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| groupBy | `KStream.groupBy()` / `KTable.groupBy()` | Group by new key |
+| groupByKey | `KStream.groupByKey()` | Group by existing key |
+| repartition | `KStream.repartition()` | Redistribute across partitions |
+
+#### Stateful Aggregation Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| aggregate | `KGroupedStream.aggregate()` / `KGroupedTable.aggregate()` | Custom aggregation logic |
+| count | `KGroupedStream.count()` / `KGroupedTable.count()` | Count records per key |
+| reduce | `KGroupedStream.reduce()` / `KGroupedTable.reduce()` | Reduce to single value per key |
+
+#### Join Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| join | `KStream.join()` / `KTable.join()` | Inner join streams/tables |
+| leftJoin | `KStream.leftJoin()` / `KTable.leftJoin()` | Left outer join streams/tables |
+| merge | `KStream.merge()` | Merge multiple streams into one |
+| outerJoin | `KStream.outerJoin()` / `KTable.outerJoin()` | Full outer join streams/tables |
+
+#### Windowing Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| windowBySession | `KGroupedStream.windowedBy(SessionWindows)` | Session-based windowing |
+| windowByTime | `KGroupedStream.windowedBy(TimeWindows)` | Time-based windowing |
+
+#### Output Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| forEach | `KStream.processValues()` | Side effects without output |
+| print | `KStream.processValues()` | Print to stdout/file |
+| to | `KStream.to()` | Send to Kafka topic |
+| toTopicNameExtractor | `KStream.to(TopicNameExtractor)` | Dynamic topic routing |
+
+#### Control Flow Operations
+| KSML Operation | Kafka Streams Method | Purpose |
+|---|---|---|
+| branch | `KStream.split()` | Split into multiple branches |
+| peek | `KStream.processValues()` | Observe records without changes |
+
+### Key Implementation Details
+
+- Most KSML operations use `KStream.process()` or `KStream.processValues()` with custom processor suppliers rather than direct DSL methods. This enables seamless integration with KSML's Python function execution system.
+- Operations automatically adapt to work with KStream, KTable, and windowed streams, mapping to the appropriate Kafka Streams method based on context.
+- Stateful operations support configurable state stores through KSML's unified state management system.
+- Each operation integrates with Python functions through specialized user function wrappers (`UserPredicate`, `UserKeyTransformer`, etc.).

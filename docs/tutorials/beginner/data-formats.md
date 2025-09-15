@@ -44,7 +44,7 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
 ### Setup Requirements
 
 - Create `docker-compose.yml` with schema registry and pre-created topics 
-- **Note**: This tutorial requires a different docker-compose.yml than other tutorials because AVRO format needs a schema registry to store and manage schema definitions 
+- **Note**: This tutorial requires a different docker-compose.yml than other tutorials because Avro format needs a schema registry to store and manage schema definitions 
 
 ??? info "Docker Compose Configuration (click to expand)"
 
@@ -84,7 +84,7 @@ Avro provides schema-based binary serialization with validation, evolution suppo
 
 This producer generates JSON data that KSML automatically converts to Avro format using the schema registry:
 
-??? info "Producer definition for AVRO messages (click to expand)"
+??? info "Producer definition for Avro messages (click to expand)"
 
     ```yaml
     {%
@@ -94,7 +94,7 @@ This producer generates JSON data that KSML automatically converts to Avro forma
 
 Create `examples/SensorData.avsc` schema file (JSON format, auto-loaded from working directory):
 
-??? info "AVRO Schema for examples below (click to expand)"
+??? info "Avro Schema for examples below (click to expand)"
 
     ```json
     {%

@@ -51,7 +51,7 @@ Helm charts
 
 ### 1.0.4 (2024-11-22)
 
-* Fix crash when using AVRO CharSequence encodings and nested objects
+* Fix crash when using Avro CharSequence encodings and nested objects
 
 ### 1.0.3 (2024-10-18)
 
@@ -114,7 +114,7 @@ Helm charts
     * Update to state store typing and handling.
     * Manual state stores can be defined and referenced in pipelines.
     * Manual state stores are also available in Python functions.
-    * State stores can be used 'side-effect-free' (e.g. no AVRO schema registration)
+    * State stores can be used 'side-effect-free' (e.g. no Avro schema registration)
 * Python function improvements:
     * Automatic variable assignment for state stores.
     * Every Python function can use a Java Logger, integrating Python output with KSML log output.
@@ -143,7 +143,7 @@ Helm charts
 
 ### 0.2.1 (2023-12-20)
 
-* Fixed an issue with AVRO and field validations
+* Fixed an issue with Avro and field validations
 
 ### 0.2.0 (2023-12-07)
 

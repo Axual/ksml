@@ -34,7 +34,7 @@ functions:
       key = "sensor" + str(sensorCounter)
       sensorCounter = (sensorCounter + 1) % 10
       
-      # Generate sensor reading data that will be output as AVRO
+      # Generate sensor reading data that will be output as Avro
       reading = {
         "name": key,
         "timestamp": str(round(time.time() * 1000)),
@@ -46,7 +46,7 @@ functions:
         "city": random.choice(["Amsterdam", "Utrecht", "Rotterdam", "The Hague", "Eindhoven"])
       }
     expression: (key, reading)
-    resultType: (string, json)  # Generate as JSON, output as AVRO
+    resultType: (string, json)  # Generate as JSON, output as Avro
 
 producers:
   # Produce JSON device configuration every 10 seconds
@@ -58,11 +58,11 @@ producers:
       keyType: string
       valueType: json
 
-  # Produce AVRO sensor readings every 3 seconds
+  # Produce Avro sensor readings every 3 seconds
   sensor_reading_producer:
     generator: generate_sensor_reading
     interval: 3s
     to:
       topic: sensor_readings
       keyType: string
-      valueType: avro:SensorData%
+      valueType: avro:SensorData

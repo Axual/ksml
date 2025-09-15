@@ -63,7 +63,7 @@ For applications using schema-based formats (Avro, Protobuf, JSON Schema):
             schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
       notations:
         avro:  
-          type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+          type: confluent_avro         # For Avro there are two implementations: apicurio_avro and confluent_avro
           schemaRegistry: my_schema_registry
           ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
           config:
@@ -266,7 +266,7 @@ Configure data format serializers and deserializers. Each notation entry defines
 ```yaml
 ksml:
   notations:
-    # AVRO with Confluent
+    # Avro with Confluent
     avro:
       type: confluent_avro
       schemaRegistry: confluent
@@ -274,7 +274,7 @@ ksml:
         normalize.schemas: true
         auto.register.schemas: false
 
-    # AVRO with Apicurio
+    # Avro with Apicurio
     apicurio_avro:
       type: apicurio_avro
       schemaRegistry: apicurio
@@ -300,8 +300,8 @@ Available serializer types:
 
 | Serializer Type          | Notation  | Schema Registry | Description                    |
 |--------------------------|-----------|-----------------|--------------------------------|
-| `confluent_avro`         | avro      | Confluent       | AVRO with Confluent SR         |
-| `apicurio_avro`          | avro      | Apicurio        | AVRO with Apicurio SR          |
+| `confluent_avro`         | avro      | Confluent       | Avro with Confluent SR         |
+| `apicurio_avro`          | avro      | Apicurio        | Avro with Apicurio SR          |
 | `confluent_jsonschema`   | jsonschema| Confluent       | JSON Schema with Confluent SR  |
 | `apicurio_jsonschema`    | jsonschema| Apicurio        | JSON Schema with Apicurio SR   |
 | `confluent_protobuf`     | protobuf  | Confluent       | Protobuf with Confluent SR     |
@@ -329,7 +329,7 @@ ksml:
 
 ### Schema File Loading
 
-Specify schema files to load (AVRO, JSON Schema, XSD, CSV schemas):
+Specify schema files to load (Avro, JSON Schema, XSD, CSV schemas):
 
 ```yaml
 ksml:

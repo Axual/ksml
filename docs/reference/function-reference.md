@@ -236,17 +236,17 @@ Below is a table with all 21 function types in KSML.
 | **Special Purpose Functions**                                           |                                                  |                                             |
 | [foreignKeyExtractor](#foreignkeyextractor)                             | Extract a key from a join table's record         | join, leftJoin                              |
 | [generator](#generator)                                                 | Function used in producers to generate a message | producer                                    |
+| [generic](#generic)                                                     | Generic custom function                          |                                             |
 | [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value | groupBy, join, leftJoin                     |
 | [keyValuePrinter](#keyvalueprinter)                                     | Output key and value                             | print                                       |
 | [metadataTransformer](#metadatatransformer)                             | Convert Kafka headers and timestamps             | transformMetadata                           |
 | [valueJoiner](#valuejoiner)                                             | Combine data from multiple streams               | join, leftJoin, outerJoin                   |
 |                                                                         |                                                  |                                             |
 | **Stream Related Functions**                                            |                                                  |                                             |
+| [streamPartitioner](#streampartitioner)                                 | Determine which partition to send records to     | to                                          |
 | [timestampExtractor](#timestampextractor)                               | Extract timestamps from messages                 | stream, table, globalTable                  |
 | [topicNameExtractor](#topicnameextractor)                               | Derive a target topic name from key and value    | toTopicNameExtractor                        |
 |                                                                         |                                                  |                                             |
-| **Other Functions**                                                     |                                                  |                                             |
-| [generic](#generic)                                                     | Generic custom function                          |                                             |
 
 ## Functions for stateless operations
 
@@ -706,7 +706,7 @@ A tuple of (key, value) representing the generated message
 **Full example for `generator`**:
 
 - [Example: Generating JSON data](../tutorials/beginner/filtering-transforming.md#creating-test-data)
-- [Example: Generating AVRO data](../tutorials/beginner/data-formats.md#working-with-avro-data)
+- [Example: Generating Avro data](../tutorials/beginner/data-formats.md#working-with-avro-data)
 
 ### keyValueMapper
 
@@ -842,6 +842,80 @@ When running this example, you'll see enriched events with additional headers:
 - `ENRICHED EVENT | evt_0001 | POST /api/users | Status: 200 | Headers processed`
 - `ENRICHED EVENT | evt_0002 | DELETE /api/health | Status: 400 | Headers processed`
 - Log messages showing: "Enriched event evt_0001 with 3 additional headers"
+
+### streamPartitioner
+
+Determines which partition a record should be sent to when writing to a Kafka topic. This allows custom partitioning logic based on record content, ensuring related records go to the same partition for ordered processing.
+
+#### Parameters
+
+| Parameter     | Type    | Description                                                            |
+|---------------|---------|------------------------------------------------------------------------|
+| topic         | String  | The name of the topic the record is being sent to                     |
+| key           | Any     | The key of the record being partitioned                               |
+| value         | Any     | The value of the record being partitioned                             |
+| numPartitions | Integer | The total number of partitions available in the target topic          |
+
+#### Return Value
+
+An integer representing the partition number (0 to numPartitions-1) where the record should be sent
+
+#### Example
+
+> **Note:**
+> 
+To test this streamPartitioner example, ensure your topics have sufficient partitions. The example requires **minimum 9 partitions** since it routes to partitions 0-8. Update your docker-compose.yml:
+> 
+```bash
+kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 9 --replication-factor 1 --topic order_events
+kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 9 --replication-factor 1 --topic partitioned_orders
+```
+
+```yaml
+--8<-- "definitions/reference/functions/streampartitioner-example-processor.yaml:13:55"
+```
+
+??? info "Producer - `streamPartitioner` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/streampartitioner-example-producer.yaml" %}
+    ```
+
+??? info "Processor - `streamPartitioner` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/streampartitioner-example-processor.yaml" %}
+    ```
+
+The streamPartitioner function provides custom control over how records are distributed across topic partitions. This example demonstrates intelligent order routing based on business priorities and geographic regions.
+
+**What the example does:**
+
+Implements a sophisticated partitioning strategy for order processing:
+
+* Routes orders to specific partitions based on priority (express/standard/economy)
+* Further segments by geographic region within each priority tier
+* Ensures orders with same priority+region go to same partition
+* Producer generates realistic order events with various priorities/regions
+
+**Key Features:**
+
+* Custom partition calculation based on multiple fields
+* Guaranteed ordering for related records (same priority+region)
+* Improved data locality and processing efficiency
+* Explicit partition count handling (9 partitions total)
+* Fallback to partition 0 for edge cases
+
+**Expected Results:**
+
+When running this example, you'll see log messages like:
+
+- `"Generated order: ORD-0001 with priority=economy, region=CENTRAL"` - Producer creating orders
+- `"Processing order ORD-0001: Priority: economy, Region: CENTRAL -> will be partitioned by priority/region"` - Routing decision
+- Express orders (priority=express) go to partitions 0-2
+- Standard orders (priority=standard) go to partitions 3-5
+- Economy orders (priority=economy) go to partitions 6-8
+- Within each priority range, regions determine the exact partition
 
 ### valueJoiner
 
@@ -1053,21 +1127,35 @@ KSML functions are Python implementations that map directly to Kafka Streams Jav
 relationship helps you leverage Kafka Streams documentation and concepts:
 
 ### Direct Mappings
-
+#### Functions for stateless operations
 | KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
 |---------------------|------------------------------------------------|------------------------------------|
-| predicate           | `Predicate<K,V>`                               | Filter records based on conditions |
-| valueTransformer    | `ValueTransformer<V,VR>` / `ValueMapper<V,VR>` | Transform values                   |
+| forEach             | `ForeachAction<K,V>`                           | Process records for side effects   |
 | keyTransformer      | `KeyValueMapper<K,V,KR>`                       | Transform keys                     |
 | keyValueTransformer | `KeyValueMapper<K,V,KeyValue<KR,VR>>`          | Transform both key and value       |
-| forEach             | `ForeachAction<K,V>`                           | Process records for side effects   |
+| predicate           | `Predicate<K,V>`                               | Filter records based on conditions |
+| valueTransformer    | `ValueTransformer<V,VR>` / `ValueMapper<V,VR>` | Transform values                   |
+
+#### Functions for stateful operations
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
 | aggregator          | `Aggregator<K,V,VA>`                           | Aggregate records incrementally    |
 | initializer         | `Initializer<VA>`                              | Provide initial aggregation values |
-| reducer             | `Reducer<V>`                                   | Combine values of same type        |
 | merger              | `Merger<K,V>`                                  | Merge aggregation results          |
-| valueJoiner         | `ValueJoiner<V1,V2,VR>`                        | Join values from two streams       |
-| timestampExtractor  | `TimestampExtractor`                           | Extract event time from records    |
+| reducer             | `Reducer<V>`                                   | Combine values of same type        |
+
+#### Special Purpose Functions
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
 | foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
+| keyValueMapper      | `KeyValueMapper<K,V,VR>`                       | Convert key-value to single output |
+| valueJoiner         | `ValueJoiner<V1,V2,VR>`                        | Join values from two streams       |
+
+#### Stream Related Functions
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
+| streamPartitioner   | `StreamPartitioner<K,V>`                       | Custom partition selection         |
+| timestampExtractor  | `TimestampExtractor`                           | Extract event time from records    |
 | topicNameExtractor  | `TopicNameExtractor<K,V>`                      | Dynamic topic routing              |
 
 ## Function Execution Context

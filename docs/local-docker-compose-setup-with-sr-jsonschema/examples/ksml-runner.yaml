@@ -11,7 +11,7 @@ ksml:
         apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
   notations:
     avro:
-      type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      type: confluent_avro         # For Avro there are two implementations: apicurio_avro and confluent_avro
       schemaRegistry: my_confluent_registry
       config:
         normalize.schemas: true
