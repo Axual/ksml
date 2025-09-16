@@ -46,8 +46,8 @@ public class DurationParser implements ParserWithSchemas<Duration> {
         durationStr = durationStr.toLowerCase().trim();
 
         try {
-            final ToLongFunction<String> parser1 = ds -> Long.parseLong(ds.substring(0, ds.length() - 1));
-            final ToLongFunction<String> parser2 = ds -> Long.parseLong(ds.substring(0, ds.length() - 2));
+            final ToLongFunction<String> parser1 = ds -> Long.parseLong(ds.substring(0, ds.length() - 1).trim());
+            final ToLongFunction<String> parser2 = ds -> Long.parseLong(ds.substring(0, ds.length() - 2).trim());
 
             // If the duration ends with "ms", then parse the remainder as a whole number of milliseconds
             if (durationStr.endsWith("ms")) {
