@@ -43,9 +43,9 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     private final NativeDataObjectMapper recursiveDataObjectMapper;
     private final boolean includeSchemaInfo;
 
-    public NativeDataObjectMapperWithSchema(SchemaResolver<DataSchema> schemaResolver, boolean includeSchemaInfo) {
+    public NativeDataObjectMapperWithSchema(SchemaResolver<DataSchema> schemaResolver, boolean includeSchemaInfo, NativeDataObjectMapper recursiveDataObjectMapper) {
         super(schemaResolver);
-        this.recursiveDataObjectMapper = new NativeDataObjectMapper(schemaResolver);
+        this.recursiveDataObjectMapper = recursiveDataObjectMapper;
         this.includeSchemaInfo = includeSchemaInfo;
     }
 
@@ -93,7 +93,7 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     public Map<String, Object> convertDataStructToMap(DataStruct struct) {
         // Don't call the superclass, but divert all recursions into nested structures to a separate mapper to prevent
         // recursive inclusion of schema info
-        final var result = recursiveDataObjectMapper.convertDataStructToMap(struct);
+        final var result = recursiveDataObjectMapper != null ? recursiveDataObjectMapper.convertDataStructToMap(struct) : super.convertDataStructToMap(struct);
         if (result == null) return null;
 
         // Convert schema to native format by encoding it in metadata fields
