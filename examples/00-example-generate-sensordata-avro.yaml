@@ -35,7 +35,7 @@ functions:
           value = None
         result = result + [(key,value)]
     expression: result                            # Return new messages
-    resultType: "[(string, json)]"                # The result type is a list of key/value tuples
+    resultType: list(tuple(string, json))         # The result type is a list of key/value tuples
 
 producers:
   # Produce an AVRO SensorData message every 3 seconds

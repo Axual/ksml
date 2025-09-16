@@ -28,8 +28,10 @@ import io.axual.ksml.parser.ParseNode;
 import java.util.List;
 
 public class DataFieldsParser extends BaseParser<List<DataField>> {
+    private static final String FIELD = "field";
+
     @Override
     public List<DataField> parse(ParseNode node) {
-        return new ListParser<>("field", "field", new DataFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, "field"));
+        return new ListParser<>(FIELD, FIELD, new DataFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, FIELD));
     }
 }

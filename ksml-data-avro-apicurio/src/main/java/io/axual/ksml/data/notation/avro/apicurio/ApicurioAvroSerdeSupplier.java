@@ -21,8 +21,11 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.serde.Legacy4ByteIdHandler;
+import io.apicurio.registry.serde.SerdeConfig;
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
+import io.apicurio.registry.serde.strategy.TopicIdStrategy;
 import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
 import io.axual.ksml.data.type.DataType;
@@ -62,13 +65,14 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
 
         @Override
         protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
-            if (configs.getOrDefault("apicurio.registry.headers.enabled", false) == Boolean.FALSE) {
+            if (configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
+                    configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
                 // Enable payload encoding in a Confluent compatible way
-                configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
-                configs.putIfAbsent("apicurio.registry.headers.enabled", false);
-                configs.putIfAbsent("apicurio.registry.as-confluent", true);
-                configs.putIfAbsent("apicurio.registry.use-id", "contentId");
-                configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
+                configs.putIfAbsent(SerdeConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
+                configs.putIfAbsent(SerdeConfig.ENABLE_HEADERS, false);
+                configs.putIfAbsent(SerdeConfig.ENABLE_CONFLUENT_ID_HANDLER, true);
+                configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");
+                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getCanonicalName());
             }
             return configs;
         }

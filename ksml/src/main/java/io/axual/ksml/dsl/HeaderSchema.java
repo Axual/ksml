@@ -47,6 +47,6 @@ public class HeaderSchema {
         final var headerFields = new ArrayList<DataField>();
         headerFields.add(new DataField(HEADER_SCHEMA_KEY_FIELD, DataSchema.STRING_SCHEMA, HEADER_SCHEMA_KEY_DOC, 1));
         headerFields.add(new DataField(HEADER_SCHEMA_VALUE_FIELD, DataSchema.ANY_SCHEMA, HEADER_SCHEMA_VALUE_DOC, 2));
-        return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, HEADER_SCHEMA_NAME, KAFKA_PREFIX + HEADER_SCHEMA_NAME, headerFields);
+        return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, HEADER_SCHEMA_NAME, KAFKA_PREFIX + HEADER_SCHEMA_NAME, headerFields, false);
     }
 }

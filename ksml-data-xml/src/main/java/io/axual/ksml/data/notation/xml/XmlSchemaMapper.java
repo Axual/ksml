@@ -76,7 +76,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private StructSchema convertElementToStruct(XMLSchemaParseContext context, XmlSchemaElement element) {
         if (element.getSchemaType() instanceof XmlSchemaComplexType complexType && complexType.getParticle() instanceof XmlSchemaSequence sequence) {
             final var fields = convertToFields(context, sequence);
-            return new StructSchema(context.namespace, element.getName(), extractDoc(element.getAnnotation()), fields);
+            return new StructSchema(context.namespace, element.getName(), extractDoc(element.getAnnotation()), fields, false);
         }
         return null;
     }
@@ -153,7 +153,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         if (type instanceof XmlSchemaComplexType complexType) {
             if (complexType.getParticle() instanceof XmlSchemaSequence sequence) {
                 final var fields = convertToFields(context, sequence);
-                return new StructSchema(null, complexType.getName(), extractDoc(complexType.getAnnotation()), fields);
+                return new StructSchema(null, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
             }
         }
         throw new SchemaException("Could not convert XSD type to DataSchema: " + type);

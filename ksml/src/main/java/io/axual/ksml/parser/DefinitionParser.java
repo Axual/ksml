@@ -77,7 +77,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                 final var newFields = schema.fields().stream()
                         .map(field -> field.required() ? new DataField(field.name(), field.schema(), "*(optional)* " + field.doc(), field.tag(), false, field.constant(), field.defaultValue()) : field)
                         .toList();
-                newSchemas.add(new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields));
+                newSchemas.add(new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields, false));
             } else {
                 newSchemas.add(schema);
             }
@@ -90,7 +90,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected static StructSchema structSchema(String name, String doc, List<DataField> fields) {
-        return new StructSchema(SCHEMA_NAMESPACE, name, doc, fields);
+        return new StructSchema(SCHEMA_NAMESPACE, name, doc, fields, false);
     }
 
     private static class FieldParser<V> implements StructsParser<V> {

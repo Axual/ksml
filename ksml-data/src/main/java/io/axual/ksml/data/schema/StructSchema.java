@@ -21,15 +21,15 @@ package io.axual.ksml.data.schema;
  */
 
 import com.google.common.collect.Lists;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import lombok.Builder;
-import lombok.Singular;
 
 /**
  * Represents a structured schema with named fields in the KSML framework.
@@ -46,13 +46,8 @@ public class StructSchema extends NamedSchema {
      * the absence of a schema be reflected through null fields. Only 1 instance without a name is allowed, so code
      * that checks if the StructSchema represents "schemaless" can simply perform an equality ('==') check.
      */
-    public static final StructSchema SCHEMALESS = new StructSchema(null, null, null, null, null, null);
+    public static final StructSchema SCHEMALESS = new StructSchema(null, null, null, null, true, ANY_SCHEMA);
 
-    /**
-     * This instance of the DataField can be used to determine if any value is allowed
-     */
-
-    public static final DataField ANY_FIELD = new DataField(ANY_SCHEMA);
     /**
      * A list of fields that make up the structured schema.
      * <p>
@@ -72,19 +67,20 @@ public class StructSchema extends NamedSchema {
     /**
      * Indicates if the data structure is allowed to have additional fields.
      * <p>
-     * If the true then the {@link #additionalField} can be used to determine the type of those fields
+     * If the true then the {@link #additionalFieldsSchema} can be used to determine the type of those fields
      * </p>
      */
-    private final boolean allowAdditionalFields;
+    @Getter
+    private final boolean additionalFieldsAllowed;
 
     /**
      * The field that sets which type of value additional fields can have. Only the Schema part will be used.
      * <p>
-     * If {@link #allowAdditionalFields} is true this type will be used. If the value is {@link DataSchema#ANY_SCHEMA} any type of value is allowed.
+     * If {@link #additionalFieldsAllowed} is true this type will be used. If the value is {@link DataSchema#ANY_SCHEMA} any type of value is allowed.
      * </p>
      */
-    private final DataField additionalField;
-
+    @Getter
+    private final DataSchema additionalFieldsSchema;
 
     /**
      * Copy constructor for creating a new {@code StructSchema} based on an existing one.
@@ -96,7 +92,7 @@ public class StructSchema extends NamedSchema {
      * @throws IllegalArgumentException if {@code other} is null.
      */
     public StructSchema(StructSchema other) {
-        this(other.namespace(), other.name(), other.doc(), other.fields, null, null);
+        this(other.namespace(), other.name(), other.doc(), other.fields(), other.additionalFieldsAllowed(), other.additionalFieldsSchema());
     }
 
     /**
@@ -109,22 +105,36 @@ public class StructSchema extends NamedSchema {
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
     public StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields) {
-        this(namespace, name, doc, fields, null, null);
+        this(namespace, name, doc, fields, true);
     }
 
     /**
      * Constructs a {@code StructSchema} with the specified namespace, name, documentation, and fields.
      *
-     * @param namespace             The namespace of the schema. May be {@code null}.
-     * @param name                  The name of the schema. Must not be {@code null} or empty.
-     * @param doc                   Optional documentation or description of the schema.
-     * @param fields                The list of fields that make up the schema. May be empty but not null.
-     * @param allowAdditionalFields set to true or null to allow additional fields to be used in this struct
-     * @param additionalField       Use a {@link DataField} to limit the value of any additional fields to a specific schema
+     * @param namespace               The namespace of the schema. May be {@code null}.
+     * @param name                    The name of the schema. Must not be {@code null} or empty.
+     * @param doc                     Optional documentation or description of the schema.
+     * @param fields                  The list of fields that make up the schema. May be empty but not null.
+     * @param additionalFieldsAllowed set to true or null to allow additional fields to be used in this struct
+     * @throws IllegalArgumentException if {@code name} is null or empty.
+     */
+    public StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields, boolean additionalFieldsAllowed) {
+        this(namespace, name, doc, fields, additionalFieldsAllowed, null);
+    }
+
+    /**
+     * Constructs a {@code StructSchema} with the specified namespace, name, documentation, and fields.
+     *
+     * @param namespace               The namespace of the schema. May be {@code null}.
+     * @param name                    The name of the schema. Must not be {@code null} or empty.
+     * @param doc                     Optional documentation or description of the schema.
+     * @param fields                  The list of fields that make up the schema. May be empty but not null.
+     * @param additionalFieldsAllowed set to true or null to allow additional fields to be used in this struct
+     * @param additionalFieldsSchema  Use a {@link DataField} to limit the value of any additional fields to a specific schema
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
     @Builder(builderMethodName = "builder")
-    protected StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields, Boolean allowAdditionalFields, DataField additionalField) {
+    public StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields, Boolean additionalFieldsAllowed, DataSchema additionalFieldsSchema) {
         super(DataSchemaConstants.STRUCT_TYPE, namespace, name, doc);
         if (fields != null) {
             this.fields.addAll(fields);
@@ -132,8 +142,12 @@ public class StructSchema extends NamedSchema {
                 fieldsByName.put(field.name(), field);
             }
         }
-        this.allowAdditionalFields = allowAdditionalFields == null || allowAdditionalFields;
-        this.additionalField = additionalField == null ? ANY_FIELD : additionalField;
+        this.additionalFieldsAllowed = additionalFieldsAllowed == null || additionalFieldsAllowed;
+        if (this.additionalFieldsAllowed) {
+            this.additionalFieldsSchema = additionalFieldsSchema != null ? additionalFieldsSchema : ANY_SCHEMA;
+        } else {
+            this.additionalFieldsSchema = null;
+        }
     }
 
     /**
@@ -171,27 +185,6 @@ public class StructSchema extends NamedSchema {
      */
     public List<DataField> fields() {
         return Lists.newCopyOnWriteArrayList(fields);
-    }
-
-    /**
-     * Indicates if additional fields are allowed for this struct.
-     * <p>
-     * Additional fields are fields that are not explicitly specified {@link #fields()}. The type of values is determined by {@link #additionalField()}
-     * </p>
-     *
-     * @return true if additional fields are allowed for this struct.
-     */
-    public boolean areAdditionalFieldsAllowed() {
-        return allowAdditionalFields;
-    }
-
-    /**
-     * Get the schema definition of
-     *
-     * @return the {@link DataSchema} that all additional fields should adhere to. If {@link DataSchema#ANY_SCHEMA} is returned any type of field can be adddd,
-     */
-    public DataField additionalField() {
-        return additionalField;
     }
 
     /**
@@ -257,6 +250,6 @@ public class StructSchema extends NamedSchema {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), fields.hashCode());
+        return Objects.hash(super.hashCode(), fields, additionalFieldsAllowed, additionalFieldsSchema);
     }
 }

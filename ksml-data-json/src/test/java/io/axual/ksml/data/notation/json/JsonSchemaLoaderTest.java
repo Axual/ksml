@@ -20,6 +20,10 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
@@ -30,12 +34,12 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
-
-import static io.axual.ksml.data.schema.DataSchema.*;
+import static io.axual.ksml.data.schema.DataSchema.ANY_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchema.BOOLEAN_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchema.DOUBLE_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchema.LONG_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchema.NULL_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchema.STRING_SCHEMA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -64,8 +68,8 @@ class JsonSchemaLoaderTest {
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .returns("ObjWithPrims", StructSchema::name)
-                .returns(true, StructSchema::areAdditionalFieldsAllowed)
-                .returns(new DataField(ANY_SCHEMA), StructSchema::additionalField)
+                .returns(true, StructSchema::additionalFieldsAllowed)
+                .returns(ANY_SCHEMA, StructSchema::additionalFieldsSchema)
                 .actual();
 
         // Validate fields set using soft assertions

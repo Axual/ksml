@@ -29,9 +29,10 @@ import io.axual.ksml.parser.ParseNode;
 public class DataSchemaParser extends BaseParser<DataSchema> {
     @Override
     public DataSchema parse(ParseNode node) {
-        var typeNode = node.isObject() ? node.get(DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD) : node;
-        var parseNode = typeNode.isObject() || typeNode.isArray() ? typeNode : node;
-        var schemaType = new DataSchemaTypeParser().parse(typeNode);
+        if (node == null) return null;
+        final var typeNode = node.isObject() ? node.get(DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD) : node;
+        final var parseNode = typeNode.isObject() || typeNode.isArray() ? typeNode : node;
+        final var schemaType = new DataSchemaTypeParser().parse(typeNode);
         if (schemaType == null) {
             throw new ParseException(node, "Schema type is missing");
         }

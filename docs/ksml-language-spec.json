@@ -1,6 +1,5 @@
 {
-  "additionalProperties" : false,
-  "definitions" : {
+  "$defs" : {
     "AggregateOperation" : {
       "additionalProperties" : false,
       "description" : "An aggregate operation",
@@ -9,7 +8,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (GroupedTable) A function that adds a record to the aggregation result"
@@ -18,7 +17,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
@@ -27,7 +26,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/InitializerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/InitializerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "The initializer function, which generates an initial value for every set of aggregated records"
@@ -36,7 +35,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/MergerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/MergerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results"
@@ -49,13 +48,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the result aggregation"
@@ -64,7 +63,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (GroupedTable) A function that removes a record from the aggregation result"
@@ -125,7 +124,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the aggregator",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -190,7 +189,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the aggregator",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -214,7 +213,7 @@
         "branch" : {
           "description" : "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
           "items" : {
-            "$ref" : "#/definitions/StringOrInlinePredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StringOrInlinePredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           },
           "type" : "array"
@@ -223,7 +222,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ForEachActionDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that gets called for every message in the stream"
@@ -232,7 +231,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Defines the condition under which messages get sent down this branch"
@@ -242,7 +241,7 @@
           "type" : "string"
         },
         "print" : {
-          "$ref" : "#/definitions/PrintOperation",
+          "$ref" : "#/$defs/PrintOperation",
           "description" : "*(optional)* The specification of where to print messages to",
           "type" : "object"
         },
@@ -250,7 +249,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ToTopicDefinition",
+            "$ref" : "#/$defs/ToTopicDefinition",
             "type" : "object"
           } ],
           "description" : "*(optional)* Ends the pipeline by sending all messages to a stream, table or globalTable, or to an inline defined output topic and optional partitioner"
@@ -259,7 +258,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ToTopicNameExtractorDefinition",
+            "$ref" : "#/$defs/ToTopicNameExtractorDefinition",
             "type" : "object"
           } ],
           "description" : "*(optional)* Ends the pipeline by sending all messages to a topic provided by a pre-defined topic name extractor function, or to a topic provided by an inline defined topic name extractor and optional partitioner"
@@ -268,115 +267,115 @@
           "description" : "*(optional)* A series of operations performed on the input stream",
           "items" : {
             "anyOf" : [ {
-              "$ref" : "#/definitions/AggregateOperation",
+              "$ref" : "#/$defs/AggregateOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/CogroupOperation",
+              "$ref" : "#/$defs/CogroupOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ConvertKeyOperation",
+              "$ref" : "#/$defs/ConvertKeyOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ConvertKeyValueOperation",
+              "$ref" : "#/$defs/ConvertKeyValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ConvertValueOperation",
+              "$ref" : "#/$defs/ConvertValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/CountOperation",
+              "$ref" : "#/$defs/CountOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/FilterNotOperation",
+              "$ref" : "#/$defs/FilterNotOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/FilterOperation",
+              "$ref" : "#/$defs/FilterOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/GroupByKeyOperation",
+              "$ref" : "#/$defs/GroupByKeyOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/GroupByOperation",
+              "$ref" : "#/$defs/GroupByOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinWithGlobalTableOperation",
+              "$ref" : "#/$defs/JoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinWithStreamOperation",
+              "$ref" : "#/$defs/JoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinWithTableOperation",
+              "$ref" : "#/$defs/JoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinWithGlobalTableOperation",
+              "$ref" : "#/$defs/LeftJoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinWithStreamOperation",
+              "$ref" : "#/$defs/LeftJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinWithTableOperation",
+              "$ref" : "#/$defs/LeftJoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/MergeOperation",
+              "$ref" : "#/$defs/MergeOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinWithStreamOperation",
+              "$ref" : "#/$defs/OuterJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinWithTableOperation",
+              "$ref" : "#/$defs/OuterJoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/PeekOperation",
+              "$ref" : "#/$defs/PeekOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ReduceOperationWithAdderAndSubtractor",
+              "$ref" : "#/$defs/ReduceOperationWithAdderAndSubtractor",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ReduceOperationWithReducer",
+              "$ref" : "#/$defs/ReduceOperationWithReducer",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/RepartitionOperation",
+              "$ref" : "#/$defs/RepartitionOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/SuppressOperationUntilTimeLimit",
+              "$ref" : "#/$defs/SuppressOperationUntilTimeLimit",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/SuppressOperationUntilWindowCloses",
+              "$ref" : "#/$defs/SuppressOperationUntilWindowCloses",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ToStreamOperation",
+              "$ref" : "#/$defs/ToStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ToTableOperation",
+              "$ref" : "#/$defs/ToTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyOperation",
+              "$ref" : "#/$defs/TransformKeyOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyValueOperation",
+              "$ref" : "#/$defs/TransformKeyValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyValueToKeyValueListOperation",
+              "$ref" : "#/$defs/TransformKeyValueToKeyValueListOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyValueToValueListOperation",
+              "$ref" : "#/$defs/TransformKeyValueToValueListOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformMetadataOperation",
+              "$ref" : "#/$defs/TransformMetadataOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformValueOperation",
+              "$ref" : "#/$defs/TransformValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowBySessionOperation",
+              "$ref" : "#/$defs/WindowBySessionOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowByTimeOperationWithHoppingWindow",
+              "$ref" : "#/$defs/WindowByTimeOperationWithHoppingWindow",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowByTimeOperationWithSlidingWindow",
+              "$ref" : "#/$defs/WindowByTimeOperationWithSlidingWindow",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowByTimeOperationWithTumblingWindow",
+              "$ref" : "#/$defs/WindowByTimeOperationWithTumblingWindow",
               "type" : "object"
             } ]
           },
@@ -394,7 +393,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
@@ -487,13 +486,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the count operation's result"
@@ -515,7 +514,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that returns \"false\" when records are accepted, \"true\" otherwise"
@@ -528,7 +527,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
@@ -550,7 +549,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that returns \"true\" when records are accepted, \"false\" otherwise"
@@ -563,7 +562,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
@@ -624,7 +623,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the foreach action",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -696,7 +695,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the foreach action",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -763,7 +762,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the foreign key extractor",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -828,7 +827,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the foreign key extractor",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -888,7 +887,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the message generator",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -953,7 +952,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the message generator",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1013,7 +1012,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the generic function",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1046,7 +1045,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
@@ -1055,7 +1054,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -1064,7 +1063,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that extracts the event time from a consumed record"
@@ -1094,7 +1093,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
@@ -1103,7 +1102,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -1133,7 +1132,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the grouped stream"
@@ -1155,7 +1154,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyValueMapperDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "Function to map records to a key they can be grouped on"
@@ -1168,7 +1167,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the grouped stream or table"
@@ -1229,7 +1228,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the initializer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1294,7 +1293,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the initializer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1315,7 +1314,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/GlobalTableDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/GlobalTableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the globalTable, or an inline definition of the globalTable to join with"
@@ -1324,7 +1323,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyValueMapperDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that maps the key value from the stream to the primary key type of the globalTable"
@@ -1341,7 +1340,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -1371,7 +1370,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the joined stream"
@@ -1380,7 +1379,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/StreamDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the stream, or an inline definition of the stream to join with"
@@ -1389,7 +1388,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the source stream"
@@ -1410,7 +1409,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -1428,7 +1427,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ForeignKeyExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that can translate the join table value to a primary key"
@@ -1449,7 +1448,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the join table"
@@ -1458,7 +1457,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the primary table"
@@ -1467,7 +1466,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the joined table (only used for Table-Table joins)"
@@ -1476,7 +1475,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TableDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/TableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the table, or an inline definition of the table to join with"
@@ -1489,7 +1488,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -1546,7 +1545,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the key transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1618,7 +1617,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the key transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1685,7 +1684,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue mapper",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1750,7 +1749,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue mapper",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1810,7 +1809,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue printer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -1875,7 +1874,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue printer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2101,7 +2100,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2173,7 +2172,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2240,7 +2239,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2312,7 +2311,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2379,7 +2378,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2451,7 +2450,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the keyvalue transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2479,7 +2478,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/GlobalTableDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/GlobalTableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the globalTable, or an inline definition of the globalTable to join with"
@@ -2488,7 +2487,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyValueMapperDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that maps the key value from the stream with the primary key of the globalTable"
@@ -2505,7 +2504,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2535,7 +2534,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the leftJoined stream"
@@ -2544,7 +2543,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/StreamDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the stream, or an inline definition of the stream to leftJoin with"
@@ -2553,7 +2552,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the source stream"
@@ -2574,7 +2573,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2592,7 +2591,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ForeignKeyExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that can translate the join table value to a primary key"
@@ -2613,7 +2612,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the join table"
@@ -2622,7 +2621,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the primary table"
@@ -2631,7 +2630,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the leftJoined table (only used for Table-Table joins)"
@@ -2640,7 +2639,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TableDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/TableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the table, or an inline definition of the table to join with"
@@ -2653,7 +2652,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2675,7 +2674,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinition",
+            "$ref" : "#/$defs/StreamDefinition",
             "type" : "object"
           } ],
           "description" : "The stream to merge with"
@@ -2736,7 +2735,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the merger",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2801,7 +2800,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the merger",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2861,7 +2860,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the metadata transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2933,7 +2932,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the metadata transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -2973,7 +2972,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the outerJoined stream"
@@ -2982,7 +2981,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/StreamDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the stream, or an inline definition of the stream to outerJoin with"
@@ -2991,7 +2990,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "Materialized view of the source stream"
@@ -3012,7 +3011,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -3034,7 +3033,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the outerJoined table"
@@ -3043,7 +3042,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TableDefinitionAsJoinTarget",
+            "$ref" : "#/$defs/TableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the table, or an inline definition of the table to outerJoin with"
@@ -3056,7 +3055,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -3095,7 +3094,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ForEachActionDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that gets called for every message in the stream"
@@ -3124,7 +3123,7 @@
         "branch" : {
           "description" : "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
           "items" : {
-            "$ref" : "#/definitions/BranchDefinitionWithPipeline",
+            "$ref" : "#/$defs/BranchDefinitionWithPipeline",
             "type" : "object"
           },
           "type" : "array"
@@ -3133,7 +3132,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ForEachActionDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that gets called for every message in the stream"
@@ -3142,7 +3141,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TopicDefinitionSource",
+            "$ref" : "#/$defs/TopicDefinitionSource",
             "type" : "object"
           } ],
           "description" : "Pipeline source"
@@ -3152,7 +3151,7 @@
           "type" : "string"
         },
         "print" : {
-          "$ref" : "#/definitions/PrintOperation",
+          "$ref" : "#/$defs/PrintOperation",
           "description" : "*(optional)* The specification of where to print messages to",
           "type" : "object"
         },
@@ -3160,7 +3159,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ToTopicDefinition",
+            "$ref" : "#/$defs/ToTopicDefinition",
             "type" : "object"
           } ],
           "description" : "*(optional)* Ends the pipeline by sending all messages to a stream, table or globalTable, or to an inline defined output topic and optional partitioner"
@@ -3169,7 +3168,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ToTopicNameExtractorDefinition",
+            "$ref" : "#/$defs/ToTopicNameExtractorDefinition",
             "type" : "object"
           } ],
           "description" : "*(optional)* Ends the pipeline by sending all messages to a topic provided by a pre-defined topic name extractor function, or to a topic provided by an inline defined topic name extractor and optional partitioner"
@@ -3178,115 +3177,115 @@
           "description" : "*(optional)* A series of operations performed on the input stream",
           "items" : {
             "anyOf" : [ {
-              "$ref" : "#/definitions/AggregateOperation",
+              "$ref" : "#/$defs/AggregateOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/CogroupOperation",
+              "$ref" : "#/$defs/CogroupOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ConvertKeyOperation",
+              "$ref" : "#/$defs/ConvertKeyOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ConvertKeyValueOperation",
+              "$ref" : "#/$defs/ConvertKeyValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ConvertValueOperation",
+              "$ref" : "#/$defs/ConvertValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/CountOperation",
+              "$ref" : "#/$defs/CountOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/FilterNotOperation",
+              "$ref" : "#/$defs/FilterNotOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/FilterOperation",
+              "$ref" : "#/$defs/FilterOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/GroupByKeyOperation",
+              "$ref" : "#/$defs/GroupByKeyOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/GroupByOperation",
+              "$ref" : "#/$defs/GroupByOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinWithGlobalTableOperation",
+              "$ref" : "#/$defs/JoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinWithStreamOperation",
+              "$ref" : "#/$defs/JoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinWithTableOperation",
+              "$ref" : "#/$defs/JoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinWithGlobalTableOperation",
+              "$ref" : "#/$defs/LeftJoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinWithStreamOperation",
+              "$ref" : "#/$defs/LeftJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinWithTableOperation",
+              "$ref" : "#/$defs/LeftJoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/MergeOperation",
+              "$ref" : "#/$defs/MergeOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinWithStreamOperation",
+              "$ref" : "#/$defs/OuterJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinWithTableOperation",
+              "$ref" : "#/$defs/OuterJoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/PeekOperation",
+              "$ref" : "#/$defs/PeekOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ReduceOperationWithAdderAndSubtractor",
+              "$ref" : "#/$defs/ReduceOperationWithAdderAndSubtractor",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ReduceOperationWithReducer",
+              "$ref" : "#/$defs/ReduceOperationWithReducer",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/RepartitionOperation",
+              "$ref" : "#/$defs/RepartitionOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/SuppressOperationUntilTimeLimit",
+              "$ref" : "#/$defs/SuppressOperationUntilTimeLimit",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/SuppressOperationUntilWindowCloses",
+              "$ref" : "#/$defs/SuppressOperationUntilWindowCloses",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ToStreamOperation",
+              "$ref" : "#/$defs/ToStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/ToTableOperation",
+              "$ref" : "#/$defs/ToTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyOperation",
+              "$ref" : "#/$defs/TransformKeyOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyValueOperation",
+              "$ref" : "#/$defs/TransformKeyValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyValueToKeyValueListOperation",
+              "$ref" : "#/$defs/TransformKeyValueToKeyValueListOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformKeyValueToValueListOperation",
+              "$ref" : "#/$defs/TransformKeyValueToValueListOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformMetadataOperation",
+              "$ref" : "#/$defs/TransformMetadataOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/TransformValueOperation",
+              "$ref" : "#/$defs/TransformValueOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowBySessionOperation",
+              "$ref" : "#/$defs/WindowBySessionOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowByTimeOperationWithHoppingWindow",
+              "$ref" : "#/$defs/WindowByTimeOperationWithHoppingWindow",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowByTimeOperationWithSlidingWindow",
+              "$ref" : "#/$defs/WindowByTimeOperationWithSlidingWindow",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/WindowByTimeOperationWithTumblingWindow",
+              "$ref" : "#/$defs/WindowByTimeOperationWithTumblingWindow",
               "type" : "object"
             } ]
           },
@@ -3344,7 +3343,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the predicate",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -3416,7 +3415,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the predicate",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -3452,7 +3451,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValuePrinterDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyValuePrinterDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function to convert record into a string for output"
@@ -3477,7 +3476,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise."
@@ -3490,7 +3489,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/GeneratorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/GeneratorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "The function that generates records"
@@ -3507,7 +3506,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TopicDefinition",
+            "$ref" : "#/$defs/TopicDefinition",
             "type" : "object"
           } ],
           "description" : "The topic to produce to"
@@ -3516,7 +3515,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A predicate that returns true to indicate producing should stop."
@@ -3534,7 +3533,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ReducerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ReducerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that adds a record to the aggregate result"
@@ -3547,7 +3546,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"
@@ -3556,7 +3555,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ReducerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ReducerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that removes a record from the aggregate result"
@@ -3582,7 +3581,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ReducerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ReducerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that computes a new aggregate result"
@@ -3591,13 +3590,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/SessionStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/WindowStateStoreDefinitionWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"
@@ -3658,7 +3657,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the reducer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -3723,7 +3722,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the reducer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -3752,7 +3751,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions stream records"
@@ -3872,7 +3871,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
@@ -3881,7 +3880,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function extracts the event time from a consumed record"
@@ -3967,7 +3966,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the stream partitioner",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4032,7 +4031,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the stream partitioner",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4053,7 +4052,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Defines the condition under which messages get sent down this branch"
@@ -4152,7 +4151,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
@@ -4161,7 +4160,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -4170,7 +4169,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that extracts the event time from a consumed record"
@@ -4200,7 +4199,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
@@ -4209,7 +4208,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -4274,7 +4273,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the timestamp extractor",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4339,7 +4338,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the timestamp extractor",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4360,7 +4359,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyTransformerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that computes the output key for every record"
@@ -4390,7 +4389,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the result table"
@@ -4416,7 +4415,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records in the output topic"
@@ -4442,7 +4441,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records in the output topic"
@@ -4451,7 +4450,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TopicNameExtractorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/TopicNameExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor"
@@ -4498,7 +4497,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
@@ -4507,7 +4506,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function extracts the event time from a consumed record"
@@ -4572,7 +4571,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the topic name extractor",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4637,7 +4636,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the topic name extractor",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4658,7 +4657,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyTransformerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that computes a new key for each record"
@@ -4684,7 +4683,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueTransformerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyValueTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that computes a new key/value for each record"
@@ -4710,7 +4709,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyValueToKeyValueListTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts every record of a stream to a list of output records."
@@ -4736,7 +4735,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueToValueListTransformerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/KeyValueToValueListTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream"
@@ -4762,7 +4761,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/MetadataTransformerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/MetadataTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts the metadata (Kafka headers, timestamp) of every record in the stream"
@@ -4788,7 +4787,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueTransformerDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/ValueTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts the value of every record into another value"
@@ -4801,7 +4800,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "$ref" : "#/$defs/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the transformed table (only applies to tables, ignored for streams)"
@@ -4862,7 +4861,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the value joiner",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4927,7 +4926,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the value joiner",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -4987,7 +4986,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the value transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -5059,7 +5058,7 @@
         "parameters" : {
           "description" : "*(optional)* A list of parameters to be passed into the value transformer",
           "items" : {
-            "$ref" : "#/definitions/ParameterDefinition",
+            "$ref" : "#/$defs/ParameterDefinition",
             "type" : "object"
           },
           "type" : "array"
@@ -5398,146 +5397,133 @@
       "type" : "object"
     }
   },
+  "additionalProperties" : false,
   "description" : "KSML definition",
   "properties" : {
     "functions" : {
-      "description" : "*(optional)* Functions that can be referenced in producers and pipelines",
-      "patternProperties" : {
-        "^[a-zA-Z0-9_]+$" : {
-          "anyOf" : [ {
-            "$ref" : "#/definitions/AggregatorDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/ForEachActionDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/ForeignKeyExtractorDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/GeneratorDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/GenericFunctionDefinitionWithImplicitStoreType",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/InitializerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/KeyTransformerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/KeyValueMapperDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/KeyValuePrinterDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/KeyValueToKeyValueListTransformerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/KeyValueToValueListTransformerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/KeyValueTransformerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/MergerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/MetadataTransformerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/PredicateDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/ReducerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/TopicNameExtractorDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/ValueJoinerDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/ValueTransformerDefinition",
-            "type" : "object"
-          } ]
-        }
+      "additionalProperties" : {
+        "anyOf" : [ {
+          "$ref" : "#/$defs/AggregatorDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/ForEachActionDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/ForeignKeyExtractorDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/GeneratorDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/GenericFunctionDefinitionWithImplicitStoreType",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/InitializerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/KeyTransformerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/KeyValueMapperDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/KeyValuePrinterDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/KeyValueToKeyValueListTransformerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/KeyValueToValueListTransformerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/KeyValueTransformerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/MergerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/MetadataTransformerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/PredicateDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/ReducerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/StreamPartitionerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/TimestampExtractorDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/TopicNameExtractorDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/ValueJoinerDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/ValueTransformerDefinition",
+          "type" : "object"
+        } ]
       },
+      "description" : "*(optional)* Functions that can be referenced in producers and pipelines",
       "type" : "object"
     },
     "globalTables" : {
-      "description" : "*(optional)* GlobalTables that can be referenced in producers and pipelines",
-      "patternProperties" : {
-        "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/GlobalTableDefinition",
-          "type" : "object"
-        }
+      "additionalProperties" : {
+        "$ref" : "#/$defs/GlobalTableDefinition",
+        "type" : "object"
       },
+      "description" : "*(optional)* GlobalTables that can be referenced in producers and pipelines",
       "type" : "object"
     },
     "pipelines" : {
-      "description" : "*(optional)* Collection of named pipelines",
-      "patternProperties" : {
-        "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/PipelineDefinition",
-          "type" : "object"
-        }
+      "additionalProperties" : {
+        "$ref" : "#/$defs/PipelineDefinition",
+        "type" : "object"
       },
+      "description" : "*(optional)* Collection of named pipelines",
       "type" : "object"
     },
     "producers" : {
-      "description" : "*(optional)* Collection of named producers",
-      "patternProperties" : {
-        "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/ProducerDefinition",
-          "type" : "object"
-        }
+      "additionalProperties" : {
+        "$ref" : "#/$defs/ProducerDefinition",
+        "type" : "object"
       },
+      "description" : "*(optional)* Collection of named producers",
       "type" : "object"
     },
     "stores" : {
-      "description" : "*(optional)* State stores that can be referenced in producers and pipelines",
-      "patternProperties" : {
-        "^[a-zA-Z0-9_]+$" : {
-          "anyOf" : [ {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
-            "type" : "object"
-          } ]
-        }
+      "additionalProperties" : {
+        "anyOf" : [ {
+          "$ref" : "#/$defs/KeyValueStateStoreDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/SessionStateStoreDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/WindowStateStoreDefinition",
+          "type" : "object"
+        } ]
       },
+      "description" : "*(optional)* State stores that can be referenced in producers and pipelines",
       "type" : "object"
     },
     "streams" : {
-      "description" : "*(optional)* Streams that can be referenced in producers and pipelines",
-      "patternProperties" : {
-        "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/StreamDefinition",
-          "type" : "object"
-        }
+      "additionalProperties" : {
+        "$ref" : "#/$defs/StreamDefinition",
+        "type" : "object"
       },
+      "description" : "*(optional)* Streams that can be referenced in producers and pipelines",
       "type" : "object"
     },
     "tables" : {
-      "description" : "*(optional)* Tables that can be referenced in producers and pipelines",
-      "patternProperties" : {
-        "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/TableDefinition",
-          "type" : "object"
-        }
+      "additionalProperties" : {
+        "$ref" : "#/$defs/TableDefinition",
+        "type" : "object"
       },
+      "description" : "*(optional)* Tables that can be referenced in producers and pipelines",
       "type" : "object"
     }
   },

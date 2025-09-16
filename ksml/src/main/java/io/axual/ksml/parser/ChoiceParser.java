@@ -69,7 +69,7 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             final var field = new DataField(childName, enumSchema, doc, DataField.NO_TAG, required, defaultValue != null, defaultValue != null ? new DataValue(defaultValue) : null);
             newFields.add(field);
             // Create a converted schema, which includes the "type" field
-            final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields);
+            final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields, false);
             // Put in a map to deduplicate by name
             convertedSchema.put(schema.name(), newSchema);
         }

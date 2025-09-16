@@ -57,7 +57,7 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
                     false,
                     new DataValue("")));
         }
-        return new StructSchema(namespace, name, "CSV schema", fields);
+        return new StructSchema(namespace, name, "CSV schema", fields, false);
     }
 
     @Override

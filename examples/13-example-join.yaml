@@ -51,7 +51,7 @@ functions:
 
   alert_split:
     type: keyValueToKeyValueListTransformer
-    resultType: "[(json,json)]"
+    resultType: list(tuple(json,json))
     code: |
       newRecords=[]
       if value is not None and len(value["alerts"]) > 0 :
@@ -81,7 +81,7 @@ pipelines:
       - name: rekey_sensordata
         type: transformKeyValue
         mapper:
-          resultType: "(string,avro:SensorData)"
+          resultType: list(tuple(string,avro:SensorData))
           expression: (value["city"],value)
     to: sensor_transformed
 
