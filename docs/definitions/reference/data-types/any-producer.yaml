@@ -1,67 +1,40 @@
-# Demonstrates 'any' type usage in KSML functions
-# 
-# This example shows how to use the 'any' or '?' type in function signatures when
-# the exact type is variable or unknown. The 'any' type can only be used within
-# functions for internal processing - streams must still use concrete types.
+# Simple demonstration of 'any' and '?' types in KSML
+
 streams:
-  mixed_data:
-    topic: mixed_data
+  any_data:
+    topic: any_data
     keyType: string
-    valueType: json  # Output as JSON for Kafka serialization
+    valueType: json
 
 functions:
-  generate_mixed_data:
+  generate_data:
     type: generator
-    globalCode: |
-      import random
-      import time
-      
-      # Counter for different data patterns
-      counter = 0
     code: |
-      global counter
-      counter += 1
-      
-      # Generate different types of data
-      user_id = f"user_{counter % 5 + 1}"
-      
-      # Create different JSON structures to demonstrate variable data
-      if counter % 3 == 0:
-        # Simple user event
-        data = {
-          "type": "user_action",
-          "action": "login",
-          "timestamp": int(time.time())
-        }
-      elif counter % 3 == 1:
-        # Complex order data
-        data = {
-          "type": "order",
-          "order_id": f"order_{counter}",
-          "items": [
-            {"product": "laptop", "price": 999.99},
-            {"product": "mouse", "price": 29.99}
-          ],
-          "total": 1029.98
-        }
-      else:
-        # Simple metric
-        data = {
-          "type": "metric",
-          "name": "cpu_usage",
-          "value": random.uniform(0.1, 0.9)
-        }
-      
-      return (user_id, data)
-    
-    # Function can use 'any' type to handle variable internal data
-    # but must return concrete types for stream serialization
-    resultType: "(string, json)"
+      import random
 
-pipelines:
-  generate_mixed_events:
-    from:
-      type: generator
-      function: generate_mixed_data
-      interval: 2s
-    to: mixed_data
+      # Generate different JSON-compatible data structures
+      if random.choice([True, False]):
+        data = {"type": "text", "value": "hello world"}
+      else:
+        data = {"type": "number", "value": 42}
+
+      return ("key1", data)
+
+    resultType: (string, json)
+
+  # Function with '?' parameter type
+  describe_data:
+    type: generic
+    parameters:
+      - name: value
+        type: "?"  # Accepts any type
+    code: |
+      return "processed"
+
+    resultType: string
+
+producers:
+  test_producer:
+    generator: generate_data
+    interval: 2s
+    to: any_data

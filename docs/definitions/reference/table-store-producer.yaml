@@ -7,7 +7,7 @@ streams:
 functions:
   generate_user_profile:
     type: generator
-    resultType: "(string, json)"
+    resultType: (string, json)
     code: |
       import random
       import time

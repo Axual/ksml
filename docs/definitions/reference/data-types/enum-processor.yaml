@@ -10,7 +10,7 @@ streams:
   order_status_stream:
     topic: order_statuses
     keyType: string
-    valueType: "enum(PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)"
+    valueType: enum(PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)
 
 functions:
   extract_and_validate_status:

@@ -11,7 +11,7 @@
 #
 # Example: 
 #   - type: convertKey
-#     into: "json:windowed(string)"  # Automatically serializes as JSON structure
+#     into: json:windowed(string)  # Automatically serializes as JSON structure
 #
 # Without notation, windowed keys cannot be serialized to Kafka topics and require manual
 # transformation to regular types.
@@ -57,7 +57,7 @@ pipelines:
       # Using json:windowed(string) automatically serializes windowed keys as JSON structures
       # containing: start, end, startTime, endTime, and key fields
       - type: convertKey
-        into: "json:windowed(string)"  # Recommended: use notation prefix for automatic serialization
+        into: json:windowed(string)  # Recommended: use notation prefix for automatic serialization
       
       # Log the windowed counts
       - type: peek

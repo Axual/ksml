@@ -66,7 +66,7 @@ producers:
       valueType: json
     generator:
       type: generator
-      resultType: "(string, json)"
+      resultType: (string, json)
       code: |
         import random
         import time

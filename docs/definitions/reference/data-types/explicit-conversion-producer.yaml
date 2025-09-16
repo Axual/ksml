@@ -30,7 +30,7 @@ functions:
       }
       
       return (sensor_data["sensor_id"], sensor_data)
-    resultType: "(string, json)"
+    resultType: (string, json)
 
 producers:
   json_generator:

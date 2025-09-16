@@ -38,7 +38,7 @@ functions:
         event["price"] = round(random.uniform(50, 2000), 2)
       
       return (user_id, event)
-    resultType: "(string, json)"
+    resultType: (string, json)
 
 producers:
   user_event_generator:

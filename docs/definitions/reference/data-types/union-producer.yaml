@@ -30,7 +30,7 @@ functions:
         return (key, message)
     code: |
       return get_optional_message()
-    resultType: "(string, union(null, json))"  # Function returns union type
+    resultType: (string, union(null, json))  # Function returns union type
 
 producers:
   optional_producer:

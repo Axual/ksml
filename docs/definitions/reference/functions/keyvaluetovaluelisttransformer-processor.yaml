@@ -37,7 +37,7 @@ functions:
                value.get("order_id"), len(item_records))
       
       return item_records
-    resultType: "[json]"
+    resultType: list(json)
 
 pipelines:
   explode_orders:
