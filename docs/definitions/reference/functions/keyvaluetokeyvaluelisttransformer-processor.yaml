@@ -39,7 +39,7 @@ functions:
       
       log.info("Split batch {} into {} individual orders", batch_id, len(individual_records))
       return individual_records
-    resultType: "[(string, json)]"
+    resultType: list(tuple(string, json))
 
 pipelines:
   split_batch_processing:

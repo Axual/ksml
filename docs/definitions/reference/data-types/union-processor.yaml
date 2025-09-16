@@ -3,7 +3,7 @@ streams:
   optional_messages:
     topic: optional_messages
     keyType: string
-    valueType: "union(null, json)"  # Input as union type
+    valueType: union(null, json)  # Input as union type
   
   processed_messages:
     topic: processed_messages

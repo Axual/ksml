@@ -46,7 +46,7 @@ pipelines:
               if product_id:
                 result.append((product_id, {**item, "order_id":key}))
             return result
-          resultType: "[(string, struct)]"
+          resultType: list(tuple(string, struct))
       - type: peek
         forEach:
           code: |

@@ -3,7 +3,7 @@
 functions:
   generate_preferences:
     type: generator
-    resultType: "(string, map(string))"  # Returns a map with string values
+    resultType: (string, map(string))  # Returns a map with string values
     globalCode: |
       import random
       import time
@@ -20,7 +20,7 @@ functions:
 
   generate_scores:
     type: generator
-    resultType: "(string, map(int))"  # Returns a map with integer values
+    resultType: (string, map(int))  # Returns a map with integer values
     globalCode: |
       import random
     code: |
@@ -38,12 +38,12 @@ streams:
   user_preferences:
     topic: user_preferences
     keyType: string
-    valueType: "map(string)"  # Map with string keys and string values
+    valueType: map(string)  # Map with string keys and string values
 
   user_scores:
     topic: user_scores
     keyType: string
-    valueType: "map(int)"     # Map with string keys and integer values
+    valueType: map(int)     # Map with string keys and integer values
 
 producers:
   preferences_producer:

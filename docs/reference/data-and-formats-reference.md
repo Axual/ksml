@@ -80,11 +80,8 @@ A list contains multiple elements of the same type.
 
 **Syntax:**
 ```yaml
-# Standard bracket notation
-valueType: "[<element_type>]"
-
-# Alternative function notation (avoids YAML validation warnings)
-valueType: list(<element_type>)
+# Function notation (recommended - avoids YAML validation warnings)
+valueType: list(<element_type>) # valueType: [<element_type>] also works
 ```
 
 **Example:**
@@ -93,7 +90,7 @@ streams:
   tags_stream:
     topic: tags
     keyType: string
-    valueType: "[string]"        # Standard notation
+    valueType: list(string)     # Function notation, valueType: [string] is also valid
   
   categories_stream:
     topic: categories
@@ -107,7 +104,7 @@ functions:
   extract_tags:
     type: keyValueToValueListTransformer
     expression: value.get("tags", [])
-    resultType: "[string]"      # Standard notation
+    resultType: list(string)    # Function notation, resultType: [string] is also valid
   
   extract_categories:
     type: keyValueToValueListTransformer
@@ -169,7 +166,7 @@ streams:
   scores:
     topic: scores
     keyType: string
-    valueType: "map(int)"     # Map with string keys and integer values
+    valueType: map(int)     # Map with string keys and integer values, "map(int)" also valid
 ```
 
 In Python code, a map is represented as a Python dictionary:
@@ -184,7 +181,7 @@ functions:
         "notifications": value.get("notify_enabled", "true")
       }
     expression: result
-    resultType: "map(string)"
+    resultType: map(string) # "map(string)" also valid
 
   calculate_scores:
     type: valueTransformer
@@ -195,7 +192,7 @@ functions:
         "english": 78
       }
     expression: result
-    resultType: "map(int)"
+    resultType: map(int) # "map(int)" also valid 
 ```
 
 **Key characteristics:**
@@ -230,9 +227,9 @@ This simple example demonstrates using `map(string)` and `map(int)` types in str
 
 **What this example does:**
 
-- **Stream definitions** use `valueType: "map(string)"` and `valueType: "map(int)"` to define strongly-typed maps
-- **Function result types** use `resultType: "(string, map(string))"` to return maps with type safety
-- **Processing functions** use `resultType: "map(string)"` and `resultType: "map(int)"` to transform and validate map contents
+- **Stream definitions** use `valueType: map(string)` and `valueType: map(int)` to define strongly-typed maps
+- **Function result types** use `resultType: (string, map(string))` to return maps with type safety
+- **Processing functions** use `resultType: map(string)` and `resultType: map(int)` to transform and validate map contents
 - Demonstrates how the `map(valuetype)` syntax ensures all values in a map conform to the specified type
 
 #### Struct
@@ -290,7 +287,7 @@ A tuple combines multiple elements of different types into a single value.
 **Syntax:**
 ```yaml
 # Standard bracket notation
-valueType: "(<type1>, <type2>, ...)"
+valueType: (<type1>, <type2>, ...)
 
 # Alternative function notation (avoids YAML validation warnings)
 valueType: tuple(<type1>, <type2>, ...)
@@ -302,7 +299,7 @@ streams:
   sensor_stream:
     topic: sensor-data
     keyType: string
-    valueType: "(string, avro:SensorData)"     # Standard notation
+    valueType: (string, avro:SensorData)     # Standard notation
   
   coordinate_stream:
     topic: coordinates
@@ -316,7 +313,7 @@ functions:
   create_user_age_pair:
     type: keyValueTransformer
     expression: (value.get("name"), value.get("age"))
-    resultType: "(string, int)"               # Standard notation
+    resultType: (string, int)               # Standard notation
   
   create_coordinate_pair:
     type: keyValueTransformer
@@ -364,7 +361,7 @@ A union type can be one of several possible types.
 
 **Syntax:**
 ```yaml
-valueType: "union(<type1>, <type2>, ...)"
+valueType: union(<type1>, <type2>, ...)
 ```
 
 **Example:**
@@ -377,7 +374,7 @@ streams:
   optional_messages:
     topic: optional-messages
     keyType: string
-    valueType: "union(null, json)"  # This stream accepts either null OR a JSON object
+    valueType: union(null, json)  # This stream accepts either null OR a JSON object
 ```
 
 **2. In function return types** - to specify that a function can return multiple types:
@@ -391,7 +388,7 @@ functions:
         return ("key1", {"data": "value"})
       else:
         return ("key1", None)
-    resultType: "(string, union(null, json))"  # Returns a tuple with union type
+    resultType: (string, union(null, json))  # Returns a tuple with union type
 ```
 
 **What union types mean:**
@@ -424,10 +421,10 @@ Windowing operations in Kafka Streams group messages together in time-based wind
 **Syntax:**
 ```yaml
 # Without notation - requires manual transformation for Kafka output
-keyType: "windowed(<base_type>)"
+keyType: windowed(<base_type>)
 
 # With notation - automatically serializes to the specified format
-keyType: "<notation>:windowed(<base_type>)"  # e.g., json:windowed(string), avro:windowed(string)
+keyType: <notation>:windowed(<base_type>)  # e.g., json:windowed(string), avro:windowed(string)
 ```
 
 **Understanding Windowed Keys:**
@@ -505,28 +502,53 @@ The notation automatically serializes the windowed key as a structured object wi
 
 Windowed types enable time-based analytics like counting events per time window, calculating moving averages, or detecting patterns over time intervals. The notation prefix approach simplifies working with windowed data by handling serialization automatically.
 
-### The Any Type
+### The Any and "?" Types
 
-The special type `?` or `any` can be used when the exact type is unknown or variable. This is particularly useful for functions that need to handle different data structures generically.
+KSML supports wildcard types `any` and `?` (which are equivalent) that represent unknown or variable data types. These map internally to `DataType.UNKNOWN` and can only be used for function parameters when the exact type is not known at definition time. They cannot be used for stream types or function result types due to serialization and type system requirements.
 
 **Syntax:**
+
+The `any` and `?` types can be used in:
+
+- Function parameters only (`type: any` or `type: "?"`)
+
 ```yaml
-parameterType: "?"
-# or
-parameterType: "any"
+# Function parameters (SUPPORTED)
+functions:
+  my_function:
+    type: generic
+    parameters:
+      - name: input
+        type: any      # Accepts any type
+      - name: other
+        type: "?"      # Alternative syntax (quote to avoid YAML issues)
+    code: |
+      # Process the input parameter of unknown type
+      return "processed"
+    resultType: string   # Must be a concrete type
+
+# Stream types (NOT SUPPORTED)
+# valueType: any     # ❌ This will fail with "JSON serde not found"
+# keyType: "?"       # ❌ This will fail with serialization error
+
+# Function result types (NOT SUPPORTED)
+# resultType: any    # ❌ This will fail with topology type checking error
 ```
+
+**Why the limitations exist:**
+
+- **Stream types**: Kafka requires concrete serialization formats. The `any` type cannot be serialized to Kafka topics because there's no serde for unknown data types.
+- **Result types**: The topology type system requires concrete types for type checking and ensuring data flows correctly between operations.
 
 **Key Use Cases:**
 
-- Processing streams with variable JSON structures
-- Generic data transformation functions
-- Handling mixed data types within a single function
+- Generic utility functions that accept multiple data types as parameters
+- Helper functions that need to handle variable input types
+- Functions that process data generically before converting to concrete output types
 
-**Important:** The `any` type can only be used in function signatures for internal processing. Kafka streams must still use concrete types (like `json`) for serialization.
+??? info "Producer - Any type demonstration (click to expand)"
 
-??? info "Producer - Any type data generation (click to expand)"
-
-    This example generates mixed JSON data with different structures, demonstrating variable data types that can be processed using `any` type functions.
+    This example demonstrates using the `?` type for function parameters, showing how to create generic utility functions.
 
     ```yaml
     --8<-- "definitions/reference/data-types/any-producer.yaml"
@@ -534,15 +556,11 @@ parameterType: "any"
 
 ??? info "Processor - Any type processing (click to expand)"
 
-    This example shows how to use `parameterType: "any"` to process variable data structures. The function accepts any input type and handles it generically.
+    This example shows how to process data using the `any` type for function parameters, demonstrating type-agnostic helper functions.
 
     ```yaml
-    --8<-- "definitions/reference/data-types/any-processor.yaml:17:64"
+    --8<-- "definitions/reference/data-types/any-processor.yaml"
     ```
-
-**Key Takeaway:**
-
-The `any` type enables flexible data processing for functions that need to handle variable or unknown data structures. While streams require concrete types for serialization, functions can use `any` to process diverse data generically.
 
 ## Notation Formats
 
@@ -572,9 +590,9 @@ Avro is a binary format that supports schema evolution.
 
 **Syntax:**
 ```yaml
-valueType: "avro:<schema_name>"
+valueType: avro:<schema_name>
 # or for schema registry lookup
-valueType: "avro"
+valueType: avro
 ```
 
 **Example:**
@@ -593,9 +611,9 @@ JSON is a text-based, human-readable format for data transfer.
 **Syntax:**
 ```yaml
 # For schemaless JSON:
-valueType: "json"
+valueType: json
 # For JSON with a schema:
-valueType: "json:<schema_name>"
+valueType: json:<schema_name>
 ```
 
 **Example:**
@@ -604,12 +622,12 @@ streams:
   user_profiles:
     topic: user-profiles
     keyType: string
-    valueType: "json"
+    valueType: json
 
   orders:
     topic: orders
     keyType: string
-    valueType: "json:Order"
+    valueType: json:Order
 ```
 
 Python functions can return JSON by returning a dictionary:
@@ -628,9 +646,9 @@ JSON Schema adds vendor-specific schema support to JSON serialization.
 **Syntax:**
 ```yaml
 # For schema registry lookup:
-valueType: "jsonschema"
+valueType: jsonschema
 # For JSON with a schema:
-valueType: "jsonschema:<schema_name>"
+valueType: jsonschema:<schema_name>
 ```
 
 **Example:**
@@ -639,7 +657,7 @@ streams:
   user_profiles:
     topic: user-profiles
     keyType: string
-    valueType: "jsonschema:UserProfile"
+    valueType: jsonschema:UserProfile
 ```
 
 ### CSV
@@ -649,9 +667,9 @@ CSV (Comma-Separated Values) is a simple tabular data format.
 **Syntax:**
 ```yaml
 # For schemaless CSV:
-valueType: "csv"
+valueType: csv
 # For CSV with a schema:
-valueType: "csv:<schema_name>"
+valueType: csv:<schema_name>
 ```
 
 **Example:**
@@ -660,12 +678,12 @@ streams:
   sales_data:
     topic: sales-data
     keyType: string
-    valueType: "csv"
+    valueType: csv
 
   inventory_data:
     topic: inventory-data
     keyType: string
-    valueType: "csv:InventoryRecord"
+    valueType: csv:InventoryRecord
 ```
 
 ### XML
@@ -675,9 +693,9 @@ XML (Extensible Markup Language) is used for complex hierarchical data.
 **Syntax:**
 ```yaml
 # For schemaless XML:
-valueType: "xml"
+valueType: xml
 # For XML with a schema:
-valueType: "xml:<schema_name>"
+valueType: xml:<schema_name>
 ```
 
 **Example:**
@@ -686,7 +704,7 @@ streams:
   customer_data:
     topic: customer-data
     keyType: string
-    valueType: "xml:CustomerData"
+    valueType: xml:CustomerData
 ```
 
 ### Protobuf
@@ -696,9 +714,9 @@ Protobuf is a popular encoding format developed by Google.
 **Syntax:**
 ```yaml
 # For schema registry lookup:
-valueType: "protobuf"
+valueType: protobuf
 # For Protobuf with a schema:
-valueType: "protobuf:<schema_name>"
+valueType: protobuf:<schema_name>
 ```
 
 **Example:**
@@ -707,7 +725,7 @@ streams:
   user_profiles:
     topic: user-profiles
     keyType: string
-    valueType: "protobuf:UserProfile"
+    valueType: protobuf:UserProfile
 ```
 
 ### Binary
@@ -716,7 +734,7 @@ Binary data represents raw bytes for custom protocols.
 
 **Syntax:**
 ```yaml
-valueType: "binary"
+valueType: binary
 ```
 
 **Example:**
@@ -725,7 +743,7 @@ streams:
   binary_data:
     topic: binary-messages
     keyType: string
-    valueType: "binary"
+    valueType: binary
 ```
 
 ### SOAP
@@ -734,7 +752,7 @@ SOAP (Simple Object Access Protocol) is an XML-based messaging protocol.
 
 **Syntax:**
 ```yaml
-valueType: "soap"
+valueType: soap
 ```
 
 **Example:**
@@ -743,7 +761,7 @@ streams:
   service_requests:
     topic: service-requests
     keyType: string
-    valueType: "soap"
+    valueType: soap
 ```
 
 ## Schema Management
@@ -770,7 +788,7 @@ streams:
   sensor_data:
     topic: sensor-reading
     keyType: string
-    valueType: "avro:SensorReading"  # Looks for SensorReading.avsc
+    valueType: avro:SensorReading  # Looks for SensorReading.avsc
 ```
 
 **Schema Registry Lookup:**
@@ -781,7 +799,7 @@ streams:
   sensor_data:
     topic: sensor-reading
     keyType: string
-    valueType: "avro"  # Schema fetched from registry
+    valueType: avro  # Schema fetched from registry
 ```
 
 ## Type Conversion
@@ -942,7 +960,7 @@ resultType: tuple(string, json)
 
 # Complex expressions
 valueType: union(null, string)
-resultType: [(string, json)]
+resultType: list(tuple(string, json)) # [(string, json)] also valid
 resultType: (string, json)
 
 # Notation prefixes (with colons)
@@ -950,8 +968,8 @@ valueType: avro:SensorData
 keyType: protobuf:UserProfile
 
 # With quotes (also valid)
-resultType: "[(string, json)]"
-valueType: "enum(PENDING, SHIPPED)"
+resultType: list(tuple(string, json)) # [(string, json)] also valid
+valueType: enum(PENDING, SHIPPED)
 ```
 
 ### YAML Syntax Highlighting Note

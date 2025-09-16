@@ -28,7 +28,7 @@ functions:
       }
       
       return (f"item_{counter}", data)
-    resultType: "(string, json)"
+    resultType: (string, json)
 
 producers:
   data_generator:

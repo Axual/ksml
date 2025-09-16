@@ -10,7 +10,7 @@ pipelines:
     via:
       - type: flatMap
         mapper:
-          resultType: "[(string,json)]"
+          resultType: list(tuple(string, json))
           code: |
             return [(f"{value['order_id']}_{i['item_id']}", {
               "order_id": value['order_id'],

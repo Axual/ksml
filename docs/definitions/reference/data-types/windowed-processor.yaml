@@ -49,7 +49,7 @@ pipelines:
       # Explicitly convert the key to windowed(string) type
       # This shows how KSML handles windowed keys internally
       - type: convertKey
-        into: "windowed(string)"
+        into: windowed(string)
       
       # Log the windowed counts with the windowed key type
       - type: peek
@@ -62,7 +62,7 @@ pipelines:
       # This is necessary because Kafka topics cannot serialize windowed keys
       - type: transformKeyValue
         mapper:
-          resultType: "(string, json)"
+          resultType: (string, json)
           code: |
             # Extract window information from the windowed key
             # Convert to a string key format: "user_startTime_endTime"
