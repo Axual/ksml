@@ -46,7 +46,7 @@ public class StructSchema extends NamedSchema {
      * the absence of a schema be reflected through null fields. Only 1 instance without a name is allowed, so code
      * that checks if the StructSchema represents "schemaless" can simply perform an equality ('==') check.
      */
-    public static final StructSchema SCHEMALESS = new StructSchema(null, null, null, null, true, ANY_SCHEMA);
+    public static final StructSchema SCHEMALESS = new StructSchema(null, null, null, null, null, null);
 
     /**
      * A list of fields that make up the structured schema.
@@ -128,9 +128,9 @@ public class StructSchema extends NamedSchema {
      * @param namespace               The namespace of the schema. May be {@code null}.
      * @param name                    The name of the schema. Must not be {@code null} or empty.
      * @param doc                     Optional documentation or description of the schema.
-     * @param fields                  The list of fields that make up the schema. May be empty but not null.
-     * @param additionalFieldsAllowed set to true or null to allow additional fields to be used in this struct
-     * @param additionalFieldsSchema  Use a {@link DataField} to limit the value of any additional fields to a specific schema
+     * @param fields                  The list of fields that make up the schema. Maybe empty but not null.
+     * @param additionalFieldsAllowed set to true or null to allow additional fields in this struct
+     * @param additionalFieldsSchema  Use a {@link DataSchema} to limit any additional fields to a specific schema
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
     @Builder(builderMethodName = "builder")

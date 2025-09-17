@@ -364,7 +364,7 @@ class JsonSchemaMapperTest {
                         new UnionSchema(
                                 new DataField(new EnumSchema(null, null, null, List.of(Symbol.of("A"), Symbol.of("B")))),
                                 new DataField(new StructSchema(null, null, null, List.of(
-                                        new DataField("v", DOUBLE_SCHEMA)
+                                        new DataField("v", DOUBLE_SCHEMA, null, NO_TAG, false)
                                 )))
                         )
                 ), null, NO_TAG, false));

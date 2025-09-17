@@ -111,6 +111,23 @@ class StructSchemaTest {
         assertThat(a).isNotEqualTo(c);
     }
 
+
+    @Test
+    @DisplayName("Copy constructor copies all fields")
+    void copyConstructor() {
+        var original = StructSchema.builder()
+                .namespace("ns")
+                .name("Person").field(requiredInt("id"))
+                .field(optionalStringWithDefault("name"))
+                .additionalFieldsAllowed(true)
+                .additionalFieldsSchema(DataSchema.STRING_SCHEMA)
+                .build();
+        assertThat(new StructSchema(original))
+                .usingRecursiveComparison()
+                .isNotSameAs(original)
+                .isEqualTo(original);
+    }
+
     @Test
     @DisplayName("additionalFieldsAllowed and additionalFieldsSchema invariant")
     void testAdditionalFieldsInvariant() {
