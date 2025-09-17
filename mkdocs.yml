@@ -1,0 +1,56 @@
+site_name: KSML Documentation
+site_author: Axual
+site_description: Documentation for the KSML project
+
+site_dir: _site
+theme:
+  name: material
+  features:
+    - content.code.copy
+
+plugins:
+  - search
+  - include-markdown:
+      encoding: ascii
+      preserve_includer_indent: true
+      dedent: true
+      trailing_newlines: true
+      comments: false
+      rewrite_relative_urls: true
+      heading_offset: 0
+      recursive: true
+  - autorefs:
+      resolve_closest: true
+  - mike:
+      version_selector: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["docs"]
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.details
+
+#extra_css:
+#  - stylesheets/extra.css
+
+extra:
+  version:
+    provider: mike
+    default: latest
+
+nav:
+  - Home: index.md
+  - Getting Started: quick-start
+  - Introduction: introduction.md
+  - Stream Types: streams.md
+  - Functions: functions.md
+  - Pipelines: pipelines.md
+  - Operations: operations.md
+  - Data Types: types.md
+  - Runners: runners.md
+  - Language Specification: ksml-language-spec.md
+  - Release Notes: release-notes.md
