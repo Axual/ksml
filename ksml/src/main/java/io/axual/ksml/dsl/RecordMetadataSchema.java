@@ -45,6 +45,6 @@ public class RecordMetadataSchema {
         final var fields = new ArrayList<DataField>();
         fields.add(new DataField(RECORD_METADATA_SCHEMA_TIMESTAMP_FIELD, DataSchema.LONG_SCHEMA, RECORD_METADATA_SCHEMA_TIMESTAMP_DOC, 1));
         fields.add(new DataField(RECORD_METADATA_SCHEMA_HEADERS_FIELD, new ListSchema(HEADER_SCHEMA), RECORD_METADATA_SCHEMA_HEADERS_DOC, 2));
-        return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, RECORD_METADATA_SCHEMA_NAME, KAFKA_PREFIX + RECORD_METADATA_SCHEMA_NAME, fields);
+        return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, RECORD_METADATA_SCHEMA_NAME, KAFKA_PREFIX + RECORD_METADATA_SCHEMA_NAME, fields, false);
     }
 }

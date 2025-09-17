@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Defines constants utilized by the data schema components in the KSML framework.
+ * Defines constants used by the data schema components in the KSML framework.
  * <p>
  * The {@code DataSchemaConstants} class serves as a centralized repository for constant values
  * associated with data schema processing and functionality within the application. These constants
@@ -37,14 +37,22 @@ import java.util.Set;
  */
 public class DataSchemaConstants {
     /**
+     * Constant value representing the absence of a tag.
+     */
+    public static final int NO_TAG = -1;
+
+    /**
      * The default namespace used for data schemas in the KSML framework.
      * <p>
-     * This namespace is primarily utilized to uniquely identify schema definitions
+     * This namespace is primarily used to uniquely identify schema definitions
      * in the context of KSML's data schema processing.
      * </p>
      */
     public static final String DATA_SCHEMA_KSML_NAMESPACE = "io.axual.ksml.data";
 
+    /**
+     * The type names used to represent data schemas in the KSML framework.
+     */
     public static final String ANY_TYPE = "any";
     public static final String NULL_TYPE = "null";
     public static final String BOOLEAN_TYPE = "boolean";
@@ -64,6 +72,9 @@ public class DataSchemaConstants {
     public static final String TUPLE_TYPE = "tuple";
     public static final String UNION_TYPE = "union";
 
+    /**
+     * The set of all type names used to represent data schemas in the KSML framework.
+     */
     private static final Set<String> TYPES = new HashSet<>();
 
     static {

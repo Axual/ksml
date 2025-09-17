@@ -20,11 +20,6 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.object.DataBoolean;
@@ -41,7 +36,13 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.Symbol;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static io.axual.ksml.data.schema.DataSchema.ANY_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 /**
  * Mapper between JSON Schema text and KSML DataSchema.
@@ -66,8 +67,6 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String DESCRIPTION_NAME = "description";
     private static final String TYPE_NAME = "type";
     private static final String PROPERTIES_NAME = "properties";
-    private static final String PATTERN_PROPERTIES_NAME = "patternProperties";
-    private static final String ALL_PROPERTIES_REGEX = "^[a-zA-Z0-9_]+$";
     private static final String ITEMS_NAME = "items";
     private static final String REQUIRED_NAME = "required";
     private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
@@ -100,8 +99,8 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
      * this mapper interprets JSON Schema keywords and builds a {@link StructSchema} or related types.</p>
      *
      * @param namespace the target namespace for the resulting StructSchema
-     * @param name the default schema name used when no explicit title is present
-     * @param value the JSON Schema document as a String
+     * @param name      the default schema name used when no explicit title is present
+     * @param value     the JSON Schema document as a String
      * @return the parsed DataSchema
      * @throws IllegalArgumentException when the input does not parse into a DataStruct
      */
@@ -133,9 +132,9 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     /**
      * Internal parse step that interprets a JSON Schema represented as a DataStruct.
      *
-     * @param namespace target namespace for the resulting StructSchema
-     * @param name default name when title is absent
-     * @param schema the JSON Schema as DataStruct
+     * @param namespace         target namespace for the resulting StructSchema
+     * @param name              default name when title is absent
+     * @param schema            the JSON Schema as DataStruct
      * @param referenceResolver resolves local $ref paths within the same document
      * @return a DataSchema equivalent
      */
@@ -152,13 +151,17 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             }
         }
 
-        var additionalPropertiesSchema = DataSchema.ANY_SCHEMA;
-        var areAdditionalPropertiesAllowed = true;
-        final var additionalProperties = schema.get(ADDITIONAL_PROPERTIES);
-        if (additionalProperties instanceof DataBoolean dataBoolean) {
-            areAdditionalPropertiesAllowed = dataBoolean.value();
-        }else if (additionalProperties instanceof DataStruct structData) {
-            additionalPropertiesSchema = convertType(structData, referenceResolver);
+        // If no additionalProperties property is found, then by default allow additional properties with any schema
+        boolean additionalPropertiesAllowed = true;
+        DataSchema additionalPropertiesSchema = ANY_SCHEMA;
+        // If additionalProperties is a boolean, then use that value
+        if (schema.get(ADDITIONAL_PROPERTIES) instanceof DataBoolean additionalPropertiesBoolean) {
+            additionalPropertiesAllowed = additionalPropertiesBoolean.value();
+            additionalPropertiesSchema = additionalPropertiesAllowed ? ANY_SCHEMA : null;
+        }
+        // If additionalProperties is a DataStruct encoding a schema, then allow additional properties of that type
+        if (schema.get(ADDITIONAL_PROPERTIES) instanceof DataStruct additionalPropertiesStruct) {
+            additionalPropertiesSchema = convertType(additionalPropertiesStruct, referenceResolver);
         }
 
         final var properties = schema.get(PROPERTIES_NAME);
@@ -169,17 +172,17 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
                 .name(title != null ? title.value() : name)
                 .doc(doc != null ? doc.value() : null)
                 .fields(fields)
-                .allowAdditionalFields(areAdditionalPropertiesAllowed)
-                .additionalField(new DataField(additionalPropertiesSchema))
+                .additionalFieldsAllowed(additionalPropertiesAllowed)
+                .additionalFieldsSchema(additionalPropertiesSchema)
                 .build();
     }
 
     /**
      * Converts JSON Schema 'properties' into a list of KSML DataFields.
      *
-     * @param properties a DataStruct mapping property names to their JSON Schema specs
+     * @param properties         a DataStruct mapping property names to their JSON Schema specs
      * @param requiredProperties set of required property names
-     * @param referenceResolver resolver for local $ref targets
+     * @param referenceResolver  resolver for local $ref targets
      * @return list of DataField instances in no particular order
      */
     private List<DataField> convertFields(DataStruct properties, Set<String> requiredProperties, ReferenceResolver<DataStruct> referenceResolver) {
@@ -222,7 +225,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         }
 
         final var type = specStruct.getAsString(TYPE_NAME);
-        if (type == null || type.isEmpty()) return DataSchema.ANY_SCHEMA;
+        if (type == null || type.isEmpty()) return ANY_SCHEMA;
         return switch (type.value()) {
             case NULL_TYPE -> DataSchema.NULL_SCHEMA;
             case BOOLEAN_TYPE -> DataSchema.BOOLEAN_SCHEMA;
@@ -238,7 +241,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
                 }
                 yield toDataSchema(null, null, specStruct, referenceResolver);
             }
-            default -> DataSchema.ANY_SCHEMA;
+            default -> ANY_SCHEMA;
         };
     }
 
@@ -252,7 +255,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             var valueSchema = convertType(itemsStruct, referenceResolver);
             return new ListSchema(valueSchema);
         }
-        return new ListSchema(DataSchema.ANY_SCHEMA);
+        return new ListSchema(ANY_SCHEMA);
     }
 
     /**
@@ -316,12 +319,11 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             result.put(REQUIRED_NAME, reqProps);
         }
         if (properties.size() > 0) result.put(PROPERTIES_NAME, properties);
-        if (structSchema.areAdditionalFieldsAllowed()) {
-            final var additionalField = structSchema.additionalField();
-            if (DataSchema.ANY_SCHEMA.equals(additionalField.schema())) {
+        if (structSchema.additionalFieldsAllowed()) {
+            if (ANY_SCHEMA.equals(structSchema.additionalFieldsSchema())) {
                 result.put(ADDITIONAL_PROPERTIES, new DataBoolean(true));
             } else {
-                result.put(ADDITIONAL_PROPERTIES, fromDataSchema(additionalField, definitions));
+                result.put(ADDITIONAL_PROPERTIES, fromDataSchema(structSchema.additionalFieldsSchema(), definitions));
             }
         } else {
             result.put(ADDITIONAL_PROPERTIES, new DataBoolean(false));
@@ -334,6 +336,12 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         final var doc = field.doc();
         if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
         convertType(field.schema(), field.constant(), field.defaultValue(), result, definitions);
+        return result;
+    }
+
+    private DataStruct fromDataSchema(DataSchema schema, DefinitionLibrary definitions) {
+        final var result = new DataStruct();
+        convertType(schema, false, null, result, definitions);
         return result;
     }
 
@@ -362,14 +370,14 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             target.put(TYPE_NAME, new DataString(ARRAY_TYPE));
             final var subStruct = new DataStruct();
             convertType(listSchema.valueSchema(), false, null, subStruct, definitions);
-            if(subStruct.size()>0) {
+            if (subStruct.size() > 0) {
                 // only add if the list values exist
                 target.put(ITEMS_NAME, subStruct);
             }
         }
         if (schema instanceof MapSchema mapSchema) {
             target.put(TYPE_NAME, new DataString(OBJECT_TYPE));
-            if (DataSchema.ANY_SCHEMA.equals(mapSchema.valueSchema())) {
+            if (ANY_SCHEMA.equals(mapSchema.valueSchema())) {
                 target.put(ADDITIONAL_PROPERTIES, new DataBoolean(true));
             } else {
                 final var additionalPatternSubStruct = new DataStruct();

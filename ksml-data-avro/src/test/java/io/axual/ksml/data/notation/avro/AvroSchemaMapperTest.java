@@ -20,6 +20,17 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.FixedSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.type.Symbol;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -36,22 +47,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataValue;
-import io.axual.ksml.data.schema.EnumSchema;
-import io.axual.ksml.data.schema.FixedSchema;
-import io.axual.ksml.data.schema.ListSchema;
-import io.axual.ksml.data.schema.MapSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
-
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_COLLECTIONS;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_LOGICAL_TYPES;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_OPTIONAL;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_PRIMITIVES;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 
@@ -72,12 +72,12 @@ class AvroSchemaMapperTest {
     }
 
     @Test
-    void basicAvroSchemaTypeConversion(){
+    void basicAvroSchemaTypeConversion() {
         var avroSchema = Schema.create(Schema.Type.NULL);
         var mappedDataSchema = schemaMapper.toDataSchema(null, null, avroSchema);
         var remappedAvroSchema = schemaMapper.fromDataSchema(mappedDataSchema);
 
-       assertThat(remappedAvroSchema).isEqualTo(avroSchema);
+        assertThat(remappedAvroSchema).isEqualTo(avroSchema);
     }
 
     @Test
@@ -426,12 +426,12 @@ class AvroSchemaMapperTest {
                 .name("TestingAdvancedRecord")
                 .doc("Some Advanced record")
                 .field(new DataField("booleanRequired", DataSchema.BOOLEAN_SCHEMA))
-                .field(new DataField("booleanOptional", DataSchema.BOOLEAN_SCHEMA, null, DataField.NO_TAG, false))
-                .field(new DataField("booleanNullable", ksmlNullable(DataSchema.BOOLEAN_SCHEMA), null, DataField.NO_TAG, true, false, new DataValue(true)))
-                .field(new DataField("recordSimple", ksmlRecordSimple, null, DataField.NO_TAG, true))
-                .field(new DataField("enumeration", ksmlEnum, null, DataField.NO_TAG, true))
-                .field(new DataField("mapPrimitive", ksmlMapPrimitive, null, DataField.NO_TAG, true))
-                .field(new DataField("arrayPrimitive", ksmlArrayPrimitive, null, DataField.NO_TAG, true))
+                .field(new DataField("booleanOptional", DataSchema.BOOLEAN_SCHEMA, null, NO_TAG, false))
+                .field(new DataField("booleanNullable", ksmlNullable(DataSchema.BOOLEAN_SCHEMA), null, NO_TAG, true, false, new DataValue(true)))
+                .field(new DataField("recordSimple", ksmlRecordSimple, null, NO_TAG, true))
+                .field(new DataField("enumeration", ksmlEnum, null, NO_TAG, true))
+                .field(new DataField("mapPrimitive", ksmlMapPrimitive, null, NO_TAG, true))
+                .field(new DataField("arrayPrimitive", ksmlArrayPrimitive, null, NO_TAG, true))
                 .build();
         testData.add(new SchemaPairAndDescription("Record Schema - Advanced", avroRecordAdvanced, ksmlRecordAdvanced));
 

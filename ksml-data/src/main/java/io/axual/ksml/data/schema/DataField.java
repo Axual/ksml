@@ -26,6 +26,8 @@ import lombok.Getter;
 
 import java.util.Objects;
 
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+
 /**
  * Represents a field in a data schema, containing metadata about the field such as its name,
  * schema definition, documentation, and constraints. This class provides functionality
@@ -34,11 +36,6 @@ import java.util.Objects;
 @Getter
 @EqualsAndHashCode
 public class DataField {
-    /**
-     * Constant value representing the absence of a tag.
-     */
-    public static final int NO_TAG = -1;
-
     /**
      * Enum representing the sorting order of the field.
      * <ul>
@@ -76,7 +73,7 @@ public class DataField {
      */
     private final boolean constant;
     /**
-     * The tag of the field in the schema. Defaults to {@link #NO_TAG} if
+     * The tag of the field in the schema. Defaults to NO_TAG if
      * not specified.
      */
     private final int tag;

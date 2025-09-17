@@ -35,7 +35,7 @@ class FixedSchemaTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Size of FIXED type can not be smaller than zero. Found -1");
 
-        var zero = new FixedSchema("ns", "Zero", "doc", 0);
+        final var zero = new FixedSchema("ns", "Zero", "doc", 0);
         assertThat(zero.size()).isZero();
         assertThat(zero).hasToString("ns.Zero");
     }
@@ -43,8 +43,8 @@ class FixedSchemaTest {
     @Test
     @DisplayName("Assignability based on size and type")
     void isAssignableFromBehavior() {
-        var eight = new FixedSchema("ns", "F8", "", 8);
-        var four = new FixedSchema("ns", "F4", "", 4);
+        final var eight = new FixedSchema("ns", "F8", "", 8);
+        final var four = new FixedSchema("ns", "F4", "", 4);
 
         // same or smaller size: assignable
         assertThat(eight.isAssignableFrom(eight)).isTrue();

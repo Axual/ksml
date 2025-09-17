@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.Symbol;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,8 +29,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 import java.util.stream.Stream;
-
-import io.axual.ksml.data.type.Symbol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -115,7 +114,7 @@ class DataSchemaTest {
     void stringSpecialAssignability() {
         assertThat(DataSchema.STRING_SCHEMA.isAssignableFrom(DataSchema.NULL_SCHEMA)).isTrue();
         // Create an enum schema instance to test ENUM behavior
-        var enumSchema = new EnumSchema(
+        final var enumSchema = new EnumSchema(
                 DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE,
                 "Color",
                 "Enum of colors",
@@ -131,7 +130,7 @@ class DataSchemaTest {
         @Test
         void equalsAndHashCodeBasedOnType() {
             // Using protected constructor from same package to create another instance with same type
-            var customString = new DataSchema(DataSchemaConstants.STRING_TYPE) {
+            final var customString = new DataSchema(DataSchemaConstants.STRING_TYPE) {
             };
             assertThat(customString)
                     .isEqualTo(DataSchema.STRING_SCHEMA)

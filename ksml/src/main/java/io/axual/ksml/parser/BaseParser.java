@@ -30,12 +30,19 @@ public abstract class BaseParser<T> implements Parser<T> {
         return child != null && child.isBoolean() ? child.asBoolean() : null;
     }
 
+    protected boolean parseBoolean(ParseNode node, String childName, boolean defaultValue) {
+        final var result = parseBoolean(node, childName);
+        return result != null ? result : defaultValue;
+    }
+
+    @Nullable
     protected Integer parseInteger(ParseNode node, String childName) {
         if (node == null) return null;
         final var child = node.get(childName);
         return child != null && child.isInt() ? child.asInt() : null;
     }
 
+    @Nullable
     protected String parseString(ParseNode node, String childName) {
         if (node == null) return null;
         final var child = node.get(childName);

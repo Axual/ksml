@@ -20,20 +20,6 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Stream;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -57,7 +43,21 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Stream;
+
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.entry;
@@ -71,15 +71,15 @@ class NativeDataObjectMapperTest {
     @DisplayName("convertDataListToList: null DataList -> null; unwrap values including DataNull -> null")
     void convertDataListToListNullAndUnwraps() {
         log.info("start: convertDataListToListNullAndUnwraps");
-        var nullList = new DataList(DataType.UNKNOWN, true);
+        final var nullList = new DataList(DataType.UNKNOWN, true);
         assertThat(mapper.convertDataListToList(nullList)).isNull();
 
-        var list = new DataList(DataType.UNKNOWN);
+        final var list = new DataList(DataType.UNKNOWN);
         list.add(new DataString("a"));
         list.add(DataNull.INSTANCE);
         list.add(new DataInteger(3));
 
-        var nativeList = mapper.convertDataListToList(list);
+        final var nativeList = mapper.convertDataListToList(list);
         assertThat(nativeList).containsExactly("a", null, 3);
         log.info("end: convertDataListToListNullAndUnwraps");
     }
@@ -88,14 +88,14 @@ class NativeDataObjectMapperTest {
     @DisplayName("convertDataMapToMap: null DataMap -> null; unwrap values and sort keys alphabetically")
     void convertDataMapToMapNullAndOrdering() {
         log.info("start: convertDataMapToMapNullAndOrdering");
-        var nullMap = new DataMap(DataType.UNKNOWN, true);
+        final var nullMap = new DataMap(DataType.UNKNOWN, true);
         assertThat(mapper.convertDataMapToMap(nullMap)).isNull();
 
-        var map = new DataMap(DataType.UNKNOWN);
+        final var map = new DataMap(DataType.UNKNOWN);
         map.put("b", new DataInteger(1));
         map.put("a", DataNull.INSTANCE);
 
-        var nativeMap = mapper.convertDataMapToMap(map);
+        final var nativeMap = mapper.convertDataMapToMap(map);
         assertThat(nativeMap)
                 .containsEntry("a", null)
                 .containsEntry("b", 1)
@@ -108,15 +108,15 @@ class NativeDataObjectMapperTest {
     @DisplayName("convertDataStructToMap: typed struct preserves required (as null if absent) and present optional fields only")
     void convertDataStructToMapTypedRequiredVsOptional() {
         log.info("start: convertDataStructToMapTypedRequiredVsOptional");
-        var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
-        var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, DataField.NO_TAG, false);
-        var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
+        final var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
+        final var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
+        final var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
 
-        var struct = new DataStruct(personSchema);
+        final var struct = new DataStruct(personSchema);
         // Only set the optional age; leave required name absent
         struct.put("age", new DataInteger(42));
 
-        var nativeStruct = mapper.convertDataStructToMap(struct);
+        final var nativeStruct = mapper.convertDataStructToMap(struct);
         // Required field must be present (null because it wasn't set); optional field included because present
         assertThat(nativeStruct).containsOnly(
                 entry("name", null),
@@ -129,11 +129,11 @@ class NativeDataObjectMapperTest {
     @DisplayName("convertDataStructToMap: schemaless copies all present entries as-is (unwrapped)")
     void convertDataStructToMapSchemalessCopiesAll() {
         log.info("start: convertDataStructToMapSchemalessCopiesAll");
-        var struct = new DataStruct(); // schemaless
+        final var struct = new DataStruct(); // schemaless
         struct.put("x", new DataString("val"));
         struct.put("y", DataNull.INSTANCE);
 
-        var nativeStruct = mapper.convertDataStructToMap(struct);
+        final var nativeStruct = mapper.convertDataStructToMap(struct);
         assertThat(nativeStruct).containsOnly(
                 entry("x", "val"),
                 entry("y", null)
@@ -145,8 +145,8 @@ class NativeDataObjectMapperTest {
     @DisplayName("convertDataTupleToTuple unwraps elements and preserves order")
     void convertDataTupleToTupleUnwraps() {
         log.info("start: convertDataTupleToTupleUnwraps");
-        var tuple = new DataTuple(new DataString("first"), DataNull.INSTANCE, new DataInteger(7));
-        var nativeTuple = mapper.convertDataTupleToTuple(tuple);
+        final var tuple = new DataTuple(new DataString("first"), DataNull.INSTANCE, new DataInteger(7));
+        final var nativeTuple = mapper.convertDataTupleToTuple(tuple);
         assertThat(nativeTuple.elements()).containsExactly("first", null, 7);
     }
 
@@ -160,19 +160,19 @@ class NativeDataObjectMapperTest {
         assertThat(mapper.fromDataObject(DataNull.INSTANCE)).isNull();
 
         // Collections delegate to conversion helpers we tested above
-        var list = new DataList(DataType.UNKNOWN);
+        final var list = new DataList(DataType.UNKNOWN);
         list.add(new DataString("a"));
-        var unwrappedList = mapper.fromDataObject(list);
+        final var unwrappedList = mapper.fromDataObject(list);
         assertThat(unwrappedList).isInstanceOf(List.class);
-        var asList = (List<?>) unwrappedList;
+        final var asList = (List<?>) unwrappedList;
         assertThat(asList).hasSize(1);
         assertThat(asList.get(0)).isEqualTo("a");
 
-        var map = new DataMap(DataType.UNKNOWN);
+        final var map = new DataMap(DataType.UNKNOWN);
         map.put("k", new DataInteger(1));
-        var unwrappedMap = mapper.fromDataObject(map);
+        final var unwrappedMap = mapper.fromDataObject(map);
         assertThat(unwrappedMap).isInstanceOf(Map.class);
-        var asMap = (Map<?, ?>) unwrappedMap;
+        final var asMap = (Map<?, ?>) unwrappedMap;
         assertThat(asMap).hasSize(1);
         assertThat(asMap.get("k")).isEqualTo(1);
         log.info("end: fromDataObjectPrimitiveAndCollections");
@@ -183,7 +183,7 @@ class NativeDataObjectMapperTest {
     @DisplayName("fromDataObject: unwraps primitives, bytes, strings; converts lists, maps, structs, tuples")
     void fromDataObject(String description, DataObject dataInput, Object expectedNative) {
         log.info("start: fromDataObjectParameterized - {}", description);
-        var actualNative = mapper.fromDataObject(dataInput);
+        final var actualNative = mapper.fromDataObject(dataInput);
 
         // Special handling for collections and tuple to assert content
         if (expectedNative instanceof List<?> expectedList) {
@@ -206,35 +206,35 @@ class NativeDataObjectMapperTest {
 
     private static Stream<Arguments> fromDataObjectArguments() {
         // Prepare a typed struct schema with one required and one optional field
-        var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
-        var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, DataField.NO_TAG, false);
-        var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
+        final var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
+        final var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
+        final var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
 
         // Build data objects to be mapped
-        var simpleList = new DataList(DataType.UNKNOWN);
+        final var simpleList = new DataList(DataType.UNKNOWN);
         simpleList.add(new DataString("a"));
         simpleList.add(DataNull.INSTANCE);
         simpleList.add(new DataInteger(3));
 
-        var nullList = new DataList(DataType.UNKNOWN, true);
+        final var nullList = new DataList(DataType.UNKNOWN, true);
 
-        var simpleMap = new DataMap(DataType.UNKNOWN);
+        final var simpleMap = new DataMap(DataType.UNKNOWN);
         simpleMap.put("b", new DataInteger(1));
         simpleMap.put("a", DataNull.INSTANCE);
 
-        var nullMap = new DataMap(DataType.UNKNOWN, true);
+        final var nullMap = new DataMap(DataType.UNKNOWN, true);
 
-        var typedStruct = new DataStruct(personSchema);
+        final var typedStruct = new DataStruct(personSchema);
         typedStruct.put("age", new DataInteger(42));
 
-        var schemalessStruct = new DataStruct();
+        final var schemalessStruct = new DataStruct();
         schemalessStruct.put("x", new DataString("val"));
         schemalessStruct.put("y", DataNull.INSTANCE);
 
-        var tuple = new DataTuple(new DataString("first"), DataNull.INSTANCE, new DataInteger(7));
+        final var tuple = new DataTuple(new DataString("first"), DataNull.INSTANCE, new DataInteger(7));
 
         // Expected native representations
-        var expectedList = Arrays.asList("a", null, 3);
+        final var expectedList = Arrays.asList("a", null, 3);
         Map<String, Object> expectedMap = new TreeMap<>();
         expectedMap.put("a", null);
         expectedMap.put("b", 1);
@@ -247,7 +247,7 @@ class NativeDataObjectMapperTest {
         expectedSchemalessStruct.put("x", "val");
         expectedSchemalessStruct.put("y", null);
 
-        var expectedTuple = new Tuple<>("first", null, 7);
+        final var expectedTuple = new Tuple<>("first", null, 7);
 
         return Stream.of(
                 Arguments.of("DataNull -> null", DataNull.INSTANCE, null),
@@ -272,18 +272,18 @@ class NativeDataObjectMapperTest {
 
     @Test
     @DisplayName("fromDataObject: Fail when unknown or unsupported DataObject is provided")
-    void fromNativeDataObjectUnsupported(){
-        var unknownDataObject = new UnknownDataObject();
+    void fromNativeDataObjectUnsupported() {
+        final var unknownDataObject = new UnknownDataObject();
 
-        assertThatCode(()->mapper.fromDataObject(unknownDataObject))
+        assertThatCode(() -> mapper.fromDataObject(unknownDataObject))
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("Can not convert DataObject to native dataType: UnknownDataObject");
     }
 
     @Test
     @DisplayName("fromDataObject: Fail when a null DataObject is provided")
-    void fromNativeDataObjectNull(){
-        assertThatCode(()->mapper.fromDataObject(null))
+    void fromNativeDataObjectNull() {
+        assertThatCode(() -> mapper.fromDataObject(null))
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("Can not convert DataObject to native dataType: null");
     }
@@ -291,21 +291,21 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: null -> DataNull")
     void toDataObjectNull() {
-        var result = mapper.toDataObject(null, null);
+        final var result = mapper.toDataObject(null, null);
         assertThat(result).isEqualTo(DataNull.INSTANCE);
     }
 
     @Test
     @DisplayName("toDataObject: Boolean -> DataBoolean")
     void toDataObjectBoolean() {
-        var result = mapper.toDataObject(null, true);
+        final var result = mapper.toDataObject(null, true);
         assertThat(result).isEqualTo(new DataBoolean(true));
     }
 
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataByte")
     void toDataObjectByte() {
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Test with Byte values
         softly.assertThat(mapper.toDataObject(null, (byte) 120))
@@ -341,7 +341,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataShort")
     void toDataObjectShort() {
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Test with Short values
         softly.assertThat(mapper.toDataObject(null, (short) 120))
@@ -377,7 +377,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataInteger")
     void toDataObjectInteger() {
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Test with Integer values
         softly.assertThat(mapper.toDataObject(null, 120))
@@ -413,7 +413,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataLong")
     void toDataObjectLong() {
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Test with Long values
         softly.assertThat(mapper.toDataObject(null, 120L))
@@ -449,7 +449,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Double/Float -> DataDouble")
     void toDataObjectDouble() {
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Test with Double values
         softly.assertThat(mapper.toDataObject(null, 1.5))
@@ -474,7 +474,7 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Double/Float -> DataFloat")
     void toDataObjectFloat() {
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Test with Double values
         softly.assertThat(mapper.toDataObject(null, 2.5F))
@@ -501,8 +501,8 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: byte[] -> DataBytes")
     void toDataObjectBytes() {
-        var nativeBytes = new byte[]{1, 2};
-        var result = mapper.toDataObject(null, nativeBytes);
+        final var nativeBytes = new byte[]{1, 2};
+        final var result = mapper.toDataObject(null, nativeBytes);
         assertThat(result).isInstanceOf(DataBytes.class);
         assertThat(((DataBytes) result).value()).isEqualTo(nativeBytes);
     }
@@ -510,134 +510,134 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: CharSequence -> DataString")
     void toDataObjectCharSequence() {
-        var result = mapper.toDataObject(null, new StringBuilder("abc"));
+        final var result = mapper.toDataObject(null, new StringBuilder("abc"));
         assertThat(result).isEqualTo(new DataString("abc"));
     }
 
     @Test
     @DisplayName("toDataObject: Byte with expected Short -> DataShort(5)")
     void toDataObjectByteToShort() {
-        var result = mapper.toDataObject(DataShort.DATATYPE, (byte) 5);
+        final var result = mapper.toDataObject(DataShort.DATATYPE, (byte) 5);
         assertThat(result).isEqualTo(new DataShort((short) 5));
     }
 
     @Test
     @DisplayName("toDataObject: Integer with expected Long -> DataLong(7)")
     void toDataObjectIntegerToLong() {
-        var result = mapper.toDataObject(DataLong.DATATYPE, 7);
+        final var result = mapper.toDataObject(DataLong.DATATYPE, 7);
         assertThat(result).isEqualTo(new DataLong(7L));
     }
 
     @Test
     @DisplayName("toDataObject: Float with expected Double -> DataDouble(2.5)")
     void toDataObjectFloatToDouble() {
-        var result = mapper.toDataObject(DataDouble.DATATYPE, 2.5f);
+        final var result = mapper.toDataObject(DataDouble.DATATYPE, 2.5f);
         assertThat(result).isEqualTo(new DataDouble(2.5));
     }
 
     @Test
     @DisplayName("toDataObject: List with nested struct and list -> DataList")
     void toDataObjectNestedListToDataList() {
-        var nativeInput = List.of(
+        final var nativeInput = List.of(
                 "a",
                 Map.of("m", List.of(1, 2)),
                 List.of(Map.of("k", "v"))
         );
-        var expected = new DataList(DataType.UNKNOWN);
+        final var expected = new DataList(DataType.UNKNOWN);
         expected.add(new DataString("a"));
-        var innerStruct = new DataStruct();
+        final var innerStruct = new DataStruct();
         innerStruct.put("m", new DataList(DataType.UNKNOWN));
         innerStruct.getAs("m", DataList.class).add(new DataInteger(1));
         innerStruct.getAs("m", DataList.class).add(new DataInteger(2));
         expected.add(innerStruct);
-        var innerListOfStructs = new DataList(DataType.UNKNOWN);
-        var innerStruct2 = new DataStruct();
+        final var innerListOfStructs = new DataList(DataType.UNKNOWN);
+        final var innerStruct2 = new DataStruct();
         innerStruct2.put("k", new DataString("v"));
         innerListOfStructs.add(innerStruct2);
         expected.add(innerListOfStructs);
 
-        var result = mapper.toDataObject(null, nativeInput);
+        final var result = mapper.toDataObject(null, nativeInput);
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("toDataObject: Map with nested list and struct -> DataStruct")
     void toDataObjectNestedMapToDataStruct() {
-        var nativeInput = Map.of(
+        final var nativeInput = Map.of(
                 "list", List.of("x", Map.of("y", 2)),
                 "struct", Map.of("z", List.of(3))
         );
-        var expected = new DataStruct();
-        var listInStruct = new DataList(DataType.UNKNOWN);
+        final var expected = new DataStruct();
+        final var listInStruct = new DataList(DataType.UNKNOWN);
         listInStruct.add(new DataString("x"));
-        var structInList = new DataStruct();
+        final var structInList = new DataStruct();
         structInList.put("y", new DataInteger(2));
         listInStruct.add(structInList);
         expected.put("list", listInStruct);
-        var structVal = new DataStruct();
-        var listUnderZ = new DataList(DataType.UNKNOWN);
+        final var structVal = new DataStruct();
+        final var listUnderZ = new DataList(DataType.UNKNOWN);
         listUnderZ.add(new DataInteger(3));
         structVal.put("z", listUnderZ);
         expected.put("struct", structVal);
 
-        var result = mapper.toDataObject(null, nativeInput);
+        final var result = mapper.toDataObject(null, nativeInput);
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("toDataObject: Map with expected MapType -> DataMap with nested list/struct values")
     void toDataObjectNestedMapToDataMapWithExpectedType() {
-        var nativeInput = Map.of(
+        final var nativeInput = Map.of(
                 "list", List.of("x", Map.of("y", 2)),
                 "struct", Map.of("z", List.of(3))
         );
-        var expected = new DataMap(DataType.UNKNOWN);
-        var listInStruct = new DataList(DataType.UNKNOWN);
+        final var expected = new DataMap(DataType.UNKNOWN);
+        final var listInStruct = new DataList(DataType.UNKNOWN);
         listInStruct.add(new DataString("x"));
-        var structInList = new DataStruct();
+        final var structInList = new DataStruct();
         structInList.put("y", new DataInteger(2));
         listInStruct.add(structInList);
         expected.put("list", listInStruct);
-        var structVal = new DataStruct();
-        var listUnderZ = new DataList(DataType.UNKNOWN);
+        final var structVal = new DataStruct();
+        final var listUnderZ = new DataList(DataType.UNKNOWN);
         listUnderZ.add(new DataInteger(3));
         structVal.put("z", listUnderZ);
         expected.put("struct", structVal);
 
-        var result = mapper.toDataObject(new io.axual.ksml.data.type.MapType(DataType.UNKNOWN), nativeInput);
+        final var result = mapper.toDataObject(new io.axual.ksml.data.type.MapType(DataType.UNKNOWN), nativeInput);
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("toDataObject: List of numbers with expected Integer -> DataList of DataInteger")
     void toDataObjectListWithExpectedValueType() {
-        var nativeInput = List.of((byte) 1, (short) 2, 3L);
-        var expected = new DataList(DataInteger.DATATYPE);
+        final var nativeInput = List.of((byte) 1, (short) 2, 3L);
+        final var expected = new DataList(DataInteger.DATATYPE);
         expected.add(new DataInteger(1));
         expected.add(new DataInteger(2));
         expected.add(new DataInteger(3));
 
-        var result = mapper.toDataObject(new io.axual.ksml.data.type.ListType(DataInteger.DATATYPE), nativeInput);
+        final var result = mapper.toDataObject(new io.axual.ksml.data.type.ListType(DataInteger.DATATYPE), nativeInput);
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("toDataObject: Struct with nested map of String List")
     void toDataObjectSchemalessStructWithNested() {
-        var nativeInput = Map.of(
+        final var nativeInput = Map.of(
                 "name", "Alice",
                 "attributes", Map.of("likes", List.of("coffee", "chess"))
         );
-        var expected = new DataStruct();
+        final var expected = new DataStruct();
         expected.put("name", new DataString("Alice"));
-        var attributes = new DataStruct();
-        var likesList = new DataList(DataString.DATATYPE);
+        final var attributes = new DataStruct();
+        final var likesList = new DataList(DataString.DATATYPE);
         likesList.add(new DataString("coffee"));
         likesList.add(new DataString("chess"));
         attributes.put("likes", likesList);
         expected.put("attributes", attributes);
 
-        var result = mapper.toDataObject(StructType.UNKNOWN, nativeInput);
+        final var result = mapper.toDataObject(StructType.UNKNOWN, nativeInput);
         assertThat(result)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(DataStruct.class))
@@ -647,17 +647,17 @@ class NativeDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject: Tuple -> DataTuple")
     void toDataObjectTuple() {
-        var nativeInput = new Tuple<>("first", null, 7);
-        var expected = new DataTuple(new DataString("first"), DataNull.INSTANCE, new DataInteger(7));
-        var result = mapper.toDataObject(null, nativeInput);
+        final var nativeInput = new Tuple<>("first", null, 7);
+        final var expected = new DataTuple(new DataString("first"), DataNull.INSTANCE, new DataInteger(7));
+        final var result = mapper.toDataObject(null, nativeInput);
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("toDataObject: Class<?> throws DataException")
     void toDataObjectWithUnknownValue() {
-        var failingValue = getClass();
-        var softly = new SoftAssertions();
+        final var failingValue = getClass();
+        final var softly = new SoftAssertions();
         softly.assertThatCode(() -> mapper.toDataObject(DataType.UNKNOWN, failingValue))
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("Can not convert value to DataObject: Class");
@@ -667,7 +667,7 @@ class NativeDataObjectMapperTest {
         softly.assertAll();
     }
 
-    static class UnknownDataObject implements DataObject{
+    static class UnknownDataObject implements DataObject {
         @Override
         public DataType type() {
             return DataType.UNKNOWN;

@@ -21,7 +21,17 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.FixedSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.NamedSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.util.JsonNodeUtil;
 import io.axual.ksml.data.util.ListUtil;
@@ -34,6 +44,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static io.axual.ksml.data.schema.DataSchema.ANY_SCHEMA;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();
@@ -100,6 +112,11 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
             for (final var field : structSchema.fields()) {
                 fields.add(convertField(field));
             }
+            result.put(DataSchemaDSL.STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED_FIELD, structSchema.additionalFieldsAllowed());
+            if (structSchema.additionalFieldsAllowed()) {
+                final var schema = structSchema.additionalFieldsSchema() != null ? structSchema.additionalFieldsSchema() : ANY_SCHEMA;
+                result.put(DataSchemaDSL.STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA_FIELD, fromDataSchema(schema));
+            }
         }
     }
 
@@ -123,7 +140,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     }
 
     private String getSimpleSchemaType(DataSchema schema) {
-        if (schema == DataSchema.ANY_SCHEMA) return DataSchemaConstants.ANY_TYPE;
+        if (schema == ANY_SCHEMA) return DataSchemaConstants.ANY_TYPE;
         if (schema == DataSchema.NULL_SCHEMA) return DataSchemaConstants.NULL_TYPE;
         if (schema == DataSchema.BOOLEAN_SCHEMA) return DataSchemaConstants.BOOLEAN_TYPE;
         if (schema == DataSchema.BYTE_SCHEMA) return DataSchemaConstants.BYTE_TYPE;

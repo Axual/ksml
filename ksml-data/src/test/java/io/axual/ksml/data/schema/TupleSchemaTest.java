@@ -22,7 +22,10 @@ package io.axual.ksml.data.schema;
 
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
-import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.TupleType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,10 +38,10 @@ class TupleSchemaTest {
     @Test
     @DisplayName("TupleSchema constructs a StructSchema with 1 element and proper metadata")
     void constructsWithSingleSubtype() {
-        var mapper = new DataTypeDataSchemaMapper();
-        var type = new TupleType(DataInteger.DATATYPE);
+        final var mapper = new DataTypeDataSchemaMapper();
+        final var type = new TupleType(DataInteger.DATATYPE);
 
-        var schema = new TupleSchema(type, mapper);
+        final var schema = new TupleSchema(type, mapper);
 
         // Basic naming and metadata
         assertThat(schema.namespace()).isEqualTo(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE);
@@ -58,10 +61,10 @@ class TupleSchemaTest {
     @Test
     @DisplayName("TupleSchema constructs fields elem0..elemN-1 with mapped schemas in order")
     void constructsWithMultipleSubtypes() {
-        var mapper = new DataTypeDataSchemaMapper();
-        var type = new TupleType(DataString.DATATYPE, DataLong.DATATYPE, DataBoolean.DATATYPE);
+        final var mapper = new DataTypeDataSchemaMapper();
+        final var type = new TupleType(DataString.DATATYPE, DataLong.DATATYPE, DataBoolean.DATATYPE);
 
-        var schema = new TupleSchema(type, mapper);
+        final var schema = new TupleSchema(type, mapper);
 
         assertThat(schema.doc()).isEqualTo("Tuple with 3 fields");
         assertThat(schema.fields()).hasSize(3);
@@ -79,8 +82,8 @@ class TupleSchemaTest {
     @Test
     @DisplayName("TupleSchema requires at least one field")
     void throwsOnZeroSubtypes() {
-        var mapper = new DataTypeDataSchemaMapper();
-        var empty = new TupleType();
+        final var mapper = new DataTypeDataSchemaMapper();
+        final var empty = new TupleType();
         assertThatThrownBy(() -> new TupleSchema(empty, mapper))
                 .isInstanceOf(SchemaException.class)
                 .hasMessageEndingWith("TupleSchema requires at least one field: type=" + empty);

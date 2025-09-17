@@ -21,7 +21,28 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import com.google.common.collect.Maps;
-
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
@@ -46,30 +67,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataMap;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.ListSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.DataType;
-
-import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.*;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.DATA_ARRAYS_1;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.DATA_COLLECTIONS_1;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.DATA_COLLECTIONS_SINGLE_UNION_INT;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.DATA_COLLECTIONS_SINGLE_UNION_NULL;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.DATA_COLLECTIONS_SINGLE_UNION_RECORD;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.DATA_OPTIONAL_WITH_VALUES;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.DATA_PRIMITIVES;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_ARRAYS;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_COLLECTIONS;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_OPTIONAL;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_PRIMITIVES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Named.named;
@@ -129,7 +137,7 @@ class AvroDataObjectMapperTest {
         final var recordAvroSchema = schemaBuilder.record("Simple").doc("Really").fields().requiredString("value").endRecord();
         final var recordAvroData = new GenericData.Record(recordAvroSchema);
         recordAvroData.put("value", "testing");
-        final var recordKsmlSchema = new StructSchema("io.axual.test", "Simple", "Really", List.of(new DataField("value", DataSchema.STRING_SCHEMA)));
+        final var recordKsmlSchema = new StructSchema("io.axual.test", "Simple", "Really", List.of(new DataField("value", DataSchema.STRING_SCHEMA)), false);
         final var recordKsmlData = new DataStruct(recordKsmlSchema);
         recordKsmlData.put("value", new DataString("testing"));
 
@@ -682,6 +690,7 @@ class AvroDataObjectMapperTest {
                 .field(new DataField("floatList", new ListSchema(DataSchema.FLOAT_SCHEMA)))
                 .field(new DataField("doubleList", new ListSchema(DataSchema.DOUBLE_SCHEMA)))
                 .field(new DataField("booleanList", new ListSchema(DataSchema.BOOLEAN_SCHEMA)))
+                .additionalFieldsAllowed(false)
                 .build();
         final var expectedKsmlStruct = new DataStruct(expectedKsmlStructSchema);
         final var ksmlStringList = new DataList(DataString.DATATYPE);

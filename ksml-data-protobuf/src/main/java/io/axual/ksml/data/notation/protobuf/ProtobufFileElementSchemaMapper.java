@@ -22,15 +22,37 @@ package io.axual.ksml.data.notation.protobuf;
 
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.internal.parser.*;
+import com.squareup.wire.schema.internal.parser.EnumConstantElement;
+import com.squareup.wire.schema.internal.parser.EnumElement;
+import com.squareup.wire.schema.internal.parser.FieldElement;
+import com.squareup.wire.schema.internal.parser.MessageElement;
+import com.squareup.wire.schema.internal.parser.OneOfElement;
+import com.squareup.wire.schema.internal.parser.OptionElement;
+import com.squareup.wire.schema.internal.parser.ProtoFileElement;
+import com.squareup.wire.schema.internal.parser.TypeElement;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.FixedSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.NamedSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.util.ListUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.DEFAULT_LOCATION;
 import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.NO_DOCUMENTATION;
@@ -47,7 +69,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         // Convert the message fields
         final var fields = convertMessageFieldsToDataFields(context, message);
         // Return a new struct schema with the converted fields
-        return new StructSchema(context.namespace, message.getName(), message.getDocumentation(), fields);
+        return new StructSchema(context.namespace, message.getName(), message.getDocumentation(), fields, false);
     }
 
     private static MessageElement findMessage(ProtoFileElement fileElement, String name) {
@@ -136,7 +158,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             }
             if (reference != null && reference.type() instanceof MessageElement msgElement) {
                 final var fields = convertMessageFieldsToDataFields(context, msgElement);
-                return new StructSchema(reference.namespace(), msgElement.getName(), "", fields);
+                return new StructSchema(reference.namespace(), msgElement.getName(), "", fields, false);
             }
         }
 

@@ -51,7 +51,7 @@ public class SchemaUtil {
                     fields.addAll(schema.fields());
                     fields.addAll(subSchema.fields());
                     final var newName = usePostfix ? name + KSMLDSL.Types.WITH_PREFIX + subSchema.name() : name;
-                    final var newSchema = new StructSchema(SCHEMA_NAMESPACE, newName, doc, fields);
+                    final var newSchema = new StructSchema(SCHEMA_NAMESPACE, newName, doc, fields, false);
                     newSchemas.add(newSchema);
                 }
             }
