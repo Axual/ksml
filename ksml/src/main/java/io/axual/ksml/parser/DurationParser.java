@@ -44,43 +44,42 @@ public class DurationParser implements ParserWithSchemas<Duration> {
     public static Duration parseDuration(String durationStr, boolean allowFail) {
         if (durationStr == null) return null;
         durationStr = durationStr.toLowerCase().trim();
-        if (durationStr.length() >= 2) {
-            // Prepare a function to extract the number part from a string formatted as "1234x".
-            // This function is only applied if a known unit character is found at the end of
-            // the duration string.
-            ToLongFunction<String> parser = ds -> Long.parseLong(ds.substring(0, ds.length() - 1));
-
-            // If the duration ends with a unit string, then use that for the duration basis
-            switch (durationStr.charAt(durationStr.length() - 1)) {
-                case 'd' -> {
-                    return Duration.ofDays(parser.applyAsLong(durationStr));
-                }
-                case 'h' -> {
-                    return Duration.ofHours(parser.applyAsLong(durationStr));
-                }
-                case 'm' -> {
-                    return Duration.ofMinutes(parser.applyAsLong(durationStr));
-                }
-                case 's' -> {
-                    return Duration.ofSeconds(parser.applyAsLong(durationStr));
-                }
-                case 'w' -> {
-                    return Duration.ofDays(parser.applyAsLong(durationStr) * 7);
-                }
-                default -> {
-                    // Parsed below as long
-                }
-            }
-        }
 
         try {
-            // If the duration does not contain a valid unit string, assume it is a whole number in millis
+            final ToLongFunction<String> parser1 = ds -> Long.parseLong(ds.substring(0, ds.length() - 1).trim());
+            final ToLongFunction<String> parser2 = ds -> Long.parseLong(ds.substring(0, ds.length() - 2).trim());
+
+            // If the duration ends with "ms", then parse the remainder as a whole number of milliseconds
+            if (durationStr.endsWith("ms")) {
+                return Duration.ofMillis(parser2.applyAsLong(durationStr));
+            }
+            // If the duration ends with "s", then parse the remainder as a whole number of seconds
+            if (durationStr.endsWith("s")) {
+                return Duration.ofSeconds(parser1.applyAsLong(durationStr));
+            }
+            // If the duration ends with "m", then parse the remainder as a whole number of minutes
+            if (durationStr.endsWith("m")) {
+                return Duration.ofMinutes(parser1.applyAsLong(durationStr));
+            }
+            // If the duration ends with "h", then parse the remainder as a whole number of hours
+            if (durationStr.endsWith("h")) {
+                return Duration.ofHours(parser1.applyAsLong(durationStr));
+            }
+            // If the duration ends with "d", then parse the remainder as a whole number of days
+            if (durationStr.endsWith("d")) {
+                return Duration.ofDays(parser1.applyAsLong(durationStr));
+            }
+            // If the duration ends with "w", then parse the remainder as a whole number of weeks
+            if (durationStr.endsWith("w")) {
+                return Duration.ofDays(7 * parser1.applyAsLong(durationStr));
+            }
+            // If the duration does not contain a valid unit string, parse it as a whole number of milliseconds
             return Duration.ofMillis(Long.parseLong(durationStr));
         } catch (NumberFormatException e) {
             if (allowFail) return null;
             throw new TopologyException(
                     String.format(
-                            "Invalid duration format: '%s'. Expected format: <number><unit> where unit is one of: s, m, h, d, w. Example: '5m' for 5 minutes",
+                            "Invalid duration format: '%s'. Expected format: <number><unit> where unit is one of: ms, s, m, h, d, w. Example: '5m' for 5 minutes",
                             durationStr));
         }
     }
