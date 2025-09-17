@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+
 public abstract class DefinitionParser<T> extends BaseParser<T> implements StructsParser<T> {
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
     private static final Parser<String> CODE_STRING_PARSER = new StringValueParser(value -> value ? "True" : "False");
@@ -109,7 +111,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
             final var fieldSchema = parsedSchemas.size() == 1
                     ? parsedSchemas.getFirst()
                     : new UnionSchema(parsedSchemas.stream().map(s -> new DataField(null, s)).toArray(DataField[]::new));
-            field = new DataField(childName, fieldSchema, doc, DataField.NO_TAG, true, constant, defaultValue);
+            field = new DataField(childName, fieldSchema, doc, NO_TAG, true, constant, defaultValue);
             schemas = List.of(structSchema((String) null, null, List.of(field)));
             this.valueParser = valueParser;
         }
@@ -213,7 +215,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     protected StructsParser<UserType> userTypeField(String childName, String doc, UserType defaultValue) {
         final var stringParser = stringField(childName, null, doc);
-        final var field = new DataField(childName, DataSchema.STRING_SCHEMA, doc, DataField.NO_TAG, true, false, null);
+        final var field = new DataField(childName, DataSchema.STRING_SCHEMA, doc, NO_TAG, true, false, null);
         final var schemas = structSchema((String) null, null, List.of(field));
         return StructsParser.of(node -> {
                     final var content = stringParser.parse(node);

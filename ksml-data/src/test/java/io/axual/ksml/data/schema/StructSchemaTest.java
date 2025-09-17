@@ -27,7 +27,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class StructSchemaTest {
 
@@ -43,12 +42,12 @@ class StructSchemaTest {
     @Test
     @DisplayName("field accessors and fields() copy")
     void fieldAccessors() {
-        var s = new StructSchema("ns", "Person", null, List.of(requiredInt("id"), optionalStringWithDefault("name")));
+        final var s = new StructSchema("ns", "Person", null, List.of(requiredInt("id"), optionalStringWithDefault("name")));
         assertThat(s.field(0).name()).isEqualTo("id");
         assertThat(s.field("name")).isNotNull();
-        var originalSize = s.fields().size();
+        final var originalSize = s.fields().size();
         // Modify returned list and ensure struct internal state unaffected
-        var list = s.fields();
+        final var list = s.fields();
         list.add(requiredInt("age"));
         assertThat(s.fields()).hasSize(originalSize);
         assertThat(s.field("age")).isNull();
@@ -57,32 +56,32 @@ class StructSchemaTest {
     @Test
     @DisplayName("isAssignableFrom validates required presence, defaulted optional omission, and type compatibility")
     void assignabilityRules() {
-        var target = new StructSchema("ns", "Person", null, List.of(
+        final var target = new StructSchema("ns", "Person", null, List.of(
                 requiredInt("id"),
                 optionalStringWithDefault("name")
         ));
 
         // Other has id as long (compatible) and omits name (allowed due to default)
-        var other1 = new StructSchema("ns", "PersonOther", null, List.of(
+        final var other1 = new StructSchema("ns", "PersonOther", null, List.of(
                 new DataField("id", DataSchema.LONG_SCHEMA, null, 0)
         ));
         assertThat(target.isAssignableFrom(other1)).isTrue();
 
         // Missing required id -> not assignable
-        var other2 = new StructSchema("ns", "PersonOther", null, List.of(
+        final var other2 = new StructSchema("ns", "PersonOther", null, List.of(
                 optionalStringWithDefault("name")
         ));
         assertThat(target.isAssignableFrom(other2)).isFalse();
 
         // Present name with incompatible type -> not assignable
-        var other3 = new StructSchema("ns", "PersonOther", null, List.of(
+        final var other3 = new StructSchema("ns", "PersonOther", null, List.of(
                 requiredInt("id"),
                 new DataField("name", DataSchema.FLOAT_SCHEMA, null, 0)
         ));
         assertThat(target.isAssignableFrom(other3)).isFalse();
 
         // Other may contain extra fields -> still assignable
-        var other4 = new StructSchema("ns", "PersonOther", null, List.of(
+        final var other4 = new StructSchema("ns", "PersonOther", null, List.of(
                 requiredInt("id"),
                 optionalStringWithDefault("name"),
                 new DataField("extra", DataSchema.STRING_SCHEMA, null, 0)
@@ -93,19 +92,19 @@ class StructSchemaTest {
     @Test
     @DisplayName("equals and hashCode consider mutual assignability")
     void equalsAndHashCode() {
-        var a = new StructSchema("ns", "A", null, List.of(
+        final var a = new StructSchema("ns", "A", null, List.of(
                 requiredInt("id"),
                 optionalStringWithDefault("name")
         ));
         // b omits optional name -> still equal due to mutual assignability
-        var b = new StructSchema("ns", "B", null, List.of(
+        final var b = new StructSchema("ns", "B", null, List.of(
                 requiredInt("id")
         ));
         assertThat(a).isNotEqualTo(b);
         assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
 
         // c has incompatible type for name -> not equal
-        var c = new StructSchema("ns", "C", null, List.of(
+        final var c = new StructSchema("ns", "C", null, List.of(
                 requiredInt("id"),
                 new DataField("name", DataSchema.FLOAT_SCHEMA, null, 0)
         ));
@@ -116,114 +115,114 @@ class StructSchemaTest {
     @DisplayName("additionalFieldsAllowed and additionalFieldsSchema invariant")
     void testAdditionalFieldsInvariant() {
         // Test 1: When additionalFieldsAllowed is false, additionalFieldsSchema should be null
-        var strictSchema = new StructSchema("ns", "StrictPerson", "doc",
-            List.of(requiredInt("id")), false, null);
+        final var strictSchema = new StructSchema("ns", "StrictPerson", "doc",
+                List.of(requiredInt("id")), false, null);
 
         assertThat(strictSchema.additionalFieldsAllowed())
-            .as("additionalFieldsAllowed should be false")
-            .isFalse();
+                .as("additionalFieldsAllowed should be false")
+                .isFalse();
         assertThat(strictSchema.additionalFieldsSchema())
-            .as("additionalFieldsSchema should be null when additionalFieldsAllowed is false")
-            .isNull();
+                .as("additionalFieldsSchema should be null when additionalFieldsAllowed is false")
+                .isNull();
 
         // Test 2: When additionalFieldsAllowed is false with null schema
-        var strictSchemaWithNull = new StructSchema("ns", "StrictPerson2", "doc",
-            List.of(requiredInt("id")), false, null);
+        final var strictSchemaWithNull = new StructSchema("ns", "StrictPerson2", "doc",
+                List.of(requiredInt("id")), false, null);
 
         assertThat(strictSchemaWithNull.additionalFieldsAllowed())
-            .as("additionalFieldsAllowed should be false")
-            .isFalse();
+                .as("additionalFieldsAllowed should be false")
+                .isFalse();
         assertThat(strictSchemaWithNull.additionalFieldsSchema())
-            .as("additionalFieldsSchema should be null when not allowed")
-            .isNull();
+                .as("additionalFieldsSchema should be null when not allowed")
+                .isNull();
 
         // Test 3: When additionalFieldsAllowed is true with specific schema
-        var flexibleSchemaWithType = new StructSchema("ns", "FlexiblePerson", "doc",
-            List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA);
+        final var flexibleSchemaWithType = new StructSchema("ns", "FlexiblePerson", "doc",
+                List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA);
 
         assertThat(flexibleSchemaWithType.additionalFieldsAllowed())
-            .as("additionalFieldsAllowed should be true")
-            .isTrue();
+                .as("additionalFieldsAllowed should be true")
+                .isTrue();
         assertThat(flexibleSchemaWithType.additionalFieldsSchema())
-            .as("additionalFieldsSchema should be STRING_SCHEMA")
-            .isEqualTo(DataSchema.STRING_SCHEMA);
+                .as("additionalFieldsSchema should be STRING_SCHEMA")
+                .isEqualTo(DataSchema.STRING_SCHEMA);
 
         // Test 4: When additionalFieldsAllowed is true with null schema (defaults to ANY_SCHEMA)
-        var flexibleSchemaWithNull = new StructSchema("ns", "FlexiblePerson2", "doc",
-            List.of(requiredInt("id")), true, null);
+        final var flexibleSchemaWithNull = new StructSchema("ns", "FlexiblePerson2", "doc",
+                List.of(requiredInt("id")), true, null);
 
         assertThat(flexibleSchemaWithNull.additionalFieldsAllowed())
-            .as("additionalFieldsAllowed should be true")
-            .isTrue();
+                .as("additionalFieldsAllowed should be true")
+                .isTrue();
         assertThat(flexibleSchemaWithNull.additionalFieldsSchema())
-            .as("additionalFieldsSchema should default to ANY_SCHEMA when true with null")
-            .isEqualTo(DataSchema.ANY_SCHEMA);
+                .as("additionalFieldsSchema should default to ANY_SCHEMA when true with null")
+                .isEqualTo(DataSchema.ANY_SCHEMA);
 
         // Test 5: Constructor with Boolean null defaults to true
-        var defaultSchema = new StructSchema("ns", "DefaultPerson", "doc",
-            List.of(requiredInt("id")), null, DataSchema.INTEGER_SCHEMA);
+        final var defaultSchema = new StructSchema("ns", "DefaultPerson", "doc",
+                List.of(requiredInt("id")), null, DataSchema.INTEGER_SCHEMA);
 
         assertThat(defaultSchema.additionalFieldsAllowed())
-            .as("additionalFieldsAllowed should default to true when null")
-            .isTrue();
+                .as("additionalFieldsAllowed should default to true when null")
+                .isTrue();
         assertThat(defaultSchema.additionalFieldsSchema())
-            .as("additionalFieldsSchema should be INTEGER_SCHEMA")
-            .isEqualTo(DataSchema.INTEGER_SCHEMA);
+                .as("additionalFieldsSchema should be INTEGER_SCHEMA")
+                .isEqualTo(DataSchema.INTEGER_SCHEMA);
     }
 
     @Test
     @DisplayName("additionalFields behavior with different constructors")
     void testAdditionalFieldsConstructors() {
         // Test the 4-argument constructor (uses default additionalFieldsAllowed = true)
-        var defaultConstructorSchema = new StructSchema("ns", "Person", "doc",
-            List.of(requiredInt("id")));
+        final var defaultConstructorSchema = new StructSchema("ns", "Person", "doc",
+                List.of(requiredInt("id")));
 
         assertThat(defaultConstructorSchema.additionalFieldsAllowed())
-            .as("4-arg constructor should default to additionalFieldsAllowed = true")
-            .isTrue();
+                .as("4-arg constructor should default to additionalFieldsAllowed = true")
+                .isTrue();
         assertThat(defaultConstructorSchema.additionalFieldsSchema())
-            .as("4-arg constructor should default to ANY_SCHEMA")
-            .isEqualTo(DataSchema.ANY_SCHEMA);
+                .as("4-arg constructor should default to ANY_SCHEMA")
+                .isEqualTo(DataSchema.ANY_SCHEMA);
 
         // Test the 5-argument constructor
-        var fiveArgConstructorSchema = new StructSchema("ns", "Person", "doc",
-            List.of(requiredInt("id")), false);
+        final var fiveArgConstructorSchema = new StructSchema("ns", "Person", "doc",
+                List.of(requiredInt("id")), false);
 
         assertThat(fiveArgConstructorSchema.additionalFieldsAllowed())
-            .as("5-arg constructor with false should have additionalFieldsAllowed = false")
-            .isFalse();
+                .as("5-arg constructor with false should have additionalFieldsAllowed = false")
+                .isFalse();
         assertThat(fiveArgConstructorSchema.additionalFieldsSchema())
-            .as("5-arg constructor with false should have null additionalFieldsSchema")
-            .isNull();
+                .as("5-arg constructor with false should have null additionalFieldsSchema")
+                .isNull();
 
         // Test copy constructor preserves additionalFields settings
-        var originalSchema = new StructSchema("ns", "Original", "doc",
-            List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA);
-        var copiedSchema = new StructSchema(originalSchema);
+        final var originalSchema = new StructSchema("ns", "Original", "doc",
+                List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA);
+        final var copiedSchema = new StructSchema(originalSchema);
 
         assertThat(copiedSchema.additionalFieldsAllowed())
-            .as("Copy constructor should preserve additionalFieldsAllowed")
-            .isEqualTo(originalSchema.additionalFieldsAllowed());
+                .as("Copy constructor should preserve additionalFieldsAllowed")
+                .isEqualTo(originalSchema.additionalFieldsAllowed());
         assertThat(copiedSchema.additionalFieldsSchema())
-            .as("Copy constructor should preserve additionalFieldsSchema")
-            .isEqualTo(originalSchema.additionalFieldsSchema());
+                .as("Copy constructor should preserve additionalFieldsSchema")
+                .isEqualTo(originalSchema.additionalFieldsSchema());
     }
 
     @Test
     @DisplayName("Copy constructor preserves additionalFields settings exactly")
     void testCopyConstructorPreservesAdditionalFieldsSettings() {
         // Test strict schema copying
-        var strictSchema = new StructSchema("ns", "Strict", "doc",
-            List.of(requiredInt("id")), false, DataSchema.STRING_SCHEMA);
-        var copiedStrict = new StructSchema(strictSchema);
+        final var strictSchema = new StructSchema("ns", "Strict", "doc",
+                List.of(requiredInt("id")), false, DataSchema.STRING_SCHEMA);
+        final var copiedStrict = new StructSchema(strictSchema);
 
         assertThat(copiedStrict.additionalFieldsAllowed()).isFalse();
         assertThat(copiedStrict.additionalFieldsSchema()).isNull(); // Should be null when not allowed
 
         // Test permissive schema copying
-        var permissiveSchema = new StructSchema("ns", "Permissive", "doc",
-            List.of(requiredInt("id")), true, DataSchema.INTEGER_SCHEMA);
-        var copiedPermissive = new StructSchema(permissiveSchema);
+        final var permissiveSchema = new StructSchema("ns", "Permissive", "doc",
+                List.of(requiredInt("id")), true, DataSchema.INTEGER_SCHEMA);
+        final var copiedPermissive = new StructSchema(permissiveSchema);
 
         assertThat(copiedPermissive.additionalFieldsAllowed()).isTrue();
         assertThat(copiedPermissive.additionalFieldsSchema()).isEqualTo(DataSchema.INTEGER_SCHEMA);
@@ -232,18 +231,18 @@ class StructSchemaTest {
     @Test
     @DisplayName("Builder method follows new defaults")
     void testBuilderMethodDefaults() {
-        var schemaFromBuilder = StructSchema.builder()
-            .namespace("ns")
-            .name("Test")
-            .fields(List.of(requiredInt("id")))
-            .build();
+        final var schemaFromBuilder = StructSchema.builder()
+                .namespace("ns")
+                .name("Test")
+                .fields(List.of(requiredInt("id")))
+                .build();
 
         assertThat(schemaFromBuilder.additionalFieldsAllowed())
-            .as("Builder should use new default (true)")
-            .isTrue();
+                .as("Builder should use new default (true)")
+                .isTrue();
         assertThat(schemaFromBuilder.additionalFieldsSchema())
-            .as("Builder should default to ANY_SCHEMA")
-            .isEqualTo(DataSchema.ANY_SCHEMA);
+                .as("Builder should default to ANY_SCHEMA")
+                .isEqualTo(DataSchema.ANY_SCHEMA);
     }
 
     @Test
@@ -251,20 +250,20 @@ class StructSchemaTest {
     void testConstructorParameterValidation() {
         // Test that all combinations work - schema is always stored regardless of additionalFieldsAllowed
         assertThatNoException().isThrownBy(() ->
-            new StructSchema("ns", "Valid1", "doc",
-                List.of(requiredInt("id")), false, DataSchema.STRING_SCHEMA));
+                new StructSchema("ns", "Valid1", "doc",
+                        List.of(requiredInt("id")), false, DataSchema.STRING_SCHEMA));
 
         assertThatNoException().isThrownBy(() ->
-            new StructSchema("ns", "Valid2", "doc",
-                List.of(requiredInt("id")), false, null));
+                new StructSchema("ns", "Valid2", "doc",
+                        List.of(requiredInt("id")), false, null));
 
         assertThatNoException().isThrownBy(() ->
-            new StructSchema("ns", "Valid3", "doc",
-                List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA));
+                new StructSchema("ns", "Valid3", "doc",
+                        List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA));
 
         assertThatNoException().isThrownBy(() ->
-            new StructSchema("ns", "Valid4", "doc",
-                List.of(requiredInt("id")), true, null));
+                new StructSchema("ns", "Valid4", "doc",
+                        List.of(requiredInt("id")), true, null));
     }
 
     @Test
@@ -272,15 +271,15 @@ class StructSchemaTest {
     void testBuilderParameterValidation() {
         // Test that builder accepts all parameter combinations
         assertThatNoException().isThrownBy(() ->
-            StructSchema.builder()
-                .namespace("ns")
-                .name("Test")
-                .fields(List.of(requiredInt("id")))
-                .additionalFieldsAllowed(false)
-                .additionalFieldsSchema(DataSchema.STRING_SCHEMA)
-                .build());
+                StructSchema.builder()
+                        .namespace("ns")
+                        .name("Test")
+                        .fields(List.of(requiredInt("id")))
+                        .additionalFieldsAllowed(false)
+                        .additionalFieldsSchema(DataSchema.STRING_SCHEMA)
+                        .build());
 
-        var schema = StructSchema.builder()
+        final var schema = StructSchema.builder()
                 .namespace("ns")
                 .name("Test")
                 .fields(List.of(requiredInt("id")))
@@ -296,19 +295,19 @@ class StructSchemaTest {
     @DisplayName("Null Boolean parameter handling")
     void testNullBooleanParameterHandling() {
         // Test that null Boolean additionalFieldsAllowed defaults to true
-        var schema = new StructSchema("ns", "Test", "doc",
-            List.of(requiredInt("id")), null, DataSchema.INTEGER_SCHEMA);
+        final var schema = new StructSchema("ns", "Test", "doc",
+                List.of(requiredInt("id")), null, DataSchema.INTEGER_SCHEMA);
 
         assertThat(schema.additionalFieldsAllowed())
-            .as("null Boolean should default to true")
-            .isTrue();
+                .as("null Boolean should default to true")
+                .isTrue();
         assertThat(schema.additionalFieldsSchema())
-            .as("Schema should be preserved when allowed")
-            .isEqualTo(DataSchema.INTEGER_SCHEMA);
+                .as("Schema should be preserved when allowed")
+                .isEqualTo(DataSchema.INTEGER_SCHEMA);
 
         // Test null Boolean with null schema defaults to ANY_SCHEMA
-        var schema2 = new StructSchema("ns", "Test2", "doc",
-            List.of(requiredInt("id")), null, null);
+        final var schema2 = new StructSchema("ns", "Test2", "doc",
+                List.of(requiredInt("id")), null, null);
 
         assertThat(schema2.additionalFieldsAllowed()).isTrue();
         assertThat(schema2.additionalFieldsSchema()).isEqualTo(DataSchema.ANY_SCHEMA);

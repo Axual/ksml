@@ -20,7 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 public record Symbol(String name, String doc, int tag) {
     public Symbol(String name) {

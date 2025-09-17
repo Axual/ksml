@@ -23,6 +23,7 @@ package io.axual.ksml.data.schema;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UnionSchemaTest {
@@ -30,12 +31,12 @@ class UnionSchemaTest {
     @Test
     @DisplayName("recursively flattens nested unions and supports contains")
     void flatteningAndContains() {
-        var intField = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 1);
-        var strField = new DataField("s", DataSchema.STRING_SCHEMA, null, 2);
-        var boolField = new DataField("b", DataSchema.BOOLEAN_SCHEMA, null, 3);
+        final var intField = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 1);
+        final var strField = new DataField("s", DataSchema.STRING_SCHEMA, null, 2);
+        final var boolField = new DataField("b", DataSchema.BOOLEAN_SCHEMA, null, 3);
 
-        var nested = new UnionSchema(strField, boolField);
-        var union = new UnionSchema(intField, new DataField(null, nested));
+        final var nested = new UnionSchema(strField, boolField);
+        final var union = new UnionSchema(intField, new DataField(null, nested));
 
         assertThat(union.memberSchemas()).hasSize(3);
         assertThat(union.contains(DataSchema.INTEGER_SCHEMA)).isTrue();
@@ -47,31 +48,31 @@ class UnionSchemaTest {
     @Test
     @DisplayName("isAssignableFrom supports single schema and union with matching name/tag rules")
     void assignabilityRules() {
-        var intField = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 1);
-        var strField = new DataField("s", DataSchema.STRING_SCHEMA, null, 2);
-        var union = new UnionSchema(intField, strField);
+        final var intField = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 1);
+        final var strField = new DataField("s", DataSchema.STRING_SCHEMA, null, 2);
+        final var union = new UnionSchema(intField, strField);
 
         // Single schema assignability
         assertThat(union.isAssignableFrom(DataSchema.INTEGER_SCHEMA)).isTrue();
         assertThat(union.isAssignableFrom(DataSchema.FLOAT_SCHEMA)).isFalse();
 
         // Other union with matching names/tags
-        var other = new UnionSchema(
+        final var other = new UnionSchema(
                 new DataField("i", DataSchema.LONG_SCHEMA, null, 1), // compatible by integer group and tag/name match
                 new DataField("s", DataSchema.STRING_SCHEMA, null, 2)
         );
         assertThat(union.isAssignableFrom(other)).isTrue();
 
         // Mismatched tag prevents assignment
-        var wrongTag = new UnionSchema(
+        final var wrongTag = new UnionSchema(
                 new DataField("i", DataSchema.LONG_SCHEMA, null, 99),
                 new DataField("s", DataSchema.STRING_SCHEMA, null, 2)
         );
         assertThat(union.isAssignableFrom(wrongTag)).isFalse();
 
         // Anonymous fields or NO_TAG allow assignment regardless of mismatch
-        var anonymous = new UnionSchema(
-                new DataField(null, DataSchema.LONG_SCHEMA, null, DataField.NO_TAG),
+        final var anonymous = new UnionSchema(
+                new DataField(null, DataSchema.LONG_SCHEMA, null, NO_TAG),
                 new DataField("s", DataSchema.STRING_SCHEMA, null, 2)
         );
         assertThat(union.isAssignableFrom(anonymous)).isTrue();

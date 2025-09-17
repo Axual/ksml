@@ -41,8 +41,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
 import static io.axual.ksml.data.schema.DataSchema.ANY_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 /**
  * Mapper between JSON Schema text and KSML DataSchema.

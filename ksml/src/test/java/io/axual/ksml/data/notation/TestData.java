@@ -26,6 +26,8 @@ import io.axual.ksml.data.type.Symbol;
 
 import java.util.List;
 
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+
 public class TestData {
     private static final String NAMESPACE = "io.axual.ksml.data.test";
     private static final String NAME = "name";
@@ -69,7 +71,7 @@ public class TestData {
                 new DataField(SHIPPING_ADDRESS, addressSchema, "Shipping address", 4, false),
                 new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataValue("BLUE")),
                 new DataField(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
-                new DataField(ACCOUNT_NUMBER, accountNumberSchema, "Account number", DataField.NO_TAG, false));
+                new DataField(ACCOUNT_NUMBER, accountNumberSchema, "Account number", NO_TAG, false));
         return new StructSchema(NAMESPACE, "TestSchema", "Schema used for testing", fields);
     }
 

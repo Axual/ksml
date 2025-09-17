@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 /**
  * Maps between Avro Schema and KSML DataSchema.

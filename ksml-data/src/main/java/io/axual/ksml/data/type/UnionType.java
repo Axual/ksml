@@ -26,7 +26,7 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 /**
  * A {@link ComplexType} representing a tagged union (sum type) composed of multiple member types.

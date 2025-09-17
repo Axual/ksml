@@ -40,6 +40,7 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Supplier;
 
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.apache.ws.commons.schema.constants.Constants.*;
 
 public class XmlSchemaMapper implements DataSchemaMapper<String> {
@@ -115,7 +116,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             }
             final var doc = extractDoc(element.getAnnotation());
             final var required = element.getMinOccurs() > 0;
-            return new DataField(element.getName(), schema, doc, DataField.NO_TAG, required);
+            return new DataField(element.getName(), schema, doc, NO_TAG, required);
         }
         return null;
     }

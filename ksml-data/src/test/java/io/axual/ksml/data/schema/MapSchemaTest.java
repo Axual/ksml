@@ -45,11 +45,11 @@ class MapSchemaTest {
     @Test
     @DisplayName("Assignability is based on value schema assignability")
     void assignabilityPropagatesFromValueSchema() {
-        var mapOfInt = new MapSchema(DataSchema.INTEGER_SCHEMA);
-        var mapOfLong = new MapSchema(DataSchema.LONG_SCHEMA);
-        var mapOfString = new MapSchema(DataSchema.STRING_SCHEMA);
-        var mapOfFloat = new MapSchema(DataSchema.FLOAT_SCHEMA);
-        var mapOfDouble = new MapSchema(DataSchema.DOUBLE_SCHEMA);
+        final var mapOfInt = new MapSchema(DataSchema.INTEGER_SCHEMA);
+        final var mapOfLong = new MapSchema(DataSchema.LONG_SCHEMA);
+        final var mapOfString = new MapSchema(DataSchema.STRING_SCHEMA);
+        final var mapOfFloat = new MapSchema(DataSchema.FLOAT_SCHEMA);
+        final var mapOfDouble = new MapSchema(DataSchema.DOUBLE_SCHEMA);
 
         // integer group: integer accepts from long
         assertThat(mapOfInt.isAssignableFrom(mapOfInt)).isTrue();

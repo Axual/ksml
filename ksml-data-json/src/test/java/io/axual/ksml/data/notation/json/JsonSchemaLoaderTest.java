@@ -40,6 +40,7 @@ import static io.axual.ksml.data.schema.DataSchema.DOUBLE_SCHEMA;
 import static io.axual.ksml.data.schema.DataSchema.LONG_SCHEMA;
 import static io.axual.ksml.data.schema.DataSchema.NULL_SCHEMA;
 import static io.axual.ksml.data.schema.DataSchema.STRING_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -77,11 +78,11 @@ class JsonSchemaLoaderTest {
         softly.assertThat(struct.fields())
                 .hasSize(5)
                 .containsExactlyInAnyOrder(
-                        new DataField("aString", STRING_SCHEMA, null, DataField.NO_TAG, false),
-                        new DataField("aBoolean", BOOLEAN_SCHEMA, null, DataField.NO_TAG, false),
-                        new DataField("anInteger", LONG_SCHEMA, null, DataField.NO_TAG, false),
-                        new DataField("aNumber", DOUBLE_SCHEMA, null, DataField.NO_TAG, false),
-                        new DataField("aNull", NULL_SCHEMA, null, DataField.NO_TAG, false)
+                        new DataField("aString", STRING_SCHEMA, null, NO_TAG, false),
+                        new DataField("aBoolean", BOOLEAN_SCHEMA, null, NO_TAG, false),
+                        new DataField("anInteger", LONG_SCHEMA, null, NO_TAG, false),
+                        new DataField("aNumber", DOUBLE_SCHEMA, null, NO_TAG, false),
+                        new DataField("aNull", NULL_SCHEMA, null, NO_TAG, false)
                 );
         softly.assertAll();
     }

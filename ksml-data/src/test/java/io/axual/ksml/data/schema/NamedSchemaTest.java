@@ -36,12 +36,12 @@ class NamedSchemaTest {
     @Test
     @DisplayName("hasName/name, hasDoc, fullName and toString behaviors")
     void basicBehaviors() {
-        var unnamed = new TestNamedSchema(DataSchemaConstants.STRUCT_TYPE, "ns", null, null);
+        final var unnamed = new TestNamedSchema(DataSchemaConstants.STRUCT_TYPE, "ns", null, null);
         assertThat(unnamed.hasName()).isFalse();
         assertThat(unnamed.name()).isEqualTo("AnonymousTestNamedSchema");
         assertThat(unnamed.hasDoc()).isFalse();
 
-        var named = new TestNamedSchema(DataSchemaConstants.STRUCT_TYPE, "ns", "Person", "doc");
+        final var named = new TestNamedSchema(DataSchemaConstants.STRUCT_TYPE, "ns", "Person", "doc");
         assertThat(named.hasName()).isTrue();
         assertThat(named.hasDoc()).isTrue();
         assertThat(named.fullName()).isEqualTo("ns.Person");
@@ -51,13 +51,13 @@ class NamedSchemaTest {
     @Test
     @DisplayName("isAssignableFrom ignores namespace/name/doc but requires NamedSchema and same type")
     void isAssignableFromRules() {
-        var base = new TestNamedSchema(DataSchemaConstants.STRUCT_TYPE, "ns1", "A", "doc1");
+        final var base = new TestNamedSchema(DataSchemaConstants.STRUCT_TYPE, "ns1", "A", "doc1");
         // StructSchema is a NamedSchema with same type "struct"
-        var struct = new StructSchema("ns2", "B", "doc2", null);
+        final var struct = new StructSchema("ns2", "B", "doc2", null);
         assertThat(base.isAssignableFrom(struct)).isTrue();
 
         // Different type not assignable
-        var enumNamed = new TestNamedSchema(DataSchemaConstants.ENUM_TYPE, "ns", "E", null);
+        final var enumNamed = new TestNamedSchema(DataSchemaConstants.ENUM_TYPE, "ns", "E", null);
         assertThat(enumNamed.isAssignableFrom(struct)).isFalse();
 
         // Non-named different base type not assignable

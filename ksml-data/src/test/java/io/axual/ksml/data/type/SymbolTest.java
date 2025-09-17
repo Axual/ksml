@@ -24,7 +24,7 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SymbolTest {

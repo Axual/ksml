@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+
 /**
  * Represents a union schema that allows for multiple possible types in the KSML framework.
  * <p>
@@ -141,16 +143,16 @@ public class UnionSchema extends DataSchema {
             // First check if the schema of this field and the other field are compatible
             if (memberSchema.schema().isAssignableFrom(otherField.schema())) {
                 // If they are, then manually check if we allow assignment from the other field to this field
-                if (allowAssignment(memberSchema, otherField)) return true;
+                if (isAssignableByNameAndTag(memberSchema, otherField)) return true;
             }
         }
         return false;
     }
 
-    private boolean allowAssignment(DataField thisField, DataField otherField) {
+    private boolean isAssignableByNameAndTag(DataField thisField, DataField otherField) {
         // Allow assignments from an anonymous union type, having name or tag unset
         if (thisField.name() == null || otherField.name() == null) return true;
-        if (thisField.tag() == DataField.NO_TAG || otherField.tag() == DataField.NO_TAG) return true;
+        if (thisField.tag() == NO_TAG || otherField.tag() == NO_TAG) return true;
         // This code is specifically made for PROTOBUF oneOf types, containing a field name and tag. We allow
         // assignment only if both fields match.
         if (!Objects.equals(thisField.name(), otherField.name())) return false;

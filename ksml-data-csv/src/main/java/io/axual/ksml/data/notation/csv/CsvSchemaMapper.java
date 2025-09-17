@@ -30,7 +30,7 @@ import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 public class CsvSchemaMapper implements DataSchemaMapper<String> {
     private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
