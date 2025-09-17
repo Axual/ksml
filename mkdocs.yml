@@ -42,6 +42,7 @@ nav:
   - Getting Started:
       - Quick Start: getting-started/quick-start.md
       - Understanding KSML: getting-started/introduction.md
+      - Schema Validation: getting-started/schema-validation.md
   - Tutorials:
       - Overview: tutorials/index.md
       - KSML Basics Tutorial: getting-started/basics-tutorial.md

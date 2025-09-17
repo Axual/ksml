@@ -128,5 +128,6 @@ Kafka Streams implementation.
 
 Now that you understand what KSML is and its key concepts, you can:
 
+- Set up [Schema Validation](schema-validation.md) in your IDE for better development experience
 - Explore the [Reference Documentation](../reference/index.md) in more detail
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first application
