@@ -67,8 +67,6 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String DESCRIPTION_NAME = "description";
     private static final String TYPE_NAME = "type";
     private static final String PROPERTIES_NAME = "properties";
-    private static final String PATTERN_PROPERTIES_NAME = "patternProperties";
-    private static final String ALL_PROPERTIES_REGEX = "^[a-zA-Z0-9_]+$";
     private static final String ITEMS_NAME = "items";
     private static final String REQUIRED_NAME = "required";
     private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
@@ -153,13 +151,17 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             }
         }
 
-        var additionalPropertiesSchema = ANY_SCHEMA;
-        var additionalPropertiesAllowed = true;
-        final var additionalProperties = schema.get(ADDITIONAL_PROPERTIES);
-        if (additionalProperties instanceof DataBoolean dataBoolean) {
-            additionalPropertiesAllowed = dataBoolean.value();
-        } else if (additionalProperties instanceof DataStruct structData) {
-            additionalPropertiesSchema = convertType(structData, referenceResolver);
+        // If no additionalProperties property is found, then by default allow additional properties with any schema
+        boolean additionalPropertiesAllowed = true;
+        DataSchema additionalPropertiesSchema = ANY_SCHEMA;
+        // If additionalProperties is a boolean, then use that value
+        if (schema.get(ADDITIONAL_PROPERTIES) instanceof DataBoolean additionalPropertiesBoolean) {
+            additionalPropertiesAllowed = additionalPropertiesBoolean.value();
+            additionalPropertiesSchema = additionalPropertiesAllowed ? ANY_SCHEMA : null;
+        }
+        // If additionalProperties is a DataStruct encoding a schema, then allow additional properties of that type
+        if (schema.get(ADDITIONAL_PROPERTIES) instanceof DataStruct additionalPropertiesStruct) {
+            additionalPropertiesSchema = convertType(additionalPropertiesStruct, referenceResolver);
         }
 
         final var properties = schema.get(PROPERTIES_NAME);
