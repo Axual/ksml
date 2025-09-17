@@ -172,7 +172,7 @@ class JsonSchemaMapperTest {
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .actual();
         assertThat(noAdditionalFieldSchema)
-                .as("The noAdditional field schema must have Additional Fields of type any")
+                .as("The noAdditional field schema must have Additional Fields disabled")
                 .returns("ObjectWithNoAdditional", StructSchema::name)
                 .returns(false, StructSchema::additionalFieldsAllowed)
                 .extracting(StructSchema::additionalFieldsSchema)

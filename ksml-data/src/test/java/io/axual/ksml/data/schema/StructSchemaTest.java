@@ -134,7 +134,7 @@ class StructSchemaTest {
             .as("additionalFieldsAllowed should be false")
             .isFalse();
         assertThat(strictSchemaWithNull.additionalFieldsSchema())
-            .as("additionalFieldsSchema should be null")
+            .as("additionalFieldsSchema should be null when not allowed")
             .isNull();
 
         // Test 3: When additionalFieldsAllowed is true with specific schema
@@ -214,11 +214,11 @@ class StructSchemaTest {
     void testCopyConstructorPreservesAdditionalFieldsSettings() {
         // Test strict schema copying
         var strictSchema = new StructSchema("ns", "Strict", "doc",
-            List.of(requiredInt("id")), false, null);
+            List.of(requiredInt("id")), false, DataSchema.STRING_SCHEMA);
         var copiedStrict = new StructSchema(strictSchema);
 
         assertThat(copiedStrict.additionalFieldsAllowed()).isFalse();
-        assertThat(copiedStrict.additionalFieldsSchema()).isNull();
+        assertThat(copiedStrict.additionalFieldsSchema()).isNull(); // Should be null when not allowed
 
         // Test permissive schema copying
         var permissiveSchema = new StructSchema("ns", "Permissive", "doc",
@@ -247,43 +247,49 @@ class StructSchemaTest {
     }
 
     @Test
-    @DisplayName("Constructor parameter validation throws exception for invalid combinations")
+    @DisplayName("Constructor parameter combinations work correctly")
     void testConstructorParameterValidation() {
-        // Test that providing a schema with additionalFieldsAllowed=false throws exception
-        assertThatThrownBy(() ->
-            new StructSchema("ns", "Invalid", "doc",
-                List.of(requiredInt("id")), false, DataSchema.STRING_SCHEMA))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("additionalFieldsSchema must be null when additionalFieldsAllowed is false");
-
-        // Test that valid combinations work
+        // Test that all combinations work - schema is always stored regardless of additionalFieldsAllowed
         assertThatNoException().isThrownBy(() ->
             new StructSchema("ns", "Valid1", "doc",
-                List.of(requiredInt("id")), false, null));
+                List.of(requiredInt("id")), false, DataSchema.STRING_SCHEMA));
 
         assertThatNoException().isThrownBy(() ->
             new StructSchema("ns", "Valid2", "doc",
-                List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA));
+                List.of(requiredInt("id")), false, null));
 
         assertThatNoException().isThrownBy(() ->
             new StructSchema("ns", "Valid3", "doc",
+                List.of(requiredInt("id")), true, DataSchema.STRING_SCHEMA));
+
+        assertThatNoException().isThrownBy(() ->
+            new StructSchema("ns", "Valid4", "doc",
                 List.of(requiredInt("id")), true, null));
     }
 
     @Test
-    @DisplayName("Builder validation follows same rules as constructor")
+    @DisplayName("Builder works with all parameter combinations")
     void testBuilderParameterValidation() {
-        // Test that builder also validates parameter consistency
-        assertThatThrownBy(() ->
+        // Test that builder accepts all parameter combinations
+        assertThatNoException().isThrownBy(() ->
             StructSchema.builder()
                 .namespace("ns")
-                .name("Invalid")
+                .name("Test")
                 .fields(List.of(requiredInt("id")))
                 .additionalFieldsAllowed(false)
                 .additionalFieldsSchema(DataSchema.STRING_SCHEMA)
-                .build())
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("additionalFieldsSchema must be null when additionalFieldsAllowed is false");
+                .build());
+
+        var schema = StructSchema.builder()
+                .namespace("ns")
+                .name("Test")
+                .fields(List.of(requiredInt("id")))
+                .additionalFieldsAllowed(false)
+                .additionalFieldsSchema(DataSchema.STRING_SCHEMA)
+                .build();
+
+        assertThat(schema.additionalFieldsAllowed()).isFalse();
+        assertThat(schema.additionalFieldsSchema()).isNull(); // Should be null when not allowed
     }
 
     @Test
