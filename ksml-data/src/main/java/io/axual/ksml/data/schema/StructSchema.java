@@ -143,6 +143,15 @@ public class StructSchema extends NamedSchema {
             }
         }
         this.additionalFieldsAllowed = additionalFieldsAllowed == null || additionalFieldsAllowed;
+
+        // Validate parameter consistency and provide clear error message
+        if (!this.additionalFieldsAllowed && additionalFieldsSchema != null) {
+            throw new IllegalArgumentException(
+                "additionalFieldsSchema must be null when additionalFieldsAllowed is false. " +
+                "Provided schema will be ignored to maintain invariant. " +
+                "Either set additionalFieldsAllowed to true or pass null for additionalFieldsSchema.");
+        }
+
         if (this.additionalFieldsAllowed) {
             this.additionalFieldsSchema = additionalFieldsSchema != null ? additionalFieldsSchema : ANY_SCHEMA;
         } else {

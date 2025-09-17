@@ -684,6 +684,126 @@ class JsonSchemaMapperTest {
 
     }
 
+    @Test
+    @DisplayName("JSON Schema spec compliance: missing additionalProperties defaults to true")
+    void testJsonSchemaSpecComplianceForMissingAdditionalProperties() {
+        // Test that missing additionalProperties defaults to true (per JSON Schema spec)
+        String jsonSchema = """
+            {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              }
+            }
+            """;
+
+        var schema = mapper.toDataSchema("ns", "Test", jsonSchema);
+        assertThat(schema).isInstanceOf(StructSchema.class);
+        var structSchema = (StructSchema) schema;
+
+        assertThat(structSchema.additionalFieldsAllowed())
+            .as("Missing additionalProperties should default to true per JSON Schema spec")
+            .isTrue();
+        assertThat(structSchema.additionalFieldsSchema())
+            .as("Default additionalProperties should allow any type")
+            .isEqualTo(ANY_SCHEMA);
+    }
+
+    @Test
+    @DisplayName("Explicit additionalProperties: false is respected")
+    void testExplicitAdditionalPropertiesFalse() {
+        String jsonSchema = """
+            {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+            """;
+
+        var schema = mapper.toDataSchema("ns", "Test", jsonSchema);
+        var structSchema = (StructSchema) schema;
+
+        assertThat(structSchema.additionalFieldsAllowed()).isFalse();
+        assertThat(structSchema.additionalFieldsSchema()).isNull();
+    }
+
+    @Test
+    @DisplayName("Explicit additionalProperties: true is respected")
+    void testExplicitAdditionalPropertiesTrue() {
+        String jsonSchema = """
+            {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "additionalProperties": true
+            }
+            """;
+
+        var schema = mapper.toDataSchema("ns", "Test", jsonSchema);
+        var structSchema = (StructSchema) schema;
+
+        assertThat(structSchema.additionalFieldsAllowed()).isTrue();
+        assertThat(structSchema.additionalFieldsSchema()).isEqualTo(ANY_SCHEMA);
+    }
+
+    @Test
+    @DisplayName("Typed additionalProperties schema is correctly parsed")
+    void testTypedAdditionalProperties() {
+        String jsonSchema = """
+            {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "additionalProperties": { "type": "number" }
+            }
+            """;
+
+        var schema = mapper.toDataSchema("ns", "Test", jsonSchema);
+        var structSchema = (StructSchema) schema;
+
+        assertThat(structSchema.additionalFieldsAllowed()).isTrue();
+        assertThat(structSchema.additionalFieldsSchema()).isEqualTo(DOUBLE_SCHEMA);
+    }
+
+    @Test
+    @DisplayName("Complex additionalProperties with object schema")
+    void testComplexAdditionalProperties() {
+        String jsonSchema = """
+            {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" }
+                },
+                "required": ["value"]
+              }
+            }
+            """;
+
+        var schema = mapper.toDataSchema("ns", "Test", jsonSchema);
+        var structSchema = (StructSchema) schema;
+
+        assertThat(structSchema.additionalFieldsAllowed()).isTrue();
+        assertThat(structSchema.additionalFieldsSchema())
+            .isInstanceOf(StructSchema.class);
+
+        var additionalSchema = (StructSchema) structSchema.additionalFieldsSchema();
+        assertThat(additionalSchema.fields()).hasSize(1);
+        assertThat(additionalSchema.field("value"))
+            .isNotNull()
+            .returns("value", DataField::name)
+            .returns(true, DataField::required)
+            .returns(STRING_SCHEMA, DataField::schema);
+    }
+
     private static String readResource(String path) throws Exception {
         try (var is = JsonSchemaMapperTest.class.getResourceAsStream(path)) {
             if (is == null) throw new IllegalArgumentException("Resource not found: " + path);
