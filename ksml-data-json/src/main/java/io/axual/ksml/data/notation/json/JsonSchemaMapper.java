@@ -158,6 +158,9 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         final var additionalProperties = schema.get(ADDITIONAL_PROPERTIES);
         if (additionalProperties instanceof DataBoolean dataBoolean) {
             additionalPropertiesAllowed = dataBoolean.value();
+            if (!additionalPropertiesAllowed) {
+                additionalPropertiesSchema = null;
+            }
         } else if (additionalProperties instanceof DataStruct structData) {
             additionalPropertiesSchema = convertType(structData, referenceResolver);
         }
