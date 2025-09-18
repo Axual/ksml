@@ -1,0 +1,41 @@
+name: Build release documentation on release
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name to deploy documentation for'
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: pages-deployment
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+      - name: Install Dependencies
+        run: |
+          pip install mkdocs-material
+          pip install mike
+          pip install mkdocs-include-markdown-plugin
+          pip install mkdocs-autorefs
+      - name: Setup Docs Deploy
+        run: |
+          git config --global user.name "deploy release docs"
+          git config --global user.email "development@axual.com"
+      - name: Build Docs Site
+        id: deployment
+        run: |
+          mike deploy --push --update-aliases ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
+          mike set-default --push ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
+          mike alias --push --update-aliases ${{ github.event.release.tag_name || github.event.inputs.tag_name }} latest
