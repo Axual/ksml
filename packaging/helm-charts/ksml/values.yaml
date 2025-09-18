@@ -395,7 +395,7 @@ prometheus:
 
 prometheusRule:
   # -- Enables creation of Prometheus Operator [PrometheusRule](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.PrometheusRule).
-  # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
+  # Ignored if API `monitoring.coreos.com/v1` is not available, if prometheus is disabled or if the KSML is running as Job.
   enabled: false
   # -- Determines how often rules in the group are evaluated.
   interval: ""
@@ -420,7 +420,7 @@ prometheusRule:
 
 serviceMonitor:
   # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitor).
-  # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
+  # Ignored if API `monitoring.coreos.com/v1` is not available, if prometheus is disabled or if the KSML is running as Job.
   enabled: false
   # -- Interval at which metrics should be scraped.
   interval: 30s
