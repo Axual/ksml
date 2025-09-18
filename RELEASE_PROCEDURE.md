@@ -23,8 +23,10 @@ For major/minor releases (e.g., 1.1.0, 2.0.0):
 3. Run `mvn clean package -DskipTests` to update NOTICE.txt files
 4. Build, test, commit with message `Release 1.1.0-RC1`
 5. Tag: `git tag 1.1.0-RC1 -m "Release 1.1.0-RC1" -a`
-6. Push tag and test RC
+6. Push tag and test RC `git push origin 1.1.0-RC1`. For example by running e2e tests in Staging Cloud.
 7. Create additional RCs (RC2, RC3) as needed
+8. Go to GitHub -> Releases -> "Draft new release" -> "Generate release notes" -> uncheck "latest release" -> check "pre-release"-> OK
+9. Test the RC1 image from Harbor(for example in e2e tests in Staging Cloud)
 
 ### Step 2: Release Major/Minor Version (Major/Minor Releases Only)
 
@@ -108,6 +110,7 @@ After the release tag is created on main:
    - **"What's Changed"**: Write concise summary of key changes
    - **"Full Changelog"**: Keep auto-generated commit list
 6. Publish the release
+7. Upload ksml-language-spec.json
 
 ### Step 5: Monitor Build
 
@@ -121,7 +124,9 @@ After the release tag is created on main:
    git checkout release/1.1.x
    mvn versions:set -DgenerateBackupPoms=false
    # Enter next patch snapshot: 1.1.1-SNAPSHOT
+   mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
+   Update `Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin release/1.1.x`
 
@@ -130,7 +135,9 @@ After the release tag is created on main:
    git checkout main
    mvn versions:set -DgenerateBackupPoms=false
    # Enter next minor/major snapshot: 1.2.0-SNAPSHOT
+   mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
+   Update `Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin main`
 
