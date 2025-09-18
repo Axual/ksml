@@ -19,8 +19,6 @@ pipelines:
         store:
           name: aggregate_store
           type: keyValue
-          keyType: string
-          valueType: long
         initializer:
           expression: 0
           resultType: long

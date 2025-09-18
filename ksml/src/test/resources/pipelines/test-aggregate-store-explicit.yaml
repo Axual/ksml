@@ -23,8 +23,6 @@ pipelines:
         store:
           name: category_store
           type: keyValue
-          keyType: string
-          valueType: json
         initializer:
           expression: '{"total_sales": 0, "count": 0}'
           resultType: json
