@@ -26,11 +26,11 @@
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
 
-### 1.1.0 (2025-XX-XX)
+## 1.1.0 (2025-XX-XX)
 
-**BREAKING CHANGES**
+### BREAKING CHANGES
 
-#### 1. State Store Configuration ([#136](https://github.com/Axual/ksml/pull/136))
+#### State Store Configuration ([#136](https://github.com/Axual/ksml/pull/136))
 The `store` property in aggregate operations is now **required**.
 
 **Migration Required:**
@@ -59,65 +59,41 @@ The `store` property in aggregate operations is now **required**.
 ```
 See example: [09-example-aggregate.yaml](https://github.com/Axual/ksml/blob/main/examples/09-example-aggregate.yaml)
 
-#### 2. JSON Schema additionalProperties Default ([#334](https://github.com/Axual/ksml/pull/334))
-JSON Schema now follows the spec: missing `additionalProperties` defaults to `true` (was implicitly `false`).
+### KEY NEW FEATURES
 
-**Migration Required:**
-```json
-// Before (1.0.8) - Missing additionalProperties was treated as false
-{
-  "type": "object",
-  "properties": {
-    "name": { "type": "string" }
-  }
-  // additionalProperties implicitly false - strict validation
-}
+#### JsonSchema Support
+Full JsonSchema support added for better data validation and schema management. Follows JSON Schema specification where missing `additionalProperties` defaults to `true` (allowing additional fields).
 
-// After (1.1.0) - Missing additionalProperties defaults to true (JSON Schema spec)
-// For strict validation (old behavior), explicitly set:
-{
-  "type": "object",
-  "properties": {
-    "name": { "type": "string" }
-  },
-  "additionalProperties": false  // Add this for strict validation
-}
-```
+**Tutorial:** [Working with JsonSchema Data](tutorials/beginner/data-formats.md#working-with-jsonschema-data)
 
-### 3. Notation Configuration Field Rename ([#261](https://github.com/Axual/ksml/pull/261))
-Notation configuration field `serde` renamed to `type` for clarity.
+#### Notation and Schema Registry Configuration
+New configuration system for data serialization and schema registries. Configure different implementations for each notation type (Avro, Protobuf, JsonSchema) and schema registry connections.
 
-**🔄 Migration Required:**
+**Tutorial:** [Working with JsonSchema Data](tutorials/beginner/data-formats.md#specifying-data-formats)
+**Example:** [ksml-runner.yaml](https://github.com/Axual/ksml/blob/main/examples/ksml-runner.yaml)
 ```yaml
-# Before (1.0.8) - ksml-runner.yaml
 ksml:
-  notations:
-    avro:
-      serde: confluent_avro          # OLD field name
-      schemaRegistry: confluent
+  schemaRegistries:
+    confluent:
       config:
-        auto.register.schemas: false
+        schema.registry.url: http://confluent-schema-registry:8081
+    apicurio:
+      config:
+        apicurio.registry.url: http://apicurio-registry:8080
 
-# After (1.1.0) - ksml-runner.yaml
-ksml:
   notations:
     avro:
-      type: confluent_avro           # NEW field name
+      type: confluent_avro
       schemaRegistry: confluent
-      config:
-        auto.register.schemas: false
+    jsonschema:
+      type: apicurio_json
+      schemaRegistry: apicurio
+    protobuf:
+      type: apicurio_protobuf
+      schemaRegistry: apicurio
 ```
 
-**What to change:**
-
-- In your `ksml-runner.yaml`, rename all `serde:` fields to `type:` under the `notations:` section
-- Values remain the same (e.g., `confluent_avro`, `apicurio_avro`, `apicurio_protobuf`)
-
-See example: [ksml-runner.yaml](https://github.com/Axual/ksml/blob/main/examples/ksml-runner.yaml)
-
-**KEY NEW FEATURES**
-
-### Protobuf Support (BETA)
+#### Protobuf Support (BETA)
 Added experimental Protocol Buffers support with both Confluent and Apicurio registry compatibility.
 
 **Example:** [00-example-generate-sensordata-protobuf.yaml](https://github.com/Axual/ksml/blob/main/examples/00-example-generate-sensordata-protobuf.yaml)
@@ -132,25 +108,20 @@ producers:
       valueType: protobuf:sensor_data  # New protobuf type
 ```
 
-### JsonSchema Support
-Full JsonSchema support added for better data validation and schema management.
-
-**Tutorial:** [Working with JsonSchema Data](../tutorials/beginner/data-formats.md#working-with-jsonschema-data)
-
-### Enhanced Type System
+#### Enhanced Type System
 - **List and Tuple Types** ([#285](https://github.com/Axual/ksml/pull/285))
 - **Map Type** ([#269](https://github.com/Axual/ksml/pull/269))
 - Multiple message generation support for producers
 
-### Kubernetes & Monitoring
+#### Kubernetes & Monitoring
 - **Helm Charts** for production deployments ([#85](https://github.com/Axual/ksml/pull/85))
 - **Kafka Streams Metrics Reporter** with KSML tag enrichment
 - **Health Probes**: Separate liveness, readiness, and startup probes
 - **NetworkPolicy** and **PrometheusRules** support
 
-**IMPROVEMENTS**
+### IMPROVEMENTS
 
-### Syntax Enhancements ([#133](https://github.com/Axual/ksml/pull/133))
+#### Syntax Enhancements ([#133](https://github.com/Axual/ksml/pull/133))
 Enhanced "to" operation with clearer definitions. Both syntaxes continue to work:
 ```yaml
 # Simple syntax (still supported)
@@ -163,7 +134,7 @@ to:
   valueType: json
 ```
 
-**BUG FIXES**
+### BUG FIXES
 
 * Fixed AVRO CharSequence crash with nested objects ([#163](https://github.com/Axual/ksml/pull/163))
 * Resolved excessive CPU usage issue ([#157](https://github.com/Axual/ksml/pull/157))
@@ -171,10 +142,10 @@ to:
 * Storage and state management improvements
 * Apicurio Registry 2.x compatibility
 
-**DOCUMENTATION & EXAMPLES**
+### DOCUMENTATION & EXAMPLES
 
-### Completely Rewritten Documentation
-The entire KSML documentation has been rewritten with:
+#### Improved Documentation with Docker Compose Examples
+Updated KSML documentation with:
 
 - **Working examples** that run in Docker Compose
 - **Step-by-step tutorials** from beginner to advanced
@@ -188,14 +159,14 @@ The entire KSML documentation has been rewritten with:
 - **[Examples](https://github.com/Axual/ksml/tree/main/examples)** - 20+ working examples
 - **[Reference](../reference/index.md)** - Complete KSML language reference
 
-**INFRASTRUCTURE UPDATES**
+### INFRASTRUCTURE UPDATES
 
-* Upgraded to **Kafka 3.8.0** ([#151](https://github.com/Axual/ksml/pull/151))
+* Upgraded to **Kafka 4.0.0** ([#151](https://github.com/Axual/ksml/pull/151))
 * Java 23 Security Manager support
 * Multi-architecture Docker builds (ARM64/AMD64)
 * Configurable GraalVM security options
 
-### 1.0.8 (2025-06-20)
+## 1.0.8 (2025-06-20)
 
 KSML
 
@@ -207,28 +178,28 @@ Helm charts
 * Prometheus alert rules
 * Network policies
 
-### 1.0.7 (2025-06-09)
+## 1.0.7 (2025-06-09)
 
 * Fix KSML crash when topic creation is needed and pattern configurations were provided
 
-### 1.0.6 (2025-03-24)
+## 1.0.6 (2025-03-24)
 
 * Fix storage issues, Persistent Volumes always created and never cleaned
 * Fix slow and failing builds with multiple architectures
 
-### 1.0.5 (2025-01-14)
+## 1.0.5 (2025-01-14)
 * Fix store serde regression
 
-### 1.0.4 (2024-11-22)
+## 1.0.4 (2024-11-22)
 
 * Fix crash when using Avro CharSequence encodings and nested objects
 
-### 1.0.3 (2024-10-18)
+## 1.0.3 (2024-10-18)
 
 * Fix high CPU usage
 * Upgrade to Avro 1.11.4 to fix CVE-2024-47561
 
-### 1.0.2 (2024-09-20)
+## 1.0.2 (2024-09-20)
 
 KSML
 
@@ -242,7 +213,7 @@ Helm charts
 * Use liveness and readiness and startup probes to fix state issues
 * Fix conflicting default configuration Prometheus export and ServiceMonitor
 
-### 1.0.1 (2024-07-17)
+## 1.0.1 (2024-07-17)
 
 * Topology Optimization can be applied
 * Runtime dependencies, like LZ4 compression support, are back in the KSML image
@@ -250,18 +221,18 @@ Helm charts
 * Fix windowed aggregation flow errors
 * Update windowed object support in multiple operations and functions
 
-### 1.0.0 (2024-06-28)
+## 1.0.0 (2024-06-28)
 
 * Reworked parsing logic, allowing alternatives for operations and other definitions to co-exist in the KSML language
   specification. This allows for better syntax checking in IDEs.
 * Lots of small fixes and completion modifications.
 
-### 0.9.1 (2024-06-21)
+## 0.9.1 (2024-06-21)
 
 * Fix failing test in GitHub Actions during release
 * Unified build workflows
 
-### 0.9.0 (2024-06-05)
+## 0.9.0 (2024-06-05)
 
 * Collectable metrics
 * New topology test suite
@@ -273,7 +244,7 @@ Helm charts
 * Bumped several dependency versions
 * Several fixes and security updates
 
-### 0.8.0 (2024-03-08)
+## 0.8.0 (2024-03-08)
 
 * Reworked all parsing logic, to allow for exporting the JSON schema of the KSML specification:
     * docs/specification.md is now derived from internal parser logic, guaranteeing consistency and completeness.
@@ -303,7 +274,7 @@ Helm charts
 * Examples updated to reflect the latest definition format.
 * Documentation updated.
 
-### 0.2.2 (2024-01-30)
+## 0.2.2 (2024-01-30)
 
 * Fix KSML java process not stopping on exception
 * Fix stream-stream join validation and align other checks
@@ -311,11 +282,11 @@ Helm charts
 * Fix to enable Streams optimisations to be applied to topology
 * Fix resolving admin client issues causing warning messages
 
-### 0.2.1 (2023-12-20)
+## 0.2.1 (2023-12-20)
 
 * Fixed an issue with Avro and field validations
 
-### 0.2.0 (2023-12-07)
+## 0.2.0 (2023-12-07)
 
 * Optimized Docker build
 * Merged KSML Runners into one module, optimize Docker builds and workflow
@@ -329,7 +300,7 @@ Helm charts
 * Update documentation to use new runner configurations
 * Update to GraalVM for JDK 21 Community
 
-### 0.1.0 (2023-03-15)
+## 0.1.0 (2023-03-15)
 
 * Added XML/SOAP support
 * Added data generator
@@ -337,7 +308,7 @@ Helm charts
 * Added Schema Support for XML, Avro, JSON, Schema
 * Added Basic Error Handling
 
-### 0.0.4 (2022-12-02)
+## 0.0.4 (2022-12-02)
 
 * Update to Kafka 3.2.3
 * Update to Java 17
@@ -353,16 +324,16 @@ Helm charts
 * Switch from Travis CI to GitHub workflow
 * Build snapshot Docker image on pull request merged
 
-### 0.0.3 (2021-07-30)
+## 0.0.3 (2021-07-30)
 
 * Support for Python 3 through GraalVM
 * improved data structuring
 * bug fixes
 
-### 0.0.2 (2021-06-28)
+## 0.0.2 (2021-06-28)
 
 * Added JSON support, Named topology and name store supported
 
-### 0.0.1 (2021-04-30)
+## 0.0.1 (2021-04-30)
 
 * First alpha release 

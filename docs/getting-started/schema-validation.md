@@ -122,8 +122,8 @@ name: "Test Pipeline"
 streams:
   input:
     topic: "input-topic"
-    keyType: "string"
-    valueType: "json"
+    keyType: string
+    valueType: json
 
 pipelines:
   test:
