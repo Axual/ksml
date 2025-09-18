@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [1.1.0 (2025-XX-XX)](#110-2025-xx-xx)
         * [1.0.8 (2025-06-20)](#108-2025-06-20)
         * [1.0.7 (2025-06-09)](#107-2025-06-09)
         * [1.0.6 (2025-03-24)](#106-2025-03-24)
@@ -24,6 +25,175 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+### 1.1.0 (2025-XX-XX)
+
+**BREAKING CHANGES**
+
+#### 1. State Store Configuration ([#136](https://github.com/Axual/ksml/pull/136))
+The `store` property in aggregate operations is now **required**.
+
+**Migration Required:**
+```yaml
+# Before (1.0.8)
+- type: aggregate
+  initializer:
+    expression: 0
+    resultType: long
+  aggregator:
+    expression: aggregatedValue+1
+    resultType: long
+
+# After (1.1.0) - store is now required
+- type: aggregate
+  store:                    # REQUIRED
+    type: window
+    windowSize: 10m
+    retention: 1h
+  initializer:
+    expression: 0
+    resultType: long
+  aggregator:
+    expression: aggregatedValue+1
+    resultType: long
+```
+See example: [09-example-aggregate.yaml](https://github.com/Axual/ksml/blob/main/examples/09-example-aggregate.yaml)
+
+#### 2. JSON Schema additionalProperties Default ([#334](https://github.com/Axual/ksml/pull/334))
+JSON Schema now follows the spec: missing `additionalProperties` defaults to `true` (was implicitly `false`).
+
+**Migration Required:**
+```json
+// Before (1.0.8) - Missing additionalProperties was treated as false
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" }
+  }
+  // additionalProperties implicitly false - strict validation
+}
+
+// After (1.1.0) - Missing additionalProperties defaults to true (JSON Schema spec)
+// For strict validation (old behavior), explicitly set:
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" }
+  },
+  "additionalProperties": false  // Add this for strict validation
+}
+```
+
+### 3. Notation Configuration Field Rename ([#261](https://github.com/Axual/ksml/pull/261))
+Notation configuration field `serde` renamed to `type` for clarity.
+
+**🔄 Migration Required:**
+```yaml
+# Before (1.0.8) - ksml-runner.yaml
+ksml:
+  notations:
+    avro:
+      serde: confluent_avro          # OLD field name
+      schemaRegistry: confluent
+      config:
+        auto.register.schemas: false
+
+# After (1.1.0) - ksml-runner.yaml
+ksml:
+  notations:
+    avro:
+      type: confluent_avro           # NEW field name
+      schemaRegistry: confluent
+      config:
+        auto.register.schemas: false
+```
+
+**What to change:**
+
+- In your `ksml-runner.yaml`, rename all `serde:` fields to `type:` under the `notations:` section
+- Values remain the same (e.g., `confluent_avro`, `apicurio_avro`, `apicurio_protobuf`)
+
+See example: [ksml-runner.yaml](https://github.com/Axual/ksml/blob/main/examples/ksml-runner.yaml)
+
+**KEY NEW FEATURES**
+
+### Protobuf Support (BETA)
+Added experimental Protocol Buffers support with both Confluent and Apicurio registry compatibility.
+
+**Example:** [00-example-generate-sensordata-protobuf.yaml](https://github.com/Axual/ksml/blob/main/examples/00-example-generate-sensordata-protobuf.yaml)
+```yaml
+producers:
+  sensordata_protobuf_producer:
+    generator: generate_sensordata_message
+    interval: 3s
+    to:
+      topic: ksml_sensordata_protobuf
+      keyType: string
+      valueType: protobuf:sensor_data  # New protobuf type
+```
+
+### JsonSchema Support
+Full JsonSchema support added for better data validation and schema management.
+
+**Tutorial:** [Working with JsonSchema Data](../tutorials/beginner/data-formats.md#working-with-jsonschema-data)
+
+### Enhanced Type System
+- **List and Tuple Types** ([#285](https://github.com/Axual/ksml/pull/285))
+- **Map Type** ([#269](https://github.com/Axual/ksml/pull/269))
+- Multiple message generation support for producers
+
+### Kubernetes & Monitoring
+- **Helm Charts** for production deployments ([#85](https://github.com/Axual/ksml/pull/85))
+- **Kafka Streams Metrics Reporter** with KSML tag enrichment
+- **Health Probes**: Separate liveness, readiness, and startup probes
+- **NetworkPolicy** and **PrometheusRules** support
+
+**IMPROVEMENTS**
+
+### Syntax Enhancements ([#133](https://github.com/Axual/ksml/pull/133))
+Enhanced "to" operation with clearer definitions. Both syntaxes continue to work:
+```yaml
+# Simple syntax (still supported)
+to: my-topic
+
+# Detailed syntax (recommended for clarity)
+to:
+  topic: my-topic
+  keyType: string
+  valueType: json
+```
+
+**BUG FIXES**
+
+* Fixed AVRO CharSequence crash with nested objects ([#163](https://github.com/Axual/ksml/pull/163))
+* Resolved excessive CPU usage issue ([#157](https://github.com/Axual/ksml/pull/157))
+* Fixed multiple join operation issues ([#136](https://github.com/Axual/ksml/pull/136), [#143](https://github.com/Axual/ksml/pull/143), [#225](https://github.com/Axual/ksml/pull/225))
+* Storage and state management improvements
+* Apicurio Registry 2.x compatibility
+
+**DOCUMENTATION & EXAMPLES**
+
+### Completely Rewritten Documentation
+The entire KSML documentation has been rewritten with:
+
+- **Working examples** that run in Docker Compose
+- **Step-by-step tutorials** from beginner to advanced
+- **Real-world use cases** with complete implementations
+- **Interactive testing** - all examples can be run locally
+
+**Key Resources:**
+
+- **[Getting Started](../getting-started/quick-start.md)** - Quick start guide with Docker Compose
+- **[Tutorials](../tutorials/index.md)** - From basics to advanced patterns
+- **[Examples](https://github.com/Axual/ksml/tree/main/examples)** - 20+ working examples
+- **[Reference](../reference/index.md)** - Complete KSML language reference
+
+**INFRASTRUCTURE UPDATES**
+
+* Upgraded to **Kafka 3.8.0** ([#151](https://github.com/Axual/ksml/pull/151))
+* Java 23 Security Manager support
+* Multi-architecture Docker builds (ARM64/AMD64)
+* Configurable GraalVM security options
 
 ### 1.0.8 (2025-06-20)
 
