@@ -24,6 +24,7 @@ package io.axual.ksml;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyAnalyzer;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
@@ -37,7 +38,11 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
 
 @Slf4j
 public class TopologyGenerator {
@@ -183,26 +188,30 @@ public class TopologyGenerator {
 
         // For each pipeline, generate the topology
         definition.pipelines().forEach((name, pipeline) -> {
-            StringBuilder tsBuilder = new StringBuilder();
-            // Use a cursor to keep track of where we are in the topology
-            StreamWrapper cursor = context.getStreamWrapper(pipeline.source());
-            tsBuilder.append("%n  %s".formatted(cursor));
-            // For each operation, advance the cursor by applying the operation
-            for (StreamOperation operation : pipeline.chain()) {
-                tsBuilder.append("%n    ==> %s".formatted(operation));
-                cursor = cursor.apply(operation, context);
+            try {
+                StringBuilder tsBuilder = new StringBuilder();
+                // Use a cursor to keep track of where we are in the topology
+                StreamWrapper cursor = context.getStreamWrapper(pipeline.source());
                 tsBuilder.append("%n  %s".formatted(cursor));
-            }
-            // Finally, at the end, apply the sink operation
-            if (pipeline.sink() != null) {
-                tsBuilder.append("%n    ==> %s".formatted(pipeline.sink()));
-                cursor.apply(pipeline.sink(), context);
-            }
-            log.info("""
-                    Generating Kafka Streams topology for pipeline {}:
-                    {}
-                    """, name, tsBuilder);
+                // For each operation, advance the cursor by applying the operation
+                for (StreamOperation operation : pipeline.chain()) {
+                    tsBuilder.append("%n    ==> %s".formatted(operation));
+                    cursor = cursor.apply(operation, context);
+                    tsBuilder.append("%n  %s".formatted(cursor));
+                }
+                // Finally, at the end, apply the sink operation
+                if (pipeline.sink() != null) {
+                    tsBuilder.append("%n    ==> %s".formatted(pipeline.sink()));
+                    cursor.apply(pipeline.sink(), context);
+                }
+                log.info("""
+                        Generating Kafka Streams topology for pipeline {}:
+                        {}
+                        """, name, tsBuilder);
 
+            } catch (Exception e) {
+                throw new TopologyException("Error in topology \"" + name + "\": " + e.getMessage(), e);
+            }
         });
     }
 }

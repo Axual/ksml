@@ -3,18 +3,17 @@ ksml:
   configDirectory: .              # When not set defaults to the working directory
   schemaDirectory: .              # When not set defaults to the config directory
   storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
-  createStorageDirectory: false   # When set to true, the storage directory will be created if it does not exist
 
   # This section defines if a REST endpoint is opened on the KSML runner, through which
   # state stores and/or readiness / liveness probes can be accessed.
   applicationServer:
-    enabled: false                # Set to true to enable, or false to disable
+    enabled: true                 # Set to true to enable, or false to disable
     host: 0.0.0.0                 # IP address to bind the REST server to
     port: 8080                    # Port number to listen on
 
   # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
   prometheus:
-    enabled: true                 # Set to true to enable, or false to disable
+    enabled: false                 # Set to true to enable, or false to disable
     host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
     port: 9999                    # Port number to listen on
 
@@ -29,7 +28,7 @@ ksml:
       log: true                   # Log errors true/false
       logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
       loggerName: ProcessError    # Definition of the error logger name.
-      handler: stopOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
     produce:
       log: true                   # Log errors true/false
       logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
@@ -44,29 +43,37 @@ ksml:
     # Definition of an Apicurio schema registry
     apicurio:
       config:
-      # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-      # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-      # apicurio.registry.request.ssl.keystore.type: JKS
-      # apicurio.registry.request.ssl.keystore.password: password
-      # apicurio.registry.request.ssl.key.password: password
-      # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-      # apicurio.registry.request.ssl.truststore.type: JKS
-      # apicurio.registry.request.ssl.truststore.password: password
+        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+        apicurio.registry.url: https://localhost:8081/apis/registry/v2
+        apicurio.registry.headers.enabled: false
+        apicurio.registry.dereference-schema: true
+        apicurio.registry.serializer.dereference-schema: true
+        apicurio.registry.deserializer.dereference-schema: true
+        apicurio.registry.auto-register: true
+        apicurio.registry.auto-register.if-exists: RETURN
+        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+        # apicurio.registry.request.ssl.keystore.type: JKS
+        # apicurio.registry.request.ssl.keystore.password: password
+        # apicurio.registry.request.ssl.key.password: password
+        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+        # apicurio.registry.request.ssl.truststore.type: JKS
+        # apicurio.registry.request.ssl.truststore.password: password
 
     # Definition of a Confluent schema registry
     confluent:
       config:
-      # Example SSL configuration for Confluent schema registry
-      # schema.registry.ssl.protocol: TLSv1.3
-      # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
-      # schema.registry.ssl.endpoint.identification.algorithm: ""
-      # schema.registry.ssl.keystore.location: /path/to/keystore.jks
-      # schema.registry.ssl.keystore.type: JKS
-      # schema.registry.ssl.key.password: password
-      # schema.registry.ssl.keystore.password: password
-      # schema.registry.ssl.truststore.location: /path/to/truststore.jks
-      # schema.registry.ssl.truststore.type: JKS
-      # schema.registry.ssl.truststore.password: password
+        # Example SSL configuration for Confluent schema registry
+        schema.registry.url: http://localhost:8081
+        # schema.registry.ssl.protocol: TLSv1.3
+        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+        # schema.registry.ssl.endpoint.identification.algorithm: ""
+        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+        # schema.registry.ssl.keystore.type: JKS
+        # schema.registry.ssl.key.password: password
+        # schema.registry.ssl.keystore.password: password
+        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+        # schema.registry.ssl.truststore.type: JKS
+        # schema.registry.ssl.truststore.password: password
 
   # This section tells KSML which serializers / deserializers handle which notation types
   notations:
@@ -75,7 +82,7 @@ ksml:
       type: confluent_avro          # For AVRO there are two implementations: apicurio_avro and confluent_avro
       schemaRegistry: confluent
       config:
-        # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+        # Specify additional properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
         normalize.schemas: true
         auto.register.schemas: false
 
@@ -96,8 +103,7 @@ ksml:
       type: apicurio_json           # For JSON there is only one implementation: apicurio_json
       schemaRegistry: apicurio
       config:
-        apicurio.registry.auto-register: true
-        apicurio.registry.headers.enabled: false
+      # apicurio.registry.auto-register: true
 
     # Definition for "protobuf" notation
     protobuf:                       # Definition for "protobuf" notation
@@ -105,8 +111,8 @@ ksml:
       schemaRegistry: apicurio
       ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
       config:
-        apicurio.registry.auto-register: true
-        apicurio.registry.headers.enabled: false
+      # apicurio.registry.auto-register: true
+      # apicurio.registry.headers.enabled: false
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
