@@ -6,13 +6,15 @@ The KSML project is available at: [https://github.com/Axual/ksml](https://github
 
 ## What is the KSML Language Specification?
 
-The KSML Language Specification is a comprehensive JSON Schema file (`docs/ksml-language-spec.json`) that defines the complete structure and syntax of KSML definition files. This schema describes:
+The KSML Language Specification is a comprehensive JSON Schema file (`docs/ksml-language-spec.json`) that defines the complete structure and syntax of KSML definition files. This schema validates:
 
-- **All KSML components**: streams, tables, globalTables, functions, pipelines, producers
-- **Operation types**: transformValue, filter, aggregate, join, and more
-- **Data types**: string, json, avro, protobuf, etc.
-- **Configuration options**: All properties and their valid values
-- **Required vs optional fields**: Clear indication of what's mandatory
+- **YAML Structure**: Correct nesting and organization of KSML components (streams, tables, globalTables, functions, pipelines, producers)
+- **Field Names**: Valid property names for operations (transformValue, filter, aggregate, join, etc.)
+- **Field Types**: Whether a field should be a string, object, array, or boolean
+- **Required Fields**: Which properties must be present in each component
+- **Configuration Structure**: Proper formatting of configuration sections
+
+**Note**: The schema validates YAML syntax and structure, not the semantic correctness of string values. For example, it checks that `resultType` is a string, but doesn't verify if the specified type (e.g., `"json"` or `"avro:MySchema"`) is actually valid in your KSML context.
 
 ### Schema Benefits
 
@@ -21,7 +23,7 @@ Using the KSML schema in your IDE provides:
 1. **Real-time Validation**: Immediate feedback on syntax errors and invalid configurations
 2. **Autocompletion**: IDE suggestions for properties, operations, and values
 3. **Documentation**: Inline help text explaining each field and operation
-4. **Type Checking**: Validation of data types and structure
+4. **Structure Validation**: Ensures correct YAML structure and required fields are present
 5. **Error Prevention**: Catch configuration mistakes before deployment
 
 ## Setting Up Schema Validation in IntelliJ IDEA
