@@ -20,12 +20,12 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.axual.ksml.data.exception.DataException;
-
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -37,7 +37,7 @@ class DataFieldTest {
         assertThat(new DataField(DataSchema.STRING_SCHEMA))
                 .returns(null, DataField::name)
                 .returns(DataSchema.STRING_SCHEMA, DataField::schema)
-                .returns(DataField.NO_TAG, DataField::tag)
+                .returns(NO_TAG, DataField::tag)
                 .returns(true, DataField::required)
                 .returns(false, DataField::constant)
                 .returns(null, DataField::defaultValue)
@@ -62,9 +62,9 @@ class DataFieldTest {
     @Test
     @DisplayName("UnionSchema forces field tag to NO_TAG regardless of provided tag")
     void unionSchemaForcesNoTag() {
-        var union = new UnionSchema(new DataField("s", DataSchema.STRING_SCHEMA, null, 1));
+        final var union = new UnionSchema(new DataField("s", DataSchema.STRING_SCHEMA, null, 1));
         assertThat(new DataField("u", union, "Union field", 99))
-                .returns(DataField.NO_TAG, DataField::tag)
+                .returns(NO_TAG, DataField::tag)
                 .hasToString("u: union (-1)");
     }
 
@@ -80,7 +80,7 @@ class DataFieldTest {
     @Test
     @DisplayName("Optional field allows explicit DataValue(null) as default")
     void optionalFieldAllowsNullDefaultValue() {
-        var field = new DataField("name", DataSchema.STRING_SCHEMA, null, 0, false, false, new DataValue(null));
+        final var field = new DataField("name", DataSchema.STRING_SCHEMA, null, 0, false, false, new DataValue(null));
         assertThat(field.defaultValue()).isNotNull();
         assertThat(field.defaultValue().value()).isNull();
     }
@@ -88,7 +88,7 @@ class DataFieldTest {
     @Test
     @DisplayName("hasDoc is true for non-empty, false for null or empty")
     void hasDocBehavior() {
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
         softly.assertThat(new DataField("x", DataSchema.STRING_SCHEMA, null, 0).hasDoc()).isFalse();
         softly.assertThat(new DataField("x", DataSchema.STRING_SCHEMA, "", 0).hasDoc()).isFalse();
         softly.assertThat(new DataField("x", DataSchema.STRING_SCHEMA, "doc", 0).hasDoc()).isTrue();
@@ -98,12 +98,12 @@ class DataFieldTest {
     @Test
     @DisplayName("isAssignableFrom delegates to underlying schema")
     void isAssignableFromBehavior() {
-        var target = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 0);
+        final var target = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 0);
         // other with long type is compatible (integer group)
-        var otherInt = new DataField("l", DataSchema.LONG_SCHEMA, null, 0);
+        final var otherInt = new DataField("l", DataSchema.LONG_SCHEMA, null, 0);
         assertThat(target.isAssignableFrom(otherInt)).isTrue();
         // float is not compatible with integer
-        var otherFloat = new DataField("f", DataSchema.FLOAT_SCHEMA, null, 0);
+        final var otherFloat = new DataField("f", DataSchema.FLOAT_SCHEMA, null, 0);
         assertThat(target.isAssignableFrom(otherFloat)).isFalse();
         // null is not assignable
         assertThat(target.isAssignableFrom(null)).isFalse();

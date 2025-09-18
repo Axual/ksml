@@ -24,6 +24,8 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
 
+import static io.axual.ksml.schema.parser.DataSchemaDSL.STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA_FIELD;
+
 public class StructSchemaParser extends BaseParser<StructSchema> {
     @Override
     public StructSchema parse(ParseNode node) {
@@ -31,6 +33,8 @@ public class StructSchemaParser extends BaseParser<StructSchema> {
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD),
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD),
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD),
-                new DataFieldsParser().parse(node));
+                new DataFieldsParser().parse(node),
+                parseBoolean(node, DataSchemaDSL.STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED_FIELD, false),
+                new DataSchemaParser().parse(node.get(STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA_FIELD)));
     }
 }

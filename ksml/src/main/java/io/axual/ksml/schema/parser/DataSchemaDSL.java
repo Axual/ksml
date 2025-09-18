@@ -37,6 +37,8 @@ public class DataSchemaDSL {
     public static final String LIST_SCHEMA_VALUES_FIELD = "items";
     public static final String MAP_SCHEMA_VALUES_FIELD = "values";
     public static final String STRUCT_SCHEMA_FIELDS_FIELD = "fields";
+    public static final String STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED_FIELD = "additionalFieldsAllowed";
+    public static final String STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA_FIELD = "additionalFieldsSchema";
     public static final String DATA_FIELD_NAME_FIELD = "name";
     public static final String DATA_FIELD_SCHEMA_FIELD = "type";
     public static final String DATA_FIELD_DOC_FIELD = "doc";

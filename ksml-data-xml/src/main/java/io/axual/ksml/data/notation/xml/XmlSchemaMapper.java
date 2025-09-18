@@ -40,6 +40,7 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Supplier;
 
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.apache.ws.commons.schema.constants.Constants.*;
 
 public class XmlSchemaMapper implements DataSchemaMapper<String> {
@@ -76,7 +77,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private StructSchema convertElementToStruct(XMLSchemaParseContext context, XmlSchemaElement element) {
         if (element.getSchemaType() instanceof XmlSchemaComplexType complexType && complexType.getParticle() instanceof XmlSchemaSequence sequence) {
             final var fields = convertToFields(context, sequence);
-            return new StructSchema(context.namespace, element.getName(), extractDoc(element.getAnnotation()), fields);
+            return new StructSchema(context.namespace, element.getName(), extractDoc(element.getAnnotation()), fields, false);
         }
         return null;
     }
@@ -115,7 +116,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             }
             final var doc = extractDoc(element.getAnnotation());
             final var required = element.getMinOccurs() > 0;
-            return new DataField(element.getName(), schema, doc, DataField.NO_TAG, required);
+            return new DataField(element.getName(), schema, doc, NO_TAG, required);
         }
         return null;
     }
@@ -153,7 +154,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         if (type instanceof XmlSchemaComplexType complexType) {
             if (complexType.getParticle() instanceof XmlSchemaSequence sequence) {
                 final var fields = convertToFields(context, sequence);
-                return new StructSchema(null, complexType.getName(), extractDoc(complexType.getAnnotation()), fields);
+                return new StructSchema(null, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
             }
         }
         throw new SchemaException("Could not convert XSD type to DataSchema: " + type);

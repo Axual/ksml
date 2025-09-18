@@ -63,7 +63,8 @@ public class WindowedSchema {
                 DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE,
                 schemaName(windowedType),
                 WINDOWED_SCHEMA_DOC_PREFIX + windowedType.keyType().name(),
-                fields);
+                fields,
+                false);
     }
 
     private static String schemaName(WindowedType windowedType) {

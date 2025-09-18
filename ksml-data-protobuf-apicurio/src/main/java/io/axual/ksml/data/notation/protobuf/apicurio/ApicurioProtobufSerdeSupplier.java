@@ -21,10 +21,12 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.serde.Legacy4ByteIdHandler;
 import io.apicurio.registry.serde.SerdeConfig;
 import io.apicurio.registry.serde.SerdeHeaders;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
+import io.apicurio.registry.serde.strategy.TopicIdStrategy;
 import io.axual.ksml.data.notation.protobuf.ProtobufSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
 import io.axual.ksml.data.serde.HeaderFilterSerde;
@@ -80,14 +82,17 @@ public class ApicurioProtobufSerdeSupplier implements ProtobufSerdeSupplier {
             } else {
                 messageTypeHeaderName = configs.getOrDefault(SerdeConfig.HEADER_VALUE_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_VALUE_MESSAGE_TYPE).toString();
             }
-            delegate.filteredHeaders(Set.of(messageTypeHeaderName));
+            delegate.filteredHeaders(Set.of());
 
-            // Enable payload encoding by default
-            configs.putIfAbsent("apicurio.registry.artifact-resolver-strategy", "io.apicurio.registry.serde.strategy.TopicIdStrategy");
-            configs.putIfAbsent("apicurio.registry.headers.enabled", false);
-            configs.putIfAbsent("apicurio.registry.as-confluent", true);
-            configs.putIfAbsent("apicurio.registry.use-id", "contentId");
-            configs.putIfAbsent("apicurio.registry.id-handler", "io.apicurio.registry.serde.Legacy4ByteIdHandler");
+            if (configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
+                    configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
+                // Enable payload encoding in a Confluent compatible way
+                configs.putIfAbsent(SerdeConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
+                configs.putIfAbsent(SerdeConfig.ENABLE_HEADERS, false);
+                configs.putIfAbsent(SerdeConfig.ENABLE_CONFLUENT_ID_HANDLER, true);
+                configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");
+                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getCanonicalName());
+            }
             return configs;
         }
     }

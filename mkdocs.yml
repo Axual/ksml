@@ -21,6 +21,8 @@ plugins:
       recursive: true
   - autorefs:
       resolve_closest: true
+  - mike:
+      version_selector: true
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -36,6 +38,11 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
+
+extra:
+  version:
+    provider: mike
+    default: latest
 
 nav:
   - Home: index.md

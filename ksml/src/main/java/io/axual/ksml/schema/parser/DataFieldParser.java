@@ -29,7 +29,7 @@ import io.axual.ksml.util.Pair;
 
 import java.util.Arrays;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 /**
  * The {@code DataFieldParser} class is responsible for parsing a {@link ParseNode}

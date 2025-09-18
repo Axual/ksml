@@ -13,8 +13,12 @@ functions:
     code: |
       if key is None:
         return []
-    expression: "[(key+'-COPY1',value),(key+'-COPY2',value)]"
-    resultType: "[(string,avro:SensorData)]"
+    expression: |
+      [
+        (key+'-COPY1',value),
+        (key+'-COPY2',value)
+      ]
+    resultType: list(tuple(string,avro:SensorData))
 
 pipelines:
   main:

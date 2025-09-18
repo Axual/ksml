@@ -20,12 +20,6 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.avro.Schema;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
@@ -41,8 +35,13 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.Symbol;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.Schema;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 /**
  * Maps between Avro Schema and KSML DataSchema.
@@ -119,7 +118,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case FIXED ->
                     new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
             case RECORD ->
-                    new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()));
+                    new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()), false);
         };
     }
 

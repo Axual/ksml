@@ -29,7 +29,7 @@ import java.util.List;
 
 public class TupleSchema extends StructSchema {
     public TupleSchema(TupleType type, DataTypeDataSchemaMapper mapper) {
-        super(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, type.toString(), "Tuple with " + type.subTypeCount() + " fields", convertTupleTypeToFields(type, mapper));
+        super(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, type.toString(), "Tuple with " + type.subTypeCount() + " fields", convertTupleTypeToFields(type, mapper), false);
     }
 
     private static List<DataField> convertTupleTypeToFields(TupleType type, DataTypeDataSchemaMapper mapper) {

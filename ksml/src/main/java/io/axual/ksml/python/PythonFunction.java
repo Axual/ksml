@@ -46,7 +46,7 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
-    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true);
+    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true, new PythonDataObjectMapper(false, null));
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
@@ -96,8 +96,10 @@ public class PythonFunction extends UserFunction {
         }
         // Validate the parameter types
         for (int index = 0; index < parameters.length; index++) {
-            if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
-                throw new TopologyException("Function %s.%s expects parameter %d(\"%s\") to be %s but %s was passed in ".formatted(namespace, name, index + 1, this.parameters[index].name(), this.parameters[index].type(), parameters[index].type()));
+            final var declaredParameter = this.parameters[index];
+            final var actualParameter = parameters[index];
+            if (!declaredParameter.type().isAssignableFrom(actualParameter)) {
+                throw new TopologyException("Function %s.%s expects parameter #%d (\"%s\") to be %s but %s was passed in ".formatted(namespace, name, index + 1, declaredParameter.name(), declaredParameter.type(), actualParameter.type()));
             }
         }
 
