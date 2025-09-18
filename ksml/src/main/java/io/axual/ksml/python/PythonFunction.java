@@ -91,8 +91,10 @@ public class PythonFunction extends UserFunction {
         }
         // Validate the parameter types
         for (int index = 0; index < parameters.length; index++) {
-            if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
-                throw new TopologyException("Function %s.%s expects parameter %d(\"%s\") to be %s but %s was passed in ".formatted(namespace, name, index + 1, this.parameters[index].name(), this.parameters[index].type(), parameters[index].type()));
+            final var declaredParameter = this.parameters[index];
+            final var actualParameter = parameters[index];
+            if (!declaredParameter.type().isAssignableFrom(actualParameter)) {
+                throw new TopologyException("Function %s.%s expects parameter #%d (\"%s\") to be %s but %s was passed in ".formatted(namespace, name, index + 1, declaredParameter.name(), declaredParameter.type(), actualParameter.type()));
             }
         }
 
