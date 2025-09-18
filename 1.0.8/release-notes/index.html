@@ -1,0 +1,1066 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the KSML project">
+      
+      
+        <meta name="author" content="Axual">
+      
+      
+      
+        <link rel="prev" href="../ksml-language-spec/">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
+    
+    
+      
+        <title>Release Notes - KSML Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#release-notes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="KSML Documentation" class="md-header__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KSML Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Release Notes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="KSML Documentation" class="md-nav__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KSML Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quick-start" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../streams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stream Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Runners
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ksml-language-spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Releases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Releases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#103-2024-10-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.3 (2024-10-18)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-2024-09-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.2 (2024-09-20)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#101-2024-07-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.1 (2024-07-17)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#100-2024-06-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.0 (2024-06-28)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#091-2024-06-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.9.1 (2024-06-21)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#090-2024-06-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.9.0 (2024-06-05)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#080-2024-03-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.8.0 (2024-03-08)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#022-2024-01-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.2 (2024-01-30)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#021-2023-12-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.1 (2023-12-20)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#020-2023-12-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.0 (2023-12-07)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#010-2023-03-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.1.0 (2023-03-15)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#004-2022-12-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.4 (2022-12-02)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#003-2021-07-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.3 (2021-07-30)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#002-2021-06-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.2 (2021-06-28)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#001-2021-04-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.1 (2021-04-30)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Releases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Releases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#103-2024-10-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.3 (2024-10-18)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-2024-09-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.2 (2024-09-20)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#101-2024-07-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.1 (2024-07-17)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#100-2024-06-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.0 (2024-06-28)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#091-2024-06-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.9.1 (2024-06-21)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#090-2024-06-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.9.0 (2024-06-05)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#080-2024-03-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.8.0 (2024-03-08)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#022-2024-01-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.2 (2024-01-30)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#021-2023-12-20" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.1 (2023-12-20)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#020-2023-12-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.0 (2023-12-07)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#010-2023-03-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.1.0 (2023-03-15)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#004-2022-12-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.4 (2022-12-02)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#003-2021-07-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.3 (2021-07-30)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#002-2021-06-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.2 (2021-06-28)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#001-2021-04-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.0.1 (2021-04-30)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="release-notes">Release Notes</h1>
+<h2 id="releases">Releases</h2>
+<ul>
+<li><a href="#release-notes">Release Notes</a><ul>
+<li><a href="#releases">Releases</a><ul>
+<li><a href="#103-2024-10-18">1.0.4 (2024-10-18)</a></li>
+<li><a href="#102-2024-09-20">1.0.2 (2024-09-20)</a></li>
+<li><a href="#101-2024-07-17">1.0.1 (2024-07-17)</a></li>
+<li><a href="#100-2024-06-28">1.0.0 (2024-06-28)</a></li>
+<li><a href="#080-2024-03-08">0.8.0 (2024-03-08)</a></li>
+<li><a href="#091-2024-06-21">0.9.1 (2024-06-21)</a></li>
+<li><a href="#090-2024-06-05">0.9.0 (2024-06-05)</a></li>
+<li><a href="#022-2024-01-30">0.2.2 (2024-01-30)</a></li>
+<li><a href="#021-2023-12-20">0.2.1 (2023-12-20)</a></li>
+<li><a href="#020-2023-12-07">0.2.0 (2023-12-07)</a></li>
+<li><a href="#010-2023-03-15">0.1.0 (2023-03-15)</a></li>
+<li><a href="#004-2022-12-02">0.0.4 (2022-12-02)</a></li>
+<li><a href="#003-2021-07-30">0.0.3 (2021-07-30)</a></li>
+<li><a href="#002-2021-06-28">0.0.2 (2021-06-28)</a></li>
+<li><a href="#001-2021-04-30">0.0.1 (2021-04-30)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="103-2024-10-18">1.0.3 (2024-10-18)</h3>
+<ul>
+<li>KSML</li>
+<li>Fix high CPU usage</li>
+<li>Upgrade to Avro 1.11.4 to fix CVE-2024-47561</li>
+</ul>
+<h3 id="102-2024-09-20">1.0.2 (2024-09-20)</h3>
+<ul>
+<li>KSML</li>
+<li>Upgrade to Kafka Streams 3.8.0</li>
+<li>Avro Schema Registry settings no longer required if Avro not used </li>
+<li>Add missing object in KSML Json Schema</li>
+<li>Fix serialisation and list handling issues</li>
+<li>Helm charts</li>
+<li>Use liveness and readiness and startup probes to fix state issues</li>
+<li>Fix conflicting default configuration Prometheus export and ServiceMonitor</li>
+</ul>
+<h3 id="101-2024-07-17">1.0.1 (2024-07-17)</h3>
+<ul>
+<li>Topology Optimization can be applied</li>
+<li>Runtime dependencies, like LZ4 compression support, are back in the KSML image</li>
+<li>Fix parse error messages during join</li>
+<li>Fix windowed aggregation flow errors</li>
+<li>Update windowed object support in multiple operations and functions</li>
+</ul>
+<h3 id="100-2024-06-28">1.0.0 (2024-06-28)</h3>
+<ul>
+<li>Reworked parsing logic, allowing alternatives for operations and other definitions to co-exist in the KSML language
+  specification. This allows for better syntax checking in IDEs.</li>
+<li>Lots of small fixes and completion modifications.</li>
+</ul>
+<h3 id="091-2024-06-21">0.9.1 (2024-06-21)</h3>
+<ul>
+<li>Fix failing test in GitHub Actions during release</li>
+<li>Unified build workflows</li>
+</ul>
+<h3 id="090-2024-06-05">0.9.0 (2024-06-05)</h3>
+<ul>
+<li>Collectable metrics</li>
+<li>New topology test suite</li>
+<li>Python context hardening</li>
+<li>Improved handling of Kafka tombstones</li>
+<li>Added flexibility to producers (single shot, n-shot, or user condition-based)</li>
+<li>JSON Logging support</li>
+<li>Bumped GraalVM to 23.1.2</li>
+<li>Bumped several dependency versions</li>
+<li>Several fixes and security updates</li>
+</ul>
+<h3 id="080-2024-03-08">0.8.0 (2024-03-08)</h3>
+<ul>
+<li>Reworked all parsing logic, to allow for exporting the JSON schema of the KSML specification:<ul>
+<li>docs/specification.md is now derived from internal parser logic, guaranteeing consistency and completeness.</li>
+<li>examples/ksml.json contains the JSON schema, which can be loaded into IDEs for syntax validation and completion.</li>
+</ul>
+</li>
+<li>Improved schema handling:<ul>
+<li>Better compatibility checking between schema fields.</li>
+</ul>
+</li>
+<li>Improved support for state stores:<ul>
+<li>Update to state store typing and handling.</li>
+<li>Manual state stores can be defined and referenced in pipelines.</li>
+<li>Manual state stores are also available in Python functions.</li>
+<li>State stores can be used 'side-effect-free' (e.g. no AVRO schema registration)</li>
+</ul>
+</li>
+<li>Python function improvements:<ul>
+<li>Automatic variable assignment for state stores.</li>
+<li>Every Python function can use a Java Logger, integrating Python output with KSML log output.</li>
+<li>Type inference in situations where parameters or result types can be derived from the context.</li>
+</ul>
+</li>
+<li>Lots of small language updates:<ul>
+<li>Improve readability for store types, filter operations and windowing operations</li>
+<li>Introduction of the "as" operation, which allows for pipeline referencing and chaining.</li>
+</ul>
+</li>
+<li>Better data type handling:<ul>
+<li>Separation of data types and KSML core, allowing for easier addition of new data types in the future.</li>
+<li>Automatic conversion of data types, removing common pipeline failure scenarios.</li>
+<li>New implementation for CSV handling.</li>
+</ul>
+</li>
+<li>Merged the different runners into a single runner.<ul>
+<li>KSML definitions can now include both producers (data generators) and pipelines (Kafka Streams topologies).</li>
+<li>Removal of Kafka and Axual backend distinctions.</li>
+</ul>
+</li>
+<li>Configuration file updates, allowing for running multiple definitions in a single runner (each in its own namespace).</li>
+<li>Examples updated to reflect the latest definition format.</li>
+<li>Documentation updated.</li>
+</ul>
+<h3 id="022-2024-01-30">0.2.2 (2024-01-30)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>Fix KSML java process not stopping on exception</li>
+<li>Fix stream-stream join validation and align other checks</li>
+<li>Bump logback to 1.4.12</li>
+<li>Fix to enable Streams optimisations to be applied to topology</li>
+<li>Fix resolving admin client issues causing warning messages</li>
+</ul>
+<h3 id="021-2023-12-20">0.2.1 (2023-12-20)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>Fixed an issue with AVRO and field validations</li>
+</ul>
+<h3 id="020-2023-12-07">0.2.0 (2023-12-07)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>Optimized Docker build</li>
+<li>Merged KSML Runners into one module, optimize Docker builds and workflow</li>
+<li>KSML documentation updates</li>
+<li>Docker image, GraalPy venv, install and GU commands fail</li>
+<li>Update GitHub Actions</li>
+<li>Small robustness improvements</li>
+<li>Issue #72 - Fix build failures when trying to use venv and install python packages</li>
+<li>Manual state store support, Kafka client cleanups and configuration changes</li>
+<li>Update and clean up dependencies</li>
+<li>Update documentation to use new runner configurations</li>
+<li>Update to GraalVM for JDK 21 Community</li>
+</ul>
+<h3 id="010-2023-03-15">0.1.0 (2023-03-15)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>Added XML/SOAP support</li>
+<li>Added data generator</li>
+<li>Added Automatic Type Conversion</li>
+<li>Added Schema Support for XML, Avro, JSON, Schema</li>
+<li>Added Basic Error Handling</li>
+</ul>
+<h3 id="004-2022-12-02">0.0.4 (2022-12-02)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>Update to kafka 3.2.3</li>
+<li>Update to Java 17</li>
+<li>Support multiple architectures in KSML, linux/amd64 and linux/arm64</li>
+<li>Refactored internal typing system, plus some fixes to store operations</li>
+<li>Introduce queryable state stores</li>
+<li>Add better handling of NULL keys and values from Kafka</li>
+<li>Implement schema support</li>
+<li>Added Docker multistage build</li>
+<li>Bug fix for windowed objects</li>
+<li>Store improvements</li>
+<li>Support Liberica NIK</li>
+<li>Switch from Travis CI to GitHub workflow</li>
+<li>Build snapshot Docker image on pull request merged</li>
+</ul>
+<h3 id="003-2021-07-30">0.0.3 (2021-07-30)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>Support for Python 3 through GraalVM</li>
+<li>improved data structuring</li>
+<li>bug fixes</li>
+</ul>
+<h3 id="002-2021-06-28">0.0.2 (2021-06-28)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>Added JSON support, Named topology and name store supported</li>
+</ul>
+<h3 id="001-2021-04-30">0.0.1 (2021-04-30)</h3>
+<p><strong>Changes:</strong></p>
+<ul>
+<li>First alpha release </li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>

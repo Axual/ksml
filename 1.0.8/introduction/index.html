@@ -1,0 +1,1304 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the KSML project">
+      
+      
+        <meta name="author" content="Axual">
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../streams/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
+    
+    
+      
+        <title>Introduction - KSML Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ksml-kafka-streams-for-low-code-environments" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="KSML Documentation" class="md-header__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KSML Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Introduction
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="KSML Documentation" class="md-nav__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KSML Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quick-start" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#abstract" class="md-nav__link">
+    <span class="md-ellipsis">
+      Abstract
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-test-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting up a test environment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ksml-in-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML in practice
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="KSML in practice">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-inspect-data-on-a-topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 1. Inspect data on a topic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-copying-data-to-another-topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2. Copying data to another topic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-filtering-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 3. Filtering data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-4-branching-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 4. Branching messages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-5-dynamic-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 5. Dynamic routing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-6-multiple-pipelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 6. Multiple pipelines
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../streams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stream Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Runners
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ksml-language-spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#abstract" class="md-nav__link">
+    <span class="md-ellipsis">
+      Abstract
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-test-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting up a test environment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ksml-in-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML in practice
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="KSML in practice">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-inspect-data-on-a-topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 1. Inspect data on a topic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-copying-data-to-another-topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2. Copying data to another topic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-filtering-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 3. Filtering data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-4-branching-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 4. Branching messages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-5-dynamic-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 5. Dynamic routing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-6-multiple-pipelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 6. Multiple pipelines
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ksml-kafka-streams-for-low-code-environments">KSML: Kafka Streams for Low Code Environments</h1>
+<h2 id="abstract">Abstract</h2>
+<p>Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of
+Kafka. But as powerful as the framework is, Kafka
+Streams has had a hard time getting around the requirement of writing Java code and setting up build pipelines. There
+were some attempts to rebuild Kafka Streams, but up
+until now popular languages like Python did not receive equally powerful (and maintained) stream processing frameworks.
+In this article we will present a new declarative
+approach to unlock Kafka Streams, called KSML. By the time you finish reading this document, you will be able to write
+streaming applications yourself, using
+only a few simple basic rules and Python snippets.</p>
+<ul>
+<li><a href="#setting-up-a-test-environment">Setting up a test environment</a></li>
+<li><a href="#ksml-in-practice">KSML in practice</a><ul>
+<li><a href="#example-1-inspect-data-on-a-topic">Example 1. Inspect data on a topic</a></li>
+<li><a href="#example-2-copying-data-to-another-topic">Example 2. Copying data to another topic</a></li>
+<li><a href="#example-3-filtering-data">Example 3. Filtering data</a></li>
+<li><a href="#example-4-branching-messages">Example 4. Branching messages</a></li>
+<li><a href="#example-5-dynamic-routing">Example 5. Dynamic routing</a></li>
+<li><a href="#example-6-multiple-pipelines">Example 6. Multiple pipelines</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="setting-up-a-test-environment">Setting up a test environment</h2>
+<p>To demonstrate KSML's capabilities, you will need a working Kafka cluster, or an Axual Platform/Cloud environment. Check
+out the <a href="../runners/">Runners</a> page to configure KSML.
+<br>
+We set up a test topic, called <code>ksml_sensordata_avro</code> with key/value types of <code>String</code>/<code>SensorData</code>. The [SensorData]
+schema
+was created for demo purposes only and contains several fields to demonstrate KSML capabilities:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;namespace&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;io.axual.ksml.example&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Emulated sensor data with a few additional attributes&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SensorData&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;record&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">&quot;fields&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The name of the sensor&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The timestamp of the sensor reading&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;long&quot;</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The value of the sensor, represented as string&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The type of the sensor&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SensorType&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enum&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">        </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The type of a sensor&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">        </span><span class="nt">&quot;symbols&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">          </span><span class="s2">&quot;AREA&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">          </span><span class="s2">&quot;HUMIDITY&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">          </span><span class="s2">&quot;LENGTH&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">          </span><span class="s2">&quot;STATE&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">          </span><span class="s2">&quot;TEMPERATURE&quot;</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">        </span><span class="p">]</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The unit of the sensor&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;unit&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The color of the sensor&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;color&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">        </span><span class="s2">&quot;null&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="w">        </span><span class="s2">&quot;string&quot;</span>
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="w">      </span><span class="p">],</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The city of the sensor&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;city&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a><span class="w">        </span><span class="s2">&quot;null&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a><span class="w">        </span><span class="s2">&quot;string&quot;</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a><span class="w">      </span><span class="p">],</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a><span class="w">      </span><span class="nt">&quot;doc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The owner of the sensor&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;owner&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a><span class="w">        </span><span class="s2">&quot;null&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a><span class="w">        </span><span class="s2">&quot;string&quot;</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a><span class="w">      </span><span class="p">],</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a><span class="p">}</span>
+</code></pre></div>
+<p>For the rest of this document, we assume you have set up the <code>ksml_sensordata_avro</code> topic and populated it with some
+random data.</p>
+<p>So without any further delays, let's see how KSML allows us to process this data.</p>
+<h2 id="ksml-in-practice">KSML in practice</h2>
+<h3 id="example-1-inspect-data-on-a-topic">Example 1. Inspect data on a topic</h3>
+<p>The first example is one where we inspect data on a specific topic. The definition is as follows:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">sensor_source_avro</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_avro</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="c1"># Log the message using the built-in log variable that is passed in from Java</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">log_message</span><span class="p">:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">format</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;Consumed {} message - key={}, value={}&quot;, format, key, value)</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="c1"># Multiple pipelines can be created in a single KSML definition</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nt">consume_avro</span><span class="p">:</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_source_avro</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_message(key, value, format=&quot;AVRO&quot;)</span>
+</code></pre></div>
+<p>Let's analyze this definition one element at a time. Before defining processing logic, we first define the streams used
+by the definition. In this case we define a stream named <code>sensor_source_avro</code> which reads from the
+topic <code>ksml_sensordata_avro</code>. The stream defines a <code>string</code> key and Avro <code>SensorData</code> values.</p>
+<p>Next is a list of functions that can be used by the processing logic. Here we define just one, <code>log_message</code>, which
+simply uses the provided logger to write the key, value and format of a message to the console.</p>
+<p>The third element <code>pipelines</code> defines the real processing logic. We define a pipeline called <code>consume_avro</code>, which takes
+messages from <code>ksml_sensordata_avro</code> and passes them to <code>print_message</code>.</p>
+<p>The definition file is parsed by KSML and translated into a Kafka Streams topology, which
+is <a href="https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/Topology.html#describe--">described</a> as follows:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Topologies:
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>   Sub-topology: 0
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>      --&gt; inspect_inspect_pipelines_consume_avro
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    Processor: inspect_inspect_pipelines_consume_avro (stores: [])
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>      --&gt; none
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>      &lt;-- ksml_sensordata_avro
+</code></pre></div>
+<p>And the output of the generated topology looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>2024-03-06T18:31:57,196Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor9, value={&#39;city&#39;: &#39;Alkmaar&#39;, &#39;color&#39;: &#39;yellow&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749917190, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;m&#39;, &#39;value&#39;: &#39;562&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>2024-03-06T18:31:57,631Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor3, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor3&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749917628, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;g/m3&#39;, &#39;value&#39;: &#39;23&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>2024-03-06T18:31:58,082Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor6, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;white&#39;, &#39;name&#39;: &#39;sensor6&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749918078, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;64&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>2024-03-06T18:31:58,528Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor9, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;black&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Evan&#39;, &#39;timestamp&#39;: 1709749918524, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;87&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>2024-03-06T18:31:58,970Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor1, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;black&#39;, &#39;name&#39;: &#39;sensor1&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749918964, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;75&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>2024-03-06T18:31:59,412Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor5, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor5&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749919409, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;m&#39;, &#39;value&#39;: &#39;658&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+</code></pre></div>
+<p>As you can see, the output of the application is exactly that what we defined it to be in the <code>log_message</code> function,
+namely a dump of all data found on the topic.</p>
+<h3 id="example-2-copying-data-to-another-topic">Example 2. Copying data to another topic</h3>
+<p>Now that we can see what data is on a topic, we will start to manipulate its routing. In this example we are copying
+unmodified data to a secondary topic:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_avro</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_copy</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="c1"># Log the message using the built-in log variable that is passed in from Java</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="nt">log_message</span><span class="p">:</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">format</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;Consumed {} message - key={}, value={}&quot;, format, key, value)</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">  </span><span class="c1"># Every pipeline logs its own message, passing in the format parameter to log_message above</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">  </span><span class="nt">consume_avro</span><span class="p">:</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_source_avro</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_message(key, value, format=&quot;AVRO&quot;)</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_copy</span>
+</code></pre></div>
+<p>You can see that we specified a second stream named <code>sensor_copy</code>  in this example, which is backed by the
+topic <code>ksml_sensordata_copy</code> target topic. The <code>log_message</code> function is unchanged, but the pipeline did undergo some
+changes. Two new elements are introduced here, namely <code>via</code> and <code>to</code>.</p>
+<p>The <code>via</code> tag allows users to define a series of operations executed on the data. In this case there is only one, namely
+a <code>peek</code> operation which does not modify any data, but simply outputs the data on stdout as a side effect.</p>
+<p>The <code>to</code> operation is a so-called "sink operation". Sink operations are always last in a pipeline. Processing of the
+pipeline does not continue after it was delivered to a sink operation. Note that in the first example above <code>forEach</code> is
+also a sink operation, whereas in this example we achieve the same result by passing the <code>log_message</code> function as a
+parameter to the <code>peek</code> operation.</p>
+<p>When this definition is translated by KSML, the following Kafka Streams topology is created:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Topologies:
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>   Sub-topology: 0
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>      --&gt; inspect_inspect_pipelines_consume_avro_via_1
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    Processor: inspect_inspect_pipelines_consume_avro_via_1 (stores: [])
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>      --&gt; inspect_inspect_ToOperationParser_001
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>      &lt;-- ksml_sensordata_avro
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    Sink: inspect_inspect_ToOperationParser_001 (topic: ksml_sensordata_copy)
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>      &lt;-- inspect_inspect_pipelines_consume_avro_via_1
+</code></pre></div>
+<p>The output is similar to that of example 1, but the same data can also be found on the <code>ksml_sensordata_copy</code> topic now.</p>
+<h3 id="example-3-filtering-data">Example 3. Filtering data</h3>
+<p>Now that we can read and write data, let's see if we can apply some logic to the processing as well. In this example we
+will be filtering data based on the contents of the value:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># This example shows how to read from four simple streams and log all messages</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">sensor_source_avro</span><span class="p">:</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_avro</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="nt">sensor_filtered</span><span class="p">:</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_filtered</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">  </span><span class="c1"># Log the message using the built-in log variable that is passed in from Java</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">  </span><span class="nt">log_message</span><span class="p">:</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">format</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;Consumed {} message - key={}, value={}&quot;, format, key, value)</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">  </span><span class="nt">sensor_is_blue</span><span class="p">:</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">      </span><span class="no">if value[&quot;color&quot;] == &quot;blue&quot;:</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="no">return True</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">  </span><span class="c1"># Every pipeline logs its own message, passing in the format parameter to log_message above</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">  </span><span class="nt">consume_avro</span><span class="p">:</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_source_avro</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_is_blue</span>
+<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_message(key, value, format=&quot;AVRO&quot;)</span>
+<a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_filtered</span>
+</code></pre></div>
+<p>Again, first we define the streams and the functions involved in the processing. You can see we added a new function
+called <code>filter_message</code> which returns <code>true</code> or <code>false</code> based on the <code>color</code> field in the value of the message. This
+function is used below in the pipeline.</p>
+<p>The pipeline is extended to include a <code>filter</code> operation, which takes a <code>predicate</code> function as parameter. That function
+is called for every input message. Only messages for which the function returns <code>true</code> are propagated. All other
+messages are discarded.</p>
+<p>Using this definition, KSML generates the following Kafka Streams topology:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Topologies:
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>   Sub-topology: 0
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>      --&gt; inspect_inspect_pipelines_consume_avro_via_1
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    Processor: inspect_inspect_pipelines_consume_avro_via_1 (stores: [])
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>      --&gt; inspect_inspect_pipelines_consume_avro_via_2
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>      &lt;-- ksml_sensordata_avro
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    Processor: inspect_inspect_pipelines_consume_avro_via_2 (stores: [])
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>      --&gt; inspect_inspect_ToOperationParser_001
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>      &lt;-- inspect_inspect_pipelines_consume_avro_via_1
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    Sink: inspect_inspect_ToOperationParser_001 (topic: ksml_sensordata_filtered)
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>      &lt;-- inspect_inspect_pipelines_consume_avro_via_2
+</code></pre></div>
+<p>When it executes, we see the following output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>2024-03-06T18:45:10,401Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor9, value={&#39;city&#39;: &#39;Alkmaar&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749917190, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;m&#39;, &#39;value&#39;: &#39;562&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>2024-03-06T18:45:10,735Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor3, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor3&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749917628, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;g/m3&#39;, &#39;value&#39;: &#39;23&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>2024-03-06T18:45:11,215Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor6, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor6&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749918078, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;64&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>2024-03-06T18:45:11,484Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor9, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Evan&#39;, &#39;timestamp&#39;: 1709749918524, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;87&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>2024-03-06T18:45:11,893Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor1, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor1&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749918964, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;75&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>2024-03-06T18:45:12,008Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor5, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor5&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749919409, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;m&#39;, &#39;value&#39;: &#39;658&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+</code></pre></div>
+<p>As you can see, the filter operation did its work. Only messages with field <code>color</code> set to <code>blue</code> are passed on to
+the <code>peek</code> operation, while other messages are discarded.</p>
+<h3 id="example-4-branching-messages">Example 4. Branching messages</h3>
+<p>Another way to filter messages is to use a <code>branch</code> operation. This is also a sink operation, which closes the
+processing of a pipeline. It is similar to <code>forEach</code> and <code>to</code> in that respect, but has a different definition and
+behaviour.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">sensor_source</span><span class="p">:</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_avro</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nt">sensor_blue</span><span class="p">:</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_blue</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="nt">sensor_red</span><span class="p">:</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_red</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_source</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;SOURCE MESSAGE - key={}, value={}&quot;, key, value)</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value is not None and value[&quot;color&quot;] == &quot;blue&quot;</span>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_blue</span>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value is not None and value[&quot;color&quot;] == &quot;red&quot;</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_red</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.warn(&quot;UNKNOWN COLOR - {}&quot;, value[&quot;color&quot;])</span>
+</code></pre></div>
+<p>The <code>branch</code> operation takes a list of branches as its parameters, which each specifies a processing pipeline of its
+own. Branches contain the keyword <code>if</code>, which take a predicate function that determines if a message will flow into that
+particular branch, or if it will be passed to the next branch(es). Every message will only end up in one branch, namely
+the first one in order where the <code>if</code> predicate function returns <code>true</code>.</p>
+<p>In the example we see that the first branch will be populated only with messages with <code>color</code> field set to <code>blue</code>. Once
+there, these messages will be written to <code>ksml_sensordata_blue</code>. The second branch will only contain messages
+with <code>color</code>=<code>red</code> and these messages will be written to <code>ksml_sensordata_red</code>. Finally, the last branch outputs a
+message that the color is unknown and ends any further processing.</p>
+<p>When translated by KSML the following Kafka Streams topology is set up:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Topologies:
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>   Sub-topology: 0
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>      --&gt; branch_branch_pipelines_main_via_1
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    Processor: branch_branch_pipelines_main_via_1 (stores: [])
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>      --&gt; branch_branch_branch_001
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>      &lt;-- ksml_sensordata_avro
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    Processor: branch_branch_branch_001 (stores: [])
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>      --&gt; branch_branch_branch_001-predicate-0, branch_branch_branch_001-predicate-1, branch_branch_branch_001-predicate-2
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>      &lt;-- branch_branch_pipelines_main_via_1
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    Processor: branch_branch_branch_001-predicate-0 (stores: [])
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>      --&gt; branch_branch_ToOperationParser_001
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>      &lt;-- branch_branch_branch_001
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>    Processor: branch_branch_branch_001-predicate-1 (stores: [])
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>      --&gt; branch_branch_ToOperationParser_002
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>      &lt;-- branch_branch_branch_001
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>    Processor: branch_branch_branch_001-predicate-2 (stores: [])
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>      --&gt; branch_branch_pipelines_main_branch_3
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>      &lt;-- branch_branch_branch_001
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>    Sink: branch_branch_ToOperationParser_001 (topic: ksml_sensordata_blue)
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>      &lt;-- branch_branch_branch_001-predicate-0
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>    Sink: branch_branch_ToOperationParser_002 (topic: ksml_sensordata_red)
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>      &lt;-- branch_branch_branch_001-predicate-1
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>    Processor: branch_branch_pipelines_main_branch_3 (stores: [])
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>      --&gt; none
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>      &lt;-- branch_branch_branch_001-predicate-2
+</code></pre></div>
+<p>It is clear that the branch operation is integrated in this topology. Its output looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>2024-03-06T18:31:57,196Z INFO  k.f.branch_pipelines_main_via_1_forEach  SOURCE MESSAGE - key=sensor9, value={&#39;city&#39;: &#39;Alkmaar&#39;, &#39;color&#39;: &#39;yellow&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749917190, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;m&#39;, &#39;value&#39;: &#39;562&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>2024-03-06T18:31:57,631Z INFO  k.f.branch_pipelines_main_via_1_forEach  SOURCE MESSAGE - key=sensor3, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor3&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749917628, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;g/m3&#39;, &#39;value&#39;: &#39;23&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>2024-03-06T18:31:58,082Z INFO  k.f.branch_pipelines_main_via_1_forEach  SOURCE MESSAGE - key=sensor6, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;white&#39;, &#39;name&#39;: &#39;sensor6&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749918078, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;64&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>2024-03-06T18:31:58,528Z INFO  k.f.branch_pipelines_main_via_1_forEach  SOURCE MESSAGE - key=sensor9, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;black&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Evan&#39;, &#39;timestamp&#39;: 1709749918524, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;87&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>2024-03-06T18:31:58,529Z WARN  k.f.branch_pipelines_main_branch_3_forEach UNKNOWN COLOR - black
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>2024-03-06T18:31:58,970Z INFO  k.f.branch_pipelines_main_via_1_forEach  SOURCE MESSAGE - key=sensor1, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;black&#39;, &#39;name&#39;: &#39;sensor1&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749918964, &#39;type&#39;: &#39;TEMPERATURE&#39;, &#39;unit&#39;: &#39;F&#39;, &#39;value&#39;: &#39;75&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>2024-03-06T18:31:58,972Z WARN  k.f.branch_pipelines_main_branch_3_forEach UNKNOWN COLOR - black
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>2024-03-06T18:31:59,412Z INFO  k.f.branch_pipelines_main_via_1_forEach  SOURCE MESSAGE - key=sensor5, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor5&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709749919409, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;m&#39;, &#39;value&#39;: &#39;658&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+</code></pre></div>
+<p>We see that every message processed by the pipeline is logged through the <code>k.f.branch_pipelines_main_via_1_forEach</code>
+logger. But the branch operation sorts the messages and sends messages with colors <code>blue</code> and <code>red</code> into their own
+branches. The only colors that show up as <code>UNKNOWN COLOR -</code> messages are non-blue and non-red and send through
+the <code>branch_pipelines_main_branch_3_forEach</code> logger.</p>
+<h3 id="example-5-dynamic-routing">Example 5. Dynamic routing</h3>
+<p>Sometimes it is necessary to route a message to one stream or another based on the content of a message. This example
+shows how to route messages dynamically using a TopicNameExtractor.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">sensor_source</span><span class="p">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_avro</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_source</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;SOURCE MESSAGE - key={}, value={}&quot;, key, value)</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">      </span><span class="nt">topicNameExtractor</span><span class="p">:</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">        </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">          </span><span class="no">if key == &#39;sensor1&#39;:</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">            </span><span class="no">return &#39;ksml_sensordata_sensor1&#39;</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">          </span><span class="no">if key == &#39;sensor2&#39;:</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">            </span><span class="no">return &#39;ksml_sensordata_sensor2&#39;</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">          </span><span class="no">return &#39;ksml_sensordata_sensor0&#39;</span>
+</code></pre></div>
+<p>The <code>topicNameExtractor</code> operation takes a function, which determines the routing of every message by returning a topic
+name string. In this case, when the key of a message is <code>sensor1</code> then the message will be sent
+to <code>ksml_sensordata_sensor1</code>. When it contains <code>sensor2</code> the message is sent to <code>ksml_sensordata_sensor2</code>. All other
+messages are sent to <code>ksml_sensordata_sensor0</code>.</p>
+<p>The equivalent Kafka Streams topology looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Topologies:
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>   Sub-topology: 0
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>      --&gt; route_route_pipelines_main_via_1
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    Processor: route_route_pipelines_main_via_1 (stores: [])
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>      --&gt; route_route_ToOperationParser_001
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>      &lt;-- ksml_sensordata_avro
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    Sink: route_route_ToOperationParser_001 (extractor class: io.axual.ksml.user.UserTopicNameExtractor@5d28e108)
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>      &lt;-- route_route_pipelines_main_via_1
+</code></pre></div>
+<p>The output does not show anything special compared to previous examples, since all messages are simply written by the
+logger.</p>
+<h3 id="example-6-multiple-pipelines">Example 6. Multiple pipelines</h3>
+<p>In the previous examples there was always a single pipeline definition for processing data. KSML allows us to define
+multiple pipelines in a single file.</p>
+<p>In this example we combine the filtering example with the routing example. We will also define new pipelines with the
+sole purpose of logging the routed messages.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># This example shows how to route messages to a dynamic topic. The target topic is the result of an executed function.</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">sensor_source_avro</span><span class="p">:</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_avro</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">  </span><span class="nt">sensor_filtered</span><span class="p">:</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_filtered</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">  </span><span class="nt">sensor_0</span><span class="p">:</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_sensor0</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">  </span><span class="nt">sensor_1</span><span class="p">:</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_sensor1</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="w">  </span><span class="nt">sensor_2</span><span class="p">:</span>
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_sensor2</span>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>
+<a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="w">  </span><span class="c1"># Only pass the message to the next step in the pipeline if the color is blue</span>
+<a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a><span class="w">  </span><span class="nt">sensor_is_blue</span><span class="p">:</span>
+<a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a><span class="w">      </span><span class="no">if value[&quot;color&quot;] == &quot;blue&quot;:</span>
+<a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a><span class="w">        </span><span class="no">return True</span>
+<a id="__codelineno-14-32" name="__codelineno-14-32" href="#__codelineno-14-32"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
+<a id="__codelineno-14-33" name="__codelineno-14-33" href="#__codelineno-14-33"></a>
+<a id="__codelineno-14-34" name="__codelineno-14-34" href="#__codelineno-14-34"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-14-35" name="__codelineno-14-35" href="#__codelineno-14-35"></a><span class="w">  </span><span class="nt">filtering</span><span class="p">:</span>
+<a id="__codelineno-14-36" name="__codelineno-14-36" href="#__codelineno-14-36"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_source_avro</span>
+<a id="__codelineno-14-37" name="__codelineno-14-37" href="#__codelineno-14-37"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-14-38" name="__codelineno-14-38" href="#__codelineno-14-38"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-14-39" name="__codelineno-14-39" href="#__codelineno-14-39"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_is_blue</span>
+<a id="__codelineno-14-40" name="__codelineno-14-40" href="#__codelineno-14-40"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_filtered</span>
+<a id="__codelineno-14-41" name="__codelineno-14-41" href="#__codelineno-14-41"></a>
+<a id="__codelineno-14-42" name="__codelineno-14-42" href="#__codelineno-14-42"></a><span class="w">  </span><span class="nt">routing</span><span class="p">:</span>
+<a id="__codelineno-14-43" name="__codelineno-14-43" href="#__codelineno-14-43"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_filtered</span>
+<a id="__codelineno-14-44" name="__codelineno-14-44" href="#__codelineno-14-44"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-14-45" name="__codelineno-14-45" href="#__codelineno-14-45"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-14-46" name="__codelineno-14-46" href="#__codelineno-14-46"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-14-47" name="__codelineno-14-47" href="#__codelineno-14-47"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;Routing Blue sensor - key={}, value={}&quot;, key, value)</span>
+<a id="__codelineno-14-48" name="__codelineno-14-48" href="#__codelineno-14-48"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-14-49" name="__codelineno-14-49" href="#__codelineno-14-49"></a><span class="w">      </span><span class="nt">topicNameExtractor</span><span class="p">:</span>
+<a id="__codelineno-14-50" name="__codelineno-14-50" href="#__codelineno-14-50"></a><span class="w">        </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-14-51" name="__codelineno-14-51" href="#__codelineno-14-51"></a><span class="w">          </span><span class="no">if key == &#39;sensor1&#39;:</span>
+<a id="__codelineno-14-52" name="__codelineno-14-52" href="#__codelineno-14-52"></a><span class="w">            </span><span class="no">return &#39;ksml_sensordata_sensor1&#39;</span>
+<a id="__codelineno-14-53" name="__codelineno-14-53" href="#__codelineno-14-53"></a><span class="w">          </span><span class="no">if key == &#39;sensor2&#39;:</span>
+<a id="__codelineno-14-54" name="__codelineno-14-54" href="#__codelineno-14-54"></a><span class="w">            </span><span class="no">return &#39;ksml_sensordata_sensor2&#39;</span>
+<a id="__codelineno-14-55" name="__codelineno-14-55" href="#__codelineno-14-55"></a><span class="w">          </span><span class="no">return &#39;ksml_sensordata_sensor0&#39;</span>
+<a id="__codelineno-14-56" name="__codelineno-14-56" href="#__codelineno-14-56"></a>
+<a id="__codelineno-14-57" name="__codelineno-14-57" href="#__codelineno-14-57"></a><span class="w">  </span><span class="nt">sensor0_peek</span><span class="p">:</span>
+<a id="__codelineno-14-58" name="__codelineno-14-58" href="#__codelineno-14-58"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_0</span>
+<a id="__codelineno-14-59" name="__codelineno-14-59" href="#__codelineno-14-59"></a><span class="w">    </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-14-60" name="__codelineno-14-60" href="#__codelineno-14-60"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;SENSOR0 - key={}, value={}&quot;, key, value)</span>
+<a id="__codelineno-14-61" name="__codelineno-14-61" href="#__codelineno-14-61"></a>
+<a id="__codelineno-14-62" name="__codelineno-14-62" href="#__codelineno-14-62"></a><span class="w">  </span><span class="nt">sensor1_peek</span><span class="p">:</span>
+<a id="__codelineno-14-63" name="__codelineno-14-63" href="#__codelineno-14-63"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_1</span>
+<a id="__codelineno-14-64" name="__codelineno-14-64" href="#__codelineno-14-64"></a><span class="w">    </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-14-65" name="__codelineno-14-65" href="#__codelineno-14-65"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;SENSOR1 - key={}, value={}&quot;, key, value)</span>
+<a id="__codelineno-14-66" name="__codelineno-14-66" href="#__codelineno-14-66"></a>
+<a id="__codelineno-14-67" name="__codelineno-14-67" href="#__codelineno-14-67"></a><span class="w">  </span><span class="nt">sensor2_peek</span><span class="p">:</span>
+<a id="__codelineno-14-68" name="__codelineno-14-68" href="#__codelineno-14-68"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_2</span>
+<a id="__codelineno-14-69" name="__codelineno-14-69" href="#__codelineno-14-69"></a><span class="w">    </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-14-70" name="__codelineno-14-70" href="#__codelineno-14-70"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;SENSOR2 - key={}, value={}&quot;, key, value)</span>
+</code></pre></div>
+<p>In this definition we defined five pipelines:</p>
+<ol>
+<li><code>filtering</code> which filters out all sensor messages that don't have the color blue and sends it to
+   the <code>sensor_filtered</code> stream.</li>
+<li><code>routing</code> which routes the data on the <code>sensor_filtered</code> stream to one of three target topics</li>
+<li><code>sensor0_peek</code> which writes the content of the <code>sensor_0</code> stream to the console</li>
+<li><code>sensor1_peek</code> which writes the content of the <code>sensor_1</code> stream to the console</li>
+<li><code>sensor2_peek</code> which writes the content of the <code>sensor_2</code> stream to the console</li>
+</ol>
+<p>The equivalent Kafka Streams topology looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Topologies:
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>   Sub-topology: 0
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>      --&gt; multiple_multiple_pipelines_filtering_via_1
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    Processor: multiple_multiple_pipelines_filtering_via_1 (stores: [])
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>      --&gt; multiple_multiple_ToOperationParser_001
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>      &lt;-- ksml_sensordata_avro
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    Sink: multiple_multiple_ToOperationParser_001 (topic: ksml_sensordata_filtered)
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>      &lt;-- multiple_multiple_pipelines_filtering_via_1
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>  Sub-topology: 1
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>    Source: ksml_sensordata_filtered (topics: [ksml_sensordata_filtered])
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>      --&gt; multiple_multiple_pipelines_routing_via_1
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>    Processor: multiple_multiple_pipelines_routing_via_1 (stores: [])
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>      --&gt; multiple_multiple_ToOperationParser_002
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>      &lt;-- ksml_sensordata_filtered
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a>    Sink: multiple_multiple_ToOperationParser_002 (extractor class: io.axual.ksml.user.UserTopicNameExtractor@2700f556)
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a>      &lt;-- multiple_multiple_pipelines_routing_via_1
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a>
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a>  Sub-topology: 2
+<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a>    Source: ksml_sensordata_sensor0 (topics: [ksml_sensordata_sensor0])
+<a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a>      --&gt; multiple_multiple_pipelines_sensor0_peek
+<a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a>    Processor: multiple_multiple_pipelines_sensor0_peek (stores: [])
+<a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a>      --&gt; none
+<a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a>      &lt;-- ksml_sensordata_sensor0
+<a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a>
+<a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a>  Sub-topology: 3
+<a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a>    Source: ksml_sensordata_sensor1 (topics: [ksml_sensordata_sensor1])
+<a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a>      --&gt; multiple_multiple_pipelines_sensor1_peek
+<a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a>    Processor: multiple_multiple_pipelines_sensor1_peek (stores: [])
+<a id="__codelineno-15-31" name="__codelineno-15-31" href="#__codelineno-15-31"></a>      --&gt; none
+<a id="__codelineno-15-32" name="__codelineno-15-32" href="#__codelineno-15-32"></a>      &lt;-- ksml_sensordata_sensor1
+<a id="__codelineno-15-33" name="__codelineno-15-33" href="#__codelineno-15-33"></a>
+<a id="__codelineno-15-34" name="__codelineno-15-34" href="#__codelineno-15-34"></a>  Sub-topology: 4
+<a id="__codelineno-15-35" name="__codelineno-15-35" href="#__codelineno-15-35"></a>    Source: ksml_sensordata_sensor2 (topics: [ksml_sensordata_sensor2])
+<a id="__codelineno-15-36" name="__codelineno-15-36" href="#__codelineno-15-36"></a>      --&gt; multiple_multiple_pipelines_sensor2_peek
+<a id="__codelineno-15-37" name="__codelineno-15-37" href="#__codelineno-15-37"></a>    Processor: multiple_multiple_pipelines_sensor2_peek (stores: [])
+<a id="__codelineno-15-38" name="__codelineno-15-38" href="#__codelineno-15-38"></a>      --&gt; none
+<a id="__codelineno-15-39" name="__codelineno-15-39" href="#__codelineno-15-39"></a>      &lt;-- ksml_sensordata_sensor2
+</code></pre></div>
+<p>And this is what the output would look something like this. The sensor peeks messages will not always be shown
+immediately after the Routing messages. This is because the pipelines are running in separate sub processes.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>2024-03-06T20:11:39,520Z INFO  k.f.route2_pipelines_routing_via_1_forEach Routing Blue sensor - key=sensor6, value={&#39;city&#39;: &#39;Utrecht&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor6&#39;, &#39;owner&#39;: &#39;Charlie&#39;, &#39;timestamp&#39;: 1709755877401, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;ft&#39;, &#39;value&#39;: &#39;507&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>2024-03-06T20:11:39,523Z INFO  k.f.route2_pipelines_sensor0_peek_forEach SENSOR0 - key=sensor6, value={&#39;city&#39;: &#39;Utrecht&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor6&#39;, &#39;owner&#39;: &#39;Charlie&#39;, &#39;timestamp&#39;: 1709755877401, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;ft&#39;, &#39;value&#39;: &#39;507&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>2024-03-06T20:11:39,533Z INFO  k.f.route2_pipelines_routing_via_1_forEach Routing Blue sensor - key=sensor1, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor1&#39;, &#39;owner&#39;: &#39;Evan&#39;, &#39;timestamp&#39;: 1709755889834, &#39;type&#39;: &#39;LENGTH&#39;, &#39;unit&#39;: &#39;m&#39;, &#39;value&#39;: &#39;609&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>2024-03-06T20:11:39,535Z INFO  k.f.route2_pipelines_sensor1_peek_forEach SENSOR1 - key=sensor1, value={&#39;city&#39;: &#39;Xanten&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor1&#39;, &#39;owner&#39;: &#39;Evan&#39;, &#39;timestamp&#39;: 1709755817913, &#39;type&#39;: &#39;STATE&#39;, &#39;unit&#39;: &#39;state&#39;, &#39;value&#39;: &#39;on&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>2024-03-06T20:11:39,539Z INFO  k.f.route2_pipelines_routing_via_1_forEach Routing Blue sensor - key=sensor7, value={&#39;city&#39;: &#39;Utrecht&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor7&#39;, &#39;owner&#39;: &#39;Evan&#39;, &#39;timestamp&#39;: 1709755892051, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;77&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>2024-03-06T20:11:39,5419Z INFO  k.f.route2_pipelines_sensor0_peek_forEach SENSOR0 - key=sensor7, value={&#39;city&#39;: &#39;Utrecht&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor7&#39;, &#39;owner&#39;: &#39;Evan&#39;, &#39;timestamp&#39;: 1709755892051, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;77&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>2024-03-06T20:11:39,546Z INFO  k.f.route2_pipelines_routing_via_1_forEach Routing Blue sensor - key=sensor2, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor2&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709755893390, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;75&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>2024-03-06T20:11:39,549Z INFO  k.f.route2_pipelines_sensor1_peek_forEach SENSOR2 - key=sensor2, value={&#39;city&#39;: &#39;Amsterdam&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor2&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709755893390, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;75&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>2024-03-06T20:11:39,552Z INFO  k.f.route2_pipelines_routing_via_1_forEach Routing Blue sensor - key=sensor1, value={&#39;city&#39;: &#39;Xanten&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor1&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709755894717, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;76&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>2024-03-06T20:11:39,555Z INFO  k.f.route2_pipelines_sensor1_peek_forEach SENSOR1 - key=sensor1, value={&#39;city&#39;: &#39;Xanten&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor1&#39;, &#39;owner&#39;: &#39;Bob&#39;, &#39;timestamp&#39;: 1709755894717, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;76&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>2024-03-06T20:11:39,558Z INFO  k.f.route2_pipelines_routing_via_1_forEach Routing Blue sensor - key=sensor9, value={&#39;city&#39;: &#39;Alkmaar&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Alice&#39;, &#39;timestamp&#39;: 1709755896937, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;65&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>2024-03-06T20:11:39,562Z INFO  k.f.route2_pipelines_sensor0_peek_forEach SENSOR0 - key=sensor9, value={&#39;city&#39;: &#39;Alkmaar&#39;, &#39;color&#39;: &#39;blue&#39;, &#39;name&#39;: &#39;sensor9&#39;, &#39;owner&#39;: &#39;Alice&#39;, &#39;timestamp&#39;: 1709755896937, &#39;type&#39;: &#39;HUMIDITY&#39;, &#39;unit&#39;: &#39;%&#39;, &#39;value&#39;: &#39;65&#39;, &#39;@type&#39;: &#39;SensorData&#39;, &#39;@schema&#39;: { &lt;&lt;Cleaned KSML Representation of Avro Schema&gt;&gt;}}
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>

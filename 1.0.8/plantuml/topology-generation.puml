@@ -1,0 +1,36 @@
+@startuml
+'see https://plantuml.com/sequence-diagram
+
+'autonumber
+
+[-> KSMLRunner: main(String[] args)
+activate KSMLRunner
+KSMLRunner -> KSMLRunnerConfig **: create()
+note right: parsed from runner config yaml
+KSMLRunner -> KSMLRunnerConfig ++: getConfiguredBackend()
+KSMLRunnerConfig -> Backend **: create
+note right: either KafkaBackend or AxualBackend,\nServiceLoader mechanism used
+create KSMLTopologyGenerator as ksmltopgen
+Backend -> ksmltopgen: new
+Backend -> ksmltopgen : configure(Map<String, Obj>)
+Backend -> ksmltopgen ++ : create(new StreamsBuilder())
+create TopologyGeneratorImpl as topgen
+ksmltopgen -> topgen: new(KSMLConfig)
+ksmltopgen -> topgen ++ : create(StreamsBuilder)
+topgen -> topgen ++ : readKSMLDefinitions
+topgen -> topgen --++ : readYAMLsFromFile
+note right: <i>recursive</i>
+return List<KSMLDefinition>
+loop each definition
+	topgen -> topgen ++ : generate
+end
+topgen --> ksmltopgen: Topology
+deactivate topgen
+deactivate topgen
+ksmltopgen --> Backend: Topology
+deactivate ksmltopgen
+KSMLRunnerConfig --> KSMLRunner: return Backend
+deactivate KSMLRunnerConfig
+KSMLRunner -> KSMLRunner ++: run(Backend)
+
+@enduml
