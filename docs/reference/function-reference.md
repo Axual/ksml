@@ -1,0 +1,1179 @@
+# Function Reference
+
+KSML functions let you implement custom stream-processing logic in Python.
+They make it easier for data scientists, analysts, and developers to process streaming data 
+without needing Java or the Kafka Streams API.
+
+Functions extend built-in operations, enabling custom business logic, transformations, and
+processing within the KSML runtime- combining Kafka Streams’ power with Python’s simplicity.
+
+## Function Definition Structure
+
+Functions are defined in the `functions` section of your KSML definition file. Each function has the following
+properties:
+
+| Property     | Type      | Required  | Description                                                                                    |
+|--------------|-----------|-----------|------------------------------------------------------------------------------------------------|
+| `type`       | String    | Yes       | The type of function (predicate, aggregator, valueJoiner, etc.)                                |
+| `parameters` | Array     | No        | **Additional** custom parameters to add to the function's built-in parameters (see note below) |
+| `globalCode` | String    | No        | Python code executed once upon startup                                                         |
+| `code`       | String    | No        | Python code implementing the function                                                          |
+| `expression` | String    | No        | An expression that the function will return as value                                           |
+| `resultType` | Data type | Sometimes | The data type returned by the function. Required when it cannot be derived from function type. |
+| `stores`     | Array     | No        | List of state stores the function can access                                                   |
+
+**Note about parameters:** Every function type has built-in parameters that are automatically provided by KSML (e.g.,
+`key` and `value` for most function types). The `parameters` property is only needed when you want to add custom
+parameters beyond these built-in ones. These additional parameters can then be passed when calling the function from
+Python code.
+
+## Writing KSML Functions
+
+### Example KSML Function Definition
+
+??? info "Example KSML Function Definition"
+
+      ```yaml
+      functions:
+        # Example of a complete function definition with all components
+        process_sensor_data:
+          type: valueTransformer
+          globalCode: |
+            # This code runs once when the application starts
+            import json
+            import time
+            
+            # Initialize global variables
+            sensor_threshold = 25.0
+            alert_count = 0
+            
+          code: |
+            # This code runs for each message
+            global alert_count
+            
+            # Process the sensor value
+            if value is None:
+              return None
+              
+            temperature = value.get("temperature", 0)
+            
+            # Convert Celsius to Fahrenheit
+            temperature_f = (temperature * 9/5) + 32
+            
+            # Check for alerts
+            is_alert = temperature > sensor_threshold
+            if is_alert:
+              alert_count += 1
+              log.warn("High temperature detected: {}°C", temperature)
+            
+            # Return enriched data
+            result = {
+              "original_temp_c": temperature,
+              "temp_fahrenheit": temperature_f,
+              "is_alert": is_alert,
+              "total_alerts": alert_count,
+              "processed_at": int(time.time() * 1000)
+            }
+            
+            return result
+            
+          resultType: json
+          
+        # Example of a simple expression-based function
+        is_high_priority:
+          type: predicate
+          expression: value.get("priority", 0) > 7
+          resultType: boolean
+      ```
+
+KSML functions are defined in the `functions` section of your KSML definition file. A typical function definition
+includes:
+
+- **Type**: Specifies the function's purpose and behavior
+- **Parameters**: Input parameters the function accepts (defined by the function type)
+- **GlobalCode**: Python code executed only once upon application start
+- **Code**: Python code implementing the function's logic
+- **Expression**: Shorthand for simple return expressions
+- **ResultType**: The expected return type of the function
+
+## Function Definition Formats
+
+KSML supports two formats for defining functions:
+
+### Expression Format
+
+For simple, one-line functions:
+
+```yaml
+functions:
+  is_valid:
+    type: predicate
+    code: |
+      # Code is optional here
+    expression: value.get("status") == "ACTIVE"
+```
+
+### Code Block Format
+
+For more complex functions:
+
+```yaml
+functions:
+  process_transaction:
+    type: keyValueMapper
+    code: |
+      result = {}
+
+      # Copy basic fields
+      result["transaction_id"] = value.get("id")
+      result["amount"] = value.get("amount", 0)
+
+      # Calculate fee
+      amount = value.get("amount", 0)
+      if amount > 1000:
+        result["fee"] = amount * 0.02
+      else:
+        result["fee"] = amount * 0.03
+
+      # Add timestamp
+      result["processed_at"] = int(time.time() * 1000)
+
+      return result
+    resultType: struct
+```
+
+## Function Parameters
+
+### Built-in vs Custom Parameters
+
+Every function type in KSML has **built-in parameters** that are automatically provided by KSML. These are implicitly
+available in your function code without needing to declare them:
+
+Most function types (like `forEach`, `predicate`, `valueTransformer`) automatically receive:
+
+- `key` - The record key
+- `value` - The record value
+
+Some specialized types have different built-in parameters:
+
+- `aggregator`: receives `key`, `value`, and `aggregate`
+- `merger`: receives `key`, `aggregate1`, and `aggregate2`
+- `initializer`: receives no parameters
+
+### Adding Custom Parameters
+
+The `parameters` property allows you to **add custom parameters** beyond the built-in ones. This is useful when:
+
+1. **Creating reusable functions** that can behave differently based on configuration
+2. **Calling functions from Python code** with specific arguments
+3. **Using the `generic` function type** which has no built-in parameters
+
+#### Example WITHOUT custom parameters:
+
+```yaml
+functions:
+  simple_logger:
+    type: forEach
+    # Only uses built-in key and value parameters
+    code: |
+      log.info("Processing: key={}, value={}", key, value)
+```
+
+#### Example WITH custom parameters:
+
+```yaml
+functions:
+  configurable_logger:
+    type: forEach
+    parameters: # ADDS 'prefix' to the built-in key and value
+      - name: prefix
+        type: string
+    code: |
+      log.info("{}: key={}, value={}", prefix, key, value)
+```
+
+When calling this function from Python:
+
+```python
+# The custom parameter is passed along with built-in ones
+configurable_logger(key, value, prefix="DEBUG")
+```
+
+### Parameter Definition Structure
+
+When defining custom parameters:
+
+```yaml
+parameters:
+  - name: parameter_name   # Name of the parameter
+    type: parameter_type   # Data type (string, int, double, etc.)
+```
+
+**Important:** The `parameters` property **adds to** the built-in parameters - it doesn't replace them. Built-in
+parameters like `key` and `value` are still available in your function code.
+
+## Function Types Overview
+
+Below is a table with all 21 function types in KSML.
+
+| Function Type                                                           | Purpose                                          | Used In                                     |
+|-------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------|
+| **Functions for stateless operations**                                  |                                                  |                                             |
+| [forEach](#foreach)                                                     | Process each message for side effects            | peek                                        |
+| [keyTransformer](#keytransformer)                                       | Convert a key to another type or value           | mapKey, selectKey, toStream, transformKey   |
+| [keyValueToKeyValueListTransformer](#keyvaluetokeyvaluelisttransformer) | Convert key and value to a list of key/values    | flatMap, transformKeyValueToKeyValueList    |
+| [keyValueToValueListTransformer](#keyvaluetovaluelisttransformer)       | Convert key and value to a list of values        | flatMapValues, transformKeyValueToValueList |
+| [keyValueTransformer](#keyvaluetransformer)                             | Convert key and value to another key and value   | flatMapValues, transformKeyValueToValueList |
+| [predicate](#predicate)                                                 | Return true/false based on message content       | filter, branch                              |
+| [valueTransformer](#valuetransformer)                                   | Convert value to another type or value           | mapValue, mapValues, transformValue         |
+|                                                                         |                                                  |                                             |
+| **Functions for stateful operations**                                   |                                                  |                                             |
+| [aggregator](#aggregator)                                               | Incrementally build aggregated results           | aggregate                                   |
+| [initializer](#initializer)                                             | Provide initial values for aggregations          | aggregate                                   |
+| [merger](#merger)                                                       | Merge two aggregation results into one           | aggregate                                   |
+| [reducer](#reducer)                                                     | Combine two values into one                      | reduce                                      |
+|                                                                         |                                                  |                                             |
+| **Special Purpose Functions**                                           |                                                  |                                             |
+| [foreignKeyExtractor](#foreignkeyextractor)                             | Extract a key from a join table's record         | join, leftJoin                              |
+| [generator](#generator)                                                 | Function used in producers to generate a message | producer                                    |
+| [generic](#generic)                                                     | Generic custom function                          |                                             |
+| [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value | groupBy, join, leftJoin                     |
+| [keyValuePrinter](#keyvalueprinter)                                     | Output key and value                             | print                                       |
+| [metadataTransformer](#metadatatransformer)                             | Convert Kafka headers and timestamps             | transformMetadata                           |
+| [valueJoiner](#valuejoiner)                                             | Combine data from multiple streams               | join, leftJoin, outerJoin                   |
+|                                                                         |                                                  |                                             |
+| **Stream Related Functions**                                            |                                                  |                                             |
+| [streamPartitioner](#streampartitioner)                                 | Determine which partition to send records to     | to                                          |
+| [timestampExtractor](#timestampextractor)                               | Extract timestamps from messages                 | stream, table, globalTable                  |
+| [topicNameExtractor](#topicnameextractor)                               | Derive a target topic name from key and value    | toTopicNameExtractor                        |
+|                                                                         |                                                  |                                             |
+
+## Functions for stateless operations
+
+### forEach
+
+Processes each message for side effects like logging, without changing the message.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+None (the function is called for its side effects)
+
+```yaml
+--8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
+```
+
+**Full example for `forEach`**:
+
+- [Tutorial: Filtering and Transforming Example](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
+
+### keyTransformer
+
+Transforms a key/value into a new key, which then gets combined with the original value as a new message on the output
+stream.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+New key for the output message
+
+#### Example
+
+**Function Definition:**
+
+```yaml
+--8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
+```
+
+This function extracts the region from transaction data to use as the new message key, enabling region-based
+partitioning.
+
+**Complete Working Example:**
+
+??? info "Producer - `keyTransformer` example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/functions/keytransformer-producer.yaml"
+    %}
+    ```
+
+??? info "Processor - `keyTransformer` example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/functions/keytransformer-processor.yaml"
+    %}
+    ```
+
+**Additional Example:**
+
+**Full example for `keyTransformer`**: [Stream Table Join Tutorial](../tutorials/intermediate/joins.md#use-case-order-enrichment)
+
+### keyValueToKeyValueListTransformer
+
+Takes one message and converts it into a list of output messages, which then get sent to the output stream. Unlike
+`keyValueToValueListTransformer`, this function can create new keys for each output message, enabling data reshaping and
+repartitioning.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+A list of key-value pairs `[(key1, value1), (key2, value2), ...]`
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml:12:42"
+```
+
+This example demonstrates splitting batch orders into individual orders with unique keys, useful for processing bulk
+data into individual records.
+
+??? info "Producer - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
+
+      ```yaml
+      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
+      ```
+
+??? info "Processor - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
+
+      ```yaml
+      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
+      ```
+
+### keyValueToValueListTransformer
+
+Takes one message and converts it into a list of output values, which then get combined with the original key and sent
+to the output stream.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+A list of values `[value1, value2, ...]` that will be combined with the original key
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/keyvaluetovaluelisttransformer-processor.yaml:12:40"
+```
+
+??? info "Producer - `keyValueToValueListTransformer` example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/functions/keyvaluetovaluelisttransformer-producer.yaml"
+    %}
+    ```
+
+??? info "Processor - `keyValueToValueListTransformer` example (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/reference/functions/keyvaluetovaluelisttransformer-processor.yaml"
+    %}
+    ```
+
+### keyValueTransformer
+
+Takes one message and converts it into another message, which may have different key/value types.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+A tuple of (new_key, new_value)
+
+#### Example
+
+```yaml
+--8<-- "definitions/advanced-tutorial/external-integration/processor-async-integration.yaml:25:93"
+```
+
+**Full example for `keyValueTransformer`**:
+
+- [Async Integration Pattern with
+  `keyValueTransformer`](../tutorials/advanced/external-integration.md#async-integration-pattern)
+
+### predicate
+
+Returns true or false based on message content. Used for filtering and branching operations.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+Boolean (true or false)
+
+#### Example
+
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml:12:25"
+```
+
+**Full example for `predicate`**:
+
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#complex-filtering-techniques)
+  for predicate functions for data filtering
+
+### valueTransformer
+
+Transforms a key/value into a new value, which is combined with the original key and sent to the output stream.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+New value for the output message
+
+#### Example
+
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:24:34"
+```
+
+**Full example for `valueTransformer`**:
+
+- [Tutorial: Filtering and Transforming](../tutorials/beginner/filtering-transforming.md#applying-multiple-transformations)
+  for understanding valueTransformer for data enrichment
+
+## Functions for stateful operations
+
+### aggregator
+
+Incrementally builds aggregated results from multiple messages.
+
+#### Parameters
+
+| Parameter       | Type | Description                                |
+|-----------------|------|--------------------------------------------|
+| key             | Any  | The key of the record being processed      |
+| value           | Any  | The value of the record being processed    |
+| aggregatedValue | Any  | The current aggregated value (can be None) |
+
+#### Return Value
+
+New aggregated value
+
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:26:45"
+```
+
+**Full example for `aggregator`**:
+
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#aggregate-example) for comprehensive aggregator
+  function examples
+
+### initializer
+
+Provides initial values for aggregations.
+
+#### Parameters
+
+None
+
+#### Return Value
+
+Initial value for aggregation
+
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:13:24"
+```
+
+**Full example for `initializer`**:
+
+- [Example for `initializer`](../tutorials/intermediate/aggregations.md#complex-example-regional-sales-analytics)
+
+### merger
+
+Merges two aggregation results into one. Used in aggregation operations to combine partial results.
+
+#### Parameters
+
+| Parameter | Type | Description                           |
+|-----------|------|---------------------------------------|
+| key       | Any  | The key of the record being processed |
+| value1    | Any  | The value of the first aggregation    |
+| value2    | Any  | The value of the second aggregation   |
+
+#### Return Value
+
+The merged aggregation result
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/merger-example-processor.yaml:23:35"
+```
+
+
+??? info "Producer - `merger` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/merger-example-producer.yaml" %}
+    ```
+
+??? info "Processor - `merger` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/merger-example-processor.yaml" %}
+    ```
+
+The merger function is specifically designed for session window aggregations where late-arriving events can merge
+previously separate sessions. This example demonstrates user activity tracking with session-based counting.
+
+**What the example does:**
+
+Simulates user activity tracking with session windows and merging:
+
+* Groups events into 10-min inactivity sessions
+* Counts events per user
+* Merges sessions when late events connect them
+* Producer simulates gaps to trigger merging
+
+**Key Features:**
+
+* Automatic session windowing & late data handling
+* Type-safe merger (integers)
+* Windowed key transformation for output
+* Merge logic adds event counts
+
+**Expected Results:**
+
+When running this example, you'll see log messages like:
+
+- `"Merging sessions: 3 + 2 = 5"` - Shows the merger function combining session counts
+- `"User alice session: 4 events"` - Displays final session results after merging
+- Session windows spanning different time periods for each user
+
+### reducer
+
+Combines two values into one.
+
+#### Parameters
+
+| Parameter | Type | Description                 |
+|-----------|------|-----------------------------|
+| value1    | Any  | The first value to combine  |
+| value2    | Any  | The second value to combine |
+
+#### Return Value
+
+Combined value
+
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/aggregations/processor-reduce.yaml:24:30"
+```
+
+**Full example for `reducer`**:
+
+- [Example for `reducer` function](../tutorials/intermediate/aggregations.md#human-readable-reduce-json-format)
+
+## Special Purpose Functions
+
+### foreignKeyExtractor
+
+Extracts a key from a join table's record. Used during join operations to determine which records to join.
+
+#### Parameters
+
+| Parameter | Type | Description                               |
+|-----------|------|-------------------------------------------|
+| value     | Any  | The value of the record to get a key from |
+
+#### Return Value
+
+The key to look up in the table being joined with
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/foreignkeyextractor-processor.yaml:15:26"
+```
+
+
+??? info "Producer - `foreignKeyExtractor` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/foreignkeyextractor-producer.yaml" %}
+    ```
+
+??? info "Processor - `foreignKeyExtractor` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/foreignkeyextractor-processor.yaml" %}
+    ```
+
+The foreignKeyExtractor enables table joins where the join key is embedded within the record value rather than being the
+record key. This example demonstrates order enrichment by joining with customer data using a foreign key relationship.
+
+**Example**
+
+This example simulates an e-commerce system enriching orders with customer data:
+
+* Orders keyed by `order_id`, referencing `customer_id`
+* Customer details looked up by `customer_id`
+* Foreign key extracted from orders
+* Orders joined with customers to produce enriched records
+
+**Key Features:**
+
+* Foreign key join pattern
+* KSML table join with key extraction
+* Data enrichment from multiple sources
+* Preserves original order keys
+
+**Expected Results:**
+
+When running this example, you'll see log messages like:
+
+- `"Joined order order_001 with customer Alice Johnson"` - Shows successful order-customer joins
+- `"Enriched order: order_003 for customer: Bob Smith"` - Displays enriched results with customer names
+- Orders enriched with customer tier, email, and name information
+
+**Use Cases:**
+
+This pattern is commonly used for:
+
+- Order enrichment with customer details
+- Transaction enrichment with account information
+- Event enrichment with user profiles
+- Any scenario where records contain foreign key references
+
+### generator
+
+Function used in producers to generate messages. It takes no input parameters and produces key-value pairs.
+
+#### Parameters
+
+None
+
+#### Return Value
+
+A tuple of (key, value) representing the generated message
+
+#### Example
+
+```yaml
+--8<-- "definitions/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml:2:16"
+```
+
+**Full example for `generator`**:
+
+- [Example: Generating JSON data](../tutorials/beginner/filtering-transforming.md#creating-test-data)
+- [Example: Generating Avro data](../tutorials/beginner/data-formats.md#working-with-avro-data)
+
+### keyValueMapper
+
+Transforms both the key and value of a record.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+Tuple of (new_key, new_value)
+
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:19:25"
+```
+
+**Full example for `keyValueMapper`**:
+
+- [Example: Product Catalog Enrichment](../tutorials/intermediate/joins.md#use-case-product-catalog-enrichment)
+
+### keyValuePrinter
+
+Converts a message to a string for output to a file or stdout.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+String to be written to file or stdout
+
+#### Example
+
+The keyValuePrinter formats records for human-readable output to stdout or files. This example shows converting sales
+data into formatted reports for monitoring and debugging.
+
+??? info "Producer - `keyValuePrinter` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/keyvalueprinter-producer.yaml" %}
+    ```
+
+??? info "Processor - `keyValuePrinter` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/keyvalueprinter-processor.yaml" %}
+    ```
+
+**What the example does:**
+
+Demonstrates formatted business reporting with KSML:
+
+* **Sales Data Processing:** Converts raw sales records into reports
+* **Custom Formatting:** Transforms JSON into readable output
+* **Print Operation:** Outputs formatted data via `print`
+* **Real-time Monitoring:** Enables instant visibility of transactions
+
+**Key Features:**
+
+* Python string formatting
+* Null/error handling
+* `keyValuePrinter` function
+* Field extraction from JSON
+
+**Expected Results:**
+
+When running this example, you'll see formatted output like:
+
+- `SALE REPORT | ID: sale_001 | Customer: alice | Product: laptop | Qty: 2 | Amount: $1299.99 | Region: north`
+- `SALE REPORT | ID: sale_002 | Customer: bob | Product: mouse | Qty: 1 | Amount: $29.99 | Region: south`
+
+### metadataTransformer
+
+Transforms a message's metadata (headers and timestamp).
+
+#### Parameters
+
+| Parameter | Type   | Description                                       |
+|-----------|--------|---------------------------------------------------|
+| key       | Any    | The key of the record being processed             |
+| value     | Any    | The value of the record being processed           |
+| metadata  | Object | Contains the headers and timestamp of the message |
+
+#### Return Value
+
+Modified metadata for the output message
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/metadatatransformer-processor.yaml:8:32"
+```
+
+??? info "Producer - `metadataTransformer` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/metadatatransformer-producer.yaml" %}
+    ```
+
+??? info "Processor - `metadataTransformer` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/metadatatransformer-processor.yaml" %}
+    ```
+
+**This example:**
+
+- Shows metadata enrichment in stream processing.
+
+* Generates realistic API events (endpoints + status codes)
+* Enriches headers with timestamps, severity, processor ID
+* Classifies events (critical/warning/info) by status code
+* Logs enrichment for monitoring/debugging
+* Uses Python `time` for timestamps
+* Has conditional + extensible headers
+* Uses `transformMetadata` with `mapper` param
+* Output is formatted via `print`
+
+**Expected Results:**
+
+When running this example, you'll see enriched events with additional headers:
+
+- `ENRICHED EVENT | evt_0001 | POST /api/users | Status: 200 | Headers processed`
+- `ENRICHED EVENT | evt_0002 | DELETE /api/health | Status: 400 | Headers processed`
+- Log messages showing: "Enriched event evt_0001 with 3 additional headers"
+
+### streamPartitioner
+
+Determines which partition a record should be sent to when writing to a Kafka topic. This allows custom partitioning logic based on record content, ensuring related records go to the same partition for ordered processing.
+
+#### Parameters
+
+| Parameter     | Type    | Description                                                            |
+|---------------|---------|------------------------------------------------------------------------|
+| topic         | String  | The name of the topic the record is being sent to                     |
+| key           | Any     | The key of the record being partitioned                               |
+| value         | Any     | The value of the record being partitioned                             |
+| numPartitions | Integer | The total number of partitions available in the target topic          |
+
+#### Return Value
+
+An integer representing the partition number (0 to numPartitions-1) where the record should be sent
+
+#### Example
+
+> **Note:**
+> 
+To test this streamPartitioner example, ensure your topics have sufficient partitions. The example requires **minimum 9 partitions** since it routes to partitions 0-8. Update your docker-compose.yml:
+> 
+```bash
+kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 9 --replication-factor 1 --topic order_events
+kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 9 --replication-factor 1 --topic partitioned_orders
+```
+
+```yaml
+--8<-- "definitions/reference/functions/streampartitioner-example-processor.yaml:13:55"
+```
+
+??? info "Producer - `streamPartitioner` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/streampartitioner-example-producer.yaml" %}
+    ```
+
+??? info "Processor - `streamPartitioner` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/streampartitioner-example-processor.yaml" %}
+    ```
+
+The streamPartitioner function provides custom control over how records are distributed across topic partitions. This example demonstrates intelligent order routing based on business priorities and geographic regions.
+
+**What the example does:**
+
+Implements a sophisticated partitioning strategy for order processing:
+
+* Routes orders to specific partitions based on priority (express/standard/economy)
+* Further segments by geographic region within each priority tier
+* Ensures orders with same priority+region go to same partition
+* Producer generates realistic order events with various priorities/regions
+
+**Key Features:**
+
+* Custom partition calculation based on multiple fields
+* Guaranteed ordering for related records (same priority+region)
+* Improved data locality and processing efficiency
+* Explicit partition count handling (9 partitions total)
+* Fallback to partition 0 for edge cases
+
+**Expected Results:**
+
+When running this example, you'll see log messages like:
+
+- `"Generated order: ORD-0001 with priority=economy, region=CENTRAL"` - Producer creating orders
+- `"Processing order ORD-0001: Priority: economy, Region: CENTRAL -> will be partitioned by priority/region"` - Routing decision
+- Express orders (priority=express) go to partitions 0-2
+- Standard orders (priority=standard) go to partitions 3-5
+- Economy orders (priority=economy) go to partitions 6-8
+- Within each priority range, regions determine the exact partition
+
+### valueJoiner
+
+Combines values from two streams or tables during join operations, creating enriched records that contain data from both
+sources. The function must handle cases where one or both values might be null, depending on the join type (inner, left,
+outer). This function has access to the join key for context-aware value combination.
+
+#### Parameters
+
+| Parameter | Type | Description                            |
+|-----------|------|----------------------------------------|
+| key       | Any  | The join key used to match records     |
+| value1    | Any  | The value from the first stream/table  |
+| value2    | Any  | The value from the second stream/table |
+
+#### Return Value
+
+Combined value
+
+#### Example
+
+```yaml
+--8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:27:47"
+```
+
+**Full example for `valueJoiner`**:
+
+- [Tutorial: Joins](../tutorials/intermediate/joins.md#core-join-concepts) for learning about stream enrichment
+
+## Stream Related Functions
+
+### timestampExtractor
+
+Extracts timestamps from messages for time-based operations.
+
+#### Parameters
+
+| Parameter         | Type   | Description                                                       |
+|-------------------|--------|-------------------------------------------------------------------|
+| record            | Object | The ConsumerRecord containing key, value, timestamp, and metadata |
+| previousTimestamp | Long   | The previous timestamp (can be used as fallback)                  |
+
+#### Return Value
+
+Timestamp in milliseconds (long)
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/timestampextractor-processor.yaml:7:35"
+```
+
+??? info "Producer - `timestampExtractor` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/timestampextractor-producer.yaml" %}
+    ```
+
+??? info "Processor - `timestampExtractor` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/timestampextractor-processor.yaml" %}
+    ```
+
+**What the example does:**
+
+Demonstrates custom timestamp extraction for event-time processing:
+
+* Creates events with custom timestamps that simulate out-of-order and delayed processing scenarios
+* Extracts event-time timestamps from message content rather than using record timestamps
+* Processes events based on their event time rather than arrival time
+* Provides robust fallback mechanisms for missing or invalid timestamps
+* Uses custom `timestampExtractor` function in stream definition
+* Uses Python time manipulation and timestamp handling
+* Support for both ConsumerRecord and direct value access patterns
+
+**Expected Results:**
+
+When running this example, you'll see events processed in time order:
+
+- `Event processed in time order: event_0001 (event_time=1755974335641, delay=155s)`
+- `Event processed in time order: event_0002 (event_time=1755974539885, delay=41s)`
+- Log messages showing: "Using event timestamp: 1755974601885 for event_0015"
+
+### topicNameExtractor
+
+Dynamically determines the target topic for message routing based on record content. This enables intelligent message
+distribution, multi-tenancy support, and content-based routing patterns without requiring separate processing pipelines.
+The function has access to record context for advanced routing decisions.
+
+#### Parameters
+
+| Parameter     | Type   | Description                             |
+|---------------|--------|-----------------------------------------|
+| key           | Any    | The key of the record being processed   |
+| value         | Any    | The value of the record being processed |
+| recordContext | Object | Record metadata and processing context  |
+
+#### Return Value
+
+String representing the topic name to send the message to
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/topicnameextractor-processor.yaml:24:47"
+```
+
+??? info "Producer - `topicNameExtractor` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/topicnameextractor-producer.yaml" %}
+    ```
+
+??? info "Processor - `topicNameExtractor` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/topicnameextractor-processor.yaml" %}
+    ```
+
+**What the example does:**
+
+Demonstrates dynamic topic routing based on message content:
+
+* Creates mixed sensor data (temperature, humidity, pressure) with varying alert levels
+* Routes messages to different topics based on sensor type and priority
+* Prioritizes critical alerts to a dedicated topic regardless of sensor type
+* Distributes normal/warning messages to type-specific topics
+
+**Key Technical Features:**
+
+* `topicNameExtractor` function for dynamic topic selection
+* Priority-based routing with alert level evaluation
+* Fallback topic handling for unknown sensor types
+* `toTopicNameExtractor` operation instead of static `to` operation
+* Integration with logging for routing visibility
+
+**Expected Results:**
+
+When running this example, you'll see messages routed to different topics:
+
+- Critical alerts: `"Critical alert from sensor sensor_05: pressure reading = 78.26"` → `critical_sensor_alerts` topic
+- Normal temperature readings → `temperature_sensors` topic
+- Normal humidity readings → `humidity_sensors` topic
+- Normal pressure readings → `pressure_sensors` topic
+- Unknown sensor types → `unknown_sensor_data` topic
+
+## Other Functions
+
+### generic
+
+Generic custom function that can be used for any purpose. It can accept custom parameters and return any type of value.
+
+#### Parameters
+
+User-defined parameters
+
+#### Return Value
+
+Any value, depending on the function's purpose
+
+#### Example
+
+```yaml
+--8<-- "definitions/reference/functions/generic-processor.yaml:8:34"
+```
+
+??? info "Producer - `generic` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/generic-producer.yaml" %}
+    ```
+
+??? info "Processor - `generic` example (click to expand)"
+
+    ```yaml
+    {% include "../definitions/reference/functions/generic-processor.yaml" %}
+    ```
+
+**What the example does:**
+
+Demonstrates how to create reusable business logic with generic functions:
+
+* Creates sample product data with base prices and discount rates
+* `calculate_price` accepts parameters to compute final pricing with tax
+* The generic function is called from within a valueTransformer
+* Adds calculated pricing information to product records
+
+**Key Technical Features:**
+
+* `type: generic` for reusable custom functions
+* Custom parameter definitions with types (double, string, etc.)
+* Return any data structure (JSON objects, arrays, primitives)
+* Call generic functions from other functions using standard Python syntax
+* Mix generic functions with standard KSML function types
+
+**Expected Results:**
+
+When running these examples, you will see:
+
+- Product data being generated with random base prices and discount rates
+- Log messages showing: "Processed product: prod_001 - Original: $856.58, Final: $922.50, Saved: $128.49"
+- Each product enriched with detailed pricing calculations including tax
+- Generic function providing consistent pricing logic across all products
+
+## How KSML Functions Relate to Kafka Streams
+
+KSML functions are Python implementations that map directly to Kafka Streams Java interfaces. Understanding this
+relationship helps you leverage Kafka Streams documentation and concepts:
+
+### Direct Mappings
+#### Functions for stateless operations
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
+| forEach             | `ForeachAction<K,V>`                           | Process records for side effects   |
+| keyTransformer      | `KeyValueMapper<K,V,KR>`                       | Transform keys                     |
+| keyValueTransformer | `KeyValueMapper<K,V,KeyValue<KR,VR>>`          | Transform both key and value       |
+| predicate           | `Predicate<K,V>`                               | Filter records based on conditions |
+| valueTransformer    | `ValueTransformer<V,VR>` / `ValueMapper<V,VR>` | Transform values                   |
+
+#### Functions for stateful operations
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
+| aggregator          | `Aggregator<K,V,VA>`                           | Aggregate records incrementally    |
+| initializer         | `Initializer<VA>`                              | Provide initial aggregation values |
+| merger              | `Merger<K,V>`                                  | Merge aggregation results          |
+| reducer             | `Reducer<V>`                                   | Combine values of same type        |
+
+#### Special Purpose Functions
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
+| foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
+| keyValueMapper      | `KeyValueMapper<K,V,VR>`                       | Convert key-value to single output |
+| valueJoiner         | `ValueJoiner<V1,V2,VR>`                        | Join values from two streams       |
+
+#### Stream Related Functions
+| KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
+|---------------------|------------------------------------------------|------------------------------------|
+| streamPartitioner   | `StreamPartitioner<K,V>`                       | Custom partition selection         |
+| timestampExtractor  | `TimestampExtractor`                           | Extract event time from records    |
+| topicNameExtractor  | `TopicNameExtractor<K,V>`                      | Dynamic topic routing              |
+
+## Function Execution Context
+
+When your Python functions execute, they have access to:
+
+- **Logger**: For outputting information to application logs
+    - `log.<log-level>("Debug message")` - <log_level> can be debug, info, warn, error, trace
+
+- **Metrics**: For monitoring function performance and behavior
+    - `metrics.counter("name").increment()` - Count occurrences
+    - `metrics.gauge("name").record(value)` - Record values
+    - `with metrics.timer("name"):` - Measure execution time
+
+- **State Stores**: For maintaining state between function invocations (when configured)
+    - `store.get(key)` - Retrieve value from store
+    - `store.put(key, value)` - Store a value
+    - `store.delete(key)` - Remove a value
+    - Must be declared in the function's `stores` parameter
+
+This execution context provides the tools needed for debugging, monitoring, and implementing stateful processing.

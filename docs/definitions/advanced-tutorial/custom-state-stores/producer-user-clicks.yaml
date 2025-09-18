@@ -1,0 +1,87 @@
+# Producer for session store demo - generates user click events with gaps
+
+functions:
+  generate_click_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      click_counter = 0
+      users = ["user_A", "user_B", "user_C"]
+      pages = ["/home", "/products", "/cart", "/checkout", "/profile"]
+    code: |
+      global click_counter, users, pages
+      
+      click_counter += 1
+      user_id = random.choice(users)
+      page = random.choice(pages)
+      
+      # Simulate session gaps by occasionally pausing
+      gap_probability = 0.2  # 20% chance of gap
+      has_gap = False
+      gap_duration = 0
+      if random.random() < gap_probability:
+        # Simulate longer gap between sessions
+        gap_duration = random.randint(1, 5)  # 1-5 second gap
+        has_gap = True
+        log.info("Simulating {}s gap for user {}", gap_duration, user_id)
+      
+      current_timestamp = int(time.time() * 1000)
+      duration_on_page = random.randint(1000, 30000)  # 1-30 seconds
+      
+      # Create structured JSON click event for better readability in Kowl UI
+      click_event = {
+        "user_id": user_id,
+        "page": page,
+        "timestamp": current_timestamp,
+        "click_id": f"click_{click_counter:04d}",
+        "duration_on_page": duration_on_page,
+        "sequence_number": click_counter,
+        "user_agent": random.choice(["Chrome/91.0", "Firefox/89.0", "Safari/14.1", "Edge/91.0"]),
+        "device_info": {
+          "type": random.choice(["desktop", "tablet", "mobile"]),
+          "os": random.choice(["Windows", "MacOS", "Linux", "iOS", "Android"]),
+          "screen_resolution": random.choice(["1920x1080", "1366x768", "1440x900", "375x812"])
+        },
+        "referrer": random.choice([None, "/home", "/products", "/search", "external"]),
+        "session_info": {
+          "has_simulated_gap": has_gap,
+          "gap_duration_hint": gap_duration if has_gap else 0,
+          "expected_session_timeout_ms": 30000
+        },
+        "page_metadata": {
+          "category": {
+            "/home": "landing",
+            "/products": "catalog", 
+            "/cart": "commerce",
+            "/checkout": "commerce",
+            "/profile": "account"
+          }.get(page, "other"),
+          "requires_auth": page in ["/cart", "/checkout", "/profile"],
+          "is_conversion_page": page == "/checkout"
+        },
+        "interaction": {
+          "click_type": random.choice(["navigation", "button", "link", "form"]),
+          "coordinates": {
+            "x": random.randint(0, 1920),
+            "y": random.randint(0, 1080)
+          }
+        },
+        "metadata": {
+          "simulation": True,
+          "session_tracking": True,
+          "gap_simulation": has_gap
+        }
+      }
+      
+    expression: (user_id, click_event)
+    resultType: (string, json)
+
+producers:
+  click_event_producer:
+    generator: generate_click_events
+    interval: 3s  # 3 second intervals to create natural session boundaries
+    to:
+      topic: user_clicks
+      keyType: string
+      valueType: json

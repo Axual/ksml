@@ -1,0 +1,115 @@
+# Producer for event correlation - generates events from multiple sources
+
+functions:
+  generate_user_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      event_counter = 0
+      users = ["alice", "bob", "charlie"]
+    code: |
+      global event_counter, users
+      
+      event_counter += 1
+      user_id = random.choice(users)
+      
+      # Generate user activity with structured JSON
+      activity = random.choice(["page_view", "click", "scroll", "form_submit"])
+      current_timestamp = int(time.time() * 1000)
+      
+      event = {
+        "event_type": "user_activity",
+        "user_id": user_id,
+        "activity": activity,
+        "timestamp": current_timestamp,
+        "event_id": f"user_evt_{event_counter:04d}",
+        "session_id": f"session_{user_id}_{event_counter // 5}",
+        "source": "user_interface",
+        "metadata": {
+          "simulation": True,
+          "correlation_type": "user_system"
+        }
+      }
+      
+      # Add activity-specific data
+      if activity == "page_view":
+        event["page_url"] = f"/page_{random.randint(1, 10)}"
+        event["referrer"] = random.choice(["direct", "search", "social"])
+      elif activity == "click":
+        event["element_id"] = f"btn_{random.randint(1, 5)}"
+        event["element_type"] = random.choice(["button", "link", "image"])
+      elif activity == "form_submit":
+        event["form_id"] = f"form_{random.randint(1, 3)}"
+        event["form_data_length"] = random.randint(10, 100)
+      
+    expression: (user_id, event)
+    resultType: (string, json)
+
+  generate_system_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      event_counter = 0
+      users = ["alice", "bob", "charlie"]
+    code: |
+      global event_counter, users
+      
+      event_counter += 1
+      user_id = random.choice(users)
+      
+      # Generate system events with structured JSON
+      event_type = random.choice(["api_call", "db_query", "cache_hit", "error"])
+      current_timestamp = int(time.time() * 1000)
+      
+      event = {
+        "event_type": "system_event",
+        "system_event": event_type,
+        "user_id": user_id,
+        "timestamp": current_timestamp,
+        "event_id": f"sys_evt_{event_counter:04d}",
+        "source": "backend_system",
+        "server_id": f"server_{random.randint(1, 3)}",
+        "metadata": {
+          "simulation": True,
+          "correlation_type": "user_system"
+        }
+      }
+      
+      # Add event-specific data
+      if event_type == "api_call":
+        event["endpoint"] = f"/api/v1/resource_{random.randint(1, 5)}"
+        event["response_time_ms"] = random.randint(50, 500)
+        event["status_code"] = random.choice([200, 201, 400, 500])
+      elif event_type == "db_query":
+        event["table_name"] = random.choice(["users", "orders", "products"])
+        event["query_time_ms"] = random.randint(10, 200)
+        event["rows_affected"] = random.randint(1, 100)
+      elif event_type == "error":
+        event["error_code"] = random.choice(["E001", "E002", "E003"])
+        event["error_message"] = f"Error in operation {random.randint(1, 10)}"
+        event["severity"] = random.choice(["warning", "error", "critical"])
+      elif event_type == "cache_hit":
+        event["cache_key"] = f"cache_{random.randint(1, 20)}"
+        event["cache_type"] = random.choice(["redis", "memcached"])
+      
+    expression: (user_id, event)
+    resultType: (string, json)
+
+producers:
+  user_event_producer:
+    generator: generate_user_events
+    interval: 2s
+    to:
+      topic: user_events
+      keyType: string
+      valueType: json
+      
+  system_event_producer:
+    generator: generate_system_events
+    interval: 3s
+    to:
+      topic: system_events
+      keyType: string
+      valueType: json

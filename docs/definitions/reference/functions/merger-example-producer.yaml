@@ -1,0 +1,32 @@
+functions:
+  generate_user_activity:
+    type: generator
+    globalCode: |
+      import random, time
+      counter = 0
+      last_act = {}
+      base_t = int(time.time() * 1000)
+    code: |
+      global counter, last_act, base_t
+      uid = random.choice(["alice", "bob", "charlie"])
+      t = base_t + (counter * 2000)
+      if uid in last_act and random.random() < 0.15:
+        t = last_act[uid] + 660000  # 11min gap
+      last_act[uid] = t
+      counter += 1
+      return uid, {
+        "user_id": uid,
+        "page": random.choice(["home", "products", "profile"]),
+        "timestamp": t,
+        "event_type": "page_view"
+      }
+    resultType: (string, json)
+
+producers:
+  activity_producer:
+    generator: generate_user_activity
+    interval: 2s
+    to:
+      topic: user_activity
+      keyType: string
+      valueType: json

@@ -1,0 +1,68 @@
+functions:
+  generate_device_config:
+    type: generator
+    globalCode: |
+      import time
+      import random
+      configCounter = 0
+    code: |
+      global configCounter
+      
+      device_id = "sensor" + str(configCounter)
+      configCounter = (configCounter + 1) % 10
+      
+      # Generate device configuration as JSON
+      config = {
+        "device_id": device_id,
+        "threshold": random.randrange(50, 90),
+        "alert_level": random.choice(["LOW", "MEDIUM", "HIGH"]),
+        "calibration_factor": round(random.uniform(0.8, 1.2), 2),
+        "last_maintenance": str(round(time.time() * 1000))
+      }
+    expression: (device_id, config)
+    resultType: (string, json)
+
+  generate_sensor_reading:
+    type: generator
+    globalCode: |
+      import time
+      import random
+      sensorCounter = 0
+    code: |
+      global sensorCounter
+      
+      key = "sensor" + str(sensorCounter)
+      sensorCounter = (sensorCounter + 1) % 10
+      
+      # Generate sensor reading data that will be output as Avro
+      reading = {
+        "name": key,
+        "timestamp": str(round(time.time() * 1000)),
+        "type": random.choice(["TEMPERATURE", "HUMIDITY", "PRESSURE"]),
+        "unit": random.choice(["C", "F", "%", "Pa"]),
+        "value": str(random.randrange(0, 100)),
+        "color": random.choice(["black", "blue", "red", "yellow", "white"]),
+        "owner": random.choice(["Alice", "Bob", "Charlie", "Dave", "Evan"]),
+        "city": random.choice(["Amsterdam", "Utrecht", "Rotterdam", "The Hague", "Eindhoven"])
+      }
+    expression: (key, reading)
+    resultType: (string, json)  # Generate as JSON, output as Avro
+
+producers:
+  # Produce JSON device configuration every 10 seconds
+  device_config_producer:
+    generator: generate_device_config
+    interval: 10s
+    to:
+      topic: device_config
+      keyType: string
+      valueType: json
+
+  # Produce Avro sensor readings every 3 seconds
+  sensor_reading_producer:
+    generator: generate_sensor_reading
+    interval: 3s
+    to:
+      topic: sensor_readings
+      keyType: string
+      valueType: avro:SensorData

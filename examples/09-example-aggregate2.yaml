@@ -1,0 +1,47 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# This example shows how to read from a simple stream, group by owner, apply windows and count owners per window.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+      - type: groupBy
+        name: group_by_owner2
+        mapper:
+          code: |
+            if value is None or not "owner" in value:
+              return {'key':'no owner'}
+          expression: "{'key':value['owner']}"
+          resultType: json
+      - type: windowByTime
+        windowType: tumbling
+        duration: 20s
+      - type: aggregate
+        store:
+          name: mystep
+          type: window
+          windowSize: 10m
+          retention: 1h
+          caching: false
+        initializer:
+          expression: 0
+          resultType: long
+        aggregator:
+          expression: aggregatedValue+1
+      - type: toStream
+      - type: peek
+        forEach:
+          code: log.info("BEFORE CONVERT - key={}, value={}", key, value)
+      - type: convertKey
+        into: json:windowed(struct)
+      - type: peek
+        forEach:
+          code: log.info("AFTER CONVERT - key={}, value={}", key, value)

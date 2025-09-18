@@ -1,0 +1,61 @@
+# Producer for pattern detection example - generates event sequences
+
+functions:
+  generate_pattern_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      event_counter = 0
+      patterns = ["A", "B", "C", "D", "E"]
+      sessions = ["session_001", "session_002", "session_003"]
+    code: |
+      global event_counter, patterns, sessions
+      
+      event_counter += 1
+      session_id = random.choice(sessions)
+      
+      # Create pattern events - generate A->B->C sequence for specific sessions
+      if event_counter % 9 == 1:
+        event_type = "A"
+        session_id = "session_001"  # Force same session for pattern
+      elif event_counter % 9 == 2:
+        event_type = "B"
+        session_id = "session_001"  # Same session
+      elif event_counter % 9 == 3:
+        event_type = "C"
+        session_id = "session_001"  # Complete the pattern
+      elif event_counter % 9 in [4, 5]:  # Partial pattern
+        event_type = ["A", "B"][event_counter % 9 - 4]
+      else:
+        event_type = random.choice(["D", "E"])  # Other events
+      
+      # Create structured JSON event for better readability in Kowl UI
+      event = {
+        "event_id": f"evt_{event_counter:04d}",
+        "session_id": session_id,
+        "event_type": event_type,
+        "timestamp": int(time.time() * 1000),
+        "data": f"event_data_{event_type}",
+        "source": "pattern_generator",
+        "sequence_number": event_counter,
+        "metadata": {
+          "simulation": True,
+          "pattern_type": "abc_sequence"
+        }
+      }
+      
+      key = session_id
+      value = event
+      
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  pattern_event_producer:
+    generator: generate_pattern_events
+    interval: 1s
+    to:
+      topic: pattern_events
+      keyType: string
+      valueType: json

@@ -1,0 +1,75 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# This example demonstrates inline state store configuration for aggregating sensor data by type
+
+streams:
+  sensor_source:
+    topic: sensor_ownership_data
+    keyType: string
+    valueType: json
+
+  sensor_type_totals:
+    topic: sensor_type_totals
+    keyType: string
+    valueType: json
+
+functions:
+  initialize_sum:
+    type: initializer
+    expression:
+      total_value: 0.0
+      count: 0
+    resultType: json
+
+  update_sum:
+    type: aggregator
+    code: |
+      # Initialize if first time
+      if aggregatedValue is None:
+        aggregatedValue = {}
+        aggregatedValue["total_value"] = 0.0
+        aggregatedValue["count"] = 0
+      
+      # Update totals
+      aggregatedValue["total_value"] += value.get("value", 0.0)
+      aggregatedValue["count"] += 1
+      
+      # Calculate average
+      aggregatedValue["average"] = round(aggregatedValue["total_value"] / aggregatedValue["count"], 2)
+      
+      result = aggregatedValue
+    expression: result
+    resultType: json
+
+pipelines:
+  aggregate_by_sensor_type:
+    from: sensor_source
+    via:
+      - type: groupBy
+        name: group_by_sensor_type
+        mapper:
+          code: |
+            if value is None:
+              return "unknown"  
+            if not "sensor_type" in value:
+              return "unknown"
+          expression: value["sensor_type"]
+          resultType: string
+      - type: aggregate
+        store:
+          name: sensor_type_aggregates
+          type: keyValue
+          keyType: string
+          valueType: json
+          retention: 3m
+          caching: true
+          persistent: false
+          logging: false
+        initializer: initialize_sum
+        aggregator: update_sum
+      - type: toStream
+      - type: peek
+        forEach:
+          code: |
+            log.info("INLINE STORE - Type: {}, avg: {}, count: {}", key, value.get("average"), value.get("count"))
+    to: sensor_type_totals

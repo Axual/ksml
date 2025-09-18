@@ -1,0 +1,51 @@
+# Producer for user session tracking - generates user activity events
+
+functions:
+  generate_user_activity:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      event_counter = 0
+      users = ["alice", "bob", "charlie", "diana", "eve"]
+      actions = ["login", "page_view", "click", "search", "logout"]
+    code: |
+      global event_counter, users, actions
+      
+      event_counter += 1
+      user_id = random.choice(users)
+      action = random.choice(actions)
+      
+      # Generate structured JSON activity for better readability in Kowl UI
+      activity = {
+        "user_id": user_id,
+        "action": action,
+        "timestamp": int(time.time() * 1000),
+        "session_id": f"session_{user_id}_{event_counter // 10}",  # Change session every 10 events
+        "page": f"/page/{random.randint(1, 5)}",
+        "duration_ms": random.randint(100, 5000),
+        "event_id": f"evt_{event_counter:06d}",
+        "browser": random.choice(["chrome", "firefox", "safari", "edge"]),
+        "device_type": random.choice(["desktop", "tablet", "mobile"]),
+        "location": {
+          "country": random.choice(["US", "CA", "UK", "DE", "FR"]),
+          "city": random.choice(["New York", "London", "Paris", "Berlin", "Toronto"])
+        },
+        "metadata": {
+          "simulation": True,
+          "session_tracking": True,
+          "event_sequence": event_counter
+        }
+      }
+      
+    expression: (user_id, activity)
+    resultType: (string, json)
+
+producers:
+  user_activity_producer:
+    generator: generate_user_activity
+    interval: 2s
+    to:
+      topic: user_activity
+      keyType: string
+      valueType: json

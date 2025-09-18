@@ -1,0 +1,66 @@
+# Processor demonstrating list() and tuple() syntax alternatives
+
+streams:
+  student_records:
+    topic: student_records
+    keyType: string
+    valueType: json
+
+  processed_grades:
+    topic: processed_grades
+    keyType: string
+    valueType: json                # Keep as JSON for Kowl UI readability
+
+  processed_locations:
+    topic: processed_locations
+    keyType: string
+    valueType: json                # Keep as JSON for Kowl UI readability
+
+functions:
+  process_grades:
+    type: valueTransformer
+    resultType: list(int)    # Alternative to "[int]" - demonstrates list() syntax
+    code: |
+      grades = value.get("grades", [])
+      # Add a bonus point to each grade
+      processed_grades = [grade + 5 for grade in grades if grade < 95]
+    expression: processed_grades
+
+  process_location:
+    type: valueTransformer
+    resultType: tuple(double, double, string)    # Alternative to "(double, double, string)" - demonstrates tuple() syntax
+    code: |
+      coords = value.get("coordinates", [0.0, 0.0])
+      lat, lng = coords[0], coords[1]
+      
+      # Determine hemisphere based on coordinates
+      hemisphere = "Northern" if lat >= 0 else "Southern"
+    expression: (lat, lng, hemisphere)
+
+pipelines:
+  process_student_grades:
+    from: student_records
+    via:
+      - type: transformValue
+        mapper: process_grades
+      - type: convertValue
+        into: json
+      - type: peek
+        forEach:
+          code: |
+            log.info("PROCESSED GRADES - Student: {}, grades: {}", key, value)
+    to: processed_grades
+
+  process_student_locations:
+    from: student_records
+    via:
+      - type: transformValue
+        mapper: process_location
+      - type: convertValue
+        into: json
+      - type: peek
+        forEach:
+          code: |
+            log.info("PROCESSED LOCATION - Student: {}, lat: {}, lng: {}, hemisphere: {}", 
+                   key, value[0], value[1], value[2])
+    to: processed_locations

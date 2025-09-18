@@ -29,13 +29,15 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      base_path: ["docs"]
+      base_path:
+        - docs                        # the default docs dir
+        - ksml/src/test/resources     # test resources (sibling of docs)
       check_paths: true
   - pymdownx.superfences
   - pymdownx.details
 
-#extra_css:
-#  - stylesheets/extra.css
+extra_css:
+  - stylesheets/extra.css
 
 extra:
   version:
@@ -44,13 +46,46 @@ extra:
 
 nav:
   - Home: index.md
-  - Getting Started: quick-start
-  - Introduction: introduction.md
-  - Stream Types: streams.md
-  - Functions: functions.md
-  - Pipelines: pipelines.md
-  - Operations: operations.md
-  - Data Types: types.md
-  - Runners: runners.md
-  - Language Specification: ksml-language-spec.md
+  - Getting Started:
+      - Quick Start: getting-started/quick-start.md
+      - Understanding KSML: getting-started/introduction.md
+      - Schema Validation: getting-started/schema-validation.md
+  - Tutorials:
+      - Overview: tutorials/index.md
+      - KSML Basics Tutorial: getting-started/basics-tutorial.md
+      - Beginner Tutorials:
+        - Overview: tutorials/beginner/index.md
+        - Filtering and Transforming: tutorials/beginner/filtering-transforming.md
+        - Different Data Formats: tutorials/beginner/data-formats.md
+        - Logging and Monitoring: tutorials/beginner/logging-monitoring.md
+      - Intermediate Tutorials:
+        - Overview: tutorials/intermediate/index.md
+        - Branching: tutorials/intermediate/branching.md
+        - Aggregations: tutorials/intermediate/aggregations.md
+        - Joins: tutorials/intermediate/joins.md
+        - Windowing: tutorials/intermediate/windowing.md
+        - Error Handling: tutorials/intermediate/error-handling.md
+        - State Stores: tutorials/intermediate/state-stores.md
+      - Advanced Tutorials:
+        - Overview: tutorials/advanced/index.md
+        - Complex Event Processing: tutorials/advanced/complex-event-processing.md
+        - Custom State Stores: tutorials/advanced/custom-state-stores.md
+        - Performance Optimization: tutorials/advanced/performance-optimization.md
+        - Integration with External Systems: tutorials/advanced/external-integration.md
+  - Use Case Guides:
+      - Overview: use-cases/index.md
+      - Data Transformation: use-cases/data-transformation.md
+      - Event-Driven Applications: use-cases/event-driven-applications.md
+      - IoT Data Processing: use-cases/iot-data-processing.md
+      - Real-time Analytics: use-cases/real-time-analytics.md
+      - Fraud Detection: use-cases/fraud-detection.md
+  - References:
+      - Overview: reference/index.md
+      - KSML Definition Reference: reference/definition-reference.md
+      - Pipeline Reference: reference/pipeline-reference.md
+      - Function Reference: reference/function-reference.md
+      - Operation Reference: reference/operation-reference.md
+      - Data Types and Notations Reference: reference/data-and-formats-reference.md
+      - State Store Reference: reference/state-store-reference.md
+      - Configuration Reference: reference/configuration-reference.md
   - Release Notes: release-notes.md

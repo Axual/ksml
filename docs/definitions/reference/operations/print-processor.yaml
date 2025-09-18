@@ -1,0 +1,22 @@
+streams:
+  debug_messages:
+    topic: debug_messages  
+    keyType: string
+    valueType: json
+
+functions:
+  format_debug_output:
+    type: keyValuePrinter
+    code: |
+      if value is None: return f"[NULL] {key}"
+      lvl = value.get("level", "?")
+      colors = {"ERROR": "red", "WARNING": "yellow", "INFO": "green", "DEBUG": "blue"}
+      return f"{colors.get(lvl, 'white')} [{lvl}] {value.get('component')} | {value.get('message')} | {value.get('request_id')}"
+    resultType: string
+
+pipelines:
+  print_debug_messages:
+    from: debug_messages
+    print:
+      mapper: format_debug_output
+      prefix: "DEBUG_CONSOLE: "

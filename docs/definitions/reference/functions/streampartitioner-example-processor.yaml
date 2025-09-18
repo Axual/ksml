@@ -1,0 +1,89 @@
+streams:
+  order_events:
+    topic: order_events
+    keyType: string
+    valueType: json
+    offsetResetPolicy: earliest
+
+  partitioned_orders:
+    topic: partitioned_orders
+    keyType: string
+    valueType: json
+
+functions:
+  # StreamPartitioner function determines which partition to send each record to
+  # Returns an integer representing the target partition number
+  priority_region_partitioner:
+    type: streamPartitioner
+    code: |
+      # Custom partitioning logic based on priority and region
+      # This ensures orders with same priority+region go to same partition
+      # for ordered processing and improved locality
+      
+      if value:
+        priority = value.get("priority", "standard")
+        region = value.get("region", "UNKNOWN")
+        
+        # Map priority to a base partition range
+        priority_map = {
+          "express": 0,    # Express gets partitions 0-2
+          "standard": 3,   # Standard gets partitions 3-5
+          "economy": 6     # Economy gets partitions 6-8
+        }
+        
+        # Map region to offset within priority range
+        region_map = {
+          "NORTH": 0,
+          "SOUTH": 1,
+          "EAST": 2,
+          "WEST": 0,
+          "CENTRAL": 1
+        }
+        
+        base_partition = priority_map.get(priority, 3)
+        region_offset = region_map.get(region, 0)
+        
+        # Calculate target partition (assuming 9 partitions total)
+        partition = (base_partition + region_offset) % 9
+        
+        log.debug("Routing order {} to partition {}: priority={}, region={}", 
+                  value.get("order_id"), partition, priority, region)
+        
+        return partition
+      
+      # Default to partition 0 if no value
+      return 0
+    resultType: integer
+
+pipelines:
+  partition_orders:
+    from: order_events
+    via:
+      # Transform to add routing metadata
+      - type: transformValue
+        mapper:
+          code: |
+            # Add partition routing info to the order
+            if value:
+              # Calculate which partition this will go to
+              priority = value.get("priority", "standard")
+              region = value.get("region", "UNKNOWN")
+              value["routing_info"] = f"Priority: {priority}, Region: {region}"
+            result = value
+          expression: result
+          resultType: json
+      
+      # Peek to log the routing decision
+      - type: peek
+        forEach:
+          code: |
+            if value:
+              log.info("Processing order {}: {} -> will be partitioned by priority/region", 
+                       key, value.get("routing_info", "unknown"))
+    
+    # Use the streamPartitioner function when writing to output topic
+    to:
+      topic: partitioned_orders
+      keyType: string
+      valueType: json
+      partitioner: priority_region_partitioner

@@ -1,0 +1,42 @@
+streams:
+  avro_input:
+    topic: sensor_data_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+
+  json_output:
+    topic: sensor_data_json
+    keyType: string
+    valueType: json
+
+pipelines:
+  avro_to_json_pipeline:
+    from: avro_input
+    via:
+      # Log the incoming Avro data
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Original Avro: sensor={}, type={}, value={}{}, timestamp={}, owner={}",
+                      value.get("name"), value.get("type"), value.get("value"), value.get("unit"), 
+                      value.get("timestamp"), value.get("owner"))
+            else:
+              log.info("Received null message with key={}", key)
+
+      # Explicitly convert from Avro to JSON
+      - type: convertValue
+        into: json
+
+      # Log the converted JSON data
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Converted to JSON: sensor={}, type={}, city={}, color={}", 
+                      value.get("name"), value.get("type"), value.get("city"), value.get("color"))
+            else:
+              log.info("JSON conversion result: null")
+
+    to: json_output

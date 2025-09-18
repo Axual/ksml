@@ -1,0 +1,71 @@
+# Validation and filtering example using branch operation
+
+streams:
+  incoming_orders:
+    topic: incoming_orders
+    keyType: string
+    valueType: json
+    
+  valid_orders:
+    topic: valid_orders
+    keyType: string
+    valueType: json
+    
+  invalid_orders:
+    topic: invalid_orders
+    keyType: string
+    valueType: json
+
+functions:
+  add_validation_status:
+    type: valueTransformer
+    code: |
+      value["status"] = "valid"
+      value["validated_at"] = key
+    expression: value
+    resultType: json
+  
+  add_error_details:
+    type: valueTransformer
+    code: |
+      value["status"] = "invalid"
+      if "malformed" in value:
+        value["error_reason"] = "malformed_data"
+      elif "product_id" not in value:
+        value["error_reason"] = "missing_required_fields"
+      elif value.get("quantity", 0) <= 0:
+        value["error_reason"] = "invalid_quantity"
+      else:
+        value["error_reason"] = "validation_failed"
+    expression: value
+    resultType: json
+
+pipelines:
+  validate_orders:
+    from: incoming_orders
+    via:
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processing order: {}", key)
+    branch:
+      # Valid orders branch
+      - if:
+          expression: value and "malformed" not in value and "product_id" in value and value.get("quantity", 0) > 0
+        via:
+          - type: transformValue
+            mapper: add_validation_status
+          - type: peek
+            forEach:
+              code: |
+                log.info("VALID ORDER: {}", key)
+        to: valid_orders
+      # Invalid orders branch  
+      - via:
+          - type: transformValue
+            mapper: add_error_details
+          - type: peek
+            forEach:
+              code: |
+                log.info("INVALID ORDER: {} - {}", key, value.get("error_reason"))
+        to: invalid_orders

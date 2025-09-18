@@ -1,0 +1,38 @@
+name: "Customer Data Producer"
+version: "1.0"
+description: |
+  This producer is part of the Data Transformation Use Case in KSML documentation. It produces legacy customer data to
+  a topic in XML format.
+
+functions:
+  legacy_customer_data_generator:
+    globalCode: |
+      import random
+    code: |
+      value = {
+        "cust_id": random.randrange(100000),
+        "fname": "John",
+        "lname": "Doe",
+        "dob": "1980-01-15",
+        "addr": {
+          "street": "123 Main St",
+          "city": "Anytown",
+          "state": "CA",
+          "zip": "90210"
+        },
+        "phone": "555-123-4567",
+        "legacy_segment": random.choice(["A","B","C"]),
+        "account_created": "2015-03-20"
+      }
+      key = value.get("cust_id")
+      return (key, value)
+    resultType: (string, struct)
+
+producers:
+  legacy_customer_data_producer:
+    generator: legacy_customer_data_generator
+    interval: 1s
+    to:
+      topic: legacy_customer_data
+      keyType: string  # customer_id
+      valueType: xml  # XML customer data

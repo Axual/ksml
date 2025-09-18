@@ -1,0 +1,80 @@
+# Producer for fraud detection - generates credit card transactions
+
+functions:
+  generate_transactions:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      txn_counter = 0
+      cards = ["4111-1111-1111-1111", "4222-2222-2222-2222", "4333-3333-3333-3333"]
+      merchants = ["grocery_store", "gas_station", "online_shop", "restaurant", "atm_withdrawal"]
+      locations = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"]
+    code: |
+      global txn_counter, cards, merchants, locations
+      
+      txn_counter += 1
+      card_number = random.choice(cards)
+      current_timestamp = int(time.time() * 1000)
+      
+      # Generate transaction with occasional suspicious patterns
+      if txn_counter % 15 == 0:
+        # Suspicious: high amount
+        amount = random.uniform(5000, 10000)
+        merchant = "luxury_goods"
+        is_suspicious = True
+        risk_category = "high_amount"
+      elif txn_counter % 20 == 0:
+        # Suspicious: rapid transactions
+        amount = random.uniform(100, 500)
+        merchant = "atm_withdrawal"
+        is_suspicious = True
+        risk_category = "rapid_transaction"
+      else:
+        # Normal transaction
+        amount = random.uniform(10, 500)
+        merchant = random.choice(merchants)
+        is_suspicious = False
+        risk_category = "normal"
+      
+      location = random.choice(locations)
+      
+      # Create structured JSON transaction for better readability in Kowl UI
+      transaction = {
+        "transaction_id": f"txn_{txn_counter:06d}",
+        "card_number": card_number,
+        "amount": round(amount, 2),
+        "merchant": merchant,
+        "location": location,
+        "timestamp": current_timestamp,
+        "merchant_category": {
+          "grocery_store": "retail",
+          "gas_station": "fuel",
+          "online_shop": "ecommerce",
+          "restaurant": "food_service",
+          "atm_withdrawal": "cash",
+          "luxury_goods": "luxury"
+        }.get(merchant, "other"),
+        "transaction_type": "purchase" if merchant != "atm_withdrawal" else "withdrawal",
+        "currency": "USD",
+        "channel": "pos" if merchant in ["grocery_store", "gas_station", "restaurant"] else "online",
+        "metadata": {
+          "simulation": True,
+          "fraud_detection": True,
+          "is_suspicious": is_suspicious,
+          "risk_category": risk_category,
+          "sequence_number": txn_counter
+        }
+      }
+      
+    expression: (card_number, transaction)
+    resultType: (string, json)
+
+producers:
+  transaction_producer:
+    generator: generate_transactions
+    interval: 1s
+    to:
+      topic: credit_card_transactions
+      keyType: string
+      valueType: json
