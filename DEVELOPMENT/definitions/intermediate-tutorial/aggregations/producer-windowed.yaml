@@ -1,0 +1,31 @@
+functions:
+  generate_sensor_reading:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      sensor_counter = 0
+      sensors = ["temp001", "temp002", "temp003"]
+    code: |
+      global sensor_counter, sensors
+      
+      # Cycle through sensors
+      sensor = sensors[sensor_counter % len(sensors)]
+      sensor_counter += 1
+      
+      # Generate temperature reading
+      temperature = round(random.uniform(18.0, 35.0), 1)
+      
+      # Use sensor_id as key
+      key = sensor
+    expression: (key, temperature)
+    resultType: (string, double)
+
+producers:
+  sensor_producer:
+    generator: generate_sensor_reading
+    interval: 2s
+    to:
+      topic: sensor_temperatures
+      keyType: string
+      valueType: double

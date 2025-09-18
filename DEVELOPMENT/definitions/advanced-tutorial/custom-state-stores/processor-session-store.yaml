@@ -1,0 +1,188 @@
+# Processor demonstrating session store for session-based analytics
+
+streams:
+  user_clicks:
+    topic: user_clicks
+    keyType: string
+    valueType: json
+
+stores:
+  user_session_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+
+functions:
+  track_user_sessions:
+    type: valueTransformer
+    stores:
+      - user_session_store
+    code: |
+      import json
+      import time
+      
+      # Extract fields from JSON click event
+      if not value:
+        return None
+      
+      page = value.get("page")
+      duration = value.get("duration_on_page")
+      timestamp = value.get("timestamp")
+      click_id = value.get("click_id")
+      sequence_number = value.get("sequence_number")
+      user_agent = value.get("user_agent")
+      device_info = value.get("device_info", {})
+      referrer = value.get("referrer")
+      session_info = value.get("session_info", {})
+      page_metadata = value.get("page_metadata", {})
+      interaction = value.get("interaction", {})
+      
+      if not page or duration is None or not timestamp:
+        return None
+      
+      # Session timeout: 30 seconds of inactivity
+      session_timeout_ms = 30 * 1000
+      current_time = int(time.time() * 1000)
+      
+      # Get existing session data
+      session_data_str = user_session_store.get(key)
+      if session_data_str:
+        session_data = json.loads(session_data_str)
+      else:
+        session_data = {
+          "user_id": key,
+          "current_session_id": None,
+          "session_start": None,
+          "last_activity": 0,
+          "session_page_count": 0,
+          "session_total_duration": 0,
+          "total_sessions": 0,
+          "pages_visited": [],
+          "devices_used": [],
+          "user_agents": [],
+          "page_categories": [],
+          "conversion_events": 0,
+          "referrer_sources": []
+        }
+      
+      # Check if this starts a new session
+      last_activity = session_data.get("last_activity", 0)
+      time_since_last = timestamp - last_activity
+      session_ended = False
+      
+      if (session_data["current_session_id"] is None or 
+          time_since_last > session_timeout_ms):
+        
+        # End previous session if exists
+        if session_data["current_session_id"] is not None:
+          session_duration = last_activity - session_data["session_start"]
+          log.info("Session ended for {}: duration={}ms, pages={}", 
+                   key, session_duration, session_data["session_page_count"])
+          session_data["total_sessions"] += 1
+          session_ended = True
+        
+        # Start new session
+        session_data["current_session_id"] = f"session_{key}_{timestamp}"
+        session_data["session_start"] = timestamp
+        session_data["session_page_count"] = 0
+        session_data["session_total_duration"] = 0
+        session_data["pages_visited"] = []
+        
+        log.info("New session started for {}: {}", key, session_data["current_session_id"])
+      
+      # Update current session
+      session_data["last_activity"] = timestamp
+      session_data["session_page_count"] += 1
+      session_data["session_total_duration"] += duration
+      session_data["pages_visited"].append(page)
+      
+      # Track additional session metadata
+      device_type = device_info.get("type")
+      if device_type and device_type not in session_data["devices_used"]:
+        session_data["devices_used"].append(device_type)
+      
+      if user_agent and user_agent not in session_data["user_agents"]:
+        session_data["user_agents"].append(user_agent)
+      
+      page_category = page_metadata.get("category")
+      if page_category and page_category not in session_data["page_categories"]:
+        session_data["page_categories"].append(page_category)
+      
+      if page_metadata.get("is_conversion_page", False):
+        session_data["conversion_events"] += 1
+      
+      if referrer and referrer != "None" and referrer not in session_data["referrer_sources"]:
+        session_data["referrer_sources"].append(referrer)
+      
+      # Store updated session
+      user_session_store.put(key, json.dumps(session_data))
+      
+      # Calculate session metrics
+      session_duration_so_far = timestamp - session_data["session_start"]
+      
+      # Generate comprehensive session analytics result
+      result = {
+        "analytics_type": "SESSION_ANALYTICS",
+        "user_id": key,
+        "session_id": session_data["current_session_id"],
+        "session_status": "ended" if session_ended else "active",
+        "current_event": {
+          "click_id": click_id,
+          "page": page,
+          "page_category": page_category,
+          "duration_on_page": duration,
+          "timestamp": timestamp,
+          "sequence_number": sequence_number,
+          "interaction_type": interaction.get("click_type"),
+          "requires_auth": page_metadata.get("requires_auth", False),
+          "is_conversion": page_metadata.get("is_conversion_page", False)
+        },
+        "session_metrics": {
+          "pages_visited_count": session_data["session_page_count"],
+          "total_time_ms": session_data["session_total_duration"],
+          "session_duration_ms": session_duration_so_far,
+          "pages_visited": session_data["pages_visited"][-5:],  # Last 5 pages
+          "unique_categories": session_data["page_categories"],
+          "conversion_events": session_data["conversion_events"],
+          "session_start": session_data["session_start"],
+          "last_activity": session_data["last_activity"]
+        },
+        "user_profile": {
+          "total_sessions": session_data["total_sessions"],
+          "devices_used": session_data["devices_used"],
+          "user_agents": session_data["user_agents"],
+          "referrer_sources": session_data["referrer_sources"]
+        },
+        "device_context": {
+          "current_device": device_info,
+          "current_user_agent": user_agent,
+          "current_referrer": referrer
+        },
+        "session_insights": {
+          "time_since_last_activity": time_since_last,
+          "session_timeout_ms": session_timeout_ms,
+          "has_simulated_gap": session_info.get("has_simulated_gap", False),
+          "avg_time_per_page": session_data["session_total_duration"] / session_data["session_page_count"] if session_data["session_page_count"] > 0 else 0
+        }
+      }
+      
+      return result
+      
+    expression: result if result else None
+    resultType: json
+
+pipelines:
+  session_analytics_pipeline:
+    from: user_clicks
+    via:
+      - type: mapValues
+        mapper: track_user_sessions
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: session_analytics
+      keyType: string
+      valueType: json

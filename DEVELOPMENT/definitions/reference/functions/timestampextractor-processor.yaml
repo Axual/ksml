@@ -1,0 +1,58 @@
+streams:
+  events_input:
+    topic: timestamped_events
+    keyType: string
+    valueType: json
+    # Configure custom timestamp extraction
+    timestampExtractor:
+      code: |
+        # Extract custom timestamp from message value
+        try:
+          # Try different ways to get the value data
+          value_data = None
+          
+          # Method 1: If record is a ConsumerRecord with .value() method
+          if hasattr(record, 'value') and callable(record.value):
+            value_data = record.value()
+          # Method 2: If record is the value directly (dict)
+          elif isinstance(record, dict):
+            value_data = record
+          
+          # Extract custom timestamp from event data
+          if value_data and "event_timestamp" in value_data:
+            event_time = value_data.get("event_timestamp")
+            if event_time and event_time > 0:
+              log.info("Using event timestamp: {} for {}", event_time, value_data.get("event_id"))
+              return event_time
+              
+        except Exception as e:
+          log.warn("Error extracting custom timestamp: {}", str(e))
+        
+        # Fallback to record timestamp or current time
+        import time
+        current_time = int(time.time() * 1000)
+        log.info("Using current time as fallback: {}", current_time)
+        return current_time
+        
+  ordered_events:
+    topic: time_ordered_events
+    keyType: string
+    valueType: json
+
+functions:
+  log_timestamp_info:
+    type: forEach
+    code: |
+      event_time = value.get("event_timestamp") if value else 0
+      delay = value.get("processing_delay", 0) if value else 0
+      
+      log.info("Event processed in time order: {} (event_time={}, delay={}s)", 
+               key, event_time, delay)
+
+pipelines:
+  process_with_event_time:
+    from: events_input
+    via:
+      - type: peek
+        forEach: log_timestamp_info
+    to: ordered_events

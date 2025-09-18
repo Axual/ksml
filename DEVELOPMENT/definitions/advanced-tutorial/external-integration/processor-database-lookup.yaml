@@ -1,0 +1,153 @@
+# Processor demonstrating database lookup pattern with state store caching
+
+streams:
+  product_events:
+    topic: product_events
+    keyType: string
+    valueType: json
+
+stores:
+  product_reference_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+
+functions:
+  load_product_reference_data:
+    type: forEach
+    globalCode: |
+      import json
+      
+      # Track if we've already loaded the data
+      data_loaded = False
+      
+      def load_product_catalog():
+        """Simulate loading product data from database"""
+        # Mock product catalog (simulates database query results)
+        products = {
+          "PROD001": {"name": "Wireless Headphones", "price": 99.99, "category": "Electronics"},
+          "PROD002": {"name": "Coffee Mug", "price": 12.50, "category": "Kitchen"},
+          "PROD003": {"name": "Running Shoes", "price": 129.99, "category": "Sports"},
+          "PROD004": {"name": "Notebook", "price": 5.99, "category": "Office"},
+          "PROD005": {"name": "Smartphone", "price": 699.99, "category": "Electronics"}
+        }
+        
+        log.info("Loaded {} products into reference data store", len(products))
+        return products
+        
+    code: |
+      global data_loaded
+      
+      # Only load data once
+      if not data_loaded:
+        # Load product data into state store (simulates database loading)
+        products = load_product_catalog()
+        
+        for product_id, product_data in products.items():
+          # Store as JSON string to avoid ForeignObject issues
+          product_reference_store.put(product_id, json.dumps(product_data))
+        
+        data_loaded = True
+        log.info("Product reference data loaded into state store")
+    stores:
+      - product_reference_store
+
+  enrich_with_product_data:
+    type: valueTransformer
+    code: |
+      import json
+      
+      # Extract fields from JSON product event using .get() method
+      if not value:
+        return None
+        
+      event_id = str(value.get("event_id", ""))
+      event_type = str(value.get("event_type", ""))
+      product_id = str(value.get("product_id", ""))
+      quantity = int(value.get("quantity", 0))
+      timestamp = int(value.get("timestamp", 0))
+      user_id = str(value.get("user_id", ""))
+      session_id = str(value.get("session_id", ""))
+      page_location = str(value.get("page_location", ""))
+      
+      if not event_type or not product_id or quantity == 0:
+        return None
+      
+      # Look up product data from state store (cached database data)
+      product_data_str = product_reference_store.get(product_id)
+      
+      if product_data_str:
+        # Parse JSON string to get product data
+        product_data = json.loads(product_data_str)
+        
+        # Calculate total price for purchase events
+        unit_price = product_data.get("price", 0.0)
+        total_price = unit_price * quantity if event_type in ["purchased", "added_to_cart"] else 0.0
+        
+        # Create enriched event with product details
+        enriched_event = {
+          "event_id": event_id,
+          "event_type": event_type,
+          "product_id": product_id,
+          "quantity": quantity,
+          "timestamp": timestamp,
+          "user_id": user_id,
+          "session_id": session_id,
+          "page_location": page_location,
+          "enriched_data": {
+            "name": product_data.get("name", "Unknown"),
+            "category": product_data.get("category", "Unknown"),
+            "unit_price": unit_price,
+            "total_price": total_price
+          },
+          "cache_hit": True
+        }
+        
+        log.info("Enriched {} event for product: {} ({})", event_type, product_data.get("name"), product_id)
+        return enriched_event
+      else:
+        # Product not found in cache
+        fallback_event = {
+          "event_id": event_id,
+          "event_type": event_type,
+          "product_id": product_id,
+          "quantity": quantity,
+          "timestamp": timestamp,
+          "user_id": user_id,
+          "session_id": session_id,
+          "page_location": page_location,
+          "enriched_data": {
+            "name": "Unknown Product",
+            "category": "Unknown",
+            "unit_price": 0.0,
+            "total_price": 0.0
+          },
+          "cache_hit": False
+        }
+        
+        log.warn("Product not found in reference data: {}", product_id)
+        return fallback_event
+        
+    expression: result if result else None
+    resultType: json
+    stores:
+      - product_reference_store
+
+pipelines:
+  # Process product events with database lookup
+  product_enrichment_pipeline:
+    from: product_events
+    via:
+      - type: peek
+        forEach: load_product_reference_data
+      - type: mapValues
+        mapper: enrich_with_product_data
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: enriched_product_events
+      keyType: string
+      valueType: json

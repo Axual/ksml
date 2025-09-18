@@ -1,0 +1,30 @@
+streams:
+  input_stream:
+    topic: tutorial_input
+    keyType: string
+    valueType: json
+  output_stream:
+    topic: filtered_data
+    keyType: string
+    valueType: json
+
+functions:
+  temperature_filtered:
+    type: predicate
+    expression: value.get('sensors', {}).get('temperature') > 20 and value.get('sensors', {}).get('humidity') < 80 and value.get('sensors', {}).get('location') == 'warehouse'
+  log_message:
+    type: forEach
+    code: |
+      log.info("Processed message: key={}, value={}", key, value)
+
+pipelines:
+  filtering_pipeline:
+    from: input_stream
+    via:
+      - type: filter
+        if: temperature_filtered
+      - type: peek
+        forEach:
+          code: |
+            log_message(key, value)
+    to: output_stream

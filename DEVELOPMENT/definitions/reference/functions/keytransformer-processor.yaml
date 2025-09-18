@@ -1,0 +1,33 @@
+streams:
+  transaction_input:
+    topic: transaction_events
+    keyType: string
+    valueType: json
+  region_output:
+    topic: transactions_by_region
+    keyType: string
+    valueType: json
+
+functions:
+  extract_region_key:
+    type: keyTransformer
+    code: |
+      if value is None: return "unknown"
+      return value.get("region", "unknown")
+    resultType: string
+    
+  log_repartitioned:
+    type: forEach
+    code: |
+      log.info("Repartitioned - Key: {}, Region: {}, Amount: ${}", 
+               key, value.get("region"), value.get("amount"))
+
+pipelines:
+  region_repartitioning:
+    from: transaction_input
+    via:
+      - type: mapKey
+        mapper: extract_region_key
+      - type: peek
+        forEach: log_repartitioned
+    to: region_output

@@ -1,0 +1,43 @@
+# Producer for pipeline optimization demo - generates mixed quality events
+
+functions:
+  generate_mixed_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      event_counter = 0
+      event_types = ["valid_purchase", "valid_view", "spam", "invalid", "test", "bot_traffic"]
+      priorities = ["high", "medium", "low", "spam"]
+    code: |
+      global event_counter, event_types, priorities
+      
+      event_counter += 1
+      event_type = random.choice(event_types)
+      priority = random.choice(priorities)
+      
+      # Mix of valid and invalid events to demonstrate filtering optimization
+      is_valid = event_type.startswith("valid") and priority != "spam"
+      
+      # Create event data with quality indicators as JSON
+      event_data = {
+        "event_type": event_type,
+        "priority": priority,
+        "is_valid": is_valid,
+        "score": random.randint(1, 1000),
+        "timestamp": int(time.time() * 1000),
+        "batch_id": event_counter // 100,  # Group events in batches
+        "source": "pipeline_test"
+      }
+      
+    expression: (f"event_{event_counter:06d}", event_data)
+    resultType: (string, json)
+
+producers:
+  mixed_events_producer:
+    generator: generate_mixed_events
+    interval: 1s  # High frequency to test filtering efficiency
+    to:
+      topic: mixed_quality_events
+      keyType: string
+      valueType: json

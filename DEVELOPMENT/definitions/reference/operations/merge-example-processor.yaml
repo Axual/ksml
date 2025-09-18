@@ -1,0 +1,39 @@
+streams:
+  stream_a:
+    topic: stream_a
+    keyType: string
+    valueType: json
+    offsetResetPolicy: earliest
+
+  stream_b:
+    topic: stream_b
+    keyType: string
+    valueType: json
+    offsetResetPolicy: earliest
+
+  merged_stream:
+    topic: merged_stream
+    keyType: string
+    valueType: json
+
+pipelines:
+  merge_streams:
+    from: stream_a
+    via:
+      # Merge with stream B
+      - type: merge
+        stream: stream_b
+      
+      # Log merged messages
+      - type: peek
+        forEach:
+          code: |
+            if value:
+              log.info("Merged message: {} from {} - color: {}", 
+                       value.get("id", "unknown"), 
+                       value.get("source", "unknown"), 
+                       value.get("color", "unknown"))
+    to:
+      topic: merged_stream
+      keyType: string
+      valueType: json

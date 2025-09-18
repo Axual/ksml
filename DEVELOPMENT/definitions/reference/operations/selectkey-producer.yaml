@@ -1,0 +1,31 @@
+streams:
+  user_events:
+    topic: user_events
+    keyType: string
+    valueType: json
+
+functions:
+  generate_user_event:
+    type: generator
+    resultType: (string,json)
+    code: |
+      import random, time
+      uid = random.choice(["u01", "u02", "u03"])
+      evt = random.choice(["login", "purchase", "view"])
+      sid = f"s{random.randint(100, 999)}"
+      data = {
+        "user_id": uid,
+        "event_type": evt,
+        "session_id": sid,
+        "timestamp": int(time.time())
+      }
+      if evt == "purchase":
+        data["amount"] = round(random.uniform(10, 500), 2)
+      return (sid, data)
+
+producers:
+  # Produce user events every 3 seconds
+  user_event_producer:
+    generator: generate_user_event
+    interval: 3s
+    to: user_events

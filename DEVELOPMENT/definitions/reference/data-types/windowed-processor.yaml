@@ -1,0 +1,87 @@
+# Demonstrates windowed type usage in KSML
+# 
+# This example shows how to use the windowed(<base_type>) syntax with convertKey operation.
+# After windowing operations, KSML internally uses windowed keys. The convertKey operation
+# with 'into: windowed(string)' explicitly converts to this type for internal processing.
+#
+# IMPORTANT: While windowed types can be used internally and in stream definitions,
+# they cannot be serialized to Kafka topics. The final transformation to regular strings
+# is necessary for writing to Kafka.
+streams:
+  user_events:
+    topic: user_events
+    keyType: string
+    valueType: json  # Input events
+  
+  # Output stream with regular string keys (transformed from windowed keys)
+  windowed_counts:
+    topic: windowed_counts  
+    keyType: string  # Regular string key after transformation
+    valueType: json  # JSON value containing count and window info
+
+stores:
+  event_counts_store:
+    type: window
+    retention: 1m  # Keep window data for 1 minute
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_events_by_window:
+    from: user_events
+    via:
+      # Group by key (user) for counting
+      - type: groupByKey
+      
+      # Apply a 10-second tumbling window
+      - type: windowByTime
+        windowType: tumbling
+        duration: 10s
+      
+      # Count events in each window
+      - type: count
+        store: event_counts_store
+      
+      # Convert to stream for processing
+      - type: toStream
+      
+      # DEMONSTRATES windowed(<base_type>) USAGE:
+      # Explicitly convert the key to windowed(string) type
+      # This shows how KSML handles windowed keys internally
+      - type: convertKey
+        into: windowed(string)
+      
+      # Log the windowed counts with the windowed key type
+      - type: peek
+        forEach:
+          code: |
+            log.info("Windowed key type - User {} had {} events in window [{} - {}]", 
+                     key['key'], value, key['startTime'], key['endTime'])
+      
+      # Transform windowed key to string for Kafka output
+      # This is necessary because Kafka topics cannot serialize windowed keys
+      - type: transformKeyValue
+        mapper:
+          resultType: (string, json)
+          code: |
+            # Extract window information from the windowed key
+            # Convert to a string key format: "user_startTime_endTime"
+            new_key = f"{key['key']}_{key['start']}_{key['end']}"
+            
+            # Create a JSON value with all the information
+            new_value = {
+                "user": key['key'],
+                "count": value,
+                "window_start": key['start'],
+                "window_end": key['end'],
+                "window_start_time": key['startTime'],
+                "window_end_time": key['endTime']
+            }
+            
+            log.info("Transformed to string key - User {} had {} events in window [{} - {}]", 
+                     key['key'], value, key['startTime'], key['endTime'])
+            
+            return (new_key, new_value)
+    
+    # Now we can write to the topic with regular string keys
+    to: windowed_counts

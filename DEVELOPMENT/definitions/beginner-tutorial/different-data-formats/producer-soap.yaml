@@ -1,0 +1,43 @@
+functions:
+  generate_soap_message:
+    type: generator
+    globalCode: |
+      counter = 0
+    code: |
+      global counter
+      
+      key = "msg" + str(counter)
+      counter = (counter + 1) % 100
+      
+      # Create simple SOAP message
+      value = {
+        "envelope": {
+          "body": {
+            "elements": [
+              {
+                "name": {
+                  "localPart": "SensorRequest",
+                  "namespaceURI": "http://example.com/ksml"
+                },
+                "value": {
+                  "id": str(counter),
+                  "type": "temperature"
+                }
+              }
+            ]
+          }
+        }
+      }
+      
+      log.info("Generated SOAP message: {}", key)
+    expression: (key, value)
+    resultType: (string, soap)
+
+producers:
+  soap_producer:
+    generator: generate_soap_message
+    interval: 3s
+    to:
+      topic: ksml_soap_requests
+      keyType: string
+      valueType: soap
