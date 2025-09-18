@@ -5,6 +5,7 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 ## 1. Getting Started
 - [Quick Start](getting-started/quick-start.md)
 - [Understanding KSML](getting-started/introduction.md)
+- [Schema Validation Setup](getting-started/schema-validation.md)
 
 ## 2. Tutorials
 - [Overview](tutorials/index.md)
