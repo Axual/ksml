@@ -1,0 +1,5 @@
+functions:
+  log_message:
+    type: forEach
+    code: |
+      log.info("Processing message with key: {}", key)

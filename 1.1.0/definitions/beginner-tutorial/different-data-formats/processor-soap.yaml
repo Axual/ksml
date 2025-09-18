@@ -1,0 +1,63 @@
+streams:
+  soap_input:
+    topic: ksml_soap_requests
+    keyType: string
+    valueType: soap
+    offsetResetPolicy: latest
+
+  soap_output:
+    topic: ksml_soap_responses
+    keyType: string
+    valueType: soap
+
+functions:
+  create_response:
+    type: valueTransformer
+    code: |
+      # Extract request data
+      request_elements = value.get("envelope", {}).get("body", {}).get("elements", [])
+      request_data = request_elements[0].get("value", {}) if request_elements else {}
+      
+      # Create SOAP response
+      result = {
+        "envelope": {
+          "body": {
+            "elements": [
+              {
+                "name": {
+                  "localPart": "SensorResponse",
+                  "namespaceURI": "http://example.com/ksml"
+                },
+                "value": {
+                  "id": request_data.get("id", "unknown"),
+                  "temperature": "25"
+                }
+              }
+            ]
+          }
+        }
+      }
+    expression: result
+    resultType: soap
+
+pipelines:
+  process_soap:
+    from: soap_input
+    via:
+      # Log input
+      - type: peek
+        forEach:
+          code: |
+            log.info("SOAP request: key={}", key)
+
+      # Transform to response
+      - type: transformValue
+        mapper: create_response
+
+      # Log output
+      - type: peek
+        forEach:
+          code: |
+            log.info("SOAP response: key={}", key)
+
+    to: soap_output

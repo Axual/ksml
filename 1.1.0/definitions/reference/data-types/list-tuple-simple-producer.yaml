@@ -1,0 +1,28 @@
+# Simple producer demonstrating list() and tuple() syntax alternatives
+
+functions:
+  generate_grades:
+    type: generator
+    resultType: tuple(string, json)  # Alternative to "(string, json)" - no quotes needed
+    globalCode: |
+      import random
+    code: |
+      student_id = f"student_{random.randint(1000, 9999)}"
+      
+      # Generate simple student grades data
+      student_data = {
+        "grades": [random.randint(70, 100) for _ in range(3)]
+      }
+    expression: (student_id, student_data)
+
+streams:
+  student_grades:
+    topic: student_grades
+    keyType: string
+    valueType: json
+
+producers:
+  grades_producer:
+    to: student_grades
+    interval: 3000
+    generator: generate_grades

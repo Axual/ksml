@@ -1,0 +1,95 @@
+# Processor for pattern detection - detects A->B->C sequences
+
+streams:
+  pattern_events:
+    topic: pattern_events
+    keyType: string
+    valueType: json
+
+stores:
+  pattern_tracker:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+
+functions:
+  detect_abc_pattern:
+    type: valueTransformer
+    globalCode: |
+      import time
+    stores:
+      - pattern_tracker
+    code: |
+      # Extract fields from JSON event
+      event_type = value.get("event_type")
+      event_id = value.get("event_id")
+      session_id = value.get("session_id")
+      timestamp = value.get("timestamp")
+      sequence_number = value.get("sequence_number")
+      current_time = int(time.time() * 1000)
+      
+      if not event_type or not event_id:
+        return None
+      
+      # Get current pattern state
+      current_state = pattern_tracker.get(key) or ""
+      
+      # Check for pattern completion
+      if event_type == "A":
+        # Start new pattern
+        pattern_tracker.put(key, "A")
+        log.info("Pattern started for {}: A", key)
+        return None
+      elif event_type == "B" and current_state == "A":
+        # Continue pattern
+        pattern_tracker.put(key, "AB")
+        log.info("Pattern progressing for {}: A->B", key)
+        return None
+      elif event_type == "C" and current_state == "AB":
+        # Pattern complete!
+        pattern_tracker.delete(key)
+        log.info("PATTERN DETECTED for {}: A->B->C", key)
+        
+        # Create structured JSON result
+        return {
+          "pattern_type": "ABC_SEQUENCE",
+          "status": "DETECTED",
+          "session_id": session_id,
+          "completing_event": {
+            "event_id": event_id,
+            "event_type": event_type,
+            "timestamp": timestamp,
+            "sequence_number": sequence_number
+          },
+          "detection_timestamp": current_time,
+          "processing_time": current_time - timestamp,
+          "metadata": {
+            "pattern_duration": current_time - timestamp,
+            "detector": "abc_pattern_detector"
+          }
+        }
+      else:
+        # Reset on invalid sequence
+        if current_state:
+          log.info("Pattern broken for {}, was: {}, got: {}", key, current_state, event_type)
+          pattern_tracker.delete(key)
+        return None
+        
+    expression: result if result else None
+    resultType: json
+
+pipelines:
+  pattern_detection_pipeline:
+    from: pattern_events
+    via:
+      - type: mapValues
+        mapper: detect_abc_pattern
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: detected_patterns
+      keyType: string
+      valueType: json

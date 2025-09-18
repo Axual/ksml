@@ -1,0 +1,102 @@
+# Dead letter queue pattern with retry logic for transient failures
+
+streams:
+  payment_requests:
+    topic: payment_requests
+    keyType: string
+    valueType: json
+    
+  processed_payments:
+    topic: processed_payments
+    keyType: string
+    valueType: json
+    
+  failed_payments:
+    topic: failed_payments
+    keyType: string
+    valueType: json
+
+functions:
+  process_payment:
+    type: valueTransformer
+    code: |
+      # Validate payment request
+      if value is None or "invalid" in value:
+        result = {
+          "payment_id": "unknown",
+          "status": "permanent_failure",
+          "error": "malformed_request",
+          "retry_eligible": False,
+          "original_request": value
+        }
+      elif value.get("amount", 0) <= 0:
+        result = {
+          "payment_id": value.get("payment_id", "unknown"),
+          "status": "permanent_failure", 
+          "error": "invalid_amount",
+          "retry_eligible": False,
+          "original_request": value
+        }
+      elif "currency" not in value or "merchant_id" not in value:
+        result = {
+          "payment_id": value.get("payment_id", "unknown"),
+          "status": "permanent_failure",
+          "error": "missing_required_fields",
+          "retry_eligible": False,
+          "original_request": value
+        }
+      elif value.get("currency") not in ["USD", "EUR", "GBP"]:
+        result = {
+          "payment_id": value.get("payment_id", "unknown"),
+          "status": "permanent_failure",
+          "error": "unsupported_currency",
+          "retry_eligible": False,
+          "original_request": value
+        }
+      elif value.get("merchant_id") == "temp_failure_merchant":
+        # Simulate temporary network failure
+        result = {
+          "payment_id": value.get("payment_id", "unknown"),
+          "status": "temporary_failure",
+          "error": "network_timeout",
+          "retry_eligible": True,
+          "original_request": value
+        }
+      else:
+        # Process successful payment
+        result = {
+          "payment_id": value.get("payment_id"),
+          "amount": value.get("amount"),
+          "currency": value.get("currency"),
+          "merchant_id": value.get("merchant_id"),
+          "status": "processed",
+          "processed_at": key
+        }
+    
+    expression: result
+    resultType: json
+
+pipelines:
+  process_payments:
+    from: payment_requests
+    via:
+      - type: transformValue
+        mapper: process_payment
+      - type: peek
+        forEach:
+          code: |
+            status = value.get("status", "unknown")
+            payment_id = value.get("payment_id", "unknown")
+            if status == "processed":
+              log.info("PAYMENT SUCCESS - {}: ${}", payment_id, value.get("amount"))
+            elif status == "temporary_failure":
+              log.warn("PAYMENT RETRY - {}: {}", payment_id, value.get("error"))
+            else:
+              log.error("PAYMENT FAILED - {}: {}", payment_id, value.get("error"))
+    branch:
+      # Route successful payments
+      - if:
+          expression: value.get("status") == "processed"
+        to: processed_payments
+      # Route failed payments to dead letter queue
+      - to: failed_payments

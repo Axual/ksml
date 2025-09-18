@@ -1,0 +1,53 @@
+streams:
+  api_events_input:
+    topic: api_events
+    keyType: string
+    valueType: json
+
+functions:
+  enrich_event_metadata:
+    type: metadataTransformer
+    code: |
+      import time
+      
+      # Get processing timestamp
+      process_time = int(time.time() * 1000)
+      
+      # Determine event severity based on status code
+      status_code = value.get("status_code", 200) if value else 200
+      severity = "critical" if status_code >= 500 else "warning" if status_code >= 400 else "info"
+      
+      # Add processing headers
+      new_headers = [
+        {"key": "processed_timestamp", "value": str(process_time)},
+        {"key": "event_severity", "value": severity},
+        {"key": "processor_id", "value": "ksml-metadata-enricher"}
+      ]
+      
+      # Preserve existing headers and add new ones
+      existing_headers = metadata.get("headers", [])
+      metadata["headers"] = existing_headers + new_headers
+      
+      log.info("Enriched event {} with {} additional headers", key, len(new_headers))
+      return metadata
+
+pipelines:
+  enrich_api_events:
+    from: api_events_input
+    via:
+      - type: transformMetadata
+        mapper: enrich_event_metadata
+      - type: peek
+        forEach:
+          code: |
+            log.info("API Event: {} {} - Status: {} - Response Time: {}ms", 
+                     value.get("method"), value.get("endpoint"),
+                     value.get("status_code"), value.get("response_time_ms"))
+    print:
+      mapper:
+        code: |
+          method = value.get('method', 'UNKNOWN')
+          endpoint = value.get('endpoint', '/unknown')
+          status = value.get('status_code', 0)
+          return f"ENRICHED EVENT | {key} | {method} {endpoint} | Status: {status} | Headers processed"
+        resultType: string

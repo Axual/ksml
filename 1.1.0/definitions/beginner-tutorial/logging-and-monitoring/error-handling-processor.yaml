@@ -1,0 +1,41 @@
+# Error handling processor with structured logging
+# Shows try-catch pattern and structured log messages
+
+streams:
+  error_input:
+    topic: ksml_logging_input
+    keyType: string  
+    valueType: json
+  error_output:
+    topic: ksml_error_handled_output
+    keyType: string
+    valueType: json
+
+functions:
+  safe_process:
+    type: valueTransformer
+    code: |
+      import time
+      try:
+        result = dict(value) if value else {}
+        result["processed"] = True
+        
+        # Structured logging with timestamp and component info
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        log.info("[{}] Component: {} | Message: {}", 
+                timestamp, value.get("component"), value.get("message"))
+                
+      except Exception as e:
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        log.error("[{}] Failed to process: {}", timestamp, str(e))
+        result = {"error": str(e), "processed": False}
+    expression: result
+    resultType: json
+
+pipelines:
+  error_handling_pipeline:
+    from: error_input
+    via:
+      - type: transformValue
+        mapper: safe_process
+    to: error_output

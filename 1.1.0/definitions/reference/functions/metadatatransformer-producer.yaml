@@ -1,0 +1,38 @@
+functions:
+  generate_api_events:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+      endpoints = ["/api/users", "/api/orders", "/api/products", "/api/health"]
+      methods = ["GET", "POST", "PUT", "DELETE"]
+      
+    code: |
+      global counter, endpoints, methods
+      
+      # Generate event ID as key
+      event_id = f"evt_{counter:04d}"
+      counter += 1
+      
+      # Generate API event data
+      event_data = {
+        "event_id": event_id,
+        "endpoint": random.choice(endpoints),
+        "method": random.choice(methods),
+        "user_id": f"user_{random.randint(1, 50):03d}",
+        "status_code": random.choices([200, 201, 400, 404, 500], weights=[60, 15, 15, 5, 5])[0],
+        "response_time_ms": random.randint(50, 1500),
+        "timestamp": "auto"
+      }
+      
+    expression: (event_id, event_data)
+    resultType: (string, json)
+
+producers:
+  api_event_producer:
+    generator: generate_api_events
+    interval: 2s
+    to:
+      topic: api_events
+      keyType: string
+      valueType: json
