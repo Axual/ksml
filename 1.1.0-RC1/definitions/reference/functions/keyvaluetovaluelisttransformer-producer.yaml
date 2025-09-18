@@ -1,0 +1,45 @@
+functions:
+  generate_order_data:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+      products = ["laptop", "phone", "tablet", "headphones", "speaker"]
+    code: |
+      global counter, products
+      
+      # Generate order ID as key  
+      order_id = f"order_{counter:03d}"
+      counter += 1
+      
+      # Generate order with multiple items
+      num_items = random.randint(2, 5)
+      items = []
+      
+      for i in range(num_items):
+        item = {
+          "product": random.choice(products),
+          "quantity": random.randint(1, 3),
+          "price": round(random.uniform(50.0, 500.0), 2)
+        }
+        items.append(item)
+      
+      # Create order value with items array
+      value = {
+        "order_id": order_id,
+        "customer_id": f"cust_{random.randint(1, 50):03d}",
+        "items": items,
+        "order_total": sum(item["price"] * item["quantity"] for item in items)
+      }
+      
+    expression: (order_id, value)
+    resultType: (string, json)
+
+producers:
+  order_producer:
+    generator: generate_order_data
+    interval: 3s
+    to:
+      topic: customer_orders
+      keyType: string
+      valueType: json

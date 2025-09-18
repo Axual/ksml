@@ -1,0 +1,74 @@
+name: "Product and Order Event Producer"
+version: "1.0"
+description: |
+  This producer is part of the Event-Driven Applications Use Case in KSML documentation. It produces a fixed series of
+  records to the product_catalog topic. Next to that, every second a random product order is generated and sent to the
+  order_events topic.
+
+functions:
+  global_function:
+    globalCode: |
+      # Global product catalog
+      products = [
+        {"id": "prod-123", "name": "Wireless Headphones", "category": "electronics", "price": 79.99, "reorder_threshold": 10, "reorder_quantity": 50, "critical_threshold": 5},
+        {"id": "prod-456", "name": "Laptop Charger", "category": "electronics", "price": 55.99, "reorder_threshold": 5, "reorder_quantity": 25, "critical_threshold": 3},
+        {"id": "prod-789", "name": "Phone Cover", "category": "accessories", "price": 12.99, "reorder_threshold": 20, "reorder_quantity": 100, "critical_threshold": 10}
+      ]
+
+  product_catalog_generator:
+    globalCode: |
+      import time
+      count = 0
+    code: |
+      global count
+      count = (count + 1) % len(products)
+      value = products[count]
+      key = value.get("id")
+      return (key, value)
+    resultType: (string, struct)
+
+  order_event_generator:
+    globalCode: |
+      import random
+    code: |
+      items = []
+      total_price = 0
+      for item in range(random.randrange(1,4)):
+        product = random.choice(products)
+        quantity = random.randrange(1,10)
+        price = product.get("price") * quantity
+        total_price += price
+        items += [{
+          "product_id": product.get("id"),
+          "quantity": quantity,
+          "unit_price": product.get("price")
+        }]
+
+      # Return order event
+      value = {
+        "order_id": "order-"+str(random.randrange(999999)),
+        "customer_id": "cust-"+str(random.randrange(999999)),
+        "items": items,
+        "order_total": total_price,
+        "timestamp": int(time.time() * 1000)
+      }
+    expression: (value.get("order_id"), value)
+    resultType: (string, struct)
+
+producers:
+  product_catalog_producer:
+    generator: product_catalog_generator
+    interval: 1
+    count: 3
+    to:
+      topic: product_catalog
+      keyType: string  # Product id
+      valueType: json  # Product information including reorder info
+
+  order_event_producer:
+    generator: order_event_generator
+    interval: 1s
+    to:
+      topic: order_events
+      keyType: string  # stock key (warehouse id + product id)
+      valueType: json  # JSON inventory data

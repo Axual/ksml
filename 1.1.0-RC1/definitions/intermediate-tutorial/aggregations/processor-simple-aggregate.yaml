@@ -1,0 +1,31 @@
+streams:
+  payment_amounts:
+    topic: payment_amounts
+    keyType: string  # customer_id
+    valueType: long  # amount in cents
+
+  payment_totals:
+    topic: payment_totals
+    keyType: string
+    valueType: long
+
+pipelines:
+  calculate_totals:
+    from: payment_amounts
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store:
+          type: keyValue
+          retention: 1h
+        initializer:
+          expression: 0
+          resultType: long
+        aggregator:
+          expression: aggregatedValue + value
+      - type: toStream
+      - type: peek
+        forEach:
+          code: |
+            log.info("Customer {} total: {}", key, value)
+    to: payment_totals

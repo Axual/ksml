@@ -1,0 +1,42 @@
+functions:
+  generate_order_event:
+    type: generator
+    globalCode: |
+      import time
+      import random
+      order_id = 0
+      regions = ["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL"]
+      priorities = ["express", "standard", "economy"]
+    code: |
+      global order_id
+      
+      order_id += 1
+      
+      # Generate order details with priority and region
+      order = {
+        "order_id": f"ORD-{order_id:04d}",
+        "amount": round(random.uniform(10.0, 1000.0), 2),
+        "priority": random.choice(priorities),
+        "region": random.choice(regions),
+        "customer_id": f"CUST-{random.randint(1000, 9999)}",
+        "timestamp": int(time.time() * 1000)
+      }
+      
+      # Log the order generation
+      log.info("Generated order: {} with priority={}, region={}", 
+               order["order_id"], order["priority"], order["region"])
+      
+      # Use order_id as key, order details as value
+      key = order["order_id"]
+      value = order
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  order_events_producer:
+    generator: generate_order_event
+    interval: 2s
+    to:
+      topic: order_events
+      keyType: string
+      valueType: json

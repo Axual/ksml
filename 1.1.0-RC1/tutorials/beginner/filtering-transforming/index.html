@@ -1,0 +1,3287 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the KSML project">
+      
+      
+        <meta name="author" content="Axual">
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../data-formats/">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>Filtering and Transforming - KSML Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.e53b48f4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#filtering-and-transforming-data-in-ksml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="KSML Documentation" class="md-header__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KSML Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Filtering and Transforming
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="KSML Documentation" class="md-nav__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KSML Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Understanding KSML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/schema-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schema Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/basics-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KSML Basics Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Beginner Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Beginner Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Filtering and Transforming
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filtering and Transforming
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-well-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We'll Build
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#to-try-out-each-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      To try out each example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating test data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complex-filtering-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Filtering Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Complex Filtering Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-multiple-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Multiple Filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-custom-filter-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Custom Filter Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filtering-with-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filtering with Error Handling
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-transformation-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Transformation Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Transformation Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transforming-nested-data-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transforming Nested Data Structures
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#applying-multiple-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Applying Multiple Transformations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-in-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling in Transformations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling in Transformations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ksml-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML Definition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Data Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#successful-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      Successful Case
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-case-missing-temperature" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Case - Missing Temperature
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#safe-data-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Safe Data Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conditional Routing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Transformation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-context" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Context
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-filtering-and-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Combining Filtering and Transformation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Combining Filtering and Transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-data-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Data Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input-message" class="md-nav__link">
+    <span class="md-ellipsis">
+      INPUT message:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-message-to-filtered_data-topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      OUTPUT message (to filtered_data topic):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      LOG output:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-processing-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pipeline Processing Steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipeline Processing Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-validation-validate_sensor_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Validation (validate_sensor_data)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-transformation-transform_sensor_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Transformation (transform_sensor_data)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-logging-log_processed_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Logging (log_processed_data)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Routing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Different Data Formats
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Logging and Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Intermediate Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Intermediate Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate/branching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Branching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate/aggregations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Aggregations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate/joins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Joins
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate/windowing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Windowing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate/error-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Error Handling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate/state-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    State Stores
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/complex-event-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Complex Event Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/custom-state-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom State Stores
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/performance-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/external-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integration with External Systems
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Use Case Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Use Case Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../use-cases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../use-cases/data-transformation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Transformation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../use-cases/event-driven-applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event-Driven Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../use-cases/iot-data-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    IoT Data Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../use-cases/real-time-analytics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Real-time Analytics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../use-cases/fraud-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fraud Detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    References
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            References
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/definition-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KSML Definition Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/pipeline-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/function-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Function Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/operation-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operation Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/data-and-formats-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Types and Notations Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/state-store-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    State Store Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/configuration-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-well-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We'll Build
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#to-try-out-each-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      To try out each example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating test data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complex-filtering-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complex Filtering Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Complex Filtering Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-multiple-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Multiple Filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-custom-filter-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Custom Filter Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filtering-with-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filtering with Error Handling
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-transformation-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Transformation Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Transformation Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transforming-nested-data-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transforming Nested Data Structures
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#applying-multiple-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Applying Multiple Transformations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-in-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling in Transformations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling in Transformations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ksml-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML Definition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Data Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#successful-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      Successful Case
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-case-missing-temperature" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Case - Missing Temperature
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#safe-data-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Safe Data Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conditional Routing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Transformation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-context" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Context
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-filtering-and-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Combining Filtering and Transformation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Combining Filtering and Transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-data-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Data Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input-message" class="md-nav__link">
+    <span class="md-ellipsis">
+      INPUT message:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-message-to-filtered_data-topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      OUTPUT message (to filtered_data topic):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      LOG output:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-processing-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pipeline Processing Steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipeline Processing Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-validation-validate_sensor_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Validation (validate_sensor_data)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-transformation-transform_sensor_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Transformation (transform_sensor_data)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-logging-log_processed_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Logging (log_processed_data)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Routing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="filtering-and-transforming-data-in-ksml">Filtering and Transforming Data in KSML</h1>
+<h2 id="what-well-build">What We'll Build</h2>
+<p>In this tutorial, we'll build a data pipeline that:</p>
+<ol>
+<li>Reads sensor data from a Kafka topic</li>
+<li>Applies complex filtering based on multiple conditions</li>
+<li>Transforms the data using various techniques and by handling nested data structures</li>
+<li>Handles potential errors in the transformation process</li>
+<li>Writes the processed data to another Kafka topic</li>
+</ol>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Before we begin:</p>
+<ul>
+<li>Make sure there is a running Docker Compose KSML environment as described in the <a href="../../../getting-started/quick-start/">Quick Start</a>. </li>
+<li>We recommend to have completed the <a href="../../../getting-started/basics-tutorial/">KSML Basics Tutorial</a></li>
+<li>Add the following topics to your <code>kafka-setup</code> service in docker-compose.yml to run the examples:</li>
+</ul>
+<details class="info">
+<summary>Topic creation commands - click to expand</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Filtering and Transforming Tutorial</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="l l-Scalar l-Scalar-Plain">kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic tutorial_input &amp;&amp; \</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="l l-Scalar l-Scalar-Plain">kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic filtered_data &amp;&amp; \</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="l l-Scalar l-Scalar-Plain">kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic alerts_stream &amp;&amp; \</span>
+</code></pre></div>
+</details>
+<h3 id="to-try-out-each-example">To try out each example</h3>
+<ol>
+<li>Make sure to update the definitions section in <code>ksml-runner.yaml</code>(the full file in is in the <a href="../../../getting-started/basics-tutorial/">Basics Tutorial</a>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">ksml</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">definitions</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">producer.yaml</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">processor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor.yaml</span>
+</code></pre></div></li>
+<li>When making changes in either file (<code>producer.yaml</code> or <code>processor.yaml</code>), reload KSML producer and processing definitions:<ul>
+<li><code>docker compose restart ksml &amp;&amp; docker compose logs ksml -f</code> (slower due to Kafka Streams rebalancing)</li>
+<li><code>docker compose down &amp;&amp; docker compose up -d &amp;&amp; docker compose logs ksml -f</code> (faster, but topics will be empty again due to Kafka broker restart)</li>
+</ul>
+</li>
+</ol>
+<h2 id="creating-test-data">Creating test data</h2>
+<p>To let KSML produce random test data with the correct format, let's create a file <code>producer.yaml</code> and add this producer definition</p>
+<details class="info">
+<summary>Test Data Producer Configuration (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">generate_tutorial_data</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="no">import random</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="no">sensor_id = 0</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="no">locations = [&quot;server_room&quot;, &quot;warehouse&quot;, &quot;data_center&quot;]</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="no">global sensor_id, locations</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">      </span><span class="no">key = &quot;sensor&quot; + str(sensor_id)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="no">sensor_id = (sensor_id + 1) % 5</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="no">location = random.choice(locations)</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">      </span><span class="no">sensors = {&quot;temperature&quot;: random.randrange(150), &quot;humidity&quot;: random.randrange(90), &quot;location&quot;: location}</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">      </span><span class="no">value = {&quot;sensors&quot;: sensors}</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value)</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="nt">producers</span><span class="p">:</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="nt">data_producer</span><span class="p">:</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_tutorial_data</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3s</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+</code></pre></div>
+</details>
+<p>This will generate simulated sensor data for temperature and humidity, in different locations. The JSON input test data, that we will start from with our filtering and transformations, looks like this:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">53</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;server_room&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">143</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
+</code></pre></div></p>
+<h2 id="complex-filtering-techniques">Complex Filtering Techniques</h2>
+<h3 id="using-multiple-filters">Using Multiple Filters</h3>
+<p>Let's start by creating a file <code>processor.yaml</code> that filters on multiple conditions:</p>
+<details class="info">
+<summary>Multiple Filter Conditions Example (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">input_stream</span><span class="p">:</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">output_stream</span><span class="p">:</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filtered_data</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="nt">temperature_filtered</span><span class="p">:</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&#39;sensors&#39;, {}).get(&#39;temperature&#39;) &gt; 20 and value.get(&#39;sensors&#39;, {}).get(&#39;humidity&#39;) &lt; 80 and value.get(&#39;sensors&#39;, {}).get(&#39;location&#39;) == &#39;warehouse&#39;</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="nt">log_message</span><span class="p">:</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">      </span><span class="no">log.info(&quot;Processed message: key={}, value={}&quot;, key, value)</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">  </span><span class="nt">filtering_pipeline</span><span class="p">:</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">temperature_filtered</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">            </span><span class="no">log_message(key, value)</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_stream</span>
+</code></pre></div>
+</details>
+<p>This filter only passes messages where:</p>
+<ul>
+<li>The temperature is greater than 20°F</li>
+<li>The humidity is less than 80%</li>
+<li>The location is 'warehouse'</li>
+</ul>
+<p>Now let's update the definitions section in <code>ksml-runner.yaml</code>:</p>
+<details class="info">
+<summary>KSML Runner Configuration Update (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">ksml</span><span class="p">:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">definitions</span><span class="p">:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">     </span><span class="nt">producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">producer.yaml</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">     </span><span class="nt">processor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor.yaml</span>
+</code></pre></div>
+</details>
+<ul>
+<li>Let's test by doing:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>restart<span class="w"> </span>ksml<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>ksml<span class="w"> </span>-f
+</code></pre></div></li>
+<li>Here are the input messages: <a href="http://localhost:8080/topics/tutorial_input">http://localhost:8080/topics/tutorial_input</a></li>
+<li>Here are the filtered messages: <a href="http://localhost:8080/topics/filtered_data">http://localhost:8080/topics/filtered_data</a></li>
+</ul>
+<h3 id="using-custom-filter-functions">Using Custom Filter Functions</h3>
+<p>By following the same as in previous section, let's try to create a custom filter function:</p>
+<details class="info">
+<summary>Custom Filter Function Example (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">input_stream</span><span class="p">:</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nt">alerts_stream</span><span class="p">:</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alerts_stream</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="nt">is_critical_sensor</span><span class="p">:</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">      </span><span class="no"># Check location</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">      </span><span class="no">if value.get(&#39;sensors&#39;, {}).get(&#39;location&#39;) not in [&#39;server_room&#39;, &#39;data_center&#39;]:</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">        </span><span class="no">return False</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">      </span><span class="no"># Check temperature threshold based on location</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">      </span><span class="no">if value.get(&#39;sensors&#39;, {}).get(&#39;location&#39;) == &#39;server_room&#39; and value.get(&#39;sensors&#39;, {}).get(&#39;temperature&#39;) &gt; 20:</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">        </span><span class="no">return True</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">      </span><span class="no">if value.get(&#39;sensors&#39;, {}).get(&#39;location&#39;) == &#39;data_center&#39; and value.get(&#39;sensors&#39;, {}).get(&#39;temperature&#39;) &gt; 30:</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">        </span><span class="no">return True</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">      </span><span class="no">return False</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">  </span><span class="nt">critical_alerts</span><span class="p">:</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">is_critical_sensor</span>
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alerts_stream</span>
+</code></pre></div>
+</details>
+<p>This function implements complex business logic to determine if a sensor reading indicates a critical situation that requires an alert.</p>
+<h3 id="filtering-with-error-handling">Filtering with Error Handling</h3>
+<p>Sometimes your filter conditions might encounter malformed data. Here's how to handle that:</p>
+<details class="info">
+<summary>Error Handling in Filters Example (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">input_stream</span><span class="p">:</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">alerts_stream</span><span class="p">:</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alerts_stream</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="nt">safe_filter</span><span class="p">:</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">      </span><span class="no">try:</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">        </span><span class="no">sensors = value.get(&#39;sensors&#39;, {})</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">        </span><span class="no">temperature = sensors.get(&#39;temperature&#39;)</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">        </span><span class="no">humidity = sensors.get(&#39;humidity&#39;)</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">        </span><span class="no">if temperature is None or humidity is None:</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">          </span><span class="no">log.warn(&quot;Missing required fields in message: {}&quot;, value)</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">          </span><span class="no">return False</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">        </span><span class="no">return temperature &gt; 70 and humidity &lt; 50</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">      </span><span class="no">except Exception as e:</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">        </span><span class="no">log.error(&quot;Error in filter: {} - Message: {}&quot;, str(e), value)</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">        </span><span class="no">return False</span>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="w">  </span><span class="nt">robust_filtering</span><span class="p">:</span>
+<a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
+<a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">safe_filter</span>
+<a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alerts_stream</span>
+</code></pre></div>
+</details>
+<p>This approach ensures that malformed messages are logged and filtered out rather than causing the pipeline to fail.
+This will not throw errors currently, to check that errors are correctly logged, change the key to something that doesn't exist, for example:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">sensors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>value.get<span class="o">(</span><span class="s1">&#39;sensors2&#39;</span>,<span class="w"> </span><span class="o">{})</span>
+</code></pre></div></p>
+<h2 id="advanced-transformation-techniques">Advanced Transformation Techniques</h2>
+<p>For these examples, let's use a different KSML producer definition:</p>
+<details class="info">
+<summary>Enhanced Producer Configuration (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">producers</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">data_producer</span><span class="p">:</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_tutorial_data</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3s</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="nt">generate_tutorial_data</span><span class="p">:</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">      </span><span class="no">import random, time</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">      </span><span class="no">sensor_id = 0</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">      </span><span class="no">locations = [&quot;server_room&quot;, &quot;warehouse&quot;, &quot;data_center&quot;]</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">      </span><span class="no">global sensor_id, locations</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">      </span><span class="no">key = &quot;sensor&quot; + str(sensor_id)</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">      </span><span class="no">sensor_id = (sensor_id + 1) % 5</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">      </span><span class="no">location = random.choice(locations)</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">      </span><span class="no"># Each sensor value is now a dict with &#39;value&#39; and &#39;unit&#39;</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">      </span><span class="no">sensors = {</span>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">        </span><span class="no">&quot;temperature&quot;: {</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="w">          </span><span class="no">&quot;value&quot;: random.randint(60, 100),</span>
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="w">          </span><span class="no">&quot;unit&quot;: &quot;F&quot;</span>
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="w">        </span><span class="no">},</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="w">        </span><span class="no">&quot;humidity&quot;: {</span>
+<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="w">          </span><span class="no">&quot;value&quot;: random.randint(20, 90),</span>
+<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="w">          </span><span class="no">&quot;unit&quot;: &quot;%&quot;</span>
+<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a><span class="w">        </span><span class="no">},</span>
+<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="w">        </span><span class="no">&quot;location&quot;: {</span>
+<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="w">          </span><span class="no">&quot;value&quot;: location,</span>
+<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="w">          </span><span class="no">&quot;unit&quot;: &quot;text&quot;</span>
+<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>
+<a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a><span class="w">      </span><span class="no"># Add a timestamp in the expected metadata format</span>
+<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="w">      </span><span class="no">value = {</span>
+<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a><span class="w">        </span><span class="no">&quot;metadata&quot;: {</span>
+<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a><span class="w">        </span><span class="no">},</span>
+<a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a><span class="w">        </span><span class="no">&quot;sensors&quot;: sensors</span>
+<a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value)</span>
+<a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+</code></pre></div>
+</details>
+<p>This produces messages like these:
+INPUT message:</p>
+<ul>
+<li>key: sensor0</li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753935622755</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">34</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data_center&quot;</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<h3 id="transforming-nested-data-structures">Transforming Nested Data Structures</h3>
+<p>Let's look at how to transform data with nested structures:</p>
+<details class="info">
+<summary>Nested Data Transformation Example (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">input_stream</span><span class="p">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="nt">output_stream</span><span class="p">:</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filtered_data</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span><span class="nt">transform_nested_data</span><span class="p">:</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueMapper</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">      </span><span class="no"># Create a new structure with flattened and transformed data</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">        </span><span class="no">&quot;device_id&quot;: key,</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: value.get(&#39;metadata&#39;, {}).get(&#39;timestamp&#39;),</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">        </span><span class="no">&quot;readings&quot;: {}</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">      </span><span class="no"># Extract and transform sensor readings</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">      </span><span class="no">sensors = value.get(&#39;sensors&#39;, {})</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">      </span><span class="no">for sensor_type, reading in sensors.items():</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="w">        </span><span class="no"># Convert temperature from F to C if needed</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="w">        </span><span class="no">if sensor_type == &#39;temperature&#39; and reading.get(&#39;unit&#39;) == &#39;F&#39;:</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="w">          </span><span class="no">celsius = (reading.get(&#39;value&#39;) - 32) * 5/9</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">          </span><span class="no">result[&#39;readings&#39;][sensor_type] = {</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="w">            </span><span class="no">&#39;value&#39;: round(celsius, 2),</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="w">            </span><span class="no">&#39;unit&#39;: &#39;C&#39;,</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="w">            </span><span class="no">&#39;original_value&#39;: reading.get(&#39;value&#39;),</span>
+<a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="w">            </span><span class="no">&#39;original_unit&#39;: &#39;F&#39;</span>
+<a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a><span class="w">          </span><span class="no">}</span>
+<a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="w">          </span><span class="no">result[&#39;readings&#39;][sensor_type] = reading</span>
+<a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a>
+<a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a><span class="w">      </span><span class="no"># Keep the same key</span>
+<a id="__codelineno-12-38" name="__codelineno-12-38" href="#__codelineno-12-38"></a><span class="w">      </span><span class="no">new_key = key</span>
+<a id="__codelineno-12-39" name="__codelineno-12-39" href="#__codelineno-12-39"></a><span class="w">      </span><span class="no">new_value = result</span>
+<a id="__codelineno-12-40" name="__codelineno-12-40" href="#__codelineno-12-40"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
+<a id="__codelineno-12-41" name="__codelineno-12-41" href="#__codelineno-12-41"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-12-42" name="__codelineno-12-42" href="#__codelineno-12-42"></a>
+<a id="__codelineno-12-43" name="__codelineno-12-43" href="#__codelineno-12-43"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-12-44" name="__codelineno-12-44" href="#__codelineno-12-44"></a><span class="w">  </span><span class="nt">transform_pipeline</span><span class="p">:</span>
+<a id="__codelineno-12-45" name="__codelineno-12-45" href="#__codelineno-12-45"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
+<a id="__codelineno-12-46" name="__codelineno-12-46" href="#__codelineno-12-46"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-12-47" name="__codelineno-12-47" href="#__codelineno-12-47"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map</span>
+<a id="__codelineno-12-48" name="__codelineno-12-48" href="#__codelineno-12-48"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_nested_data</span>
+<a id="__codelineno-12-49" name="__codelineno-12-49" href="#__codelineno-12-49"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_stream</span>
+</code></pre></div>
+</details>
+<p>INPUT message:</p>
+<ul>
+<li>key: sensor0</li>
+<li>value: 
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753935622755</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">34</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data_center&quot;</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<p>OUTPUT message:</p>
+<ul>
+<li>key: sensor0</li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="w">  </span><span class="p">{</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">      </span><span class="nt">&quot;device_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sensor0&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">      </span><span class="nt">&quot;readings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">          </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">              </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">              </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">34</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">          </span><span class="p">},</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">          </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">              </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">              </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data_center&quot;</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">          </span><span class="p">},</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">          </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">              </span><span class="nt">&quot;original_unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">              </span><span class="nt">&quot;original_value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">              </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;C&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">              </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">26.67</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">          </span><span class="p">}</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="w">      </span><span class="p">},</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="w">      </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753935622755</span>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="w">  </span><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<p>This transformation performs several operations on the incoming sensor data:</p>
+<ol>
+<li>The nested <code>metadata.timestamp</code> is extracted and placed at the root level of the output</li>
+<li>The message key (sensor0) is added to the value as <code>device_id</code>, making the device identifier available in the message body</li>
+<li>Temperature readings in Fahrenheit are automatically converted to Celsius using the formula (F - 32) × 5/9</li>
+<li>When converting temperature, both the original and converted values are retained for audit purposes</li>
+<li>Only temperature sensors with Fahrenheit units are converted; all other sensor types (<code>humidity</code>, <code>location</code>) pass through unchanged</li>
+</ol>
+<p>The transformation maintains the original key while restructuring the value to be more suitable for downstream processing, with standardized temperature units and flattened metadata.</p>
+<h3 id="applying-multiple-transformations">Applying Multiple Transformations</h3>
+<p>You can chain multiple transformations to break down complex logic into manageable steps:</p>
+<details class="info">
+<summary>Multiple Transformations Pipeline Example (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">input_stream</span><span class="p">:</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">  </span><span class="nt">output_stream</span><span class="p">:</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filtered_data</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">  </span><span class="nt">extract_fields</span><span class="p">:</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueMapper</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">      </span><span class="no">extracted = {</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">        </span><span class="no">&quot;device_id&quot;: key,</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="w">        </span><span class="no">&quot;temperature&quot;: value.get(&#39;sensors&#39;, {}).get(&#39;temperature&#39;, {}).get(&#39;value&#39;),</span>
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="w">        </span><span class="no">&quot;humidity&quot;: value.get(&#39;sensors&#39;, {}).get(&#39;humidity&#39;, {}).get(&#39;value&#39;),</span>
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: value.get(&#39;metadata&#39;, {}).get(&#39;timestamp&#39;)</span>
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, extracted)</span>
+<a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a>
+<a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a><span class="w">  </span><span class="nt">convert_temperature</span><span class="p">:</span>
+<a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a><span class="w">        </span><span class="no">&quot;device_id&quot;: value.get(&#39;device_id&#39;),</span>
+<a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a><span class="w">        </span><span class="no">&quot;temperature_c&quot;: round((value.get(&#39;temperature&#39;) - 32) * 5/9, 2) if value.get(&#39;temperature&#39;) else None,</span>
+<a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a><span class="w">        </span><span class="no">&quot;humidity&quot;: value.get(&#39;humidity&#39;),</span>
+<a id="__codelineno-15-31" name="__codelineno-15-31" href="#__codelineno-15-31"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: value.get(&#39;timestamp&#39;)</span>
+<a id="__codelineno-15-32" name="__codelineno-15-32" href="#__codelineno-15-32"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-15-33" name="__codelineno-15-33" href="#__codelineno-15-33"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-15-34" name="__codelineno-15-34" href="#__codelineno-15-34"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-15-35" name="__codelineno-15-35" href="#__codelineno-15-35"></a>
+<a id="__codelineno-15-36" name="__codelineno-15-36" href="#__codelineno-15-36"></a><span class="w">  </span><span class="nt">add_heat_index</span><span class="p">:</span>
+<a id="__codelineno-15-37" name="__codelineno-15-37" href="#__codelineno-15-37"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-15-38" name="__codelineno-15-38" href="#__codelineno-15-38"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-15-39" name="__codelineno-15-39" href="#__codelineno-15-39"></a><span class="w">      </span><span class="no">temp_c = value.get(&#39;temperature_c&#39;)</span>
+<a id="__codelineno-15-40" name="__codelineno-15-40" href="#__codelineno-15-40"></a><span class="w">      </span><span class="no">humidity = value.get(&#39;humidity&#39;)</span>
+<a id="__codelineno-15-41" name="__codelineno-15-41" href="#__codelineno-15-41"></a>
+<a id="__codelineno-15-42" name="__codelineno-15-42" href="#__codelineno-15-42"></a><span class="w">      </span><span class="no"># Calculate heat index if we have both temperature and humidity</span>
+<a id="__codelineno-15-43" name="__codelineno-15-43" href="#__codelineno-15-43"></a><span class="w">      </span><span class="no">if temp_c is not None and humidity is not None:</span>
+<a id="__codelineno-15-44" name="__codelineno-15-44" href="#__codelineno-15-44"></a><span class="w">        </span><span class="no"># Convert back to F for heat index calculation</span>
+<a id="__codelineno-15-45" name="__codelineno-15-45" href="#__codelineno-15-45"></a><span class="w">        </span><span class="no">temp_f = temp_c * 1.8 + 32</span>
+<a id="__codelineno-15-46" name="__codelineno-15-46" href="#__codelineno-15-46"></a><span class="w">        </span><span class="no"># Simplified heat index formula</span>
+<a id="__codelineno-15-47" name="__codelineno-15-47" href="#__codelineno-15-47"></a><span class="w">        </span><span class="no">heat_index = temp_f - 0.55 * (1 - humidity / 100) * (temp_f - 58)</span>
+<a id="__codelineno-15-48" name="__codelineno-15-48" href="#__codelineno-15-48"></a><span class="w">        </span><span class="no">heat_index_c = round((heat_index - 32) * 5/9, 2)</span>
+<a id="__codelineno-15-49" name="__codelineno-15-49" href="#__codelineno-15-49"></a><span class="w">      </span><span class="no">else:</span>
+<a id="__codelineno-15-50" name="__codelineno-15-50" href="#__codelineno-15-50"></a><span class="w">        </span><span class="no">heat_index_c = None</span>
+<a id="__codelineno-15-51" name="__codelineno-15-51" href="#__codelineno-15-51"></a>
+<a id="__codelineno-15-52" name="__codelineno-15-52" href="#__codelineno-15-52"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-15-53" name="__codelineno-15-53" href="#__codelineno-15-53"></a><span class="w">        </span><span class="no">&quot;device_id&quot;: value.get(&#39;device_id&#39;),</span>
+<a id="__codelineno-15-54" name="__codelineno-15-54" href="#__codelineno-15-54"></a><span class="w">        </span><span class="no">&quot;temperature_c&quot;: temp_c,</span>
+<a id="__codelineno-15-55" name="__codelineno-15-55" href="#__codelineno-15-55"></a><span class="w">        </span><span class="no">&quot;humidity&quot;: humidity,</span>
+<a id="__codelineno-15-56" name="__codelineno-15-56" href="#__codelineno-15-56"></a><span class="w">        </span><span class="no">&quot;heat_index_c&quot;: heat_index_c,</span>
+<a id="__codelineno-15-57" name="__codelineno-15-57" href="#__codelineno-15-57"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: value.get(&#39;timestamp&#39;)</span>
+<a id="__codelineno-15-58" name="__codelineno-15-58" href="#__codelineno-15-58"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-15-59" name="__codelineno-15-59" href="#__codelineno-15-59"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-15-60" name="__codelineno-15-60" href="#__codelineno-15-60"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-15-61" name="__codelineno-15-61" href="#__codelineno-15-61"></a>
+<a id="__codelineno-15-62" name="__codelineno-15-62" href="#__codelineno-15-62"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-15-63" name="__codelineno-15-63" href="#__codelineno-15-63"></a><span class="w">  </span><span class="nt">multi_transform_pipeline</span><span class="p">:</span>
+<a id="__codelineno-15-64" name="__codelineno-15-64" href="#__codelineno-15-64"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
+<a id="__codelineno-15-65" name="__codelineno-15-65" href="#__codelineno-15-65"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-15-66" name="__codelineno-15-66" href="#__codelineno-15-66"></a><span class="w">      </span><span class="c1"># Step 1: Extract relevant fields</span>
+<a id="__codelineno-15-67" name="__codelineno-15-67" href="#__codelineno-15-67"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map</span>
+<a id="__codelineno-15-68" name="__codelineno-15-68" href="#__codelineno-15-68"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_fields</span>
+<a id="__codelineno-15-69" name="__codelineno-15-69" href="#__codelineno-15-69"></a>
+<a id="__codelineno-15-70" name="__codelineno-15-70" href="#__codelineno-15-70"></a><span class="w">      </span><span class="c1"># Step 2: Convert temperature from F to C</span>
+<a id="__codelineno-15-71" name="__codelineno-15-71" href="#__codelineno-15-71"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-15-72" name="__codelineno-15-72" href="#__codelineno-15-72"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convert_temperature</span>
+<a id="__codelineno-15-73" name="__codelineno-15-73" href="#__codelineno-15-73"></a>
+<a id="__codelineno-15-74" name="__codelineno-15-74" href="#__codelineno-15-74"></a><span class="w">      </span><span class="c1"># Step 3: Add calculated fields</span>
+<a id="__codelineno-15-75" name="__codelineno-15-75" href="#__codelineno-15-75"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-15-76" name="__codelineno-15-76" href="#__codelineno-15-76"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add_heat_index</span>
+<a id="__codelineno-15-77" name="__codelineno-15-77" href="#__codelineno-15-77"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_stream</span>
+</code></pre></div>
+</details>
+<p>INPUT message:</p>
+<ul>
+<li>key: sensor0</li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="w">  </span><span class="p">{</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753937101388</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">  </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">61</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">    </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;server_room&quot;</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">87</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<p>OUTPUT message:</p>
+<ul>
+<li>key: sensor0</li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">&quot;device_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sensor0&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="nt">&quot;heat_index_c&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">27.1</span><span class="p">,</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">61</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="nt">&quot;temperature_c&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">30.56</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753937101388</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<p>This pipeline demonstrates a three-stage transformation process:</p>
+<p><strong>Stage 1: Field Extraction</strong> (<code>extract_fields</code>)</p>
+<ul>
+<li>Input: Full nested sensor data with metadata and location information</li>
+<li>Process: Extracts only the essential fields (temperature, humidity, timestamp) and adds the device ID from the message key</li>
+<li>Output: Simplified structure with just the needed values</li>
+<li>Note: The location field is intentionally dropped as it's not needed for calculations</li>
+</ul>
+<p><strong>Stage 2: Temperature Conversion</strong> (<code>convert_temperature</code>)</p>
+<ul>
+<li>Input: Extracted data with temperature in Fahrenheit (87°F)</li>
+<li>Process: Converts temperature from Fahrenheit to Celsius using the formula (F - 32) × 5/9</li>
+<li>Output: Same structure but with temperature_c field containing 30.56°C</li>
+<li>Note: Original temperature field is removed, replaced with the converted value</li>
+</ul>
+<p><strong>Stage 3: Heat Index Calculation</strong> (<code>add_heat_index</code>)</p>
+<ul>
+<li>Input: Data with temperature in Celsius and humidity percentage</li>
+<li>Process: Calculates the heat index (apparent temperature) considering both temperature and humidity</li>
+<li>Output: Final structure with added heat_index_c field showing 27.1°C</li>
+<li>Note: The heat index is lower than actual temperature due to 61% humidity</li>
+</ul>
+<p>The transformation reduces the original nested structure from 5 fields across multiple levels to a flat structure with 5 essential fields, while also performing unit conversion and derived calculations.
+Breaking transformations into steps makes your pipeline easier to understand and maintain.</p>
+<h3 id="error-handling-in-transformations">Error Handling in Transformations</h3>
+<p>This tutorial demonstrates how to implement robust error handling in KSML transformations, ensuring your data pipelines can gracefully handle unexpected data formats and processing errors.</p>
+<h4 id="overview">Overview</h4>
+<p>When processing streaming data, it's crucial to handle errors gracefully without crashing the entire pipeline. This example shows how to:</p>
+<ul>
+<li>Safely extract nested data with validation</li>
+<li>Route successful and failed transformations to different topics</li>
+<li>Preserve error context for debugging</li>
+</ul>
+<h4 id="ksml-definition">KSML Definition</h4>
+<details class="info">
+<summary>Error Handling in Transformations Example (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">input_stream</span><span class="p">:</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">  </span><span class="nt">output_stream</span><span class="p">:</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filtered_data</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">  </span><span class="nt">error_stream</span><span class="p">:</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alerts_stream</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">  </span><span class="nt">safe_transform</span><span class="p">:</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueMapper</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="w">      </span><span class="no">import json</span>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="w">      </span><span class="no">try:</span>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">        </span><span class="no"># Safely extract nested sensor data</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">        </span><span class="no">sensors = value.get(&#39;sensors&#39;, {})</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a><span class="w">        </span><span class="no">temperature_data = sensors.get(&#39;temperature&#39;, {})</span>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="w">        </span><span class="no"># Check if temperature exists and has a value</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">        </span><span class="no">if not temperature_data or &#39;value&#39; not in temperature_data:</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a><span class="w">          </span><span class="no">error_msg = {</span>
+<a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a><span class="w">            </span><span class="no">&quot;error&quot;: &quot;Missing temperature data&quot;,</span>
+<a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a><span class="w">            </span><span class="no">&quot;device_id&quot;: key,</span>
+<a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a><span class="w">            </span><span class="no">&quot;original&quot;: value,</span>
+<a id="__codelineno-18-31" name="__codelineno-18-31" href="#__codelineno-18-31"></a><span class="w">            </span><span class="no">&quot;status&quot;: &quot;error&quot;</span>
+<a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a><span class="w">          </span><span class="no">}</span>
+<a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a><span class="w">          </span><span class="no">new_key = key</span>
+<a id="__codelineno-18-34" name="__codelineno-18-34" href="#__codelineno-18-34"></a><span class="w">          </span><span class="no">new_value = error_msg</span>
+<a id="__codelineno-18-35" name="__codelineno-18-35" href="#__codelineno-18-35"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-18-36" name="__codelineno-18-36" href="#__codelineno-18-36"></a><span class="w">          </span><span class="no"># Extract values safely</span>
+<a id="__codelineno-18-37" name="__codelineno-18-37" href="#__codelineno-18-37"></a><span class="w">          </span><span class="no">temp_f = temperature_data.get(&#39;value&#39;)</span>
+<a id="__codelineno-18-38" name="__codelineno-18-38" href="#__codelineno-18-38"></a><span class="w">          </span><span class="no">temp_unit = temperature_data.get(&#39;unit&#39;, &#39;F&#39;)</span>
+<a id="__codelineno-18-39" name="__codelineno-18-39" href="#__codelineno-18-39"></a>
+<a id="__codelineno-18-40" name="__codelineno-18-40" href="#__codelineno-18-40"></a><span class="w">          </span><span class="no"># Only convert if unit is Fahrenheit</span>
+<a id="__codelineno-18-41" name="__codelineno-18-41" href="#__codelineno-18-41"></a><span class="w">          </span><span class="no">if temp_unit == &#39;F&#39;:</span>
+<a id="__codelineno-18-42" name="__codelineno-18-42" href="#__codelineno-18-42"></a><span class="w">            </span><span class="no">temp_c = round((temp_f - 32) * 5/9, 2)</span>
+<a id="__codelineno-18-43" name="__codelineno-18-43" href="#__codelineno-18-43"></a><span class="w">          </span><span class="no">else:</span>
+<a id="__codelineno-18-44" name="__codelineno-18-44" href="#__codelineno-18-44"></a><span class="w">            </span><span class="no">temp_c = temp_f  # Assume it&#39;s already in Celsius</span>
+<a id="__codelineno-18-45" name="__codelineno-18-45" href="#__codelineno-18-45"></a>
+<a id="__codelineno-18-46" name="__codelineno-18-46" href="#__codelineno-18-46"></a><span class="w">          </span><span class="no"># Build successful result</span>
+<a id="__codelineno-18-47" name="__codelineno-18-47" href="#__codelineno-18-47"></a><span class="w">          </span><span class="no">result = {</span>
+<a id="__codelineno-18-48" name="__codelineno-18-48" href="#__codelineno-18-48"></a><span class="w">            </span><span class="no">&quot;device_id&quot;: key,</span>
+<a id="__codelineno-18-49" name="__codelineno-18-49" href="#__codelineno-18-49"></a><span class="w">            </span><span class="no">&quot;temperature_f&quot;: temp_f,</span>
+<a id="__codelineno-18-50" name="__codelineno-18-50" href="#__codelineno-18-50"></a><span class="w">            </span><span class="no">&quot;temperature_c&quot;: temp_c,</span>
+<a id="__codelineno-18-51" name="__codelineno-18-51" href="#__codelineno-18-51"></a><span class="w">            </span><span class="no">&quot;humidity&quot;: sensors.get(&#39;humidity&#39;, {}).get(&#39;value&#39;),</span>
+<a id="__codelineno-18-52" name="__codelineno-18-52" href="#__codelineno-18-52"></a><span class="w">            </span><span class="no">&quot;timestamp&quot;: value.get(&#39;metadata&#39;, {}).get(&#39;timestamp&#39;),</span>
+<a id="__codelineno-18-53" name="__codelineno-18-53" href="#__codelineno-18-53"></a><span class="w">            </span><span class="no">&quot;status&quot;: &quot;processed&quot;</span>
+<a id="__codelineno-18-54" name="__codelineno-18-54" href="#__codelineno-18-54"></a><span class="w">          </span><span class="no">}</span>
+<a id="__codelineno-18-55" name="__codelineno-18-55" href="#__codelineno-18-55"></a><span class="w">          </span><span class="no">new_key = key</span>
+<a id="__codelineno-18-56" name="__codelineno-18-56" href="#__codelineno-18-56"></a><span class="w">          </span><span class="no">new_value = result</span>
+<a id="__codelineno-18-57" name="__codelineno-18-57" href="#__codelineno-18-57"></a>
+<a id="__codelineno-18-58" name="__codelineno-18-58" href="#__codelineno-18-58"></a><span class="w">      </span><span class="no">except Exception as e:</span>
+<a id="__codelineno-18-59" name="__codelineno-18-59" href="#__codelineno-18-59"></a><span class="w">        </span><span class="no"># Catch any unexpected errors</span>
+<a id="__codelineno-18-60" name="__codelineno-18-60" href="#__codelineno-18-60"></a><span class="w">        </span><span class="no">error_msg = {</span>
+<a id="__codelineno-18-61" name="__codelineno-18-61" href="#__codelineno-18-61"></a><span class="w">          </span><span class="no">&quot;error&quot;: f&quot;Transformation error: {str(e)}&quot;,</span>
+<a id="__codelineno-18-62" name="__codelineno-18-62" href="#__codelineno-18-62"></a><span class="w">          </span><span class="no">&quot;device_id&quot;: key,</span>
+<a id="__codelineno-18-63" name="__codelineno-18-63" href="#__codelineno-18-63"></a><span class="w">          </span><span class="no">&quot;original&quot;: value,</span>
+<a id="__codelineno-18-64" name="__codelineno-18-64" href="#__codelineno-18-64"></a><span class="w">          </span><span class="no">&quot;status&quot;: &quot;error&quot;</span>
+<a id="__codelineno-18-65" name="__codelineno-18-65" href="#__codelineno-18-65"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-18-66" name="__codelineno-18-66" href="#__codelineno-18-66"></a><span class="w">        </span><span class="no">new_key = key</span>
+<a id="__codelineno-18-67" name="__codelineno-18-67" href="#__codelineno-18-67"></a><span class="w">        </span><span class="no">new_value = error_msg</span>
+<a id="__codelineno-18-68" name="__codelineno-18-68" href="#__codelineno-18-68"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
+<a id="__codelineno-18-69" name="__codelineno-18-69" href="#__codelineno-18-69"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-18-70" name="__codelineno-18-70" href="#__codelineno-18-70"></a>
+<a id="__codelineno-18-71" name="__codelineno-18-71" href="#__codelineno-18-71"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-18-72" name="__codelineno-18-72" href="#__codelineno-18-72"></a><span class="w">  </span><span class="nt">robust_transformation</span><span class="p">:</span>
+<a id="__codelineno-18-73" name="__codelineno-18-73" href="#__codelineno-18-73"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
+<a id="__codelineno-18-74" name="__codelineno-18-74" href="#__codelineno-18-74"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-18-75" name="__codelineno-18-75" href="#__codelineno-18-75"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map</span>
+<a id="__codelineno-18-76" name="__codelineno-18-76" href="#__codelineno-18-76"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">safe_transform</span>
+<a id="__codelineno-18-77" name="__codelineno-18-77" href="#__codelineno-18-77"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span>
+<a id="__codelineno-18-78" name="__codelineno-18-78" href="#__codelineno-18-78"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-18-79" name="__codelineno-18-79" href="#__codelineno-18-79"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&#39;status&#39;) == &#39;processed&#39;</span>
+<a id="__codelineno-18-80" name="__codelineno-18-80" href="#__codelineno-18-80"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_stream</span>
+<a id="__codelineno-18-81" name="__codelineno-18-81" href="#__codelineno-18-81"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-18-82" name="__codelineno-18-82" href="#__codelineno-18-82"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&#39;status&#39;) == &#39;error&#39;</span>
+<a id="__codelineno-18-83" name="__codelineno-18-83" href="#__codelineno-18-83"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">error_stream</span>
+</code></pre></div>
+</details>
+<h4 id="example-data-flow">Example Data Flow</h4>
+<h5 id="successful-case">Successful Case</h5>
+<p><strong>INPUT message:</strong></p>
+<ul>
+<li>key: <code>sensor0</code></li>
+<li>value:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="p">{</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">        </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753939130968</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">        </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">71</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">        </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;server_room&quot;</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="w">        </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">65</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>OUTPUT message (to <code>filtered_data</code> topic):</strong></p>
+<ul>
+<li>key: <code>sensor0</code></li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="p">{</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">    </span><span class="nt">&quot;device_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sensor0&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">71</span><span class="p">,</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;processed&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">    </span><span class="nt">&quot;temperature_c&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">18.33</span><span class="p">,</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">    </span><span class="nt">&quot;temperature_f&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">65</span><span class="p">,</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753939130968</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<h5 id="error-case-missing-temperature">Error Case - Missing Temperature</h5>
+<p><strong>INPUT message:</strong></p>
+<ul>
+<li>key: <code>sensor1</code></li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="p">{</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">        </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753939130968</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">    </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">        </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">71</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<p><strong>OUTPUT message (to <code>alerts_stream</code> topic):</strong></p>
+<ul>
+<li>key: <code>sensor1</code></li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="p">{</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">    </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Missing temperature data&quot;</span><span class="p">,</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">    </span><span class="nt">&quot;device_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sensor1&quot;</span><span class="p">,</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">    </span><span class="nt">&quot;original&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">        </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753939130968</span><span class="p">},</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">        </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">71</span><span class="p">}}</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;error&quot;</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<h4 id="key-features">Key Features</h4>
+<h5 id="safe-data-processing">Safe Data Processing</h5>
+<ul>
+<li>Uses Python's try-except blocks to catch any unexpected errors during transformation</li>
+<li>Validates data existence before attempting to access nested fields</li>
+<li>Preserves the original message in error cases for debugging</li>
+</ul>
+<h5 id="conditional-routing">Conditional Routing</h5>
+<ul>
+<li>Successfully processed messages (with <code>status: "processed"</code>) are routed to the <code>filtered_data</code> topic</li>
+<li>Error messages (with <code>status: "error"</code>) are sent to the <code>alerts_stream</code> topic for monitoring</li>
+<li>The branching logic ensures clean separation of successful and failed transformations</li>
+</ul>
+<h5 id="data-transformation">Data Transformation</h5>
+<ul>
+<li>Extracts sensor data from the nested structure</li>
+<li>Converts temperature from Fahrenheit (65°F) to Celsius (18.33°C)</li>
+<li>Flattens the structure while preserving essential fields</li>
+<li>Drops the location field as it's not needed in the output</li>
+</ul>
+<h5 id="error-context">Error Context</h5>
+<ul>
+<li>Error messages include the device ID for traceability</li>
+<li>The original message is preserved in error cases</li>
+<li>Specific error messages help identify the type of failure (missing data vs. processing error)</li>
+</ul>
+<h4 id="benefits">Benefits</h4>
+<ol>
+<li>The pipeline continues processing even when encountering malformed data</li>
+<li>Errors are routed to a dedicated topic for monitoring and alerting</li>
+<li>Original messages are preserved in error cases for investigation</li>
+<li>Only valid, successfully processed data reaches the output topic</li>
+</ol>
+<p>This approach ensures that transformation errors are caught, logged, and handled gracefully without crashing the pipeline, while maintaining full visibility into what went wrong through the separate error stream.</p>
+<h2 id="combining-filtering-and-transformation">Combining Filtering and Transformation</h2>
+<p>Let's put everything together in a complete example:</p>
+<details class="info">
+<summary>Complete Filtering and Transformation Pipeline (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">sensor_data</span><span class="p">:</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">  </span><span class="nt">processed_data</span><span class="p">:</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filtered_data</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="w">  </span><span class="nt">error_data</span><span class="p">:</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alerts_stream</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="w">  </span><span class="nt">validate_sensor_data</span><span class="p">:</span>
+<a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a><span class="w">      </span><span class="no">try:</span>
+<a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a><span class="w">        </span><span class="no"># Check if all required fields are present in the nested structure</span>
+<a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="w">        </span><span class="no">sensors = value.get(&#39;sensors&#39;, {})</span>
+<a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a><span class="w">        </span><span class="no">metadata = value.get(&#39;metadata&#39;, {})</span>
+<a id="__codelineno-23-23" name="__codelineno-23-23" href="#__codelineno-23-23"></a>
+<a id="__codelineno-23-24" name="__codelineno-23-24" href="#__codelineno-23-24"></a><span class="w">        </span><span class="no"># Check if temperature data exists and has a value</span>
+<a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="w">        </span><span class="no">if &#39;temperature&#39; not in sensors or &#39;value&#39; not in sensors[&#39;temperature&#39;]:</span>
+<a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a><span class="w">          </span><span class="no">print(f&quot;Missing temperature data in message: {value}&quot;)</span>
+<a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a><span class="w">          </span><span class="no">result = False</span>
+<a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">        </span><span class="no">elif &#39;humidity&#39; not in sensors or &#39;value&#39; not in sensors[&#39;humidity&#39;]:</span>
+<a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a><span class="w">          </span><span class="no">print(f&quot;Missing humidity data in message: {value}&quot;)</span>
+<a id="__codelineno-23-30" name="__codelineno-23-30" href="#__codelineno-23-30"></a><span class="w">          </span><span class="no">result = False</span>
+<a id="__codelineno-23-31" name="__codelineno-23-31" href="#__codelineno-23-31"></a><span class="w">        </span><span class="no">elif &#39;timestamp&#39; not in metadata:</span>
+<a id="__codelineno-23-32" name="__codelineno-23-32" href="#__codelineno-23-32"></a><span class="w">          </span><span class="no">print(f&quot;Missing timestamp in message: {value}&quot;)</span>
+<a id="__codelineno-23-33" name="__codelineno-23-33" href="#__codelineno-23-33"></a><span class="w">          </span><span class="no">result = False</span>
+<a id="__codelineno-23-34" name="__codelineno-23-34" href="#__codelineno-23-34"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-23-35" name="__codelineno-23-35" href="#__codelineno-23-35"></a><span class="w">          </span><span class="no"># Validate temperature range</span>
+<a id="__codelineno-23-36" name="__codelineno-23-36" href="#__codelineno-23-36"></a><span class="w">          </span><span class="no">temp_value = sensors[&#39;temperature&#39;][&#39;value&#39;]</span>
+<a id="__codelineno-23-37" name="__codelineno-23-37" href="#__codelineno-23-37"></a><span class="w">          </span><span class="no">if not isinstance(temp_value, (int, float)) or temp_value &lt; -100 or temp_value &gt; 200:</span>
+<a id="__codelineno-23-38" name="__codelineno-23-38" href="#__codelineno-23-38"></a><span class="w">            </span><span class="no">print(f&quot;Invalid temperature value: {temp_value}&quot;)</span>
+<a id="__codelineno-23-39" name="__codelineno-23-39" href="#__codelineno-23-39"></a><span class="w">            </span><span class="no">result = False</span>
+<a id="__codelineno-23-40" name="__codelineno-23-40" href="#__codelineno-23-40"></a><span class="w">          </span><span class="no">else:</span>
+<a id="__codelineno-23-41" name="__codelineno-23-41" href="#__codelineno-23-41"></a><span class="w">            </span><span class="no"># Validate humidity range</span>
+<a id="__codelineno-23-42" name="__codelineno-23-42" href="#__codelineno-23-42"></a><span class="w">            </span><span class="no">humidity_value = sensors[&#39;humidity&#39;][&#39;value&#39;]</span>
+<a id="__codelineno-23-43" name="__codelineno-23-43" href="#__codelineno-23-43"></a><span class="w">            </span><span class="no">if not isinstance(humidity_value, (int, float)) or humidity_value &lt; 0 or humidity_value &gt; 100:</span>
+<a id="__codelineno-23-44" name="__codelineno-23-44" href="#__codelineno-23-44"></a><span class="w">              </span><span class="no">print(f&quot;Invalid humidity value: {humidity_value}&quot;)</span>
+<a id="__codelineno-23-45" name="__codelineno-23-45" href="#__codelineno-23-45"></a><span class="w">              </span><span class="no">result = False</span>
+<a id="__codelineno-23-46" name="__codelineno-23-46" href="#__codelineno-23-46"></a><span class="w">            </span><span class="no">else:</span>
+<a id="__codelineno-23-47" name="__codelineno-23-47" href="#__codelineno-23-47"></a><span class="w">              </span><span class="no">result = True</span>
+<a id="__codelineno-23-48" name="__codelineno-23-48" href="#__codelineno-23-48"></a><span class="w">      </span><span class="no">except Exception as e:</span>
+<a id="__codelineno-23-49" name="__codelineno-23-49" href="#__codelineno-23-49"></a><span class="w">        </span><span class="no">print(f&quot;Error validating sensor data: {str(e)} - Message: {value}&quot;)</span>
+<a id="__codelineno-23-50" name="__codelineno-23-50" href="#__codelineno-23-50"></a><span class="w">        </span><span class="no">result = False</span>
+<a id="__codelineno-23-51" name="__codelineno-23-51" href="#__codelineno-23-51"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-23-52" name="__codelineno-23-52" href="#__codelineno-23-52"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boolean</span>
+<a id="__codelineno-23-53" name="__codelineno-23-53" href="#__codelineno-23-53"></a>
+<a id="__codelineno-23-54" name="__codelineno-23-54" href="#__codelineno-23-54"></a><span class="w">  </span><span class="nt">transform_sensor_data</span><span class="p">:</span>
+<a id="__codelineno-23-55" name="__codelineno-23-55" href="#__codelineno-23-55"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueTransformer</span>
+<a id="__codelineno-23-56" name="__codelineno-23-56" href="#__codelineno-23-56"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-23-57" name="__codelineno-23-57" href="#__codelineno-23-57"></a><span class="w">      </span><span class="no">from datetime import datetime</span>
+<a id="__codelineno-23-58" name="__codelineno-23-58" href="#__codelineno-23-58"></a>
+<a id="__codelineno-23-59" name="__codelineno-23-59" href="#__codelineno-23-59"></a><span class="w">      </span><span class="no">try:</span>
+<a id="__codelineno-23-60" name="__codelineno-23-60" href="#__codelineno-23-60"></a><span class="w">        </span><span class="no"># Extract nested sensor data</span>
+<a id="__codelineno-23-61" name="__codelineno-23-61" href="#__codelineno-23-61"></a><span class="w">        </span><span class="no">sensors = value.get(&#39;sensors&#39;, {})</span>
+<a id="__codelineno-23-62" name="__codelineno-23-62" href="#__codelineno-23-62"></a><span class="w">        </span><span class="no">metadata = value.get(&#39;metadata&#39;, {})</span>
+<a id="__codelineno-23-63" name="__codelineno-23-63" href="#__codelineno-23-63"></a>
+<a id="__codelineno-23-64" name="__codelineno-23-64" href="#__codelineno-23-64"></a><span class="w">        </span><span class="no"># Get temperature and convert from F to C</span>
+<a id="__codelineno-23-65" name="__codelineno-23-65" href="#__codelineno-23-65"></a><span class="w">        </span><span class="no">temp_f = sensors.get(&#39;temperature&#39;, {}).get(&#39;value&#39;, 0)</span>
+<a id="__codelineno-23-66" name="__codelineno-23-66" href="#__codelineno-23-66"></a><span class="w">        </span><span class="no">temp_c = (temp_f - 32) * 5/9</span>
+<a id="__codelineno-23-67" name="__codelineno-23-67" href="#__codelineno-23-67"></a>
+<a id="__codelineno-23-68" name="__codelineno-23-68" href="#__codelineno-23-68"></a><span class="w">        </span><span class="no"># Get humidity</span>
+<a id="__codelineno-23-69" name="__codelineno-23-69" href="#__codelineno-23-69"></a><span class="w">        </span><span class="no">humidity = sensors.get(&#39;humidity&#39;, {}).get(&#39;value&#39;, 0)</span>
+<a id="__codelineno-23-70" name="__codelineno-23-70" href="#__codelineno-23-70"></a>
+<a id="__codelineno-23-71" name="__codelineno-23-71" href="#__codelineno-23-71"></a><span class="w">        </span><span class="no"># Calculate heat index (simplified formula)</span>
+<a id="__codelineno-23-72" name="__codelineno-23-72" href="#__codelineno-23-72"></a><span class="w">        </span><span class="no">heat_index = temp_c * 1.8 + 32 - 0.55 * (1 - humidity / 100)</span>
+<a id="__codelineno-23-73" name="__codelineno-23-73" href="#__codelineno-23-73"></a>
+<a id="__codelineno-23-74" name="__codelineno-23-74" href="#__codelineno-23-74"></a><span class="w">        </span><span class="no"># Get location</span>
+<a id="__codelineno-23-75" name="__codelineno-23-75" href="#__codelineno-23-75"></a><span class="w">        </span><span class="no">location = sensors.get(&#39;location&#39;, {}).get(&#39;value&#39;, &#39;unknown&#39;)</span>
+<a id="__codelineno-23-76" name="__codelineno-23-76" href="#__codelineno-23-76"></a>
+<a id="__codelineno-23-77" name="__codelineno-23-77" href="#__codelineno-23-77"></a><span class="w">        </span><span class="no"># Format timestamp</span>
+<a id="__codelineno-23-78" name="__codelineno-23-78" href="#__codelineno-23-78"></a><span class="w">        </span><span class="no">timestamp = metadata.get(&#39;timestamp&#39;, 0)</span>
+<a id="__codelineno-23-79" name="__codelineno-23-79" href="#__codelineno-23-79"></a><span class="w">        </span><span class="no">if isinstance(timestamp, (int, float)):</span>
+<a id="__codelineno-23-80" name="__codelineno-23-80" href="#__codelineno-23-80"></a><span class="w">          </span><span class="no"># Convert Unix timestamp to ISO format</span>
+<a id="__codelineno-23-81" name="__codelineno-23-81" href="#__codelineno-23-81"></a><span class="w">          </span><span class="no">formatted_time = datetime.fromtimestamp(timestamp / 1000).isoformat()</span>
+<a id="__codelineno-23-82" name="__codelineno-23-82" href="#__codelineno-23-82"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-23-83" name="__codelineno-23-83" href="#__codelineno-23-83"></a><span class="w">          </span><span class="no">formatted_time = str(timestamp)</span>
+<a id="__codelineno-23-84" name="__codelineno-23-84" href="#__codelineno-23-84"></a>
+<a id="__codelineno-23-85" name="__codelineno-23-85" href="#__codelineno-23-85"></a><span class="w">        </span><span class="no">transformed = {</span>
+<a id="__codelineno-23-86" name="__codelineno-23-86" href="#__codelineno-23-86"></a><span class="w">          </span><span class="no">&quot;sensor_id&quot;: key,</span>
+<a id="__codelineno-23-87" name="__codelineno-23-87" href="#__codelineno-23-87"></a><span class="w">          </span><span class="no">&quot;location&quot;: location,</span>
+<a id="__codelineno-23-88" name="__codelineno-23-88" href="#__codelineno-23-88"></a><span class="w">          </span><span class="no">&quot;readings&quot;: {</span>
+<a id="__codelineno-23-89" name="__codelineno-23-89" href="#__codelineno-23-89"></a><span class="w">            </span><span class="no">&quot;temperature&quot;: {</span>
+<a id="__codelineno-23-90" name="__codelineno-23-90" href="#__codelineno-23-90"></a><span class="w">              </span><span class="no">&quot;celsius&quot;: round(temp_c, 2),</span>
+<a id="__codelineno-23-91" name="__codelineno-23-91" href="#__codelineno-23-91"></a><span class="w">              </span><span class="no">&quot;fahrenheit&quot;: temp_f</span>
+<a id="__codelineno-23-92" name="__codelineno-23-92" href="#__codelineno-23-92"></a><span class="w">            </span><span class="no">},</span>
+<a id="__codelineno-23-93" name="__codelineno-23-93" href="#__codelineno-23-93"></a><span class="w">            </span><span class="no">&quot;humidity&quot;: humidity,</span>
+<a id="__codelineno-23-94" name="__codelineno-23-94" href="#__codelineno-23-94"></a><span class="w">            </span><span class="no">&quot;heat_index&quot;: round(heat_index, 2)</span>
+<a id="__codelineno-23-95" name="__codelineno-23-95" href="#__codelineno-23-95"></a><span class="w">          </span><span class="no">},</span>
+<a id="__codelineno-23-96" name="__codelineno-23-96" href="#__codelineno-23-96"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: formatted_time,</span>
+<a id="__codelineno-23-97" name="__codelineno-23-97" href="#__codelineno-23-97"></a><span class="w">          </span><span class="no">&quot;processed_at&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-23-98" name="__codelineno-23-98" href="#__codelineno-23-98"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-23-99" name="__codelineno-23-99" href="#__codelineno-23-99"></a><span class="w">        </span><span class="no">new_key = key</span>
+<a id="__codelineno-23-100" name="__codelineno-23-100" href="#__codelineno-23-100"></a><span class="w">        </span><span class="no">new_value = transformed</span>
+<a id="__codelineno-23-101" name="__codelineno-23-101" href="#__codelineno-23-101"></a><span class="w">      </span><span class="no">except Exception as e:</span>
+<a id="__codelineno-23-102" name="__codelineno-23-102" href="#__codelineno-23-102"></a><span class="w">        </span><span class="no">error_data = {</span>
+<a id="__codelineno-23-103" name="__codelineno-23-103" href="#__codelineno-23-103"></a><span class="w">          </span><span class="no">&quot;error&quot;: str(e),</span>
+<a id="__codelineno-23-104" name="__codelineno-23-104" href="#__codelineno-23-104"></a><span class="w">          </span><span class="no">&quot;original&quot;: value,</span>
+<a id="__codelineno-23-105" name="__codelineno-23-105" href="#__codelineno-23-105"></a><span class="w">          </span><span class="no">&quot;sensor_id&quot;: key,</span>
+<a id="__codelineno-23-106" name="__codelineno-23-106" href="#__codelineno-23-106"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-23-107" name="__codelineno-23-107" href="#__codelineno-23-107"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-23-108" name="__codelineno-23-108" href="#__codelineno-23-108"></a><span class="w">        </span><span class="no">new_key = key</span>
+<a id="__codelineno-23-109" name="__codelineno-23-109" href="#__codelineno-23-109"></a><span class="w">        </span><span class="no">new_value = error_data</span>
+<a id="__codelineno-23-110" name="__codelineno-23-110" href="#__codelineno-23-110"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
+<a id="__codelineno-23-111" name="__codelineno-23-111" href="#__codelineno-23-111"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-23-112" name="__codelineno-23-112" href="#__codelineno-23-112"></a>
+<a id="__codelineno-23-113" name="__codelineno-23-113" href="#__codelineno-23-113"></a><span class="w">  </span><span class="nt">log_processed_data</span><span class="p">:</span>
+<a id="__codelineno-23-114" name="__codelineno-23-114" href="#__codelineno-23-114"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-23-115" name="__codelineno-23-115" href="#__codelineno-23-115"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-23-116" name="__codelineno-23-116" href="#__codelineno-23-116"></a><span class="w">      </span><span class="no">readings = value.get(&#39;readings&#39;, {})</span>
+<a id="__codelineno-23-117" name="__codelineno-23-117" href="#__codelineno-23-117"></a><span class="w">      </span><span class="no">temp = readings.get(&#39;temperature&#39;, {}).get(&#39;celsius&#39;)</span>
+<a id="__codelineno-23-118" name="__codelineno-23-118" href="#__codelineno-23-118"></a><span class="w">      </span><span class="no">humidity = readings.get(&#39;humidity&#39;)</span>
+<a id="__codelineno-23-119" name="__codelineno-23-119" href="#__codelineno-23-119"></a><span class="w">      </span><span class="no">sensor_id = value.get(&#39;sensor_id&#39;)</span>
+<a id="__codelineno-23-120" name="__codelineno-23-120" href="#__codelineno-23-120"></a><span class="w">      </span><span class="no">print(f&quot;Processed sensor data for {sensor_id}: temp={temp}C, humidity={humidity}%&quot;)</span>
+<a id="__codelineno-23-121" name="__codelineno-23-121" href="#__codelineno-23-121"></a>
+<a id="__codelineno-23-122" name="__codelineno-23-122" href="#__codelineno-23-122"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-23-123" name="__codelineno-23-123" href="#__codelineno-23-123"></a><span class="w">  </span><span class="nt">process_sensor_data</span><span class="p">:</span>
+<a id="__codelineno-23-124" name="__codelineno-23-124" href="#__codelineno-23-124"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_data</span>
+<a id="__codelineno-23-125" name="__codelineno-23-125" href="#__codelineno-23-125"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-23-126" name="__codelineno-23-126" href="#__codelineno-23-126"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-23-127" name="__codelineno-23-127" href="#__codelineno-23-127"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">validate_sensor_data</span>
+<a id="__codelineno-23-128" name="__codelineno-23-128" href="#__codelineno-23-128"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformKeyValue</span>
+<a id="__codelineno-23-129" name="__codelineno-23-129" href="#__codelineno-23-129"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_sensor_data</span>
+<a id="__codelineno-23-130" name="__codelineno-23-130" href="#__codelineno-23-130"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-23-131" name="__codelineno-23-131" href="#__codelineno-23-131"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_processed_data</span>
+<a id="__codelineno-23-132" name="__codelineno-23-132" href="#__codelineno-23-132"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span>
+<a id="__codelineno-23-133" name="__codelineno-23-133" href="#__codelineno-23-133"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-23-134" name="__codelineno-23-134" href="#__codelineno-23-134"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&#39;error&#39;</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">value&quot;</span>
+<a id="__codelineno-23-135" name="__codelineno-23-135" href="#__codelineno-23-135"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">error_data</span>
+<a id="__codelineno-23-136" name="__codelineno-23-136" href="#__codelineno-23-136"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed_data</span>
+</code></pre></div>
+</details>
+<h4 id="example-data-flow_1">Example Data Flow</h4>
+<h5 id="input-message">INPUT message:</h5>
+<ul>
+<li>key: <code>sensor0</code></li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="p">{</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">        </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753949513729</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">    </span><span class="nt">&quot;sensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">        </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">88</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="w">        </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data_center&quot;</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a><span class="w">        </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a><span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a><span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">62</span>
+<a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<h5 id="output-message-to-filtered_data-topic">OUTPUT message (to <code>filtered_data</code> topic):</h5>
+<ul>
+<li>key: <code>sensor0</code></li>
+<li>value:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="p">{</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">    </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data_center&quot;</span><span class="p">,</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">    </span><span class="nt">&quot;processed_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1753950116699</span><span class="p">,</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">    </span><span class="nt">&quot;readings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">        </span><span class="nt">&quot;heat_index&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">60.51</span><span class="p">,</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">        </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">88</span><span class="p">,</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">        </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="w">            </span><span class="nt">&quot;celsius&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">16.67</span><span class="p">,</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="w">            </span><span class="nt">&quot;fahrenheit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">62</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="w">    </span><span class="nt">&quot;sensor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sensor0&quot;</span><span class="p">,</span>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-07-31T07:31:53.729000&quot;</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+<h5 id="log-output">LOG output:</h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Processed sensor data for sensor0: temp=16.67°C, humidity=88%
+</code></pre></div>
+<h4 id="pipeline-processing-steps">Pipeline Processing Steps</h4>
+<h5 id="step-1-validation-validate_sensor_data">Step 1: Validation (<code>validate_sensor_data</code>)</h5>
+<ul>
+<li>
+<p><strong>Purpose</strong>: Ensure data quality by filtering out invalid messages before processing</p>
+</li>
+<li>
+<p><strong>Validation Checks</strong>:</p>
+<ul>
+<li><strong>Structural Validation</strong>: Ensures the nested JSON structure contains required fields (<code>temperature</code>, <code>humidity</code>, <code>timestamp</code>)</li>
+<li><strong>Data Type Validation</strong>: Confirms values are numeric where expected</li>
+<li><strong>Range Validation</strong>:<ul>
+<li>Temperature must be between -100°C and 200°C</li>
+<li>Humidity must be between 0% and 100%</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Result</strong>: Only valid messages pass through; malformed data is filtered out</p>
+</li>
+</ul>
+<h5 id="step-2-transformation-transform_sensor_data">Step 2: Transformation (<code>transform_sensor_data</code>)</h5>
+<ul>
+<li>
+<p><strong>Purpose</strong>: Enrich and standardize the data format</p>
+</li>
+<li>
+<p><strong>Transformations Applied</strong>:</p>
+<ul>
+<li><strong>Temperature Conversion</strong>: Converts 62°F to 16.67°C using the formula <code>(F - 32) × 5/9</code></li>
+<li><strong>Heat Index Calculation</strong>: Computes apparent temperature considering humidity (60.51 in this case)</li>
+<li><strong>Timestamp Formatting</strong>: Converts Unix timestamp (1753949513729) to ISO format (2025-07-31T07:31:53.729000)</li>
+<li><strong>Structure Flattening</strong>: Extracts values from nested structure into a cleaner format</li>
+<li><strong>Metadata Addition</strong>: Adds <code>processed_at</code> timestamp to track when the transformation occurred</li>
+</ul>
+</li>
+</ul>
+<h5 id="step-3-logging-log_processed_data">Step 3: Logging (<code>log_processed_data</code>)</h5>
+<ul>
+<li>
+<p><strong>Purpose</strong>: Provide operational visibility</p>
+</li>
+<li>
+<p><strong>Features</strong>:</p>
+<ul>
+<li><strong>Visibility</strong>: Logs key metrics for monitoring pipeline health</li>
+<li><strong>Non-invasive</strong>: Uses <code>peek</code> operation to observe data without modifying it</li>
+<li><strong>Format</strong>: Outputs sensor ID, temperature in Celsius, and humidity percentage</li>
+</ul>
+</li>
+</ul>
+<h5 id="step-4-routing">Step 4: Routing</h5>
+<ul>
+<li>
+<p><strong>Purpose</strong>: Direct messages to appropriate destinations based on processing results</p>
+</li>
+<li>
+<p><strong>Routing Logic</strong>:</p>
+<ul>
+<li><strong>Error Handling</strong>: Messages with errors (containing an 'error' field) are routed to <code>alerts_stream</code></li>
+<li><strong>Success Path</strong>: Successfully processed messages go to <code>filtered_data</code> topic</li>
+<li><strong>Guaranteed Delivery</strong>: Every message is routed somewhere - no data loss</li>
+</ul>
+</li>
+</ul>
+<h4 id="conclusion">Conclusion</h4>
+<p>In this tutorial, you've learned how to:</p>
+<ul>
+<li>Create complex filters with multiple conditions</li>
+<li>Implement custom filter functions with business logic</li>
+<li>Handle errors in filtering and transformation</li>
+<li>Transform nested data structures</li>
+<li>Apply multiple transformations in sequence</li>
+<li>Combine filtering and transformation in a robust pipeline</li>
+</ul>
+<p>These techniques will help you build more sophisticated and reliable KSML applications that can handle real-world data processing challenges.</p>
+<h4 id="next-steps">Next Steps</h4>
+<ul>
+<li>Move on to <a href="../../intermediate/">intermediate tutorials</a> to learn about stateful operations and joins</li>
+<li>Learn about <a href="../data-formats/">working with different data formats</a> in KSML</li>
+<li>Explore <a href="../logging-monitoring/">logging and monitoring</a> to better understand your pipelines</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["content.code.copy"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

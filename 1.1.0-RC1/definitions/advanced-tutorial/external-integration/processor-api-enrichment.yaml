@@ -1,0 +1,182 @@
+# Processor demonstrating API enrichment pattern
+
+streams:
+  user_events:
+    topic: user_events
+    keyType: string
+    valueType: json
+
+functions:
+  enrich_with_api_data:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      
+      # Mock API client (simulates external REST API)
+      def get_user_profile(user_id):
+        """Simulate API call to get user profile"""
+        try:
+          # Simulate API latency
+          time.sleep(0.1)
+          
+          # Mock user profiles based on user_id
+          profiles = {
+            "user_001": {
+              "name": "Alice Johnson", "tier": "premium", "location": "New York",
+              "age": 32, "email": "alice@example.com", "preferences": ["tech", "gaming"],
+              "lifetime_value": 2500.00, "registration_date": "2022-01-15"
+            },
+            "user_002": {
+              "name": "Bob Smith", "tier": "standard", "location": "London", 
+              "age": 28, "email": "bob@example.com", "preferences": ["sports", "music"],
+              "lifetime_value": 850.00, "registration_date": "2023-03-22"
+            },
+            "user_003": {
+              "name": "Charlie Davis", "tier": "premium", "location": "Tokyo",
+              "age": 45, "email": "charlie@example.com", "preferences": ["travel", "food"],
+              "lifetime_value": 3200.00, "registration_date": "2021-11-08"
+            },
+            "user_004": {
+              "name": "Diana Wilson", "tier": "basic", "location": "Sydney",
+              "age": 24, "email": "diana@example.com", "preferences": ["fashion", "art"],
+              "lifetime_value": 320.00, "registration_date": "2024-01-10"
+            },
+            "user_005": {
+              "name": "Eve Brown", "tier": "standard", "location": "Berlin",
+              "age": 35, "email": "eve@example.com", "preferences": ["books", "movies"],
+              "lifetime_value": 1150.00, "registration_date": "2022-08-17"
+            }
+          }
+          
+          profile = profiles.get(user_id, {
+            "name": "Unknown User", "tier": "basic", "location": "Unknown",
+            "age": 0, "email": "unknown@example.com", "preferences": [],
+            "lifetime_value": 0.0, "registration_date": "unknown"
+          })
+          log.info("Fetched profile for user {}: {}", user_id, profile["name"])
+          return profile
+        except Exception as e:
+          log.warn("API request failed for user {}: {}", user_id, str(e))
+          return None
+      
+    code: |
+      import time
+      
+      # Extract fields from JSON event
+      if not value:
+        return None
+      
+      event_id = value.get("event_id")
+      event_type = value.get("event_type")
+      user_id = value.get("user_id")
+      timestamp = value.get("timestamp")
+      sequence_number = value.get("sequence_number")
+      session_id = value.get("session_id")
+      device_info = value.get("device_info", {})
+      context = value.get("context", {})
+      metadata = value.get("metadata", {})
+      
+      if not event_type or not user_id or not timestamp:
+        return None
+      
+      # Call API to get user profile data
+      api_start_time = int(time.time() * 1000)
+      profile_data = get_user_profile(user_id)
+      api_end_time = int(time.time() * 1000)
+      api_latency = api_end_time - api_start_time
+      
+      # Create enriched event with comprehensive data structure
+      if profile_data:
+        enriched_event = {
+          "enrichment_status": "SUCCESS",
+          "enrichment_type": "API_PROFILE_DATA",
+          "original_event": {
+            "event_id": event_id,
+            "event_type": event_type,
+            "user_id": user_id,
+            "timestamp": timestamp,
+            "sequence_number": sequence_number,
+            "session_id": session_id,
+            "device_info": device_info,
+            "context": context
+          },
+          "enriched_data": {
+            "user_profile": profile_data,
+            "computed_metrics": {
+              "user_tier_level": {"premium": 3, "standard": 2, "basic": 1}.get(profile_data.get("tier"), 0),
+              "is_high_value": profile_data.get("lifetime_value", 0) > 1000,
+              "account_age_days": (timestamp - 1640995200000) // (24 * 60 * 60 * 1000) if profile_data.get("registration_date") != "unknown" else 0
+            },
+            "recommendations": {
+              "personalized": profile_data.get("preferences", [])[:2] if profile_data.get("preferences") else [],
+              "tier_benefits": f"Available benefits for {profile_data.get('tier', 'basic')} tier",
+              "location_offers": f"Special offers in {profile_data.get('location', 'Unknown')}"
+            }
+          },
+          "api_metrics": {
+            "api_call_duration_ms": api_latency,
+            "api_endpoint": "mock_user_profile_api",
+            "api_success": True,
+            "cache_hit": False  # This is a live API call
+          },
+          "processing_info": {
+            "enrichment_timestamp": api_end_time,
+            "processor_version": "1.0",
+            "enrichment_rules": ["basic_profile", "tier_computation", "recommendations"]
+          }
+        }
+        return enriched_event
+      else:
+        # Return event with failure information if API fails
+        fallback_event = {
+          "enrichment_status": "FAILED", 
+          "enrichment_type": "API_PROFILE_DATA",
+          "original_event": {
+            "event_id": event_id,
+            "event_type": event_type,
+            "user_id": user_id,
+            "timestamp": timestamp,
+            "sequence_number": sequence_number,
+            "session_id": session_id,
+            "device_info": device_info,
+            "context": context
+          },
+          "enriched_data": {
+            "user_profile": None,
+            "fallback_data": {
+              "default_tier": "basic",
+              "estimated_location": "Unknown",
+              "default_preferences": []
+            }
+          },
+          "api_metrics": {
+            "api_call_duration_ms": api_latency,
+            "api_endpoint": "mock_user_profile_api", 
+            "api_success": False,
+            "error_reason": "Profile not found or API unavailable"
+          },
+          "processing_info": {
+            "enrichment_timestamp": api_end_time,
+            "processor_version": "1.0",
+            "fallback_applied": True
+          }
+        }
+        return fallback_event
+        
+    expression: result if result else None
+    resultType: json
+
+pipelines:
+  api_enrichment_pipeline:
+    from: user_events
+    via:
+      - type: mapValues
+        mapper: enrich_with_api_data
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: enriched_user_events
+      keyType: string
+      valueType: json

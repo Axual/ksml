@@ -1,0 +1,48 @@
+streams:
+  orders_input:
+    topic: customer_orders
+    keyType: string
+    valueType: json
+  items_output:
+    topic: individual_items
+    keyType: string
+    valueType: json
+
+functions:
+  explode_order_items:
+    type: keyValueToValueListTransformer
+    code: |
+      # Split order into individual item records
+      # Key remains the same (order_id), but each item becomes a separate value
+      if value is None or "items" not in value:
+        return []
+      
+      items = value.get("items", [])
+      item_records = []
+      
+      for item in items:
+        # Create individual item record with order context
+        item_record = {
+          "order_id": value.get("order_id"),
+          "customer_id": value.get("customer_id"),
+          "product": item.get("product"),
+          "quantity": item.get("quantity"),
+          "unit_price": item.get("price"),
+          "total_price": item.get("price", 0) * item.get("quantity", 0),
+          "order_total": value.get("order_total")
+        }
+        item_records.append(item_record)
+        
+      log.info("Exploded order {} into {} item records", 
+               value.get("order_id"), len(item_records))
+      
+      return item_records
+    resultType: list(json)
+
+pipelines:
+  explode_orders:
+    from: orders_input
+    via:
+      - type: transformKeyValueToValueList
+        mapper: explode_order_items
+    to: items_output

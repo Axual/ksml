@@ -1,0 +1,29 @@
+functions:
+  generate_events_with_timestamps:
+    type: generator
+    globalCode: |
+      import random, time
+      counter = 0
+      base_t = int(time.time() * 1000)
+    code: |
+      global counter, base_t
+      counter += 1
+      eid = f"e{counter:04d}"
+      offset = random.randint(-300, 60)  # -5min to +1min
+      return eid, {
+        "event_id": eid,
+        "event_timestamp": base_t + (counter * 1000) + (offset * 1000),
+        "event_type": random.choice(["action", "system", "data"]),
+        "user_id": f"u{random.randint(1, 100):03d}",
+        "delay": abs(offset) if offset < 0 else 0
+      }
+    resultType: (string, json)
+
+producers:
+  event_producer:
+    generator: generate_events_with_timestamps
+    interval: 1s
+    to:
+      topic: timestamped_events
+      keyType: string
+      valueType: json

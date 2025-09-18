@@ -1,0 +1,35 @@
+streams:
+  debug_messages:
+    topic: debug_messages
+    keyType: string
+    valueType: json
+
+functions:
+  generate_debug_message:
+    type: generator
+    resultType: (string,json)
+    code: |
+      import random, time
+      lvl = random.choice(["INFO", "WARNING", "ERROR", "DEBUG"])
+      msgs = {
+        "ERROR": ["DB timeout", "Payment failed"],
+        "WARNING": ["High CPU", "Rate limit near"],
+        "DEBUG": ["Auth check", "Loading config"],
+        "INFO": ["Service started", "Request done"]
+      }
+      rid = f"r{random.randint(100, 999)}"
+      return rid, {
+        "timestamp": int(time.time()),
+        "level": lvl,
+        "component": random.choice(["UserSvc", "PaySvc"]),
+        "message": random.choice(msgs[lvl]),
+        "request_id": rid,
+        "thread_id": f"t{random.randint(1, 5)}"
+      }
+
+producers:
+  # Produce debug messages every 2 seconds
+  debug_message_producer:
+    generator: generate_debug_message
+    interval: 2s
+    to: debug_messages

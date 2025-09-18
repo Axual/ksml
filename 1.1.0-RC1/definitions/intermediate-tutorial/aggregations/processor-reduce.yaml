@@ -1,0 +1,72 @@
+streams:
+  financial_transactions:
+    topic: financial_transactions
+    keyType: string  # account_id
+    valueType: json  # transaction details
+    
+  transaction_sums:
+    topic: transaction_sums
+    keyType: string
+    valueType: json
+
+functions:
+  extract_amount:
+    type: valueTransformer
+    code: |
+      # Extract amount_cents from JSON transaction
+      if value is not None:
+        amount = value.get("amount_cents", 0)
+      else:
+        amount = 0
+    expression: amount
+    resultType: long
+
+  sum_amounts:
+    type: reducer
+    code: |
+      # Sum two transaction amounts (in cents)
+      total = value1 + value2
+    expression: total
+    resultType: long
+
+  format_total:
+    type: valueTransformer
+    code: |
+      # Convert long cents to JSON format for human readability
+      if value is not None:
+        result = {
+          "total_cents": value,
+          "total_dollars": round(value / 100.0, 2)
+        }
+      else:
+        result = {
+          "total_cents": 0,
+          "total_dollars": 0.0
+        }
+    expression: result
+    resultType: json
+
+pipelines:
+  sum_transactions:
+    from: financial_transactions
+    via:
+      - type: peek
+        forEach:
+          code: |
+            amount_dollars = value.get("amount_dollars", 0) if value else 0
+            txn_id = value.get("transaction_id", "N/A") if value else "N/A"
+            log.info("Processing transaction {} for account {}: ${}", txn_id, key, amount_dollars)
+      - type: transformValue
+        mapper: extract_amount
+      - type: groupByKey
+      - type: reduce
+        reducer: sum_amounts
+      - type: toStream
+      - type: transformValue
+        mapper: format_total
+      - type: peek
+        forEach:
+          code: |
+            total_dollars = value.get("total_dollars", 0) if value else 0
+            log.info("Account {} running total: ${}", key, total_dollars)
+    to: transaction_sums
