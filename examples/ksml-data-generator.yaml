@@ -44,7 +44,7 @@ ksml:
     apicurio:
       config:
         # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        apicurio.registry.url: https://localhost:8081/apis/registry/v2
+        apicurio.registry.url: http://schema_registry:8081
         apicurio.registry.headers.enabled: false
         apicurio.registry.dereference-schema: true
         apicurio.registry.serializer.dereference-schema: true
@@ -63,7 +63,7 @@ ksml:
     confluent:
       config:
         # Example SSL configuration for Confluent schema registry
-        schema.registry.url: http://localhost:8081
+        schema.registry.url: http://schema_registry:8081/apis/ccompat/v7
         # schema.registry.ssl.protocol: TLSv1.3
         # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
         # schema.registry.ssl.endpoint.identification.algorithm: ""
@@ -84,7 +84,7 @@ ksml:
       config:
         # Specify additional properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
         normalize.schemas: true
-        auto.register.schemas: false
+        auto.register.schemas: true
 
     # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
@@ -100,7 +100,7 @@ ksml:
 
     # Definition for "json" notation
     jsonschema:
-      type: apicurio_json           # For JSON there is only one implementation: apicurio_json
+      type: apicurio_jsonschema      # For JSON Schema, only apicurio_jsonschema is valid
       schemaRegistry: apicurio
       config:
         # apicurio.registry.auto-register: true
@@ -119,8 +119,8 @@ ksml:
     # Format is <namespace>: <ksml_definition_filename>
     generate_alert_setting: 00-example-generate-alertsettings.yaml
     generate_sensor_data_avro: 00-example-generate-sensordata-avro.yaml
-#    generate_sensor_data_avro_batch: 00-example-generate-sensordata-avro-batch.yaml
-#    generate_sensor_data_binary: 00-example-generate-sensordata-binary.yaml
+    generate_sensor_data_avro_batch: 00-example-generate-sensordata-avro-batch.yaml
+    generate_sensor_data_binary: 00-example-generate-sensordata-binary.yaml
 #    generate_sensor_data_jsonschema: 00-example-generate-sensordata-jsonschema.yaml
 #    generate_sensor_data_protobuf: 00-example-generate-sensordata-protobuf.yaml
 

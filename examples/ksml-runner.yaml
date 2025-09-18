@@ -44,7 +44,7 @@ ksml:
     apicurio:
       config:
         # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        apicurio.registry.url: https://localhost:8081/apis/registry/v2
+        apicurio.registry.url: http://schema_registry:8081
         apicurio.registry.headers.enabled: false
         apicurio.registry.dereference-schema: true
         apicurio.registry.serializer.dereference-schema: true
@@ -63,7 +63,7 @@ ksml:
     confluent:
       config:
         # Example SSL configuration for Confluent schema registry
-        schema.registry.url: http://localhost:8081
+        schema.registry.url: http://schema_registry:8081/apis/ccompat/v7
         # schema.registry.ssl.protocol: TLSv1.3
         # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
         # schema.registry.ssl.endpoint.identification.algorithm: ""
@@ -84,7 +84,7 @@ ksml:
       config:
         # Specify additional properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
         normalize.schemas: true
-        auto.register.schemas: false
+        auto.register.schemas: true
 
     # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
@@ -100,7 +100,7 @@ ksml:
 
     # Definition for "json" notation
     jsonschema:
-      type: apicurio_json           # For JSON there is only one implementation: apicurio_json
+      type: apicurio_jsonschema      # For JSON Schema, only apicurio_jsonschema is valid
       schemaRegistry: apicurio
       config:
       # apicurio.registry.auto-register: true
@@ -118,24 +118,24 @@ ksml:
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
     inspect: 01-example-inspect.yaml
-#    copy: 02-example-copy.yaml
-#    filter: 03-example-filter.yaml
-#    branch: 04-example-branch.yaml
-#    route: 05-example-route.yaml
-#    duplicate: 06-example-duplicate.yaml
-#    convert: 07-example-convert.yaml
-#    count: 08-example-count.yaml
-#    aggregate: 09-example-aggregate.yaml
-#    queryable_table: 10-example-queryable-table.yaml
-#    field_modification: 11-example-field-modification.yaml
-#    byte_manipulation: 12-example-byte-manipulation.yaml
-#    join: 13-example-join.yaml
-#    manual_state_store: 14-example-manual-state-store.yaml
-#    pipeline_linking: 15-example-pipeline-linking.yaml
-#    transform_metadata: 16-example-transform-metadata.yaml
-#    inspect_with_metrics: 17-example-inspect-with-metrics.yaml
-#    timestamp_extractor: 18-example-timestamp-extractor.yaml
-#    performance-measurement: 19-example-performance-measurement.yaml
+    copy: 02-example-copy.yaml
+    filter: 03-example-filter.yaml
+    branch: 04-example-branch.yaml
+    route: 05-example-route.yaml
+    duplicate: 06-example-duplicate.yaml
+    convert: 07-example-convert.yaml
+    count: 08-example-count.yaml
+    aggregate: 09-example-aggregate.yaml
+    queryable_table: 10-example-queryable-table.yaml
+    field_modification: 11-example-field-modification.yaml
+    byte_manipulation: 12-example-byte-manipulation.yaml
+    join: 13-example-join.yaml
+    manual_state_store: 14-example-manual-state-store.yaml
+    pipeline_linking: 15-example-pipeline-linking.yaml
+    transform_metadata: 16-example-transform-metadata.yaml
+    inspect_with_metrics: 17-example-inspect-with-metrics.yaml
+    timestamp_extractor: 18-example-timestamp-extractor.yaml
+    performance-measurement: 19-example-performance-measurement.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network

@@ -20,7 +20,7 @@ Lists of 31 third-party dependencies.
      (Apache-2.0) wire-runtime (com.squareup.wire:wire-runtime-jvm:5.2.0 - https://github.com/square/wire/)
      (Apache-2.0) wire-schema (com.squareup.wire:wire-schema:5.2.0 - https://github.com/square/wire/)
      (Apache-2.0) wire-schema (com.squareup.wire:wire-schema-jvm:5.2.0 - https://github.com/square/wire/)
-     (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.0-RC1 - https://github.com/Axual/ksml/ksml-data)
+     (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.0 - https://github.com/Axual/ksml/ksml-data)
      (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.0.0 - https://kafka.apache.org)
      (The Apache Software License, Version 2.0) IntelliJ IDEA Annotations (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
      (The Apache License, Version 2.0) Kotlin Reflect (org.jetbrains.kotlin:kotlin-reflect:2.0.10 - https://kotlinlang.org/)
