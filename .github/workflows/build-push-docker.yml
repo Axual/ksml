@@ -47,14 +47,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/axual/ksml:snapshot
-            axual/ksml:snapshot
-            registry.axual.io/opensource/images/axual/ksml:snapshot
+            ghcr.io/axual/ksml:1.1-snapshot
+            axual/ksml:1.1-snapshot
+            registry.axual.io/opensource/images/axual/ksml:1.1-snapshot
 
   helm-chart-release:
     needs: build-push-docker
     uses: './.github/workflows/package-push-helm.yml'
     secrets: inherit
     with:
-      app-version: snapshot
-      version: 0.0.0-snapshot
+      app-version: 1.1-snapshot
+      version: 1.1.0-snapshot

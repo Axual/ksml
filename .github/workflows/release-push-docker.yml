@@ -56,11 +56,11 @@ jobs:
           push: true
           tags: |
             axual/ksml:${{ inputs.tag || github.event.release.tag_name }}
-            axual/ksml:latest
+            axual/ksml:1.1
             ghcr.io/axual/ksml:${{ inputs.tag || github.event.release.tag_name }}
-            ghcr.io/axual/ksml:latest
+            ghcr.io/axual/ksml:1.1
             registry.axual.io/opensource/images/axual/ksml:${{ inputs.tag || github.event.release.tag_name }}
-            registry.axual.io/opensource/images/axual/ksml:latest
+            registry.axual.io/opensource/images/axual/ksml:1.1
 
   helm-chart-release:
     needs: release-push-docker
