@@ -419,7 +419,7 @@ Where:
 
 - `###` is a positive number
 - `x` is an optional time unit:
-    - (none): milliseconds
+    - `ms`: milliseconds (this is also the default if no unit is specified)
     - `s`: seconds
     - `m`: minutes
     - `h`: hours
@@ -429,6 +429,7 @@ Where:
 Examples:
 ```
 100   # 100 milliseconds
+500ms # 500 milliseconds
 30s   # 30 seconds
 5m    # 5 minutes
 2h    # 2 hours
