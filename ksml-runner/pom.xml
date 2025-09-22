@@ -182,6 +182,30 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${maven.exec.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-ksml-schema</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>io.axual.ksml.runner.KSMLRunner</mainClass>
+                            <commandlineArgs>--schema ${ksml.schema.output.file}</commandlineArgs>
+                            <classpathScope>compile</classpathScope>
+                            <includeProjectDependencies>true</includeProjectDependencies>
+                            <includePluginDependencies>false</includePluginDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
+
 </project>
