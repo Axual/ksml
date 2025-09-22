@@ -96,6 +96,9 @@
         <slf4j.version>2.1.0-alpha1</slf4j.version>
         <wire.version>5.2.0</wire.version>
 
+        <!-- KSML schema generation -->
+        <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
+
         <!-- Test dependency versions -->
         <assertj.version>3.27.4</assertj.version>
         <awaitility.version>4.3.0</awaitility.version>
@@ -768,6 +771,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
             </plugin>
+
         </plugins>
 
         <resources>
