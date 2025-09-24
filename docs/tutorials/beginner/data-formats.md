@@ -88,7 +88,7 @@ This producer generates JSON data that KSML automatically converts to Avro forma
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-avro.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/producer-avro.yaml"
     %}
     ```
 
@@ -98,7 +98,7 @@ Create `examples/SensorData.avsc` schema file (JSON format, auto-loaded from wor
 
     ```json
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/SensorData.avsc"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/SensorData.avsc"
     %}
     ```
 
@@ -108,7 +108,7 @@ This processor converts Avro messages to JSON using the `convertValue` operation
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-avro-convert.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/processor-avro-convert.yaml"
     %}
     ```
 
@@ -118,7 +118,7 @@ This processor transforms Avro data (uppercases sensor names) while maintaining 
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-avro-transform.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/processor-avro-transform.yaml"
     %} 
     ```
 

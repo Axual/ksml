@@ -31,6 +31,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.containers.Network;
@@ -83,55 +84,34 @@ class KSMLSchemaRegistryIT {
 
     static GenericContainer<?> ksmlContainer;
 
+    @TempDir
+    static Path tempDir;
+
     @BeforeAll
     static void setup() throws Exception {
         // Create topics first
         createTopics();
 
-        // Create temporary directory for KSML configuration
-        Path tempDir = Files.createTempDirectory("ksml-schema-registry-test");
+        // Create state directory in the JUnit-managed temp directory (auto-cleaned after test)
         Path stateDir = tempDir.resolve("state");
         Files.createDirectories(stateDir);
 
-        // Create ksml-runner.yaml with schema registry configuration
-        String runnerYaml = """
-            ksml:
-              definitions:
-                producer: producer-avro.yaml
-                processor: processor-avro-convert.yaml
-              schemaRegistries:
-                my_schema_registry:
-                  config:
-                    schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
-              notations:
-                avro:
-                  type: confluent_avro
-                  schemaRegistry: my_schema_registry
-                  config:
-                    normalize.schemas: true
-                    auto.register.schemas: true
-              storageDirectory: /ksml/state
-              createStorageDirectory: true
-
-            kafka:
-              bootstrap.servers: broker:9093
-              application.id: io.ksml.schema.registry.test
-              security.protocol: PLAINTEXT
-              acks: all
-            """;
-
-        Files.writeString(tempDir.resolve("ksml-runner.yaml"), runnerYaml);
-
-        // Get the actual KSML definition files
-        String producerPath = "/Users/km/dev/ksml/docs/definitions/beginner-tutorial/different-data-formats/producer-avro.yaml";
-        String processorPath = "/Users/km/dev/ksml/docs/definitions/beginner-tutorial/different-data-formats/processor-avro-convert.yaml";
-        String schemaPath = "/Users/km/dev/ksml/docs/local-docker-compose-setup-with-sr/examples/SensorData.avsc";
+        // Get KSML definition files from test resources
+        String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
+        String runnerPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/ksml-runner.yaml").getPath();
+        String producerPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/producer-avro.yaml").getPath();
+        String processorPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/processor-avro-convert.yaml").getPath();
+        String schemaPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/SensorData.avsc").getPath();
 
         // Verify files exist
+        File runnerFile = new File(runnerPath);
         File producerFile = new File(producerPath);
         File processorFile = new File(processorPath);
         File schemaFile = new File(schemaPath);
 
+        if (!runnerFile.exists()) {
+            throw new RuntimeException("Runner file not found: " + runnerPath);
+        }
         if (!producerFile.exists()) {
             throw new RuntimeException("Producer file not found: " + producerPath);
         }
@@ -142,17 +122,18 @@ class KSMLSchemaRegistryIT {
             throw new RuntimeException("Schema file not found: " + schemaPath);
         }
 
-        log.info("Using KSML files:");
+        log.info("Using KSML files from test resources:");
+        log.info("  Runner: {}", runnerPath);
         log.info("  Producer: {}", producerPath);
         log.info("  Processor: {}", processorPath);
         log.info("  Schema: {}", schemaPath);
 
         // Start KSML container with file mounts
-        ksmlContainer = new GenericContainer<>(DockerImageName.parse("registry.axual.io/opensource/images/axual/ksml:1.1.0"))
+        ksmlContainer = new GenericContainer<>(DockerImageName.parse("registry.axual.io/opensource/images/axual/ksml:snapshot"))
                 .withNetwork(network)
                 .withNetworkAliases("ksml")
                 .withWorkingDirectory("/ksml")
-                .withCopyFileToContainer(MountableFile.forHostPath(tempDir.resolve("ksml-runner.yaml").toString()), "/ksml/ksml-runner.yaml")
+                .withCopyFileToContainer(MountableFile.forHostPath(runnerPath), "/ksml/ksml-runner.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(producerPath), "/ksml/producer-avro.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(processorPath), "/ksml/processor-avro-convert.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(schemaPath), "/ksml/SensorData.avsc")
@@ -189,19 +170,19 @@ class KSMLSchemaRegistryIT {
 
             // Look for KSML processing ready state
             if (!ksmlReady && logs.contains("Pipeline processing state change. Moving from old state 'REBALANCING' to new state 'RUNNING'")) {
-                log.info("✅ KSML pipeline is running");
+                log.info("KSML pipeline is running");
                 ksmlReady = true;
             }
 
             // Look for producer started
             if (!producerStarted && logs.contains("Starting Kafka producer(s)")) {
-                log.info("✅ KSML producer started");
+                log.info("KSML producer started");
                 producerStarted = true;
             }
 
             // Both conditions met
             if (ksmlReady && producerStarted) {
-                log.info("✅ KSML container fully ready");
+                log.info("KSML container fully ready");
                 return;
             }
 
@@ -218,7 +199,7 @@ class KSMLSchemaRegistryIT {
         // But check logs first to see if sensor data is already being generated
         String logs = ksmlContainer.getLogs();
         if (logs.contains("Original Avro: sensor=")) {
-            log.info("✅ Sensor data already being generated");
+            log.info("Sensor data already being generated");
             return;
         }
 
@@ -229,7 +210,7 @@ class KSMLSchemaRegistryIT {
         while (System.currentTimeMillis() - startTime < timeout) {
             logs = ksmlContainer.getLogs();
             if (logs.contains("Original Avro: sensor=")) {
-                log.info("✅ Sensor data generation detected");
+                log.info("Sensor data generation detected");
                 // Wait for one more interval to ensure processing
                 Thread.sleep(4000); // 3s interval + 1s buffer
                 return;
@@ -252,7 +233,7 @@ class KSMLSchemaRegistryIT {
             );
 
             adminClient.createTopics(topics).all().get();
-            log.info("✅ Created topics: sensor_data_avro, sensor_data_json, combined_sensor_data");
+            log.info("Created topics: sensor_data_avro, sensor_data_json, combined_sensor_data");
         }
     }
 
@@ -280,7 +261,7 @@ class KSMLSchemaRegistryIT {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
 
             assertFalse(records.isEmpty(), "Should have generated sensor data in sensor_data_avro topic");
-            log.info("✅ Found {} AVRO sensor messages", records.count());
+            log.info("Found {} AVRO sensor messages", records.count());
 
             // Log some sample sensor data keys (values will be binary AVRO)
             records.forEach(record -> {
@@ -296,11 +277,11 @@ class KSMLSchemaRegistryIT {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
 
             assertFalse(records.isEmpty(), "Should have converted sensor data in sensor_data_json topic");
-            log.info("✅ Found {} JSON sensor messages", records.count());
+            log.info("Found {} JSON sensor messages", records.count());
 
             // Validate JSON structure and content
             records.forEach(record -> {
-                log.info("📊 JSON Sensor: key={}, value={}", record.key(), record.value());
+                log.info("JSON Sensor: key={}, value={}", record.key(), record.value());
                 assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
 
                 // Validate JSON structure contains expected sensor data fields
@@ -330,11 +311,10 @@ class KSMLSchemaRegistryIT {
         assertFalse(logs.contains("ERROR"), "KSML should not have errors: " + extractErrors(logs));
         assertFalse(logs.contains("Exception"), "KSML should not have exceptions: " + extractErrors(logs));
 
-        log.info("🎉 KSML Schema Registry AVRO to JSON conversion test completed successfully!");
-        log.info("✅ KSML container executed real YAML definitions with schema registry");
-        log.info("✅ KSML generated AVRO sensor data using producer-avro.yaml");
-        log.info("✅ KSML converted AVRO to JSON using processor-avro-convert.yaml");
-        log.info("✅ Schema registry integration working correctly");
+        log.info("KSML Schema Registry AVRO to JSON conversion test completed successfully!");
+        log.info("KSML generated AVRO sensor data using producer-avro.yaml");
+        log.info("KSML converted AVRO to JSON using processor-avro-convert.yaml");
+        log.info("Schema registry integration working correctly");
     }
 
     private String extractErrors(String logs) {

@@ -31,6 +31,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.containers.Network;
@@ -68,13 +69,15 @@ class KSMLBranchingIT {
 
     static GenericContainer<?> ksmlContainer;
 
+    @TempDir
+    static Path tempDir;
+
     @BeforeAll
     static void setup() throws Exception {
         // Create topics first
         createTopics();
 
-        // Create temporary directory for KSML configuration
-        Path tempDir = Files.createTempDirectory("ksml-real-test");
+        // Create state directory in the JUnit-managed temp directory (auto-cleaned after test)
         Path stateDir = tempDir.resolve("state");
         Files.createDirectories(stateDir);
 

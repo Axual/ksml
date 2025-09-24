@@ -154,10 +154,10 @@ Updated KSML documentation with:
 
 **Key Resources:**
 
-- **[Getting Started](../getting-started/quick-start.md)** - Quick start guide with Docker Compose
-- **[Tutorials](../tutorials/index.md)** - From basics to advanced patterns
+- **[Getting Started](getting-started/quick-start.md)** - Quick start guide with Docker Compose
+- **[Tutorials](tutorials/index.md)** - From basics to advanced patterns
 - **[Examples](https://github.com/Axual/ksml/tree/main/examples)** - 20+ working examples
-- **[Reference](../reference/index.md)** - Complete KSML language reference
+- **[Reference](reference/index.md)** - Complete KSML language reference
 
 ### INFRASTRUCTURE UPDATES
 
