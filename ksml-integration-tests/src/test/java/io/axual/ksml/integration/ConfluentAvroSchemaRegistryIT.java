@@ -52,13 +52,13 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * KSML Integration Test with Apicurio Schema Registry that tests AVRO to JSON conversion.
+ * KSML Integration Test with Confluent AVRO and Apicurio Schema Registry that tests AVRO processing.
  * This test mimics the docker-compose-setup-with-sr configuration and validates
- * that KSML can produce AVRO messages and convert them to JSON using schema registry.
+ * that KSML can produce AVRO messages, convert them to JSON, and transform them using schema registry.
  */
 @Slf4j
 @Testcontainers
-class KSMLSchemaRegistryIT {
+class ConfluentAvroSchemaRegistryIT {
 
     static Network network = Network.newNetwork();
 
@@ -98,15 +98,17 @@ class KSMLSchemaRegistryIT {
 
         // Get KSML definition files from test resources
         String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
-        String runnerPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/ksml-runner.yaml").getPath();
-        String producerPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/producer-avro.yaml").getPath();
-        String processorPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/processor-avro-convert.yaml").getPath();
-        String schemaPath = KSMLSchemaRegistryIT.class.getResource(resourcePath + "/SensorData.avsc").getPath();
+        String runnerPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/ksml-runner.yaml").getPath();
+        String producerPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/producer-avro.yaml").getPath();
+        String processorPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/processor-avro-convert.yaml").getPath();
+        String transformerPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/processor-avro-transform.yaml").getPath();
+        String schemaPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/SensorData.avsc").getPath();
 
         // Verify files exist
         File runnerFile = new File(runnerPath);
         File producerFile = new File(producerPath);
         File processorFile = new File(processorPath);
+        File transformerFile = new File(transformerPath);
         File schemaFile = new File(schemaPath);
 
         if (!runnerFile.exists()) {
@@ -118,6 +120,9 @@ class KSMLSchemaRegistryIT {
         if (!processorFile.exists()) {
             throw new RuntimeException("Processor file not found: " + processorPath);
         }
+        if (!transformerFile.exists()) {
+            throw new RuntimeException("Transformer file not found: " + transformerPath);
+        }
         if (!schemaFile.exists()) {
             throw new RuntimeException("Schema file not found: " + schemaPath);
         }
@@ -126,6 +131,7 @@ class KSMLSchemaRegistryIT {
         log.info("  Runner: {}", runnerPath);
         log.info("  Producer: {}", producerPath);
         log.info("  Processor: {}", processorPath);
+        log.info("  Transformer: {}", transformerPath);
         log.info("  Schema: {}", schemaPath);
 
         // Start KSML container with file mounts
@@ -136,6 +142,7 @@ class KSMLSchemaRegistryIT {
                 .withCopyFileToContainer(MountableFile.forHostPath(runnerPath), "/ksml/ksml-runner.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(producerPath), "/ksml/producer-avro.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(processorPath), "/ksml/processor-avro-convert.yaml")
+                .withCopyFileToContainer(MountableFile.forHostPath(transformerPath), "/ksml/processor-avro-transform.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(schemaPath), "/ksml/SensorData.avsc")
                 .withCopyFileToContainer(MountableFile.forHostPath(stateDir.toString()), "/ksml/state")
                 .withCommand("ksml-runner.yaml")
@@ -229,11 +236,12 @@ class KSMLSchemaRegistryIT {
             List<NewTopic> topics = Arrays.asList(
                     new NewTopic("sensor_data_avro", 1, (short) 1),
                     new NewTopic("sensor_data_json", 1, (short) 1),
+                    new NewTopic("sensor_data_transformed", 1, (short) 1),
                     new NewTopic("combined_sensor_data", 1, (short) 1)
             );
 
             adminClient.createTopics(topics).all().get();
-            log.info("Created topics: sensor_data_avro, sensor_data_json, combined_sensor_data");
+            log.info("Created topics: sensor_data_avro, sensor_data_json, sensor_data_transformed, combined_sensor_data");
         }
     }
 
@@ -311,10 +319,60 @@ class KSMLSchemaRegistryIT {
         assertFalse(logs.contains("ERROR"), "KSML should not have errors: " + extractErrors(logs));
         assertFalse(logs.contains("Exception"), "KSML should not have exceptions: " + extractErrors(logs));
 
-        log.info("KSML Schema Registry AVRO to JSON conversion test completed successfully!");
+        log.info("Confluent AVRO Schema Registry AVRO to JSON conversion test completed successfully!");
         log.info("KSML generated AVRO sensor data using producer-avro.yaml");
         log.info("KSML converted AVRO to JSON using processor-avro-convert.yaml");
         log.info("Schema registry integration working correctly");
+    }
+
+    @Test
+    @Timeout(150) // 2.5 minutes to account for schema registry startup time
+    void testKSMLAvroTransformation() throws Exception {
+        // Wait for first sensor data to be generated and processed
+        log.info("Waiting for KSML to generate and process transformed sensor data...");
+        waitForSensorDataGeneration();
+
+        // Verify KSML is still running
+        assertTrue(ksmlContainer.isRunning(), "KSML container should still be running");
+
+        // Create consumer properties
+        Properties consumerProps = new Properties();
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+        // Check sensor_data_transformed topic (transformer output - transformed AVRO data)
+        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-transformed");
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
+            consumer.subscribe(Collections.singletonList("sensor_data_transformed"));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+
+            assertFalse(records.isEmpty(), "Should have transformed sensor data in sensor_data_transformed topic");
+            log.info("Found {} transformed sensor messages", records.count());
+
+            // Validate transformation (sensor names should be uppercased)
+            records.forEach(record -> {
+                log.info("Transformed Sensor: key={}, value size={} bytes", record.key(), record.value().length());
+                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+
+                // Since the output is AVRO binary, we can't easily parse it, but we can validate the key
+                // The transformation is verified through KSML logs
+            });
+        }
+
+        // Check KSML logs for transformation messages
+        String logs = ksmlContainer.getLogs();
+        assertTrue(logs.contains("Transformed sensor: name=SENSOR"), "KSML should log transformed sensor with uppercase name");
+
+        // Should not have errors
+        assertFalse(logs.contains("ERROR"), "KSML should not have errors: " + extractErrors(logs));
+        assertFalse(logs.contains("Exception"), "KSML should not have exceptions: " + extractErrors(logs));
+
+        log.info("Confluent AVRO Schema Registry transformation test completed successfully!");
+        log.info("KSML generated AVRO sensor data using producer-avro.yaml");
+        log.info("KSML transformed AVRO sensor names to uppercase using processor-avro-transform.yaml");
+        log.info("Schema registry transformation working correctly");
     }
 
     private String extractErrors(String logs) {

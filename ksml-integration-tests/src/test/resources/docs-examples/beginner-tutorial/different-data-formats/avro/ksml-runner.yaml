@@ -2,6 +2,7 @@ ksml:
   definitions:
     producer: producer-avro.yaml
     processor: processor-avro-convert.yaml
+    transformer: processor-avro-transform.yaml
   schemaRegistries:
     my_schema_registry:
       config:
