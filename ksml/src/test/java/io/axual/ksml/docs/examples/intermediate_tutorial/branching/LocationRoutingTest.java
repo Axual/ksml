@@ -1,4 +1,4 @@
-package io.axual.ksml.docs.examples.intermediate.tutorial.branching;
+package io.axual.ksml.docs.examples.intermediate_tutorial.branching;
 
 /*-
  * ========================LICENSE_START=================================
