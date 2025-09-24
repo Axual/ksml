@@ -243,7 +243,7 @@ This processor transforms JsonSchema data (adds processing timestamp and upperca
     %}
     ```
 
-## Working with JSON Data
+## Working with Schemaless JSON Data
 
 JSON provides flexible, human-readable structured data without schema validation requirements.
 

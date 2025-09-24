@@ -11,7 +11,7 @@ functions:
       key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
       sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
 
-      # Generate random sensor measurement data matching the new schema
+      # Generate random sensor measurement data
       value = {
         "name": key,
         "timestamp": round(time.time()*1000),     # long timestamp (not string)
