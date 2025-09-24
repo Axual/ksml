@@ -41,10 +41,15 @@ When defining streams in KSML, you specify the data format using the `keyType` a
 Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName` (e.g., `avro:SensorData`).
 
 
-### Setup Requirements
+## Working with Avro Data
 
-- Create `docker-compose.yml` with schema registry and pre-created topics 
-- **Note**: This tutorial requires a different docker-compose.yml than other tutorials because Avro format needs a schema registry to store and manage schema definitions 
+Avro provides schema-based binary serialization with validation, evolution support, and compact encoding.
+
+### Setup Requirements for Avro
+
+**Avro format requires a schema registry**, so this tutorial needs a different docker-compose.yml than other tutorials.
+
+Create `docker-compose.yml` with schema registry and pre-created topics:
 
 ??? info "Docker Compose Configuration (click to expand)"
 
@@ -54,7 +59,7 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
     %}
     ```
 
-- Create `kowl-ui-config.yaml` for Kafka UI:
+Create `kowl-ui-config.yaml` for Kafka UI:
 
 ??? info "Kafka UI Configuration (click to expand)"
 
@@ -64,23 +69,57 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
     %}
     ```
 
-- Create `examples/ksml-runner.yaml` with Avro configuration:
+### KSML Runner Configuration Options
 
-??? info "KSML Runner Configuration (click to expand)"
+KSML supports two Avro implementations. Choose one based on your schema registry setup:
+
+#### Option 1: confluent_avro (Confluent Schema Registry Compatible)
+
+Use this configuration when working with Confluent Schema Registry or when you need full Confluent compatibility:
+
+??? info "KSML Runner Configuration - confluent_avro (click to expand)"
 
     ```yaml
     {%
-      include "../../local-docker-compose-setup-with-sr/examples/ksml-runner.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/confluent_avro/ksml-runner.yaml"
     %}
     ```
 
-- For each example, create `producer.yaml` and `processor.yaml` files and reference them from `ksml-runner.yaml`
+**Key features:**
+
+- Uses Confluent compatibility API (`/apis/ccompat/v7`)
+- Full compatibility with Confluent Schema Registry ecosystem
+- Works seamlessly with Kowl UI for schema viewing
+
+#### Option 2: apicurio_avro (Apicurio Native API)
+
+Use this configuration when working with Apicurio Schema Registry's native capabilities:
+
+??? info "KSML Runner Configuration - apicurio_avro (click to expand)"
+
+    ```yaml
+    {%
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/apicurio_avro/ksml-runner.yaml"
+    %}
+    ```
+
+**Key features:**
+
+- Uses Apicurio native API (`/apis/registry/v2`)
+- Apicurio-specific features and configuration options
+- **KSML 1.1.0 supports `/v2` endpoint only** (does not support `/v3` endpoint)
+
+**Important Notes:**
+
+- **Kowl UI compatibility warning**: When using `apicurio_avro`, you may see compatibility mode warnings in Kowl. This is expected because Kowl only supports the Confluent compatibility endpoint (`/apis/ccompat/v7`) for viewing schemas, while `apicurio_avro` uses the native Apicurio API.
+- The warning doesn't affect schema viewing in Kowl UI nor KSML functionality. Everything works correctly.
+
+#### Running the Examples
+
+- For each example, create `producer.yaml` and `processor.yaml` files and reference them from your chosen `ksml-runner.yaml`
 - Restart KSML: `docker compose down & docker compose up -d && docker compose logs ksml -f` (which is faster than `docker compose restart ksml`)
 
-
-## Working with Avro Data
-
-Avro provides schema-based binary serialization with validation, evolution support, and compact encoding.
+### Avro Examples
 
 This producer generates JSON data that KSML automatically converts to Avro format using the schema registry:
 
@@ -208,6 +247,10 @@ This processor transforms JsonSchema data (adds processing timestamp and upperca
 
 JSON provides flexible, human-readable structured data without schema validation requirements.
 
+### Setup Requirements
+
+JSON data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
+
 This producer generates JSON sensor data directly (no format conversion needed):
 
 ??? info "Producer definition for JSON messages (click to expand)"
@@ -231,6 +274,10 @@ This processor demonstrates key-value transformation using `keyValueTransformer`
 ## Working with CSV Data
 
 CSV handles tabular data with schema-based column definitions and structured object access.
+
+### Setup Requirements
+
+CSV data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
 
 Create `examples/SensorData.csv` schema file (defines column order):
 
@@ -264,6 +311,10 @@ This processor demonstrates CSV data manipulation (uppercases city names) while 
 ## Working with XML Data
 
 XML (eXtensible Markup Language) is a structured format for representing hierarchical data with custom tags and attributes.
+
+### Setup Requirements
+
+XML data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
 
 - XML data is represented as nested elements with opening and closing tags
 - Elements can contain text content, attributes, and child elements
@@ -330,6 +381,10 @@ kcat -b localhost:9092 -t ksml_sensordata_xml -C -o -1 -c 1 -f '%s\n' | xmllint 
 
 Binary data represents raw bytes as sequences of numeric values ranging from 0 to 255, ideal for handling non-text content like images, files, or custom protocols.
 
+### Setup Requirements
+
+Binary data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
+
 - Binary data is represented as arrays of integers where each value corresponds to a single byte
 - Each byte can store values from 0-255, allowing for compact encoding of various data types
 - Binary processing enables direct byte manipulation, bit-level operations, and efficient handling of structured binary formats
@@ -358,6 +413,10 @@ This processor demonstrates binary data manipulation (increments first byte) whi
 
 SOAP provides structured web service messaging with envelope/body format and no WSDL requirements.
 
+### Setup Requirements
+
+SOAP data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
+
 This producer creates SOAP request messages with envelope/body structure (no WSDL files required):
 
 ??? info "Producer definition for SOAP messages (click to expand)"
@@ -381,6 +440,10 @@ This processor transforms SOAP requests into SOAP responses (extracts request da
 ## Converting Between Data Formats
 
 Use the `convertValue` operation to transform data between formats within a single pipeline.
+
+### Setup Requirements
+
+This example converts Avro messages, which requires a schema registry. Use the same Docker Compose setup as described in the [Working with Avro Data](#setup-requirements-for-avro) section above.
 
 This producer generates Avro messages for format conversion demonstrations:
 
