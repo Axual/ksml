@@ -20,7 +20,6 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -33,12 +32,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -46,19 +45,24 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * KSML Integration Test with Confluent AVRO and Apicurio Schema Registry that tests AVRO processing.
- * This test mimics the docker-compose-setup-with-sr configuration and validates
- * that KSML can produce AVRO messages, convert them to JSON, and transform them using schema registry.
+ * KSML Integration Test with Apicurio AVRO and Apicurio Schema Registry that tests AVRO processing.
+ * This test validates that KSML can produce AVRO messages and convert them to JSON using apicurio_avro notation.
  */
 @Slf4j
 @Testcontainers
-class ConfluentAvroSchemaRegistryIT {
+class ApicurioAvroSchemaRegistryIT {
 
     static Network network = Network.newNetwork();
 
@@ -79,6 +83,7 @@ class ConfluentAvroSchemaRegistryIT {
             .withEnv("APICURIO_STORAGE_KIND", "kafkasql")
             .withEnv("APICURIO_KAFKASQL_BOOTSTRAP_SERVERS", "broker:9093")
             .withEnv("APICURIO_KAFKASQL_TOPIC", "_apicurio-kafkasql-store")
+            .withEnv("APICURIO_CCOMPAT_LEGACY_ID_MODE_ENABLED", "true")
             .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(3)))
             .dependsOn(kafka);
 
@@ -98,10 +103,10 @@ class ConfluentAvroSchemaRegistryIT {
 
         // Get KSML definition files from test resources
         String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
-        String runnerPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/confluent_avro/ksml-runner.yaml").getPath();
-        String producerPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/producer-avro.yaml").getPath();
-        String processorPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/processor-avro-transform.yaml").getPath();
-        String schemaPath = ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/SensorData.avsc").getPath();
+        String runnerPath = ApicurioAvroSchemaRegistryIT.class.getResource(resourcePath + "/apicurio_avro/ksml-runner.yaml").getPath();
+        String producerPath = ApicurioAvroSchemaRegistryIT.class.getResource(resourcePath + "/producer-avro.yaml").getPath();
+        String processorPath = ApicurioAvroSchemaRegistryIT.class.getResource(resourcePath + "/processor-avro-convert.yaml").getPath();
+        String schemaPath = ApicurioAvroSchemaRegistryIT.class.getResource(resourcePath + "/SensorData.avsc").getPath();
 
         // Verify files exist
         File runnerFile = new File(runnerPath);
@@ -122,7 +127,7 @@ class ConfluentAvroSchemaRegistryIT {
             throw new RuntimeException("Schema file not found: " + schemaPath);
         }
 
-        log.info("Using KSML files from test resources:");
+        log.info("Using KSML files:");
         log.info("  Runner: {}", runnerPath);
         log.info("  Producer: {}", producerPath);
         log.info("  Processor: {}", processorPath);
@@ -135,7 +140,7 @@ class ConfluentAvroSchemaRegistryIT {
                 .withWorkingDirectory("/ksml")
                 .withCopyFileToContainer(MountableFile.forHostPath(runnerPath), "/ksml/ksml-runner.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(producerPath), "/ksml/producer-avro.yaml")
-                .withCopyFileToContainer(MountableFile.forHostPath(processorPath), "/ksml/processor-avro-transform.yaml")
+                .withCopyFileToContainer(MountableFile.forHostPath(processorPath), "/ksml/processor-avro-convert.yaml")
                 .withCopyFileToContainer(MountableFile.forHostPath(schemaPath), "/ksml/SensorData.avsc")
                 .withCopyFileToContainer(MountableFile.forHostPath(stateDir.toString()), "/ksml/state")
                 .withCommand("ksml-runner.yaml")
@@ -152,9 +157,9 @@ class ConfluentAvroSchemaRegistryIT {
 
     @Test
     @Timeout(150) // 2.5 minutes to account for schema registry startup time
-    void testKSMLAvroTransformation() throws Exception {
+    void testKSMLApicurioAvroToJsonConversion() throws Exception {
         // Wait for first sensor data to be generated and processed
-        log.info("Waiting for KSML to generate and process transformed sensor data...");
+        log.info("Waiting for KSML to generate and process sensor data...");
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
@@ -167,51 +172,67 @@ class ConfluentAvroSchemaRegistryIT {
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
-        // Check sensor_data_transformed topic (transformer output - transformed AVRO data)
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-transformed");
+        // Check sensor_data_avro topic (producer output - AVRO data serialized as bytes)
+        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-apicurio-avro");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
-            consumer.subscribe(Collections.singletonList("sensor_data_transformed"));
+            consumer.subscribe(Collections.singletonList("sensor_data_avro"));
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
 
-            assertFalse(records.isEmpty(), "Should have transformed sensor data in sensor_data_transformed topic");
-            log.info("Found {} transformed sensor messages", records.count());
+            assertFalse(records.isEmpty(), "Should have generated sensor data in sensor_data_avro topic");
+            log.info("Found {} Apicurio AVRO sensor messages", records.count());
 
-            // Validate that we received transformed AVRO messages
+            // Log some sample sensor data keys (values will be binary AVRO)
             records.forEach(record -> {
-                log.info("Transformed AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
+                log.info("🔬 Apicurio AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
                 assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
-
-                // The value is AVRO binary data, but we can verify the transformation worked via KSML logs
-                assertTrue(record.value().length() > 0, "AVRO message should have content");
             });
         }
 
-        // Check KSML logs for transformation messages - validate the actual transformation content
+        // Check sensor_data_json topic (processor output - converted JSON)
+        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-apicurio-json");
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
+            consumer.subscribe(Collections.singletonList("sensor_data_json"));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+
+            assertFalse(records.isEmpty(), "Should have converted sensor data in sensor_data_json topic");
+            log.info("Found {} JSON sensor messages", records.count());
+
+            // Validate JSON structure and content
+            records.forEach(record -> {
+                log.info("JSON Sensor: key={}, value={}", record.key(), record.value());
+                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+
+                // Validate JSON structure contains expected sensor data fields
+                String jsonValue = record.value();
+                assertTrue(jsonValue.contains("\"name\""), "JSON should contain name field");
+                assertTrue(jsonValue.contains("\"timestamp\""), "JSON should contain timestamp field");
+                assertTrue(jsonValue.contains("\"value\""), "JSON should contain value field");
+                assertTrue(jsonValue.contains("\"type\""), "JSON should contain type field");
+                assertTrue(jsonValue.contains("\"unit\""), "JSON should contain unit field");
+
+                // Check that sensor type is one of the valid enum values
+                boolean hasValidType = jsonValue.contains("\"AREA\"") ||
+                                     jsonValue.contains("\"HUMIDITY\"") ||
+                                     jsonValue.contains("\"LENGTH\"") ||
+                                     jsonValue.contains("\"STATE\"") ||
+                                     jsonValue.contains("\"TEMPERATURE\"");
+                assertTrue(hasValidType, "JSON should contain valid sensor type enum");
+            });
+        }
+
+        // Check KSML logs for processing messages
         String logs = ksmlContainer.getLogs();
-
-        // Verify transformation logs show uppercased sensor names
-        assertTrue(logs.contains("Transformed sensor: name=SENSOR"), "KSML should log transformed sensor with uppercase name");
-
-        // Look for specific transformation patterns from the logs
-        boolean foundTransformationLogs = logs.lines()
-                .anyMatch(line -> line.contains("pipelines_transformation_pipeline_via_step2_forEach")
-                                 && line.contains("Transformed sensor: name=SENSOR"));
-
-        assertTrue(foundTransformationLogs, "Should find transformation logs with uppercase sensor names");
-
-        // Verify that we have both original input and transformed output
-        assertTrue(logs.contains("Message: key=\"sensor"), "KSML should log original sensor messages");
-        assertTrue(logs.contains("Transformed sensor:"), "KSML should log transformed sensor messages");
+        assertTrue(logs.contains("Original Avro: sensor="), "KSML should log original AVRO processing");
+        assertTrue(logs.contains("Converted to JSON: sensor="), "KSML should log JSON conversion");
 
         // Should not have errors
         assertFalse(logs.contains("ERROR"), "KSML should not have errors: " + extractErrors(logs));
         assertFalse(logs.contains("Exception"), "KSML should not have exceptions: " + extractErrors(logs));
 
-        log.info("Confluent AVRO Schema Registry transformation test completed successfully!");
-        log.info("KSML generated AVRO sensor data using producer-avro.yaml");
-        log.info("KSML transformed AVRO sensor names to uppercase using processor-avro-transform.yaml");
-        log.info("Transformation validated: original 'sensor0' -> transformed 'SENSOR0'");
-        log.info("Schema registry transformation working correctly");
+        log.info("Apicurio AVRO Schema Registry AVRO to JSON conversion test completed successfully!");
+        log.info("KSML generated AVRO sensor data using producer-avro.yaml with apicurio_avro");
+        log.info("KSML converted AVRO to JSON using processor-avro-convert.yaml with apicurio_avro");
+        log.info("Apicurio schema registry integration working correctly");
     }
 
     private static void waitForKSMLReady() throws InterruptedException {
@@ -263,7 +284,7 @@ class ConfluentAvroSchemaRegistryIT {
         // Producer generates every 3 seconds, wait for at least 2-3 messages to be generated
         // But check logs first to see if sensor data is already being generated
         String logs = ksmlContainer.getLogs();
-        if (logs.contains("Transformed sensor:")) {
+        if (logs.contains("Original Avro: sensor=")) {
             log.info("Sensor data already being generated");
             return;
         }
@@ -274,7 +295,7 @@ class ConfluentAvroSchemaRegistryIT {
 
         while (System.currentTimeMillis() - startTime < timeout) {
             logs = ksmlContainer.getLogs();
-            if (logs.contains("Transformed sensor:")) {
+            if (logs.contains("Original Avro: sensor=")) {
                 log.info("Sensor data generation detected");
                 // Wait for one more interval to ensure processing
                 Thread.sleep(4000); // 3s interval + 1s buffer
@@ -293,11 +314,11 @@ class ConfluentAvroSchemaRegistryIT {
         try (AdminClient adminClient = AdminClient.create(props)) {
             List<NewTopic> topics = Arrays.asList(
                     new NewTopic("sensor_data_avro", 1, (short) 1),
-                    new NewTopic("sensor_data_transformed", 1, (short) 1)
+                    new NewTopic("sensor_data_json", 1, (short) 1)
             );
 
             adminClient.createTopics(topics).all().get();
-            log.info("Created topics: sensor_data_avro, sensor_data_transformed");
+            log.info("Created topics: sensor_data_avro, sensor_data_json");
         }
     }
 
