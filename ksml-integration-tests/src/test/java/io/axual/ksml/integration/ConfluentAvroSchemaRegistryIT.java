@@ -156,95 +156,6 @@ class ConfluentAvroSchemaRegistryIT {
         waitForKSMLReady();
     }
 
-    private static void waitForKSMLReady() throws InterruptedException {
-        log.info("Waiting for KSML container to be ready...");
-
-        // Wait for KSML to start processing - look for key log messages
-        long startTime = System.currentTimeMillis();
-        long timeout = 90000; // 90 seconds max (schema registry takes longer to initialize)
-        boolean ksmlReady = false;
-        boolean producerStarted = false;
-
-        while (System.currentTimeMillis() - startTime < timeout) {
-            // Check if container is still running
-            if (!ksmlContainer.isRunning()) {
-                String logs = ksmlContainer.getLogs();
-                log.error("KSML container exited. Logs:\\n{}", logs);
-                throw new RuntimeException("KSML container exited with logs:\\n" + logs);
-            }
-
-            String logs = ksmlContainer.getLogs();
-
-            // Look for KSML processing ready state
-            if (!ksmlReady && logs.contains("Pipeline processing state change. Moving from old state 'REBALANCING' to new state 'RUNNING'")) {
-                log.info("KSML pipeline is running");
-                ksmlReady = true;
-            }
-
-            // Look for producer started
-            if (!producerStarted && logs.contains("Starting Kafka producer(s)")) {
-                log.info("KSML producer started");
-                producerStarted = true;
-            }
-
-            // Both conditions met
-            if (ksmlReady && producerStarted) {
-                log.info("KSML container fully ready");
-                return;
-            }
-
-            Thread.sleep(1000); // Check every second
-        }
-
-        throw new RuntimeException("KSML did not become ready within " + (timeout / 1000) + " seconds");
-    }
-
-    private void waitForSensorDataGeneration() throws InterruptedException {
-        log.info("Waiting for sensor data generation to start...");
-
-        // Producer generates every 3 seconds, wait for at least 2-3 messages to be generated
-        // But check logs first to see if sensor data is already being generated
-        String logs = ksmlContainer.getLogs();
-        if (logs.contains("Original Avro: sensor=")) {
-            log.info("Sensor data already being generated");
-            return;
-        }
-
-        // Wait up to 15 seconds for first sensor data (3s interval + some buffer)
-        long startTime = System.currentTimeMillis();
-        long timeout = 15000; // 15 seconds should be enough
-
-        while (System.currentTimeMillis() - startTime < timeout) {
-            logs = ksmlContainer.getLogs();
-            if (logs.contains("Original Avro: sensor=")) {
-                log.info("Sensor data generation detected");
-                // Wait for one more interval to ensure processing
-                Thread.sleep(4000); // 3s interval + 1s buffer
-                return;
-            }
-            Thread.sleep(1000);
-        }
-
-        throw new RuntimeException("No sensor data generation detected within " + (timeout / 1000) + " seconds");
-    }
-
-    private static void createTopics() throws ExecutionException, InterruptedException {
-        Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-
-        try (AdminClient adminClient = AdminClient.create(props)) {
-            List<NewTopic> topics = Arrays.asList(
-                    new NewTopic("sensor_data_avro", 1, (short) 1),
-                    new NewTopic("sensor_data_json", 1, (short) 1),
-                    new NewTopic("sensor_data_transformed", 1, (short) 1),
-                    new NewTopic("combined_sensor_data", 1, (short) 1)
-            );
-
-            adminClient.createTopics(topics).all().get();
-            log.info("Created topics: sensor_data_avro, sensor_data_json, sensor_data_transformed, combined_sensor_data");
-        }
-    }
-
     @Test
     @Timeout(150) // 2.5 minutes to account for schema registry startup time
     void testKSMLAvroToJsonConversion() throws Exception {
@@ -351,19 +262,32 @@ class ConfluentAvroSchemaRegistryIT {
             assertFalse(records.isEmpty(), "Should have transformed sensor data in sensor_data_transformed topic");
             log.info("Found {} transformed sensor messages", records.count());
 
-            // Validate transformation (sensor names should be uppercased)
+            // Validate that we received transformed AVRO messages
             records.forEach(record -> {
-                log.info("Transformed Sensor: key={}, value size={} bytes", record.key(), record.value().length());
+                log.info("Transformed AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
                 assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
 
-                // Since the output is AVRO binary, we can't easily parse it, but we can validate the key
-                // The transformation is verified through KSML logs
+                // The value is AVRO binary data, but we can verify the transformation worked via KSML logs
+                assertTrue(record.value().length() > 0, "AVRO message should have content");
             });
         }
 
-        // Check KSML logs for transformation messages
+        // Check KSML logs for transformation messages - validate the actual transformation content
         String logs = ksmlContainer.getLogs();
+
+        // Verify transformation logs show uppercased sensor names
         assertTrue(logs.contains("Transformed sensor: name=SENSOR"), "KSML should log transformed sensor with uppercase name");
+
+        // Look for specific transformation patterns from the logs
+        boolean foundTransformationLogs = logs.lines()
+                .anyMatch(line -> line.contains("pipelines_transformation_pipeline_via_step2_forEach")
+                                 && line.contains("Transformed sensor: name=SENSOR"));
+
+        assertTrue(foundTransformationLogs, "Should find transformation logs with uppercase sensor names");
+
+        // Verify that we have both original input and transformed output
+        assertTrue(logs.contains("Message: key=\"sensor"), "KSML should log original sensor messages");
+        assertTrue(logs.contains("Transformed sensor:"), "KSML should log transformed sensor messages");
 
         // Should not have errors
         assertFalse(logs.contains("ERROR"), "KSML should not have errors: " + extractErrors(logs));
@@ -372,7 +296,97 @@ class ConfluentAvroSchemaRegistryIT {
         log.info("Confluent AVRO Schema Registry transformation test completed successfully!");
         log.info("KSML generated AVRO sensor data using producer-avro.yaml");
         log.info("KSML transformed AVRO sensor names to uppercase using processor-avro-transform.yaml");
+        log.info("Transformation validated: original 'sensor0' -> transformed 'SENSOR0'");
         log.info("Schema registry transformation working correctly");
+    }
+
+    private static void waitForKSMLReady() throws InterruptedException {
+        log.info("Waiting for KSML container to be ready...");
+
+        // Wait for KSML to start processing - look for key log messages
+        long startTime = System.currentTimeMillis();
+        long timeout = 90000; // 90 seconds max (schema registry takes longer to initialize)
+        boolean ksmlReady = false;
+        boolean producerStarted = false;
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            // Check if container is still running
+            if (!ksmlContainer.isRunning()) {
+                String logs = ksmlContainer.getLogs();
+                log.error("KSML container exited. Logs:\\n{}", logs);
+                throw new RuntimeException("KSML container exited with logs:\\n" + logs);
+            }
+
+            String logs = ksmlContainer.getLogs();
+
+            // Look for KSML processing ready state
+            if (!ksmlReady && logs.contains("Pipeline processing state change. Moving from old state 'REBALANCING' to new state 'RUNNING'")) {
+                log.info("KSML pipeline is running");
+                ksmlReady = true;
+            }
+
+            // Look for producer started
+            if (!producerStarted && logs.contains("Starting Kafka producer(s)")) {
+                log.info("KSML producer started");
+                producerStarted = true;
+            }
+
+            // Both conditions met
+            if (ksmlReady && producerStarted) {
+                log.info("KSML container fully ready");
+                return;
+            }
+
+            Thread.sleep(1000); // Check every second
+        }
+
+        throw new RuntimeException("KSML did not become ready within " + (timeout / 1000) + " seconds");
+    }
+
+    private void waitForSensorDataGeneration() throws InterruptedException {
+        log.info("Waiting for sensor data generation to start...");
+
+        // Producer generates every 3 seconds, wait for at least 2-3 messages to be generated
+        // But check logs first to see if sensor data is already being generated
+        String logs = ksmlContainer.getLogs();
+        if (logs.contains("Original Avro: sensor=")) {
+            log.info("Sensor data already being generated");
+            return;
+        }
+
+        // Wait up to 15 seconds for first sensor data (3s interval + some buffer)
+        long startTime = System.currentTimeMillis();
+        long timeout = 15000; // 15 seconds should be enough
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            logs = ksmlContainer.getLogs();
+            if (logs.contains("Original Avro: sensor=")) {
+                log.info("Sensor data generation detected");
+                // Wait for one more interval to ensure processing
+                Thread.sleep(4000); // 3s interval + 1s buffer
+                return;
+            }
+            Thread.sleep(1000);
+        }
+
+        throw new RuntimeException("No sensor data generation detected within " + (timeout / 1000) + " seconds");
+    }
+
+    private static void createTopics() throws ExecutionException, InterruptedException {
+        Properties props = new Properties();
+        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+
+        try (AdminClient adminClient = AdminClient.create(props)) {
+            List<NewTopic> topics = Arrays.asList(
+                    new NewTopic("sensor_data_avro", 1, (short) 1),
+                    new NewTopic("sensor_data_json", 1, (short) 1),
+                    new NewTopic("sensor_data_transformed", 1, (short) 1),
+                    new NewTopic("combined_sensor_data", 1, (short) 1)
+            );
+
+            adminClient.createTopics(topics).all().get();
+            log.info("Created topics: sensor_data_avro, sensor_data_json, sensor_data_transformed, combined_sensor_data");
+        }
     }
 
     private String extractErrors(String logs) {
