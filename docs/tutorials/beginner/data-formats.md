@@ -285,7 +285,7 @@ Create `examples/SensorData.csv` schema file (defines column order):
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/SensorData.csv"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/csv/SensorData.csv"
     %}
     ```
 
@@ -295,7 +295,7 @@ This producer generates JSON data that KSML converts to CSV format using the sch
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-csv.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/csv/csv-producer.yaml"
     %}
     ```
 
@@ -305,7 +305,7 @@ This processor demonstrates CSV data manipulation (uppercases city names) while 
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-csv.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/csv/csv-processor.yaml"
     %}
     ```
 ## Working with XML Data
