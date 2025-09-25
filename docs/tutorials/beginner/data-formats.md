@@ -330,7 +330,7 @@ To run KSML XML processing definitions below, please follow these steps:
 
     ```xml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/SensorData.xsd"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/xml/SensorData.xsd"
     %}
     ```
 
@@ -340,7 +340,7 @@ To run KSML XML processing definitions below, please follow these steps:
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-xml.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/xml/producer-xml.yaml"
     %}
     ```
 
@@ -350,7 +350,7 @@ This processor demonstrates XML data manipulation (uppercases city names) while 
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-xml.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/xml/processor-xml.yaml"
     %}
     ```
 
