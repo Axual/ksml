@@ -167,9 +167,9 @@ JsonSchema provides structured JSON data validation with schema registry support
 
 ### Setup Requirements for JsonSchema
 
-JsonSchema requires a specialized setup. Here we show how to support both Avro and JsonSchema together, with manual schema registration. Of course supporting Avro is not required for supporting JsonSchema, this is just an example. Use this complete Docker Compose configuration:
+JsonSchema requires a schema registry setup with manual schema registration. Use this Docker Compose configuration:
 
-??? info "Complete Docker Compose setup with JsonSchema support (click to expand)"
+??? info "Docker Compose setup with JsonSchema support (click to expand)"
 
     ```yaml
     {%
@@ -177,10 +177,10 @@ JsonSchema requires a specialized setup. Here we show how to support both Avro a
     %}
     ```
 
-**Key differences from basic Avro setup:**
+**Key features:**
 
 - Includes automatic JsonSchema schema registration service (`schema-registration`)
-- Creates topics for both Avro and JsonSchema examples
+- Creates topics for JsonSchema examples
 - Uses Apicurio Schema Registry with both Confluent compatibility API and native Apicurio API endpoints
 
 Create the required Kafka UI configuration file for schema registry integration:
@@ -195,20 +195,20 @@ Create the required Kafka UI configuration file for schema registry integration:
 
 **Note:** This configuration file is essential for the Kafka UI (Kowl) to connect to both Kafka brokers and the schema registry for viewing schemas and deserializing messages.
 
-Configure KSML runner to work with both Avro and JsonSchema registries:
+Configure KSML runner for JsonSchema processing:
 
-??? info "Complete KSML Runner configuration for JsonSchema (click to expand)"
+??? info "KSML Runner configuration for JsonSchema (click to expand)"
 
     ```yaml
     {%
-      include "../../local-docker-compose-setup-with-sr-jsonschema/examples/ksml-runner.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/jsonschema/ksml-runner-docs.yaml"
     %}
     ```
 
 **Important configuration details:**
 
-- Defines **two schema registries**: `my_confluent_registry` (for the Confluent Avro notation) and `my_apicurio_registry` (for JsonSchema)
-- Shows how to configure **both `confluent_avro` and `apicurio_jsonschema`** notations in the same application
+- Defines schema registry: `my_apicurio_registry` (for JsonSchema)
+- Shows how to configure **`apicurio_jsonschema`** notation
 - JsonSchema schemas must be **manually registered** with Apicurio (auto-registration not supported by Apicurio)
 
 ### JsonSchema Examples
@@ -219,7 +219,7 @@ This producer generates JSON data that KSML validates against JsonSchema format 
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-jsonschema.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/jsonschema/jsonschema-producer.yaml"
     %}
     ```
 
@@ -229,7 +229,7 @@ Create `examples/SensorData.json` schema file (JSON Schema format, manually regi
 
     ```json
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/SensorData.json"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/jsonschema/SensorData.json"
     %}
     ```
 
@@ -239,7 +239,7 @@ This processor transforms JsonSchema data (adds processing timestamp and upperca
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-jsonschema.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/jsonschema/jsonschema-processor.yaml"
     %}
     ```
 
