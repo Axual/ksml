@@ -6,10 +6,10 @@ functions:
       counter = 0
     code: |
       global counter
-      
+
       key = "msg" + str(counter)
       counter = (counter + 1) % 100
-      
+
       # Create simple binary message as list of bytes
       value = [
         counter % 256,                    # Counter byte
@@ -20,7 +20,7 @@ functions:
         ord('L'),                         # ASCII 'L'
         random.randrange(0, 256)          # Another random byte
       ]
-      
+
       log.info("Generated binary message: key={}, bytes={}", key, value)
     expression: (key, value)
     resultType: (string, bytes)

@@ -67,6 +67,7 @@
         <module>ksml-kafka-clients</module>
         <module>ksml-runner</module>
         <module>ksml-reporting</module>
+        <module>ksml-integration-tests</module>
     </modules>
 
     <properties>

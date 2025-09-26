@@ -7,10 +7,10 @@ functions:
       sensorCounter = 0
     code: |
       global sensorCounter
-      
+
       key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
       sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
-      
+
       # Generate data matching SensorData.csv schema
       # Schema: name,timestamp,value,type,unit,color,city,owner
       value = {

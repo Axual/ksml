@@ -1,0 +1,12 @@
+ksml:
+  definitions:
+    binary-producer: binary-producer.yaml
+    binary-processor: binary-processor.yaml
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.binary.test
+  security.protocol: PLAINTEXT
+  acks: all
