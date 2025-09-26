@@ -395,7 +395,7 @@ This producer creates simple binary messages as byte arrays (7-byte messages wit
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-binary.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/binary/binary-producer.yaml"
     %}
     ```
 
@@ -405,7 +405,7 @@ This processor demonstrates binary data manipulation (increments first byte) whi
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-binary.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/binary/binary-processor.yaml"
     %}
     ```
 
