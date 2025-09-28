@@ -157,11 +157,11 @@ public class KSMLRunnerTestUtil {
                     throw new RuntimeException("KSMLRunner process stopped unexpectedly");
                 }
 
-                // Wait for a reasonable initialization time (5 seconds)
-                if (System.currentTimeMillis() - startTime > 5000) {
+                // Wait for a reasonable initialization time (3 seconds)
+                if (System.currentTimeMillis() - startTime > 3000) {
                     log.info("KSMLRunner process should be ready now");
                     // Give it a bit more time to ensure everything is running
-                    Thread.sleep(2000);
+                    Thread.sleep(1000);
                     return;
                 }
 
@@ -178,17 +178,16 @@ public class KSMLRunnerTestUtil {
      *
      * @param tempDir The temporary directory to use for test files
      * @param resourceBasePath The base path in test resources where KSML files are located
+     * @param filesToCopy Array of filenames to copy from the resource directory
      * @param kafkaBootstrapServers The Kafka bootstrap servers to use
      * @return The path to the prepared ksml-runner.yaml config file
      */
-    public static Path prepareTestEnvironment(Path tempDir, String resourceBasePath, String kafkaBootstrapServers) throws IOException {
+    public static Path prepareTestEnvironment(Path tempDir, String resourceBasePath, String[] filesToCopy, String kafkaBootstrapServers) throws IOException {
         // Create state directory
         Path stateDir = tempDir.resolve("state");
         Files.createDirectories(stateDir);
 
         // Copy all KSML files from resources to temp directory
-        String[] filesToCopy = {"ksml-runner.yaml", "producer-xml.yaml", "processor-xml.yaml", "SensorData.xsd"};
-
         for (String fileName : filesToCopy) {
             Path sourcePath = Path.of(KSMLRunnerTestUtil.class.getResource(resourceBasePath + "/" + fileName).getPath());
             Path targetPath = tempDir.resolve(fileName);
@@ -201,10 +200,6 @@ public class KSMLRunnerTestUtil {
         String configContent = Files.readString(configPath);
 
         // Keep relative paths since KSMLRunner will run from temp directory
-        // configContent = configContent.replace("producer: producer-xml.yaml",
-        //                                     "producer: " + tempDir.resolve("producer-xml.yaml"));
-        // configContent = configContent.replace("processor: processor-xml.yaml",
-        //                                     "processor: " + tempDir.resolve("processor-xml.yaml"));
         configContent = configContent.replace("storageDirectory: /ksml/state",
                                             "storageDirectory: " + stateDir);
 
@@ -215,61 +210,6 @@ public class KSMLRunnerTestUtil {
         Files.writeString(configPath, configContent);
         log.info("Prepared test environment in {}", tempDir);
 
-        return configPath;
-    }
-
-    /**
-     * Prepares a custom test environment where you can specify custom KSML configurations.
-     *
-     * @param tempDir The temporary directory to use for test files
-     * @param ksmlFiles Map of filename to file content for KSML files
-     * @param kafkaBootstrapServers The Kafka bootstrap servers to use
-     * @param applicationId The Kafka Streams application ID
-     * @return The path to the prepared ksml-runner.yaml config file
-     */
-    public static Path prepareCustomTestEnvironment(
-            Path tempDir,
-            Map<String, String> ksmlFiles,
-            String kafkaBootstrapServers,
-            String applicationId) throws IOException {
-
-        // Create state directory
-        Path stateDir = tempDir.resolve("state");
-        Files.createDirectories(stateDir);
-
-        // Write all KSML files to temp directory
-        for (Map.Entry<String, String> entry : ksmlFiles.entrySet()) {
-            Path filePath = tempDir.resolve(entry.getKey());
-            Files.writeString(filePath, entry.getValue());
-            log.debug("Created {} in temp directory", entry.getKey());
-        }
-
-        // Create ksml-runner.yaml configuration
-        String runnerConfig = String.format("""
-            ksml:
-              definitions:
-                producer: %s
-                processor: %s
-              storageDirectory: %s
-              createStorageDirectory: true
-
-            kafka:
-              bootstrap.servers: %s
-              application.id: %s
-              security.protocol: PLAINTEXT
-              acks: all
-            """,
-            tempDir.resolve("producer.yaml"),
-            tempDir.resolve("processor.yaml"),
-            stateDir,
-            kafkaBootstrapServers,
-            applicationId
-        );
-
-        Path configPath = tempDir.resolve("ksml-runner.yaml");
-        Files.writeString(configPath, runnerConfig);
-
-        log.info("Prepared custom test environment in {}", tempDir);
         return configPath;
     }
 }
