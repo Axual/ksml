@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * KSML Integration Test for CSV data format processing.
  * This test validates that KSML can produce CSV messages, transform them, and process them without schema registry.
- *
+ * <p>
  * This test runs KSMLRunner directly using its main method instead of using a Docker container.
  */
 @Slf4j
