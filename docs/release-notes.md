@@ -126,7 +126,8 @@ Enhanced "to" operation with clearer definitions. Both syntaxes continue to work
 ```yaml
 # Simple syntax (still supported)
 to: my-topic
-
+```
+```
 # Detailed syntax (recommended for clarity)
 to:
   topic: my-topic
