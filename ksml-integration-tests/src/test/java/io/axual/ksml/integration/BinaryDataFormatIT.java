@@ -119,7 +119,7 @@ class BinaryDataFormatIT {
         Map<String, byte[]> originalMessages = new HashMap<>();
         try (KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_binary"));
-            ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, byte[]> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have generated binary data in ksml_sensordata_binary topic");
             log.info("Found {} binary messages", records.count());
@@ -148,7 +148,7 @@ class BinaryDataFormatIT {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-processed");
         try (KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_binary_processed"));
-            ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, byte[]> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have processed binary data in ksml_sensordata_binary_processed topic");
             log.info("Found {} processed binary messages", records.count());

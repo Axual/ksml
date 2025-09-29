@@ -131,7 +131,7 @@ class XmlDataFormatIT {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-xml");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_xml"));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have generated sensor data in ksml_sensordata_xml topic");
             log.info("Found {} XML sensor messages", records.count());
@@ -167,7 +167,7 @@ class XmlDataFormatIT {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-processed");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_xml_processed"));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have processed sensor data in ksml_sensordata_xml_processed topic");
             log.info("Found {} processed XML messages", records.count());

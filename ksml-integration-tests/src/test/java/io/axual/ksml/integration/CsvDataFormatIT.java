@@ -126,7 +126,7 @@ class CsvDataFormatIT {
         Map<String, String> originalMessages = new HashMap<>();
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv"));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have generated sensor data in ksml_sensordata_csv topic");
             log.info("Found {} CSV sensor messages", records.count());
@@ -158,7 +158,7 @@ class CsvDataFormatIT {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-processed");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv_processed"));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have processed sensor data in ksml_sensordata_csv_processed topic");
             log.info("Found {} processed CSV messages", records.count());

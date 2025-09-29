@@ -20,6 +20,7 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -57,7 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * KSML Integration Test with Apicurio AVRO and Apicurio Schema Registry that tests AVRO processing.
  * This test validates that KSML can produce AVRO messages and convert them to JSON using apicurio_avro notation.
- *
+ * <p>
  * This test runs KSMLRunner directly using its main method instead of using a Docker container.
  */
 @Slf4j
@@ -80,12 +81,10 @@ class ApicurioAvroSchemaRegistryIT {
             .withEnv("QUARKUS_HTTP_PORT", "8081")
             .withEnv("QUARKUS_HTTP_CORS_ORIGINS", "*")
             .withEnv("QUARKUS_PROFILE", "prod")
-            .withEnv("APICURIO_STORAGE_KIND", "kafkasql")
-            .withEnv("APICURIO_KAFKASQL_BOOTSTRAP_SERVERS", "broker:9093")
-            .withEnv("APICURIO_KAFKASQL_TOPIC", "_apicurio-kafkasql-store")
+            .withEnv("APICURIO_STORAGE_KIND", "sql")
+            .withEnv("APICURIO_STORAGE_SQL_KIND", "h2")
             .withEnv("APICURIO_CCOMPAT_LEGACY_ID_MODE_ENABLED", "true")
-            .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(3)))
-            .dependsOn(kafka);
+            .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
 
     static KSMLRunnerWrapper ksmlRunner;
 
@@ -160,7 +159,7 @@ class ApicurioAvroSchemaRegistryIT {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-apicurio-avro");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("sensor_data_avro"));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have generated sensor data in sensor_data_avro topic");
             log.info("Found {} Apicurio AVRO sensor messages", records.count());
@@ -176,7 +175,7 @@ class ApicurioAvroSchemaRegistryIT {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-apicurio-json");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("sensor_data_json"));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have converted sensor data in sensor_data_json topic");
             log.info("Found {} JSON sensor messages", records.count());

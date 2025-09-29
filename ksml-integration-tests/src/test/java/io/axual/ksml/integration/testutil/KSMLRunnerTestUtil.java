@@ -28,9 +28,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.Duration;
 
 import io.axual.ksml.runner.KSMLRunner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 /**
  * Utility class for running KSMLRunner directly in tests instead of using Docker containers.
@@ -211,5 +214,49 @@ public class KSMLRunnerTestUtil {
         log.info("Prepared test environment in {}", tempDir);
 
         return configPath;
+    }
+
+    /**
+     * Polls a Kafka consumer with retry logic to handle consumer group rebalancing delays.
+     * This method addresses the issue where a single poll might return empty results
+     * due to consumer group coordination/rebalancing taking 3-5 seconds.
+     *
+     * @param consumer The Kafka consumer to poll from
+     * @param timeout The maximum duration to wait for records
+     * @param <K> The key type
+     * @param <V> The value type
+     * @return ConsumerRecords containing the polled records, or empty if timeout reached
+     */
+    public static <K, V> ConsumerRecords<K, V> pollWithRetry(
+            KafkaConsumer<K, V> consumer,
+            Duration timeout) {
+
+        long endTime = System.currentTimeMillis() + timeout.toMillis();
+        ConsumerRecords<K, V> records = ConsumerRecords.empty();
+
+        // Keep polling until we get records or timeout
+        while (records.isEmpty() && System.currentTimeMillis() < endTime) {
+            long remainingTime = endTime - System.currentTimeMillis();
+            if (remainingTime <= 0) {
+                break;
+            }
+
+            // Poll with shorter intervals to be more responsive
+            Duration pollTimeout = Duration.ofMillis(Math.min(500, remainingTime));
+            records = consumer.poll(pollTimeout);
+
+            if (!records.isEmpty()) {
+                log.debug("Received {} records after {} ms",
+                        records.count(),
+                        timeout.toMillis() - (endTime - System.currentTimeMillis()));
+                break;
+            }
+        }
+
+        if (records.isEmpty()) {
+            log.warn("No records received after polling for {} ms", timeout.toMillis());
+        }
+
+        return records;
     }
 }

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,11 +83,9 @@ class ConfluentAvroSchemaRegistryIT {
             .withEnv("QUARKUS_HTTP_PORT", "8081")
             .withEnv("QUARKUS_HTTP_CORS_ORIGINS", "*")
             .withEnv("QUARKUS_PROFILE", "prod")
-            .withEnv("APICURIO_STORAGE_KIND", "kafkasql")
-            .withEnv("APICURIO_KAFKASQL_BOOTSTRAP_SERVERS", "broker:9093")
-            .withEnv("APICURIO_KAFKASQL_TOPIC", "_apicurio-kafkasql-store")
-            .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(3)))
-            .dependsOn(kafka);
+            .withEnv("APICURIO_STORAGE_KIND", "sql")
+            .withEnv("APICURIO_STORAGE_SQL_KIND", "h2")
+            .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
 
     static KSMLRunnerWrapper ksmlRunner;
 
@@ -161,7 +160,7 @@ class ConfluentAvroSchemaRegistryIT {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-transformed");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("sensor_data_transformed"));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertFalse(records.isEmpty(), "Should have transformed sensor data in sensor_data_transformed topic");
             log.info("Found {} transformed sensor messages", records.count());
