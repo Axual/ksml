@@ -53,8 +53,7 @@ import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * KSML Integration Test with Confluent AVRO and Apicurio Schema Registry that tests AVRO processing.
@@ -147,7 +146,7 @@ class ConfluentAvroSchemaRegistryIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertTrue(ksmlRunner.isRunning(), "KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
 
         // Create consumer properties
         Properties consumerProps = new Properties();
@@ -162,16 +161,16 @@ class ConfluentAvroSchemaRegistryIT {
             consumer.subscribe(Collections.singletonList("sensor_data_transformed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have transformed sensor data in sensor_data_transformed topic");
+            assertThat(records).isNotEmpty().as("Should have transformed sensor data in sensor_data_transformed topic");
             log.info("Found {} transformed sensor messages", records.count());
 
             // Validate that we received transformed AVRO messages
             records.forEach(record -> {
                 log.info("Transformed AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
-                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
                 // The value is AVRO binary data, but we can verify the transformation worked via KSML logs
-                assertFalse(record.value().isEmpty(), "AVRO message should have content");
+                assertThat(record.value()).isNotEmpty().as("AVRO message should have content");
             });
         }
 

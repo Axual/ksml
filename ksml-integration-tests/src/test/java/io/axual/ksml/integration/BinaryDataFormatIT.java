@@ -46,7 +46,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * KSML Integration Test for Binary data format processing.
@@ -105,7 +105,7 @@ class BinaryDataFormatIT {
         waitForBinaryDataGeneration();
 
         // Verify KSML is still running
-        assertTrue(ksmlRunner.isRunning(), "KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
 
         // Create consumer properties
         Properties consumerProps = new Properties();
@@ -121,23 +121,23 @@ class BinaryDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_binary"));
             ConsumerRecords<String, byte[]> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have generated binary data in ksml_sensordata_binary topic");
+            assertThat(records).isNotEmpty().as("Should have generated binary data in ksml_sensordata_binary topic");
             log.info("Found {} binary messages", records.count());
 
             // Validate binary messages and store for comparison
             records.forEach(record -> {
                 log.info("Binary message: key={}, bytes={}", record.key(), Arrays.toString(record.value()));
-                assertTrue(record.key().startsWith("msg"), "Message key should start with 'msg'");
+                assertThat(record.key()).startsWith("msg").as("Message key should start with 'msg'");
 
                 // Validate binary structure - should be 7 bytes
                 byte[] binaryValue = record.value();
-                assertEquals(7, binaryValue.length, "Binary message should have 7 bytes");
+                assertThat(binaryValue).hasSize(7).as("Binary message should have 7 bytes");
 
                 // Check that bytes 2-5 are ASCII 'KSML' (K=75, S=83, M=77, L=76)
-                assertEquals(75, binaryValue[2] & 0xFF, "Third byte should be ASCII 'K' (75)");
-                assertEquals(83, binaryValue[3] & 0xFF, "Fourth byte should be ASCII 'S' (83)");
-                assertEquals(77, binaryValue[4] & 0xFF, "Fifth byte should be ASCII 'M' (77)");
-                assertEquals(76, binaryValue[5] & 0xFF, "Sixth byte should be ASCII 'L' (76)");
+                assertThat(binaryValue[2] & 0xFF).isEqualTo(75).as("Third byte should be ASCII 'K' (75)");
+                assertThat(binaryValue[3] & 0xFF).isEqualTo(83).as("Fourth byte should be ASCII 'S' (83)");
+                assertThat(binaryValue[4] & 0xFF).isEqualTo(77).as("Fifth byte should be ASCII 'M' (77)");
+                assertThat(binaryValue[5] & 0xFF).isEqualTo(76).as("Sixth byte should be ASCII 'L' (76)");
 
                 // Store original message for later comparison
                 originalMessages.put(record.key(), Arrays.copyOf(binaryValue, binaryValue.length));
@@ -150,39 +150,39 @@ class BinaryDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_binary_processed"));
             ConsumerRecords<String, byte[]> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have processed binary data in ksml_sensordata_binary_processed topic");
+            assertThat(records).isNotEmpty().as("Should have processed binary data in ksml_sensordata_binary_processed topic");
             log.info("Found {} processed binary messages", records.count());
 
             // Validate processed binary messages against originals
             records.forEach(record -> {
                 log.info("Processed binary: key={}, bytes={}", record.key(), Arrays.toString(record.value()));
-                assertTrue(record.key().startsWith("msg"), "Message key should start with 'msg'");
+                assertThat(record.key()).startsWith("msg").as("Message key should start with 'msg'");
 
                 // Validate binary structure contains processed data
                 byte[] processedValue = record.value();
-                assertEquals(7, processedValue.length, "Processed binary message should have 7 bytes");
+                assertThat(processedValue).hasSize(7).as("Processed binary message should have 7 bytes");
 
                 // Check that bytes 2-5 are still ASCII 'KSML' (unchanged by processor)
-                assertEquals(75, processedValue[2] & 0xFF, "Third byte should still be ASCII 'K' (75)");
-                assertEquals(83, processedValue[3] & 0xFF, "Fourth byte should still be ASCII 'S' (83)");
-                assertEquals(77, processedValue[4] & 0xFF, "Fifth byte should still be ASCII 'M' (77)");
-                assertEquals(76, processedValue[5] & 0xFF, "Sixth byte should still be ASCII 'L' (76)");
+                assertThat(processedValue[2] & 0xFF).isEqualTo(75).as("Third byte should still be ASCII 'K' (75)");
+                assertThat(processedValue[3] & 0xFF).isEqualTo(83).as("Fourth byte should still be ASCII 'S' (83)");
+                assertThat(processedValue[4] & 0xFF).isEqualTo(77).as("Fifth byte should still be ASCII 'M' (77)");
+                assertThat(processedValue[5] & 0xFF).isEqualTo(76).as("Sixth byte should still be ASCII 'L' (76)");
 
                 // Verify transformation: first byte should be incremented by 1 (with wrap-around)
                 byte[] originalValue = originalMessages.get(record.key());
-                assertNotNull(originalValue, "Should have original message for key: " + record.key());
+                assertThat(originalValue).isNotNull().as("Should have original message for key: " + record.key());
 
                 int originalFirstByte = originalValue[0] & 0xFF;
                 int processedFirstByte = processedValue[0] & 0xFF;
                 int expectedProcessedFirstByte = (originalFirstByte + 1) % 256;
 
-                assertEquals(expectedProcessedFirstByte, processedFirstByte,
-                    String.format("First byte should be incremented: original=%d, expected=%d, actual=%d",
-                        originalFirstByte, expectedProcessedFirstByte, processedFirstByte));
+                assertThat(processedFirstByte).isEqualTo(expectedProcessedFirstByte)
+                    .as("First byte should be incremented: original=%d, expected=%d, actual=%d",
+                        originalFirstByte, expectedProcessedFirstByte, processedFirstByte);
 
                 // Verify bytes 1 and 6 remain unchanged (random bytes should be preserved)
-                assertEquals(originalValue[1] & 0xFF, processedValue[1] & 0xFF, "Second byte should remain unchanged");
-                assertEquals(originalValue[6] & 0xFF, processedValue[6] & 0xFF, "Seventh byte should remain unchanged");
+                assertThat(processedValue[1] & 0xFF).isEqualTo(originalValue[1] & 0xFF).as("Second byte should remain unchanged");
+                assertThat(processedValue[6] & 0xFF).isEqualTo(originalValue[6] & 0xFF).as("Seventh byte should remain unchanged");
             });
         }
 

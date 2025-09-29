@@ -49,9 +49,7 @@ import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * KSML Integration Test for XML data format processing.
@@ -118,7 +116,7 @@ class XmlDataFormatIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertTrue(ksmlRunner.isRunning(), "KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
 
         // Create consumer properties
         Properties consumerProps = new Properties();
@@ -133,33 +131,34 @@ class XmlDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_xml"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have generated sensor data in ksml_sensordata_xml topic");
+            assertThat(records).isNotEmpty().as("Should have generated sensor data in ksml_sensordata_xml topic");
             log.info("Found {} XML sensor messages", records.count());
 
             // Validate XML messages
             records.forEach(record -> {
                 log.info("XML Sensor: key={}, value={}", record.key(), record.value());
-                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
                 // Validate XML structure - should contain XML tags
                 String xmlValue = record.value();
-                assertTrue(xmlValue.contains("<SensorData>"), "XML message should contain <SensorData> root element");
-                assertTrue(xmlValue.contains("</SensorData>"), "XML message should contain </SensorData> closing tag");
+                assertThat(xmlValue).contains("<SensorData>").as("XML message should contain <SensorData> root element");
+                assertThat(xmlValue).contains("</SensorData>").as("XML message should contain </SensorData> closing tag");
 
                 // XML messages should contain sensor data fields (as XML format)
-                assertTrue(xmlValue.contains("<name>"), "XML message should contain <name> element");
-                assertTrue(xmlValue.contains("<city>"), "XML message should contain <city> element");
-                assertTrue(xmlValue.contains("<timestamp>"), "XML message should contain <timestamp> element");
-                assertTrue(xmlValue.contains("<value>"), "XML message should contain <value> element");
-                assertTrue(xmlValue.contains("<type>"), "XML message should contain <type> element");
-                assertTrue(xmlValue.contains("<unit>"), "XML message should contain <unit> element");
-                assertTrue(xmlValue.contains("<color>"), "XML message should contain <color> element");
-                assertTrue(xmlValue.contains("<owner>"), "XML message should contain <owner> element");
+                assertThat(xmlValue)
+                    .contains("<name>").as("XML message should contain <name> element")
+                    .contains("<city>").as("XML message should contain <city> element")
+                    .contains("<timestamp>").as("XML message should contain <timestamp> element")
+                    .contains("<value>").as("XML message should contain <value> element")
+                    .contains("<type>").as("XML message should contain <type> element")
+                    .contains("<unit>").as("XML message should contain <unit> element")
+                    .contains("<color>").as("XML message should contain <color> element")
+                    .contains("<owner>").as("XML message should contain <owner> element");
 
                 // Validate that XML is well-formed (has proper opening/closing tags)
                 long openingTags = xmlValue.chars().filter(ch -> ch == '<').count();
                 long closingTags = xmlValue.chars().filter(ch -> ch == '>').count();
-                assertEquals(openingTags, closingTags, "XML should have equal opening and closing angle brackets");
+                assertThat(openingTags).isEqualTo(closingTags).as("XML should have equal opening and closing angle brackets");
             });
         }
 
@@ -169,23 +168,24 @@ class XmlDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_xml_processed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have processed sensor data in ksml_sensordata_xml_processed topic");
+            assertThat(records).isNotEmpty().as("Should have processed sensor data in ksml_sensordata_xml_processed topic");
             log.info("Found {} processed XML messages", records.count());
 
             // Validate processed XML messages
             records.forEach(record -> {
                 log.info("Processed XML: key={}, value={}", record.key(), record.value());
-                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
                 // Validate XML structure contains processed data
                 String xmlValue = record.value();
-                assertTrue(xmlValue.contains("<SensorData>"), "Processed XML message should contain <SensorData> root element");
-                assertTrue(xmlValue.contains("</SensorData>"), "Processed XML message should contain </SensorData> closing tag");
+                assertThat(xmlValue)
+                    .contains("<SensorData>").as("Processed XML message should contain <SensorData> root element")
+                    .contains("</SensorData>").as("Processed XML message should contain </SensorData> closing tag");
 
                 // Validate that XML is well-formed
                 long openingTags = xmlValue.chars().filter(ch -> ch == '<').count();
                 long closingTags = xmlValue.chars().filter(ch -> ch == '>').count();
-                assertEquals(openingTags, closingTags, "Processed XML should have equal opening and closing angle brackets");
+                assertThat(openingTags).isEqualTo(closingTags).as("Processed XML should have equal opening and closing angle brackets");
             });
         }
 

@@ -52,8 +52,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * KSML Integration Test with Apicurio AVRO and Apicurio Schema Registry that tests AVRO processing.
@@ -146,7 +145,7 @@ class ApicurioAvroSchemaRegistryIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertTrue(ksmlRunner.isRunning(), "KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
 
         // Create consumer properties
         Properties consumerProps = new Properties();
@@ -161,13 +160,13 @@ class ApicurioAvroSchemaRegistryIT {
             consumer.subscribe(Collections.singletonList("sensor_data_avro"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have generated sensor data in sensor_data_avro topic");
+            assertThat(records).isNotEmpty().as("Should have generated sensor data in sensor_data_avro topic");
             log.info("Found {} Apicurio AVRO sensor messages", records.count());
 
             // Log some sample sensor data keys (values will be binary AVRO)
             records.forEach(record -> {
                 log.info("🔬 Apicurio AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
-                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
             });
         }
 
@@ -177,29 +176,27 @@ class ApicurioAvroSchemaRegistryIT {
             consumer.subscribe(Collections.singletonList("sensor_data_json"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have converted sensor data in sensor_data_json topic");
+            assertThat(records).isNotEmpty().as("Should have converted sensor data in sensor_data_json topic");
             log.info("Found {} JSON sensor messages", records.count());
 
             // Validate JSON structure and content
             records.forEach(record -> {
                 log.info("JSON Sensor: key={}, value={}", record.key(), record.value());
-                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
                 // Validate JSON structure contains expected sensor data fields
                 String jsonValue = record.value();
-                assertTrue(jsonValue.contains("\"name\""), "JSON should contain name field");
-                assertTrue(jsonValue.contains("\"timestamp\""), "JSON should contain timestamp field");
-                assertTrue(jsonValue.contains("\"value\""), "JSON should contain value field");
-                assertTrue(jsonValue.contains("\"type\""), "JSON should contain type field");
-                assertTrue(jsonValue.contains("\"unit\""), "JSON should contain unit field");
+                assertThat(jsonValue)
+                    .contains("\"name\"")
+                    .contains("\"timestamp\"")
+                    .contains("\"value\"")
+                    .contains("\"type\"")
+                    .contains("\"unit\"");
 
                 // Check that sensor type is one of the valid enum values
-                boolean hasValidType = jsonValue.contains("\"AREA\"") ||
-                                     jsonValue.contains("\"HUMIDITY\"") ||
-                                     jsonValue.contains("\"LENGTH\"") ||
-                                     jsonValue.contains("\"STATE\"") ||
-                                     jsonValue.contains("\"TEMPERATURE\"");
-                assertTrue(hasValidType, "JSON should contain valid sensor type enum");
+                assertThat(jsonValue).containsAnyOf(
+                    "\"AREA\"", "\"HUMIDITY\"", "\"LENGTH\"", "\"STATE\"", "\"TEMPERATURE\""
+                ).as("JSON should contain valid sensor type enum");
             });
         }
 

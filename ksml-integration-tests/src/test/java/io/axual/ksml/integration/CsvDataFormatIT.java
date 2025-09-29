@@ -45,7 +45,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * KSML Integration Test for CSV data format processing.
@@ -112,7 +112,7 @@ class CsvDataFormatIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertTrue(ksmlRunner.isRunning(), "KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
 
         // Create consumer properties
         Properties consumerProps = new Properties();
@@ -128,26 +128,26 @@ class CsvDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have generated sensor data in ksml_sensordata_csv topic");
+            assertThat(records).isNotEmpty().as("Should have generated sensor data in ksml_sensordata_csv topic");
             log.info("Found {} CSV sensor messages", records.count());
 
             // Validate CSV messages and store for comparison
             records.forEach(record -> {
                 log.info("CSV Sensor: key={}, value={}", record.key(), record.value());
-                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
                 // Validate CSV structure - should contain comma-separated values
                 String csvValue = record.value();
-                assertTrue(csvValue.contains(","), "CSV message should contain comma separators");
+                assertThat(csvValue).contains(",").as("CSV message should contain comma separators");
 
                 // Count commas to validate CSV structure (should have 7 commas for 8 fields)
                 // Schema: name,timestamp,value,type,unit,color,city,owner
                 long commaCount = csvValue.chars().filter(ch -> ch == ',').count();
-                assertEquals(7, commaCount, "CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
+                assertThat(commaCount).isEqualTo(7).as("CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
 
                 // Validate expected CSV fields exist (basic structure check)
                 String[] fields = csvValue.split(",", -1);
-                assertEquals(8, fields.length, "CSV should have exactly 8 fields");
+                assertThat(fields).hasSize(8).as("CSV should have exactly 8 fields");
 
                 // Store original for comparison with processed version
                 originalMessages.put(record.key(), csvValue);
@@ -160,29 +160,29 @@ class CsvDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv_processed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertFalse(records.isEmpty(), "Should have processed sensor data in ksml_sensordata_csv_processed topic");
+            assertThat(records).isNotEmpty().as("Should have processed sensor data in ksml_sensordata_csv_processed topic");
             log.info("Found {} processed CSV messages", records.count());
 
             // Validate processed CSV messages against originals
             records.forEach(record -> {
                 log.info("Processed CSV: key={}, value={}", record.key(), record.value());
-                assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
+                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
                 // Validate CSV structure contains processed data
                 String processedCsvValue = record.value();
-                assertTrue(processedCsvValue.contains(","), "Processed CSV message should contain comma separators");
+                assertThat(processedCsvValue).contains(",").as("Processed CSV message should contain comma separators");
 
                 // Count commas to validate CSV structure (should have 7 commas for 8 fields)
                 long commaCount = processedCsvValue.chars().filter(ch -> ch == ',').count();
-                assertEquals(7, commaCount, "Processed CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
+                assertThat(commaCount).isEqualTo(7).as("Processed CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
 
                 // Parse processed CSV fields
                 String[] processedFields = processedCsvValue.split(",", -1);
-                assertEquals(8, processedFields.length, "Processed CSV should have exactly 8 fields");
+                assertThat(processedFields).hasSize(8).as("Processed CSV should have exactly 8 fields");
 
                 // Verify transformation: city should be uppercase
                 String originalCsvValue = originalMessages.get(record.key());
-                assertNotNull(originalCsvValue, "Should have original message for key: " + record.key());
+                assertThat(originalCsvValue).isNotNull().as("Should have original message for key: " + record.key());
 
                 String[] originalFields = originalCsvValue.split(",", -1);
 
@@ -190,16 +190,14 @@ class CsvDataFormatIT {
                 String originalCity = originalFields[6];
                 String processedCity = processedFields[6];
 
-                assertEquals(originalCity.toUpperCase(), processedCity,
-                    String.format("City should be uppercase: original='%s', processed='%s'",
-                        originalCity, processedCity));
+                assertThat(processedCity).isEqualTo(originalCity.toUpperCase())
+                    .as("City should be uppercase: original='%s', processed='%s'", originalCity, processedCity);
 
                 // Verify other fields remain unchanged
                 for (int i = 0; i < originalFields.length; i++) {
                     if (i != 6) { // Skip city field (index 6)
-                        assertEquals(originalFields[i], processedFields[i],
-                            String.format("Field %d should remain unchanged: original='%s', processed='%s'",
-                                i, originalFields[i], processedFields[i]));
+                        assertThat(processedFields[i]).isEqualTo(originalFields[i])
+                            .as("Field %d should remain unchanged: original='%s', processed='%s'", i, originalFields[i], processedFields[i]);
                     }
                 }
             });
