@@ -52,6 +52,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.assertj.core.api.SoftAssertions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -179,25 +181,24 @@ class ApicurioAvroSchemaRegistryIT {
             assertThat(records).isNotEmpty().as("Should have converted sensor data in sensor_data_json topic");
             log.info("Found {} JSON sensor messages", records.count());
 
-            // Validate JSON structure and content
+            // Validate JSON structure and content using Jackson ObjectMapper and SoftAssertions
+            SoftAssertions softly = new SoftAssertions();
             records.forEach(record -> {
                 log.info("JSON Sensor: key={}, value={}", record.key(), record.value());
-                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
+                softly.assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
-                // Validate JSON structure contains expected sensor data fields
-                String jsonValue = record.value();
-                assertThat(jsonValue)
-                    .contains("\"name\"")
-                    .contains("\"timestamp\"")
-                    .contains("\"value\"")
-                    .contains("\"type\"")
-                    .contains("\"unit\"");
+                // Use Jackson ObjectMapper for structured JSON validation
+                JsonNode jsonNode = KSMLRunnerTestUtil.validateSensorJsonStructure(record.value(), softly);
 
-                // Check that sensor type is one of the valid enum values
-                assertThat(jsonValue).containsAnyOf(
-                    "\"AREA\"", "\"HUMIDITY\"", "\"LENGTH\"", "\"STATE\"", "\"TEMPERATURE\""
-                ).as("JSON should contain valid sensor type enum");
+                // Validate sensor type enum using JsonNode path access
+                if (jsonNode != null) {
+                    KSMLRunnerTestUtil.softAssertJsonEnumField(softly, jsonNode, "/type", "sensor type",
+                        "AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE");
+                }
             });
+
+            // Execute all soft assertions - will report ALL failures if any occur
+            softly.assertAll();
         }
 
         // Note: Log checking is not available when running KSMLRunner directly in-process

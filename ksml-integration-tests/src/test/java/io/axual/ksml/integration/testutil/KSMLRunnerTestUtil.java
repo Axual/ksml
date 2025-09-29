@@ -30,6 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.time.Duration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.assertj.core.api.SoftAssertions;
 import io.axual.ksml.runner.KSMLRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -258,5 +262,77 @@ public class KSMLRunnerTestUtil {
         }
 
         return records;
+    }
+
+    /**
+     * Validates JSON sensor data structure using Jackson ObjectMapper and SoftAssertions.
+     * This follows the same pattern used in JsonSchemaMapperTest for consistent JSON validation.
+     *
+     * @param jsonValue The JSON string to validate
+     * @param softly SoftAssertions instance to collect all validation failures
+     * @return JsonNode for additional custom validations
+     */
+    public static JsonNode validateSensorJsonStructure(String jsonValue, SoftAssertions softly) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(jsonValue);
+
+            // Validate required sensor data fields exist and have correct types
+            softAssertJsonField(softly, node, "/name", "name field");
+            softAssertJsonField(softly, node, "/timestamp", "timestamp field");
+            softAssertJsonField(softly, node, "/value", "value field");
+            softAssertJsonField(softly, node, "/type", "type field");
+            softAssertJsonField(softly, node, "/unit", "unit field");
+
+            return node;
+
+        } catch (JsonProcessingException e) {
+            softly.fail("Invalid JSON structure: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Validates JSON sensor data structure for processed messages (with additional fields).
+     */
+    public static JsonNode validateProcessedSensorJsonStructure(String jsonValue, SoftAssertions softly) {
+        JsonNode node = validateSensorJsonStructure(jsonValue, softly);
+        if (node != null) {
+            // Additional fields for processed messages
+            softAssertJsonField(softly, node, "/processed_at", "processed_at field");
+            softAssertJsonField(softly, node, "/sensor_id", "sensor_id field");
+        }
+        return node;
+    }
+
+    /**
+     * Soft assertion for JSON field existence and non-null value.
+     * Follows the same pattern as JsonSchemaMapperTest.
+     */
+    private static void softAssertJsonField(SoftAssertions softly, JsonNode rootNode, String jsonPointer, String fieldDescription) {
+        softly.assertThatObject(rootNode.at(jsonPointer))
+                .as("JSON path '%s' (%s) should exist and not be null", jsonPointer, fieldDescription)
+                .returns(false, JsonNode::isMissingNode)
+                .returns(false, JsonNode::isNull);
+    }
+
+    /**
+     * Validates that JSON contains one of the expected enum values.
+     * Uses JsonNode path access instead of string contains for better validation.
+     */
+    public static void softAssertJsonEnumField(SoftAssertions softly, JsonNode rootNode, String jsonPointer, String fieldDescription, String... validValues) {
+        JsonNode fieldNode = rootNode.at(jsonPointer);
+        softly.assertThatObject(fieldNode)
+                .as("JSON path '%s' (%s) should exist and not be null", jsonPointer, fieldDescription)
+                .returns(false, JsonNode::isMissingNode)
+                .returns(false, JsonNode::isNull)
+                .returns(true, JsonNode::isTextual);
+
+        if (fieldNode.isTextual()) {
+            String actualValue = fieldNode.asText();
+            softly.assertThat(actualValue)
+                    .as("%s should be one of the valid enum values", fieldDescription)
+                    .isIn(validValues);
+        }
     }
 }
