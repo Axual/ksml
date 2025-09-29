@@ -162,7 +162,7 @@ class JsonSchemaRegistryIT {
             records.forEach(record -> {
                 log.info("JsonSchema Sensor: key={}, value size={} bytes", record.key(), record.value().length());
                 assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
-                assertTrue(record.value().length() > 0, "JsonSchema message should have content");
+                assertFalse(record.value().isEmpty(), "JsonSchema message should have content");
             });
         }
 

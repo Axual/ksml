@@ -123,6 +123,7 @@ class CsvDataFormatIT {
 
         // Check ksml_sensordata_csv topic (producer output - CSV data)
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-csv");
+        Map<String, String> originalMessages = new HashMap<>();
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv"));
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
@@ -130,7 +131,7 @@ class CsvDataFormatIT {
             assertFalse(records.isEmpty(), "Should have generated sensor data in ksml_sensordata_csv topic");
             log.info("Found {} CSV sensor messages", records.count());
 
-            // Validate CSV messages
+            // Validate CSV messages and store for comparison
             records.forEach(record -> {
                 log.info("CSV Sensor: key={}, value={}", record.key(), record.value());
                 assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
@@ -139,13 +140,17 @@ class CsvDataFormatIT {
                 String csvValue = record.value();
                 assertTrue(csvValue.contains(","), "CSV message should contain comma separators");
 
-                // CSV messages should contain sensor data fields (as CSV format)
-                // Note: CSV format won't have JSON structure, just comma-separated values
-                assertTrue(csvValue.length() > 0, "CSV message should have content");
-
                 // Count commas to validate CSV structure (should have 7 commas for 8 fields)
+                // Schema: name,timestamp,value,type,unit,color,city,owner
                 long commaCount = csvValue.chars().filter(ch -> ch == ',').count();
-                assertTrue(commaCount >= 7, "CSV should have at least 7 commas for 8 fields, found: " + commaCount);
+                assertEquals(7, commaCount, "CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
+
+                // Validate expected CSV fields exist (basic structure check)
+                String[] fields = csvValue.split(",", -1);
+                assertEquals(8, fields.length, "CSV should have exactly 8 fields");
+
+                // Store original for comparison with processed version
+                originalMessages.put(record.key(), csvValue);
             });
         }
 
@@ -158,18 +163,45 @@ class CsvDataFormatIT {
             assertFalse(records.isEmpty(), "Should have processed sensor data in ksml_sensordata_csv_processed topic");
             log.info("Found {} processed CSV messages", records.count());
 
-            // Validate processed CSV messages
+            // Validate processed CSV messages against originals
             records.forEach(record -> {
                 log.info("Processed CSV: key={}, value={}", record.key(), record.value());
                 assertTrue(record.key().startsWith("sensor"), "Sensor key should start with 'sensor'");
 
                 // Validate CSV structure contains processed data
-                String csvValue = record.value();
-                assertTrue(csvValue.contains(","), "Processed CSV message should contain comma separators");
+                String processedCsvValue = record.value();
+                assertTrue(processedCsvValue.contains(","), "Processed CSV message should contain comma separators");
 
                 // Count commas to validate CSV structure (should have 7 commas for 8 fields)
-                long commaCount = csvValue.chars().filter(ch -> ch == ',').count();
-                assertTrue(commaCount >= 7, "Processed CSV should have at least 7 commas for 8 fields, found: " + commaCount);
+                long commaCount = processedCsvValue.chars().filter(ch -> ch == ',').count();
+                assertEquals(7, commaCount, "Processed CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
+
+                // Parse processed CSV fields
+                String[] processedFields = processedCsvValue.split(",", -1);
+                assertEquals(8, processedFields.length, "Processed CSV should have exactly 8 fields");
+
+                // Verify transformation: city should be uppercase
+                String originalCsvValue = originalMessages.get(record.key());
+                assertNotNull(originalCsvValue, "Should have original message for key: " + record.key());
+
+                String[] originalFields = originalCsvValue.split(",", -1);
+
+                // Schema: name,timestamp,value,type,unit,color,city,owner (city is index 6)
+                String originalCity = originalFields[6];
+                String processedCity = processedFields[6];
+
+                assertEquals(originalCity.toUpperCase(), processedCity,
+                    String.format("City should be uppercase: original='%s', processed='%s'",
+                        originalCity, processedCity));
+
+                // Verify other fields remain unchanged
+                for (int i = 0; i < originalFields.length; i++) {
+                    if (i != 6) { // Skip city field (index 6)
+                        assertEquals(originalFields[i], processedFields[i],
+                            String.format("Field %d should remain unchanged: original='%s', processed='%s'",
+                                i, originalFields[i], processedFields[i]));
+                    }
+                }
             });
         }
 
