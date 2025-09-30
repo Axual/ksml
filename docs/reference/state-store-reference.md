@@ -65,9 +65,9 @@ Define directly within operations for custom configurations:
 | `type` | String | Yes | - | Store type: `keyValue`, `window`, or `session` |
 | `keyType` | String | Yes | - | Data type for keys (see [Data Types Reference](data-and-formats-reference.md)) |
 | `valueType` | String | Yes | - | Data type for values |
-| `persistent` | Boolean | No | `false` | If `true`, survives application restarts |
+| `persistent` | Boolean | No | `false` | If `true`, uses RocksDB (disk); if `false`, uses in-memory storage |
 | `caching` | Boolean | No | `false` | If `true`, improves read performance but delays updates |
-| `logging` | Boolean | No | `false` | If `true`, creates changelog topic for recovery |
+| `logging` | Boolean | No | `false` | If `true`, creates changelog topic for fault tolerance (in addition to local storage) |
 | `timestamped` | Boolean | No | `false` | If `true`, stores timestamp with each entry |
 
 ### Window Store Specific Parameters
@@ -264,6 +264,38 @@ retention = 2 × timeDifference + gracePeriod
 - [Windowed Aggregations](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
 - [Stream-Stream Joins](../tutorials/intermediate/joins.md#stream-stream-join)
 
+## Storage Architecture
+
+### Local Storage vs Changelog Topics
+
+It's important to understand that `persistent` and `logging` control different aspects of state storage:
+
+1. **`persistent: true`** → Uses RocksDB for local storage (survives process restarts)
+2. **`persistent: false`** → Uses in-memory storage (lost on process restart)
+3. **`logging: true`** → ADDITIONALLY replicates state to a Kafka changelog topic
+4. **`logging: false`** → No changelog topic (only local storage)
+
+**Key Point**: When `logging: true`, state is stored **BOTH** locally (RocksDB or memory) **AND** in the changelog topic. The changelog is for fault tolerance and recovery, not primary storage.
+
+### Common Configuration Patterns
+
+| Configuration | Description | Use Case |
+|--------------|-------------|----------|
+| `persistent: true, logging: false` | RocksDB only (local durability, no fault tolerance) | Development, non-critical state |
+| `persistent: true, logging: true` | RocksDB + changelog (local durability + fault tolerance) | **Production (Recommended)** ✅ |
+| `persistent: false, logging: true` | In-memory + changelog (fast access, fault tolerant) | High-performance with recovery |
+| `persistent: false, logging: false` | In-memory only (fastest, data lost on restart) | Temporary caches, testing |
+
+### Changelog Topics
+
+When `logging: true` is configured:
+
+- **Topic Name**: `<application.id>-<store-name>-changelog`
+- **Compaction**: Topics are log-compacted to keep only the latest value per key
+- **Recovery**: On restart/rebalance, missing local state is rebuilt from the changelog
+- **Performance**: Normal reads use local storage (fast), changelog is only for recovery
+- **Requirements**: Required for exactly-once semantics
+
 ## Performance Considerations
 
 ### Caching Impact
@@ -279,3 +311,12 @@ retention = 2 × timeDifference + gracePeriod
 |---------|------|------|----------|
 | `persistent: true` | Survives restarts, enables recovery | Slower, uses disk space | Production, critical state |
 | `persistent: false` | Fast, memory-only | Lost on restart | Temporary state, caching |
+
+### Logging Impact
+
+| Setting | Pros | Cons | Use When |
+|---------|------|------|----------|
+| `logging: true` | Fault tolerance, fast recovery, exactly-once support | Additional Kafka topics, network/storage overhead | Production, fault tolerance needed |
+| `logging: false` | Lower overhead, simpler setup | No recovery on failure | Development, non-critical state |
+
+**Important**: Changelog logging supplements local storage - it does NOT replace it. State is always stored locally (RocksDB or memory) for fast access, with the changelog used only for recovery purposes.
