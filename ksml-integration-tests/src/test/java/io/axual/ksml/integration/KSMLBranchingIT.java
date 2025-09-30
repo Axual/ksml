@@ -39,6 +39,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -180,33 +181,19 @@ class KSMLBranchingIT {
         throw new RuntimeException("KSML did not become ready within " + (timeout / 1000) + " seconds");
     }
 
-    private void waitForOrderGeneration() throws InterruptedException {
+    private void waitForOrderGeneration() throws Exception {
         log.info("Waiting for order generation to start...");
 
-        // Producer generates every 3 seconds, wait for at least 2-3 orders to be generated
-        // But check logs first to see if orders are already being generated
-        String logs = ksmlContainer.getLogs();
-        if (logs.contains("Message: key=\"order_")) {
-            log.info("✅ Orders already being generated");
-            return;
-        }
+        // Producer generates every 3 seconds, so wait for at least 2 orders
+        // Use AdminClient to check actual message count instead of log parsing
+        KSMLRunnerTestUtil.waitForTopicMessages(
+            kafka.getBootstrapServers(),
+            "order_input",
+            2, // Wait for at least 2 orders
+            Duration.ofSeconds(30) // Maximum 30 seconds
+        );
 
-        // Wait up to 15 seconds for first order (3s interval + some buffer)
-        long startTime = System.currentTimeMillis();
-        long timeout = 15000; // 15 seconds should be enough
-
-        while (System.currentTimeMillis() - startTime < timeout) {
-            logs = ksmlContainer.getLogs();
-            if (logs.contains("Message: key=\"order_")) {
-                log.info("✅ Order generation detected");
-                // Wait for one more interval to ensure processing
-                Thread.sleep(4000); // 3s interval + 1s buffer
-                return;
-            }
-            Thread.sleep(1000);
-        }
-
-        throw new RuntimeException("No order generation detected within " + (timeout / 1000) + " seconds");
+        log.info("Order data has been generated and verified");
     }
 
     private static void createTopics() throws ExecutionException, InterruptedException {

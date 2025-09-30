@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.time.Duration;
+import java.util.Properties;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,6 +39,7 @@ import io.axual.ksml.runner.KSMLRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartitionInfo;
 
 /**
  * Utility class for running KSMLRunner directly in tests instead of using Docker containers.
@@ -333,6 +335,73 @@ public class KSMLRunnerTestUtil {
             softly.assertThat(actualValue)
                     .as("%s should be one of the valid enum values", fieldDescription)
                     .isIn(validValues);
+        }
+    }
+
+    /**
+     * Waits for messages to be produced to a Kafka topic by checking partition offsets using AdminClient.
+     * This is more efficient than fixed sleep times and provides actual verification that messages exist.
+     *
+     * @param kafkaBootstrapServers The Kafka bootstrap servers
+     * @param topicName The topic to check for messages
+     * @param minMessages Minimum number of messages to wait for
+     * @param timeout Maximum time to wait
+     * @throws Exception if timeout is reached or AdminClient operations fail
+     */
+    public static void waitForTopicMessages(String kafkaBootstrapServers, String topicName,
+                                          int minMessages, Duration timeout) throws Exception {
+        log.info("Waiting for at least {} messages in topic {} (timeout: {}s)",
+                minMessages, topicName, timeout.toSeconds());
+
+        Properties adminProps = new Properties();
+        adminProps.put(org.apache.kafka.clients.admin.AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
+
+        try (org.apache.kafka.clients.admin.AdminClient adminClient = org.apache.kafka.clients.admin.AdminClient.create(adminProps)) {
+            long startTime = System.currentTimeMillis();
+            long timeoutMs = timeout.toMillis();
+
+            while (System.currentTimeMillis() - startTime < timeoutMs) {
+                try {
+                    // Get partition info for the topic
+                    org.apache.kafka.clients.admin.DescribeTopicsResult topicsResult =
+                        adminClient.describeTopics(java.util.Collections.singletonList(topicName));
+                    org.apache.kafka.clients.admin.TopicDescription topicDesc =
+                        topicsResult.topicNameValues().get(topicName).get();
+
+                    // Get high water marks (message counts) for all partitions
+                    Map<org.apache.kafka.common.TopicPartition, org.apache.kafka.clients.admin.OffsetSpec> partitionOffsetSpecs = new HashMap<>();
+                    for (TopicPartitionInfo partition : topicDesc.partitions()) {
+                        org.apache.kafka.common.TopicPartition tp = new org.apache.kafka.common.TopicPartition(topicName, partition.partition());
+                        partitionOffsetSpecs.put(tp, org.apache.kafka.clients.admin.OffsetSpec.latest());
+                    }
+
+                    org.apache.kafka.clients.admin.ListOffsetsResult offsetsResult = adminClient.listOffsets(partitionOffsetSpecs);
+
+                    long totalMessages = 0;
+                    for (Map.Entry<org.apache.kafka.common.TopicPartition, org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo> entry :
+                         offsetsResult.all().get().entrySet()) {
+                        totalMessages += entry.getValue().offset();
+                    }
+
+                    if (totalMessages >= minMessages) {
+                        long elapsedMs = System.currentTimeMillis() - startTime;
+                        log.info("Found {} messages in topic {} after {}ms (expected >= {})",
+                                totalMessages, topicName, elapsedMs, minMessages);
+                        return;
+                    }
+
+                    log.debug("Found {} messages in topic {}, waiting for {} more...",
+                             totalMessages, topicName, minMessages - totalMessages);
+
+                } catch (Exception e) {
+                    log.debug("Error checking topic messages: {}", e.getMessage());
+                }
+
+                Thread.sleep(1000); // Check every second
+            }
+
+            throw new RuntimeException("Timeout waiting for " + minMessages + " messages in topic " + topicName +
+                                     " after " + timeout.toSeconds() + " seconds");
         }
     }
 }
