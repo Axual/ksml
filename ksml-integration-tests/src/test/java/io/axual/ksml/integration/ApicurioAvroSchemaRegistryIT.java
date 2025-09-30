@@ -96,41 +96,29 @@ class ApicurioAvroSchemaRegistryIT {
         // Create topics first
         createTopics();
 
-        // Manually prepare test environment for Apicurio Avro (due to subdirectory structure)
+        // Prepare test environment using utility method
         String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
-
-        // Create state directory
-        Path stateDir = tempDir.resolve("state");
-        Files.createDirectories(stateDir);
-
-        // Copy all KSML files from resources to temp directory
         String[] avroFiles = {"producer-avro.yaml", "processor-avro-convert.yaml", "SensorData.avsc"};
-        for (String fileName : avroFiles) {
-            Path sourcePath = Path.of(ApicurioAvroSchemaRegistryIT.class.getResource(resourcePath + "/" + fileName).getPath());
-            Path targetPath = tempDir.resolve(fileName);
-            Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        }
 
-        // Copy the apicurio-specific ksml-runner.yaml
-        Path apicurioRunnerSource = Path.of(ApicurioAvroSchemaRegistryIT.class.getResource(resourcePath + "/apicurio_avro/ksml-runner.yaml").getPath());
-        Path runnerTarget = tempDir.resolve("ksml-runner.yaml");
-        Files.copy(apicurioRunnerSource, runnerTarget, StandardCopyOption.REPLACE_EXISTING);
+        KSMLRunnerTestUtil.SchemaRegistryConfig schemaRegistryConfig = new KSMLRunnerTestUtil.SchemaRegistryConfig(
+            "apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
+            "apicurio.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2"
+        );
 
-        // Update the runner config with local Kafka and Schema Registry URLs
-        String runnerContent = Files.readString(runnerTarget);
-        runnerContent = runnerContent.replace("bootstrap.servers: broker:9093",
-                                            "bootstrap.servers: " + kafka.getBootstrapServers());
-        runnerContent = runnerContent.replace("apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
-                                            "apicurio.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2");
-        runnerContent = runnerContent.replace("storageDirectory: /ksml/state",
-                                            "storageDirectory: " + stateDir);
-        Files.writeString(runnerTarget, runnerContent);
+        Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
+            tempDir,
+            resourcePath,
+            avroFiles,
+            kafka.getBootstrapServers(),
+            "apicurio_avro", // subdirectory containing apicurio-specific ksml-runner.yaml
+            schemaRegistryConfig
+        );
 
-        log.info("Using KSMLRunner directly with config: {}", runnerTarget);
+        log.info("Using KSMLRunner directly with config: {}", configPath);
         log.info("Apicurio Schema Registry URL: http://localhost:{}/apis/registry/v2", schemaRegistry.getMappedPort(8081));
 
         // Start KSML using KSMLRunner main method
-        ksmlRunner = new KSMLRunnerWrapper(runnerTarget);
+        ksmlRunner = new KSMLRunnerWrapper(configPath);
         ksmlRunner.start();
 
         // Wait for KSML to be ready

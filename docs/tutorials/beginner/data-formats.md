@@ -201,7 +201,7 @@ Configure KSML runner for JsonSchema processing:
 
     ```yaml
     {%
-      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/jsonschema/ksml-runner-docs.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/jsonschema/ksml-runner.yaml"
     %}
     ```
 

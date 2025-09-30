@@ -95,37 +95,29 @@ class JsonSchemaRegistryIT {
         // Register JsonSchema manually
         registerJsonSchema();
 
-        // Manually prepare test environment for JsonSchema
+        // Prepare test environment using utility method
         String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/jsonschema";
-
-        // Create state directory
-        Path stateDir = tempDir.resolve("state");
-        Files.createDirectories(stateDir);
-
-        // Copy all KSML files from resources to temp directory
         String[] jsonSchemaFiles = {"ksml-runner.yaml", "jsonschema-producer.yaml", "jsonschema-processor.yaml", "SensorData.json"};
-        for (String fileName : jsonSchemaFiles) {
-            Path sourcePath = Path.of(JsonSchemaRegistryIT.class.getResource(resourcePath + "/" + fileName).getPath());
-            Path targetPath = tempDir.resolve(fileName);
-            Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        }
 
-        // Update the runner config with local Kafka and Schema Registry URLs
-        Path runnerTarget = tempDir.resolve("ksml-runner.yaml");
-        String runnerContent = Files.readString(runnerTarget);
-        runnerContent = runnerContent.replace("bootstrap.servers: broker:9093",
-                                            "bootstrap.servers: " + kafka.getBootstrapServers());
-        runnerContent = runnerContent.replace("apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
-                                            "apicurio.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2");
-        runnerContent = runnerContent.replace("storageDirectory: /ksml/state",
-                                            "storageDirectory: " + stateDir);
-        Files.writeString(runnerTarget, runnerContent);
+        KSMLRunnerTestUtil.SchemaRegistryConfig schemaRegistryConfig = new KSMLRunnerTestUtil.SchemaRegistryConfig(
+            "apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
+            "apicurio.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2"
+        );
 
-        log.info("Using KSMLRunner directly with config: {}", runnerTarget);
+        Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
+            tempDir,
+            resourcePath,
+            jsonSchemaFiles,
+            kafka.getBootstrapServers(),
+            null, // no subdirectory needed
+            schemaRegistryConfig
+        );
+
+        log.info("Using KSMLRunner directly with config: {}", configPath);
         log.info("Apicurio Schema Registry URL: http://localhost:{}/apis/registry/v2", schemaRegistry.getMappedPort(8081));
 
         // Start KSML using KSMLRunner main method
-        ksmlRunner = new KSMLRunnerWrapper(runnerTarget);
+        ksmlRunner = new KSMLRunnerWrapper(configPath);
         ksmlRunner.start();
 
         // Wait for KSML to be ready

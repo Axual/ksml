@@ -182,6 +182,14 @@ public class KSMLRunnerTestUtil {
     }
 
     /**
+     * Configuration for schema registry setup.
+     */
+    public record SchemaRegistryConfig(String oldApicurioRegistryUrl, String newApicurioRegistryUrl) {
+        public String getOldApicurioRegistryUrl() { return oldApicurioRegistryUrl; }
+        public String getNewApicurioRegistryUrl() { return newApicurioRegistryUrl; }
+    }
+
+    /**
      * Prepares the test environment by copying necessary files to a temporary directory
      * and updating the configuration to work with the local setup.
      *
@@ -192,29 +200,62 @@ public class KSMLRunnerTestUtil {
      * @return The path to the prepared ksml-runner.yaml config file
      */
     public static Path prepareTestEnvironment(Path tempDir, String resourceBasePath, String[] filesToCopy, String kafkaBootstrapServers) throws IOException {
+        return prepareTestEnvironment(tempDir, resourceBasePath, filesToCopy, kafkaBootstrapServers, null, null);
+    }
+
+    /**
+     * Prepares the test environment for schema registry tests by copying necessary files
+     * and updating configurations.
+     *
+     * @param tempDir The temporary directory to use for test files
+     * @param resourceBasePath The base path in test resources where KSML files are located
+     * @param commonFiles Array of common filenames to copy from the resource directory
+     * @param kafkaBootstrapServers The Kafka bootstrap servers to use
+     * @param schemaRegistrySubdir Subdirectory containing schema registry specific ksml-runner.yaml
+     * @param schemaRegistryConfig Configuration for schema registry URL replacement
+     * @return The path to the prepared ksml-runner.yaml config file
+     */
+    public static Path prepareTestEnvironment(Path tempDir, String resourceBasePath, String[] commonFiles,
+                                            String kafkaBootstrapServers, String schemaRegistrySubdir,
+                                            SchemaRegistryConfig schemaRegistryConfig) throws IOException {
         // Create state directory
         Path stateDir = tempDir.resolve("state");
         Files.createDirectories(stateDir);
 
-        // Copy all KSML files from resources to temp directory
-        for (String fileName : filesToCopy) {
+        // Copy common KSML files from resources to temp directory
+        for (String fileName : commonFiles) {
             Path sourcePath = Path.of(KSMLRunnerTestUtil.class.getResource(resourceBasePath + "/" + fileName).getPath());
             Path targetPath = tempDir.resolve(fileName);
             Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
             log.debug("Copied {} to {}", fileName, targetPath);
         }
 
-        // Update ksml-runner.yaml with local paths and Kafka configuration
+        // Handle ksml-runner.yaml - either from subdirectory or common files
         Path configPath = tempDir.resolve("ksml-runner.yaml");
+        if (schemaRegistrySubdir != null) {
+            // Copy schema registry specific ksml-runner.yaml
+            Path schemaRegistryRunnerSource = Path.of(KSMLRunnerTestUtil.class.getResource(
+                resourceBasePath + "/" + schemaRegistrySubdir + "/ksml-runner.yaml").getPath());
+            Files.copy(schemaRegistryRunnerSource, configPath, StandardCopyOption.REPLACE_EXISTING);
+            log.debug("Copied schema registry specific ksml-runner.yaml from {}", schemaRegistrySubdir);
+        }
+
+        // Update ksml-runner.yaml with local paths and configuration
         String configContent = Files.readString(configPath);
 
-        // Keep relative paths since KSMLRunner will run from temp directory
+        // Update storage directory
         configContent = configContent.replace("storageDirectory: /ksml/state",
                                             "storageDirectory: " + stateDir);
 
         // Update Kafka bootstrap servers
         configContent = configContent.replace("bootstrap.servers: broker:9093",
                                             "bootstrap.servers: " + kafkaBootstrapServers);
+
+        // Update schema registry URL if provided
+        if (schemaRegistryConfig != null) {
+            configContent = configContent.replace(schemaRegistryConfig.getOldApicurioRegistryUrl(),
+                                                schemaRegistryConfig.getNewApicurioRegistryUrl());
+        }
 
         Files.writeString(configPath, configContent);
         log.info("Prepared test environment in {}", tempDir);

@@ -16,6 +16,6 @@ ksml:
 
 kafka:
   bootstrap.servers: broker:9093
-  application.id: io.ksml.jsonschema.test
+  application.id: io.ksml.jsonschema.example
   security.protocol: PLAINTEXT
   acks: all

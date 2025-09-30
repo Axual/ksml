@@ -95,41 +95,29 @@ class ConfluentAvroSchemaRegistryIT {
         // Create topics first
         createTopics();
 
-        // Manually prepare test environment for Avro (special case due to subdirectory structure)
+        // Prepare test environment using utility method
         String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
-
-        // Create state directory
-        Path stateDir = tempDir.resolve("state");
-        java.nio.file.Files.createDirectories(stateDir);
-
-        // Copy all KSML files from resources to temp directory
         String[] avroFiles = {"producer-avro.yaml", "processor-avro-transform.yaml", "SensorData.avsc"};
-        for (String fileName : avroFiles) {
-            Path sourcePath = Path.of(ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/" + fileName).getPath());
-            Path targetPath = tempDir.resolve(fileName);
-            Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        }
 
-        // Copy the confluent-specific ksml-runner.yaml
-        Path confluentRunnerSource = Path.of(ConfluentAvroSchemaRegistryIT.class.getResource(resourcePath + "/confluent_avro/ksml-runner.yaml").getPath());
-        Path runnerTarget = tempDir.resolve("ksml-runner.yaml");
-        Files.copy(confluentRunnerSource, runnerTarget, StandardCopyOption.REPLACE_EXISTING);
+        KSMLRunnerTestUtil.SchemaRegistryConfig schemaRegistryConfig = new KSMLRunnerTestUtil.SchemaRegistryConfig(
+            "schema.registry.url: http://schema-registry:8081/apis/ccompat/v7",
+            "schema.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/ccompat/v7"
+        );
 
-        // Update the runner config with local Kafka and Schema Registry URLs
-        String runnerContent = Files.readString(runnerTarget);
-        runnerContent = runnerContent.replace("bootstrap.servers: broker:9093",
-                                            "bootstrap.servers: " + kafka.getBootstrapServers());
-        runnerContent = runnerContent.replace("schema.registry.url: http://schema-registry:8081/apis/ccompat/v7",
-                                            "schema.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/ccompat/v7");
-        runnerContent = runnerContent.replace("storageDirectory: /ksml/state",
-                                            "storageDirectory: " + stateDir);
-        java.nio.file.Files.writeString(runnerTarget, runnerContent);
+        Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
+            tempDir,
+            resourcePath,
+            avroFiles,
+            kafka.getBootstrapServers(),
+            "confluent_avro", // subdirectory containing confluent-specific ksml-runner.yaml
+            schemaRegistryConfig
+        );
 
-        log.info("Using KSMLRunner directly with config: {}", runnerTarget);
+        log.info("Using KSMLRunner directly with config: {}", configPath);
         log.info("Schema Registry URL: http://localhost:{}/apis/ccompat/v7", schemaRegistry.getMappedPort(8081));
 
         // Start KSML using KSMLRunner main method
-        ksmlRunner = new KSMLRunnerWrapper(runnerTarget);
+        ksmlRunner = new KSMLRunnerWrapper(configPath);
         ksmlRunner.start();
 
         // Wait for KSML to be ready
