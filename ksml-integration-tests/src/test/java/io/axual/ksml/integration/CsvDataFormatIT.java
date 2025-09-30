@@ -121,7 +121,8 @@ class CsvDataFormatIT {
 
         // Check ksml_sensordata_csv topic (producer output - CSV data)
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-csv");
-        Map<String, String> originalMessages = new HashMap<>();
+        Map<String, String> originalMessages = new LinkedHashMap<>(); // Use LinkedHashMap to preserve insertion order
+        List<String> originalMessageOrder = new ArrayList<>();
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -147,13 +148,15 @@ class CsvDataFormatIT {
                 String[] fields = csvValue.split(",", -1);
                 assertThat(fields).hasSize(8).as("CSV should have exactly 8 fields");
 
-                // Store original for comparison with processed version
+                // Store original for comparison with processed version (preserving order)
                 originalMessages.put(record.key(), csvValue);
+                originalMessageOrder.add(record.key());
             });
         }
 
         // Check ksml_sensordata_csv_processed topic (processor output - transformed CSV)
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-processed");
+        List<String> processedMessageOrder = new ArrayList<>();
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv_processed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -163,6 +166,8 @@ class CsvDataFormatIT {
 
             // Validate processed CSV messages against originals
             records.forEach(record -> {
+                // Track processing order
+                processedMessageOrder.add(record.key());
                 log.info("Processed CSV: key={}, value={}", record.key(), record.value());
                 assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
@@ -199,6 +204,11 @@ class CsvDataFormatIT {
                     }
                 }
             });
+
+            // Verify that processed messages maintain the same order as original messages
+            assertThat(processedMessageOrder).isEqualTo(originalMessageOrder)
+                .as("Processed messages should maintain the same order as original messages");
+            log.info("✅ Message ordering verified: {} messages processed in correct order", processedMessageOrder.size());
         }
 
         // Note: Log checking is not available when running KSMLRunner directly in-process
