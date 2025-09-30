@@ -127,15 +127,15 @@ class BinaryDataFormatIT {
                 log.info("Binary message: key={}, bytes={}", record.key(), Arrays.toString(record.value()));
                 assertThat(record.key()).startsWith("msg").as("Message key should start with 'msg'");
 
-                // Validate binary structure - should be 7 bytes
+                // Validate binary structure - should be 7 bytes with 'KSML' pattern
                 byte[] binaryValue = record.value();
                 assertThat(binaryValue).hasSize(7).as("Binary message should have 7 bytes");
 
                 // Check that bytes 2-5 are ASCII 'KSML' (K=75, S=83, M=77, L=76)
-                assertThat(binaryValue[2] & 0xFF).isEqualTo(75).as("Third byte should be ASCII 'K' (75)");
-                assertThat(binaryValue[3] & 0xFF).isEqualTo(83).as("Fourth byte should be ASCII 'S' (83)");
-                assertThat(binaryValue[4] & 0xFF).isEqualTo(77).as("Fifth byte should be ASCII 'M' (77)");
-                assertThat(binaryValue[5] & 0xFF).isEqualTo(76).as("Sixth byte should be ASCII 'L' (76)");
+                // Compare the KSML portion as a byte array
+                byte[] ksmlPortion = Arrays.copyOfRange(binaryValue, 2, 6);
+                byte[] expectedKsml = {75, 83, 77, 76}; // ASCII 'KSML'
+                assertThat(ksmlPortion).isEqualTo(expectedKsml).as("Bytes 2-5 should be ASCII 'KSML'");
 
                 // Store original message for later comparison
                 originalMessages.put(record.key(), Arrays.copyOf(binaryValue, binaryValue.length));
@@ -161,10 +161,9 @@ class BinaryDataFormatIT {
                 assertThat(processedValue).hasSize(7).as("Processed binary message should have 7 bytes");
 
                 // Check that bytes 2-5 are still ASCII 'KSML' (unchanged by processor)
-                assertThat(processedValue[2] & 0xFF).isEqualTo(75).as("Third byte should still be ASCII 'K' (75)");
-                assertThat(processedValue[3] & 0xFF).isEqualTo(83).as("Fourth byte should still be ASCII 'S' (83)");
-                assertThat(processedValue[4] & 0xFF).isEqualTo(77).as("Fifth byte should still be ASCII 'M' (77)");
-                assertThat(processedValue[5] & 0xFF).isEqualTo(76).as("Sixth byte should still be ASCII 'L' (76)");
+                byte[] processedKsmlPortion = Arrays.copyOfRange(processedValue, 2, 6);
+                byte[] expectedKsml = {75, 83, 77, 76}; // ASCII 'KSML'
+                assertThat(processedKsmlPortion).isEqualTo(expectedKsml).as("Bytes 2-5 should still be ASCII 'KSML'");
 
                 // Verify transformation: first byte should be incremented by 1 (with wrap-around)
                 byte[] originalValue = originalMessages.get(record.key());
@@ -179,8 +178,8 @@ class BinaryDataFormatIT {
                         originalFirstByte, expectedProcessedFirstByte, processedFirstByte);
 
                 // Verify bytes 1 and 6 remain unchanged (random bytes should be preserved)
-                assertThat(processedValue[1] & 0xFF).isEqualTo(originalValue[1] & 0xFF).as("Second byte should remain unchanged");
-                assertThat(processedValue[6] & 0xFF).isEqualTo(originalValue[6] & 0xFF).as("Seventh byte should remain unchanged");
+                assertThat(processedValue[1]).isEqualTo(originalValue[1]).as("Second byte should remain unchanged");
+                assertThat(processedValue[6]).isEqualTo(originalValue[6]).as("Seventh byte should remain unchanged");
             });
         }
 
