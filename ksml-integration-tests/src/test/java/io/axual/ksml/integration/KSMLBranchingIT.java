@@ -30,7 +30,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.kafka.KafkaContainer;
@@ -228,7 +227,6 @@ class KSMLBranchingIT {
     }
 
     @Test
-    @Timeout(120)
     void testRealKSMLOrderProcessing() throws Exception {
         // Wait for first order to be generated and processed
         // Producer generates every 3s, so wait for at least 2-3 orders

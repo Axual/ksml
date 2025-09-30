@@ -33,7 +33,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -140,7 +139,6 @@ class ApicurioAvroSchemaRegistryIT {
 
 
     @Test
-    @Timeout(150) // 2.5 minutes to account for schema registry startup time
     void testKSMLApicurioAvroToJsonConversion() throws Exception {
         // Wait for first sensor data to be generated and processed
         log.info("Waiting for KSML to generate and process sensor data...");

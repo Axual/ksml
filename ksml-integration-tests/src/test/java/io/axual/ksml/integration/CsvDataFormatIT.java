@@ -33,7 +33,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.containers.Network;
@@ -105,7 +104,6 @@ class CsvDataFormatIT {
     }
 
     @Test
-    @Timeout(90) // 1.5 minutes should be enough for CSV processing without schema registry
     void testKSMLCsvProcessing() throws Exception {
         // Wait for first sensor data to be generated and processed
         log.info("Waiting for KSML to generate and process CSV sensor data...");

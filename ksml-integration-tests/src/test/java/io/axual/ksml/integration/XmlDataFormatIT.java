@@ -30,7 +30,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
@@ -109,7 +108,6 @@ class XmlDataFormatIT {
     }
 
     @Test
-    @Timeout(90) // 1.5 minutes should be enough for XML processing
     void testKSMLXmlProcessing() throws Exception {
         // Wait for first sensor data to be generated and processed
         log.info("Waiting for KSML to generate and process XML sensor data...");

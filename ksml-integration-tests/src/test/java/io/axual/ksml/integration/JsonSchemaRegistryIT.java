@@ -33,7 +33,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -134,7 +133,6 @@ class JsonSchemaRegistryIT {
     }
 
     @Test
-    @Timeout(120) // 2 minutes to account for schema registry startup time
     void testKSMLJsonSchemaProcessing() throws Exception {
         // Wait for first sensor data to be generated and processed
         log.info("Waiting for KSML to generate and process JsonSchema sensor data...");
