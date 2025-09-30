@@ -20,10 +20,8 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
-import io.axual.ksml.integration.testutil.SensorDataTestUtil;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -31,6 +29,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,13 +43,18 @@ import org.testcontainers.kafka.KafkaContainer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.assertj.core.api.SoftAssertions;
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
+import io.axual.ksml.integration.testutil.SensorDataTestUtil;
+import lombok.extern.slf4j.Slf4j;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
