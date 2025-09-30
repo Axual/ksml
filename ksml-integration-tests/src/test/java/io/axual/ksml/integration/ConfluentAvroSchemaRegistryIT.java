@@ -94,15 +94,15 @@ class ConfluentAvroSchemaRegistryIT {
         createTopics();
 
         // Prepare test environment using utility method
-        String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
-        String[] avroFiles = {"producer-avro.yaml", "processor-avro-transform.yaml", "SensorData.avsc"};
+        final String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
+        final String[] avroFiles = {"producer-avro.yaml", "processor-avro-transform.yaml", "SensorData.avsc"};
 
-        KSMLRunnerTestUtil.SchemaRegistryConfig schemaRegistryConfig = new KSMLRunnerTestUtil.SchemaRegistryConfig(
+        final KSMLRunnerTestUtil.SchemaRegistryConfig schemaRegistryConfig = new KSMLRunnerTestUtil.SchemaRegistryConfig(
             "schema.registry.url: http://schema-registry:8081/apis/ccompat/v7",
             "schema.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/ccompat/v7"
         );
 
-        Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
+        final Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
             tempDir,
             resourcePath,
             avroFiles,
@@ -130,10 +130,10 @@ class ConfluentAvroSchemaRegistryIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).as("KSMLRunner should still be running").isTrue();
 
         // Create consumer properties
-        Properties consumerProps = new Properties();
+        final Properties consumerProps = new Properties();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -145,16 +145,16 @@ class ConfluentAvroSchemaRegistryIT {
             consumer.subscribe(Collections.singletonList("sensor_data_transformed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).isNotEmpty().as("Should have transformed sensor data in sensor_data_transformed topic");
+            assertThat(records).as("Should have transformed sensor data in sensor_data_transformed topic").isNotEmpty();
             log.info("Found {} transformed sensor messages", records.count());
 
             // Validate that we received transformed AVRO messages
             records.forEach(record -> {
                 log.info("Transformed AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
-                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
+                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // The value is AVRO binary data, but we can verify the transformation worked via KSML logs
-                assertThat(record.value()).isNotEmpty().as("AVRO message should have content");
+                assertThat(record.value()).as("AVRO message should have content").isNotEmpty();
             });
         }
 

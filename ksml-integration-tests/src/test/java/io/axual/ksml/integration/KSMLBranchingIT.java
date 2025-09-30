@@ -88,19 +88,19 @@ class KSMLBranchingIT {
 
         // Create ksml-runner.yaml that points to the actual files
         String runnerYaml = """
-            ksml:
-              definitions:
-                producer: producer-order-events.yaml
-                processor: processor-order-processing.yaml
-              storageDirectory: /ksml/state
-              createStorageDirectory: true
-
-            kafka:
-              bootstrap.servers: broker:9093
-              application.id: io.ksml.real.test
-              security.protocol: PLAINTEXT
-              acks: all
-            """;
+                ksml:
+                  definitions:
+                    producer: producer-order-events.yaml
+                    processor: processor-order-processing.yaml
+                  storageDirectory: /ksml/state
+                  createStorageDirectory: true
+                
+                kafka:
+                  bootstrap.servers: broker:9093
+                  application.id: io.ksml.real.test
+                  security.protocol: PLAINTEXT
+                  acks: all
+                """;
 
         Files.writeString(tempDir.resolve("ksml-runner.yaml"), runnerYaml);
 
@@ -164,19 +164,19 @@ class KSMLBranchingIT {
 
             // Look for KSML processing ready state
             if (!ksmlReady && logs.contains("Pipeline processing state change. Moving from old state 'REBALANCING' to new state 'RUNNING'")) {
-                log.info("✅ KSML pipeline is running");
+                log.info("KSML pipeline is running");
                 ksmlReady = true;
             }
 
             // Look for producer started
             if (!producerStarted && logs.contains("Starting Kafka producer(s)")) {
-                log.info("✅ KSML producer started");
+                log.info("KSML producer started");
                 producerStarted = true;
             }
 
             // Both conditions met
             if (ksmlReady && producerStarted) {
-                log.info("✅ KSML container fully ready");
+                log.info("KSML container fully ready");
                 return;
             }
 
@@ -192,10 +192,10 @@ class KSMLBranchingIT {
         // Producer generates every 3 seconds, so wait for at least 2 orders
         // Use AdminClient to check actual message count instead of log parsing
         KSMLRunnerTestUtil.waitForTopicMessages(
-            kafka.getBootstrapServers(),
-            "order_input",
-            2, // Wait for at least 2 orders
-            Duration.ofSeconds(30) // Maximum 30 seconds
+                kafka.getBootstrapServers(),
+                "order_input",
+                2, // Wait for at least 2 orders
+                Duration.ofSeconds(30) // Maximum 30 seconds
         );
 
         log.info("Order data has been generated and verified");
@@ -214,7 +214,7 @@ class KSMLBranchingIT {
             );
 
             adminClient.createTopics(topics).all().get();
-            log.info("✅ Created topics: order_input, priority_orders, regional_orders, international_orders");
+            log.info("Created topics: order_input, priority_orders, regional_orders, international_orders");
         }
     }
 
@@ -242,12 +242,10 @@ class KSMLBranchingIT {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
 
             assertFalse(records.isEmpty(), "Should have generated orders in order_input topic");
-            log.info("✅ Found {} orders in order_input topic", records.count());
+            log.info("Found {} orders in order_input topic", records.count());
 
             // Log some sample orders
-            records.forEach(record -> {
-                log.info("📦 Order: key={}, value={}", record.key(), record.value());
-            });
+            records.forEach(record -> log.info("Order: key={}, value={}", record.key(), record.value()));
         }
 
         // Check priority_orders topic
@@ -257,16 +255,16 @@ class KSMLBranchingIT {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
 
             if (!records.isEmpty()) {
-                log.info("✅ Found {} priority orders", records.count());
+                log.info("Found {} priority orders", records.count());
                 records.forEach(record -> {
-                    log.info("⭐ Priority order: {}", record.value());
+                    log.info("Priority order: {}", record.value());
                     assertTrue(record.value().contains("\"processing_tier\":\"priority\""),
                             "Priority orders should have priority processing tier");
                     assertTrue(record.value().contains("\"sla_hours\":4"),
                             "Priority orders should have 4 hour SLA");
                 });
             } else {
-                log.info("ℹ️ No priority orders found (might not have generated premium orders > $1000)");
+                log.info("No priority orders found (might not have generated premium orders > $1000)");
             }
         }
 
@@ -277,16 +275,16 @@ class KSMLBranchingIT {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
 
             if (!records.isEmpty()) {
-                log.info("✅ Found {} regional orders", records.count());
+                log.info("Found {} regional orders", records.count());
                 records.forEach(record -> {
-                    log.info("🌍 Regional order: {}", record.value());
+                    log.info("Regional order: {}", record.value());
                     assertTrue(record.value().contains("\"processing_tier\":\"regional\""),
                             "Regional orders should have regional processing tier");
                     assertTrue(record.value().contains("\"sla_hours\":24"),
                             "Regional orders should have 24 hour SLA");
                 });
             } else {
-                log.info("ℹ️ No regional orders found");
+                log.info("No regional orders found");
             }
         }
 
@@ -297,9 +295,9 @@ class KSMLBranchingIT {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
 
             if (!records.isEmpty()) {
-                log.info("✅ Found {} international orders", records.count());
+                log.info("Found {} international orders", records.count());
                 records.forEach(record -> {
-                    log.info("🌏 International order: {}", record.value());
+                    log.info("International order: {}", record.value());
                     assertTrue(record.value().contains("\"processing_tier\":\"international\""),
                             "International orders should have international processing tier");
                     assertTrue(record.value().contains("\"sla_hours\":72"),
@@ -308,7 +306,7 @@ class KSMLBranchingIT {
                             "International orders should have customs_required flag");
                 });
             } else {
-                log.info("ℹ️ No international orders found");
+                log.info("No international orders found");
             }
         }
 
@@ -320,11 +318,11 @@ class KSMLBranchingIT {
         assertFalse(logs.contains("ERROR"), "KSML should not have errors: " + extractErrors(logs));
         assertFalse(logs.contains("Exception"), "KSML should not have exceptions: " + extractErrors(logs));
 
-        log.info("🎉 Real KSML Order Processing test completed successfully!");
-        log.info("✅ KSML container executed real YAML definitions");
-        log.info("✅ KSML generated orders using producer-order-events.yaml");
-        log.info("✅ KSML processed orders using processor-order-processing.yaml");
-        log.info("✅ Orders were correctly routed to priority/regional/international topics");
+        log.info("Real KSML Order Processing test completed successfully!");
+        log.info("KSML container executed real YAML definitions");
+        log.info("KSML generated orders using producer-order-events.yaml");
+        log.info("KSML processed orders using processor-order-processing.yaml");
+        log.info("Orders were correctly routed to priority/regional/international topics");
     }
 
     private String extractErrors(String logs) {

@@ -101,7 +101,7 @@ class JsonSchemaRegistryIT {
         registerJsonSchema();
 
         // Prepare test environment using utility method
-        String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/jsonschema";
+        final String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/jsonschema";
         String[] jsonSchemaFiles = {"ksml-runner.yaml", "jsonschema-producer.yaml", "jsonschema-processor.yaml", "SensorData.json"};
 
         KSMLRunnerTestUtil.SchemaRegistryConfig schemaRegistryConfig = new KSMLRunnerTestUtil.SchemaRegistryConfig(
@@ -136,10 +136,10 @@ class JsonSchemaRegistryIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).as("KSMLRunner should still be running").isTrue();
 
         // Create consumer properties
-        Properties consumerProps = new Properties();
+        final Properties consumerProps = new Properties();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -151,14 +151,14 @@ class JsonSchemaRegistryIT {
             consumer.subscribe(Collections.singletonList("sensor_data_jsonschema"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).isNotEmpty().as("Should have generated sensor data in sensor_data_jsonschema topic");
+            assertThat(records).as("Should have generated sensor data in sensor_data_jsonschema topic").isNotEmpty();
             log.info("Found {} JsonSchema sensor messages", records.count());
 
             // Validate JsonSchema messages
             records.forEach(record -> {
                 log.info("JsonSchema Sensor: key={}, value size={} bytes", record.key(), record.value().length());
-                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
-                assertThat(record.value()).isNotEmpty().as("JsonSchema message should have content");
+                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+                assertThat(record.value()).as("JsonSchema message should have content").isNotEmpty();
             });
         }
 
@@ -168,14 +168,14 @@ class JsonSchemaRegistryIT {
             consumer.subscribe(Collections.singletonList("sensor_data_jsonschema_processed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).isNotEmpty().as("Should have processed sensor data in sensor_data_jsonschema_processed topic");
+            assertThat(records).as("Should have processed sensor data in sensor_data_jsonschema_processed topic").isNotEmpty();
             log.info("Found {} processed JSON messages", records.count());
 
             // Validate processed JSON structure and content using Jackson ObjectMapper and SoftAssertions
             SoftAssertions softly = new SoftAssertions();
             records.forEach(record -> {
                 log.info("Processed JSON: key={}, value={}", record.key(), record.value());
-                softly.assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
+                softly.assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // Use Jackson ObjectMapper for structured JSON validation
                 JsonNode jsonNode = SensorDataTestUtil.validateProcessedSensorJsonStructure(record.value(), softly);

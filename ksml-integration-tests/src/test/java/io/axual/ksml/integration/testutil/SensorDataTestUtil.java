@@ -90,7 +90,7 @@ public class SensorDataTestUtil {
             String actualValue = fieldNode.asText();
             softly.assertThat(actualValue)
                     .as("%s should be one of the valid enum values", fieldDescription)
-                    .isIn(validValues);
+                    .isIn((Object[]) validValues);
         }
     }
 

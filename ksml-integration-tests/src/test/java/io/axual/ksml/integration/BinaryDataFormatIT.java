@@ -83,10 +83,10 @@ class BinaryDataFormatIT {
         createTopics();
 
         // Prepare test environment with Binary-specific files
-        String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/binary";
-        String[] binaryFiles = {"ksml-runner.yaml", "binary-producer.yaml", "binary-processor.yaml"};
+        final String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/binary";
+        final String[] binaryFiles = {"ksml-runner.yaml", "binary-producer.yaml", "binary-processor.yaml"};
 
-        Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
+        final Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
                 tempDir,
                 resourcePath,
                 binaryFiles,
@@ -110,10 +110,10 @@ class BinaryDataFormatIT {
         waitForBinaryDataGeneration();
 
         // Verify KSML is still running
-        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).as("KSMLRunner should still be running").isTrue();
 
         // Create consumer properties
-        Properties consumerProps = new Properties();
+        final Properties consumerProps = new Properties();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -121,29 +121,29 @@ class BinaryDataFormatIT {
 
         // Check ksml_sensordata_binary topic (producer output - binary data)
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-binary");
-        Map<String, byte[]> originalMessages = new LinkedHashMap<>(); // Use LinkedHashMap to preserve insertion order
-        List<String> originalMessageOrder = new ArrayList<>();
+        final Map<String, byte[]> originalMessages = new LinkedHashMap<>(); // Use LinkedHashMap to preserve insertion order
+        final List<String> originalMessageOrder = new ArrayList<>();
         try (KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_binary"));
             ConsumerRecords<String, byte[]> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).isNotEmpty().as("Should have generated binary data in ksml_sensordata_binary topic");
+            assertThat(records).as("Should have generated binary data in ksml_sensordata_binary topic").isNotEmpty();
             log.info("Found {} binary messages", records.count());
 
             // Validate binary messages and store for comparison
             records.forEach(record -> {
                 log.info("Binary message: key={}, bytes={}", record.key(), Arrays.toString(record.value()));
-                assertThat(record.key()).startsWith("msg").as("Message key should start with 'msg'");
+                assertThat(record.key()).as("Message key should start with 'msg'").startsWith("msg");
 
                 // Validate binary structure - should be 7 bytes with 'KSML' pattern
-                byte[] binaryValue = record.value();
-                assertThat(binaryValue).hasSize(7).as("Binary message should have 7 bytes");
+                final byte[] binaryValue = record.value();
+                assertThat(binaryValue).as("Binary message should have 7 bytes").hasSize(7);
 
                 // Check that bytes 2-5 are ASCII 'KSML' (K=75, S=83, M=77, L=76)
                 // Compare the KSML portion as a byte array
-                byte[] ksmlPortion = Arrays.copyOfRange(binaryValue, 2, 6);
+                final byte[] ksmlPortion = Arrays.copyOfRange(binaryValue, 2, 6);
                 byte[] expectedKsml = {75, 83, 77, 76}; // ASCII 'KSML'
-                assertThat(ksmlPortion).isEqualTo(expectedKsml).as("Bytes 2-5 should be ASCII 'KSML'");
+                assertThat(ksmlPortion).as("Bytes 2-5 should be ASCII 'KSML'").isEqualTo(expectedKsml);
 
                 // Store original message for later comparison (preserving order)
                 originalMessages.put(record.key(), Arrays.copyOf(binaryValue, binaryValue.length));
@@ -158,7 +158,7 @@ class BinaryDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_binary_processed"));
             ConsumerRecords<String, byte[]> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).isNotEmpty().as("Should have processed binary data in ksml_sensordata_binary_processed topic");
+            assertThat(records).as("Should have processed binary data in ksml_sensordata_binary_processed topic").isNotEmpty();
             log.info("Found {} processed binary messages", records.count());
 
             // Validate processed binary messages against originals
@@ -166,38 +166,40 @@ class BinaryDataFormatIT {
                 // Track processing order
                 processedMessageOrder.add(record.key());
                 log.info("Processed binary: key={}, bytes={}", record.key(), Arrays.toString(record.value()));
-                assertThat(record.key()).startsWith("msg").as("Message key should start with 'msg'");
+                assertThat(record.key()).as("Message key should start with 'msg'").startsWith("msg");
 
                 // Validate binary structure contains processed data
                 byte[] processedValue = record.value();
-                assertThat(processedValue).hasSize(7).as("Processed binary message should have 7 bytes");
+                assertThat(processedValue).as("Processed binary message should have 7 bytes").hasSize(7);
 
                 // Check that bytes 2-5 are still ASCII 'KSML' (unchanged by processor)
                 byte[] processedKsmlPortion = Arrays.copyOfRange(processedValue, 2, 6);
                 byte[] expectedKsml = {75, 83, 77, 76}; // ASCII 'KSML'
-                assertThat(processedKsmlPortion).isEqualTo(expectedKsml).as("Bytes 2-5 should still be ASCII 'KSML'");
+                assertThat(processedKsmlPortion).as("Bytes 2-5 should still be ASCII 'KSML'").isEqualTo(expectedKsml);
 
                 // Verify transformation: first byte should be incremented by 1 (with wrap-around)
                 byte[] originalValue = originalMessages.get(record.key());
-                assertThat(originalValue).isNotNull().as("Should have original message for key: " + record.key());
+                assertThat(originalValue).as("Should have original message for key: " + record.key()).isNotNull();
 
                 int originalFirstByte = originalValue[0] & 0xFF;
                 int processedFirstByte = processedValue[0] & 0xFF;
                 int expectedProcessedFirstByte = (originalFirstByte + 1) % 256;
 
-                assertThat(processedFirstByte).isEqualTo(expectedProcessedFirstByte)
+                assertThat(processedFirstByte)
                     .as("First byte should be incremented: original=%d, expected=%d, actual=%d",
-                        originalFirstByte, expectedProcessedFirstByte, processedFirstByte);
+                        originalFirstByte, expectedProcessedFirstByte, processedFirstByte)
+                    .isEqualTo(expectedProcessedFirstByte);
 
                 // Verify bytes 1 and 6 remain unchanged (random bytes should be preserved)
-                assertThat(processedValue[1]).isEqualTo(originalValue[1]).as("Second byte should remain unchanged");
-                assertThat(processedValue[6]).isEqualTo(originalValue[6]).as("Seventh byte should remain unchanged");
+                assertThat(processedValue[1]).as("Second byte should remain unchanged").isEqualTo(originalValue[1]);
+                assertThat(processedValue[6]).as("Seventh byte should remain unchanged").isEqualTo(originalValue[6]);
             });
 
             // Verify that processed messages maintain the same order as original messages
-            assertThat(processedMessageOrder).isEqualTo(originalMessageOrder)
-                .as("Processed messages should maintain the same order as original messages");
-            log.info("✅ Message ordering verified: {} messages processed in correct order", processedMessageOrder.size());
+            assertThat(processedMessageOrder)
+                .as("Processed messages should maintain the same order as original messages")
+                .isEqualTo(originalMessageOrder);
+            log.info("Message ordering verified: {} messages processed in correct order", processedMessageOrder.size());
         }
 
         // Note: Log checking is not available when running KSMLRunner directly in-process

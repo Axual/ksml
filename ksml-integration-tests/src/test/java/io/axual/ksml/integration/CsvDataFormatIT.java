@@ -82,7 +82,7 @@ class CsvDataFormatIT {
         createTopics();
 
         // Prepare test environment with CSV-specific files
-        String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/csv";
+        final String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/csv";
         String[] csvFiles = {"ksml-runner.yaml", "csv-producer.yaml", "csv-processor.yaml", "SensorData.csv"};
 
         Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
@@ -117,10 +117,10 @@ class CsvDataFormatIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertThat(ksmlRunner.isRunning()).isTrue().as("KSMLRunner should still be running");
+        assertThat(ksmlRunner.isRunning()).as("KSMLRunner should still be running").isTrue();
 
         // Create consumer properties
-        Properties consumerProps = new Properties();
+        final Properties consumerProps = new Properties();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -134,26 +134,26 @@ class CsvDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).isNotEmpty().as("Should have generated sensor data in ksml_sensordata_csv topic");
+            assertThat(records).as("Should have generated sensor data in ksml_sensordata_csv topic").isNotEmpty();
             log.info("Found {} CSV sensor messages", records.count());
 
             // Validate CSV messages and store for comparison
             records.forEach(record -> {
                 log.info("CSV Sensor: key={}, value={}", record.key(), record.value());
-                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
+                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // Validate CSV structure - should contain comma-separated values
                 String csvValue = record.value();
-                assertThat(csvValue).contains(",").as("CSV message should contain comma separators");
+                assertThat(csvValue).as("CSV message should contain comma separators").contains(",");
 
                 // Count commas to validate CSV structure (should have 7 commas for 8 fields)
                 // Schema: name,timestamp,value,type,unit,color,city,owner
                 long commaCount = csvValue.chars().filter(ch -> ch == ',').count();
-                assertThat(commaCount).isEqualTo(7).as("CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
+                assertThat(commaCount).as("CSV should have exactly 7 commas for 8 fields, found: " + commaCount).isEqualTo(7);
 
                 // Validate expected CSV fields exist (basic structure check)
                 String[] fields = csvValue.split(",", -1);
-                assertThat(fields).hasSize(8).as("CSV should have exactly 8 fields");
+                assertThat(fields).as("CSV should have exactly 8 fields").hasSize(8);
 
                 // Store original for comparison with processed version (preserving order)
                 originalMessages.put(record.key(), csvValue);
@@ -168,7 +168,7 @@ class CsvDataFormatIT {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_csv_processed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).isNotEmpty().as("Should have processed sensor data in ksml_sensordata_csv_processed topic");
+            assertThat(records).as("Should have processed sensor data in ksml_sensordata_csv_processed topic").isNotEmpty();
             log.info("Found {} processed CSV messages", records.count());
 
             // Validate processed CSV messages against originals
@@ -176,23 +176,23 @@ class CsvDataFormatIT {
                 // Track processing order
                 processedMessageOrder.add(record.key());
                 log.info("Processed CSV: key={}, value={}", record.key(), record.value());
-                assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
+                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // Validate CSV structure contains processed data
                 String processedCsvValue = record.value();
-                assertThat(processedCsvValue).contains(",").as("Processed CSV message should contain comma separators");
+                assertThat(processedCsvValue).as("Processed CSV message should contain comma separators").contains(",");
 
                 // Count commas to validate CSV structure (should have 7 commas for 8 fields)
                 long commaCount = processedCsvValue.chars().filter(ch -> ch == ',').count();
-                assertThat(commaCount).isEqualTo(7).as("Processed CSV should have exactly 7 commas for 8 fields, found: " + commaCount);
+                assertThat(commaCount).as("Processed CSV should have exactly 7 commas for 8 fields, found: " + commaCount).isEqualTo(7);
 
                 // Parse processed CSV fields
                 String[] processedFields = processedCsvValue.split(",", -1);
-                assertThat(processedFields).hasSize(8).as("Processed CSV should have exactly 8 fields");
+                assertThat(processedFields).as("Processed CSV should have exactly 8 fields").hasSize(8);
 
                 // Verify transformation: city should be uppercase
                 String originalCsvValue = originalMessages.get(record.key());
-                assertThat(originalCsvValue).isNotNull().as("Should have original message for key: " + record.key());
+                assertThat(originalCsvValue).as("Should have original message for key: " + record.key()).isNotNull();
 
                 String[] originalFields = originalCsvValue.split(",", -1);
 
@@ -213,9 +213,10 @@ class CsvDataFormatIT {
             });
 
             // Verify that processed messages maintain the same order as original messages
-            assertThat(processedMessageOrder).isEqualTo(originalMessageOrder)
-                .as("Processed messages should maintain the same order as original messages");
-            log.info("✅ Message ordering verified: {} messages processed in correct order", processedMessageOrder.size());
+            assertThat(processedMessageOrder)
+                .as("Processed messages should maintain the same order as original messages")
+                .isEqualTo(originalMessageOrder);
+            log.info("Message ordering verified: {} messages processed in correct order", processedMessageOrder.size());
         }
 
         // Note: Log checking is not available when running KSMLRunner directly in-process
