@@ -219,7 +219,7 @@ class JsonSchemaRegistryIT {
         log.info("Sensor data has been generated and verified");
     }
 
-    private static void registerJsonSchema() throws InterruptedException {
+    private static void registerJsonSchema() throws Exception {
         log.info("Registering JsonSchema with Apicurio Schema Registry...");
 
         // Read schema content from test resources
@@ -231,62 +231,20 @@ class JsonSchemaRegistryIT {
             throw new RuntimeException("Failed to read schema file: " + schemaPath, e);
         }
 
-        // Wait for schema registry to be ready
-        long startTime = System.currentTimeMillis();
-        long timeout = 60000; // 60 seconds
+        String schemaRegistryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081);
 
-        while (System.currentTimeMillis() - startTime < timeout) {
-            try {
-                // Test if schema registry is ready
-                String testUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis";
-                var process = new ProcessBuilder("curl", "-s", testUrl).start();
-                if (process.waitFor() == 0) {
-                    log.info("Schema registry is ready");
-                    break;
-                }
-            } catch (Exception e) {
-                // Continue waiting
-            }
-            Thread.sleep(2000);
-        }
+        // Wait for schema registry to be ready using HTTP client
+        KSMLRunnerTestUtil.waitForSchemaRegistryReady(schemaRegistryUrl, Duration.ofMinutes(1));
 
-        // Register schema using curl (similar to the docker-compose setup)
+        // Register schema for both topics using HTTP client
         try {
-            String schemaRegistryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081);
-
-            // Escape the JSON schema content for the curl command
-            String escapedSchema = schemaContent.replace("\"", "\\\"").replace("\n", "");
-            String payload = "{\"schema\": \"" + escapedSchema + "\", \"schemaType\": \"JSON\"}";
-
             // Register for sensor_data_jsonschema topic
-            String[] command1 = {
-                "curl", "-X", "POST",
-                "-H", "Content-Type: application/json",
-                "-d", payload,
-                schemaRegistryUrl + "/apis/ccompat/v7/subjects/sensor_data_jsonschema-value/versions?normalize=true"
-            };
-
-            ProcessBuilder pb1 = new ProcessBuilder(command1);
-            Process process1 = pb1.start();
-            int exitCode1 = process1.waitFor();
+            KSMLRunnerTestUtil.registerJsonSchema(schemaRegistryUrl, "sensor_data_jsonschema-value", schemaContent);
 
             // Register for sensor_data_jsonschema_processed topic
-            String[] command2 = {
-                "curl", "-X", "POST",
-                "-H", "Content-Type: application/json",
-                "-d", payload,
-                schemaRegistryUrl + "/apis/ccompat/v7/subjects/sensor_data_jsonschema_processed-value/versions?normalize=true"
-            };
+            KSMLRunnerTestUtil.registerJsonSchema(schemaRegistryUrl, "sensor_data_jsonschema_processed-value", schemaContent);
 
-            ProcessBuilder pb2 = new ProcessBuilder(command2);
-            Process process2 = pb2.start();
-            int exitCode2 = process2.waitFor();
-
-            if (exitCode1 == 0 && exitCode2 == 0) {
-                log.info("JsonSchema successfully registered for both topics");
-            } else {
-                log.warn("Schema registration may have failed: exitCode1={}, exitCode2={}", exitCode1, exitCode2);
-            }
+            log.info("JsonSchema successfully registered for both topics");
 
             // Wait a bit for registration to propagate
             Thread.sleep(2000);

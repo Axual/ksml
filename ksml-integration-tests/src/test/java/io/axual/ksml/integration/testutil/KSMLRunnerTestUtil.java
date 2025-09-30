@@ -21,6 +21,10 @@ package io.axual.ksml.integration.testutil;
  */
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -444,5 +448,101 @@ public class KSMLRunnerTestUtil {
             throw new RuntimeException("Timeout waiting for " + minMessages + " messages in topic " + topicName +
                                      " after " + timeout.toSeconds() + " seconds");
         }
+    }
+
+    /**
+     * Checks if the schema registry is ready by making an HTTP GET request to the APIs endpoint.
+     *
+     * @param registryUrl The base URL of the schema registry (e.g., http://localhost:8081)
+     * @return true if the registry is ready, false otherwise
+     */
+    public static boolean isSchemaRegistryReady(String registryUrl) {
+        try (HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build()) {
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(registryUrl + "/apis"))
+                    .timeout(Duration.ofSeconds(5))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return response.statusCode() >= 200 && response.statusCode() < 300;
+
+        } catch (Exception e) {
+            log.debug("Schema registry not ready: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Registers a JSON schema with Apicurio Schema Registry using the Confluent-compatible API.
+     *
+     * @param registryUrl The base URL of the schema registry (e.g., http://localhost:8081)
+     * @param subjectName The subject name for the schema (e.g., "topic-name-value")
+     * @param schemaContent The JSON schema content as a string
+     * @throws IOException if the HTTP request fails
+     * @throws InterruptedException if the request is interrupted
+     */
+    public static void registerJsonSchema(String registryUrl, String subjectName, String schemaContent)
+            throws IOException, InterruptedException {
+
+        try (HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build()) {
+
+            // Create the JSON payload using ObjectMapper for proper JSON construction
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("schema", schemaContent);
+            payload.put("schemaType", "JSON");
+
+            String jsonPayload = mapper.writeValueAsString(payload);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(registryUrl + "/apis/ccompat/v7/subjects/" + subjectName + "/versions?normalize=true"))
+                    .timeout(Duration.ofSeconds(30))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Successfully registered JSON schema for subject: {}", subjectName);
+                log.debug("Response: {}", response.body());
+            } else {
+                String errorMsg = String.format("Failed to register schema for subject %s. Status: %d, Response: %s",
+                        subjectName, response.statusCode(), response.body());
+                log.error(errorMsg);
+                throw new RuntimeException(errorMsg);
+            }
+        }
+    }
+
+    /**
+     * Waits for the schema registry to be ready by polling the readiness endpoint.
+     *
+     * @param registryUrl The base URL of the schema registry
+     * @param timeout Maximum time to wait for the registry to be ready
+     * @throws InterruptedException if interrupted while waiting
+     */
+    public static void waitForSchemaRegistryReady(String registryUrl, Duration timeout) throws InterruptedException {
+        log.info("Waiting for schema registry to be ready at: {}", registryUrl);
+
+        long startTime = System.currentTimeMillis();
+        long timeoutMs = timeout.toMillis();
+
+        while (System.currentTimeMillis() - startTime < timeoutMs) {
+            if (isSchemaRegistryReady(registryUrl)) {
+                log.info("Schema registry is ready");
+                return;
+            }
+
+            Thread.sleep(2000); // Check every 2 seconds
+        }
+
+        throw new RuntimeException("Schema registry did not become ready within " + timeout.toSeconds() + " seconds");
     }
 }
