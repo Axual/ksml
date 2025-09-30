@@ -22,6 +22,7 @@ package io.axual.ksml.integration;
 
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
+import io.axual.ksml.integration.testutil.SensorDataTestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -174,11 +175,11 @@ class ApicurioAvroSchemaRegistryIT {
                 softly.assertThat(record.key()).startsWith("sensor").as("Sensor key should start with 'sensor'");
 
                 // Use Jackson ObjectMapper for structured JSON validation
-                JsonNode jsonNode = KSMLRunnerTestUtil.validateSensorJsonStructure(record.value(), softly);
+                JsonNode jsonNode = SensorDataTestUtil.validateSensorJsonStructure(record.value(), softly);
 
                 // Validate sensor type enum using JsonNode path access
                 if (jsonNode != null) {
-                    KSMLRunnerTestUtil.softAssertJsonEnumField(softly, jsonNode, "/type", "sensor type",
+                    SensorDataTestUtil.softAssertJsonEnumField(softly, jsonNode, "/type", "sensor type",
                         "AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE");
                 }
             });
