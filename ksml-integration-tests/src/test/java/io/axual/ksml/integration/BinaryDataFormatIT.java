@@ -20,24 +20,17 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,10 +39,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
+import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,36 +64,13 @@ class BinaryDataFormatIT {
             .withNetworkAliases("broker")
             .withExposedPorts(9092, 9093);
 
-    static KSMLRunnerWrapper ksmlRunner;
-
-    @TempDir
-    static Path tempDir;
-
-    @BeforeAll
-    static void setup() throws Exception {
-        // Create topics first
-        createTopics();
-
-        // Prepare test environment with Binary-specific files
-        final String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/binary";
-        final String[] binaryFiles = {"ksml-runner.yaml", "binary-producer.yaml", "binary-processor.yaml"};
-
-        final Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
-                tempDir,
-                resourcePath,
-                binaryFiles,
-                kafka.getBootstrapServers()
-        );
-
-        log.info("Using KSMLRunner directly with config: {}", configPath);
-
-        // Start KSML using KSMLRunner main method
-        ksmlRunner = new KSMLRunnerWrapper(configPath);
-        ksmlRunner.start();
-
-        // Wait for KSML to be ready
-        waitForKSMLReady();
-    }
+    @Container
+    static KSMLContainer ksml = new KSMLContainer()
+            .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/binary",
+                          "ksml-runner.yaml", "binary-producer.yaml", "binary-processor.yaml")
+            .withKafka(kafka)
+            .withTopics("ksml_sensordata_binary", "ksml_sensordata_binary_processed")
+            .dependsOn(kafka);
 
     @Test
     void testKSMLBinaryProcessing() throws Exception {
@@ -110,7 +79,7 @@ class BinaryDataFormatIT {
         waitForBinaryDataGeneration();
 
         // Verify KSML is still running
-        assertThat(ksmlRunner.isRunning()).as("KSMLRunner should still be running").isTrue();
+        assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
         // Create consumer properties
         final Properties consumerProps = new Properties();
@@ -211,15 +180,6 @@ class BinaryDataFormatIT {
         log.info("Binary transformation and processing working correctly");
     }
 
-    private static void waitForKSMLReady() throws InterruptedException {
-        log.info("Waiting for KSMLRunner to be ready...");
-
-        // Use the built-in wait method from the wrapper
-        ksmlRunner.waitForReady(15000); // 15 seconds timeout
-
-        log.info("KSMLRunner is ready");
-    }
-
     private void waitForBinaryDataGeneration() throws Exception {
         log.info("Waiting for binary data generation to start...");
 
@@ -235,26 +195,4 @@ class BinaryDataFormatIT {
         log.info("Binary data has been generated and verified");
     }
 
-    private static void createTopics() throws ExecutionException, InterruptedException {
-        Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-
-        try (AdminClient adminClient = AdminClient.create(props)) {
-            List<NewTopic> topics = Arrays.asList(
-                    new NewTopic("ksml_sensordata_binary", 1, (short) 1),
-                    new NewTopic("ksml_sensordata_binary_processed", 1, (short) 1)
-            );
-
-            adminClient.createTopics(topics).all().get();
-            log.info("Created topics: ksml_sensordata_binary, ksml_sensordata_binary_processed");
-        }
-    }
-
-    @AfterAll
-    static void cleanup() {
-        if (ksmlRunner != null) {
-            log.info("Stopping KSMLRunner...");
-            ksmlRunner.stop();
-        }
-    }
 }

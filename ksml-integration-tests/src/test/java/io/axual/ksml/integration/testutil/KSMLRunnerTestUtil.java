@@ -236,11 +236,17 @@ public class KSMLRunnerTestUtil {
         // Handle ksml-runner.yaml - either from subdirectory or common files
         Path configPath = tempDir.resolve("ksml-runner.yaml");
         if (schemaRegistrySubdir != null) {
-            // Copy schema registry specific ksml-runner.yaml
+            // Copy schema registry specific ksml-runner.yaml from subdirectory
             Path schemaRegistryRunnerSource = Path.of(KSMLRunnerTestUtil.class.getResource(
                 resourceBasePath + "/" + schemaRegistrySubdir + "/ksml-runner.yaml").getPath());
             Files.copy(schemaRegistryRunnerSource, configPath, StandardCopyOption.REPLACE_EXISTING);
             log.debug("Copied schema registry specific ksml-runner.yaml from {}", schemaRegistrySubdir);
+        } else if (!Files.exists(configPath)) {
+            // If no subdirectory and ksml-runner.yaml wasn't in commonFiles, look for it in resourceBasePath
+            Path defaultRunnerSource = Path.of(KSMLRunnerTestUtil.class.getResource(
+                resourceBasePath + "/ksml-runner.yaml").getPath());
+            Files.copy(defaultRunnerSource, configPath, StandardCopyOption.REPLACE_EXISTING);
+            log.debug("Copied default ksml-runner.yaml from resourceBasePath");
         }
 
         // Update ksml-runner.yaml with local paths and configuration

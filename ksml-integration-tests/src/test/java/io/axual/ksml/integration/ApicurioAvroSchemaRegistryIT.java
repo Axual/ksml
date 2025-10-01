@@ -22,18 +22,12 @@ package io.axual.ksml.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -41,16 +35,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
+import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import io.axual.ksml.integration.testutil.SensorDataTestUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,44 +77,14 @@ class ApicurioAvroSchemaRegistryIT {
             .withEnv("APICURIO_CCOMPAT_LEGACY_ID_MODE_ENABLED", "true")
             .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
 
-    static KSMLRunnerWrapper ksmlRunner;
-
-    @TempDir
-    static Path tempDir;
-
-    @BeforeAll
-    static void setup() throws Exception {
-        // Create topics first
-        createTopics();
-
-        // Prepare test environment using utility method
-        final String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/avro";
-        final String[] avroFiles = {"producer-avro.yaml", "processor-avro-convert.yaml", "SensorData.avsc"};
-
-        final KSMLRunnerTestUtil.SchemaRegistryConfig schemaRegistryConfig = new KSMLRunnerTestUtil.SchemaRegistryConfig(
-            "apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
-            "apicurio.registry.url: http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2"
-        );
-
-        final Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
-            tempDir,
-            resourcePath,
-            avroFiles,
-            kafka.getBootstrapServers(),
-            "apicurio_avro", // subdirectory containing apicurio-specific ksml-runner.yaml
-            schemaRegistryConfig
-        );
-
-        log.info("Using KSMLRunner directly with config: {}", configPath);
-        log.info("Apicurio Schema Registry URL: http://localhost:{}/apis/registry/v2", schemaRegistry.getMappedPort(8081));
-
-        // Start KSML using KSMLRunner main method
-        ksmlRunner = new KSMLRunnerWrapper(configPath);
-        ksmlRunner.start();
-
-        // Wait for KSML to be ready
-        waitForKSMLReady();
-    }
+    @Container
+    static KSMLContainer ksml = new KSMLContainer()
+            .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro",
+                          "producer-avro.yaml", "processor-avro-convert.yaml", "SensorData.avsc")
+            .withKafka(kafka)
+            .withApicurioAvroRegistry(schemaRegistry)
+            .withTopics("sensor_data_avro", "sensor_data_avro_processed")
+            .dependsOn(kafka, schemaRegistry);
 
 
     @Test
@@ -134,7 +94,7 @@ class ApicurioAvroSchemaRegistryIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertThat(ksmlRunner.isRunning()).as("KSMLRunner should still be running").isTrue();
+        assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
         // Create consumer properties
         final Properties consumerProps = new Properties();
@@ -197,15 +157,6 @@ class ApicurioAvroSchemaRegistryIT {
         log.info("Apicurio schema registry integration working correctly");
     }
 
-    private static void waitForKSMLReady() throws InterruptedException {
-        log.info("Waiting for KSMLRunner to be ready...");
-
-        // Use longer timeout for schema registry integration
-        ksmlRunner.waitForReady(30000); // 30 seconds timeout for schema registry setup
-
-        log.info("KSMLRunner is ready");
-    }
-
     private void waitForSensorDataGeneration() throws Exception {
         log.info("Waiting for sensor data generation to start...");
 
@@ -221,26 +172,4 @@ class ApicurioAvroSchemaRegistryIT {
         log.info("Sensor data has been generated and verified");
     }
 
-    private static void createTopics() throws ExecutionException, InterruptedException {
-        Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-
-        try (AdminClient adminClient = AdminClient.create(props)) {
-            List<NewTopic> topics = Arrays.asList(
-                    new NewTopic("sensor_data_avro", 1, (short) 1),
-                    new NewTopic("sensor_data_json", 1, (short) 1)
-            );
-
-            adminClient.createTopics(topics).all().get();
-            log.info("Created topics: sensor_data_avro, sensor_data_json");
-        }
-    }
-
-    @AfterAll
-    static void cleanup() {
-        if (ksmlRunner != null) {
-            log.info("Stopping KSMLRunner...");
-            ksmlRunner.stop();
-        }
-    }
 }

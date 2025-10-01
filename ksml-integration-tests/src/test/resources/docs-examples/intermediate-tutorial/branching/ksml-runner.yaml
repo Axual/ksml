@@ -1,0 +1,12 @@
+ksml:
+  definitions:
+    producer: producer-order-events.yaml
+    processor: processor-order-processing.yaml
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.branching.test
+  security.protocol: PLAINTEXT
+  acks: all

@@ -20,32 +20,22 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
+import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,44 +58,13 @@ class XmlDataFormatIT {
             .withNetworkAliases("broker")
             .withExposedPorts(9092, 9093);
 
-    static KSMLRunnerWrapper ksmlRunner;
-
-    @TempDir
-    static Path tempDir;
-
-    @BeforeAll
-    static void setup() throws Exception {
-        // Create topics first
-        createTopics();
-
-        // Prepare test environment with XML-specific files
-        final String resourcePath = "/docs-examples/beginner-tutorial/different-data-formats/xml";
-        String[] xmlFiles = {"ksml-runner.yaml", "producer-xml.yaml", "processor-xml.yaml", "SensorData.xsd"};
-
-        Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
-                tempDir,
-                resourcePath,
-                xmlFiles,
-                kafka.getBootstrapServers()
-        );
-
-        log.info("Using KSMLRunner directly with config: {}", configPath);
-
-        // Start KSML using KSMLRunner main method
-        ksmlRunner = new KSMLRunnerWrapper(configPath);
-        ksmlRunner.start();
-
-        // Wait for KSML to be ready
-        waitForKSMLReady();
-    }
-
-    @AfterAll
-    static void cleanup() {
-        if (ksmlRunner != null) {
-            log.info("Stopping KSMLRunner...");
-            ksmlRunner.stop();
-        }
-    }
+    @Container
+    static KSMLContainer ksml = new KSMLContainer()
+            .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/xml",
+                          "ksml-runner.yaml", "producer-xml.yaml", "processor-xml.yaml", "SensorData.xsd")
+            .withKafka(kafka)
+            .withTopics("ksml_sensordata_xml", "ksml_sensordata_xml_processed")
+            .dependsOn(kafka);
 
     @Test
     void testKSMLXmlProcessing() throws Exception {
@@ -114,7 +73,7 @@ class XmlDataFormatIT {
         waitForSensorDataGeneration();
 
         // Verify KSML is still running
-        assertThat(ksmlRunner.isRunning()).as("KSMLRunner should still be running").isTrue();
+        assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
         // Create consumer properties
         final Properties consumerProps = new Properties();
@@ -198,15 +157,6 @@ class XmlDataFormatIT {
         log.info("XML transformation and processing working correctly");
     }
 
-    private static void waitForKSMLReady() throws InterruptedException {
-        log.info("Waiting for KSMLRunner to be ready...");
-
-        // Use the built-in wait method from the wrapper
-        ksmlRunner.waitForReady(15000); // 15 seconds timeout
-
-        log.info("KSMLRunner is ready");
-    }
-
     private void waitForSensorDataGeneration() throws Exception {
         log.info("Waiting for sensor data generation to start...");
 
@@ -220,21 +170,6 @@ class XmlDataFormatIT {
         );
 
         log.info("Sensor data has been generated and verified");
-    }
-
-    private static void createTopics() throws ExecutionException, InterruptedException {
-        Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-
-        try (AdminClient adminClient = AdminClient.create(props)) {
-            List<NewTopic> topics = Arrays.asList(
-                    new NewTopic("ksml_sensordata_xml", 1, (short) 1),
-                    new NewTopic("ksml_sensordata_xml_processed", 1, (short) 1)
-            );
-
-            adminClient.createTopics(topics).all().get();
-            log.info("Created topics: ksml_sensordata_xml, ksml_sensordata_xml_processed");
-        }
     }
 
 }

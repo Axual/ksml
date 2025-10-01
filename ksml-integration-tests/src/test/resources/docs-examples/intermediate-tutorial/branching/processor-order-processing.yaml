@@ -1,0 +1,125 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Complex order processing pipeline demonstrating multi-condition branching
+
+streams:
+  order_input:
+    topic: order_input
+    keyType: string
+    valueType: json
+    
+  priority_orders:
+    topic: priority_orders
+    keyType: string
+    valueType: json
+    
+  regional_orders:
+    topic: regional_orders
+    keyType: string
+    valueType: json
+    
+  international_orders:
+    topic: international_orders
+    keyType: string
+    valueType: json
+    
+functions:
+  is_priority:
+    type: predicate
+    code: |
+      # Priority: Premium customers with high-value orders
+      return (value.get("customer_type") == "premium" and 
+              value.get("total_amount", 0) > 1000)
+  
+  is_regional:
+    type: predicate
+    code: |
+      # Regional: US/EU orders that aren't priority
+      return (value.get("region") in ["US", "EU"] and 
+              not (value.get("customer_type") == "premium" and value.get("total_amount", 0) > 1000))
+  
+  is_international:
+    type: predicate
+    code: |
+      # International: Non-US/EU regions
+      return value.get("region") not in ["US", "EU"]
+  
+  add_priority_processing:
+    type: valueTransformer
+    code: |
+      # Add priority processing metadata
+      value["processing_tier"] = "priority"
+      value["sla_hours"] = 4
+      value["processed_at"] = "2025-01-01T00:00:00Z"
+    expression: value
+    resultType: json
+  
+  add_regional_processing:
+    type: valueTransformer
+    code: |
+      # Add regional processing metadata
+      value["processing_tier"] = "regional" 
+      value["sla_hours"] = 24
+      value["processed_at"] = "2025-01-01T00:00:00Z"
+    expression: value
+    resultType: json
+  
+  add_international_processing:
+    type: valueTransformer
+    code: |
+      # Add international processing metadata
+      value["processing_tier"] = "international"
+      value["sla_hours"] = 72
+      value["customs_required"] = True
+      value["processed_at"] = "2025-01-01T00:00:00Z"
+    expression: value
+    resultType: json
+  
+pipelines:
+  order_processing:
+    from: order_input
+    via:
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processing order: {} (${} from {} customer in {})", 
+                   value.get("order_id"), 
+                   value.get("total_amount"),
+                   value.get("customer_type"), 
+                   value.get("region"))
+    branch:
+      # Branch 1: Priority orders (premium customers, high value)
+      - if: is_priority
+        via:
+          - type: mapValues
+            mapper: add_priority_processing
+          - type: peek
+            forEach:
+              code: |
+                log.info("PRIORITY: Order {} - ${} premium order", 
+                       value.get("order_id"), value.get("total_amount"))
+        to: priority_orders
+      
+      # Branch 2: Regional orders (US/EU, not priority)
+      - if: is_regional
+        via:
+          - type: mapValues
+            mapper: add_regional_processing
+          - type: peek
+            forEach:
+              code: |
+                log.info("REGIONAL: Order {} from {}", 
+                       value.get("order_id"), value.get("region"))
+        to: regional_orders
+      
+      # Branch 3: International orders  
+      - if: is_international
+        via:
+          - type: mapValues
+            mapper: add_international_processing
+          - type: peek
+            forEach:
+              code: |
+                log.info("INTERNATIONAL: Order {} from {} (customs required)", 
+                       value.get("order_id"), value.get("region"))
+        to: international_orders
