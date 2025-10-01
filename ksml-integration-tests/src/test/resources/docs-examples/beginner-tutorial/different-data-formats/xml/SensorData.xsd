@@ -8,9 +8,9 @@
                 <xs:element name="value" type="xs:string"/>
                 <xs:element name="type" type="xs:string"/>
                 <xs:element name="unit" type="xs:string"/>
-                <xs:element name="color" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="city" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="owner" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="color" type="xs:string" minOccurs="0"/>
+                <xs:element name="city" type="xs:string" minOccurs="0"/>
+                <xs:element name="owner" type="xs:string" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

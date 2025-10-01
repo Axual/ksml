@@ -171,7 +171,11 @@ class JsonSchemaRegistryIT {
         log.info("Registering JsonSchema with Apicurio Schema Registry...");
 
         // Read schema content from test resources
-        String schemaPath = JsonSchemaRegistryIT.class.getResource("/docs-examples/beginner-tutorial/different-data-formats/jsonschema/SensorData.json").getPath();
+        final var schemaResource = JsonSchemaRegistryIT.class.getResource("/docs-examples/beginner-tutorial/different-data-formats/jsonschema/SensorData.json");
+        if (schemaResource == null) {
+            throw new IllegalArgumentException("Resource not found: /docs-examples/beginner-tutorial/different-data-formats/jsonschema/SensorData.json");
+        }
+        String schemaPath = schemaResource.getPath();
         String schemaContent;
         try {
             schemaContent = Files.readString(Path.of(schemaPath));

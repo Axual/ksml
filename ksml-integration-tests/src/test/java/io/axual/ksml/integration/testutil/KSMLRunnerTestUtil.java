@@ -209,7 +209,11 @@ public class KSMLRunnerTestUtil {
 
         // Copy common KSML files from resources to temp directory
         for (String fileName : commonFiles) {
-            Path sourcePath = Path.of(KSMLRunnerTestUtil.class.getResource(resourceBasePath + "/" + fileName).getPath());
+            final var resource = KSMLRunnerTestUtil.class.getResource(resourceBasePath + "/" + fileName);
+            if (resource == null) {
+                throw new IllegalArgumentException("Resource not found: " + resourceBasePath + "/" + fileName);
+            }
+            Path sourcePath = Path.of(resource.getPath());
             Path targetPath = tempDir.resolve(fileName);
             Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
             log.debug("Copied {} to {}", fileName, targetPath);
@@ -219,14 +223,22 @@ public class KSMLRunnerTestUtil {
         Path configPath = tempDir.resolve("ksml-runner.yaml");
         if (schemaRegistrySubdir != null) {
             // Copy schema registry specific ksml-runner.yaml from subdirectory
-            Path schemaRegistryRunnerSource = Path.of(KSMLRunnerTestUtil.class.getResource(
-                resourceBasePath + "/" + schemaRegistrySubdir + "/ksml-runner.yaml").getPath());
+            final var schemaRegistryResource = KSMLRunnerTestUtil.class.getResource(
+                resourceBasePath + "/" + schemaRegistrySubdir + "/ksml-runner.yaml");
+            if (schemaRegistryResource == null) {
+                throw new IllegalArgumentException("Resource not found: " + resourceBasePath + "/" + schemaRegistrySubdir + "/ksml-runner.yaml");
+            }
+            Path schemaRegistryRunnerSource = Path.of(schemaRegistryResource.getPath());
             Files.copy(schemaRegistryRunnerSource, configPath, StandardCopyOption.REPLACE_EXISTING);
             log.debug("Copied schema registry specific ksml-runner.yaml from {}", schemaRegistrySubdir);
         } else if (!Files.exists(configPath)) {
             // If no subdirectory and ksml-runner.yaml wasn't in commonFiles, look for it in resourceBasePath
-            Path defaultRunnerSource = Path.of(KSMLRunnerTestUtil.class.getResource(
-                resourceBasePath + "/ksml-runner.yaml").getPath());
+            final var defaultRunnerResource = KSMLRunnerTestUtil.class.getResource(
+                resourceBasePath + "/ksml-runner.yaml");
+            if (defaultRunnerResource == null) {
+                throw new IllegalArgumentException("Resource not found: " + resourceBasePath + "/ksml-runner.yaml");
+            }
+            Path defaultRunnerSource = Path.of(defaultRunnerResource.getPath());
             Files.copy(defaultRunnerSource, configPath, StandardCopyOption.REPLACE_EXISTING);
             log.debug("Copied default ksml-runner.yaml from resourceBasePath");
         }
@@ -329,7 +341,7 @@ public class KSMLRunnerTestUtil {
                     org.apache.kafka.clients.admin.TopicDescription topicDesc =
                         topicsResult.topicNameValues().get(topicName).get();
 
-                    // Get high water marks (message counts) for all partitions
+                    // Get high watermarks (message counts) for all partitions
                     Map<org.apache.kafka.common.TopicPartition, org.apache.kafka.clients.admin.OffsetSpec> partitionOffsetSpecs = new HashMap<>();
                     for (TopicPartitionInfo partition : topicDesc.partitions()) {
                         org.apache.kafka.common.TopicPartition tp = new org.apache.kafka.common.TopicPartition(topicName, partition.partition());
@@ -369,7 +381,7 @@ public class KSMLRunnerTestUtil {
     /**
      * Checks if the schema registry is ready by making an HTTP GET request to the APIs endpoint.
      *
-     * @param registryUrl The base URL of the schema registry (e.g., http://localhost:8081)
+     * @param registryUrl The base URL of the schema registry (e.g., {@code http://localhost:8081})
      * @return true if the registry is ready, false otherwise
      */
     public static boolean isSchemaRegistryReady(String registryUrl) {
@@ -395,8 +407,8 @@ public class KSMLRunnerTestUtil {
     /**
      * Registers a JSON schema with Apicurio Schema Registry using the Confluent-compatible API.
      *
-     * @param registryUrl The base URL of the schema registry (e.g., http://localhost:8081)
-     * @param subjectName The subject name for the schema (e.g., "topic-name-value")
+     * @param registryUrl The base URL of the schema registry (e.g., {@code http://localhost:8081})
+     * @param subjectName The subject name for the schema (e.g., {@code "topic-name-value"})
      * @param schemaContent The JSON schema content as a string
      * @throws IOException if the HTTP request fails
      * @throws InterruptedException if the request is interrupted
