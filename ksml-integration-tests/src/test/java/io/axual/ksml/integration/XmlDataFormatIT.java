@@ -50,16 +50,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class XmlDataFormatIT {
 
-    static Network network = Network.newNetwork();
+    static final Network network = Network.newNetwork();
 
     @Container
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
+    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
             .withNetwork(network)
             .withNetworkAliases("broker")
             .withExposedPorts(9092, 9093);
 
     @Container
-    static KSMLContainer ksml = new KSMLContainer()
+    static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/xml",
                           "ksml-runner.yaml", "producer-xml.yaml", "processor-xml.yaml", "SensorData.xsd")
             .withKafka(kafka)
@@ -75,15 +75,8 @@ class XmlDataFormatIT {
         // Verify KSML is still running
         assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
-        // Create consumer properties
-        final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
         // Check ksml_sensordata_xml topic (producer output - XML data)
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-xml");
+        final Properties consumerProps = createConsumerProperties("test-consumer-xml");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_xml"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -121,8 +114,8 @@ class XmlDataFormatIT {
         }
 
         // Check ksml_sensordata_xml_processed topic (processor output - transformed XML)
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-processed");
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
+        final Properties processedConsumerProps = createConsumerProperties("test-consumer-processed");
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(processedConsumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_xml_processed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
@@ -170,6 +163,16 @@ class XmlDataFormatIT {
         );
 
         log.info("Sensor data has been generated and verified");
+    }
+
+    private Properties createConsumerProperties(String groupId) {
+        final Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        return props;
     }
 
 }

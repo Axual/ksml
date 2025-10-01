@@ -50,16 +50,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class KSMLBranchingIT {
 
-    static Network network = Network.newNetwork();
+    static final Network network = Network.newNetwork();
 
     @Container
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
+    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
             .withNetwork(network)
             .withNetworkAliases("broker")
             .withExposedPorts(9092, 9093);
 
     @Container
-    static KSMLContainer ksml = new KSMLContainer()
+    static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/intermediate-tutorial/branching",
                           "ksml-runner.yaml", "producer-order-events.yaml", "processor-order-processing.yaml")
             .withKafka(kafka)
@@ -92,15 +92,8 @@ class KSMLBranchingIT {
         // Verify KSML is still running
         assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
-        // Create consumer properties
-        final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
         // Check order_input topic (producer output)
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-input");
+        Properties consumerProps = createConsumerProperties("test-consumer-input");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("order_input"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -113,7 +106,7 @@ class KSMLBranchingIT {
         }
 
         // Check priority_orders topic
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-priority");
+        consumerProps = createConsumerProperties("test-consumer-priority");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("priority_orders"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -133,7 +126,7 @@ class KSMLBranchingIT {
         }
 
         // Check regional_orders topic
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-regional");
+        consumerProps = createConsumerProperties("test-consumer-regional");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("regional_orders"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -153,7 +146,7 @@ class KSMLBranchingIT {
         }
 
         // Check international_orders topic
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-international");
+        consumerProps = createConsumerProperties("test-consumer-international");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("international_orders"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -181,5 +174,15 @@ class KSMLBranchingIT {
         log.info("KSML generated orders using producer-order-events.yaml");
         log.info("KSML processed orders using processor-order-processing.yaml");
         log.info("Orders were correctly routed to priority/regional/international topics");
+    }
+
+    private Properties createConsumerProperties(String groupId) {
+        final Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        return props;
     }
 }

@@ -58,16 +58,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class JsonSchemaRegistryIT {
 
-    static Network network = Network.newNetwork();
+    static final Network network = Network.newNetwork();
 
     @Container
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
+    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
             .withNetwork(network)
             .withNetworkAliases("broker")
             .withExposedPorts(9092, 9093);
 
     @Container
-    static GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
+    static final GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
             .withNetwork(network)
             .withNetworkAliases("schema-registry")
             .withExposedPorts(8081)
@@ -79,7 +79,7 @@ class JsonSchemaRegistryIT {
             .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
 
     @Container
-    static KSMLContainer ksml = new KSMLContainer()
+    static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/jsonschema",
                           "jsonschema-producer.yaml", "jsonschema-processor.yaml", "SensorData.json")
             .withKafka(kafka)
@@ -97,15 +97,8 @@ class JsonSchemaRegistryIT {
         // Verify KSML is still running
         assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
-        // Create consumer properties
-        final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
         // Check sensor_data_jsonschema topic (producer output - JsonSchema data)
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-jsonschema");
+        Properties consumerProps = createConsumerProperties("test-consumer-jsonschema");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("sensor_data_jsonschema"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -122,7 +115,7 @@ class JsonSchemaRegistryIT {
         }
 
         // Check sensor_data_jsonschema_processed topic (processor output - transformed JSON)
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-processed");
+        consumerProps = createConsumerProperties("test-consumer-processed");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("sensor_data_jsonschema_processed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -208,6 +201,16 @@ class JsonSchemaRegistryIT {
             log.error("Failed to register JsonSchema", e);
             throw new RuntimeException("Failed to register JsonSchema", e);
         }
+    }
+
+    private Properties createConsumerProperties(String groupId) {
+        final Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        return props;
     }
 
 }

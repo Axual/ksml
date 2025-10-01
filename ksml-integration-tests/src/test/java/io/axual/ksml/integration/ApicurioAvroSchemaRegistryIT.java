@@ -56,16 +56,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class ApicurioAvroSchemaRegistryIT {
 
-    static Network network = Network.newNetwork();
+    static final Network network = Network.newNetwork();
 
     @Container
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
+    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
             .withNetwork(network)
             .withNetworkAliases("broker")
             .withExposedPorts(9092, 9093);
 
     @Container
-    static GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
+    static final GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
             .withNetwork(network)
             .withNetworkAliases("schema-registry")
             .withExposedPorts(8081)
@@ -78,7 +78,7 @@ class ApicurioAvroSchemaRegistryIT {
             .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
 
     @Container
-    static KSMLContainer ksml = new KSMLContainer()
+    static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro",
                           "producer-avro.yaml", "processor-avro-convert.yaml", "SensorData.avsc")
             .withKafka(kafka)

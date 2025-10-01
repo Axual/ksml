@@ -30,6 +30,7 @@ import org.testcontainers.lifecycle.Startable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,6 @@ public class KSMLContainer implements Startable {
     private GenericContainer<?> schemaRegistry;
     private SchemaRegistryType schemaRegistryType;
     private Path tempDirectory;
-    private Path configPath;
     private KSMLRunnerWrapper runnerWrapper;
     private final Map<String, String> systemProperties = new HashMap<>();
     private final List<Startable> dependencies = new ArrayList<>();
@@ -109,9 +109,7 @@ public class KSMLContainer implements Startable {
     public KSMLContainer withKsmlFiles(String resourceBasePath, String... files) {
         this.resourceBasePath = resourceBasePath;
         this.ksmlFiles.clear();
-        for (String file : files) {
-            this.ksmlFiles.add(file);
-        }
+        Collections.addAll(this.ksmlFiles, files);
         return this;
     }
 
@@ -163,30 +161,6 @@ public class KSMLContainer implements Startable {
     }
 
     /**
-     * Sets the temporary directory to use for KSML state and configuration files.
-     * This is typically injected via JUnit's @TempDir annotation.
-     *
-     * @param tempDirectory The temporary directory path
-     * @return this container for method chaining
-     */
-    public KSMLContainer withTempDirectory(Path tempDirectory) {
-        this.tempDirectory = tempDirectory;
-        return this;
-    }
-
-    /**
-     * Adds a system property to pass to the KSML JVM process.
-     *
-     * @param key Property key
-     * @param value Property value
-     * @return this container for method chaining
-     */
-    public KSMLContainer withSystemProperty(String key, String value) {
-        this.systemProperties.put(key, value);
-        return this;
-    }
-
-    /**
      * Specifies Kafka topics that should be created before KSML starts.
      * This ensures topics exist when KSML tries to access them.
      *
@@ -194,9 +168,7 @@ public class KSMLContainer implements Startable {
      * @return this container for method chaining
      */
     public KSMLContainer withTopics(String... topics) {
-        for (String topic : topics) {
-            this.topicsToCreate.add(topic);
-        }
+        Collections.addAll(this.topicsToCreate, topics);
         return this;
     }
 
@@ -221,9 +193,7 @@ public class KSMLContainer implements Startable {
      * @return this container for method chaining
      */
     public KSMLContainer dependsOn(Startable... dependencies) {
-        for (Startable dependency : dependencies) {
-            this.dependencies.add(dependency);
-        }
+        Collections.addAll(this.dependencies, dependencies);
         return this;
     }
 
@@ -268,7 +238,7 @@ public class KSMLContainer implements Startable {
                 schemaRegistrySubdirectory = schemaRegistryType.subdirectory;
             }
 
-            configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
+            final Path configPath = KSMLRunnerTestUtil.prepareTestEnvironment(
                 tempDirectory,
                 resourceBasePath,
                 ksmlFiles.toArray(new String[0]),
@@ -309,40 +279,6 @@ public class KSMLContainer implements Startable {
 
     public boolean isRunning() {
         return runnerWrapper != null && runnerWrapper.isRunning();
-    }
-
-    /**
-     * Gets the bootstrap servers from the configured Kafka container.
-     * This is useful for creating Kafka consumers/producers in tests.
-     *
-     * @return Kafka bootstrap servers
-     */
-    public String getKafkaBootstrapServers() {
-        if (kafka == null) {
-            throw new IllegalStateException("Kafka container not configured. Call withKafka() first.");
-        }
-        return kafka.getBootstrapServers();
-    }
-
-    /**
-     * Gets the schema registry URL if configured.
-     *
-     * @return Schema registry URL or null if not configured
-     */
-    public String getSchemaRegistryUrl() {
-        if (schemaRegistry == null || schemaRegistryType == null) {
-            return null;
-        }
-        return String.format(schemaRegistryType.newUrlPattern, schemaRegistry.getMappedPort(8081));
-    }
-
-    /**
-     * Gets the temp directory being used for this KSML instance.
-     *
-     * @return The temporary directory path
-     */
-    public Path getTempDirectory() {
-        return tempDirectory;
     }
 
     private void validateConfiguration() {

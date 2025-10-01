@@ -61,10 +61,6 @@ public class KSMLRunnerTestUtil {
         private Process ksmlProcess;
         private volatile boolean isRunning = false;
 
-        public KSMLRunnerWrapper(Path configPath) {
-            this(configPath, new HashMap<>());
-        }
-
         public KSMLRunnerWrapper(Path configPath, Map<String, String> systemProperties) {
             this.configPath = configPath;
             this.systemProperties = systemProperties;
@@ -190,20 +186,6 @@ public class KSMLRunnerTestUtil {
     public record SchemaRegistryConfig(String oldApicurioRegistryUrl, String newApicurioRegistryUrl) {
         public String getOldApicurioRegistryUrl() { return oldApicurioRegistryUrl; }
         public String getNewApicurioRegistryUrl() { return newApicurioRegistryUrl; }
-    }
-
-    /**
-     * Prepares the test environment by copying necessary files to a temporary directory
-     * and updating the configuration to work with the local setup.
-     *
-     * @param tempDir The temporary directory to use for test files
-     * @param resourceBasePath The base path in test resources where KSML files are located
-     * @param filesToCopy Array of filenames to copy from the resource directory
-     * @param kafkaBootstrapServers The Kafka bootstrap servers to use
-     * @return The path to the prepared ksml-runner.yaml config file
-     */
-    public static Path prepareTestEnvironment(Path tempDir, String resourceBasePath, String[] filesToCopy, String kafkaBootstrapServers) throws IOException {
-        return prepareTestEnvironment(tempDir, resourceBasePath, filesToCopy, kafkaBootstrapServers, null, null);
     }
 
     /**

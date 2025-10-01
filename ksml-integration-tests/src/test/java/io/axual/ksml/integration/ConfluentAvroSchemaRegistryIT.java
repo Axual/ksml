@@ -53,16 +53,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class ConfluentAvroSchemaRegistryIT {
 
-    static Network network = Network.newNetwork();
+    static final Network network = Network.newNetwork();
 
     @Container
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
+    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
             .withNetwork(network)
             .withNetworkAliases("broker")
             .withExposedPorts(9092, 9093);
 
     @Container
-    static GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
+    static final GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
             .withNetwork(network)
             .withNetworkAliases("schema-registry")
             .withExposedPorts(8081)
@@ -74,7 +74,7 @@ class ConfluentAvroSchemaRegistryIT {
             .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
 
     @Container
-    static KSMLContainer ksml = new KSMLContainer()
+    static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro",
                           "producer-avro.yaml", "processor-avro-transform.yaml", "SensorData.avsc")
             .withKafka(kafka)
@@ -92,15 +92,8 @@ class ConfluentAvroSchemaRegistryIT {
         // Verify KSML is still running
         assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
-        // Create consumer properties
-        final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
         // Check sensor_data_transformed topic (transformer output - transformed AVRO data)
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-transformed");
+        final Properties consumerProps = createConsumerProperties("test-consumer-transformed");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("sensor_data_transformed"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -141,6 +134,16 @@ class ConfluentAvroSchemaRegistryIT {
         );
 
         log.info("Sensor data has been generated and verified");
+    }
+
+    private Properties createConsumerProperties(String groupId) {
+        final Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        return props;
     }
 
 }
