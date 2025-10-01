@@ -1,0 +1,71 @@
+{
+  "namespace": "io.axual.ksml.example",
+  "doc": "Emulated sensor data with a few additional attributes",
+  "name": "SensorData",
+  "type": "record",
+  "fields": [
+    {
+      "doc": "The name of the sensor",
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "doc": "The timestamp of the sensor reading",
+      "name": "timestamp",
+      "type": "long"
+    },
+    {
+      "doc": "The value of the sensor, represented as string",
+      "name": "value",
+      "type": "string"
+    },
+    {
+      "doc": "The type of the sensor",
+      "name": "type",
+      "type": {
+        "name": "SensorType",
+        "type": "enum",
+        "doc": "The type of a sensor",
+        "symbols": [
+          "AREA",
+          "HUMIDITY",
+          "LENGTH",
+          "STATE",
+          "TEMPERATURE"
+        ]
+      }
+    },
+    {
+      "doc": "The unit of the sensor",
+      "name": "unit",
+      "type": "string"
+    },
+    {
+      "doc": "The color of the sensor",
+      "name": "color",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "doc": "The city of the sensor",
+      "name": "city",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "doc": "The owner of the sensor",
+      "name": "owner",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    }
+  ]
+}

@@ -109,7 +109,7 @@ class KSMLBranchingIT {
         consumerProps = createConsumerProperties("test-consumer-priority");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("priority_orders"));
-            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(2));
 
             if (!records.isEmpty()) {
                 log.info("Found {} priority orders", records.count());
@@ -129,7 +129,7 @@ class KSMLBranchingIT {
         consumerProps = createConsumerProperties("test-consumer-regional");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("regional_orders"));
-            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(2));
 
             if (!records.isEmpty()) {
                 log.info("Found {} regional orders", records.count());
@@ -149,7 +149,7 @@ class KSMLBranchingIT {
         consumerProps = createConsumerProperties("test-consumer-international");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("international_orders"));
-            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
+            ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(2));
 
             if (!records.isEmpty()) {
                 log.info("Found {} international orders", records.count());
