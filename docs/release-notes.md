@@ -4,7 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
-        * [1.1.0 (2025-XX-XX)](#110-2025-xx-xx)
+        * [1.1.0 (2025-09-18)](#110-2025-09-18)
         * [1.0.8 (2025-06-20)](#108-2025-06-20)
         * [1.0.7 (2025-06-09)](#107-2025-06-09)
         * [1.0.6 (2025-03-24)](#106-2025-03-24)
@@ -26,7 +26,7 @@
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
 
-## 1.1.0 (2025-XX-XX)
+## 1.1.0 (2025-09-18)
 
 ### BREAKING CHANGES
 
@@ -126,7 +126,8 @@ Enhanced "to" operation with clearer definitions. Both syntaxes continue to work
 ```yaml
 # Simple syntax (still supported)
 to: my-topic
-
+```
+```
 # Detailed syntax (recommended for clarity)
 to:
   topic: my-topic
@@ -154,10 +155,10 @@ Updated KSML documentation with:
 
 **Key Resources:**
 
-- **[Getting Started](../getting-started/quick-start.md)** - Quick start guide with Docker Compose
-- **[Tutorials](../tutorials/index.md)** - From basics to advanced patterns
+- **[Getting Started](getting-started/quick-start.md)** - Quick start guide with Docker Compose
+- **[Tutorials](tutorials/index.md)** - From basics to advanced patterns
 - **[Examples](https://github.com/Axual/ksml/tree/main/examples)** - 20+ working examples
-- **[Reference](../reference/index.md)** - Complete KSML language reference
+- **[Reference](reference/index.md)** - Complete KSML language reference
 
 ### INFRASTRUCTURE UPDATES
 

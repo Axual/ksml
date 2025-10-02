@@ -1,0 +1,12 @@
+ksml:
+  definitions:
+    csv-producer: csv-producer.yaml
+    csv-processor: csv-processor.yaml
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.csv.test
+  security.protocol: PLAINTEXT
+  acks: all
