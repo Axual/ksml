@@ -55,6 +55,7 @@ functions:
     type: keyValueTransformer
     code: |
       from datetime import datetime
+      import time
       
       try:
         # Extract nested sensor data
