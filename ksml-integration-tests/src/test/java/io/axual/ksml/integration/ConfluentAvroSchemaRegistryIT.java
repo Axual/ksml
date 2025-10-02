@@ -25,9 +25,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
@@ -36,6 +34,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
 
+import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -62,16 +61,8 @@ class ConfluentAvroSchemaRegistryIT {
             .withExposedPorts(9092, 9093);
 
     @Container
-    static final GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
-            .withNetwork(network)
-            .withNetworkAliases("schema-registry")
-            .withExposedPorts(8081)
-            .withEnv("QUARKUS_HTTP_PORT", "8081")
-            .withEnv("QUARKUS_HTTP_CORS_ORIGINS", "*")
-            .withEnv("QUARKUS_PROFILE", "prod")
-            .withEnv("APICURIO_STORAGE_KIND", "sql")
-            .withEnv("APICURIO_STORAGE_SQL_KIND", "h2")
-            .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
+    static final ApicurioSchemaRegistryContainer schemaRegistry = new ApicurioSchemaRegistryContainer()
+            .withNetwork(network);
 
     @Container
     static final KSMLContainer ksml = new KSMLContainer()

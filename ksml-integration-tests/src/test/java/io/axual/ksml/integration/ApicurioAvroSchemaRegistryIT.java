@@ -28,9 +28,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
@@ -39,6 +37,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
 
+import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.SensorDataTestUtil;
@@ -65,17 +64,9 @@ class ApicurioAvroSchemaRegistryIT {
             .withExposedPorts(9092, 9093);
 
     @Container
-    static final GenericContainer<?> schemaRegistry = new GenericContainer<>("apicurio/apicurio-registry:3.0.2")
+    static final ApicurioSchemaRegistryContainer schemaRegistry = new ApicurioSchemaRegistryContainer()
             .withNetwork(network)
-            .withNetworkAliases("schema-registry")
-            .withExposedPorts(8081)
-            .withEnv("QUARKUS_HTTP_PORT", "8081")
-            .withEnv("QUARKUS_HTTP_CORS_ORIGINS", "*")
-            .withEnv("QUARKUS_PROFILE", "prod")
-            .withEnv("APICURIO_STORAGE_KIND", "sql")
-            .withEnv("APICURIO_STORAGE_SQL_KIND", "h2")
-            .withEnv("APICURIO_CCOMPAT_LEGACY_ID_MODE_ENABLED", "true")
-            .waitingFor(Wait.forHttp("/apis").forPort(8081).withStartupTimeout(Duration.ofMinutes(2)));
+            .withLegacyIdMode();
 
     @Container
     static final KSMLContainer ksml = new KSMLContainer()
