@@ -15,7 +15,7 @@ functions:
       value = {
         "name": key,
         "timestamp": str(round(time.time()*1000)),
-        "type": random.choice(["TEMPERATURE", "HUMIDITY", "PRESSURE"]),
+        "type": random.choice(["TEMPERATURE", "HUMIDITY", "AREA", "LENGTH", "STATE"]),
         "unit": random.choice(["C", "F", "%", "Pa"]),
         "value": str(random.randrange(0, 100)),
         "color": random.choice(["black", "blue", "red", "yellow", "white"]),
