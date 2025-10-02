@@ -858,57 +858,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Parameters">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#window-store-specific-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Window Store Specific Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#keyvalue-store-specific-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      KeyValue Store Specific Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#session-store-specific-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Session Store Specific Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#retention-and-cleanup" class="md-nav__link">
-    <span class="md-ellipsis">
-      Retention and Cleanup
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#performance-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance Considerations
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -934,15 +883,6 @@
   <a href="#when-to-use-inline-stores" class="md-nav__link">
     <span class="md-ellipsis">
       When to Use Inline Stores
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#naming-conventions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Naming Conventions
     </span>
   </a>
   
@@ -1692,57 +1632,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Parameters">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#window-store-specific-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Window Store Specific Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#keyvalue-store-specific-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      KeyValue Store Specific Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#session-store-specific-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Session Store Specific Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#retention-and-cleanup" class="md-nav__link">
-    <span class="md-ellipsis">
-      Retention and Cleanup
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#performance-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance Considerations
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1768,15 +1657,6 @@
   <a href="#when-to-use-inline-stores" class="md-nav__link">
     <span class="md-ellipsis">
       When to Use Inline Stores
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#naming-conventions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Naming Conventions
     </span>
   </a>
   
@@ -1855,39 +1735,9 @@
 <li><strong>Deduplication</strong>: Track processed records to eliminate duplicates</li>
 <li><strong>State Management</strong>: Persist application state across restarts</li>
 </ul>
-<p>State stores can be backed by RocksDB (persistent) or kept in memory (non-persistent), with optional changelog topics for fault tolerance.</p>
+<p>State stores can be backed by RocksDB (persistent) or kept in memory (non-persistent). Both types can optionally use changelog topics for fault tolerance and recovery.</p>
 <h2 id="state-store-types">State Store Types</h2>
-<p>KSML supports three types of state stores, each optimized for specific use cases:</p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-<th>Use Cases</th>
-<th>Examples</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>keyValue</code></td>
-<td>Simple key-value storage</td>
-<td>General lookups, non-windowed aggregations, manual state management</td>
-<td><a href="#1-predefined-store-configuration"><code>keyValue</code> type state store</a></td>
-</tr>
-<tr>
-<td><code>window</code></td>
-<td>Time-windowed storage with automatic expiry</td>
-<td>Time-based aggregations, windowed joins, temporal analytics</td>
-<td><a href="../aggregations/#windowed-aggregation-example"><code>window</code> type state store</a></td>
-</tr>
-<tr>
-<td><code>session</code></td>
-<td>Session-based storage with activity gaps</td>
-<td>User session tracking, activity-based grouping</td>
-<td><a href="../windowing/#session-window-user-activity-analysis"><code>session</code> type state store</a></td>
-</tr>
-</tbody>
-</table>
+<p>KSML supports three types of state stores. For detailed information about each type and their parameters, see the <a href="../../../reference/state-store-reference/#state-store-types">State Store Reference</a>.</p>
 <h2 id="configuration-methods">Configuration Methods</h2>
 <p>KSML provides two ways to configure state stores:</p>
 <h3 id="1-predefined-store-configuration">1. Predefined Store Configuration</h3>
@@ -1992,7 +1842,7 @@
 <li><strong>Predefined store configuration</strong>: The <code>owner_count_store</code> is defined in the global <code>stores</code> section</li>
 <li><strong>Store reference</strong>: The <code>count</code> operation references the predefined store by name</li>
 <li><strong>Persistent storage</strong>: Data survives application restarts (<code>persistent: true</code>)</li>
-<li><strong>Changelog logging</strong>: State changes are logged for fault tolerance (<code>logging: true</code>)</li>
+<li><strong>Changelog logging</strong>: State changes are replicated to a Kafka changelog topic for fault tolerance and recovery (<code>logging: true</code>)</li>
 </ul>
 <p>You won't be able to read the output in <code>owner_sensor_counts</code> topic because it is binary, to read it you can consume the messages like this:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Read owner sensor counts (Long values require specific deserializer)</span>
@@ -2137,196 +1987,7 @@
 <li><strong>Caching enabled</strong>: Improves performance by batching state updates (<code>caching: true</code>)</li>
 </ul>
 <h2 id="configuration-parameters">Configuration Parameters</h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Parameter</th>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Default</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>name</code></td>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><em>none</em></td>
-<td style="text-align: left;">Unique identifier for the state store</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>type</code></td>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><em>none</em></td>
-<td style="text-align: left;">Store type: <code>keyValue</code>, <code>window</code>, or <code>session</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>keyType</code></td>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><em>none</em></td>
-<td style="text-align: left;">Data type for keys (e.g., <code>string</code>, <code>long</code>, <code>json</code>)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>valueType</code></td>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><em>none</em></td>
-<td style="text-align: left;">Data type for values (e.g., <code>long</code>, <code>json</code>, <code>avro:Schema</code>)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>persistent</code></td>
-<td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;"><code>false</code></td>
-<td style="text-align: left;">Whether to persist data to disk using RocksDB</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>retention</code></td>
-<td style="text-align: left;"><code>duration</code></td>
-<td style="text-align: left;"><em>none</em></td>
-<td style="text-align: left;">How long to retain data (e.g., <code>5m</code>, <code>1h</code>, <code>1d</code>)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>caching</code></td>
-<td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;"><code>false</code></td>
-<td style="text-align: left;">Enable caching to batch state updates</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>logging</code></td>
-<td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;"><code>false</code></td>
-<td style="text-align: left;">Enable changelog topic for fault tolerance</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>timestamped</code></td>
-<td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;"><code>false</code></td>
-<td style="text-align: left;">Include timestamps with values (keyValue/window stores)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>versioned</code></td>
-<td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;"><code>false</code></td>
-<td style="text-align: left;">Enable versioning for keyValue stores</td>
-</tr>
-</tbody>
-</table>
-<h3 id="window-store-specific-parameters">Window Store Specific Parameters</h3>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Required</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>windowSize</code></td>
-<td>Duration</td>
-<td>Yes</td>
-<td>-</td>
-<td>Size of the time window (must match operation's window duration)</td>
-</tr>
-<tr>
-<td><code>retention</code></td>
-<td>Duration</td>
-<td>No</td>
-<td>-</td>
-<td>How long to retain window data (should be &gt; windowSize + grace period)</td>
-</tr>
-<tr>
-<td><code>retainDuplicates</code></td>
-<td>Boolean</td>
-<td>No</td>
-<td><code>false</code></td>
-<td>Whether to keep duplicate entries in windows</td>
-</tr>
-</tbody>
-</table>
-<h3 id="keyvalue-store-specific-parameters">KeyValue Store Specific Parameters</h3>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Required</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>versioned</code></td>
-<td>Boolean</td>
-<td>No</td>
-<td><code>false</code></td>
-<td>If <code>true</code>, maintains version history of values</td>
-</tr>
-<tr>
-<td><code>historyRetention</code></td>
-<td>Duration</td>
-<td>No (Yes if versioned)</td>
-<td>-</td>
-<td>How long to keep old versions</td>
-</tr>
-<tr>
-<td><code>segmentInterval</code></td>
-<td>Duration</td>
-<td>No</td>
-<td>-</td>
-<td>Segment size for versioned stores</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Important:</strong> Versioned stores (<code>versioned: true</code>) cannot have caching enabled (<code>caching: false</code> is required).</p>
-<h3 id="session-store-specific-parameters">Session Store Specific Parameters</h3>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Required</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>retention</code></td>
-<td>Duration</td>
-<td>No</td>
-<td>-</td>
-<td>How long to retain session data</td>
-</tr>
-</tbody>
-</table>
-<h3 id="retention-and-cleanup">Retention and Cleanup</h3>
-<p>State stores can automatically clean up old data based on retention policies:</p>
-<ul>
-<li><strong>Time-based retention</strong>: Data older than the specified duration is removed</li>
-<li><strong>Window stores</strong>: Automatically expire data outside the window + grace period</li>
-<li><strong>Session stores</strong>: Remove sessions after inactivity timeout</li>
-</ul>
-<h3 id="performance-considerations">Performance Considerations</h3>
-<p><strong>Caching (<code>caching: true</code>)</strong>:</p>
-<ul>
-<li><strong>Benefits</strong>: Reduces downstream message volume, improves throughput</li>
-<li><strong>Trade-offs</strong>: Increases memory usage, adds latency to state updates</li>
-<li><strong>Use when</strong>: You can tolerate slightly delayed updates for better performance</li>
-</ul>
-<p><strong>Persistence (<code>persistent: true</code>)</strong>:</p>
-<ul>
-<li><strong>Benefits</strong>: Data survives restarts, enables exactly-once processing</li>
-<li><strong>Trade-offs</strong>: Slower startup, additional disk I/O overhead</li>
-<li><strong>Use when</strong>: Data durability is important, or you need exactly-once guarantees</li>
-</ul>
-<p><strong>Changelog Logging (<code>logging: true</code>)</strong>:</p>
-<ul>
-<li><strong>Benefits</strong>: Enables fault tolerance and exactly-once processing</li>
-<li><strong>Trade-offs</strong>: Additional Kafka topics, increased network and storage usage</li>
-<li><strong>Use when</strong>: You need fault tolerance or are using exactly-once semantics</li>
-</ul>
+<p>For a complete list of configuration parameters for all store types, see the <a href="../../../reference/state-store-reference/#configuration-parameters">State Store Reference - Configuration Parameters</a>.</p>
 <h2 id="best-practices">Best Practices</h2>
 <h3 id="when-to-use-predefined-stores">When to Use Predefined Stores</h3>
 <ul>
@@ -2339,12 +2000,6 @@
 <li>Store is used by a single operation</li>
 <li>Simple, one-off configurations</li>
 <li>Prototyping or small applications</li>
-</ul>
-<h3 id="naming-conventions">Naming Conventions</h3>
-<ul>
-<li>Use descriptive names that indicate the store's purpose</li>
-<li>Include the data type or domain in the name (e.g., <code>user_session_store</code>, <code>product_inventory</code>)</li>
-<li>Be consistent across your application</li>
 </ul>
 <h3 id="memory-management">Memory Management</h3>
 <ul>
