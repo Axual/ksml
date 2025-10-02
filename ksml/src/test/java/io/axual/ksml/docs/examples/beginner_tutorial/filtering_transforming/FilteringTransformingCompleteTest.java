@@ -166,7 +166,6 @@ public class FilteringTransformingCompleteTest {
             assertThat(error.has("error")).isTrue();
             assertThat(error.get("sensor_id").asText()).isEqualTo("sensor4");
         }
-        // Note: Depending on validation logic, might be filtered out instead
     }
 
     @KSMLTest(topology = "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml")

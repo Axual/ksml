@@ -767,7 +767,7 @@ to the same session.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/windowing/processor-session-activity.yaml:19:21"
+--8<-- "../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-session-activity.yaml:19:21"
 ```
 
 **Full example for `windowBySession`**:

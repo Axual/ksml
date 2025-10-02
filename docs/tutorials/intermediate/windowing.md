@@ -286,7 +286,7 @@ This example uses session windows to analyze user browsing patterns by grouping 
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/windowing/processor-session-activity.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-session-activity.yaml"
     %}
     ```
 
