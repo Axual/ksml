@@ -1406,13 +1406,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#110-2025-xx-xx" class="md-nav__link">
+  <a href="#110-2025-09-18" class="md-nav__link">
     <span class="md-ellipsis">
-      1.1.0 (2025-XX-XX)
+      1.1.0 (2025-09-18)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1.1.0 (2025-XX-XX)">
+    <nav class="md-nav" aria-label="1.1.0 (2025-09-18)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1794,13 +1794,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#110-2025-xx-xx" class="md-nav__link">
+  <a href="#110-2025-09-18" class="md-nav__link">
     <span class="md-ellipsis">
-      1.1.0 (2025-XX-XX)
+      1.1.0 (2025-09-18)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1.1.0 (2025-XX-XX)">
+    <nav class="md-nav" aria-label="1.1.0 (2025-09-18)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2159,7 +2159,7 @@
 <ul>
 <li><a href="#release-notes">Release Notes</a><ul>
 <li><a href="#releases">Releases</a><ul>
-<li><a href="#110-2025-xx-xx">1.1.0 (2025-XX-XX)</a></li>
+<li><a href="#110-2025-09-18">1.1.0 (2025-09-18)</a></li>
 <li><a href="#108-2025-06-20">1.0.8 (2025-06-20)</a></li>
 <li><a href="#107-2025-06-09">1.0.7 (2025-06-09)</a></li>
 <li><a href="#106-2025-03-24">1.0.6 (2025-03-24)</a></li>
@@ -2185,7 +2185,7 @@
 </ul>
 </li>
 </ul>
-<h2 id="110-2025-xx-xx">1.1.0 (2025-XX-XX)</h2>
+<h2 id="110-2025-09-18">1.1.0 (2025-09-18)</h2>
 <h3 id="breaking-changes">BREAKING CHANGES</h3>
 <h4 id="state-store-configuration-136">State Store Configuration (<a href="https://github.com/Axual/ksml/pull/136">#136</a>)</h4>
 <p>The <code>store</code> property in aggregate operations is now <strong>required</strong>.</p>
@@ -2271,12 +2271,12 @@ See example: <a href="https://github.com/Axual/ksml/blob/main/examples/09-exampl
 <p>Enhanced "to" operation with clearer definitions. Both syntaxes continue to work:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Simple syntax (still supported)</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-topic</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Detailed syntax (recommended for clarity)</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-topic</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Detailed syntax (recommended for clarity)
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>to:
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  topic: my-topic
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  keyType: string
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  valueType: json
 </code></pre></div></p>
 <h3 id="bug-fixes">BUG FIXES</h3>
 <ul>
@@ -2297,10 +2297,10 @@ See example: <a href="https://github.com/Axual/ksml/blob/main/examples/09-exampl
 </ul>
 <p><strong>Key Resources:</strong></p>
 <ul>
-<li><strong><a href="../getting-started/quick-start.md">Getting Started</a></strong> - Quick start guide with Docker Compose</li>
-<li><strong><a href="../tutorials/index.md">Tutorials</a></strong> - From basics to advanced patterns</li>
+<li><strong><a href="../getting-started/quick-start/">Getting Started</a></strong> - Quick start guide with Docker Compose</li>
+<li><strong><a href="../tutorials/">Tutorials</a></strong> - From basics to advanced patterns</li>
 <li><strong><a href="https://github.com/Axual/ksml/tree/main/examples">Examples</a></strong> - 20+ working examples</li>
-<li><strong><a href="../reference/index.md">Reference</a></strong> - Complete KSML language reference</li>
+<li><strong><a href="../reference/">Reference</a></strong> - Complete KSML language reference</li>
 </ul>
 <h3 id="infrastructure-updates">INFRASTRUCTURE UPDATES</h3>
 <ul>

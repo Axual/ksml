@@ -1534,6 +1534,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#storage-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-storage-vs-changelog-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Storage vs Changelog Topics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-configuration-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Configuration Patterns
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changelog-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changelog Topics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#performance-considerations" class="md-nav__link">
     <span class="md-ellipsis">
       Performance Considerations
@@ -1556,6 +1598,15 @@
   <a href="#persistence-trade-offs" class="md-nav__link">
     <span class="md-ellipsis">
       Persistence Trade-offs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging Impact
     </span>
   </a>
   
@@ -1840,6 +1891,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#storage-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-storage-vs-changelog-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Storage vs Changelog Topics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-configuration-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Configuration Patterns
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changelog-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changelog Topics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#performance-considerations" class="md-nav__link">
     <span class="md-ellipsis">
       Performance Considerations
@@ -1862,6 +1955,15 @@
   <a href="#persistence-trade-offs" class="md-nav__link">
     <span class="md-ellipsis">
       Persistence Trade-offs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging Impact
     </span>
   </a>
   
@@ -2026,7 +2128,7 @@
 <td>Boolean</td>
 <td>No</td>
 <td><code>false</code></td>
-<td>If <code>true</code>, survives application restarts</td>
+<td>If <code>true</code>, uses RocksDB (disk); if <code>false</code>, uses in-memory storage</td>
 </tr>
 <tr>
 <td><code>caching</code></td>
@@ -2040,7 +2142,7 @@
 <td>Boolean</td>
 <td>No</td>
 <td><code>false</code></td>
-<td>If <code>true</code>, creates changelog topic for recovery</td>
+<td>If <code>true</code>, creates changelog topic for fault tolerance (in addition to local storage)</td>
 </tr>
 <tr>
 <td><code>timestamped</code></td>
@@ -2398,6 +2500,57 @@
 <li><a href="../../tutorials/intermediate/windowing/#tumbling-window-click-counting">Windowed Aggregations</a></li>
 <li><a href="../../tutorials/intermediate/joins/#stream-stream-join">Stream-Stream Joins</a></li>
 </ul>
+<h2 id="storage-architecture">Storage Architecture</h2>
+<h3 id="local-storage-vs-changelog-topics">Local Storage vs Changelog Topics</h3>
+<p>It's important to understand that <code>persistent</code> and <code>logging</code> control different aspects of state storage:</p>
+<ol>
+<li><strong><code>persistent: true</code></strong> → Uses RocksDB for local storage (survives process restarts)</li>
+<li><strong><code>persistent: false</code></strong> → Uses in-memory storage (lost on process restart)</li>
+<li><strong><code>logging: true</code></strong> → ADDITIONALLY replicates state to a Kafka changelog topic</li>
+<li><strong><code>logging: false</code></strong> → No changelog topic (only local storage)</li>
+</ol>
+<p><strong>Key Point</strong>: When <code>logging: true</code>, state is stored <strong>BOTH</strong> locally (RocksDB or memory) <strong>AND</strong> in the changelog topic. The changelog is for fault tolerance and recovery, not primary storage.</p>
+<h3 id="common-configuration-patterns">Common Configuration Patterns</h3>
+<table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th>Description</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>persistent: true, logging: false</code></td>
+<td>RocksDB only (local durability, no fault tolerance)</td>
+<td>Development, non-critical state</td>
+</tr>
+<tr>
+<td><code>persistent: true, logging: true</code></td>
+<td>RocksDB + changelog (local durability + fault tolerance)</td>
+<td><strong>Production (Recommended)</strong> ✅</td>
+</tr>
+<tr>
+<td><code>persistent: false, logging: true</code></td>
+<td>In-memory + changelog (fast access, fault tolerant)</td>
+<td>High-performance with recovery</td>
+</tr>
+<tr>
+<td><code>persistent: false, logging: false</code></td>
+<td>In-memory only (fastest, data lost on restart)</td>
+<td>Temporary caches, testing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="changelog-topics">Changelog Topics</h3>
+<p>When <code>logging: true</code> is configured:</p>
+<ul>
+<li><strong>Topic Name</strong>: <code>&lt;application.id&gt;-&lt;store-name&gt;-changelog</code></li>
+<li><strong>Compaction</strong>: Topics are log-compacted to keep only the latest value per key</li>
+<li><strong>Recovery</strong>: On restart/rebalance, missing local state is rebuilt from the changelog</li>
+<li><strong>Performance</strong>: Normal reads use local storage (fast), changelog is only for recovery</li>
+<li><strong>Requirements</strong>: Required for exactly-once semantics</li>
+</ul>
 <h2 id="performance-considerations">Performance Considerations</h2>
 <h3 id="caching-impact">Caching Impact</h3>
 <table>
@@ -2446,6 +2599,32 @@
 </tr>
 </tbody>
 </table>
+<h3 id="logging-impact">Logging Impact</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Use When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>logging: true</code></td>
+<td>Fault tolerance, fast recovery, exactly-once support</td>
+<td>Additional Kafka topics, network/storage overhead</td>
+<td>Production, fault tolerance needed</td>
+</tr>
+<tr>
+<td><code>logging: false</code></td>
+<td>Lower overhead, simpler setup</td>
+<td>No recovery on failure</td>
+<td>Development, non-critical state</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Important</strong>: Changelog logging supplements local storage - it does NOT replace it. State is always stored locally (RocksDB or memory) for fast access, with the changelog used only for recovery purposes.</p>
 
 
 
