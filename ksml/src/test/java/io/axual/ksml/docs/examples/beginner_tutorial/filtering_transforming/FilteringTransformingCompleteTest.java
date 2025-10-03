@@ -36,6 +36,7 @@ import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -70,7 +71,7 @@ public class FilteringTransformingCompleteTest {
 
         // Verify temperature conversion (80F = 26.67C)
         assertThat(output.get("readings").get("temperature").get("fahrenheit").asInt()).isEqualTo(80);
-        assertThat(output.get("readings").get("temperature").get("celsius").asDouble()).isCloseTo(26.67, org.assertj.core.data.Offset.offset(0.01));
+        assertThat(output.get("readings").get("temperature").get("celsius").asDouble()).isCloseTo(26.67, offset(0.01));
 
         // Verify humidity preserved
         assertThat(output.get("readings").get("humidity").asInt()).isEqualTo(88);
