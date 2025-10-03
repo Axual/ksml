@@ -1,4 +1,4 @@
-{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" )  .Values.prometheus.enabled .Values.prometheusRule.enabled (eq "statefulset" (lower .Values.deploymentMode)) }}
+{{- if and .Values.prometheus.enabled .Values.prometheusRule.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -16,6 +16,7 @@ spec:
       {{- end }}
       rules:
         {{- if .Values.prometheusRule.defaultRules }}
+        {{- if (eq "statefulset" (lower .Values.deploymentMode))}}
         - alert: {{ include "ksml.fullname" . | camelcase }}Down
           annotations:
             summary: {{ include "ksml.fullname" . }} is down
@@ -24,6 +25,7 @@ spec:
           for: 2m
           labels:
             {{- toYaml .Values.prometheusRule.defaultRules.labels | nindent 12 }}
+        {{- end }}
         - alert: {{ include "ksml.fullname" . | camelcase }}RestartingTooMuch
           annotations:
             summary: {{ include "ksml.fullname" . }} is restarting too much
