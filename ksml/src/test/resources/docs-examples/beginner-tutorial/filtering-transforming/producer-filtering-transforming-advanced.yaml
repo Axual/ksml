@@ -1,0 +1,46 @@
+producers:
+  data_producer:
+    generator: generate_tutorial_data
+    interval: 3s
+    to:
+      topic: tutorial_input
+      keyType: string
+      valueType: json
+functions:
+  generate_tutorial_data:
+    type: generator
+    globalCode: |
+      import random, time
+      sensor_id = 0
+      locations = ["server_room", "warehouse", "data_center"]
+    code: |
+      global sensor_id, locations
+      key = "sensor" + str(sensor_id)
+      sensor_id = (sensor_id + 1) % 5
+      location = random.choice(locations)
+      
+      # Each sensor value is now a dict with 'value' and 'unit'
+      sensors = {
+        "temperature": {
+          "value": random.randint(60, 100),
+          "unit": "F"
+        },
+        "humidity": {
+          "value": random.randint(20, 90),
+          "unit": "%"
+        },
+        "location": {
+          "value": location,
+          "unit": "text"
+        }
+      }
+      
+      # Add a timestamp in the expected metadata format
+      value = {
+        "metadata": {
+          "timestamp": int(time.time() * 1000)
+        },
+        "sensors": sensors
+      }
+    expression: (key, value)
+    resultType: (string, json)

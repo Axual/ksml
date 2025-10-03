@@ -467,7 +467,7 @@ Let's put everything together in a complete example:
 
     ```yaml
     {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml"
     %}
     ```
 
