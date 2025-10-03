@@ -462,19 +462,23 @@ Redistributes records across partitions, optionally using custom partitioning lo
 > ```
 
 ```yaml
---8<-- "definitions/reference/operations/repartition-example-processor.yaml:73:76"
+--8<-- "../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-processor.yaml:73:76"
 ```
 
 ??? info "Producer - `repartition` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/operations/repartition-example-producer.yaml" %}
+    {%
+      include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-producer.yaml"
+    %}
     ```
 
 ??? info "Processor - `repartition` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/operations/repartition-example-processor.yaml" %}
+    {%
+      include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-processor.yaml"
+    %}
     ```
 
 The repartition operation demonstrates data redistribution by changing keys from regions to user IDs, then using custom partitioning logic to distribute activities based on user patterns. This ensures related user activities are processed together while optimizing partition utilization.
