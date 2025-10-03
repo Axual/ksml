@@ -36,6 +36,6 @@ jobs:
       - name: Build Docs Site
         id: deployment
         run: |
-          mike deploy --push --update-aliases ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
-          mike set-default --push ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
-          mike alias --push --update-aliases ${{ github.event.release.tag_name || github.event.inputs.tag_name }} latest
+          mike deploy --push --update-aliases --allow-empty ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
+          mike set-default --push --allow-empty ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
+          mike alias --push --update-aliases --allow-empty ${{ github.event.release.tag_name || github.event.inputs.tag_name }} latest
