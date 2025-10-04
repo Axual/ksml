@@ -28,14 +28,11 @@ pipelines:
     via:
       - type: groupByKey
       - type: aggregate
-        initializer: init_sum
-        aggregator: add_value
         store:
           name: payment_totals_store
           type: keyValue
-          keyType: string
-          valueType: long
-          retention: 1h
+        initializer: init_sum
+        aggregator: add_value
       - type: toStream
       - type: peek
         forEach:
