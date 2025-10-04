@@ -29,6 +29,7 @@ streams:
 functions:
   extract_temperature:
     type: valueTransformer
+    resultType: float
     expression: value.get("readings", {}).get("temperature")
 
   check_temperature_threshold:
@@ -39,6 +40,7 @@ functions:
 
   create_temperature_alert:
     type: valueTransformer
+    resultType: json
     code: |
       temp = value.get("readings", {}).get("temperature")
       return {
@@ -125,12 +127,10 @@ pipelines:
       - type: groupBy
         mapper: group_by_building_floor
       - type: aggregate
-        initializer: init_energy_counter
-        aggregator: aggregate_energy
         store:
           name: energy_consumption_store
           type: keyValue
-          keyType: string
-          valueType: json
+        initializer: init_energy_counter
+        aggregator: aggregate_energy
       - type: toStream
     to: energy_consumption
