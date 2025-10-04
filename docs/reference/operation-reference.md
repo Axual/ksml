@@ -555,7 +555,7 @@ None.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-count.yaml:17:17"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-count.yaml:17:17"
 ```
 
 **Full example for `count`**:
@@ -580,7 +580,7 @@ The `reducer` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-reduce.yaml:62:63"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-reduce.yaml:62:63"
 ```
 
 **Full example for `reduce`**:

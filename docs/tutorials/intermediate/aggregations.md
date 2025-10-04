@@ -188,7 +188,7 @@ Simple counting of events per key:
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-user-actions.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-user-actions.yaml"
     %}
     ```
 
@@ -196,7 +196,7 @@ Simple counting of events per key:
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-count.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-count.yaml"
     %}
     ```
 
@@ -275,7 +275,7 @@ This example shows the same reduce logic but with JSON messages for better visib
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-transactions.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-transactions.yaml"
     %}
     ```
 
@@ -283,7 +283,7 @@ This example shows the same reduce logic but with JSON messages for better visib
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-reduce.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-reduce.yaml"
     %}
     ```
 
@@ -460,7 +460,7 @@ This example demonstrates windowed aggregation by calculating temperature statis
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-windowed.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-windowed.yaml"
     %}
     ```
 
@@ -468,7 +468,7 @@ This example demonstrates windowed aggregation by calculating temperature statis
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-windowed-aggregate.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-windowed-aggregate.yaml"
     %}
     ```
 
@@ -541,7 +541,7 @@ Cogroup allows combining multiple grouped streams into a single aggregation. Thi
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-cogroup.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-cogroup.yaml"
     %}
     ```
 
@@ -549,7 +549,7 @@ Cogroup allows combining multiple grouped streams into a single aggregation. Thi
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-cogroup.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml"
     %}
     ```
 

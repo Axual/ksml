@@ -607,7 +607,7 @@ Combined value
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-reduce.yaml:24:30"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-reduce.yaml:24:30"
 ```
 
 **Full example for `reducer`**:

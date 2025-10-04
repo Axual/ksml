@@ -14,12 +14,12 @@ functions:
       sensor_counter += 1
       
       # Generate temperature reading
-      temperature = round(random.uniform(18.0, 35.0), 1)
-      
+      temperature = str(round(random.uniform(18.0, 35.0), 1))
+
       # Use sensor_id as key
       key = sensor
     expression: (key, temperature)
-    resultType: (string, double)
+    resultType: (string, string)
 
 producers:
   sensor_producer:
@@ -28,4 +28,4 @@ producers:
     to:
       topic: sensor_temperatures
       keyType: string
-      valueType: double
+      valueType: string

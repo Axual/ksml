@@ -2,7 +2,7 @@ streams:
   sensor_temperatures:
     topic: sensor_temperatures
     keyType: string
-    valueType: double
+    valueType: string
   
   sensor_window_stats:
     topic: sensor_window_stats
@@ -25,15 +25,18 @@ functions:
   update_stats:
     type: aggregator
     code: |
+      # Convert string to float
+      temp_value = float(value)
+
       # Update count and sum
       aggregatedValue["count"] += 1
-      aggregatedValue["sum"] += value
+      aggregatedValue["sum"] += temp_value
       
       # Update min/max
-      if aggregatedValue["min"] is None or value < aggregatedValue["min"]:
-        aggregatedValue["min"] = value
-      if aggregatedValue["max"] is None or value > aggregatedValue["max"]:
-        aggregatedValue["max"] = value
+      if aggregatedValue["min"] is None or temp_value < aggregatedValue["min"]:
+        aggregatedValue["min"] = temp_value
+      if aggregatedValue["max"] is None or temp_value > aggregatedValue["max"]:
+        aggregatedValue["max"] = temp_value
       
       # Calculate average
       aggregatedValue["avg"] = round(aggregatedValue["sum"] / aggregatedValue["count"], 2)
