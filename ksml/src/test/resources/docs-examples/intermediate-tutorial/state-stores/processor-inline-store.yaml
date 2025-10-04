@@ -16,9 +16,9 @@ streams:
 functions:
   initialize_sum:
     type: initializer
-    expression:
-      total_value: 0.0
-      count: 0
+    code: |
+      result = {"total_value": 0.0, "count": 0}
+    expression: result
     resultType: json
 
   update_sum:
@@ -59,9 +59,6 @@ pipelines:
         store:
           name: sensor_type_aggregates
           type: keyValue
-          keyType: string
-          valueType: json
-          retention: 3m
           caching: true
           persistent: false
           logging: false
