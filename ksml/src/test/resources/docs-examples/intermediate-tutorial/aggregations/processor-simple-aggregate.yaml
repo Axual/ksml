@@ -9,20 +9,33 @@ streams:
     keyType: string
     valueType: long
 
+functions:
+  init_sum:
+    type: initializer
+    resultType: long
+    code: |
+      return 0
+
+  add_value:
+    type: aggregator
+    resultType: long
+    code: |
+      return aggregatedValue + value
+
 pipelines:
   calculate_totals:
     from: payment_amounts
     via:
       - type: groupByKey
       - type: aggregate
+        initializer: init_sum
+        aggregator: add_value
         store:
+          name: payment_totals_store
           type: keyValue
+          keyType: string
+          valueType: long
           retention: 1h
-        initializer:
-          expression: 0
-          resultType: long
-        aggregator:
-          expression: aggregatedValue + value
       - type: toStream
       - type: peek
         forEach:

@@ -14,6 +14,7 @@ tables:
     keyType: string
     valueType: json
     store:
+      name: user_profiles_store
       type: keyValue
       keyType: string
       valueType: json

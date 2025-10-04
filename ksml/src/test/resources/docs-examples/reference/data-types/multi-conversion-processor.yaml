@@ -9,11 +9,28 @@ streams:
     keyType: string
     valueType: json
     offsetResetPolicy: earliest
-  
+
   final_output:
     topic: final_output
     keyType: string
     valueType: string
+
+functions:
+  calculate_total_value:
+    type: valueTransformer
+    resultType: json
+    globalCode: |
+      import time
+    code: |
+      # Calculate total value and add metadata
+      result = {
+        "product_id": f"PRD-{value.get('id'):04d}",
+        "name": value.get("product", "").upper(),
+        "total_value": value.get("price", 0) * value.get("quantity", 0),
+        "in_stock": value.get("available", False),
+        "processed_at": int(time.time())
+      }
+      return result
 
 pipelines:
   multi_format_conversion:
@@ -47,21 +64,7 @@ pipelines:
       
       # Transform the data while in JSON format
       - type: transformValue
-        mapper:
-          type: valueTransformer
-          code: |
-            # Calculate total value and add metadata
-            result = {
-              "product_id": f"PRD-{value.get('id'):04d}",
-              "name": value.get("product", "").upper(),
-              "total_value": value.get("price", 0) * value.get("quantity", 0),
-              "in_stock": value.get("available", False),
-              "processed_at": int(time.time())
-            }
-          expression: result
-          resultType: json
-          globalCode: |
-            import time
+        mapper: calculate_total_value
       
       - type: peek
         forEach:

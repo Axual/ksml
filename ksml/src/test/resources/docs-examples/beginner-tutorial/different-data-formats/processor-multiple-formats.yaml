@@ -16,6 +16,27 @@ streams:
     keyType: string
     valueType: json
 
+functions:
+  add_avro_source:
+    type: valueTransformer
+    resultType: json
+    code: |
+      result = dict(value) if value else {}
+      result["source_format"] = "Avro"
+      return result
+
+  transform_json_to_sensor:
+    type: valueTransformer
+    resultType: json
+    code: |
+      return {
+        "name": key,
+        "type": "CONFIG",
+        "threshold": value.get("threshold"),
+        "alert_level": value.get("alert_level"),
+        "source_format": "JSON"
+      }
+
 pipelines:
   # Pipeline 1: Process Avro data and convert to JSON
   avro_processing:
@@ -31,13 +52,7 @@ pipelines:
 
       # Add a source field to identify the format
       - type: transformValue
-        mapper:
-          type: valueTransformer
-          code: |
-            result = dict(value) if value else {}
-            result["source_format"] = "Avro"
-          expression: result
-          resultType: json
+        mapper: add_avro_source
 
     to: combined_output
 
@@ -54,17 +69,6 @@ pipelines:
 
       # Transform to sensor-like format with source field
       - type: transformValue
-        mapper:
-          type: valueTransformer
-          code: |
-            result = {
-              "name": key,
-              "type": "CONFIG",
-              "threshold": value.get("threshold"),
-              "alert_level": value.get("alert_level"),
-              "source_format": "JSON"
-            }
-          expression: result
-          resultType: json
+        mapper: transform_json_to_sensor
 
     to: combined_output

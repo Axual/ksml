@@ -12,37 +12,47 @@ streams:
 functions:
   init_stats:
     type: initializer
+    resultType: json
     code: |
       # Initialize statistics
-      stats = {
+      return {
         "count": 0,
         "total_amount": 0.0,
         "min_amount": None,
         "max_amount": None
       }
-    expression: stats
-    resultType: json
-    
+
   update_stats:
     type: aggregator
+    resultType: json
     code: |
       # Update payment statistics
       if value and aggregatedValue:
         amount = value.get("amount", 0.0)
-        aggregatedValue["count"] = aggregatedValue.get("count", 0) + 1
-        aggregatedValue["total_amount"] = aggregatedValue.get("total_amount", 0.0) + amount
-        
+        count = aggregatedValue.get("count", 0) + 1
+        total_amount = aggregatedValue.get("total_amount", 0.0) + amount
+
         current_min = aggregatedValue.get("min_amount")
         current_max = aggregatedValue.get("max_amount")
-        
+
         if current_min is None or amount < current_min:
-          aggregatedValue["min_amount"] = amount
+          min_amount = amount
+        else:
+          min_amount = current_min
+
         if current_max is None or amount > current_max:
-          aggregatedValue["max_amount"] = amount
-          
-        aggregatedValue["average_amount"] = round(aggregatedValue["total_amount"] / aggregatedValue["count"], 2)
-    expression: aggregatedValue
-    resultType: json
+          max_amount = amount
+        else:
+          max_amount = current_max
+
+        return {
+          "count": count,
+          "total_amount": total_amount,
+          "min_amount": min_amount,
+          "max_amount": max_amount,
+          "average_amount": round(total_amount / count, 2)
+        }
+      return aggregatedValue
 
 pipelines:
   calculate_statistics:
@@ -50,12 +60,15 @@ pipelines:
     via:
       - type: groupByKey
       - type: aggregate
-        store:
-          type: keyValue
-          retention: 1h
-          caching: false
         initializer: init_stats
         aggregator: update_stats
+        store:
+          name: payment_stats_store
+          type: keyValue
+          keyType: string
+          valueType: json
+          retention: 1h
+          caching: false
       - type: toStream
       - type: peek
         forEach:

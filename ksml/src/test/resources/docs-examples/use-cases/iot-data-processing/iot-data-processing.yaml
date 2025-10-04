@@ -56,14 +56,43 @@ functions:
 
   create_battery_alert:
     type: valueTransformer
-    expression: |
-      {
+    resultType: json
+    code: |
+      return {
         "device_id": value.get("device_id"),
         "timestamp": value.get("timestamp"),
         "location": value.get("location"),
         "alert_type": "low_battery",
         "battery_level": value.get("battery_level"),
         "status": "warning"
+      }
+
+  filter_energy_meter:
+    type: predicate
+    resultType: boolean
+    code: |
+      return value.get("device_type") == "energy_meter"
+
+  group_by_building_floor:
+    type: keyTransformer
+    resultType: string
+    code: |
+      return value.get("location", {}).get("building") + "-" + str(value.get("location", {}).get("floor"))
+
+  init_energy_counter:
+    type: initializer
+    resultType: json
+    code: |
+      return {"total_consumption": 0, "count": 0}
+
+  aggregate_energy:
+    type: aggregator
+    resultType: json
+    code: |
+      return {
+        "total_consumption": aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0),
+        "count": aggregatedValue.get("count") + 1,
+        "average": (aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0)) / (aggregatedValue.get("count") + 1)
       }
 
 pipelines:
@@ -92,28 +121,16 @@ pipelines:
     from: sensor_readings
     via:
       - type: filter
-        if:
-          expression: value.get("device_type") == "energy_meter"
+        if: filter_energy_meter
       - type: groupBy
-        mapper:
-          expression: value.get("location", {}).get("building") + "-" + str(value.get("location", {}).get("floor"))
+        mapper: group_by_building_floor
       - type: aggregate
+        initializer: init_energy_counter
+        aggregator: aggregate_energy
         store:
           name: energy_consumption_store
           type: keyValue
           keyType: string
           valueType: json
-        initializer:
-          expression: |
-            {"total_consumption": 0, "count": 0}
-          resultType: json
-        aggregator:
-          expression: |
-            {
-              "total_consumption": aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0),
-              "count": aggregatedValue.get("count") + 1,
-              "average": (aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0)) / (aggregatedValue.get("count") + 1)
-            }
-          resultType: json
       - type: toStream
     to: energy_consumption
