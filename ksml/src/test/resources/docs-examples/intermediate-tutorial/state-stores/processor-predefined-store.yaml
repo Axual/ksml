@@ -16,11 +16,9 @@ streams:
 
 stores:
   owner_count_store:
-    name: owner_count_store
     type: keyValue
     keyType: string
     valueType: long
-    retention: 5m
     caching: false
     persistent: true
     logging: true

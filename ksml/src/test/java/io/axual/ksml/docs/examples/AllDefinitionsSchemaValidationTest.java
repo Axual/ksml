@@ -62,11 +62,13 @@ public class AllDefinitionsSchemaValidationTest {
      */
     static Stream<Path> provideYamlFiles() throws URISyntaxException, IOException {
         // Get the directory containing the YAML files
-        var testResourcesUri = AllDefinitionsSchemaValidationTest.class
-            .getResource("/").toURI();
-        Path branchingDir = Paths.get(testResourcesUri);
+        var testResourcesUrl = AllDefinitionsSchemaValidationTest.class.getResource("/");
+        if (testResourcesUrl == null) {
+            throw new IllegalStateException("Test resources directory not found");
+        }
+        Path branchingDir = Paths.get(testResourcesUrl.toURI());
 
-        // Find all .yaml files
+        // Find all .yaml files - Stream will be closed by JUnit after all tests complete
         return Files.walk(branchingDir)
             .filter(Files::isRegularFile)
             .filter(path -> path.toString().endsWith(".yaml"))
@@ -77,7 +79,7 @@ public class AllDefinitionsSchemaValidationTest {
      * Generates the KSML JSON schema dynamically using TopologyDefinitionParser
      */
     @BeforeAll
-    static void generateSchema() throws Exception {
+    static void generateSchema() {
         // Generate the schema dynamically using the same approach as KSML runner
         final var parser = new TopologyDefinitionParser("dummy");
         final var schemaJson = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
@@ -97,7 +99,7 @@ public class AllDefinitionsSchemaValidationTest {
     /**
      * Returns the generated KSML JSON schema
      */
-    private static Schema getKsmlSchema() throws Exception {
+    private static Schema getKsmlSchema() {
         assertNotNull(ksmlSchema, "Schema was not generated. Run generateSchema() first.");
         return ksmlSchema;
     }

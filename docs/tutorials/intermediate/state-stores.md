@@ -54,7 +54,7 @@ Define stores in the global `stores` section and reference them by name:
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/processor-predefined-store.yaml"
     %}
     ```
 

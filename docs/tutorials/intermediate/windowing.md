@@ -144,7 +144,7 @@ This example demonstrates tumbling windows by counting user clicks in 5-minute n
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/windowing/producer-user-clicks.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-user-clicks.yaml"
     %}
     ```
 
@@ -152,7 +152,7 @@ This example demonstrates tumbling windows by counting user clicks in 5-minute n
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml"
     %}
     ```
 
@@ -210,7 +210,7 @@ This example calculates moving averages using overlapping 2-minute windows that 
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/windowing/producer-sensor-data.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-sensor-data.yaml"
     %}
     ```
 
@@ -218,7 +218,7 @@ This example calculates moving averages using overlapping 2-minute windows that 
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/windowing/processor-hopping-average-working.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-hopping-average-working.yaml"
     %}
     ```
 
@@ -278,7 +278,7 @@ This example uses session windows to analyze user browsing patterns by grouping 
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/windowing/producer-user-clicks.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-user-clicks.yaml"
     %}
     ```
 

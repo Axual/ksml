@@ -366,7 +366,7 @@ Converts the key to a different data format.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml:31:32"
+--8<-- "docs-examples/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml:31:32"
 ```
 
 **Full example for `convertKey`**:
@@ -749,7 +749,7 @@ Groups records into time windows.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml:19:22"
+--8<-- "docs-examples/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml:19:22"
 ```
 
 **Full example for `windowByTime`**:

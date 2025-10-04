@@ -32,11 +32,11 @@ KSML supports three types of state stores, each optimized for specific use cases
 Define once in the `stores` section, reuse across operations:
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
+--8<-- "docs-examples/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
 ```
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
+--8<-- "docs-examples/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
 ```
 
 **Full example:**
@@ -149,7 +149,7 @@ functions:
 
     ```yaml
     {%
-      include "../definitions/intermediate-tutorial/state-stores/producer-user-events.yaml"
+      include "../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-user-events.yaml"
     %}
     ```
 

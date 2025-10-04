@@ -3,13 +3,11 @@ streams:
     topic: user_clicks
     keyType: string
     valueType: json
-    
+
   click_counts:
     topic: user_click_counts_5min
     keyType: json:windowed(string)
     valueType: long
-
-functions:
 
 pipelines:
   count_clicks_5min:
