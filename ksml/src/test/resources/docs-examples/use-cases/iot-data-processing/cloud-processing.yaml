@@ -86,8 +86,6 @@ pipelines:
         store:
           name: room_temp_window_store
           type: window
-          keyType: string
-          valueType: json
           windowSize: 20s
           retention: 2m
         initializer: init_room_stats
