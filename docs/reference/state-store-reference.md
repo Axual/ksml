@@ -48,7 +48,7 @@ Define once in the `stores` section, reuse across operations:
 Define directly within operations for custom configurations:
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml:58:67"
+--8<-- "docs-examples/intermediate-tutorial/state-stores/processor-inline-store.yaml:58:67"
 ```
 
 **Full example:**

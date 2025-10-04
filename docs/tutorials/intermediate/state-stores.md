@@ -46,7 +46,7 @@ Define stores in the global `stores` section and reference them by name:
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
     %}
     ```
 
@@ -88,7 +88,7 @@ Define stores directly within operations for single-use scenarios:
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
     %}
     ```
 
@@ -96,7 +96,7 @@ Define stores directly within operations for single-use scenarios:
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/processor-inline-store.yaml"
     %}
     ```
 

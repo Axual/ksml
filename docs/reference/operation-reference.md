@@ -414,7 +414,7 @@ The `keySelector` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml:48:57"
+--8<-- "docs-examples/intermediate-tutorial/state-stores/processor-inline-store.yaml:48:57"
 ```
 
 **Full example for `groupBy`**:
@@ -462,7 +462,7 @@ Redistributes records across partitions, optionally using custom partitioning lo
 > ```
 
 ```yaml
---8<-- "../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-processor.yaml:73:76"
+--8<-- "docs-examples/reference/operations/repartition-example-processor.yaml:73:76"
 ```
 
 ??? info "Producer - `repartition` example (click to expand)"
@@ -771,7 +771,7 @@ to the same session.
 #### Example
 
 ```yaml
---8<-- "../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-session-activity.yaml:19:21"
+--8<-- "docs-examples/intermediate-tutorial/windowing/processor-session-activity.yaml:19:21"
 ```
 
 **Full example for `windowBySession`**:

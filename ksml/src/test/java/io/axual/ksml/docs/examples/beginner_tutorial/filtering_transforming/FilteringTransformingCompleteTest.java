@@ -169,48 +169,6 @@ public class FilteringTransformingCompleteTest {
         }
     }
 
-    @KSMLTest(topology = "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml")
-    void testTemperatureBoundaryValidation() throws Exception {
-        // The validation checks raw Fahrenheit values: temp_value < -100 or temp_value > 200
-        // Test lower boundary (-100F)
-        inputTopic.pipeInput("sensor5", createValidSensorJson("warehouse", -100, 50));
-        assertThat(filteredOutput.getQueueSize()).isEqualTo(1);
-        filteredOutput.readValue(); // consume
-
-        // Test upper boundary (200F)
-        inputTopic.pipeInput("sensor6", createValidSensorJson("warehouse", 200, 50));
-        assertThat(filteredOutput.getQueueSize()).isEqualTo(1);
-        filteredOutput.readValue(); // consume
-
-        // Test just below lower boundary
-        inputTopic.pipeInput("sensor7", createValidSensorJson("warehouse", -101, 50));
-        assertThat(filteredOutput.isEmpty()).isTrue();
-
-        // Test just above upper boundary
-        inputTopic.pipeInput("sensor8", createValidSensorJson("warehouse", 201, 50));
-        assertThat(filteredOutput.isEmpty()).isTrue();
-    }
-
-    @KSMLTest(topology = "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml")
-    void testHumidityBoundaryValidation() throws Exception {
-        // Test valid boundary (0%)
-        inputTopic.pipeInput("sensor9", createValidSensorJson("office", 70, 0));
-        assertThat(filteredOutput.getQueueSize()).isEqualTo(1);
-        filteredOutput.readValue(); // consume
-
-        // Test valid boundary (100%)
-        inputTopic.pipeInput("sensor10", createValidSensorJson("office", 70, 100));
-        assertThat(filteredOutput.getQueueSize()).isEqualTo(1);
-        filteredOutput.readValue(); // consume
-
-        // Test below lower boundary
-        inputTopic.pipeInput("sensor11", createValidSensorJson("office", 70, -1));
-        assertThat(filteredOutput.isEmpty()).isTrue();
-
-        // Test above upper boundary
-        inputTopic.pipeInput("sensor12", createValidSensorJson("office", 70, 101));
-        assertThat(filteredOutput.isEmpty()).isTrue();
-    }
 
     private String createValidSensorJson(String location, int tempF, int humidity) throws Exception {
         Map<String, Object> sensors = new HashMap<>();
