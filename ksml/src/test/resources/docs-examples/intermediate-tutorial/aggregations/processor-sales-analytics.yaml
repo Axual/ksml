@@ -6,7 +6,7 @@ streams:
     
   sales_by_region:
     topic: sales_by_region
-    keyType: string  # Region
+    keyType: json:windowed(string)  # Windowed Region
     valueType: json  # Aggregated sales statistics
 
 functions:
@@ -85,15 +85,13 @@ pipelines:
         grace: 10s
       # Aggregate sales data
       - type: aggregate
-        initializer: initialize_sales_stats
-        aggregator: aggregate_sales
         store:
           name: sales_by_region_store
           type: window
-          keyType: string
-          valueType: json
           windowSize: 1m
           retention: 10m
+        initializer: initialize_sales_stats
+        aggregator: aggregate_sales
       - type: toStream
       - type: convertKey
         into: json:windowed(string)
