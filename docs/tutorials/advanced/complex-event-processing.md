@@ -54,7 +54,7 @@ Pattern detection identifies specific sequences of events within a stream. This 
 
     ```yaml
     {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/producer-pattern-detection.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/producer-pattern-detection.yaml"
     %}
     ```
 
@@ -62,7 +62,7 @@ Pattern detection identifies specific sequences of events within a stream. This 
 
     ```yaml
     {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/processor-pattern-detection.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/processor-pattern-detection.yaml"
     %}
     ```
 
