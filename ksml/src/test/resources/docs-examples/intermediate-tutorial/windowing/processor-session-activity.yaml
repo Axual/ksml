@@ -9,8 +9,6 @@ streams:
     keyType: json:windowed(string)  
     valueType: long
 
-functions:
-
 pipelines:
   user_session_analysis:
     from: user_clicks
