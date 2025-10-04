@@ -16,8 +16,6 @@ tables:
     store:
       name: user_profiles_store
       type: keyValue
-      keyType: string
-      valueType: json
       persistent: true
       caching: true
       logging: false
@@ -25,6 +23,7 @@ tables:
 functions:
   enrich_with_user_profile:
     type: valueTransformer
+    resultType: json
     stores:
       - user_profiles
     code: |
@@ -66,7 +65,6 @@ producers:
       keyType: string
       valueType: json
     generator:
-      type: generator
       resultType: (string, json)
       code: |
         import random
