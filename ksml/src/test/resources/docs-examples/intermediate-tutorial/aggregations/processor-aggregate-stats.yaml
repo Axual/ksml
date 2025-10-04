@@ -60,15 +60,12 @@ pipelines:
     via:
       - type: groupByKey
       - type: aggregate
-        initializer: init_stats
-        aggregator: update_stats
         store:
           name: payment_stats_store
           type: keyValue
-          keyType: string
-          valueType: json
-          retention: 1h
           caching: false
+        initializer: init_stats
+        aggregator: update_stats
       - type: toStream
       - type: peek
         forEach:
