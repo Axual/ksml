@@ -61,17 +61,13 @@ functions:
 ??? info "Producer - Enum example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/enum-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/enum-producer.yaml" %}
     ```
 
 ??? info "Processor - Enum example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/enum-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/enum-processor.yaml" %}
     ```
 
 #### List
@@ -119,7 +115,7 @@ functions:
 #### Example
 
 ```yaml
---8<-- "definitions/reference/data-types/list-tuple-simple-processor.yaml:13:23"
+--8<-- "docs-examples/reference/data-types/list-tuple-simple-processor.yaml:13:23"
 ```
 
 This example demonstrates using `list(int)` syntax in function result types to avoid YAML validation warnings:
@@ -127,17 +123,13 @@ This example demonstrates using `list(int)` syntax in function result types to a
 ??? info "Producer - `list()` syntax example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/list-tuple-simple-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/list-tuple-simple-producer.yaml" %}
     ```
 
 ??? info "Processor - `list()` syntax example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/list-tuple-simple-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/list-tuple-simple-processor.yaml" %}
     ```
 
 **What this example does:**
@@ -204,7 +196,7 @@ functions:
 #### Example
 
 ```yaml
---8<-- "definitions/reference/data-types/map-producer.yaml:37:46"
+--8<-- "docs-examples/reference/data-types/map-producer.yaml:37:46"
 ```
 
 This simple example demonstrates using `map(string)` and `map(int)` types in stream definitions and function result types:
@@ -212,17 +204,13 @@ This simple example demonstrates using `map(string)` and `map(int)` types in str
 ??? info "Producer - `map` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/map-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/map-producer.yaml" %}
     ```
 
 ??? info "Processor - `map` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/map-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/map-processor.yaml" %}
     ```
 
 **What this example does:**
@@ -267,17 +255,13 @@ functions:
 ??? info "Producer - Struct example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/struct-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/struct-producer.yaml" %}
     ```
 
 ??? info "Processor - Struct example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/struct-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/struct-processor.yaml" %}
     ```
 
 #### Tuple
@@ -328,7 +312,7 @@ functions:
 #### Example
 
 ```yaml
---8<-- "definitions/reference/data-types/list-tuple-simple-producer.yaml:2:15"
+--8<-- "docs-examples/reference/data-types/list-tuple-simple-producer.yaml:2:15"
 ```
 
 This example demonstrates using `tuple(string, json)` syntax in function result types to avoid YAML validation warnings:
@@ -336,17 +320,13 @@ This example demonstrates using `tuple(string, json)` syntax in function result 
 ??? info "Producer - `tuple()` syntax example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/list-tuple-simple-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/list-tuple-simple-producer.yaml" %}
     ```
 
 ??? info "Processor - `tuple()` syntax example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/list-tuple-simple-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/list-tuple-simple-processor.yaml" %}
     ```
 
 **What this example does:**
@@ -401,17 +381,13 @@ functions:
 ??? info "Producer - Union example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/union-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/union-producer.yaml" %}
     ```
 
 ??? info "Processor - Union example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/union-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/union-processor.yaml" %}
     ```
 
 #### Windowed
@@ -443,7 +419,7 @@ After windowing operations (like `windowByTime`), Kafka Streams internally creat
 When using plain `windowed(string)`, the windowed keys cannot be directly serialized to Kafka topics. You must manually transform them to a regular type:
 
 ```yaml
---8<-- "definitions/reference/data-types/windowed-processor.yaml:51:52"
+--8<-- "docs-examples/reference/data-types/windowed-processor.yaml:51:52"
 ```
 
 **2. With Notation Prefix (Automatic Serialization):**
@@ -451,7 +427,7 @@ When using plain `windowed(string)`, the windowed keys cannot be directly serial
 Using a notation prefix like `json:windowed(string)` or `avro:windowed(string)` enables automatic serialization of the windowed key structure:
 
 ```yaml
---8<-- "definitions/reference/data-types/windowed-processor-notation.yaml:59:60"
+--8<-- "docs-examples/reference/data-types/windowed-processor-notation.yaml:59:60"
 ```
 
 The notation automatically serializes the windowed key as a structured object with fields: `start`, `end`, `startTime`, `endTime`, and `key`.
@@ -461,9 +437,7 @@ The notation automatically serializes the windowed key as a structured object wi
 ??? info "Producer - Generates events for windowing (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/windowed-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/windowed-producer.yaml" %}
     ```
 
 ??? info "Processor - Manual transformation approach (click to expand)"
@@ -471,9 +445,7 @@ The notation automatically serializes the windowed key as a structured object wi
     This example shows how to manually transform windowed keys to regular strings when not using notation:
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/windowed-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/windowed-processor.yaml" %}
     ```
 
 ??? info "Processor - Automatic serialization with notation (click to expand)"
@@ -481,9 +453,7 @@ The notation automatically serializes the windowed key as a structured object wi
     This example shows the simpler approach using notation for automatic serialization:
 
     ```yaml
-    {%
-      include "../definitions/reference/data-types/windowed-processor-notation.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/data-types/windowed-processor-notation.yaml" %}
     ```
 
 **When to Use Each Approach:**
@@ -551,7 +521,7 @@ functions:
     This example demonstrates using the `?` type for function parameters, showing how to create generic utility functions.
 
     ```yaml
-    --8<-- "definitions/reference/data-types/any-producer.yaml"
+    --8<-- "docs-examples/reference/data-types/any-producer.yaml"
     ```
 
 ??? info "Processor - Any type processing (click to expand)"
@@ -559,7 +529,7 @@ functions:
     This example shows how to process data using the `any` type for function parameters, demonstrating type-agnostic helper functions.
 
     ```yaml
-    --8<-- "definitions/reference/data-types/any-processor.yaml"
+    --8<-- "docs-examples/reference/data-types/any-processor.yaml"
     ```
 
 ## Notation Formats
@@ -849,12 +819,12 @@ functions:
 
     Producer:
     ```yaml
-    --8<-- "definitions/reference/data-types/auto-conversion-producer.yaml"
+    --8<-- "docs-examples/reference/data-types/auto-conversion-producer.yaml"
     ```
 
     Processor:
     ```yaml
-    --8<-- "definitions/reference/data-types/auto-conversion-processor.yaml"
+    --8<-- "docs-examples/reference/data-types/auto-conversion-processor.yaml"
     ```
 
 ### Stream Format Conversion (Explicit)
@@ -877,12 +847,12 @@ Without `convertValue`, KSML will fail with a type mismatch error.
 
     Producer:
     ```yaml
-    --8<-- "definitions/reference/data-types/explicit-conversion-producer.yaml"
+    --8<-- "docs-examples/reference/data-types/explicit-conversion-producer.yaml"
     ```
 
     Processor:
     ```yaml
-    --8<-- "definitions/reference/data-types/explicit-conversion-processor.yaml"
+    --8<-- "docs-examples/reference/data-types/explicit-conversion-processor.yaml"
     ```
 
 ### Chaining Multiple Conversions
@@ -905,12 +875,12 @@ pipelines:
 
     Producer:
     ```yaml
-    --8<-- "definitions/reference/data-types/multi-conversion-producer.yaml"
+    --8<-- "docs-examples/reference/data-types/multi-conversion-producer.yaml"
     ```
 
     Processor:
     ```yaml
-    --8<-- "definitions/reference/data-types/multi-conversion-processor.yaml"
+    --8<-- "docs-examples/reference/data-types/multi-conversion-processor.yaml"
     ```
 
 **Key Takeaway:** Functions convert automatically, streams need explicit conversion.
@@ -924,9 +894,7 @@ This producer generates both JSON config data and Avro sensor data:
 ??? info "Producer definition (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/beginner-tutorial/different-data-formats/producer-multiple-formats.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/producer-multiple-formats.yaml" %}
     ```
 
 This processor shows two pipelines handling different formats (Avro and JSON) and combining results:
@@ -934,9 +902,7 @@ This processor shows two pipelines handling different formats (Avro and JSON) an
 ??? info "Processor definition for working with multiple formats in a single pipeline (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/beginner-tutorial/different-data-formats/processor-multiple-formats.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/processor-multiple-formats.yaml" %}
     ```
 
 ## Type Definition Quoting Rules

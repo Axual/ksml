@@ -63,7 +63,7 @@ First, let's create a new file `tutorial.yaml` and start by defining the input a
 ??? info "Input and output streams for our pipeline (click to expand)"
 
     ```yaml
-    --8<-- "definitions/basics-tutorial/tutorial.yaml:0:9"
+    --8<-- "docs-examples/basics-tutorial/tutorial.yaml:0:9"
     ```
 
 This defines:
@@ -94,7 +94,7 @@ Next, let's add functions to filter, transform and log messages as they flow thr
 ??? info "Functions to filter, transform and log messages to filter (click to expand)"
 
     ```yaml
-    --8<-- "definitions/basics-tutorial/tutorial.yaml:11:29"
+    --8<-- "docs-examples/basics-tutorial/tutorial.yaml:11:29"
     ```
 
 We defined three uniquely named functions:
@@ -139,7 +139,7 @@ Now, let's add the pipeline that processes our data:
 ??? info "Adding Pipelines (click to expand)"
 
     ```yaml
-    --8<-- "definitions/basics-tutorial/tutorial.yaml:31:44"
+    --8<-- "docs-examples/basics-tutorial/tutorial.yaml:31:44"
     ```
 
 This pipeline:
@@ -159,7 +159,7 @@ Let's break down each operation:
 ??? info "Adding Filters (click to expand)"
 
     ```yaml
-    --8<-- "definitions/basics-tutorial/tutorial.yaml:35:36"
+    --8<-- "docs-examples/basics-tutorial/tutorial.yaml:35:36"
     ```
 
 The filter operation:
@@ -173,7 +173,7 @@ The filter operation:
 ??? info "Adding Transforming Value Operation (click to expand)"
 
     ```yaml
-    --8<-- "definitions/basics-tutorial/tutorial.yaml:37:38"
+    --8<-- "docs-examples/basics-tutorial/tutorial.yaml:37:38"
     ```
 
 The transformValue operation:
@@ -194,7 +194,7 @@ purposes.
 ??? info "Adding Peek Operation (click to expand)"
 
     ```yaml
-    --8<-- "definitions/basics-tutorial/tutorial.yaml:39:43"
+    --8<-- "docs-examples/basics-tutorial/tutorial.yaml:39:43"
     ```
 
 The peek operation:
@@ -213,7 +213,7 @@ the following content:
 ??? info "Full KSML processing definition (click to expand)"
 
     ```yaml
-    {% include "../definitions/basics-tutorial/tutorial.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/basics-tutorial/tutorial.yaml" %}
     ```
 
 Save the file.
@@ -315,7 +315,7 @@ Create a new file called `producer.yaml` in your `examples/` directory:
 ??? info "Producer Definition - producer.yaml (click to expand)"
 
     ```yaml
-    {% include "../definitions/basics-tutorial/producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/basics-tutorial/producer.yaml" %}
     ```
 
 Now update your `ksml-runner.yaml` to include the producer definition:

@@ -97,7 +97,7 @@ Now, let's create our KSML definition file:
 ??? info "IoT data processor (click to expand)"
 
     ```yaml
-    {% include "../definitions/use-cases/iot-data-processing/iot-data-processing.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/iot-data-processing/iot-data-processing.yaml" %}
     ```
 
 ## Processing Geospatial Data
@@ -107,7 +107,7 @@ IoT applications often involve geospatial data processing. Here's how to handle 
 ??? info "Geospatial data processor (click to expand)"
 
     ```yaml
-    {% include "../definitions/use-cases/iot-data-processing/processing-geospatial-data.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/iot-data-processing/processing-geospatial-data.yaml" %}
     ```
 
 ## Implementing Device State Tracking
@@ -117,7 +117,7 @@ For many IoT applications, tracking device state over time is crucial. Here's ho
 ??? info "Device state tracking processor (click to expand)"
 
     ```yaml
-    {% include "../definitions/use-cases/iot-data-processing/device-state-tracking.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/iot-data-processing/device-state-tracking.yaml" %}
     ```
 
 ## Edge-to-Cloud Processing
@@ -131,7 +131,7 @@ At the edge, you might want to filter, aggregate, and compress data before sendi
 ??? info "Edge processing pipeline (click to expand)"
 
     ```yaml
-    {% include "../definitions/use-cases/iot-data-processing/edge-processing.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/iot-data-processing/edge-processing.yaml" %}
     ```
 
 ### Cloud Processing
@@ -141,7 +141,7 @@ In the cloud, you can perform more complex analytics and aggregations:
 ??? info "Cloud processing pipeline (click to expand)"
 
     ```yaml
-    {% include "../definitions/use-cases/iot-data-processing/cloud-processing.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/iot-data-processing/cloud-processing.yaml" %}
     ```
 
 ## Testing and Validation
@@ -160,7 +160,7 @@ are generated so that the alerts will be visible.
 ??? info "IoT sample data generator (click to expand)"
 
     ```yaml
-    {% include "../definitions/use-cases/iot-data-processing/sample-data-generator.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/iot-data-processing/sample-data-generator.yaml" %}
     ```
 
 ## Production Considerations

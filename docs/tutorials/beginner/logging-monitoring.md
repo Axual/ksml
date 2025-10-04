@@ -29,9 +29,7 @@ This producer generates log messages with various importance levels and componen
 ??? info "Producer definition for logging messages (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/logging-and-monitoring/logging-producer.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/logging-and-monitoring/logging-producer.yaml" %}
     ```
 
 ### KSML Features Demonstrated:
@@ -45,9 +43,7 @@ This processor demonstrates logging at different levels using the `log` object:
 ??? info "Processor definition with multi-level logging (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/logging-and-monitoring/logging-processor.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/logging-and-monitoring/logging-processor.yaml" %}
     ```
 
 ## Monitoring with Peek Operations
@@ -65,9 +61,7 @@ This processor shows message counting and error detection using peek operations:
 ??? info "Processor definition for monitoring operations (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/logging-and-monitoring/monitoring-simple-processor.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/logging-and-monitoring/monitoring-simple-processor.yaml" %}
     ```
 
 ## Error Handling with Logging
@@ -86,9 +80,7 @@ This processor demonstrates basic error handling with logging:
 ??? info "Processor definition with error handling (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/logging-and-monitoring/error-handling-processor.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/logging-and-monitoring/error-handling-processor.yaml" %}
     ```
 
 ## Configuring Log Levels

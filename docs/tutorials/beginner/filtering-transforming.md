@@ -46,9 +46,7 @@ To let KSML produce random test data with the correct format, let's create a fil
 
 ??? info "Test Data Producer Configuration (click to expand)"
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml" %}
     ```
 
 This will generate simulated sensor data for temperature and humidity, in different locations. The JSON input test data, that we will start from with our filtering and transformations, looks like this:
@@ -70,9 +68,7 @@ Let's start by creating a file `processor.yaml` that filters on multiple conditi
 
 ??? info "Multiple Filter Conditions Example (click to expand)"
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/processor-complex-filtering-multiple-filters.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-complex-filtering-multiple-filters.yaml" %}
     ```
 
 This filter only passes messages where:
@@ -106,9 +102,7 @@ By following the same as in previous section, let's try to create a custom filte
 ??? info "Custom Filter Function Example (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml" %}
     ```
 
 This function implements complex business logic to determine if a sensor reading indicates a critical situation that requires an alert.
@@ -120,9 +114,7 @@ Sometimes your filter conditions might encounter malformed data. Here's how to h
 ??? info "Error Handling in Filters Example (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-error-handling.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-error-handling.yaml" %}
     ```
 
 This approach ensures that malformed messages are logged and filtered out rather than causing the pipeline to fail.
@@ -138,9 +130,7 @@ For these examples, let's use a different KSML producer definition:
 ??? info "Enhanced Producer Configuration (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/producer-filtering-transforming-advanced.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/producer-filtering-transforming-advanced.yaml" %}
     ```
 
 This produces messages like these:
@@ -177,9 +167,7 @@ Let's look at how to transform data with nested structures:
 ??? info "Nested Data Transformation Example (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-nested.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-nested.yaml" %}
     ```
 
 INPUT message:
@@ -252,9 +240,7 @@ You can chain multiple transformations to break down complex logic into manageab
 ??? info "Multiple Transformations Pipeline Example (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml" %}
     ```
 
 INPUT message:
@@ -340,9 +326,7 @@ When processing streaming data, it's crucial to handle errors gracefully without
 ??? info "Error Handling in Transformations Example (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-error-handling2.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-error-handling2.yaml" %}
     ```
 
 #### Example Data Flow
@@ -466,9 +450,7 @@ Let's put everything together in a complete example:
 ??? info "Complete Filtering and Transformation Pipeline (click to expand)"
 
     ```yaml
-    {%
-      include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml" %}
     ```
 
 #### Example Data Flow

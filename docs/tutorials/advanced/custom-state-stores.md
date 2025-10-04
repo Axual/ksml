@@ -52,17 +52,13 @@ Building on the basic key-value concepts from the [State Stores Tutorial](../int
 ??? info "User Activity Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/producer-user-sessions.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/producer-user-sessions.yaml" %}
     ```
 
 ??? info "Basic Key-Value Store Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/processor-basic-keyvalue.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/processor-basic-keyvalue.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -86,17 +82,13 @@ Window stores organize data by time windows, enabling time-based aggregations an
 ??? info "Metrics Data Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/producer-metrics-data.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/producer-metrics-data.yaml" %}
     ```
 
 ??? info "Window Store Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/processor-window-store.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/processor-window-store.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -120,17 +112,13 @@ Session stores organize data by session windows, automatically handling session 
 ??? info "User Clicks Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/producer-user-clicks.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/producer-user-clicks.yaml" %}
     ```
 
 ??? info "Session Store Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/processor-session-store.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/processor-session-store.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -154,17 +142,13 @@ For high-volume scenarios, proper store configuration is crucial for performance
 ??? info "High Volume Events Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/producer-high-volume.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/producer-high-volume.yaml" %}
     ```
 
 ??? info "Optimized Store Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/processor-optimized-store.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/processor-optimized-store.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -188,17 +172,13 @@ Complex applications often require multiple state stores working together to man
 ??? info "Order Events Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/producer-order-events.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/producer-order-events.yaml" %}
     ```
 
 ??? info "Multi-Store Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/custom-state-stores/processor-multi-store.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/custom-state-stores/processor-multi-store.yaml" %}
     ```
 
 **Key concepts demonstrated**:

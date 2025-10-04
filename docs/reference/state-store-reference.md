@@ -148,17 +148,13 @@ functions:
 ??? info "State Store with Manual State Access (click to expand)"
 
     ```yaml
-    {%
-      include "../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-user-events.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-user-events.yaml" %}
     ```
 
 ??? info "State Store with Manual State Access (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/intermediate-tutorial/state-stores/processor-manual-store.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/processor-manual-store.yaml" %}
     ```
 
 This example demonstrates:

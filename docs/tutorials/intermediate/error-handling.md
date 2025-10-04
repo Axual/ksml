@@ -50,17 +50,13 @@ Proactively validate data and filter out problematic messages before they cause 
 ??? info "Order Events Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/producer-order-validation.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/producer-order-validation.yaml" %}
     ```
 
 ??? info "Validation and Filtering Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/processor-validation-filtering.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/processor-validation-filtering.yaml" %}
     ```
 
 **What it does:**
@@ -78,17 +74,13 @@ Use try-catch blocks in Python functions to handle exceptions gracefully and pro
 ??? info "Sensor Data Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/producer-sensor-data.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/producer-sensor-data.yaml" %}
     ```
 
 ??? info "Try-Catch Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/processor-try-catch.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/processor-try-catch.yaml" %}
     ```
 
 **What it does:**
@@ -106,17 +98,13 @@ Route messages that cannot be processed to dedicated error topics for later anal
 ??? info "Payment Requests Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/producer-payment-requests.yaml"  
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/producer-payment-requests.yaml" %}
     ```
 
 ??? info "Dead Letter Queue Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/processor-dead-letter-queue.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/processor-dead-letter-queue.yaml" %}
     ```
 
 **What it does:**
@@ -134,17 +122,13 @@ Implement sophisticated retry logic for transient failures with exponential back
 ??? info "API Operations Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/producer-api-operations.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/producer-api-operations.yaml" %}
     ```
 
 ??? info "Retry Strategies Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/processor-retry-strategies.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/processor-retry-strategies.yaml" %}
     ```
 
 **What it does:**
@@ -162,17 +146,13 @@ Prevent cascading failures by temporarily stopping calls to failing services, al
 ??? info "Service Requests Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/producer-service-requests.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/producer-service-requests.yaml" %}
     ```
 
 ??? info "Circuit Breaker Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/error-handling/processor-circuit-breaker.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/error-handling/processor-circuit-breaker.yaml" %}
     ```
 
 **What it does:**

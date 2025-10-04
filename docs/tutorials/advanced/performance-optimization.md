@@ -63,17 +63,13 @@ This example demonstrates optimized Python code and efficient data handling tech
 ??? info "High-volume producer (compact format) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/producer-high-volume.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/producer-high-volume.yaml" %}
     ```
 
 ??? info "Efficient processor (optimized Python) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/processor-efficient-processing.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/processor-efficient-processing.yaml" %}
     ```
 
 **Key optimization techniques:**
@@ -97,17 +93,13 @@ This example shows how to configure and use state stores efficiently for high-pe
 ??? info "User metrics producer (activity data) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/producer-user-metrics.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/producer-user-metrics.yaml" %}
     ```
 
 ??? info "Optimized state processor (compact storage) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/processor-optimized-state.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/processor-optimized-state.yaml" %}
     ```
 
 **State store optimizations:**
@@ -133,17 +125,13 @@ This example demonstrates optimized pipeline design with early filtering and sta
 ??? info "Mixed events producer (quality testing) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/producer-mixed-events.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/producer-mixed-events.yaml" %}
     ```
 
 ??? info "Pipeline optimization processor (staged processing) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/processor-pipeline-optimization.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/processor-pipeline-optimization.yaml" %}
     ```
 
 **Pipeline design principles:**
@@ -166,17 +154,13 @@ This example shows efficient data format usage and minimal serialization overhea
 ??? info "Binary data producer (compact format) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/producer-binary-data.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/producer-binary-data.yaml" %}
     ```
 
 ??? info "Serialization optimization processor (efficient parsing) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/performance-optimization/processor-serialization-optimization.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/performance-optimization/processor-serialization-optimization.yaml" %}
     ```
 
 **Serialization best practices:**

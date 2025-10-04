@@ -92,7 +92,7 @@ The `mapper` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:67:68"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:67:68"
 ```
 
 **Full example for `map`**:
@@ -141,7 +141,7 @@ The `mapper` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/keytransformer-processor.yaml:29:30"
+--8<-- "docs-examples/reference/functions/keytransformer-processor.yaml:29:30"
 ```
 
 **Full example for `mapKey`**:
@@ -166,7 +166,7 @@ The `mapper` must specify:
 #### Example
 
 ```yaml
---8<-- "definitions/reference/operations/flatmap-processor.yaml:11:21"
+--8<-- "docs-examples/reference/operations/flatmap-processor.yaml:11:21"
 ```
 
 This example splits order batches containing multiple items into individual item records:
@@ -174,17 +174,13 @@ This example splits order batches containing multiple items into individual item
 ??? info "Producer - `flatMap` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/flatmap-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/flatmap-producer.yaml" %}
     ```
 
 ??? info "Processor - `flatMap` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/flatmap-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/flatmap-processor.yaml" %}
     ```
 
 **What this example does:** 
@@ -211,7 +207,7 @@ The `mapper` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/reference/operations/selectkey-processor.yaml:16:18"
+--8<-- "docs-examples/reference/operations/selectkey-processor.yaml:16:18"
 ```
 
 This example demonstrates changing the key from session_id to user_id for better data organization:
@@ -219,17 +215,13 @@ This example demonstrates changing the key from session_id to user_id for better
 ??? info "Producer - `selectKey` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/selectkey-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/selectkey-producer.yaml" %}
     ```
 
 ??? info "Processor - `selectKey` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/selectkey-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/selectkey-processor.yaml" %}
     ```
 
 **What this example does:**
@@ -271,7 +263,7 @@ Transforms the value using a custom transformer function.
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:71:72"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:71:72"
 ```
 
 **Full example for `transformValue`**:
@@ -300,7 +292,7 @@ The `if` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml:31:32"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml:31:32"
 ```
 
 **Full example for `filter`**:
@@ -322,7 +314,7 @@ The `if` parameter must reference a predicate function that returns a boolean.
 #### Example
 
 ```yaml
---8<-- "definitions/reference/operations/filternot-processor.yaml:25:26"
+--8<-- "docs-examples/reference/operations/filternot-processor.yaml:25:26"
 ```
 
 This example filters out products with "inactive" status, keeping all other products:
@@ -330,17 +322,13 @@ This example filters out products with "inactive" status, keeping all other prod
 ??? info "Producer - `filterNot` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/filternot-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/filternot-producer.yaml" %}
     ```
 
 ??? info "Processor - `filterNot` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/filternot-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/filternot-processor.yaml" %}
     ```
 
 **What this example does:**
@@ -386,7 +374,7 @@ Converts the value to a different data format.
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/different-data-formats/processor-converting.yaml:28:29"
+--8<-- "docs-examples/beginner-tutorial/different-data-formats/processor-converting.yaml:28:29"
 ```
 
 **Full example for `convertValue`**:
@@ -432,7 +420,7 @@ None. This operation is typically followed by an aggregation operation.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-simple.yaml:22:22"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-simple.yaml:22:22"
 ```
 
 **Full example for `groupByKey`**:
@@ -468,17 +456,13 @@ Redistributes records across partitions, optionally using custom partitioning lo
 ??? info "Producer - `repartition` example (click to expand)"
 
     ```yaml
-    {%
-      include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-producer.yaml" %}
     ```
 
 ??? info "Processor - `repartition` example (click to expand)"
 
     ```yaml
-    {%
-      include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-processor.yaml" %}
     ```
 
 The repartition operation demonstrates data redistribution by changing keys from regions to user IDs, then using custom partitioning logic to distribute activities based on user patterns. This ensures related user activities are processed together while optimizing partition utilization.
@@ -537,7 +521,7 @@ Both `initializer` and `aggregator` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-sales-analytics.yaml:91:97"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-sales-analytics.yaml:91:97"
 ```
 
 **Full example for `aggregate`**:
@@ -611,7 +595,7 @@ Performs an inner join between two streams.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-stream-stream-join-working.yaml:48:64"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-stream-stream-join-working.yaml:48:64"
 ```
 
 **Full example for `join`**:
@@ -658,19 +642,19 @@ Merges multiple streams with identical key and value types into a single unified
 #### Example
 
 ```yaml
---8<-- "definitions/reference/operations/merge-example-processor.yaml:36:37"
+--8<-- "docs-examples/reference/operations/merge-example-processor.yaml:36:37"
 ```
 
 ??? info "Producer - `merge` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/operations/merge-example-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/merge-example-producer.yaml" %}
     ```
 
 ??? info "Processor - `merge` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/operations/merge-example-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/merge-example-processor.yaml" %}
     ```
 
 **What This Example Does:**
@@ -722,7 +706,7 @@ Performs an outer join between two streams.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-stream-stream-outer-join.yaml:74:90"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-stream-stream-outer-join.yaml:74:90"
 ```
 
 **Full example for `outerJoin`**:
@@ -798,13 +782,13 @@ Sends records to a specific Kafka topic.
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:77:77"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:77:77"
 ```
 
 #### Example with Custom Partitioner
 
 ```yaml
---8<-- "definitions/reference/functions/streampartitioner-example-processor.yaml:85:89"
+--8<-- "docs-examples/reference/functions/streampartitioner-example-processor.yaml:85:89"
 ```
 
 **Full example for `to`**:
@@ -829,7 +813,7 @@ Sends records to topics determined dynamically based on the record content. This
 #### Example
 
 ```yaml
---8<-- "definitions/reference/operations/topicnameextractor-processor.yaml:42:43"
+--8<-- "docs-examples/reference/operations/topicnameextractor-processor.yaml:42:43"
 ```
 
 This example demonstrates routing system events to different topics based on severity level:
@@ -837,17 +821,13 @@ This example demonstrates routing system events to different topics based on sev
 ??? info "Producer - `toTopicNameExtractor` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/topicnameextractor-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/topicnameextractor-producer.yaml" %}
     ```
 
 ??? info "Processor - `toTopicNameExtractor` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/topicnameextractor-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/topicnameextractor-processor.yaml" %}
     ```
 
 **What this example does:**
@@ -873,7 +853,7 @@ The `forEach` can be defined using:
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/processor-complex-filtering-multiple-filters.yaml:27:29"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/processor-complex-filtering-multiple-filters.yaml:27:29"
 ```
 
 **Full example for `forEach`**:
@@ -894,7 +874,7 @@ Prints each record to stdout for debugging purposes. This operation can use a cu
 #### Example
 
 ```yaml
---8<-- "definitions/reference/operations/print-processor.yaml:20:22"
+--8<-- "docs-examples/reference/operations/print-processor.yaml:20:22"
 ```
 
 This example demonstrates printing debug messages with color-coded log levels and custom formatting:
@@ -902,17 +882,13 @@ This example demonstrates printing debug messages with color-coded log levels an
 ??? info "Producer - `print` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/print-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/print-producer.yaml" %}
     ```
 
 ??? info "Processor - `print` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/operations/print-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/print-processor.yaml" %}
     ```
 
 **What this example does:**

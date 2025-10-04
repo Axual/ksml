@@ -143,17 +143,13 @@ This example demonstrates tumbling windows by counting user clicks in 5-minute n
 ??? info "User clicks producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-user-clicks.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-user-clicks.yaml" %}
     ```
 
 ??? info "Tumbling window count processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml" %}
     ```
 
 **Understanding the window key type**:
@@ -209,17 +205,13 @@ This example calculates moving averages using overlapping 2-minute windows that 
 ??? info "Sensor data producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-sensor-data.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-sensor-data.yaml" %}
     ```
 
 ??? info "Hopping window average processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-hopping-average-working.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-hopping-average-working.yaml" %}
     ```
 
 **Example output:**
@@ -277,17 +269,13 @@ This example uses session windows to analyze user browsing patterns by grouping 
 ??? info "User clicks producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-user-clicks.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/producer-user-clicks.yaml" %}
     ```
 
 ??? info "User session analysis processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-session-activity.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/windowing/processor-session-activity.yaml" %}
     ```
 
 **Session window characteristics observed**:

@@ -14,8 +14,6 @@ stores:
     valueType: string  # Using compact string format for state storage performance
     persistent: true
     caching: true
-    # Increased cache size for better performance
-    cacheSizeBytes: 52428800  # 50MB
 
 functions:
   update_user_metrics:

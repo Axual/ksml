@@ -58,8 +58,12 @@ public class AllDefinitionsSchemaValidationTest {
     private static Schema ksmlSchema;
 
     /**
-     * Discovers all YAML files in the resources directory
+     * Discovers all YAML files in the resources directory.
+     * Note: The Stream returned by this method is automatically closed by JUnit 5
+     * after all parameterized tests complete. See JUnit 5 documentation:
+     * https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests-argument-sources
      */
+    @SuppressWarnings("resource") // JUnit 5 closes streams from @MethodSource automatically
     static Stream<Path> provideYamlFiles() throws URISyntaxException, IOException {
         // Get the directory containing the YAML files
         var testResourcesUrl = AllDefinitionsSchemaValidationTest.class.getResource("/");
@@ -68,10 +72,11 @@ public class AllDefinitionsSchemaValidationTest {
         }
         Path branchingDir = Paths.get(testResourcesUrl.toURI());
 
-        // Find all .yaml files - Stream will be closed by JUnit after all tests complete
+        // Find all .yaml files, excluding ksml-runner.yaml files (runner config, not KSML definitions)
         return Files.walk(branchingDir)
             .filter(Files::isRegularFile)
             .filter(path -> path.toString().endsWith(".yaml"))
+            .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"))
             .sorted(); // Sort for consistent test ordering
     }
 
