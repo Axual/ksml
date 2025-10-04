@@ -11,7 +11,8 @@ functions:
       if value is None: return f"[NULL] {key}"
       lvl = value.get("level", "?")
       colors = {"ERROR": "red", "WARNING": "yellow", "INFO": "green", "DEBUG": "blue"}
-      return f"{colors.get(lvl, 'white')} [{lvl}] {value.get('component')} | {value.get('message')} | {value.get('request_id')}"
+      # Include prefix in the output string
+      return f"DEBUG_CONSOLE: {colors.get(lvl, 'white')} [{lvl}] {value.get('component')} | {value.get('message')} | {value.get('request_id')}"
     resultType: string
 
 pipelines:
@@ -19,4 +20,3 @@ pipelines:
     from: debug_messages
     print:
       mapper: format_debug_output
-      prefix: "DEBUG_CONSOLE: "

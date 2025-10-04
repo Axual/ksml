@@ -1,9 +1,7 @@
-name: "Product and Order Event Producer"
-version: "1.0"
-description: |
-  This producer is part of the Event-Driven Applications Use Case in KSML documentation. It produces a fixed series of
-  records to the product_catalog topic. Next to that, every second a random product order is generated and sent to the
-  order_events topic.
+# Product and Order Event Producer
+# This producer is part of the Event-Driven Applications Use Case in KSML documentation.
+# It produces a fixed series of records to the product_catalog topic.
+# Next to that, every second a random product order is generated and sent to the order_events topic.
 
 functions:
   global_function:

@@ -1,8 +1,6 @@
-name: "Data Transformation Use Case"
-version: "1.0"
-description: |
-  This definition shows how to take legacy customer data in XML, join it with a customer segments table on Kafka, and
-  write out the customer data in another structure as JSON.
+# Data Transformation Use Case
+# This definition shows how to take legacy customer data in XML, join it with a customer segments table on Kafka,
+# and write out the customer data in another structure as JSON.
 
 streams:
   legacy_customers:

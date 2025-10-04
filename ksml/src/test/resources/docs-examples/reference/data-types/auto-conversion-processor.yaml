@@ -1,114 +1,57 @@
 # Demonstrates automatic type conversion in KSML functions
-# 
-# This example shows how KSML automatically converts function return values
-# to match the declared resultType, without requiring explicit conversion code.
-
-streams:
-  sensor_input:
-    topic: sensor_data
-    keyType: string
-    valueType: json
-    offsetResetPolicy: earliest
-  
-  processed_output:
-    topic: processed_data
-    keyType: string
-    valueType: json
+# Shows how KSML automatically converts function return values to match the declared resultType
 
 functions:
-  # Example 1: Returns dict, automatically converted to string
-  dict_to_string_auto:
+  # Example 1: String to int conversion (valid numeric string)
+  string_to_int:
     type: valueTransformer
     code: |
-      # Function returns a Python dictionary
-      result = {
-        "sensor": key,
-        "temp_fahrenheit": value.get("temperature", 0) * 1.8 + 32,
-        "humidity_percent": value.get("humidity", 0),
-        "location": value.get("city", "unknown").upper()
-      }
-      # Note: We return a dict, not a string
+      result = "123"        # Return a valid numeric string
     expression: result
-    resultType: string  # ← Automatic conversion: dict → JSON string
+    resultType: int         # Automatic conversion: "123" to 123
 
-  # Example 2: String parsing with valid numeric conversion
-  valid_string_to_int:
-    type: valueTransformer
-    code: |
-      # Extract temperature and convert to string representation
-      temp_str = str(int(value.get("temperature", 20)))
-      result = temp_str  # Return valid numeric string like "20"
-    expression: result
-    resultType: int  # ← Automatic conversion: "20" → 20
-
-  # Example 3: Integer to string conversion  
+  # Example 2: Int to string conversion
   int_to_string:
     type: valueTransformer
     code: |
-      # At this point, value is an integer from previous conversion
-      # We'll just multiply it by 2 to show we're working with an int
-      result = value * 2  # Return an integer
+      result = 456          # Return an integer
     expression: result
-    resultType: string  # ← Automatic conversion: 40 → "40"
+    resultType: string      # Automatic conversion: 456 to "456"
+
+  # Example 3: Dict to string conversion (JSON serialization)
+  dict_to_string:
+    type: valueTransformer
+    code: |
+      result = {
+        "sensor": key,
+        "temp_celsius": value.get("temperature", 20),
+        "status": "active"
+      }
+    expression: result
+    resultType: string      # Automatic conversion: dict to JSON string
 
 pipelines:
   demonstrate_auto_conversion:
-    from: sensor_input
+    from:
+      topic: sensor_data
+      keyType: string
+      valueType: json
+      offsetResetPolicy: earliest
     via:
-      # Test automatic dict to string conversion
+      # Test 1: String to int
       - type: transformValue
-        mapper: dict_to_string_auto
-
+        mapper: string_to_int
       - type: peek
         forEach:
-          code: |
-            # Value is now a string (automatic conversion happened)
-            log.info("After auto dict→string: type={}, content={}", 
-                     type(value).__name__, value)
+          code: 'log.info("String to Int: type={}, value={}", type(value).__name__, value)'
 
-      # Parse the JSON string back to dict for next operations
-      - type: transformValue
-        mapper:
-          type: valueTransformer
-          code: |
-            import json
-            result = json.loads(value)  # Parse JSON string back to dict
-          expression: result
-          resultType: json
-
-      # Test valid string to int conversion
-      - type: transformValue
-        mapper: valid_string_to_int
-
-      - type: peek
-        forEach:
-          code: |
-            # Value is now an integer (automatic conversion happened)
-            log.info("After auto string→int: type={}, value={}", 
-                     type(value).__name__, value)
-
-      # Test int to string conversion
+      # Test 2: Int to string
       - type: transformValue
         mapper: int_to_string
-
       - type: peek
         forEach:
-          code: |
-            # Value is now a string (automatic conversion happened)  
-            log.info("After auto int→string: type={}, value={}", 
-                     type(value).__name__, value)
-
-      # Wrap in JSON for output
-      - type: transformValue
-        mapper:
-          type: valueTransformer
-          code: |
-            result = {
-              "sensor_id": key,
-              "converted_value": value,
-              "processed": True
-            }
-          expression: result
-          resultType: json
-
-    to: processed_output
+          code: 'log.info("Int to String: type={}, value={}", type(value).__name__, value)'
+    to:
+      topic: converted_data
+      keyType: string
+      valueType: string

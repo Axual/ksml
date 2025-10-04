@@ -1,8 +1,6 @@
-name: "Segment Data Producer"
-version: "1.0"
-description: |
-  This producer is part of the Data Transformation Use Case in KSML documentation. It produces customer segment data to
-  a topic in JSON format.
+# Segment Data Producer
+# This producer is part of the Data Transformation Use Case in KSML documentation.
+# It produces customer segment data to a topic in JSON format.
 
 functions:
   customer_segment_generator:

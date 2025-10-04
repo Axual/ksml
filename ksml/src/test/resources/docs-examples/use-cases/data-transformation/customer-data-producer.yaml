@@ -1,8 +1,6 @@
-name: "Customer Data Producer"
-version: "1.0"
-description: |
-  This producer is part of the Data Transformation Use Case in KSML documentation. It produces legacy customer data to
-  a topic in XML format.
+# Customer Data Producer
+# This producer is part of the Data Transformation Use Case in KSML documentation.
+# It produces legacy customer data to a topic in XML format.
 
 functions:
   legacy_customer_data_generator:
