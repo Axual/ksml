@@ -251,7 +251,7 @@ Transforms the key using a custom transformer function.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-stream-table-join.yaml:58:59"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml:58:59"
 ```
 
 **Full example for `transformKey`**:
@@ -638,7 +638,7 @@ Performs a left join between two streams.
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-stream-table-left-join.yaml:59:61"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-stream-table-left-join.yaml:59:61"
 ```
 
 **Full example for `leftJoin`**:

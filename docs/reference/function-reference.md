@@ -726,7 +726,7 @@ Tuple of (new_key, new_value)
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:19:25"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-foreign-key-join.yaml:19:25"
 ```
 
 **Full example for `keyValueMapper`**:
@@ -938,7 +938,7 @@ Combined value
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:27:47"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-foreign-key-join.yaml:27:47"
 ```
 
 **Full example for `valueJoiner`**:

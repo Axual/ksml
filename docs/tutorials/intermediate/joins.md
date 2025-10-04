@@ -191,19 +191,19 @@ Enrich order events with customer information by joining the orders stream with 
 ??? info "Producer: Orders (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/producer-orders.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-orders.yaml" %}
     ```
 
 ??? info "Producer: Customers (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/producer-customers.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-customers.yaml" %}
     ```
 
 ??? info "Processor: Stream-Table Join (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/processor-stream-table-join.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml" %}
     ```
 
 ### Rekeying Pattern
@@ -233,13 +233,13 @@ Enrich orders with product details using a foreign key join with a global produc
 ??? info "Producer: Orders and Products (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/producer-orders-products.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-orders-products.yaml" %}
     ```
 
 ??? info "Processor: Foreign Key Join (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-foreign-key-join.yaml" %}
     ```
 
 ### Foreign Key Extraction
@@ -271,7 +271,7 @@ Enrich user activity events with location data, preserving all activities even w
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/joins/producer-user-activity-locations.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-user-activity-locations.yaml"
     %}
     ```
 
@@ -279,7 +279,7 @@ Enrich user activity events with location data, preserving all activities even w
 
     ```yaml
     {%
-      include "../../definitions/intermediate-tutorial/joins/processor-stream-table-left-join.yaml"
+      include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-stream-table-left-join.yaml"
     %}
     ```
 
