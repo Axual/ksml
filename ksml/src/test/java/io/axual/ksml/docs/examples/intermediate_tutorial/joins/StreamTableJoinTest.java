@@ -70,7 +70,7 @@ public class StreamTableJoinTest {
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml")
     void testOrderEnrichedWithCustomer() throws Exception {
         // First populate customer table
-        customersInput.pipeInput("CUST001", createCustomerJson("CUST001", "Alice Johnson", "alice@email.com", "US-WEST"));
+        customersInput.pipeInput("CUST001", createCustomerJson( "Alice Johnson", "alice@email.com", "US-WEST"));
 
         // Send order for that customer
         ordersInput.pipeInput("ORD0001", createOrderJson("ORD0001", "CUST001", "PROD001", 2, 100.00));
@@ -96,7 +96,7 @@ public class StreamTableJoinTest {
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml")
     void testRekeyingForJoin() throws Exception {
         // Populate customer table
-        customersInput.pipeInput("CUST002", createCustomerJson("CUST002", "Bob Smith", "bob@email.com", "US-EAST"));
+        customersInput.pipeInput("CUST002", createCustomerJson( "Bob Smith", "bob@email.com", "US-EAST"));
 
         // Send order with different order_id but same customer
         ordersInput.pipeInput("ORD0002", createOrderJson("ORD0002", "CUST002", "PROD002", 1, 50.00));
@@ -113,7 +113,7 @@ public class StreamTableJoinTest {
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml")
     void testRestoreOriginalKey() throws Exception {
         // Populate customer
-        customersInput.pipeInput("CUST003", createCustomerJson("CUST003", "Carol Davis", "carol@email.com", "EU-WEST"));
+        customersInput.pipeInput("CUST003", createCustomerJson( "Carol Davis", "carol@email.com", "EU-WEST"));
 
         // Send order
         ordersInput.pipeInput("ORD0003", createOrderJson("ORD0003", "CUST003", "PROD003", 3, 150.00));
@@ -133,7 +133,7 @@ public class StreamTableJoinTest {
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml")
     void testMultipleOrdersSameCustomer() throws Exception {
         // Populate customer
-        customersInput.pipeInput("CUST004", createCustomerJson("CUST004", "David Wilson", "david@email.com", "ASIA-PACIFIC"));
+        customersInput.pipeInput("CUST004", createCustomerJson("David Wilson", "david@email.com", "ASIA-PACIFIC"));
 
         // Send multiple orders for same customer
         ordersInput.pipeInput("ORD0004", createOrderJson("ORD0004", "CUST004", "PROD001", 1, 25.00));
