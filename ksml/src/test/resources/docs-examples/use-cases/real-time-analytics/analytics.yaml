@@ -93,13 +93,11 @@ pipelines:
         mapper: extract_category
       - type: groupByKey
       - type: aggregate
-        initializer: init_category_counter
-        aggregator: calculate_total
         store:
           name: category_store
           type: keyValue
-          keyType: string
-          valueType: json
+        initializer: init_category_counter
+        aggregator: calculate_total
       - type: toStream
     to: sales_by_category
 
@@ -116,8 +114,6 @@ pipelines:
         store:
           name: avg_order_store_10s
           type: window
-          keyType: string
-          valueType: json
           windowSize: 10s
           retention: 30s
         initializer: init_sales_counter
