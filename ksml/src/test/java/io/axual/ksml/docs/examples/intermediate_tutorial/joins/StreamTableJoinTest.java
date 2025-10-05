@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 3. Restoring original order_id key after join
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testOrderEnrichedWithCustomer: join operation combines order and customer data correctly
  * 2. testRekeyingForJoin: transformKey correctly extracts customer_id from order
  * 3. testRestoreOriginalKey: transformKey correctly restores order_id after join
@@ -164,7 +164,7 @@ public class StreamTableJoinTest {
         return objectMapper.writeValueAsString(order);
     }
 
-    private String createCustomerJson(String customerId, String name, String email, String region) throws Exception {
+    private String createCustomerJson(String name, String email, String region) throws Exception {
         Map<String, Object> customer = new HashMap<>();
         customer.put("name", name);
         customer.put("email", email);

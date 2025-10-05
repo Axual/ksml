@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 3. aggregate with initializer to materialize the aggregation
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testCogroupAggregatesOrders: cogroup aggregates order amounts correctly
  * 2. testCogroupIncrementsCounts: cogroup tracks order counts per customer
  * 3. testCogroupMultipleCustomers: cogroup maintains separate aggregates per key

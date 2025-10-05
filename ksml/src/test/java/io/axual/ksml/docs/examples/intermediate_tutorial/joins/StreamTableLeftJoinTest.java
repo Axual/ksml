@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 3. Handling null values gracefully with default fallbacks
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testActivityEnrichedWithLocation: leftJoin adds location data when available
  * 2. testActivityWithoutLocation: leftJoin preserves activity when location missing
  * 3. testEnrichmentMetadata: Python function correctly sets enriched flag

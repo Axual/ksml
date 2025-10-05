@@ -52,9 +52,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>
  * To validate session window output, tests must advance wall clock time past the
  * inactivity gap (2m) + grace period (30s) = 2m 30s total.
- *
+ * <p>
  *   What these Tests Validate (KSML Translation):
- *
+ * <p>
  *   1. testSingleUserSessionCounting: groupByKey + windowBySession + count produces output
  *   2. testMultipleUsersIndependentSessions: groupByKey correctly separates users
  */

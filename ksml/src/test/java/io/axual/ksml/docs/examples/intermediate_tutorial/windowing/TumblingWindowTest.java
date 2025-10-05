@@ -48,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 4. convertKey to transform WindowedString to json:windowed(string)
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testTumblingWindowCounts: count operation correctly counts events in each window
  * 2. testNonOverlappingWindows: tumbling windows don't overlap (events belong to single window)
  * 3. testWindowBoundaries: events are assigned to correct window based on timestamp

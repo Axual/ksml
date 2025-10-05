@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 3. toStream operation to convert KTable back to KStream
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testCountIncrementsPerKey: count aggregation increments count for each event per key
  * 2. testMultipleKeys: count aggregation tracks separate counts for different keys
  * 3. testConvertToString: convertValue operation correctly converts count to string

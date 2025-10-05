@@ -61,7 +61,7 @@ public class AllDefinitionsSchemaValidationTest {
      * Discovers all YAML files in the resources directory.
      * Note: The Stream returned by this method is automatically closed by JUnit 5
      * after all parameterized tests complete. See JUnit 5 documentation:
-     * https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests-argument-sources
+     * <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests-argument-sources">...</a>
      */
     @SuppressWarnings("resource") // JUnit 5 closes streams from @MethodSource automatically
     static Stream<Path> provideYamlFiles() throws URISyntaxException, IOException {

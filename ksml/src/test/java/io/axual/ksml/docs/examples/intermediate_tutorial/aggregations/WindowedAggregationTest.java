@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 4. map to transform WindowedString key to regular string key with window metadata
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testAggregateComputesStatistics: aggregator computes count, sum, min, max, avg
  * 2. testInitializerCreatesEmptyStats: initializer creates correct initial state
  * 3. testMapTransformsWindowedKey: map function extracts window metadata from WindowedString

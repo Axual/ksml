@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 3. Filters out incomplete patterns
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testCompleteABCPattern: valueTransformer with state store detects A->B->C sequence
  * 2. testIncompletePattern: Filter correctly excludes partial patterns (A->B without C)
  * 3. testPatternReset: State reset works when sequence breaks (A->B->D resets)

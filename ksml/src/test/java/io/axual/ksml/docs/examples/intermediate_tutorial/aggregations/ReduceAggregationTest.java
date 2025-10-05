@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 4. transformValue to format the result back to JSON
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testReduceSumsTransactionAmounts: reducer correctly sums transaction amounts
  * 2. testExtractAmountTransformation: transformValue extracts amount_cents from JSON
  * 3. testFormatTotalTransformation: transformValue converts cents to JSON with dollars

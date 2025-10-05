@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 3. Enriching orders with product details from catalog
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testOrderEnrichedWithProduct: join with globalTable adds product details
  * 2. testForeignKeyExtraction: keyValueMapper correctly extracts product_id
  * 3. testTotalPriceCalculation: Python valueJoiner computes total_price

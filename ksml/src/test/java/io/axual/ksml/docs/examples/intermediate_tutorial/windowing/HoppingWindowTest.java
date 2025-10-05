@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 4. mapValues to calculate final average from aggregated sum/count
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testHoppingWindowAggregation: aggregator correctly computes sum and count
  * 2. testOverlappingWindows: single event appears in multiple overlapping windows
  * 3. testAverageCalculation: mapValues correctly calculates average from sum/count

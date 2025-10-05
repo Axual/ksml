@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 4. Difference between groupBy (arbitrary key extraction) and groupByKey (uses existing key)
  * <p>
  * What these Tests Validate (KSML Translation):
- *
+ * <p>
  * 1. testGroupByCustomMapper: groupBy correctly extracts owner field from value
  * 2. testCountWithPredefinedStore: count operation works with predefined store
  * 3. testUnknownOwnerHandling: mapper returns "unknown" for null or missing owner
