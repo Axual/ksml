@@ -2900,26 +2900,36 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">long</span>
 <a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>
-<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">  </span><span class="nt">calculate_totals</span><span class="p">:</span>
-<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_amounts</span>
-<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
-<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
-<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
-<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="w">          </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1h</span>
-<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span>
-<a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
-<a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">long</span>
-<a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span>
-<a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregatedValue + value</span>
-<a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
-<a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a><span class="w">            </span><span class="no">log.info(&quot;Customer {} total: {}&quot;, key, value)</span>
-<a id="__codelineno-15-31" name="__codelineno-15-31" href="#__codelineno-15-31"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_totals</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">  </span><span class="nt">init_sum</span><span class="p">:</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">long</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="w">      </span><span class="no">return 0</span>
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a>
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="w">  </span><span class="nt">add_value</span><span class="p">:</span>
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
+<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">long</span>
+<a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a><span class="w">      </span><span class="no">return aggregatedValue + value</span>
+<a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a>
+<a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a><span class="w">  </span><span class="nt">calculate_totals</span><span class="p">:</span>
+<a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_amounts</span>
+<a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
+<a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
+<a id="__codelineno-15-31" name="__codelineno-15-31" href="#__codelineno-15-31"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
+<a id="__codelineno-15-32" name="__codelineno-15-32" href="#__codelineno-15-32"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_totals_store</span>
+<a id="__codelineno-15-33" name="__codelineno-15-33" href="#__codelineno-15-33"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-15-34" name="__codelineno-15-34" href="#__codelineno-15-34"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_sum</span>
+<a id="__codelineno-15-35" name="__codelineno-15-35" href="#__codelineno-15-35"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add_value</span>
+<a id="__codelineno-15-36" name="__codelineno-15-36" href="#__codelineno-15-36"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+<a id="__codelineno-15-37" name="__codelineno-15-37" href="#__codelineno-15-37"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-15-38" name="__codelineno-15-38" href="#__codelineno-15-38"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-15-39" name="__codelineno-15-39" href="#__codelineno-15-39"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-15-40" name="__codelineno-15-40" href="#__codelineno-15-40"></a><span class="w">            </span><span class="no">log.info(&quot;Customer {} total: {}&quot;, key, value)</span>
+<a id="__codelineno-15-41" name="__codelineno-15-41" href="#__codelineno-15-41"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_totals</span>
 </code></pre></div>
 </details>
 <p><strong>Verifying the results:</strong></p>
@@ -3004,63 +3014,73 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">  </span><span class="nt">init_stats</span><span class="p">:</span>
 <a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
-<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">      </span><span class="no"># Initialize statistics</span>
-<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">      </span><span class="no">stats = {</span>
-<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">        </span><span class="no">&quot;count&quot;: 0,</span>
-<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="w">        </span><span class="no">&quot;total_amount&quot;: 0.0,</span>
-<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="w">        </span><span class="no">&quot;min_amount&quot;: None,</span>
-<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">        </span><span class="no">&quot;max_amount&quot;: None</span>
-<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stats</span>
-<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a>
-<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">  </span><span class="nt">update_stats</span><span class="p">:</span>
-<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">      </span><span class="no"># Initialize statistics</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">      </span><span class="no">return {</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="w">        </span><span class="no">&quot;count&quot;: 0,</span>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="w">        </span><span class="no">&quot;total_amount&quot;: 0.0,</span>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">        </span><span class="no">&quot;min_amount&quot;: None,</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">        </span><span class="no">&quot;max_amount&quot;: None</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="w">  </span><span class="nt">update_stats</span><span class="p">:</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a><span class="w">      </span><span class="no"># Update payment statistics</span>
 <a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a><span class="w">      </span><span class="no">if value and aggregatedValue:</span>
 <a id="__codelineno-18-31" name="__codelineno-18-31" href="#__codelineno-18-31"></a><span class="w">        </span><span class="no">amount = value.get(&quot;amount&quot;, 0.0)</span>
-<a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;count&quot;] = aggregatedValue.get(&quot;count&quot;, 0) + 1</span>
-<a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;total_amount&quot;] = aggregatedValue.get(&quot;total_amount&quot;, 0.0) + amount</span>
+<a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a><span class="w">        </span><span class="no">count = aggregatedValue.get(&quot;count&quot;, 0) + 1</span>
+<a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a><span class="w">        </span><span class="no">total_amount = aggregatedValue.get(&quot;total_amount&quot;, 0.0) + amount</span>
 <a id="__codelineno-18-34" name="__codelineno-18-34" href="#__codelineno-18-34"></a>
 <a id="__codelineno-18-35" name="__codelineno-18-35" href="#__codelineno-18-35"></a><span class="w">        </span><span class="no">current_min = aggregatedValue.get(&quot;min_amount&quot;)</span>
 <a id="__codelineno-18-36" name="__codelineno-18-36" href="#__codelineno-18-36"></a><span class="w">        </span><span class="no">current_max = aggregatedValue.get(&quot;max_amount&quot;)</span>
 <a id="__codelineno-18-37" name="__codelineno-18-37" href="#__codelineno-18-37"></a>
 <a id="__codelineno-18-38" name="__codelineno-18-38" href="#__codelineno-18-38"></a><span class="w">        </span><span class="no">if current_min is None or amount &lt; current_min:</span>
-<a id="__codelineno-18-39" name="__codelineno-18-39" href="#__codelineno-18-39"></a><span class="w">          </span><span class="no">aggregatedValue[&quot;min_amount&quot;] = amount</span>
-<a id="__codelineno-18-40" name="__codelineno-18-40" href="#__codelineno-18-40"></a><span class="w">        </span><span class="no">if current_max is None or amount &gt; current_max:</span>
-<a id="__codelineno-18-41" name="__codelineno-18-41" href="#__codelineno-18-41"></a><span class="w">          </span><span class="no">aggregatedValue[&quot;max_amount&quot;] = amount</span>
+<a id="__codelineno-18-39" name="__codelineno-18-39" href="#__codelineno-18-39"></a><span class="w">          </span><span class="no">min_amount = amount</span>
+<a id="__codelineno-18-40" name="__codelineno-18-40" href="#__codelineno-18-40"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-18-41" name="__codelineno-18-41" href="#__codelineno-18-41"></a><span class="w">          </span><span class="no">min_amount = current_min</span>
 <a id="__codelineno-18-42" name="__codelineno-18-42" href="#__codelineno-18-42"></a>
-<a id="__codelineno-18-43" name="__codelineno-18-43" href="#__codelineno-18-43"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;average_amount&quot;] = round(aggregatedValue[&quot;total_amount&quot;] / aggregatedValue[&quot;count&quot;], 2)</span>
-<a id="__codelineno-18-44" name="__codelineno-18-44" href="#__codelineno-18-44"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregatedValue</span>
-<a id="__codelineno-18-45" name="__codelineno-18-45" href="#__codelineno-18-45"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-18-46" name="__codelineno-18-46" href="#__codelineno-18-46"></a>
-<a id="__codelineno-18-47" name="__codelineno-18-47" href="#__codelineno-18-47"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-18-48" name="__codelineno-18-48" href="#__codelineno-18-48"></a><span class="w">  </span><span class="nt">calculate_statistics</span><span class="p">:</span>
-<a id="__codelineno-18-49" name="__codelineno-18-49" href="#__codelineno-18-49"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_stream</span>
-<a id="__codelineno-18-50" name="__codelineno-18-50" href="#__codelineno-18-50"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-18-51" name="__codelineno-18-51" href="#__codelineno-18-51"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-18-52" name="__codelineno-18-52" href="#__codelineno-18-52"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
-<a id="__codelineno-18-53" name="__codelineno-18-53" href="#__codelineno-18-53"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
-<a id="__codelineno-18-54" name="__codelineno-18-54" href="#__codelineno-18-54"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
-<a id="__codelineno-18-55" name="__codelineno-18-55" href="#__codelineno-18-55"></a><span class="w">          </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1h</span>
-<a id="__codelineno-18-56" name="__codelineno-18-56" href="#__codelineno-18-56"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-18-57" name="__codelineno-18-57" href="#__codelineno-18-57"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_stats</span>
-<a id="__codelineno-18-58" name="__codelineno-18-58" href="#__codelineno-18-58"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">update_stats</span>
-<a id="__codelineno-18-59" name="__codelineno-18-59" href="#__codelineno-18-59"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
-<a id="__codelineno-18-60" name="__codelineno-18-60" href="#__codelineno-18-60"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-18-61" name="__codelineno-18-61" href="#__codelineno-18-61"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-18-62" name="__codelineno-18-62" href="#__codelineno-18-62"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-18-63" name="__codelineno-18-63" href="#__codelineno-18-63"></a><span class="w">            </span><span class="no">if value:</span>
-<a id="__codelineno-18-64" name="__codelineno-18-64" href="#__codelineno-18-64"></a><span class="w">              </span><span class="no">count = value.get(&quot;count&quot;, 0)</span>
-<a id="__codelineno-18-65" name="__codelineno-18-65" href="#__codelineno-18-65"></a><span class="w">              </span><span class="no">total = round(value.get(&quot;total_amount&quot;, 0), 2)</span>
-<a id="__codelineno-18-66" name="__codelineno-18-66" href="#__codelineno-18-66"></a><span class="w">              </span><span class="no">avg = value.get(&quot;average_amount&quot;, 0)</span>
-<a id="__codelineno-18-67" name="__codelineno-18-67" href="#__codelineno-18-67"></a><span class="w">              </span><span class="no">min_amt = value.get(&quot;min_amount&quot;, 0)</span>
-<a id="__codelineno-18-68" name="__codelineno-18-68" href="#__codelineno-18-68"></a><span class="w">              </span><span class="no">max_amt = value.get(&quot;max_amount&quot;, 0)</span>
-<a id="__codelineno-18-69" name="__codelineno-18-69" href="#__codelineno-18-69"></a><span class="w">              </span><span class="no">log.info(&quot;Customer {} - Count: {}, Total: ${}, Avg: ${}, Min: ${}, Max: ${}&quot;, </span>
-<a id="__codelineno-18-70" name="__codelineno-18-70" href="#__codelineno-18-70"></a><span class="w">                       </span><span class="no">key, count, total, avg, min_amt, max_amt)</span>
-<a id="__codelineno-18-71" name="__codelineno-18-71" href="#__codelineno-18-71"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_statistics</span>
+<a id="__codelineno-18-43" name="__codelineno-18-43" href="#__codelineno-18-43"></a><span class="w">        </span><span class="no">if current_max is None or amount &gt; current_max:</span>
+<a id="__codelineno-18-44" name="__codelineno-18-44" href="#__codelineno-18-44"></a><span class="w">          </span><span class="no">max_amount = amount</span>
+<a id="__codelineno-18-45" name="__codelineno-18-45" href="#__codelineno-18-45"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-18-46" name="__codelineno-18-46" href="#__codelineno-18-46"></a><span class="w">          </span><span class="no">max_amount = current_max</span>
+<a id="__codelineno-18-47" name="__codelineno-18-47" href="#__codelineno-18-47"></a>
+<a id="__codelineno-18-48" name="__codelineno-18-48" href="#__codelineno-18-48"></a><span class="w">        </span><span class="no">return {</span>
+<a id="__codelineno-18-49" name="__codelineno-18-49" href="#__codelineno-18-49"></a><span class="w">          </span><span class="no">&quot;count&quot;: count,</span>
+<a id="__codelineno-18-50" name="__codelineno-18-50" href="#__codelineno-18-50"></a><span class="w">          </span><span class="no">&quot;total_amount&quot;: total_amount,</span>
+<a id="__codelineno-18-51" name="__codelineno-18-51" href="#__codelineno-18-51"></a><span class="w">          </span><span class="no">&quot;min_amount&quot;: min_amount,</span>
+<a id="__codelineno-18-52" name="__codelineno-18-52" href="#__codelineno-18-52"></a><span class="w">          </span><span class="no">&quot;max_amount&quot;: max_amount,</span>
+<a id="__codelineno-18-53" name="__codelineno-18-53" href="#__codelineno-18-53"></a><span class="w">          </span><span class="no">&quot;average_amount&quot;: round(total_amount / count, 2)</span>
+<a id="__codelineno-18-54" name="__codelineno-18-54" href="#__codelineno-18-54"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-18-55" name="__codelineno-18-55" href="#__codelineno-18-55"></a><span class="w">      </span><span class="no">return aggregatedValue</span>
+<a id="__codelineno-18-56" name="__codelineno-18-56" href="#__codelineno-18-56"></a>
+<a id="__codelineno-18-57" name="__codelineno-18-57" href="#__codelineno-18-57"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-18-58" name="__codelineno-18-58" href="#__codelineno-18-58"></a><span class="w">  </span><span class="nt">calculate_statistics</span><span class="p">:</span>
+<a id="__codelineno-18-59" name="__codelineno-18-59" href="#__codelineno-18-59"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_stream</span>
+<a id="__codelineno-18-60" name="__codelineno-18-60" href="#__codelineno-18-60"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-18-61" name="__codelineno-18-61" href="#__codelineno-18-61"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
+<a id="__codelineno-18-62" name="__codelineno-18-62" href="#__codelineno-18-62"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
+<a id="__codelineno-18-63" name="__codelineno-18-63" href="#__codelineno-18-63"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
+<a id="__codelineno-18-64" name="__codelineno-18-64" href="#__codelineno-18-64"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_stats_store</span>
+<a id="__codelineno-18-65" name="__codelineno-18-65" href="#__codelineno-18-65"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-18-66" name="__codelineno-18-66" href="#__codelineno-18-66"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-18-67" name="__codelineno-18-67" href="#__codelineno-18-67"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_stats</span>
+<a id="__codelineno-18-68" name="__codelineno-18-68" href="#__codelineno-18-68"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">update_stats</span>
+<a id="__codelineno-18-69" name="__codelineno-18-69" href="#__codelineno-18-69"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+<a id="__codelineno-18-70" name="__codelineno-18-70" href="#__codelineno-18-70"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-18-71" name="__codelineno-18-71" href="#__codelineno-18-71"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-18-72" name="__codelineno-18-72" href="#__codelineno-18-72"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-18-73" name="__codelineno-18-73" href="#__codelineno-18-73"></a><span class="w">            </span><span class="no">if value:</span>
+<a id="__codelineno-18-74" name="__codelineno-18-74" href="#__codelineno-18-74"></a><span class="w">              </span><span class="no">count = value.get(&quot;count&quot;, 0)</span>
+<a id="__codelineno-18-75" name="__codelineno-18-75" href="#__codelineno-18-75"></a><span class="w">              </span><span class="no">total = round(value.get(&quot;total_amount&quot;, 0), 2)</span>
+<a id="__codelineno-18-76" name="__codelineno-18-76" href="#__codelineno-18-76"></a><span class="w">              </span><span class="no">avg = value.get(&quot;average_amount&quot;, 0)</span>
+<a id="__codelineno-18-77" name="__codelineno-18-77" href="#__codelineno-18-77"></a><span class="w">              </span><span class="no">min_amt = value.get(&quot;min_amount&quot;, 0)</span>
+<a id="__codelineno-18-78" name="__codelineno-18-78" href="#__codelineno-18-78"></a><span class="w">              </span><span class="no">max_amt = value.get(&quot;max_amount&quot;, 0)</span>
+<a id="__codelineno-18-79" name="__codelineno-18-79" href="#__codelineno-18-79"></a><span class="w">              </span><span class="no">log.info(&quot;Customer {} - Count: {}, Total: ${}, Avg: ${}, Min: ${}, Max: ${}&quot;, </span>
+<a id="__codelineno-18-80" name="__codelineno-18-80" href="#__codelineno-18-80"></a><span class="w">                       </span><span class="no">key, count, total, avg, min_amt, max_amt)</span>
+<a id="__codelineno-18-81" name="__codelineno-18-81" href="#__codelineno-18-81"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payment_statistics</span>
 </code></pre></div>
 </details>
 <p>Both approaches demonstrate the flexibility of the <code>aggregate</code> operation. The simple version focuses on the core concept, while the complex version shows real-world statistical aggregation with human-readable JSON output.</p>
@@ -3133,12 +3153,12 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="w">      </span><span class="no">sensor_counter += 1</span>
 <a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a>
 <a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="w">      </span><span class="no"># Generate temperature reading</span>
-<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="w">      </span><span class="no">temperature = round(random.uniform(18.0, 35.0), 1)</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="w">      </span><span class="no">temperature = str(round(random.uniform(18.0, 35.0), 1))</span>
 <a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>
 <a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a><span class="w">      </span><span class="no"># Use sensor_id as key</span>
 <a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a><span class="w">      </span><span class="no">key = sensor</span>
 <a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, temperature)</span>
-<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, double)</span>
+<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, string)</span>
 <a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a>
 <a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a><span class="nt">producers</span><span class="p">:</span>
 <a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a><span class="w">  </span><span class="nt">sensor_producer</span><span class="p">:</span>
@@ -3147,7 +3167,7 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
 <a id="__codelineno-22-29" name="__codelineno-22-29" href="#__codelineno-22-29"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_temperatures</span>
 <a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">double</span>
+<a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 </details>
 <details class="info">
@@ -3156,7 +3176,7 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">sensor_temperatures</span><span class="p">:</span>
 <a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_temperatures</span>
 <a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">double</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>
 <a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">  </span><span class="nt">sensor_window_stats</span><span class="p">:</span>
 <a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_window_stats</span>
@@ -3179,80 +3199,83 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="w">  </span><span class="nt">update_stats</span><span class="p">:</span>
 <a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
 <a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">      </span><span class="no"># Update count and sum</span>
-<a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;count&quot;] += 1</span>
-<a id="__codelineno-23-30" name="__codelineno-23-30" href="#__codelineno-23-30"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;sum&quot;] += value</span>
-<a id="__codelineno-23-31" name="__codelineno-23-31" href="#__codelineno-23-31"></a>
-<a id="__codelineno-23-32" name="__codelineno-23-32" href="#__codelineno-23-32"></a><span class="w">      </span><span class="no"># Update min/max</span>
-<a id="__codelineno-23-33" name="__codelineno-23-33" href="#__codelineno-23-33"></a><span class="w">      </span><span class="no">if aggregatedValue[&quot;min&quot;] is None or value &lt; aggregatedValue[&quot;min&quot;]:</span>
-<a id="__codelineno-23-34" name="__codelineno-23-34" href="#__codelineno-23-34"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;min&quot;] = value</span>
-<a id="__codelineno-23-35" name="__codelineno-23-35" href="#__codelineno-23-35"></a><span class="w">      </span><span class="no">if aggregatedValue[&quot;max&quot;] is None or value &gt; aggregatedValue[&quot;max&quot;]:</span>
-<a id="__codelineno-23-36" name="__codelineno-23-36" href="#__codelineno-23-36"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;max&quot;] = value</span>
-<a id="__codelineno-23-37" name="__codelineno-23-37" href="#__codelineno-23-37"></a>
-<a id="__codelineno-23-38" name="__codelineno-23-38" href="#__codelineno-23-38"></a><span class="w">      </span><span class="no"># Calculate average</span>
-<a id="__codelineno-23-39" name="__codelineno-23-39" href="#__codelineno-23-39"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;avg&quot;] = round(aggregatedValue[&quot;sum&quot;] / aggregatedValue[&quot;count&quot;], 2)</span>
+<a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">      </span><span class="no"># Convert string to float</span>
+<a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a><span class="w">      </span><span class="no">temp_value = float(value)</span>
+<a id="__codelineno-23-30" name="__codelineno-23-30" href="#__codelineno-23-30"></a>
+<a id="__codelineno-23-31" name="__codelineno-23-31" href="#__codelineno-23-31"></a><span class="w">      </span><span class="no"># Update count and sum</span>
+<a id="__codelineno-23-32" name="__codelineno-23-32" href="#__codelineno-23-32"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;count&quot;] += 1</span>
+<a id="__codelineno-23-33" name="__codelineno-23-33" href="#__codelineno-23-33"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;sum&quot;] += temp_value</span>
+<a id="__codelineno-23-34" name="__codelineno-23-34" href="#__codelineno-23-34"></a>
+<a id="__codelineno-23-35" name="__codelineno-23-35" href="#__codelineno-23-35"></a><span class="w">      </span><span class="no"># Update min/max</span>
+<a id="__codelineno-23-36" name="__codelineno-23-36" href="#__codelineno-23-36"></a><span class="w">      </span><span class="no">if aggregatedValue[&quot;min&quot;] is None or temp_value &lt; aggregatedValue[&quot;min&quot;]:</span>
+<a id="__codelineno-23-37" name="__codelineno-23-37" href="#__codelineno-23-37"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;min&quot;] = temp_value</span>
+<a id="__codelineno-23-38" name="__codelineno-23-38" href="#__codelineno-23-38"></a><span class="w">      </span><span class="no">if aggregatedValue[&quot;max&quot;] is None or temp_value &gt; aggregatedValue[&quot;max&quot;]:</span>
+<a id="__codelineno-23-39" name="__codelineno-23-39" href="#__codelineno-23-39"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;max&quot;] = temp_value</span>
 <a id="__codelineno-23-40" name="__codelineno-23-40" href="#__codelineno-23-40"></a>
-<a id="__codelineno-23-41" name="__codelineno-23-41" href="#__codelineno-23-41"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
-<a id="__codelineno-23-42" name="__codelineno-23-42" href="#__codelineno-23-42"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-23-43" name="__codelineno-23-43" href="#__codelineno-23-43"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-23-44" name="__codelineno-23-44" href="#__codelineno-23-44"></a>
-<a id="__codelineno-23-45" name="__codelineno-23-45" href="#__codelineno-23-45"></a><span class="w">  </span><span class="nt">transform_window_key</span><span class="p">:</span>
-<a id="__codelineno-23-46" name="__codelineno-23-46" href="#__codelineno-23-46"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueMapper</span>
-<a id="__codelineno-23-47" name="__codelineno-23-47" href="#__codelineno-23-47"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-23-48" name="__codelineno-23-48" href="#__codelineno-23-48"></a><span class="w">      </span><span class="no"># Extract window information from the WindowedString key</span>
-<a id="__codelineno-23-49" name="__codelineno-23-49" href="#__codelineno-23-49"></a><span class="w">      </span><span class="no">sensor_id = key[&quot;key&quot;]</span>
-<a id="__codelineno-23-50" name="__codelineno-23-50" href="#__codelineno-23-50"></a><span class="w">      </span><span class="no">window_start = key[&quot;startTime&quot;]</span>
-<a id="__codelineno-23-51" name="__codelineno-23-51" href="#__codelineno-23-51"></a><span class="w">      </span><span class="no">window_end = key[&quot;endTime&quot;]</span>
-<a id="__codelineno-23-52" name="__codelineno-23-52" href="#__codelineno-23-52"></a>
-<a id="__codelineno-23-53" name="__codelineno-23-53" href="#__codelineno-23-53"></a><span class="w">      </span><span class="no"># Create a new string key with window info</span>
-<a id="__codelineno-23-54" name="__codelineno-23-54" href="#__codelineno-23-54"></a><span class="w">      </span><span class="no">new_key = f&quot;{sensor_id}_{window_start}_{window_end}&quot;</span>
+<a id="__codelineno-23-41" name="__codelineno-23-41" href="#__codelineno-23-41"></a><span class="w">      </span><span class="no"># Calculate average</span>
+<a id="__codelineno-23-42" name="__codelineno-23-42" href="#__codelineno-23-42"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;avg&quot;] = round(aggregatedValue[&quot;sum&quot;] / aggregatedValue[&quot;count&quot;], 2)</span>
+<a id="__codelineno-23-43" name="__codelineno-23-43" href="#__codelineno-23-43"></a>
+<a id="__codelineno-23-44" name="__codelineno-23-44" href="#__codelineno-23-44"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
+<a id="__codelineno-23-45" name="__codelineno-23-45" href="#__codelineno-23-45"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-23-46" name="__codelineno-23-46" href="#__codelineno-23-46"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-23-47" name="__codelineno-23-47" href="#__codelineno-23-47"></a>
+<a id="__codelineno-23-48" name="__codelineno-23-48" href="#__codelineno-23-48"></a><span class="w">  </span><span class="nt">transform_window_key</span><span class="p">:</span>
+<a id="__codelineno-23-49" name="__codelineno-23-49" href="#__codelineno-23-49"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueMapper</span>
+<a id="__codelineno-23-50" name="__codelineno-23-50" href="#__codelineno-23-50"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-23-51" name="__codelineno-23-51" href="#__codelineno-23-51"></a><span class="w">      </span><span class="no"># Extract window information from the WindowedString key</span>
+<a id="__codelineno-23-52" name="__codelineno-23-52" href="#__codelineno-23-52"></a><span class="w">      </span><span class="no">sensor_id = key[&quot;key&quot;]</span>
+<a id="__codelineno-23-53" name="__codelineno-23-53" href="#__codelineno-23-53"></a><span class="w">      </span><span class="no">window_start = key[&quot;startTime&quot;]</span>
+<a id="__codelineno-23-54" name="__codelineno-23-54" href="#__codelineno-23-54"></a><span class="w">      </span><span class="no">window_end = key[&quot;endTime&quot;]</span>
 <a id="__codelineno-23-55" name="__codelineno-23-55" href="#__codelineno-23-55"></a>
-<a id="__codelineno-23-56" name="__codelineno-23-56" href="#__codelineno-23-56"></a><span class="w">      </span><span class="no"># Add window metadata to the value</span>
-<a id="__codelineno-23-57" name="__codelineno-23-57" href="#__codelineno-23-57"></a><span class="w">      </span><span class="no">new_value = {</span>
-<a id="__codelineno-23-58" name="__codelineno-23-58" href="#__codelineno-23-58"></a><span class="w">        </span><span class="no">&quot;sensor_id&quot;: sensor_id,</span>
-<a id="__codelineno-23-59" name="__codelineno-23-59" href="#__codelineno-23-59"></a><span class="w">        </span><span class="no">&quot;window_start&quot;: window_start,</span>
-<a id="__codelineno-23-60" name="__codelineno-23-60" href="#__codelineno-23-60"></a><span class="w">        </span><span class="no">&quot;window_end&quot;: window_end,</span>
-<a id="__codelineno-23-61" name="__codelineno-23-61" href="#__codelineno-23-61"></a><span class="w">        </span><span class="no">&quot;stats&quot;: value</span>
-<a id="__codelineno-23-62" name="__codelineno-23-62" href="#__codelineno-23-62"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-23-63" name="__codelineno-23-63" href="#__codelineno-23-63"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
-<a id="__codelineno-23-64" name="__codelineno-23-64" href="#__codelineno-23-64"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
-<a id="__codelineno-23-65" name="__codelineno-23-65" href="#__codelineno-23-65"></a>
-<a id="__codelineno-23-66" name="__codelineno-23-66" href="#__codelineno-23-66"></a><span class="w">  </span><span class="nt">log_window_stats</span><span class="p">:</span>
-<a id="__codelineno-23-67" name="__codelineno-23-67" href="#__codelineno-23-67"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
-<a id="__codelineno-23-68" name="__codelineno-23-68" href="#__codelineno-23-68"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-23-69" name="__codelineno-23-69" href="#__codelineno-23-69"></a><span class="w">      </span><span class="no"># Log the transformed results</span>
-<a id="__codelineno-23-70" name="__codelineno-23-70" href="#__codelineno-23-70"></a><span class="w">      </span><span class="no">sensor_id = value[&quot;sensor_id&quot;]</span>
-<a id="__codelineno-23-71" name="__codelineno-23-71" href="#__codelineno-23-71"></a><span class="w">      </span><span class="no">window_start = value[&quot;window_start&quot;]</span>
-<a id="__codelineno-23-72" name="__codelineno-23-72" href="#__codelineno-23-72"></a><span class="w">      </span><span class="no">window_end = value[&quot;window_end&quot;]</span>
-<a id="__codelineno-23-73" name="__codelineno-23-73" href="#__codelineno-23-73"></a><span class="w">      </span><span class="no">stats = value[&quot;stats&quot;]</span>
-<a id="__codelineno-23-74" name="__codelineno-23-74" href="#__codelineno-23-74"></a>
-<a id="__codelineno-23-75" name="__codelineno-23-75" href="#__codelineno-23-75"></a><span class="w">      </span><span class="no">log.info(&quot;Sensor {} | Window [{} - {}] | Stats: {} readings, avg: {}C, min: {}C, max: {}C&quot;, </span>
-<a id="__codelineno-23-76" name="__codelineno-23-76" href="#__codelineno-23-76"></a><span class="w">               </span><span class="no">sensor_id, window_start, window_end, </span>
-<a id="__codelineno-23-77" name="__codelineno-23-77" href="#__codelineno-23-77"></a><span class="w">               </span><span class="no">stats[&quot;count&quot;], stats[&quot;avg&quot;], stats[&quot;min&quot;], stats[&quot;max&quot;])</span>
-<a id="__codelineno-23-78" name="__codelineno-23-78" href="#__codelineno-23-78"></a>
-<a id="__codelineno-23-79" name="__codelineno-23-79" href="#__codelineno-23-79"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-23-80" name="__codelineno-23-80" href="#__codelineno-23-80"></a><span class="w">  </span><span class="nt">windowed_temperature_stats</span><span class="p">:</span>
-<a id="__codelineno-23-81" name="__codelineno-23-81" href="#__codelineno-23-81"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_temperatures</span>
-<a id="__codelineno-23-82" name="__codelineno-23-82" href="#__codelineno-23-82"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-23-83" name="__codelineno-23-83" href="#__codelineno-23-83"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-23-84" name="__codelineno-23-84" href="#__codelineno-23-84"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowByTime</span>
-<a id="__codelineno-23-85" name="__codelineno-23-85" href="#__codelineno-23-85"></a><span class="w">        </span><span class="nt">windowType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tumbling</span>
-<a id="__codelineno-23-86" name="__codelineno-23-86" href="#__codelineno-23-86"></a><span class="w">        </span><span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
-<a id="__codelineno-23-87" name="__codelineno-23-87" href="#__codelineno-23-87"></a><span class="w">        </span><span class="nt">grace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5s</span>
-<a id="__codelineno-23-88" name="__codelineno-23-88" href="#__codelineno-23-88"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
-<a id="__codelineno-23-89" name="__codelineno-23-89" href="#__codelineno-23-89"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
-<a id="__codelineno-23-90" name="__codelineno-23-90" href="#__codelineno-23-90"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">window</span>
-<a id="__codelineno-23-91" name="__codelineno-23-91" href="#__codelineno-23-91"></a><span class="w">          </span><span class="nt">windowSize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
-<a id="__codelineno-23-92" name="__codelineno-23-92" href="#__codelineno-23-92"></a><span class="w">          </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2m</span>
-<a id="__codelineno-23-93" name="__codelineno-23-93" href="#__codelineno-23-93"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-23-94" name="__codelineno-23-94" href="#__codelineno-23-94"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_stats</span>
-<a id="__codelineno-23-95" name="__codelineno-23-95" href="#__codelineno-23-95"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">update_stats</span>
-<a id="__codelineno-23-96" name="__codelineno-23-96" href="#__codelineno-23-96"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
-<a id="__codelineno-23-97" name="__codelineno-23-97" href="#__codelineno-23-97"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map</span>
-<a id="__codelineno-23-98" name="__codelineno-23-98" href="#__codelineno-23-98"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_window_key</span>
-<a id="__codelineno-23-99" name="__codelineno-23-99" href="#__codelineno-23-99"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-23-100" name="__codelineno-23-100" href="#__codelineno-23-100"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_window_stats</span>
-<a id="__codelineno-23-101" name="__codelineno-23-101" href="#__codelineno-23-101"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_window_stats</span>
+<a id="__codelineno-23-56" name="__codelineno-23-56" href="#__codelineno-23-56"></a><span class="w">      </span><span class="no"># Create a new string key with window info</span>
+<a id="__codelineno-23-57" name="__codelineno-23-57" href="#__codelineno-23-57"></a><span class="w">      </span><span class="no">new_key = f&quot;{sensor_id}_{window_start}_{window_end}&quot;</span>
+<a id="__codelineno-23-58" name="__codelineno-23-58" href="#__codelineno-23-58"></a>
+<a id="__codelineno-23-59" name="__codelineno-23-59" href="#__codelineno-23-59"></a><span class="w">      </span><span class="no"># Add window metadata to the value</span>
+<a id="__codelineno-23-60" name="__codelineno-23-60" href="#__codelineno-23-60"></a><span class="w">      </span><span class="no">new_value = {</span>
+<a id="__codelineno-23-61" name="__codelineno-23-61" href="#__codelineno-23-61"></a><span class="w">        </span><span class="no">&quot;sensor_id&quot;: sensor_id,</span>
+<a id="__codelineno-23-62" name="__codelineno-23-62" href="#__codelineno-23-62"></a><span class="w">        </span><span class="no">&quot;window_start&quot;: window_start,</span>
+<a id="__codelineno-23-63" name="__codelineno-23-63" href="#__codelineno-23-63"></a><span class="w">        </span><span class="no">&quot;window_end&quot;: window_end,</span>
+<a id="__codelineno-23-64" name="__codelineno-23-64" href="#__codelineno-23-64"></a><span class="w">        </span><span class="no">&quot;stats&quot;: value</span>
+<a id="__codelineno-23-65" name="__codelineno-23-65" href="#__codelineno-23-65"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-23-66" name="__codelineno-23-66" href="#__codelineno-23-66"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
+<a id="__codelineno-23-67" name="__codelineno-23-67" href="#__codelineno-23-67"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-23-68" name="__codelineno-23-68" href="#__codelineno-23-68"></a>
+<a id="__codelineno-23-69" name="__codelineno-23-69" href="#__codelineno-23-69"></a><span class="w">  </span><span class="nt">log_window_stats</span><span class="p">:</span>
+<a id="__codelineno-23-70" name="__codelineno-23-70" href="#__codelineno-23-70"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-23-71" name="__codelineno-23-71" href="#__codelineno-23-71"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-23-72" name="__codelineno-23-72" href="#__codelineno-23-72"></a><span class="w">      </span><span class="no"># Log the transformed results</span>
+<a id="__codelineno-23-73" name="__codelineno-23-73" href="#__codelineno-23-73"></a><span class="w">      </span><span class="no">sensor_id = value[&quot;sensor_id&quot;]</span>
+<a id="__codelineno-23-74" name="__codelineno-23-74" href="#__codelineno-23-74"></a><span class="w">      </span><span class="no">window_start = value[&quot;window_start&quot;]</span>
+<a id="__codelineno-23-75" name="__codelineno-23-75" href="#__codelineno-23-75"></a><span class="w">      </span><span class="no">window_end = value[&quot;window_end&quot;]</span>
+<a id="__codelineno-23-76" name="__codelineno-23-76" href="#__codelineno-23-76"></a><span class="w">      </span><span class="no">stats = value[&quot;stats&quot;]</span>
+<a id="__codelineno-23-77" name="__codelineno-23-77" href="#__codelineno-23-77"></a>
+<a id="__codelineno-23-78" name="__codelineno-23-78" href="#__codelineno-23-78"></a><span class="w">      </span><span class="no">log.info(&quot;Sensor {} | Window [{} - {}] | Stats: {} readings, avg: {}C, min: {}C, max: {}C&quot;, </span>
+<a id="__codelineno-23-79" name="__codelineno-23-79" href="#__codelineno-23-79"></a><span class="w">               </span><span class="no">sensor_id, window_start, window_end, </span>
+<a id="__codelineno-23-80" name="__codelineno-23-80" href="#__codelineno-23-80"></a><span class="w">               </span><span class="no">stats[&quot;count&quot;], stats[&quot;avg&quot;], stats[&quot;min&quot;], stats[&quot;max&quot;])</span>
+<a id="__codelineno-23-81" name="__codelineno-23-81" href="#__codelineno-23-81"></a>
+<a id="__codelineno-23-82" name="__codelineno-23-82" href="#__codelineno-23-82"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-23-83" name="__codelineno-23-83" href="#__codelineno-23-83"></a><span class="w">  </span><span class="nt">windowed_temperature_stats</span><span class="p">:</span>
+<a id="__codelineno-23-84" name="__codelineno-23-84" href="#__codelineno-23-84"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_temperatures</span>
+<a id="__codelineno-23-85" name="__codelineno-23-85" href="#__codelineno-23-85"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-23-86" name="__codelineno-23-86" href="#__codelineno-23-86"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
+<a id="__codelineno-23-87" name="__codelineno-23-87" href="#__codelineno-23-87"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowByTime</span>
+<a id="__codelineno-23-88" name="__codelineno-23-88" href="#__codelineno-23-88"></a><span class="w">        </span><span class="nt">windowType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tumbling</span>
+<a id="__codelineno-23-89" name="__codelineno-23-89" href="#__codelineno-23-89"></a><span class="w">        </span><span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
+<a id="__codelineno-23-90" name="__codelineno-23-90" href="#__codelineno-23-90"></a><span class="w">        </span><span class="nt">grace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5s</span>
+<a id="__codelineno-23-91" name="__codelineno-23-91" href="#__codelineno-23-91"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
+<a id="__codelineno-23-92" name="__codelineno-23-92" href="#__codelineno-23-92"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
+<a id="__codelineno-23-93" name="__codelineno-23-93" href="#__codelineno-23-93"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">window</span>
+<a id="__codelineno-23-94" name="__codelineno-23-94" href="#__codelineno-23-94"></a><span class="w">          </span><span class="nt">windowSize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
+<a id="__codelineno-23-95" name="__codelineno-23-95" href="#__codelineno-23-95"></a><span class="w">          </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2m</span>
+<a id="__codelineno-23-96" name="__codelineno-23-96" href="#__codelineno-23-96"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-23-97" name="__codelineno-23-97" href="#__codelineno-23-97"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_stats</span>
+<a id="__codelineno-23-98" name="__codelineno-23-98" href="#__codelineno-23-98"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">update_stats</span>
+<a id="__codelineno-23-99" name="__codelineno-23-99" href="#__codelineno-23-99"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+<a id="__codelineno-23-100" name="__codelineno-23-100" href="#__codelineno-23-100"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map</span>
+<a id="__codelineno-23-101" name="__codelineno-23-101" href="#__codelineno-23-101"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_window_key</span>
+<a id="__codelineno-23-102" name="__codelineno-23-102" href="#__codelineno-23-102"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-23-103" name="__codelineno-23-103" href="#__codelineno-23-103"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_window_stats</span>
+<a id="__codelineno-23-104" name="__codelineno-23-104" href="#__codelineno-23-104"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_window_stats</span>
 </code></pre></div>
 </details>
 <p><strong>Understanding the WindowedString key:</strong></p>
@@ -3336,88 +3359,14 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-27-23" name="__codelineno-27-23" href="#__codelineno-27-23"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value)</span>
 <a id="__codelineno-27-24" name="__codelineno-27-24" href="#__codelineno-27-24"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
 <a id="__codelineno-27-25" name="__codelineno-27-25" href="#__codelineno-27-25"></a>
-<a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a><span class="w">  </span><span class="nt">generate_refund</span><span class="p">:</span>
-<a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
-<a id="__codelineno-27-28" name="__codelineno-27-28" href="#__codelineno-27-28"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-27-29" name="__codelineno-27-29" href="#__codelineno-27-29"></a><span class="w">      </span><span class="no">import random</span>
-<a id="__codelineno-27-30" name="__codelineno-27-30" href="#__codelineno-27-30"></a><span class="w">      </span><span class="no">import time</span>
-<a id="__codelineno-27-31" name="__codelineno-27-31" href="#__codelineno-27-31"></a><span class="w">      </span><span class="no">refund_counter = 0</span>
-<a id="__codelineno-27-32" name="__codelineno-27-32" href="#__codelineno-27-32"></a><span class="w">      </span><span class="no">customers = [&quot;alice&quot;, &quot;bob&quot;, &quot;charlie&quot;, &quot;diana&quot;, &quot;eve&quot;]</span>
-<a id="__codelineno-27-33" name="__codelineno-27-33" href="#__codelineno-27-33"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-27-34" name="__codelineno-27-34" href="#__codelineno-27-34"></a><span class="w">      </span><span class="no">global refund_counter, customers</span>
-<a id="__codelineno-27-35" name="__codelineno-27-35" href="#__codelineno-27-35"></a>
-<a id="__codelineno-27-36" name="__codelineno-27-36" href="#__codelineno-27-36"></a><span class="w">      </span><span class="no"># Generate refunds less frequently</span>
-<a id="__codelineno-27-37" name="__codelineno-27-37" href="#__codelineno-27-37"></a><span class="w">      </span><span class="no">if random.random() &lt; 0.3:  # 30% chance of refund</span>
-<a id="__codelineno-27-38" name="__codelineno-27-38" href="#__codelineno-27-38"></a><span class="w">        </span><span class="no">refund_counter += 1</span>
-<a id="__codelineno-27-39" name="__codelineno-27-39" href="#__codelineno-27-39"></a><span class="w">        </span><span class="no">customer = random.choice(customers)</span>
-<a id="__codelineno-27-40" name="__codelineno-27-40" href="#__codelineno-27-40"></a>
-<a id="__codelineno-27-41" name="__codelineno-27-41" href="#__codelineno-27-41"></a><span class="w">        </span><span class="no">value = {</span>
-<a id="__codelineno-27-42" name="__codelineno-27-42" href="#__codelineno-27-42"></a><span class="w">          </span><span class="no">&quot;refund_id&quot;: f&quot;REF{refund_counter:04d}&quot;,</span>
-<a id="__codelineno-27-43" name="__codelineno-27-43" href="#__codelineno-27-43"></a><span class="w">          </span><span class="no">&quot;customer&quot;: customer,</span>
-<a id="__codelineno-27-44" name="__codelineno-27-44" href="#__codelineno-27-44"></a><span class="w">          </span><span class="no">&quot;amount&quot;: round(random.uniform(5, 100), 2),</span>
-<a id="__codelineno-27-45" name="__codelineno-27-45" href="#__codelineno-27-45"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
-<a id="__codelineno-27-46" name="__codelineno-27-46" href="#__codelineno-27-46"></a><span class="w">        </span><span class="no">}</span>
-<a id="__codelineno-27-47" name="__codelineno-27-47" href="#__codelineno-27-47"></a>
-<a id="__codelineno-27-48" name="__codelineno-27-48" href="#__codelineno-27-48"></a><span class="w">        </span><span class="no">key = customer</span>
-<a id="__codelineno-27-49" name="__codelineno-27-49" href="#__codelineno-27-49"></a><span class="w">      </span><span class="no">else:</span>
-<a id="__codelineno-27-50" name="__codelineno-27-50" href="#__codelineno-27-50"></a><span class="w">        </span><span class="no">key = None</span>
-<a id="__codelineno-27-51" name="__codelineno-27-51" href="#__codelineno-27-51"></a><span class="w">        </span><span class="no">value = None</span>
-<a id="__codelineno-27-52" name="__codelineno-27-52" href="#__codelineno-27-52"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value) if key else (None, None)</span>
-<a id="__codelineno-27-53" name="__codelineno-27-53" href="#__codelineno-27-53"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
-<a id="__codelineno-27-54" name="__codelineno-27-54" href="#__codelineno-27-54"></a>
-<a id="__codelineno-27-55" name="__codelineno-27-55" href="#__codelineno-27-55"></a><span class="w">  </span><span class="nt">generate_bonus</span><span class="p">:</span>
-<a id="__codelineno-27-56" name="__codelineno-27-56" href="#__codelineno-27-56"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
-<a id="__codelineno-27-57" name="__codelineno-27-57" href="#__codelineno-27-57"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-27-58" name="__codelineno-27-58" href="#__codelineno-27-58"></a><span class="w">      </span><span class="no">import random</span>
-<a id="__codelineno-27-59" name="__codelineno-27-59" href="#__codelineno-27-59"></a><span class="w">      </span><span class="no">import time</span>
-<a id="__codelineno-27-60" name="__codelineno-27-60" href="#__codelineno-27-60"></a><span class="w">      </span><span class="no">bonus_counter = 0</span>
-<a id="__codelineno-27-61" name="__codelineno-27-61" href="#__codelineno-27-61"></a><span class="w">      </span><span class="no">customers = [&quot;alice&quot;, &quot;bob&quot;, &quot;charlie&quot;, &quot;diana&quot;, &quot;eve&quot;]</span>
-<a id="__codelineno-27-62" name="__codelineno-27-62" href="#__codelineno-27-62"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-27-63" name="__codelineno-27-63" href="#__codelineno-27-63"></a><span class="w">      </span><span class="no">global bonus_counter, customers</span>
-<a id="__codelineno-27-64" name="__codelineno-27-64" href="#__codelineno-27-64"></a>
-<a id="__codelineno-27-65" name="__codelineno-27-65" href="#__codelineno-27-65"></a><span class="w">      </span><span class="no"># Generate bonuses rarely</span>
-<a id="__codelineno-27-66" name="__codelineno-27-66" href="#__codelineno-27-66"></a><span class="w">      </span><span class="no">if random.random() &lt; 0.1:  # 10% chance of bonus</span>
-<a id="__codelineno-27-67" name="__codelineno-27-67" href="#__codelineno-27-67"></a><span class="w">        </span><span class="no">bonus_counter += 1</span>
-<a id="__codelineno-27-68" name="__codelineno-27-68" href="#__codelineno-27-68"></a><span class="w">        </span><span class="no">customer = random.choice(customers)</span>
-<a id="__codelineno-27-69" name="__codelineno-27-69" href="#__codelineno-27-69"></a>
-<a id="__codelineno-27-70" name="__codelineno-27-70" href="#__codelineno-27-70"></a><span class="w">        </span><span class="no">value = {</span>
-<a id="__codelineno-27-71" name="__codelineno-27-71" href="#__codelineno-27-71"></a><span class="w">          </span><span class="no">&quot;bonus_id&quot;: f&quot;BON{bonus_counter:04d}&quot;,</span>
-<a id="__codelineno-27-72" name="__codelineno-27-72" href="#__codelineno-27-72"></a><span class="w">          </span><span class="no">&quot;customer&quot;: customer,</span>
-<a id="__codelineno-27-73" name="__codelineno-27-73" href="#__codelineno-27-73"></a><span class="w">          </span><span class="no">&quot;points&quot;: random.randint(10, 100),</span>
-<a id="__codelineno-27-74" name="__codelineno-27-74" href="#__codelineno-27-74"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
-<a id="__codelineno-27-75" name="__codelineno-27-75" href="#__codelineno-27-75"></a><span class="w">        </span><span class="no">}</span>
-<a id="__codelineno-27-76" name="__codelineno-27-76" href="#__codelineno-27-76"></a>
-<a id="__codelineno-27-77" name="__codelineno-27-77" href="#__codelineno-27-77"></a><span class="w">        </span><span class="no">key = customer</span>
-<a id="__codelineno-27-78" name="__codelineno-27-78" href="#__codelineno-27-78"></a><span class="w">      </span><span class="no">else:</span>
-<a id="__codelineno-27-79" name="__codelineno-27-79" href="#__codelineno-27-79"></a><span class="w">        </span><span class="no">key = None</span>
-<a id="__codelineno-27-80" name="__codelineno-27-80" href="#__codelineno-27-80"></a><span class="w">        </span><span class="no">value = None</span>
-<a id="__codelineno-27-81" name="__codelineno-27-81" href="#__codelineno-27-81"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value) if key else (None, None)</span>
-<a id="__codelineno-27-82" name="__codelineno-27-82" href="#__codelineno-27-82"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
-<a id="__codelineno-27-83" name="__codelineno-27-83" href="#__codelineno-27-83"></a>
-<a id="__codelineno-27-84" name="__codelineno-27-84" href="#__codelineno-27-84"></a><span class="nt">producers</span><span class="p">:</span>
-<a id="__codelineno-27-85" name="__codelineno-27-85" href="#__codelineno-27-85"></a><span class="w">  </span><span class="nt">order_producer</span><span class="p">:</span>
-<a id="__codelineno-27-86" name="__codelineno-27-86" href="#__codelineno-27-86"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_order</span>
-<a id="__codelineno-27-87" name="__codelineno-27-87" href="#__codelineno-27-87"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2s</span>
-<a id="__codelineno-27-88" name="__codelineno-27-88" href="#__codelineno-27-88"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-27-89" name="__codelineno-27-89" href="#__codelineno-27-89"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_orders</span>
-<a id="__codelineno-27-90" name="__codelineno-27-90" href="#__codelineno-27-90"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-27-91" name="__codelineno-27-91" href="#__codelineno-27-91"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-27-92" name="__codelineno-27-92" href="#__codelineno-27-92"></a>
-<a id="__codelineno-27-93" name="__codelineno-27-93" href="#__codelineno-27-93"></a><span class="w">  </span><span class="nt">refund_producer</span><span class="p">:</span>
-<a id="__codelineno-27-94" name="__codelineno-27-94" href="#__codelineno-27-94"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_refund</span>
-<a id="__codelineno-27-95" name="__codelineno-27-95" href="#__codelineno-27-95"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3s</span>
-<a id="__codelineno-27-96" name="__codelineno-27-96" href="#__codelineno-27-96"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-27-97" name="__codelineno-27-97" href="#__codelineno-27-97"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_refunds</span>
-<a id="__codelineno-27-98" name="__codelineno-27-98" href="#__codelineno-27-98"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-27-99" name="__codelineno-27-99" href="#__codelineno-27-99"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-27-100" name="__codelineno-27-100" href="#__codelineno-27-100"></a>
-<a id="__codelineno-27-101" name="__codelineno-27-101" href="#__codelineno-27-101"></a><span class="w">  </span><span class="nt">bonus_producer</span><span class="p">:</span>
-<a id="__codelineno-27-102" name="__codelineno-27-102" href="#__codelineno-27-102"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_bonus</span>
-<a id="__codelineno-27-103" name="__codelineno-27-103" href="#__codelineno-27-103"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5s</span>
-<a id="__codelineno-27-104" name="__codelineno-27-104" href="#__codelineno-27-104"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-27-105" name="__codelineno-27-105" href="#__codelineno-27-105"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_bonuses</span>
-<a id="__codelineno-27-106" name="__codelineno-27-106" href="#__codelineno-27-106"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-27-107" name="__codelineno-27-107" href="#__codelineno-27-107"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a><span class="nt">producers</span><span class="p">:</span>
+<a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a><span class="w">  </span><span class="nt">order_producer</span><span class="p">:</span>
+<a id="__codelineno-27-28" name="__codelineno-27-28" href="#__codelineno-27-28"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_order</span>
+<a id="__codelineno-27-29" name="__codelineno-27-29" href="#__codelineno-27-29"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2s</span>
+<a id="__codelineno-27-30" name="__codelineno-27-30" href="#__codelineno-27-30"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-27-31" name="__codelineno-27-31" href="#__codelineno-27-31"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_orders</span>
+<a id="__codelineno-27-32" name="__codelineno-27-32" href="#__codelineno-27-32"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-27-33" name="__codelineno-27-33" href="#__codelineno-27-33"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 </code></pre></div>
 </details>
 <details class="info">
@@ -3428,133 +3377,58 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>
-<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="w">  </span><span class="nt">refunds</span><span class="p">:</span>
-<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_refunds</span>
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="w">  </span><span class="nt">customer_totals</span><span class="p">:</span>
+<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
 <a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>
-<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="w">  </span><span class="nt">bonuses</span><span class="p">:</span>
-<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_bonuses</span>
-<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>
-<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="w">  </span><span class="nt">customer_totals</span><span class="p">:</span>
-<a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
-<a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a>
-<a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a><span class="nt">functions</span><span class="p">:</span>
-<a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a><span class="w">  </span><span class="nt">aggregate_order</span><span class="p">:</span>
-<a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
-<a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a><span class="w">      </span><span class="no"># Initialize if first time</span>
-<a id="__codelineno-28-27" name="__codelineno-28-27" href="#__codelineno-28-27"></a><span class="w">      </span><span class="no">if aggregatedValue is None:</span>
-<a id="__codelineno-28-28" name="__codelineno-28-28" href="#__codelineno-28-28"></a><span class="w">        </span><span class="no">aggregatedValue = {}</span>
-<a id="__codelineno-28-29" name="__codelineno-28-29" href="#__codelineno-28-29"></a>
-<a id="__codelineno-28-30" name="__codelineno-28-30" href="#__codelineno-28-30"></a><span class="w">      </span><span class="no"># Add order amount to total</span>
-<a id="__codelineno-28-31" name="__codelineno-28-31" href="#__codelineno-28-31"></a><span class="w">      </span><span class="no">if value is not None:</span>
-<a id="__codelineno-28-32" name="__codelineno-28-32" href="#__codelineno-28-32"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;total_orders&quot;] = aggregatedValue.get(&quot;total_orders&quot;, 0) + value.get(&quot;amount&quot;, 0)</span>
-<a id="__codelineno-28-33" name="__codelineno-28-33" href="#__codelineno-28-33"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;order_count&quot;] = aggregatedValue.get(&quot;order_count&quot;, 0) + 1</span>
-<a id="__codelineno-28-34" name="__codelineno-28-34" href="#__codelineno-28-34"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
-<a id="__codelineno-28-35" name="__codelineno-28-35" href="#__codelineno-28-35"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-28-36" name="__codelineno-28-36" href="#__codelineno-28-36"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-37" name="__codelineno-28-37" href="#__codelineno-28-37"></a>
-<a id="__codelineno-28-38" name="__codelineno-28-38" href="#__codelineno-28-38"></a><span class="w">  </span><span class="nt">aggregate_refund</span><span class="p">:</span>
-<a id="__codelineno-28-39" name="__codelineno-28-39" href="#__codelineno-28-39"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
-<a id="__codelineno-28-40" name="__codelineno-28-40" href="#__codelineno-28-40"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-41" name="__codelineno-28-41" href="#__codelineno-28-41"></a><span class="w">      </span><span class="no"># Initialize if first time</span>
-<a id="__codelineno-28-42" name="__codelineno-28-42" href="#__codelineno-28-42"></a><span class="w">      </span><span class="no">if aggregatedValue is None:</span>
-<a id="__codelineno-28-43" name="__codelineno-28-43" href="#__codelineno-28-43"></a><span class="w">        </span><span class="no">aggregatedValue = {}</span>
-<a id="__codelineno-28-44" name="__codelineno-28-44" href="#__codelineno-28-44"></a>
-<a id="__codelineno-28-45" name="__codelineno-28-45" href="#__codelineno-28-45"></a><span class="w">      </span><span class="no"># Add refund amount to total (refunds are subtracted later)</span>
-<a id="__codelineno-28-46" name="__codelineno-28-46" href="#__codelineno-28-46"></a><span class="w">      </span><span class="no">if value is not None:</span>
-<a id="__codelineno-28-47" name="__codelineno-28-47" href="#__codelineno-28-47"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;total_refunds&quot;] = aggregatedValue.get(&quot;total_refunds&quot;, 0) + value.get(&quot;amount&quot;, 0)</span>
-<a id="__codelineno-28-48" name="__codelineno-28-48" href="#__codelineno-28-48"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;refund_count&quot;] = aggregatedValue.get(&quot;refund_count&quot;, 0) + 1</span>
-<a id="__codelineno-28-49" name="__codelineno-28-49" href="#__codelineno-28-49"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
-<a id="__codelineno-28-50" name="__codelineno-28-50" href="#__codelineno-28-50"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-28-51" name="__codelineno-28-51" href="#__codelineno-28-51"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-52" name="__codelineno-28-52" href="#__codelineno-28-52"></a>
-<a id="__codelineno-28-53" name="__codelineno-28-53" href="#__codelineno-28-53"></a><span class="w">  </span><span class="nt">aggregate_bonus</span><span class="p">:</span>
-<a id="__codelineno-28-54" name="__codelineno-28-54" href="#__codelineno-28-54"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
-<a id="__codelineno-28-55" name="__codelineno-28-55" href="#__codelineno-28-55"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-56" name="__codelineno-28-56" href="#__codelineno-28-56"></a><span class="w">      </span><span class="no"># Initialize if first time</span>
-<a id="__codelineno-28-57" name="__codelineno-28-57" href="#__codelineno-28-57"></a><span class="w">      </span><span class="no">if aggregatedValue is None:</span>
-<a id="__codelineno-28-58" name="__codelineno-28-58" href="#__codelineno-28-58"></a><span class="w">        </span><span class="no">aggregatedValue = {}</span>
-<a id="__codelineno-28-59" name="__codelineno-28-59" href="#__codelineno-28-59"></a>
-<a id="__codelineno-28-60" name="__codelineno-28-60" href="#__codelineno-28-60"></a><span class="w">      </span><span class="no"># Add bonus points to total</span>
-<a id="__codelineno-28-61" name="__codelineno-28-61" href="#__codelineno-28-61"></a><span class="w">      </span><span class="no">if value is not None:</span>
-<a id="__codelineno-28-62" name="__codelineno-28-62" href="#__codelineno-28-62"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;total_bonus_points&quot;] = aggregatedValue.get(&quot;total_bonus_points&quot;, 0) + value.get(&quot;points&quot;, 0)</span>
-<a id="__codelineno-28-63" name="__codelineno-28-63" href="#__codelineno-28-63"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;bonus_count&quot;] = aggregatedValue.get(&quot;bonus_count&quot;, 0) + 1</span>
-<a id="__codelineno-28-64" name="__codelineno-28-64" href="#__codelineno-28-64"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
-<a id="__codelineno-28-65" name="__codelineno-28-65" href="#__codelineno-28-65"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-28-66" name="__codelineno-28-66" href="#__codelineno-28-66"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-67" name="__codelineno-28-67" href="#__codelineno-28-67"></a>
-<a id="__codelineno-28-68" name="__codelineno-28-68" href="#__codelineno-28-68"></a><span class="w">  </span><span class="nt">compute_net_value</span><span class="p">:</span>
-<a id="__codelineno-28-69" name="__codelineno-28-69" href="#__codelineno-28-69"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
-<a id="__codelineno-28-70" name="__codelineno-28-70" href="#__codelineno-28-70"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-71" name="__codelineno-28-71" href="#__codelineno-28-71"></a><span class="w">      </span><span class="no"># Compute net value (orders - refunds + bonus points as dollars)</span>
-<a id="__codelineno-28-72" name="__codelineno-28-72" href="#__codelineno-28-72"></a><span class="w">      </span><span class="no">orders = aggregatedValue.get(&quot;total_orders&quot;, 0)</span>
-<a id="__codelineno-28-73" name="__codelineno-28-73" href="#__codelineno-28-73"></a><span class="w">      </span><span class="no">refunds = aggregatedValue.get(&quot;total_refunds&quot;, 0)</span>
-<a id="__codelineno-28-74" name="__codelineno-28-74" href="#__codelineno-28-74"></a><span class="w">      </span><span class="no">bonus_dollars = aggregatedValue.get(&quot;total_bonus_points&quot;, 0) * 0.1  # 1 point = $0.10</span>
-<a id="__codelineno-28-75" name="__codelineno-28-75" href="#__codelineno-28-75"></a>
-<a id="__codelineno-28-76" name="__codelineno-28-76" href="#__codelineno-28-76"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;net_value&quot;] = round(orders - refunds + bonus_dollars, 2)</span>
-<a id="__codelineno-28-77" name="__codelineno-28-77" href="#__codelineno-28-77"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;customer&quot;] = key</span>
-<a id="__codelineno-28-78" name="__codelineno-28-78" href="#__codelineno-28-78"></a>
-<a id="__codelineno-28-79" name="__codelineno-28-79" href="#__codelineno-28-79"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
-<a id="__codelineno-28-80" name="__codelineno-28-80" href="#__codelineno-28-80"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-28-81" name="__codelineno-28-81" href="#__codelineno-28-81"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-82" name="__codelineno-28-82" href="#__codelineno-28-82"></a>
-<a id="__codelineno-28-83" name="__codelineno-28-83" href="#__codelineno-28-83"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-28-84" name="__codelineno-28-84" href="#__codelineno-28-84"></a><span class="w">  </span><span class="c1"># First stream: group orders</span>
-<a id="__codelineno-28-85" name="__codelineno-28-85" href="#__codelineno-28-85"></a><span class="w">  </span><span class="nt">grouped_orders</span><span class="p">:</span>
-<a id="__codelineno-28-86" name="__codelineno-28-86" href="#__codelineno-28-86"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
-<a id="__codelineno-28-87" name="__codelineno-28-87" href="#__codelineno-28-87"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-28-88" name="__codelineno-28-88" href="#__codelineno-28-88"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-28-89" name="__codelineno-28-89" href="#__codelineno-28-89"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cogroup</span>
-<a id="__codelineno-28-90" name="__codelineno-28-90" href="#__codelineno-28-90"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_order</span>
-<a id="__codelineno-28-91" name="__codelineno-28-91" href="#__codelineno-28-91"></a><span class="w">    </span><span class="nt">as</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders_grouped</span>
-<a id="__codelineno-28-92" name="__codelineno-28-92" href="#__codelineno-28-92"></a>
-<a id="__codelineno-28-93" name="__codelineno-28-93" href="#__codelineno-28-93"></a><span class="w">  </span><span class="c1"># Second stream: group refunds and cogroup with orders</span>
-<a id="__codelineno-28-94" name="__codelineno-28-94" href="#__codelineno-28-94"></a><span class="w">  </span><span class="nt">grouped_refunds</span><span class="p">:</span>
-<a id="__codelineno-28-95" name="__codelineno-28-95" href="#__codelineno-28-95"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">refunds</span>
-<a id="__codelineno-28-96" name="__codelineno-28-96" href="#__codelineno-28-96"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-28-97" name="__codelineno-28-97" href="#__codelineno-28-97"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-28-98" name="__codelineno-28-98" href="#__codelineno-28-98"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cogroup</span>
-<a id="__codelineno-28-99" name="__codelineno-28-99" href="#__codelineno-28-99"></a><span class="w">        </span><span class="nt">with</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders_grouped</span>
-<a id="__codelineno-28-100" name="__codelineno-28-100" href="#__codelineno-28-100"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_refund</span>
-<a id="__codelineno-28-101" name="__codelineno-28-101" href="#__codelineno-28-101"></a><span class="w">    </span><span class="nt">as</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">refunds_grouped</span>
-<a id="__codelineno-28-102" name="__codelineno-28-102" href="#__codelineno-28-102"></a>
-<a id="__codelineno-28-103" name="__codelineno-28-103" href="#__codelineno-28-103"></a><span class="w">  </span><span class="c1"># Third stream: group bonuses and cogroup with previous</span>
-<a id="__codelineno-28-104" name="__codelineno-28-104" href="#__codelineno-28-104"></a><span class="w">  </span><span class="nt">customer_aggregates</span><span class="p">:</span>
-<a id="__codelineno-28-105" name="__codelineno-28-105" href="#__codelineno-28-105"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bonuses</span>
-<a id="__codelineno-28-106" name="__codelineno-28-106" href="#__codelineno-28-106"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-28-107" name="__codelineno-28-107" href="#__codelineno-28-107"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-28-108" name="__codelineno-28-108" href="#__codelineno-28-108"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cogroup</span>
-<a id="__codelineno-28-109" name="__codelineno-28-109" href="#__codelineno-28-109"></a><span class="w">        </span><span class="nt">with</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">refunds_grouped</span>
-<a id="__codelineno-28-110" name="__codelineno-28-110" href="#__codelineno-28-110"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_bonus</span>
-<a id="__codelineno-28-111" name="__codelineno-28-111" href="#__codelineno-28-111"></a><span class="w">      </span><span class="c1"># Final aggregation to compute net value</span>
-<a id="__codelineno-28-112" name="__codelineno-28-112" href="#__codelineno-28-112"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
-<a id="__codelineno-28-113" name="__codelineno-28-113" href="#__codelineno-28-113"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span>
-<a id="__codelineno-28-114" name="__codelineno-28-114" href="#__codelineno-28-114"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
-<a id="__codelineno-28-115" name="__codelineno-28-115" href="#__codelineno-28-115"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-116" name="__codelineno-28-116" href="#__codelineno-28-116"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_net_value</span>
-<a id="__codelineno-28-117" name="__codelineno-28-117" href="#__codelineno-28-117"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
-<a id="__codelineno-28-118" name="__codelineno-28-118" href="#__codelineno-28-118"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals_store</span>
-<a id="__codelineno-28-119" name="__codelineno-28-119" href="#__codelineno-28-119"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
-<a id="__codelineno-28-120" name="__codelineno-28-120" href="#__codelineno-28-120"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-28-121" name="__codelineno-28-121" href="#__codelineno-28-121"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
-<a id="__codelineno-28-122" name="__codelineno-28-122" href="#__codelineno-28-122"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-28-123" name="__codelineno-28-123" href="#__codelineno-28-123"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-28-124" name="__codelineno-28-124" href="#__codelineno-28-124"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-125" name="__codelineno-28-125" href="#__codelineno-28-125"></a><span class="w">            </span><span class="no">log.info(&quot;CUSTOMER TOTALS - Customer: {}, Orders: ${} ({}), Refunds: ${} ({}), Bonus Points: {}, Net Value: ${}&quot;, </span>
-<a id="__codelineno-28-126" name="__codelineno-28-126" href="#__codelineno-28-126"></a><span class="w">                     </span><span class="no">key,</span>
-<a id="__codelineno-28-127" name="__codelineno-28-127" href="#__codelineno-28-127"></a><span class="w">                     </span><span class="no">value.get(&quot;total_orders&quot;, 0),</span>
-<a id="__codelineno-28-128" name="__codelineno-28-128" href="#__codelineno-28-128"></a><span class="w">                     </span><span class="no">value.get(&quot;order_count&quot;, 0),</span>
-<a id="__codelineno-28-129" name="__codelineno-28-129" href="#__codelineno-28-129"></a><span class="w">                     </span><span class="no">value.get(&quot;total_refunds&quot;, 0),</span>
-<a id="__codelineno-28-130" name="__codelineno-28-130" href="#__codelineno-28-130"></a><span class="w">                     </span><span class="no">value.get(&quot;refund_count&quot;, 0),</span>
-<a id="__codelineno-28-131" name="__codelineno-28-131" href="#__codelineno-28-131"></a><span class="w">                     </span><span class="no">value.get(&quot;total_bonus_points&quot;, 0),</span>
-<a id="__codelineno-28-132" name="__codelineno-28-132" href="#__codelineno-28-132"></a><span class="w">                     </span><span class="no">value.get(&quot;net_value&quot;, 0))</span>
-<a id="__codelineno-28-133" name="__codelineno-28-133" href="#__codelineno-28-133"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
+<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="w">  </span><span class="nt">init_order_stats</span><span class="p">:</span>
+<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
+<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="w">        </span><span class="no">&quot;total_amount&quot;: 0.0,</span>
+<a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a><span class="w">        </span><span class="no">&quot;order_count&quot;: 0,</span>
+<a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a><span class="w">        </span><span class="no">&quot;customer&quot;: &quot;&quot;</span>
+<a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a>
+<a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a><span class="w">  </span><span class="nt">aggregate_orders</span><span class="p">:</span>
+<a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
+<a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-28-27" name="__codelineno-28-27" href="#__codelineno-28-27"></a><span class="w">      </span><span class="no"># Add order amount and increment count</span>
+<a id="__codelineno-28-28" name="__codelineno-28-28" href="#__codelineno-28-28"></a><span class="w">      </span><span class="no">if value is not None:</span>
+<a id="__codelineno-28-29" name="__codelineno-28-29" href="#__codelineno-28-29"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;total_amount&quot;] = aggregatedValue.get(&quot;total_amount&quot;, 0) + value.get(&quot;amount&quot;, 0)</span>
+<a id="__codelineno-28-30" name="__codelineno-28-30" href="#__codelineno-28-30"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;order_count&quot;] = aggregatedValue.get(&quot;order_count&quot;, 0) + 1</span>
+<a id="__codelineno-28-31" name="__codelineno-28-31" href="#__codelineno-28-31"></a><span class="w">        </span><span class="no">aggregatedValue[&quot;customer&quot;] = key</span>
+<a id="__codelineno-28-32" name="__codelineno-28-32" href="#__codelineno-28-32"></a>
+<a id="__codelineno-28-33" name="__codelineno-28-33" href="#__codelineno-28-33"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
+<a id="__codelineno-28-34" name="__codelineno-28-34" href="#__codelineno-28-34"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-28-35" name="__codelineno-28-35" href="#__codelineno-28-35"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-28-36" name="__codelineno-28-36" href="#__codelineno-28-36"></a>
+<a id="__codelineno-28-37" name="__codelineno-28-37" href="#__codelineno-28-37"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-28-38" name="__codelineno-28-38" href="#__codelineno-28-38"></a><span class="w">  </span><span class="nt">customer_order_totals</span><span class="p">:</span>
+<a id="__codelineno-28-39" name="__codelineno-28-39" href="#__codelineno-28-39"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
+<a id="__codelineno-28-40" name="__codelineno-28-40" href="#__codelineno-28-40"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-28-41" name="__codelineno-28-41" href="#__codelineno-28-41"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
+<a id="__codelineno-28-42" name="__codelineno-28-42" href="#__codelineno-28-42"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cogroup</span>
+<a id="__codelineno-28-43" name="__codelineno-28-43" href="#__codelineno-28-43"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_orders</span>
+<a id="__codelineno-28-44" name="__codelineno-28-44" href="#__codelineno-28-44"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
+<a id="__codelineno-28-45" name="__codelineno-28-45" href="#__codelineno-28-45"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_order_stats</span>
+<a id="__codelineno-28-46" name="__codelineno-28-46" href="#__codelineno-28-46"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
+<a id="__codelineno-28-47" name="__codelineno-28-47" href="#__codelineno-28-47"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals_store</span>
+<a id="__codelineno-28-48" name="__codelineno-28-48" href="#__codelineno-28-48"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-28-49" name="__codelineno-28-49" href="#__codelineno-28-49"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-28-50" name="__codelineno-28-50" href="#__codelineno-28-50"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+<a id="__codelineno-28-51" name="__codelineno-28-51" href="#__codelineno-28-51"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-28-52" name="__codelineno-28-52" href="#__codelineno-28-52"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-28-53" name="__codelineno-28-53" href="#__codelineno-28-53"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-28-54" name="__codelineno-28-54" href="#__codelineno-28-54"></a><span class="w">            </span><span class="no">log.info(&quot;CUSTOMER ORDER TOTALS - Customer: {}, Total: ${}, Count: {}&quot;,</span>
+<a id="__codelineno-28-55" name="__codelineno-28-55" href="#__codelineno-28-55"></a><span class="w">                     </span><span class="no">key,</span>
+<a id="__codelineno-28-56" name="__codelineno-28-56" href="#__codelineno-28-56"></a><span class="w">                     </span><span class="no">value.get(&quot;total_amount&quot;, 0),</span>
+<a id="__codelineno-28-57" name="__codelineno-28-57" href="#__codelineno-28-57"></a><span class="w">                     </span><span class="no">value.get(&quot;order_count&quot;, 0))</span>
+<a id="__codelineno-28-58" name="__codelineno-28-58" href="#__codelineno-28-58"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
 </code></pre></div>
 </details>
 <h3 id="how-cogroup-works">How Cogroup Works</h3>
@@ -3638,22 +3512,22 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>
 <a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="w">  </span><span class="nt">sales_by_region</span><span class="p">:</span>
 <a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales_by_region</span>
-<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># Region</span>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json:windowed(string)</span><span class="w">  </span><span class="c1"># Windowed Region</span>
 <a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># Aggregated sales statistics</span>
 <a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>
 <a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a><span class="w">  </span><span class="nt">extract_region</span><span class="p">:</span>
-<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueMapper</span>
-<a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="w">      </span><span class="no"># Extract region from the sale event and use it as the new key</span>
-<a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a><span class="w">      </span><span class="no">region = value.get(&quot;region&quot;, &quot;unknown&quot;)</span>
-<a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(region, value)</span>
-<a id="__codelineno-30-19" name="__codelineno-30-19" href="#__codelineno-30-19"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
-<a id="__codelineno-30-20" name="__codelineno-30-20" href="#__codelineno-30-20"></a>
-<a id="__codelineno-30-21" name="__codelineno-30-21" href="#__codelineno-30-21"></a><span class="w">  </span><span class="nt">initialize_sales_stats</span><span class="p">:</span>
-<a id="__codelineno-30-22" name="__codelineno-30-22" href="#__codelineno-30-22"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
-<a id="__codelineno-30-23" name="__codelineno-30-23" href="#__codelineno-30-23"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;total_sales&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">0.0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;total_quantity&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;transaction_count&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;products&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">{}}</span>
-<a id="__codelineno-30-24" name="__codelineno-30-24" href="#__codelineno-30-24"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyTransformer</span>
+<a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a><span class="w">      </span><span class="no"># Extract region from the sale event and use it as the new key</span>
+<a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a><span class="w">      </span><span class="no">return value.get(&quot;region&quot;, &quot;unknown&quot;)</span>
+<a id="__codelineno-30-19" name="__codelineno-30-19" href="#__codelineno-30-19"></a>
+<a id="__codelineno-30-20" name="__codelineno-30-20" href="#__codelineno-30-20"></a><span class="w">  </span><span class="nt">initialize_sales_stats</span><span class="p">:</span>
+<a id="__codelineno-30-21" name="__codelineno-30-21" href="#__codelineno-30-21"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
+<a id="__codelineno-30-22" name="__codelineno-30-22" href="#__codelineno-30-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-30-23" name="__codelineno-30-23" href="#__codelineno-30-23"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-30-24" name="__codelineno-30-24" href="#__codelineno-30-24"></a><span class="w">      </span><span class="no">return {&quot;total_sales&quot;: 0.0, &quot;total_quantity&quot;: 0, &quot;transaction_count&quot;: 0, &quot;products&quot;: {}}</span>
 <a id="__codelineno-30-25" name="__codelineno-30-25" href="#__codelineno-30-25"></a>
 <a id="__codelineno-30-26" name="__codelineno-30-26" href="#__codelineno-30-26"></a><span class="w">  </span><span class="nt">aggregate_sales</span><span class="p">:</span>
 <a id="__codelineno-30-27" name="__codelineno-30-27" href="#__codelineno-30-27"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
@@ -3686,59 +3560,58 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-30-54" name="__codelineno-30-54" href="#__codelineno-30-54"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-30-55" name="__codelineno-30-55" href="#__codelineno-30-55"></a>
 <a id="__codelineno-30-56" name="__codelineno-30-56" href="#__codelineno-30-56"></a><span class="w">  </span><span class="nt">transform_window_key</span><span class="p">:</span>
-<a id="__codelineno-30-57" name="__codelineno-30-57" href="#__codelineno-30-57"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueMapper</span>
-<a id="__codelineno-30-58" name="__codelineno-30-58" href="#__codelineno-30-58"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-30-59" name="__codelineno-30-59" href="#__codelineno-30-59"></a><span class="w">      </span><span class="no"># Extract window information from the WindowedString key</span>
-<a id="__codelineno-30-60" name="__codelineno-30-60" href="#__codelineno-30-60"></a><span class="w">      </span><span class="no">region = key[&quot;key&quot;]</span>
-<a id="__codelineno-30-61" name="__codelineno-30-61" href="#__codelineno-30-61"></a><span class="w">      </span><span class="no">window_start = key[&quot;startTime&quot;]</span>
-<a id="__codelineno-30-62" name="__codelineno-30-62" href="#__codelineno-30-62"></a><span class="w">      </span><span class="no">window_end = key[&quot;endTime&quot;]</span>
-<a id="__codelineno-30-63" name="__codelineno-30-63" href="#__codelineno-30-63"></a>
-<a id="__codelineno-30-64" name="__codelineno-30-64" href="#__codelineno-30-64"></a><span class="w">      </span><span class="no"># Create a new string key with window info</span>
-<a id="__codelineno-30-65" name="__codelineno-30-65" href="#__codelineno-30-65"></a><span class="w">      </span><span class="no">new_key = f&quot;{region}_{window_start}_{window_end}&quot;</span>
-<a id="__codelineno-30-66" name="__codelineno-30-66" href="#__codelineno-30-66"></a>
-<a id="__codelineno-30-67" name="__codelineno-30-67" href="#__codelineno-30-67"></a><span class="w">      </span><span class="no"># Add window metadata to the value</span>
-<a id="__codelineno-30-68" name="__codelineno-30-68" href="#__codelineno-30-68"></a><span class="w">      </span><span class="no">new_value = {</span>
-<a id="__codelineno-30-69" name="__codelineno-30-69" href="#__codelineno-30-69"></a><span class="w">        </span><span class="no">&quot;region&quot;: region,</span>
-<a id="__codelineno-30-70" name="__codelineno-30-70" href="#__codelineno-30-70"></a><span class="w">        </span><span class="no">&quot;window_start&quot;: window_start,</span>
-<a id="__codelineno-30-71" name="__codelineno-30-71" href="#__codelineno-30-71"></a><span class="w">        </span><span class="no">&quot;window_end&quot;: window_end,</span>
-<a id="__codelineno-30-72" name="__codelineno-30-72" href="#__codelineno-30-72"></a><span class="w">        </span><span class="no">&quot;stats&quot;: value</span>
-<a id="__codelineno-30-73" name="__codelineno-30-73" href="#__codelineno-30-73"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-30-74" name="__codelineno-30-74" href="#__codelineno-30-74"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
-<a id="__codelineno-30-75" name="__codelineno-30-75" href="#__codelineno-30-75"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
-<a id="__codelineno-30-76" name="__codelineno-30-76" href="#__codelineno-30-76"></a>
-<a id="__codelineno-30-77" name="__codelineno-30-77" href="#__codelineno-30-77"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-30-78" name="__codelineno-30-78" href="#__codelineno-30-78"></a><span class="w">  </span><span class="nt">regional_sales_analytics</span><span class="p">:</span>
-<a id="__codelineno-30-79" name="__codelineno-30-79" href="#__codelineno-30-79"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales_events</span>
-<a id="__codelineno-30-80" name="__codelineno-30-80" href="#__codelineno-30-80"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-30-81" name="__codelineno-30-81" href="#__codelineno-30-81"></a><span class="w">      </span><span class="c1"># Group by region instead of product ID</span>
-<a id="__codelineno-30-82" name="__codelineno-30-82" href="#__codelineno-30-82"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map</span>
-<a id="__codelineno-30-83" name="__codelineno-30-83" href="#__codelineno-30-83"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_region</span>
-<a id="__codelineno-30-84" name="__codelineno-30-84" href="#__codelineno-30-84"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-30-85" name="__codelineno-30-85" href="#__codelineno-30-85"></a><span class="w">      </span><span class="c1"># Use tumbling window of 1 minute for demo</span>
-<a id="__codelineno-30-86" name="__codelineno-30-86" href="#__codelineno-30-86"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowByTime</span>
-<a id="__codelineno-30-87" name="__codelineno-30-87" href="#__codelineno-30-87"></a><span class="w">        </span><span class="nt">windowType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tumbling</span>
-<a id="__codelineno-30-88" name="__codelineno-30-88" href="#__codelineno-30-88"></a><span class="w">        </span><span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
-<a id="__codelineno-30-89" name="__codelineno-30-89" href="#__codelineno-30-89"></a><span class="w">        </span><span class="nt">grace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10s</span>
-<a id="__codelineno-30-90" name="__codelineno-30-90" href="#__codelineno-30-90"></a><span class="w">      </span><span class="c1"># Aggregate sales data</span>
-<a id="__codelineno-30-91" name="__codelineno-30-91" href="#__codelineno-30-91"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
-<a id="__codelineno-30-92" name="__codelineno-30-92" href="#__codelineno-30-92"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
-<a id="__codelineno-30-93" name="__codelineno-30-93" href="#__codelineno-30-93"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">window</span>
-<a id="__codelineno-30-94" name="__codelineno-30-94" href="#__codelineno-30-94"></a><span class="w">          </span><span class="nt">windowSize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
-<a id="__codelineno-30-95" name="__codelineno-30-95" href="#__codelineno-30-95"></a><span class="w">          </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10m</span>
-<a id="__codelineno-30-96" name="__codelineno-30-96" href="#__codelineno-30-96"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initialize_sales_stats</span>
-<a id="__codelineno-30-97" name="__codelineno-30-97" href="#__codelineno-30-97"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_sales</span>
-<a id="__codelineno-30-98" name="__codelineno-30-98" href="#__codelineno-30-98"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
-<a id="__codelineno-30-99" name="__codelineno-30-99" href="#__codelineno-30-99"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map</span>
-<a id="__codelineno-30-100" name="__codelineno-30-100" href="#__codelineno-30-100"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_window_key</span>
-<a id="__codelineno-30-101" name="__codelineno-30-101" href="#__codelineno-30-101"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-30-102" name="__codelineno-30-102" href="#__codelineno-30-102"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-30-103" name="__codelineno-30-103" href="#__codelineno-30-103"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-30-104" name="__codelineno-30-104" href="#__codelineno-30-104"></a><span class="w">            </span><span class="no">region = value[&quot;region&quot;]</span>
-<a id="__codelineno-30-105" name="__codelineno-30-105" href="#__codelineno-30-105"></a><span class="w">            </span><span class="no">stats = value[&quot;stats&quot;]</span>
-<a id="__codelineno-30-106" name="__codelineno-30-106" href="#__codelineno-30-106"></a><span class="w">            </span><span class="no">log.info(&quot;Region {} sales (1-min window): ${} from {} transactions&quot;, </span>
-<a id="__codelineno-30-107" name="__codelineno-30-107" href="#__codelineno-30-107"></a><span class="w">                     </span><span class="no">region, stats[&quot;total_sales&quot;], stats[&quot;transaction_count&quot;])</span>
-<a id="__codelineno-30-108" name="__codelineno-30-108" href="#__codelineno-30-108"></a><span class="w">    </span><span class="c1"># Output to region-specific topic</span>
-<a id="__codelineno-30-109" name="__codelineno-30-109" href="#__codelineno-30-109"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales_by_region</span>
+<a id="__codelineno-30-57" name="__codelineno-30-57" href="#__codelineno-30-57"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-30-58" name="__codelineno-30-58" href="#__codelineno-30-58"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-30-59" name="__codelineno-30-59" href="#__codelineno-30-59"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-30-60" name="__codelineno-30-60" href="#__codelineno-30-60"></a><span class="w">      </span><span class="no"># Extract window information from the WindowedString key</span>
+<a id="__codelineno-30-61" name="__codelineno-30-61" href="#__codelineno-30-61"></a><span class="w">      </span><span class="no">region = key[&quot;key&quot;]</span>
+<a id="__codelineno-30-62" name="__codelineno-30-62" href="#__codelineno-30-62"></a><span class="w">      </span><span class="no">window_start = key[&quot;startTime&quot;]</span>
+<a id="__codelineno-30-63" name="__codelineno-30-63" href="#__codelineno-30-63"></a><span class="w">      </span><span class="no">window_end = key[&quot;endTime&quot;]</span>
+<a id="__codelineno-30-64" name="__codelineno-30-64" href="#__codelineno-30-64"></a>
+<a id="__codelineno-30-65" name="__codelineno-30-65" href="#__codelineno-30-65"></a><span class="w">      </span><span class="no"># Add window metadata to the value</span>
+<a id="__codelineno-30-66" name="__codelineno-30-66" href="#__codelineno-30-66"></a><span class="w">      </span><span class="no">return {</span>
+<a id="__codelineno-30-67" name="__codelineno-30-67" href="#__codelineno-30-67"></a><span class="w">        </span><span class="no">&quot;region&quot;: region,</span>
+<a id="__codelineno-30-68" name="__codelineno-30-68" href="#__codelineno-30-68"></a><span class="w">        </span><span class="no">&quot;window_start&quot;: window_start,</span>
+<a id="__codelineno-30-69" name="__codelineno-30-69" href="#__codelineno-30-69"></a><span class="w">        </span><span class="no">&quot;window_end&quot;: window_end,</span>
+<a id="__codelineno-30-70" name="__codelineno-30-70" href="#__codelineno-30-70"></a><span class="w">        </span><span class="no">&quot;stats&quot;: value</span>
+<a id="__codelineno-30-71" name="__codelineno-30-71" href="#__codelineno-30-71"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-30-72" name="__codelineno-30-72" href="#__codelineno-30-72"></a>
+<a id="__codelineno-30-73" name="__codelineno-30-73" href="#__codelineno-30-73"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-30-74" name="__codelineno-30-74" href="#__codelineno-30-74"></a><span class="w">  </span><span class="nt">regional_sales_analytics</span><span class="p">:</span>
+<a id="__codelineno-30-75" name="__codelineno-30-75" href="#__codelineno-30-75"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales_events</span>
+<a id="__codelineno-30-76" name="__codelineno-30-76" href="#__codelineno-30-76"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-30-77" name="__codelineno-30-77" href="#__codelineno-30-77"></a><span class="w">      </span><span class="c1"># Group by region instead of product ID</span>
+<a id="__codelineno-30-78" name="__codelineno-30-78" href="#__codelineno-30-78"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">selectKey</span>
+<a id="__codelineno-30-79" name="__codelineno-30-79" href="#__codelineno-30-79"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_region</span>
+<a id="__codelineno-30-80" name="__codelineno-30-80" href="#__codelineno-30-80"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
+<a id="__codelineno-30-81" name="__codelineno-30-81" href="#__codelineno-30-81"></a><span class="w">      </span><span class="c1"># Use tumbling window of 1 minute for demo</span>
+<a id="__codelineno-30-82" name="__codelineno-30-82" href="#__codelineno-30-82"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowByTime</span>
+<a id="__codelineno-30-83" name="__codelineno-30-83" href="#__codelineno-30-83"></a><span class="w">        </span><span class="nt">windowType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tumbling</span>
+<a id="__codelineno-30-84" name="__codelineno-30-84" href="#__codelineno-30-84"></a><span class="w">        </span><span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
+<a id="__codelineno-30-85" name="__codelineno-30-85" href="#__codelineno-30-85"></a><span class="w">        </span><span class="nt">grace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10s</span>
+<a id="__codelineno-30-86" name="__codelineno-30-86" href="#__codelineno-30-86"></a><span class="w">      </span><span class="c1"># Aggregate sales data</span>
+<a id="__codelineno-30-87" name="__codelineno-30-87" href="#__codelineno-30-87"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
+<a id="__codelineno-30-88" name="__codelineno-30-88" href="#__codelineno-30-88"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
+<a id="__codelineno-30-89" name="__codelineno-30-89" href="#__codelineno-30-89"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales_by_region_store</span>
+<a id="__codelineno-30-90" name="__codelineno-30-90" href="#__codelineno-30-90"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">window</span>
+<a id="__codelineno-30-91" name="__codelineno-30-91" href="#__codelineno-30-91"></a><span class="w">          </span><span class="nt">windowSize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
+<a id="__codelineno-30-92" name="__codelineno-30-92" href="#__codelineno-30-92"></a><span class="w">          </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10m</span>
+<a id="__codelineno-30-93" name="__codelineno-30-93" href="#__codelineno-30-93"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initialize_sales_stats</span>
+<a id="__codelineno-30-94" name="__codelineno-30-94" href="#__codelineno-30-94"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_sales</span>
+<a id="__codelineno-30-95" name="__codelineno-30-95" href="#__codelineno-30-95"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+<a id="__codelineno-30-96" name="__codelineno-30-96" href="#__codelineno-30-96"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertKey</span>
+<a id="__codelineno-30-97" name="__codelineno-30-97" href="#__codelineno-30-97"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json:windowed(string)</span>
+<a id="__codelineno-30-98" name="__codelineno-30-98" href="#__codelineno-30-98"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-30-99" name="__codelineno-30-99" href="#__codelineno-30-99"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_window_key</span>
+<a id="__codelineno-30-100" name="__codelineno-30-100" href="#__codelineno-30-100"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-30-101" name="__codelineno-30-101" href="#__codelineno-30-101"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-30-102" name="__codelineno-30-102" href="#__codelineno-30-102"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-30-103" name="__codelineno-30-103" href="#__codelineno-30-103"></a><span class="w">            </span><span class="no">region = value[&quot;region&quot;]</span>
+<a id="__codelineno-30-104" name="__codelineno-30-104" href="#__codelineno-30-104"></a><span class="w">            </span><span class="no">stats = value[&quot;stats&quot;]</span>
+<a id="__codelineno-30-105" name="__codelineno-30-105" href="#__codelineno-30-105"></a><span class="w">            </span><span class="no">log.info(&quot;Region {} sales (1-min window): ${} from {} transactions&quot;, </span>
+<a id="__codelineno-30-106" name="__codelineno-30-106" href="#__codelineno-30-106"></a><span class="w">                     </span><span class="no">region, stats[&quot;total_sales&quot;], stats[&quot;transaction_count&quot;])</span>
+<a id="__codelineno-30-107" name="__codelineno-30-107" href="#__codelineno-30-107"></a><span class="w">    </span><span class="c1"># Output to region-specific topic</span>
+<a id="__codelineno-30-108" name="__codelineno-30-108" href="#__codelineno-30-108"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales_by_region</span>
 </code></pre></div>
 </details>
 <p><strong>Pipeline flow:</strong></p>

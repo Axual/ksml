@@ -3016,85 +3016,86 @@ Breaking transformations into steps makes your pipeline easier to understand and
 <a id="__codelineno-23-55" name="__codelineno-23-55" href="#__codelineno-23-55"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueTransformer</span>
 <a id="__codelineno-23-56" name="__codelineno-23-56" href="#__codelineno-23-56"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-23-57" name="__codelineno-23-57" href="#__codelineno-23-57"></a><span class="w">      </span><span class="no">from datetime import datetime</span>
-<a id="__codelineno-23-58" name="__codelineno-23-58" href="#__codelineno-23-58"></a>
-<a id="__codelineno-23-59" name="__codelineno-23-59" href="#__codelineno-23-59"></a><span class="w">      </span><span class="no">try:</span>
-<a id="__codelineno-23-60" name="__codelineno-23-60" href="#__codelineno-23-60"></a><span class="w">        </span><span class="no"># Extract nested sensor data</span>
-<a id="__codelineno-23-61" name="__codelineno-23-61" href="#__codelineno-23-61"></a><span class="w">        </span><span class="no">sensors = value.get(&#39;sensors&#39;, {})</span>
-<a id="__codelineno-23-62" name="__codelineno-23-62" href="#__codelineno-23-62"></a><span class="w">        </span><span class="no">metadata = value.get(&#39;metadata&#39;, {})</span>
-<a id="__codelineno-23-63" name="__codelineno-23-63" href="#__codelineno-23-63"></a>
-<a id="__codelineno-23-64" name="__codelineno-23-64" href="#__codelineno-23-64"></a><span class="w">        </span><span class="no"># Get temperature and convert from F to C</span>
-<a id="__codelineno-23-65" name="__codelineno-23-65" href="#__codelineno-23-65"></a><span class="w">        </span><span class="no">temp_f = sensors.get(&#39;temperature&#39;, {}).get(&#39;value&#39;, 0)</span>
-<a id="__codelineno-23-66" name="__codelineno-23-66" href="#__codelineno-23-66"></a><span class="w">        </span><span class="no">temp_c = (temp_f - 32) * 5/9</span>
-<a id="__codelineno-23-67" name="__codelineno-23-67" href="#__codelineno-23-67"></a>
-<a id="__codelineno-23-68" name="__codelineno-23-68" href="#__codelineno-23-68"></a><span class="w">        </span><span class="no"># Get humidity</span>
-<a id="__codelineno-23-69" name="__codelineno-23-69" href="#__codelineno-23-69"></a><span class="w">        </span><span class="no">humidity = sensors.get(&#39;humidity&#39;, {}).get(&#39;value&#39;, 0)</span>
-<a id="__codelineno-23-70" name="__codelineno-23-70" href="#__codelineno-23-70"></a>
-<a id="__codelineno-23-71" name="__codelineno-23-71" href="#__codelineno-23-71"></a><span class="w">        </span><span class="no"># Calculate heat index (simplified formula)</span>
-<a id="__codelineno-23-72" name="__codelineno-23-72" href="#__codelineno-23-72"></a><span class="w">        </span><span class="no">heat_index = temp_c * 1.8 + 32 - 0.55 * (1 - humidity / 100)</span>
-<a id="__codelineno-23-73" name="__codelineno-23-73" href="#__codelineno-23-73"></a>
-<a id="__codelineno-23-74" name="__codelineno-23-74" href="#__codelineno-23-74"></a><span class="w">        </span><span class="no"># Get location</span>
-<a id="__codelineno-23-75" name="__codelineno-23-75" href="#__codelineno-23-75"></a><span class="w">        </span><span class="no">location = sensors.get(&#39;location&#39;, {}).get(&#39;value&#39;, &#39;unknown&#39;)</span>
-<a id="__codelineno-23-76" name="__codelineno-23-76" href="#__codelineno-23-76"></a>
-<a id="__codelineno-23-77" name="__codelineno-23-77" href="#__codelineno-23-77"></a><span class="w">        </span><span class="no"># Format timestamp</span>
-<a id="__codelineno-23-78" name="__codelineno-23-78" href="#__codelineno-23-78"></a><span class="w">        </span><span class="no">timestamp = metadata.get(&#39;timestamp&#39;, 0)</span>
-<a id="__codelineno-23-79" name="__codelineno-23-79" href="#__codelineno-23-79"></a><span class="w">        </span><span class="no">if isinstance(timestamp, (int, float)):</span>
-<a id="__codelineno-23-80" name="__codelineno-23-80" href="#__codelineno-23-80"></a><span class="w">          </span><span class="no"># Convert Unix timestamp to ISO format</span>
-<a id="__codelineno-23-81" name="__codelineno-23-81" href="#__codelineno-23-81"></a><span class="w">          </span><span class="no">formatted_time = datetime.fromtimestamp(timestamp / 1000).isoformat()</span>
-<a id="__codelineno-23-82" name="__codelineno-23-82" href="#__codelineno-23-82"></a><span class="w">        </span><span class="no">else:</span>
-<a id="__codelineno-23-83" name="__codelineno-23-83" href="#__codelineno-23-83"></a><span class="w">          </span><span class="no">formatted_time = str(timestamp)</span>
-<a id="__codelineno-23-84" name="__codelineno-23-84" href="#__codelineno-23-84"></a>
-<a id="__codelineno-23-85" name="__codelineno-23-85" href="#__codelineno-23-85"></a><span class="w">        </span><span class="no">transformed = {</span>
-<a id="__codelineno-23-86" name="__codelineno-23-86" href="#__codelineno-23-86"></a><span class="w">          </span><span class="no">&quot;sensor_id&quot;: key,</span>
-<a id="__codelineno-23-87" name="__codelineno-23-87" href="#__codelineno-23-87"></a><span class="w">          </span><span class="no">&quot;location&quot;: location,</span>
-<a id="__codelineno-23-88" name="__codelineno-23-88" href="#__codelineno-23-88"></a><span class="w">          </span><span class="no">&quot;readings&quot;: {</span>
-<a id="__codelineno-23-89" name="__codelineno-23-89" href="#__codelineno-23-89"></a><span class="w">            </span><span class="no">&quot;temperature&quot;: {</span>
-<a id="__codelineno-23-90" name="__codelineno-23-90" href="#__codelineno-23-90"></a><span class="w">              </span><span class="no">&quot;celsius&quot;: round(temp_c, 2),</span>
-<a id="__codelineno-23-91" name="__codelineno-23-91" href="#__codelineno-23-91"></a><span class="w">              </span><span class="no">&quot;fahrenheit&quot;: temp_f</span>
-<a id="__codelineno-23-92" name="__codelineno-23-92" href="#__codelineno-23-92"></a><span class="w">            </span><span class="no">},</span>
-<a id="__codelineno-23-93" name="__codelineno-23-93" href="#__codelineno-23-93"></a><span class="w">            </span><span class="no">&quot;humidity&quot;: humidity,</span>
-<a id="__codelineno-23-94" name="__codelineno-23-94" href="#__codelineno-23-94"></a><span class="w">            </span><span class="no">&quot;heat_index&quot;: round(heat_index, 2)</span>
-<a id="__codelineno-23-95" name="__codelineno-23-95" href="#__codelineno-23-95"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-23-96" name="__codelineno-23-96" href="#__codelineno-23-96"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: formatted_time,</span>
-<a id="__codelineno-23-97" name="__codelineno-23-97" href="#__codelineno-23-97"></a><span class="w">          </span><span class="no">&quot;processed_at&quot;: int(time.time() * 1000)</span>
-<a id="__codelineno-23-98" name="__codelineno-23-98" href="#__codelineno-23-98"></a><span class="w">        </span><span class="no">}</span>
-<a id="__codelineno-23-99" name="__codelineno-23-99" href="#__codelineno-23-99"></a><span class="w">        </span><span class="no">new_key = key</span>
-<a id="__codelineno-23-100" name="__codelineno-23-100" href="#__codelineno-23-100"></a><span class="w">        </span><span class="no">new_value = transformed</span>
-<a id="__codelineno-23-101" name="__codelineno-23-101" href="#__codelineno-23-101"></a><span class="w">      </span><span class="no">except Exception as e:</span>
-<a id="__codelineno-23-102" name="__codelineno-23-102" href="#__codelineno-23-102"></a><span class="w">        </span><span class="no">error_data = {</span>
-<a id="__codelineno-23-103" name="__codelineno-23-103" href="#__codelineno-23-103"></a><span class="w">          </span><span class="no">&quot;error&quot;: str(e),</span>
-<a id="__codelineno-23-104" name="__codelineno-23-104" href="#__codelineno-23-104"></a><span class="w">          </span><span class="no">&quot;original&quot;: value,</span>
-<a id="__codelineno-23-105" name="__codelineno-23-105" href="#__codelineno-23-105"></a><span class="w">          </span><span class="no">&quot;sensor_id&quot;: key,</span>
-<a id="__codelineno-23-106" name="__codelineno-23-106" href="#__codelineno-23-106"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
-<a id="__codelineno-23-107" name="__codelineno-23-107" href="#__codelineno-23-107"></a><span class="w">        </span><span class="no">}</span>
-<a id="__codelineno-23-108" name="__codelineno-23-108" href="#__codelineno-23-108"></a><span class="w">        </span><span class="no">new_key = key</span>
-<a id="__codelineno-23-109" name="__codelineno-23-109" href="#__codelineno-23-109"></a><span class="w">        </span><span class="no">new_value = error_data</span>
-<a id="__codelineno-23-110" name="__codelineno-23-110" href="#__codelineno-23-110"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
-<a id="__codelineno-23-111" name="__codelineno-23-111" href="#__codelineno-23-111"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
-<a id="__codelineno-23-112" name="__codelineno-23-112" href="#__codelineno-23-112"></a>
-<a id="__codelineno-23-113" name="__codelineno-23-113" href="#__codelineno-23-113"></a><span class="w">  </span><span class="nt">log_processed_data</span><span class="p">:</span>
-<a id="__codelineno-23-114" name="__codelineno-23-114" href="#__codelineno-23-114"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
-<a id="__codelineno-23-115" name="__codelineno-23-115" href="#__codelineno-23-115"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-23-116" name="__codelineno-23-116" href="#__codelineno-23-116"></a><span class="w">      </span><span class="no">readings = value.get(&#39;readings&#39;, {})</span>
-<a id="__codelineno-23-117" name="__codelineno-23-117" href="#__codelineno-23-117"></a><span class="w">      </span><span class="no">temp = readings.get(&#39;temperature&#39;, {}).get(&#39;celsius&#39;)</span>
-<a id="__codelineno-23-118" name="__codelineno-23-118" href="#__codelineno-23-118"></a><span class="w">      </span><span class="no">humidity = readings.get(&#39;humidity&#39;)</span>
-<a id="__codelineno-23-119" name="__codelineno-23-119" href="#__codelineno-23-119"></a><span class="w">      </span><span class="no">sensor_id = value.get(&#39;sensor_id&#39;)</span>
-<a id="__codelineno-23-120" name="__codelineno-23-120" href="#__codelineno-23-120"></a><span class="w">      </span><span class="no">print(f&quot;Processed sensor data for {sensor_id}: temp={temp}C, humidity={humidity}%&quot;)</span>
-<a id="__codelineno-23-121" name="__codelineno-23-121" href="#__codelineno-23-121"></a>
-<a id="__codelineno-23-122" name="__codelineno-23-122" href="#__codelineno-23-122"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-23-123" name="__codelineno-23-123" href="#__codelineno-23-123"></a><span class="w">  </span><span class="nt">process_sensor_data</span><span class="p">:</span>
-<a id="__codelineno-23-124" name="__codelineno-23-124" href="#__codelineno-23-124"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_data</span>
-<a id="__codelineno-23-125" name="__codelineno-23-125" href="#__codelineno-23-125"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-23-126" name="__codelineno-23-126" href="#__codelineno-23-126"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
-<a id="__codelineno-23-127" name="__codelineno-23-127" href="#__codelineno-23-127"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">validate_sensor_data</span>
-<a id="__codelineno-23-128" name="__codelineno-23-128" href="#__codelineno-23-128"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformKeyValue</span>
-<a id="__codelineno-23-129" name="__codelineno-23-129" href="#__codelineno-23-129"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_sensor_data</span>
-<a id="__codelineno-23-130" name="__codelineno-23-130" href="#__codelineno-23-130"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-23-131" name="__codelineno-23-131" href="#__codelineno-23-131"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_processed_data</span>
-<a id="__codelineno-23-132" name="__codelineno-23-132" href="#__codelineno-23-132"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span>
-<a id="__codelineno-23-133" name="__codelineno-23-133" href="#__codelineno-23-133"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
-<a id="__codelineno-23-134" name="__codelineno-23-134" href="#__codelineno-23-134"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&#39;error&#39;</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">value&quot;</span>
-<a id="__codelineno-23-135" name="__codelineno-23-135" href="#__codelineno-23-135"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">error_data</span>
-<a id="__codelineno-23-136" name="__codelineno-23-136" href="#__codelineno-23-136"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed_data</span>
+<a id="__codelineno-23-58" name="__codelineno-23-58" href="#__codelineno-23-58"></a><span class="w">      </span><span class="no">import time</span>
+<a id="__codelineno-23-59" name="__codelineno-23-59" href="#__codelineno-23-59"></a>
+<a id="__codelineno-23-60" name="__codelineno-23-60" href="#__codelineno-23-60"></a><span class="w">      </span><span class="no">try:</span>
+<a id="__codelineno-23-61" name="__codelineno-23-61" href="#__codelineno-23-61"></a><span class="w">        </span><span class="no"># Extract nested sensor data</span>
+<a id="__codelineno-23-62" name="__codelineno-23-62" href="#__codelineno-23-62"></a><span class="w">        </span><span class="no">sensors = value.get(&#39;sensors&#39;, {})</span>
+<a id="__codelineno-23-63" name="__codelineno-23-63" href="#__codelineno-23-63"></a><span class="w">        </span><span class="no">metadata = value.get(&#39;metadata&#39;, {})</span>
+<a id="__codelineno-23-64" name="__codelineno-23-64" href="#__codelineno-23-64"></a>
+<a id="__codelineno-23-65" name="__codelineno-23-65" href="#__codelineno-23-65"></a><span class="w">        </span><span class="no"># Get temperature and convert from F to C</span>
+<a id="__codelineno-23-66" name="__codelineno-23-66" href="#__codelineno-23-66"></a><span class="w">        </span><span class="no">temp_f = sensors.get(&#39;temperature&#39;, {}).get(&#39;value&#39;, 0)</span>
+<a id="__codelineno-23-67" name="__codelineno-23-67" href="#__codelineno-23-67"></a><span class="w">        </span><span class="no">temp_c = (temp_f - 32) * 5/9</span>
+<a id="__codelineno-23-68" name="__codelineno-23-68" href="#__codelineno-23-68"></a>
+<a id="__codelineno-23-69" name="__codelineno-23-69" href="#__codelineno-23-69"></a><span class="w">        </span><span class="no"># Get humidity</span>
+<a id="__codelineno-23-70" name="__codelineno-23-70" href="#__codelineno-23-70"></a><span class="w">        </span><span class="no">humidity = sensors.get(&#39;humidity&#39;, {}).get(&#39;value&#39;, 0)</span>
+<a id="__codelineno-23-71" name="__codelineno-23-71" href="#__codelineno-23-71"></a>
+<a id="__codelineno-23-72" name="__codelineno-23-72" href="#__codelineno-23-72"></a><span class="w">        </span><span class="no"># Calculate heat index (simplified formula)</span>
+<a id="__codelineno-23-73" name="__codelineno-23-73" href="#__codelineno-23-73"></a><span class="w">        </span><span class="no">heat_index = temp_c * 1.8 + 32 - 0.55 * (1 - humidity / 100)</span>
+<a id="__codelineno-23-74" name="__codelineno-23-74" href="#__codelineno-23-74"></a>
+<a id="__codelineno-23-75" name="__codelineno-23-75" href="#__codelineno-23-75"></a><span class="w">        </span><span class="no"># Get location</span>
+<a id="__codelineno-23-76" name="__codelineno-23-76" href="#__codelineno-23-76"></a><span class="w">        </span><span class="no">location = sensors.get(&#39;location&#39;, {}).get(&#39;value&#39;, &#39;unknown&#39;)</span>
+<a id="__codelineno-23-77" name="__codelineno-23-77" href="#__codelineno-23-77"></a>
+<a id="__codelineno-23-78" name="__codelineno-23-78" href="#__codelineno-23-78"></a><span class="w">        </span><span class="no"># Format timestamp</span>
+<a id="__codelineno-23-79" name="__codelineno-23-79" href="#__codelineno-23-79"></a><span class="w">        </span><span class="no">timestamp = metadata.get(&#39;timestamp&#39;, 0)</span>
+<a id="__codelineno-23-80" name="__codelineno-23-80" href="#__codelineno-23-80"></a><span class="w">        </span><span class="no">if isinstance(timestamp, (int, float)):</span>
+<a id="__codelineno-23-81" name="__codelineno-23-81" href="#__codelineno-23-81"></a><span class="w">          </span><span class="no"># Convert Unix timestamp to ISO format</span>
+<a id="__codelineno-23-82" name="__codelineno-23-82" href="#__codelineno-23-82"></a><span class="w">          </span><span class="no">formatted_time = datetime.fromtimestamp(timestamp / 1000).isoformat()</span>
+<a id="__codelineno-23-83" name="__codelineno-23-83" href="#__codelineno-23-83"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-23-84" name="__codelineno-23-84" href="#__codelineno-23-84"></a><span class="w">          </span><span class="no">formatted_time = str(timestamp)</span>
+<a id="__codelineno-23-85" name="__codelineno-23-85" href="#__codelineno-23-85"></a>
+<a id="__codelineno-23-86" name="__codelineno-23-86" href="#__codelineno-23-86"></a><span class="w">        </span><span class="no">transformed = {</span>
+<a id="__codelineno-23-87" name="__codelineno-23-87" href="#__codelineno-23-87"></a><span class="w">          </span><span class="no">&quot;sensor_id&quot;: key,</span>
+<a id="__codelineno-23-88" name="__codelineno-23-88" href="#__codelineno-23-88"></a><span class="w">          </span><span class="no">&quot;location&quot;: location,</span>
+<a id="__codelineno-23-89" name="__codelineno-23-89" href="#__codelineno-23-89"></a><span class="w">          </span><span class="no">&quot;readings&quot;: {</span>
+<a id="__codelineno-23-90" name="__codelineno-23-90" href="#__codelineno-23-90"></a><span class="w">            </span><span class="no">&quot;temperature&quot;: {</span>
+<a id="__codelineno-23-91" name="__codelineno-23-91" href="#__codelineno-23-91"></a><span class="w">              </span><span class="no">&quot;celsius&quot;: round(temp_c, 2),</span>
+<a id="__codelineno-23-92" name="__codelineno-23-92" href="#__codelineno-23-92"></a><span class="w">              </span><span class="no">&quot;fahrenheit&quot;: temp_f</span>
+<a id="__codelineno-23-93" name="__codelineno-23-93" href="#__codelineno-23-93"></a><span class="w">            </span><span class="no">},</span>
+<a id="__codelineno-23-94" name="__codelineno-23-94" href="#__codelineno-23-94"></a><span class="w">            </span><span class="no">&quot;humidity&quot;: humidity,</span>
+<a id="__codelineno-23-95" name="__codelineno-23-95" href="#__codelineno-23-95"></a><span class="w">            </span><span class="no">&quot;heat_index&quot;: round(heat_index, 2)</span>
+<a id="__codelineno-23-96" name="__codelineno-23-96" href="#__codelineno-23-96"></a><span class="w">          </span><span class="no">},</span>
+<a id="__codelineno-23-97" name="__codelineno-23-97" href="#__codelineno-23-97"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: formatted_time,</span>
+<a id="__codelineno-23-98" name="__codelineno-23-98" href="#__codelineno-23-98"></a><span class="w">          </span><span class="no">&quot;processed_at&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-23-99" name="__codelineno-23-99" href="#__codelineno-23-99"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-23-100" name="__codelineno-23-100" href="#__codelineno-23-100"></a><span class="w">        </span><span class="no">new_key = key</span>
+<a id="__codelineno-23-101" name="__codelineno-23-101" href="#__codelineno-23-101"></a><span class="w">        </span><span class="no">new_value = transformed</span>
+<a id="__codelineno-23-102" name="__codelineno-23-102" href="#__codelineno-23-102"></a><span class="w">      </span><span class="no">except Exception as e:</span>
+<a id="__codelineno-23-103" name="__codelineno-23-103" href="#__codelineno-23-103"></a><span class="w">        </span><span class="no">error_data = {</span>
+<a id="__codelineno-23-104" name="__codelineno-23-104" href="#__codelineno-23-104"></a><span class="w">          </span><span class="no">&quot;error&quot;: str(e),</span>
+<a id="__codelineno-23-105" name="__codelineno-23-105" href="#__codelineno-23-105"></a><span class="w">          </span><span class="no">&quot;original&quot;: value,</span>
+<a id="__codelineno-23-106" name="__codelineno-23-106" href="#__codelineno-23-106"></a><span class="w">          </span><span class="no">&quot;sensor_id&quot;: key,</span>
+<a id="__codelineno-23-107" name="__codelineno-23-107" href="#__codelineno-23-107"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-23-108" name="__codelineno-23-108" href="#__codelineno-23-108"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-23-109" name="__codelineno-23-109" href="#__codelineno-23-109"></a><span class="w">        </span><span class="no">new_key = key</span>
+<a id="__codelineno-23-110" name="__codelineno-23-110" href="#__codelineno-23-110"></a><span class="w">        </span><span class="no">new_value = error_data</span>
+<a id="__codelineno-23-111" name="__codelineno-23-111" href="#__codelineno-23-111"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(new_key, new_value)</span>
+<a id="__codelineno-23-112" name="__codelineno-23-112" href="#__codelineno-23-112"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-23-113" name="__codelineno-23-113" href="#__codelineno-23-113"></a>
+<a id="__codelineno-23-114" name="__codelineno-23-114" href="#__codelineno-23-114"></a><span class="w">  </span><span class="nt">log_processed_data</span><span class="p">:</span>
+<a id="__codelineno-23-115" name="__codelineno-23-115" href="#__codelineno-23-115"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-23-116" name="__codelineno-23-116" href="#__codelineno-23-116"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-23-117" name="__codelineno-23-117" href="#__codelineno-23-117"></a><span class="w">      </span><span class="no">readings = value.get(&#39;readings&#39;, {})</span>
+<a id="__codelineno-23-118" name="__codelineno-23-118" href="#__codelineno-23-118"></a><span class="w">      </span><span class="no">temp = readings.get(&#39;temperature&#39;, {}).get(&#39;celsius&#39;)</span>
+<a id="__codelineno-23-119" name="__codelineno-23-119" href="#__codelineno-23-119"></a><span class="w">      </span><span class="no">humidity = readings.get(&#39;humidity&#39;)</span>
+<a id="__codelineno-23-120" name="__codelineno-23-120" href="#__codelineno-23-120"></a><span class="w">      </span><span class="no">sensor_id = value.get(&#39;sensor_id&#39;)</span>
+<a id="__codelineno-23-121" name="__codelineno-23-121" href="#__codelineno-23-121"></a><span class="w">      </span><span class="no">print(f&quot;Processed sensor data for {sensor_id}: temp={temp}C, humidity={humidity}%&quot;)</span>
+<a id="__codelineno-23-122" name="__codelineno-23-122" href="#__codelineno-23-122"></a>
+<a id="__codelineno-23-123" name="__codelineno-23-123" href="#__codelineno-23-123"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-23-124" name="__codelineno-23-124" href="#__codelineno-23-124"></a><span class="w">  </span><span class="nt">process_sensor_data</span><span class="p">:</span>
+<a id="__codelineno-23-125" name="__codelineno-23-125" href="#__codelineno-23-125"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_data</span>
+<a id="__codelineno-23-126" name="__codelineno-23-126" href="#__codelineno-23-126"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-23-127" name="__codelineno-23-127" href="#__codelineno-23-127"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-23-128" name="__codelineno-23-128" href="#__codelineno-23-128"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">validate_sensor_data</span>
+<a id="__codelineno-23-129" name="__codelineno-23-129" href="#__codelineno-23-129"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformKeyValue</span>
+<a id="__codelineno-23-130" name="__codelineno-23-130" href="#__codelineno-23-130"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_sensor_data</span>
+<a id="__codelineno-23-131" name="__codelineno-23-131" href="#__codelineno-23-131"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-23-132" name="__codelineno-23-132" href="#__codelineno-23-132"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log_processed_data</span>
+<a id="__codelineno-23-133" name="__codelineno-23-133" href="#__codelineno-23-133"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span>
+<a id="__codelineno-23-134" name="__codelineno-23-134" href="#__codelineno-23-134"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-23-135" name="__codelineno-23-135" href="#__codelineno-23-135"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&#39;error&#39;</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">value&quot;</span>
+<a id="__codelineno-23-136" name="__codelineno-23-136" href="#__codelineno-23-136"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">error_data</span>
+<a id="__codelineno-23-137" name="__codelineno-23-137" href="#__codelineno-23-137"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed_data</span>
 </code></pre></div>
 </details>
 <h4 id="example-data-flow_1">Example Data Flow</h4>

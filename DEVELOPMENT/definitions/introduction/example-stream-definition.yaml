@@ -1,5 +1,0 @@
-  streams:
-    my_input_stream:
-      topic: input-topic
-      keyType: string
-      valueType: json

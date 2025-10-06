@@ -3805,119 +3805,62 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 </code></pre></div></p>
 <p>Processor:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a><span class="c1"># Demonstrates automatic type conversion in KSML functions</span>
-<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a><span class="c1"># </span>
-<a id="__codelineno-63-3" name="__codelineno-63-3" href="#__codelineno-63-3"></a><span class="c1"># This example shows how KSML automatically converts function return values</span>
-<a id="__codelineno-63-4" name="__codelineno-63-4" href="#__codelineno-63-4"></a><span class="c1"># to match the declared resultType, without requiring explicit conversion code.</span>
-<a id="__codelineno-63-5" name="__codelineno-63-5" href="#__codelineno-63-5"></a>
-<a id="__codelineno-63-6" name="__codelineno-63-6" href="#__codelineno-63-6"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-63-7" name="__codelineno-63-7" href="#__codelineno-63-7"></a><span class="w">  </span><span class="nt">sensor_input</span><span class="p">:</span>
-<a id="__codelineno-63-8" name="__codelineno-63-8" href="#__codelineno-63-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_data</span>
-<a id="__codelineno-63-9" name="__codelineno-63-9" href="#__codelineno-63-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-63-10" name="__codelineno-63-10" href="#__codelineno-63-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-63-11" name="__codelineno-63-11" href="#__codelineno-63-11"></a><span class="w">    </span><span class="nt">offsetResetPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">earliest</span>
+<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a><span class="c1"># Shows how KSML automatically converts function return values to match the declared resultType</span>
+<a id="__codelineno-63-3" name="__codelineno-63-3" href="#__codelineno-63-3"></a>
+<a id="__codelineno-63-4" name="__codelineno-63-4" href="#__codelineno-63-4"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-63-5" name="__codelineno-63-5" href="#__codelineno-63-5"></a><span class="w">  </span><span class="c1"># Example 1: String to int conversion (valid numeric string)</span>
+<a id="__codelineno-63-6" name="__codelineno-63-6" href="#__codelineno-63-6"></a><span class="w">  </span><span class="nt">string_to_int</span><span class="p">:</span>
+<a id="__codelineno-63-7" name="__codelineno-63-7" href="#__codelineno-63-7"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-63-8" name="__codelineno-63-8" href="#__codelineno-63-8"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-63-9" name="__codelineno-63-9" href="#__codelineno-63-9"></a><span class="w">      </span><span class="no">result = &quot;123&quot;        # Return a valid numeric string</span>
+<a id="__codelineno-63-10" name="__codelineno-63-10" href="#__codelineno-63-10"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-63-11" name="__codelineno-63-11" href="#__codelineno-63-11"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span><span class="w">         </span><span class="c1"># Automatic conversion: &quot;123&quot; to 123</span>
 <a id="__codelineno-63-12" name="__codelineno-63-12" href="#__codelineno-63-12"></a>
-<a id="__codelineno-63-13" name="__codelineno-63-13" href="#__codelineno-63-13"></a><span class="w">  </span><span class="nt">processed_output</span><span class="p">:</span>
-<a id="__codelineno-63-14" name="__codelineno-63-14" href="#__codelineno-63-14"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed_data</span>
-<a id="__codelineno-63-15" name="__codelineno-63-15" href="#__codelineno-63-15"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-63-16" name="__codelineno-63-16" href="#__codelineno-63-16"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-63-17" name="__codelineno-63-17" href="#__codelineno-63-17"></a>
-<a id="__codelineno-63-18" name="__codelineno-63-18" href="#__codelineno-63-18"></a><span class="nt">functions</span><span class="p">:</span>
-<a id="__codelineno-63-19" name="__codelineno-63-19" href="#__codelineno-63-19"></a><span class="w">  </span><span class="c1"># Example 1: Returns dict, automatically converted to string</span>
-<a id="__codelineno-63-20" name="__codelineno-63-20" href="#__codelineno-63-20"></a><span class="w">  </span><span class="nt">dict_to_string_auto</span><span class="p">:</span>
-<a id="__codelineno-63-21" name="__codelineno-63-21" href="#__codelineno-63-21"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-63-22" name="__codelineno-63-22" href="#__codelineno-63-22"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-23" name="__codelineno-63-23" href="#__codelineno-63-23"></a><span class="w">      </span><span class="no"># Function returns a Python dictionary</span>
-<a id="__codelineno-63-24" name="__codelineno-63-24" href="#__codelineno-63-24"></a><span class="w">      </span><span class="no">result = {</span>
-<a id="__codelineno-63-25" name="__codelineno-63-25" href="#__codelineno-63-25"></a><span class="w">        </span><span class="no">&quot;sensor&quot;: key,</span>
-<a id="__codelineno-63-26" name="__codelineno-63-26" href="#__codelineno-63-26"></a><span class="w">        </span><span class="no">&quot;temp_fahrenheit&quot;: value.get(&quot;temperature&quot;, 0) * 1.8 + 32,</span>
-<a id="__codelineno-63-27" name="__codelineno-63-27" href="#__codelineno-63-27"></a><span class="w">        </span><span class="no">&quot;humidity_percent&quot;: value.get(&quot;humidity&quot;, 0),</span>
-<a id="__codelineno-63-28" name="__codelineno-63-28" href="#__codelineno-63-28"></a><span class="w">        </span><span class="no">&quot;location&quot;: value.get(&quot;city&quot;, &quot;unknown&quot;).upper()</span>
+<a id="__codelineno-63-13" name="__codelineno-63-13" href="#__codelineno-63-13"></a><span class="w">  </span><span class="c1"># Example 2: Int to string conversion</span>
+<a id="__codelineno-63-14" name="__codelineno-63-14" href="#__codelineno-63-14"></a><span class="w">  </span><span class="nt">int_to_string</span><span class="p">:</span>
+<a id="__codelineno-63-15" name="__codelineno-63-15" href="#__codelineno-63-15"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-63-16" name="__codelineno-63-16" href="#__codelineno-63-16"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-63-17" name="__codelineno-63-17" href="#__codelineno-63-17"></a><span class="w">      </span><span class="no">result = 456          # Return an integer</span>
+<a id="__codelineno-63-18" name="__codelineno-63-18" href="#__codelineno-63-18"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-63-19" name="__codelineno-63-19" href="#__codelineno-63-19"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">      </span><span class="c1"># Automatic conversion: 456 to &quot;456&quot;</span>
+<a id="__codelineno-63-20" name="__codelineno-63-20" href="#__codelineno-63-20"></a>
+<a id="__codelineno-63-21" name="__codelineno-63-21" href="#__codelineno-63-21"></a><span class="w">  </span><span class="c1"># Example 3: Dict to string conversion (JSON serialization)</span>
+<a id="__codelineno-63-22" name="__codelineno-63-22" href="#__codelineno-63-22"></a><span class="w">  </span><span class="nt">dict_to_string</span><span class="p">:</span>
+<a id="__codelineno-63-23" name="__codelineno-63-23" href="#__codelineno-63-23"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-63-24" name="__codelineno-63-24" href="#__codelineno-63-24"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-63-25" name="__codelineno-63-25" href="#__codelineno-63-25"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-63-26" name="__codelineno-63-26" href="#__codelineno-63-26"></a><span class="w">        </span><span class="no">&quot;sensor&quot;: key,</span>
+<a id="__codelineno-63-27" name="__codelineno-63-27" href="#__codelineno-63-27"></a><span class="w">        </span><span class="no">&quot;temp_celsius&quot;: value.get(&quot;temperature&quot;, 20),</span>
+<a id="__codelineno-63-28" name="__codelineno-63-28" href="#__codelineno-63-28"></a><span class="w">        </span><span class="no">&quot;status&quot;: &quot;active&quot;</span>
 <a id="__codelineno-63-29" name="__codelineno-63-29" href="#__codelineno-63-29"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-63-30" name="__codelineno-63-30" href="#__codelineno-63-30"></a><span class="w">      </span><span class="no"># Note: We return a dict, not a string</span>
-<a id="__codelineno-63-31" name="__codelineno-63-31" href="#__codelineno-63-31"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-63-32" name="__codelineno-63-32" href="#__codelineno-63-32"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># ← Automatic conversion: dict → JSON string</span>
-<a id="__codelineno-63-33" name="__codelineno-63-33" href="#__codelineno-63-33"></a>
-<a id="__codelineno-63-34" name="__codelineno-63-34" href="#__codelineno-63-34"></a><span class="w">  </span><span class="c1"># Example 2: String parsing with valid numeric conversion</span>
-<a id="__codelineno-63-35" name="__codelineno-63-35" href="#__codelineno-63-35"></a><span class="w">  </span><span class="nt">valid_string_to_int</span><span class="p">:</span>
-<a id="__codelineno-63-36" name="__codelineno-63-36" href="#__codelineno-63-36"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-63-37" name="__codelineno-63-37" href="#__codelineno-63-37"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-38" name="__codelineno-63-38" href="#__codelineno-63-38"></a><span class="w">      </span><span class="no"># Extract temperature and convert to string representation</span>
-<a id="__codelineno-63-39" name="__codelineno-63-39" href="#__codelineno-63-39"></a><span class="w">      </span><span class="no">temp_str = str(int(value.get(&quot;temperature&quot;, 20)))</span>
-<a id="__codelineno-63-40" name="__codelineno-63-40" href="#__codelineno-63-40"></a><span class="w">      </span><span class="no">result = temp_str  # Return valid numeric string like &quot;20&quot;</span>
-<a id="__codelineno-63-41" name="__codelineno-63-41" href="#__codelineno-63-41"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-63-42" name="__codelineno-63-42" href="#__codelineno-63-42"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span><span class="w">  </span><span class="c1"># ← Automatic conversion: &quot;20&quot; → 20</span>
-<a id="__codelineno-63-43" name="__codelineno-63-43" href="#__codelineno-63-43"></a>
-<a id="__codelineno-63-44" name="__codelineno-63-44" href="#__codelineno-63-44"></a><span class="w">  </span><span class="c1"># Example 3: Integer to string conversion  </span>
-<a id="__codelineno-63-45" name="__codelineno-63-45" href="#__codelineno-63-45"></a><span class="w">  </span><span class="nt">int_to_string</span><span class="p">:</span>
-<a id="__codelineno-63-46" name="__codelineno-63-46" href="#__codelineno-63-46"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-63-47" name="__codelineno-63-47" href="#__codelineno-63-47"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-48" name="__codelineno-63-48" href="#__codelineno-63-48"></a><span class="w">      </span><span class="no"># At this point, value is an integer from previous conversion</span>
-<a id="__codelineno-63-49" name="__codelineno-63-49" href="#__codelineno-63-49"></a><span class="w">      </span><span class="no"># We&#39;ll just multiply it by 2 to show we&#39;re working with an int</span>
-<a id="__codelineno-63-50" name="__codelineno-63-50" href="#__codelineno-63-50"></a><span class="w">      </span><span class="no">result = value * 2  # Return an integer</span>
-<a id="__codelineno-63-51" name="__codelineno-63-51" href="#__codelineno-63-51"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-63-52" name="__codelineno-63-52" href="#__codelineno-63-52"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># ← Automatic conversion: 40 → &quot;40&quot;</span>
-<a id="__codelineno-63-53" name="__codelineno-63-53" href="#__codelineno-63-53"></a>
-<a id="__codelineno-63-54" name="__codelineno-63-54" href="#__codelineno-63-54"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-63-55" name="__codelineno-63-55" href="#__codelineno-63-55"></a><span class="w">  </span><span class="nt">demonstrate_auto_conversion</span><span class="p">:</span>
-<a id="__codelineno-63-56" name="__codelineno-63-56" href="#__codelineno-63-56"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_input</span>
-<a id="__codelineno-63-57" name="__codelineno-63-57" href="#__codelineno-63-57"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-63-58" name="__codelineno-63-58" href="#__codelineno-63-58"></a><span class="w">      </span><span class="c1"># Test automatic dict to string conversion</span>
-<a id="__codelineno-63-59" name="__codelineno-63-59" href="#__codelineno-63-59"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-63-60" name="__codelineno-63-60" href="#__codelineno-63-60"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dict_to_string_auto</span>
-<a id="__codelineno-63-61" name="__codelineno-63-61" href="#__codelineno-63-61"></a>
-<a id="__codelineno-63-62" name="__codelineno-63-62" href="#__codelineno-63-62"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-63-63" name="__codelineno-63-63" href="#__codelineno-63-63"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-63-64" name="__codelineno-63-64" href="#__codelineno-63-64"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-65" name="__codelineno-63-65" href="#__codelineno-63-65"></a><span class="w">            </span><span class="no"># Value is now a string (automatic conversion happened)</span>
-<a id="__codelineno-63-66" name="__codelineno-63-66" href="#__codelineno-63-66"></a><span class="w">            </span><span class="no">log.info(&quot;After auto dict→string: type={}, content={}&quot;, </span>
-<a id="__codelineno-63-67" name="__codelineno-63-67" href="#__codelineno-63-67"></a><span class="w">                     </span><span class="no">type(value).__name__, value)</span>
-<a id="__codelineno-63-68" name="__codelineno-63-68" href="#__codelineno-63-68"></a>
-<a id="__codelineno-63-69" name="__codelineno-63-69" href="#__codelineno-63-69"></a><span class="w">      </span><span class="c1"># Parse the JSON string back to dict for next operations</span>
-<a id="__codelineno-63-70" name="__codelineno-63-70" href="#__codelineno-63-70"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-63-71" name="__codelineno-63-71" href="#__codelineno-63-71"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-63-72" name="__codelineno-63-72" href="#__codelineno-63-72"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-63-73" name="__codelineno-63-73" href="#__codelineno-63-73"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-74" name="__codelineno-63-74" href="#__codelineno-63-74"></a><span class="w">            </span><span class="no">import json</span>
-<a id="__codelineno-63-75" name="__codelineno-63-75" href="#__codelineno-63-75"></a><span class="w">            </span><span class="no">result = json.loads(value)  # Parse JSON string back to dict</span>
-<a id="__codelineno-63-76" name="__codelineno-63-76" href="#__codelineno-63-76"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-63-77" name="__codelineno-63-77" href="#__codelineno-63-77"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-63-78" name="__codelineno-63-78" href="#__codelineno-63-78"></a>
-<a id="__codelineno-63-79" name="__codelineno-63-79" href="#__codelineno-63-79"></a><span class="w">      </span><span class="c1"># Test valid string to int conversion</span>
-<a id="__codelineno-63-80" name="__codelineno-63-80" href="#__codelineno-63-80"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-63-81" name="__codelineno-63-81" href="#__codelineno-63-81"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valid_string_to_int</span>
-<a id="__codelineno-63-82" name="__codelineno-63-82" href="#__codelineno-63-82"></a>
-<a id="__codelineno-63-83" name="__codelineno-63-83" href="#__codelineno-63-83"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-63-84" name="__codelineno-63-84" href="#__codelineno-63-84"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-63-85" name="__codelineno-63-85" href="#__codelineno-63-85"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-86" name="__codelineno-63-86" href="#__codelineno-63-86"></a><span class="w">            </span><span class="no"># Value is now an integer (automatic conversion happened)</span>
-<a id="__codelineno-63-87" name="__codelineno-63-87" href="#__codelineno-63-87"></a><span class="w">            </span><span class="no">log.info(&quot;After auto string→int: type={}, value={}&quot;, </span>
-<a id="__codelineno-63-88" name="__codelineno-63-88" href="#__codelineno-63-88"></a><span class="w">                     </span><span class="no">type(value).__name__, value)</span>
-<a id="__codelineno-63-89" name="__codelineno-63-89" href="#__codelineno-63-89"></a>
-<a id="__codelineno-63-90" name="__codelineno-63-90" href="#__codelineno-63-90"></a><span class="w">      </span><span class="c1"># Test int to string conversion</span>
-<a id="__codelineno-63-91" name="__codelineno-63-91" href="#__codelineno-63-91"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-63-92" name="__codelineno-63-92" href="#__codelineno-63-92"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int_to_string</span>
-<a id="__codelineno-63-93" name="__codelineno-63-93" href="#__codelineno-63-93"></a>
-<a id="__codelineno-63-94" name="__codelineno-63-94" href="#__codelineno-63-94"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-63-95" name="__codelineno-63-95" href="#__codelineno-63-95"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-63-96" name="__codelineno-63-96" href="#__codelineno-63-96"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-97" name="__codelineno-63-97" href="#__codelineno-63-97"></a><span class="w">            </span><span class="no"># Value is now a string (automatic conversion happened)  </span>
-<a id="__codelineno-63-98" name="__codelineno-63-98" href="#__codelineno-63-98"></a><span class="w">            </span><span class="no">log.info(&quot;After auto int→string: type={}, value={}&quot;, </span>
-<a id="__codelineno-63-99" name="__codelineno-63-99" href="#__codelineno-63-99"></a><span class="w">                     </span><span class="no">type(value).__name__, value)</span>
-<a id="__codelineno-63-100" name="__codelineno-63-100" href="#__codelineno-63-100"></a>
-<a id="__codelineno-63-101" name="__codelineno-63-101" href="#__codelineno-63-101"></a><span class="w">      </span><span class="c1"># Wrap in JSON for output</span>
-<a id="__codelineno-63-102" name="__codelineno-63-102" href="#__codelineno-63-102"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-63-103" name="__codelineno-63-103" href="#__codelineno-63-103"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-63-104" name="__codelineno-63-104" href="#__codelineno-63-104"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-63-105" name="__codelineno-63-105" href="#__codelineno-63-105"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-63-106" name="__codelineno-63-106" href="#__codelineno-63-106"></a><span class="w">            </span><span class="no">result = {</span>
-<a id="__codelineno-63-107" name="__codelineno-63-107" href="#__codelineno-63-107"></a><span class="w">              </span><span class="no">&quot;sensor_id&quot;: key,</span>
-<a id="__codelineno-63-108" name="__codelineno-63-108" href="#__codelineno-63-108"></a><span class="w">              </span><span class="no">&quot;converted_value&quot;: value,</span>
-<a id="__codelineno-63-109" name="__codelineno-63-109" href="#__codelineno-63-109"></a><span class="w">              </span><span class="no">&quot;processed&quot;: True</span>
-<a id="__codelineno-63-110" name="__codelineno-63-110" href="#__codelineno-63-110"></a><span class="w">            </span><span class="no">}</span>
-<a id="__codelineno-63-111" name="__codelineno-63-111" href="#__codelineno-63-111"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-63-112" name="__codelineno-63-112" href="#__codelineno-63-112"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-63-113" name="__codelineno-63-113" href="#__codelineno-63-113"></a>
-<a id="__codelineno-63-114" name="__codelineno-63-114" href="#__codelineno-63-114"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed_output</span>
+<a id="__codelineno-63-30" name="__codelineno-63-30" href="#__codelineno-63-30"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-63-31" name="__codelineno-63-31" href="#__codelineno-63-31"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">      </span><span class="c1"># Automatic conversion: dict to JSON string</span>
+<a id="__codelineno-63-32" name="__codelineno-63-32" href="#__codelineno-63-32"></a>
+<a id="__codelineno-63-33" name="__codelineno-63-33" href="#__codelineno-63-33"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-63-34" name="__codelineno-63-34" href="#__codelineno-63-34"></a><span class="w">  </span><span class="nt">demonstrate_auto_conversion</span><span class="p">:</span>
+<a id="__codelineno-63-35" name="__codelineno-63-35" href="#__codelineno-63-35"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span>
+<a id="__codelineno-63-36" name="__codelineno-63-36" href="#__codelineno-63-36"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_data</span>
+<a id="__codelineno-63-37" name="__codelineno-63-37" href="#__codelineno-63-37"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-63-38" name="__codelineno-63-38" href="#__codelineno-63-38"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-63-39" name="__codelineno-63-39" href="#__codelineno-63-39"></a><span class="w">      </span><span class="nt">offsetResetPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">earliest</span>
+<a id="__codelineno-63-40" name="__codelineno-63-40" href="#__codelineno-63-40"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-63-41" name="__codelineno-63-41" href="#__codelineno-63-41"></a><span class="w">      </span><span class="c1"># Test 1: String to int</span>
+<a id="__codelineno-63-42" name="__codelineno-63-42" href="#__codelineno-63-42"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-63-43" name="__codelineno-63-43" href="#__codelineno-63-43"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string_to_int</span>
+<a id="__codelineno-63-44" name="__codelineno-63-44" href="#__codelineno-63-44"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-63-45" name="__codelineno-63-45" href="#__codelineno-63-45"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-63-46" name="__codelineno-63-46" href="#__codelineno-63-46"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;log.info(&quot;String</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">Int:</span><span class="nv"> </span><span class="s">type={},</span><span class="nv"> </span><span class="s">value={}&quot;,</span><span class="nv"> </span><span class="s">type(value).__name__,</span><span class="nv"> </span><span class="s">value)&#39;</span>
+<a id="__codelineno-63-47" name="__codelineno-63-47" href="#__codelineno-63-47"></a>
+<a id="__codelineno-63-48" name="__codelineno-63-48" href="#__codelineno-63-48"></a><span class="w">      </span><span class="c1"># Test 2: Int to string</span>
+<a id="__codelineno-63-49" name="__codelineno-63-49" href="#__codelineno-63-49"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-63-50" name="__codelineno-63-50" href="#__codelineno-63-50"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int_to_string</span>
+<a id="__codelineno-63-51" name="__codelineno-63-51" href="#__codelineno-63-51"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-63-52" name="__codelineno-63-52" href="#__codelineno-63-52"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-63-53" name="__codelineno-63-53" href="#__codelineno-63-53"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;log.info(&quot;Int</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">String:</span><span class="nv"> </span><span class="s">type={},</span><span class="nv"> </span><span class="s">value={}&quot;,</span><span class="nv"> </span><span class="s">type(value).__name__,</span><span class="nv"> </span><span class="s">value)&#39;</span>
+<a id="__codelineno-63-54" name="__codelineno-63-54" href="#__codelineno-63-54"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-63-55" name="__codelineno-63-55" href="#__codelineno-63-55"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">converted_data</span>
+<a id="__codelineno-63-56" name="__codelineno-63-56" href="#__codelineno-63-56"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-63-57" name="__codelineno-63-57" href="#__codelineno-63-57"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div></p>
 </details>
 <h3 id="stream-format-conversion-explicit">Stream Format Conversion (Explicit)</h3>
@@ -4093,71 +4036,74 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 <a id="__codelineno-69-15" name="__codelineno-69-15" href="#__codelineno-69-15"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-69-16" name="__codelineno-69-16" href="#__codelineno-69-16"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-69-17" name="__codelineno-69-17" href="#__codelineno-69-17"></a>
-<a id="__codelineno-69-18" name="__codelineno-69-18" href="#__codelineno-69-18"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-69-19" name="__codelineno-69-19" href="#__codelineno-69-19"></a><span class="w">  </span><span class="nt">multi_format_conversion</span><span class="p">:</span>
-<a id="__codelineno-69-20" name="__codelineno-69-20" href="#__codelineno-69-20"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json_input</span>
-<a id="__codelineno-69-21" name="__codelineno-69-21" href="#__codelineno-69-21"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-69-22" name="__codelineno-69-22" href="#__codelineno-69-22"></a><span class="w">      </span><span class="c1"># Starting with JSON format</span>
-<a id="__codelineno-69-23" name="__codelineno-69-23" href="#__codelineno-69-23"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-69-24" name="__codelineno-69-24" href="#__codelineno-69-24"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-69-25" name="__codelineno-69-25" href="#__codelineno-69-25"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-69-26" name="__codelineno-69-26" href="#__codelineno-69-26"></a><span class="w">            </span><span class="no">log.info(&quot;Step 1 - JSON input: id={}, product={}, price=${}&quot;, </span>
-<a id="__codelineno-69-27" name="__codelineno-69-27" href="#__codelineno-69-27"></a><span class="w">                     </span><span class="no">value.get(&quot;id&quot;), value.get(&quot;product&quot;), value.get(&quot;price&quot;))</span>
-<a id="__codelineno-69-28" name="__codelineno-69-28" href="#__codelineno-69-28"></a>
-<a id="__codelineno-69-29" name="__codelineno-69-29" href="#__codelineno-69-29"></a><span class="w">      </span><span class="c1"># Convert JSON to String (serialization)</span>
-<a id="__codelineno-69-30" name="__codelineno-69-30" href="#__codelineno-69-30"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
-<a id="__codelineno-69-31" name="__codelineno-69-31" href="#__codelineno-69-31"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-69-32" name="__codelineno-69-32" href="#__codelineno-69-32"></a>
-<a id="__codelineno-69-33" name="__codelineno-69-33" href="#__codelineno-69-33"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-69-34" name="__codelineno-69-34" href="#__codelineno-69-34"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-69-35" name="__codelineno-69-35" href="#__codelineno-69-35"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-69-36" name="__codelineno-69-36" href="#__codelineno-69-36"></a><span class="w">            </span><span class="no">log.info(&quot;Step 2 - Converted to String: {}&quot;, value[:80])</span>
-<a id="__codelineno-69-37" name="__codelineno-69-37" href="#__codelineno-69-37"></a>
-<a id="__codelineno-69-38" name="__codelineno-69-38" href="#__codelineno-69-38"></a><span class="w">      </span><span class="c1"># Convert String back to JSON (parsing)</span>
-<a id="__codelineno-69-39" name="__codelineno-69-39" href="#__codelineno-69-39"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
-<a id="__codelineno-69-40" name="__codelineno-69-40" href="#__codelineno-69-40"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-69-41" name="__codelineno-69-41" href="#__codelineno-69-41"></a>
-<a id="__codelineno-69-42" name="__codelineno-69-42" href="#__codelineno-69-42"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-69-43" name="__codelineno-69-43" href="#__codelineno-69-43"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-69-44" name="__codelineno-69-44" href="#__codelineno-69-44"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-69-45" name="__codelineno-69-45" href="#__codelineno-69-45"></a><span class="w">            </span><span class="no">log.info(&quot;Step 3 - Parsed back to JSON: available={}, quantity={}&quot;, </span>
-<a id="__codelineno-69-46" name="__codelineno-69-46" href="#__codelineno-69-46"></a><span class="w">                     </span><span class="no">value.get(&quot;available&quot;), value.get(&quot;quantity&quot;))</span>
-<a id="__codelineno-69-47" name="__codelineno-69-47" href="#__codelineno-69-47"></a>
-<a id="__codelineno-69-48" name="__codelineno-69-48" href="#__codelineno-69-48"></a><span class="w">      </span><span class="c1"># Transform the data while in JSON format</span>
-<a id="__codelineno-69-49" name="__codelineno-69-49" href="#__codelineno-69-49"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-69-50" name="__codelineno-69-50" href="#__codelineno-69-50"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-69-51" name="__codelineno-69-51" href="#__codelineno-69-51"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-69-18" name="__codelineno-69-18" href="#__codelineno-69-18"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-69-19" name="__codelineno-69-19" href="#__codelineno-69-19"></a><span class="w">  </span><span class="nt">calculate_total_value</span><span class="p">:</span>
+<a id="__codelineno-69-20" name="__codelineno-69-20" href="#__codelineno-69-20"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-69-21" name="__codelineno-69-21" href="#__codelineno-69-21"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-69-22" name="__codelineno-69-22" href="#__codelineno-69-22"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-69-23" name="__codelineno-69-23" href="#__codelineno-69-23"></a><span class="w">      </span><span class="no">import time</span>
+<a id="__codelineno-69-24" name="__codelineno-69-24" href="#__codelineno-69-24"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-69-25" name="__codelineno-69-25" href="#__codelineno-69-25"></a><span class="w">      </span><span class="no"># Calculate total value and add metadata</span>
+<a id="__codelineno-69-26" name="__codelineno-69-26" href="#__codelineno-69-26"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-69-27" name="__codelineno-69-27" href="#__codelineno-69-27"></a><span class="w">        </span><span class="no">&quot;product_id&quot;: f&quot;PRD-{value.get(&#39;id&#39;):04d}&quot;,</span>
+<a id="__codelineno-69-28" name="__codelineno-69-28" href="#__codelineno-69-28"></a><span class="w">        </span><span class="no">&quot;name&quot;: value.get(&quot;product&quot;, &quot;&quot;).upper(),</span>
+<a id="__codelineno-69-29" name="__codelineno-69-29" href="#__codelineno-69-29"></a><span class="w">        </span><span class="no">&quot;total_value&quot;: value.get(&quot;price&quot;, 0) * value.get(&quot;quantity&quot;, 0),</span>
+<a id="__codelineno-69-30" name="__codelineno-69-30" href="#__codelineno-69-30"></a><span class="w">        </span><span class="no">&quot;in_stock&quot;: value.get(&quot;available&quot;, False),</span>
+<a id="__codelineno-69-31" name="__codelineno-69-31" href="#__codelineno-69-31"></a><span class="w">        </span><span class="no">&quot;processed_at&quot;: int(time.time())</span>
+<a id="__codelineno-69-32" name="__codelineno-69-32" href="#__codelineno-69-32"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-69-33" name="__codelineno-69-33" href="#__codelineno-69-33"></a><span class="w">      </span><span class="no">return result</span>
+<a id="__codelineno-69-34" name="__codelineno-69-34" href="#__codelineno-69-34"></a>
+<a id="__codelineno-69-35" name="__codelineno-69-35" href="#__codelineno-69-35"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-69-36" name="__codelineno-69-36" href="#__codelineno-69-36"></a><span class="w">  </span><span class="nt">multi_format_conversion</span><span class="p">:</span>
+<a id="__codelineno-69-37" name="__codelineno-69-37" href="#__codelineno-69-37"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json_input</span>
+<a id="__codelineno-69-38" name="__codelineno-69-38" href="#__codelineno-69-38"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-69-39" name="__codelineno-69-39" href="#__codelineno-69-39"></a><span class="w">      </span><span class="c1"># Starting with JSON format</span>
+<a id="__codelineno-69-40" name="__codelineno-69-40" href="#__codelineno-69-40"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-69-41" name="__codelineno-69-41" href="#__codelineno-69-41"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-69-42" name="__codelineno-69-42" href="#__codelineno-69-42"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-69-43" name="__codelineno-69-43" href="#__codelineno-69-43"></a><span class="w">            </span><span class="no">log.info(&quot;Step 1 - JSON input: id={}, product={}, price=${}&quot;, </span>
+<a id="__codelineno-69-44" name="__codelineno-69-44" href="#__codelineno-69-44"></a><span class="w">                     </span><span class="no">value.get(&quot;id&quot;), value.get(&quot;product&quot;), value.get(&quot;price&quot;))</span>
+<a id="__codelineno-69-45" name="__codelineno-69-45" href="#__codelineno-69-45"></a>
+<a id="__codelineno-69-46" name="__codelineno-69-46" href="#__codelineno-69-46"></a><span class="w">      </span><span class="c1"># Convert JSON to String (serialization)</span>
+<a id="__codelineno-69-47" name="__codelineno-69-47" href="#__codelineno-69-47"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
+<a id="__codelineno-69-48" name="__codelineno-69-48" href="#__codelineno-69-48"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-69-49" name="__codelineno-69-49" href="#__codelineno-69-49"></a>
+<a id="__codelineno-69-50" name="__codelineno-69-50" href="#__codelineno-69-50"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-69-51" name="__codelineno-69-51" href="#__codelineno-69-51"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-69-52" name="__codelineno-69-52" href="#__codelineno-69-52"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-69-53" name="__codelineno-69-53" href="#__codelineno-69-53"></a><span class="w">            </span><span class="no"># Calculate total value and add metadata</span>
-<a id="__codelineno-69-54" name="__codelineno-69-54" href="#__codelineno-69-54"></a><span class="w">            </span><span class="no">result = {</span>
-<a id="__codelineno-69-55" name="__codelineno-69-55" href="#__codelineno-69-55"></a><span class="w">              </span><span class="no">&quot;product_id&quot;: f&quot;PRD-{value.get(&#39;id&#39;):04d}&quot;,</span>
-<a id="__codelineno-69-56" name="__codelineno-69-56" href="#__codelineno-69-56"></a><span class="w">              </span><span class="no">&quot;name&quot;: value.get(&quot;product&quot;, &quot;&quot;).upper(),</span>
-<a id="__codelineno-69-57" name="__codelineno-69-57" href="#__codelineno-69-57"></a><span class="w">              </span><span class="no">&quot;total_value&quot;: value.get(&quot;price&quot;, 0) * value.get(&quot;quantity&quot;, 0),</span>
-<a id="__codelineno-69-58" name="__codelineno-69-58" href="#__codelineno-69-58"></a><span class="w">              </span><span class="no">&quot;in_stock&quot;: value.get(&quot;available&quot;, False),</span>
-<a id="__codelineno-69-59" name="__codelineno-69-59" href="#__codelineno-69-59"></a><span class="w">              </span><span class="no">&quot;processed_at&quot;: int(time.time())</span>
-<a id="__codelineno-69-60" name="__codelineno-69-60" href="#__codelineno-69-60"></a><span class="w">            </span><span class="no">}</span>
-<a id="__codelineno-69-61" name="__codelineno-69-61" href="#__codelineno-69-61"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-69-62" name="__codelineno-69-62" href="#__codelineno-69-62"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-69-63" name="__codelineno-69-63" href="#__codelineno-69-63"></a><span class="w">          </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-69-64" name="__codelineno-69-64" href="#__codelineno-69-64"></a><span class="w">            </span><span class="no">import time</span>
-<a id="__codelineno-69-65" name="__codelineno-69-65" href="#__codelineno-69-65"></a>
-<a id="__codelineno-69-66" name="__codelineno-69-66" href="#__codelineno-69-66"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-69-67" name="__codelineno-69-67" href="#__codelineno-69-67"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-69-68" name="__codelineno-69-68" href="#__codelineno-69-68"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-69-69" name="__codelineno-69-69" href="#__codelineno-69-69"></a><span class="w">            </span><span class="no">log.info(&quot;Step 4 - Transformed data: product_id={}, total_value=${}&quot;, </span>
-<a id="__codelineno-69-70" name="__codelineno-69-70" href="#__codelineno-69-70"></a><span class="w">                     </span><span class="no">value.get(&quot;product_id&quot;), value.get(&quot;total_value&quot;))</span>
-<a id="__codelineno-69-71" name="__codelineno-69-71" href="#__codelineno-69-71"></a>
-<a id="__codelineno-69-72" name="__codelineno-69-72" href="#__codelineno-69-72"></a><span class="w">      </span><span class="c1"># Final conversion to String for output</span>
-<a id="__codelineno-69-73" name="__codelineno-69-73" href="#__codelineno-69-73"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
-<a id="__codelineno-69-74" name="__codelineno-69-74" href="#__codelineno-69-74"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-69-75" name="__codelineno-69-75" href="#__codelineno-69-75"></a>
-<a id="__codelineno-69-76" name="__codelineno-69-76" href="#__codelineno-69-76"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-69-77" name="__codelineno-69-77" href="#__codelineno-69-77"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-69-78" name="__codelineno-69-78" href="#__codelineno-69-78"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-69-79" name="__codelineno-69-79" href="#__codelineno-69-79"></a><span class="w">            </span><span class="no">log.info(&quot;Step 5 - Final String output: {}&quot;, value)</span>
-<a id="__codelineno-69-80" name="__codelineno-69-80" href="#__codelineno-69-80"></a>
-<a id="__codelineno-69-81" name="__codelineno-69-81" href="#__codelineno-69-81"></a><span class="w">    </span><span class="c1"># Output as string format</span>
-<a id="__codelineno-69-82" name="__codelineno-69-82" href="#__codelineno-69-82"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final_output</span>
+<a id="__codelineno-69-53" name="__codelineno-69-53" href="#__codelineno-69-53"></a><span class="w">            </span><span class="no">log.info(&quot;Step 2 - Converted to String: {}&quot;, value[:80])</span>
+<a id="__codelineno-69-54" name="__codelineno-69-54" href="#__codelineno-69-54"></a>
+<a id="__codelineno-69-55" name="__codelineno-69-55" href="#__codelineno-69-55"></a><span class="w">      </span><span class="c1"># Convert String back to JSON (parsing)</span>
+<a id="__codelineno-69-56" name="__codelineno-69-56" href="#__codelineno-69-56"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
+<a id="__codelineno-69-57" name="__codelineno-69-57" href="#__codelineno-69-57"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-69-58" name="__codelineno-69-58" href="#__codelineno-69-58"></a>
+<a id="__codelineno-69-59" name="__codelineno-69-59" href="#__codelineno-69-59"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-69-60" name="__codelineno-69-60" href="#__codelineno-69-60"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-69-61" name="__codelineno-69-61" href="#__codelineno-69-61"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-69-62" name="__codelineno-69-62" href="#__codelineno-69-62"></a><span class="w">            </span><span class="no">log.info(&quot;Step 3 - Parsed back to JSON: available={}, quantity={}&quot;, </span>
+<a id="__codelineno-69-63" name="__codelineno-69-63" href="#__codelineno-69-63"></a><span class="w">                     </span><span class="no">value.get(&quot;available&quot;), value.get(&quot;quantity&quot;))</span>
+<a id="__codelineno-69-64" name="__codelineno-69-64" href="#__codelineno-69-64"></a>
+<a id="__codelineno-69-65" name="__codelineno-69-65" href="#__codelineno-69-65"></a><span class="w">      </span><span class="c1"># Transform the data while in JSON format</span>
+<a id="__codelineno-69-66" name="__codelineno-69-66" href="#__codelineno-69-66"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-69-67" name="__codelineno-69-67" href="#__codelineno-69-67"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">calculate_total_value</span>
+<a id="__codelineno-69-68" name="__codelineno-69-68" href="#__codelineno-69-68"></a>
+<a id="__codelineno-69-69" name="__codelineno-69-69" href="#__codelineno-69-69"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-69-70" name="__codelineno-69-70" href="#__codelineno-69-70"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-69-71" name="__codelineno-69-71" href="#__codelineno-69-71"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-69-72" name="__codelineno-69-72" href="#__codelineno-69-72"></a><span class="w">            </span><span class="no">log.info(&quot;Step 4 - Transformed data: product_id={}, total_value=${}&quot;, </span>
+<a id="__codelineno-69-73" name="__codelineno-69-73" href="#__codelineno-69-73"></a><span class="w">                     </span><span class="no">value.get(&quot;product_id&quot;), value.get(&quot;total_value&quot;))</span>
+<a id="__codelineno-69-74" name="__codelineno-69-74" href="#__codelineno-69-74"></a>
+<a id="__codelineno-69-75" name="__codelineno-69-75" href="#__codelineno-69-75"></a><span class="w">      </span><span class="c1"># Final conversion to String for output</span>
+<a id="__codelineno-69-76" name="__codelineno-69-76" href="#__codelineno-69-76"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
+<a id="__codelineno-69-77" name="__codelineno-69-77" href="#__codelineno-69-77"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-69-78" name="__codelineno-69-78" href="#__codelineno-69-78"></a>
+<a id="__codelineno-69-79" name="__codelineno-69-79" href="#__codelineno-69-79"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-69-80" name="__codelineno-69-80" href="#__codelineno-69-80"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-69-81" name="__codelineno-69-81" href="#__codelineno-69-81"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-69-82" name="__codelineno-69-82" href="#__codelineno-69-82"></a><span class="w">            </span><span class="no">log.info(&quot;Step 5 - Final String output: {}&quot;, value)</span>
+<a id="__codelineno-69-83" name="__codelineno-69-83" href="#__codelineno-69-83"></a>
+<a id="__codelineno-69-84" name="__codelineno-69-84" href="#__codelineno-69-84"></a><span class="w">    </span><span class="c1"># Output as string format</span>
+<a id="__codelineno-69-85" name="__codelineno-69-85" href="#__codelineno-69-85"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final_output</span>
 </code></pre></div></p>
 </details>
 <p><strong>Key Takeaway:</strong> Functions convert automatically, streams need explicit conversion.</p>
@@ -4257,58 +4203,62 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 <a id="__codelineno-71-16" name="__codelineno-71-16" href="#__codelineno-71-16"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-71-17" name="__codelineno-71-17" href="#__codelineno-71-17"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-71-18" name="__codelineno-71-18" href="#__codelineno-71-18"></a>
-<a id="__codelineno-71-19" name="__codelineno-71-19" href="#__codelineno-71-19"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-71-20" name="__codelineno-71-20" href="#__codelineno-71-20"></a><span class="w">  </span><span class="c1"># Pipeline 1: Process Avro data and convert to JSON</span>
-<a id="__codelineno-71-21" name="__codelineno-71-21" href="#__codelineno-71-21"></a><span class="w">  </span><span class="nt">avro_processing</span><span class="p">:</span>
-<a id="__codelineno-71-22" name="__codelineno-71-22" href="#__codelineno-71-22"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro_sensor_stream</span>
-<a id="__codelineno-71-23" name="__codelineno-71-23" href="#__codelineno-71-23"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-71-24" name="__codelineno-71-24" href="#__codelineno-71-24"></a><span class="w">      </span><span class="c1"># Log Avro input</span>
-<a id="__codelineno-71-25" name="__codelineno-71-25" href="#__codelineno-71-25"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-71-26" name="__codelineno-71-26" href="#__codelineno-71-26"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-71-27" name="__codelineno-71-27" href="#__codelineno-71-27"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-71-28" name="__codelineno-71-28" href="#__codelineno-71-28"></a><span class="w">            </span><span class="no">log.info(&quot;Avro sensor: name={}, type={}, value={}{}&quot;,</span>
-<a id="__codelineno-71-29" name="__codelineno-71-29" href="#__codelineno-71-29"></a><span class="w">                    </span><span class="no">value.get(&quot;name&quot;), value.get(&quot;type&quot;),</span>
-<a id="__codelineno-71-30" name="__codelineno-71-30" href="#__codelineno-71-30"></a><span class="w">                    </span><span class="no">value.get(&quot;value&quot;), value.get(&quot;unit&quot;))</span>
-<a id="__codelineno-71-31" name="__codelineno-71-31" href="#__codelineno-71-31"></a>
-<a id="__codelineno-71-32" name="__codelineno-71-32" href="#__codelineno-71-32"></a><span class="w">      </span><span class="c1"># Add a source field to identify the format</span>
-<a id="__codelineno-71-33" name="__codelineno-71-33" href="#__codelineno-71-33"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-71-34" name="__codelineno-71-34" href="#__codelineno-71-34"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-71-35" name="__codelineno-71-35" href="#__codelineno-71-35"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-71-36" name="__codelineno-71-36" href="#__codelineno-71-36"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-71-37" name="__codelineno-71-37" href="#__codelineno-71-37"></a><span class="w">            </span><span class="no">result = dict(value) if value else {}</span>
-<a id="__codelineno-71-38" name="__codelineno-71-38" href="#__codelineno-71-38"></a><span class="w">            </span><span class="no">result[&quot;source_format&quot;] = &quot;Avro&quot;</span>
-<a id="__codelineno-71-39" name="__codelineno-71-39" href="#__codelineno-71-39"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-71-40" name="__codelineno-71-40" href="#__codelineno-71-40"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-71-41" name="__codelineno-71-41" href="#__codelineno-71-41"></a>
-<a id="__codelineno-71-42" name="__codelineno-71-42" href="#__codelineno-71-42"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">combined_output</span>
-<a id="__codelineno-71-43" name="__codelineno-71-43" href="#__codelineno-71-43"></a>
-<a id="__codelineno-71-44" name="__codelineno-71-44" href="#__codelineno-71-44"></a><span class="w">  </span><span class="c1"># Pipeline 2: Process JSON config data</span>
-<a id="__codelineno-71-45" name="__codelineno-71-45" href="#__codelineno-71-45"></a><span class="w">  </span><span class="nt">json_processing</span><span class="p">:</span>
-<a id="__codelineno-71-46" name="__codelineno-71-46" href="#__codelineno-71-46"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json_config_stream</span>
-<a id="__codelineno-71-47" name="__codelineno-71-47" href="#__codelineno-71-47"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-71-48" name="__codelineno-71-48" href="#__codelineno-71-48"></a><span class="w">      </span><span class="c1"># Log JSON input</span>
-<a id="__codelineno-71-49" name="__codelineno-71-49" href="#__codelineno-71-49"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-71-50" name="__codelineno-71-50" href="#__codelineno-71-50"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-71-51" name="__codelineno-71-51" href="#__codelineno-71-51"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-71-52" name="__codelineno-71-52" href="#__codelineno-71-52"></a><span class="w">            </span><span class="no">log.info(&quot;JSON config: device={}, threshold={}, alert={}&quot;,</span>
-<a id="__codelineno-71-53" name="__codelineno-71-53" href="#__codelineno-71-53"></a><span class="w">                    </span><span class="no">key, value.get(&quot;threshold&quot;), value.get(&quot;alert_level&quot;))</span>
-<a id="__codelineno-71-54" name="__codelineno-71-54" href="#__codelineno-71-54"></a>
-<a id="__codelineno-71-55" name="__codelineno-71-55" href="#__codelineno-71-55"></a><span class="w">      </span><span class="c1"># Transform to sensor-like format with source field</span>
-<a id="__codelineno-71-56" name="__codelineno-71-56" href="#__codelineno-71-56"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-71-57" name="__codelineno-71-57" href="#__codelineno-71-57"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-71-58" name="__codelineno-71-58" href="#__codelineno-71-58"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-71-59" name="__codelineno-71-59" href="#__codelineno-71-59"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-71-60" name="__codelineno-71-60" href="#__codelineno-71-60"></a><span class="w">            </span><span class="no">result = {</span>
-<a id="__codelineno-71-61" name="__codelineno-71-61" href="#__codelineno-71-61"></a><span class="w">              </span><span class="no">&quot;name&quot;: key,</span>
-<a id="__codelineno-71-62" name="__codelineno-71-62" href="#__codelineno-71-62"></a><span class="w">              </span><span class="no">&quot;type&quot;: &quot;CONFIG&quot;,</span>
-<a id="__codelineno-71-63" name="__codelineno-71-63" href="#__codelineno-71-63"></a><span class="w">              </span><span class="no">&quot;threshold&quot;: value.get(&quot;threshold&quot;),</span>
-<a id="__codelineno-71-64" name="__codelineno-71-64" href="#__codelineno-71-64"></a><span class="w">              </span><span class="no">&quot;alert_level&quot;: value.get(&quot;alert_level&quot;),</span>
-<a id="__codelineno-71-65" name="__codelineno-71-65" href="#__codelineno-71-65"></a><span class="w">              </span><span class="no">&quot;source_format&quot;: &quot;JSON&quot;</span>
-<a id="__codelineno-71-66" name="__codelineno-71-66" href="#__codelineno-71-66"></a><span class="w">            </span><span class="no">}</span>
-<a id="__codelineno-71-67" name="__codelineno-71-67" href="#__codelineno-71-67"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-71-68" name="__codelineno-71-68" href="#__codelineno-71-68"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-71-19" name="__codelineno-71-19" href="#__codelineno-71-19"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-71-20" name="__codelineno-71-20" href="#__codelineno-71-20"></a><span class="w">  </span><span class="nt">add_avro_source</span><span class="p">:</span>
+<a id="__codelineno-71-21" name="__codelineno-71-21" href="#__codelineno-71-21"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-71-22" name="__codelineno-71-22" href="#__codelineno-71-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-71-23" name="__codelineno-71-23" href="#__codelineno-71-23"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-71-24" name="__codelineno-71-24" href="#__codelineno-71-24"></a><span class="w">      </span><span class="no">result = dict(value) if value else {}</span>
+<a id="__codelineno-71-25" name="__codelineno-71-25" href="#__codelineno-71-25"></a><span class="w">      </span><span class="no">result[&quot;source_format&quot;] = &quot;Avro&quot;</span>
+<a id="__codelineno-71-26" name="__codelineno-71-26" href="#__codelineno-71-26"></a><span class="w">      </span><span class="no">return result</span>
+<a id="__codelineno-71-27" name="__codelineno-71-27" href="#__codelineno-71-27"></a>
+<a id="__codelineno-71-28" name="__codelineno-71-28" href="#__codelineno-71-28"></a><span class="w">  </span><span class="nt">transform_json_to_sensor</span><span class="p">:</span>
+<a id="__codelineno-71-29" name="__codelineno-71-29" href="#__codelineno-71-29"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-71-30" name="__codelineno-71-30" href="#__codelineno-71-30"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-71-31" name="__codelineno-71-31" href="#__codelineno-71-31"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-71-32" name="__codelineno-71-32" href="#__codelineno-71-32"></a><span class="w">      </span><span class="no">return {</span>
+<a id="__codelineno-71-33" name="__codelineno-71-33" href="#__codelineno-71-33"></a><span class="w">        </span><span class="no">&quot;name&quot;: key,</span>
+<a id="__codelineno-71-34" name="__codelineno-71-34" href="#__codelineno-71-34"></a><span class="w">        </span><span class="no">&quot;type&quot;: &quot;CONFIG&quot;,</span>
+<a id="__codelineno-71-35" name="__codelineno-71-35" href="#__codelineno-71-35"></a><span class="w">        </span><span class="no">&quot;threshold&quot;: value.get(&quot;threshold&quot;),</span>
+<a id="__codelineno-71-36" name="__codelineno-71-36" href="#__codelineno-71-36"></a><span class="w">        </span><span class="no">&quot;alert_level&quot;: value.get(&quot;alert_level&quot;),</span>
+<a id="__codelineno-71-37" name="__codelineno-71-37" href="#__codelineno-71-37"></a><span class="w">        </span><span class="no">&quot;source_format&quot;: &quot;JSON&quot;</span>
+<a id="__codelineno-71-38" name="__codelineno-71-38" href="#__codelineno-71-38"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-71-39" name="__codelineno-71-39" href="#__codelineno-71-39"></a>
+<a id="__codelineno-71-40" name="__codelineno-71-40" href="#__codelineno-71-40"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-71-41" name="__codelineno-71-41" href="#__codelineno-71-41"></a><span class="w">  </span><span class="c1"># Pipeline 1: Process Avro data and convert to JSON</span>
+<a id="__codelineno-71-42" name="__codelineno-71-42" href="#__codelineno-71-42"></a><span class="w">  </span><span class="nt">avro_processing</span><span class="p">:</span>
+<a id="__codelineno-71-43" name="__codelineno-71-43" href="#__codelineno-71-43"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro_sensor_stream</span>
+<a id="__codelineno-71-44" name="__codelineno-71-44" href="#__codelineno-71-44"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-71-45" name="__codelineno-71-45" href="#__codelineno-71-45"></a><span class="w">      </span><span class="c1"># Log Avro input</span>
+<a id="__codelineno-71-46" name="__codelineno-71-46" href="#__codelineno-71-46"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-71-47" name="__codelineno-71-47" href="#__codelineno-71-47"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-71-48" name="__codelineno-71-48" href="#__codelineno-71-48"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-71-49" name="__codelineno-71-49" href="#__codelineno-71-49"></a><span class="w">            </span><span class="no">log.info(&quot;Avro sensor: name={}, type={}, value={}{}&quot;,</span>
+<a id="__codelineno-71-50" name="__codelineno-71-50" href="#__codelineno-71-50"></a><span class="w">                    </span><span class="no">value.get(&quot;name&quot;), value.get(&quot;type&quot;),</span>
+<a id="__codelineno-71-51" name="__codelineno-71-51" href="#__codelineno-71-51"></a><span class="w">                    </span><span class="no">value.get(&quot;value&quot;), value.get(&quot;unit&quot;))</span>
+<a id="__codelineno-71-52" name="__codelineno-71-52" href="#__codelineno-71-52"></a>
+<a id="__codelineno-71-53" name="__codelineno-71-53" href="#__codelineno-71-53"></a><span class="w">      </span><span class="c1"># Add a source field to identify the format</span>
+<a id="__codelineno-71-54" name="__codelineno-71-54" href="#__codelineno-71-54"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-71-55" name="__codelineno-71-55" href="#__codelineno-71-55"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add_avro_source</span>
+<a id="__codelineno-71-56" name="__codelineno-71-56" href="#__codelineno-71-56"></a>
+<a id="__codelineno-71-57" name="__codelineno-71-57" href="#__codelineno-71-57"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">combined_output</span>
+<a id="__codelineno-71-58" name="__codelineno-71-58" href="#__codelineno-71-58"></a>
+<a id="__codelineno-71-59" name="__codelineno-71-59" href="#__codelineno-71-59"></a><span class="w">  </span><span class="c1"># Pipeline 2: Process JSON config data</span>
+<a id="__codelineno-71-60" name="__codelineno-71-60" href="#__codelineno-71-60"></a><span class="w">  </span><span class="nt">json_processing</span><span class="p">:</span>
+<a id="__codelineno-71-61" name="__codelineno-71-61" href="#__codelineno-71-61"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json_config_stream</span>
+<a id="__codelineno-71-62" name="__codelineno-71-62" href="#__codelineno-71-62"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-71-63" name="__codelineno-71-63" href="#__codelineno-71-63"></a><span class="w">      </span><span class="c1"># Log JSON input</span>
+<a id="__codelineno-71-64" name="__codelineno-71-64" href="#__codelineno-71-64"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-71-65" name="__codelineno-71-65" href="#__codelineno-71-65"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-71-66" name="__codelineno-71-66" href="#__codelineno-71-66"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-71-67" name="__codelineno-71-67" href="#__codelineno-71-67"></a><span class="w">            </span><span class="no">log.info(&quot;JSON config: device={}, threshold={}, alert={}&quot;,</span>
+<a id="__codelineno-71-68" name="__codelineno-71-68" href="#__codelineno-71-68"></a><span class="w">                    </span><span class="no">key, value.get(&quot;threshold&quot;), value.get(&quot;alert_level&quot;))</span>
 <a id="__codelineno-71-69" name="__codelineno-71-69" href="#__codelineno-71-69"></a>
-<a id="__codelineno-71-70" name="__codelineno-71-70" href="#__codelineno-71-70"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">combined_output</span>
+<a id="__codelineno-71-70" name="__codelineno-71-70" href="#__codelineno-71-70"></a><span class="w">      </span><span class="c1"># Transform to sensor-like format with source field</span>
+<a id="__codelineno-71-71" name="__codelineno-71-71" href="#__codelineno-71-71"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-71-72" name="__codelineno-71-72" href="#__codelineno-71-72"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform_json_to_sensor</span>
+<a id="__codelineno-71-73" name="__codelineno-71-73" href="#__codelineno-71-73"></a>
+<a id="__codelineno-71-74" name="__codelineno-71-74" href="#__codelineno-71-74"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">combined_output</span>
 </code></pre></div>
 </details>
 <h2 id="type-definition-quoting-rules">Type Definition Quoting Rules</h2>
