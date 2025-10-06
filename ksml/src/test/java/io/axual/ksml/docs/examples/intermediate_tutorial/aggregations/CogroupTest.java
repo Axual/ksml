@@ -74,9 +74,8 @@ public class CogroupTest {
 
         assertThat(outputTopic.getQueueSize()).isEqualTo(2);
 
-        // Skip first, read final result
-        outputTopic.readValue();
-        String result = outputTopic.readValue();
+        // Read final result
+        String result = outputTopic.readValuesToList().getLast();
 
         JsonNode json = objectMapper.readTree(result);
 
@@ -98,9 +97,7 @@ public class CogroupTest {
         assertThat(outputTopic.getQueueSize()).isEqualTo(3);
 
         // Read final result
-        outputTopic.readValue();
-        outputTopic.readValue();
-        String result = outputTopic.readValue();
+        String result = outputTopic.readValuesToList().getLast();
 
         JsonNode json = objectMapper.readTree(result);
 

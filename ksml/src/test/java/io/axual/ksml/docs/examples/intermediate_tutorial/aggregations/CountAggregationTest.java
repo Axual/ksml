@@ -22,11 +22,13 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.aggregations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.axual.ksml.testutil.KSMLTest;
@@ -75,9 +77,7 @@ public class CountAggregationTest {
         // Should receive 3 count updates (1, 2, 3)
         assertThat(outputTopic.getQueueSize()).isEqualTo(3);
 
-        assertThat(outputTopic.readValue()).isEqualTo("1");
-        assertThat(outputTopic.readValue()).isEqualTo("2");
-        assertThat(outputTopic.readValue()).isEqualTo("3");
+        assertThat(outputTopic.readValuesToList()).isEqualTo(List.of("1", "2", "3"));
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-count.yaml")
@@ -93,25 +93,13 @@ public class CountAggregationTest {
         assertThat(outputTopic.getQueueSize()).isEqualTo(5);
 
         // Read all and verify counts
-        var record1 = outputTopic.readRecord();
-        assertThat(record1.getKey()).isEqualTo("alice");
-        assertThat(record1.getValue()).isEqualTo("1");
-
-        var record2 = outputTopic.readRecord();
-        assertThat(record2.getKey()).isEqualTo("bob");
-        assertThat(record2.getValue()).isEqualTo("1");
-
-        var record3 = outputTopic.readRecord();
-        assertThat(record3.getKey()).isEqualTo("alice");
-        assertThat(record3.getValue()).isEqualTo("2");
-
-        var record4 = outputTopic.readRecord();
-        assertThat(record4.getKey()).isEqualTo("bob");
-        assertThat(record4.getValue()).isEqualTo("2");
-
-        var record5 = outputTopic.readRecord();
-        assertThat(record5.getKey()).isEqualTo("alice");
-        assertThat(record5.getValue()).isEqualTo("3");
+        var keyValues = outputTopic.readKeyValuesToList();
+        assertThat(keyValues).isEqualTo(List.of(
+                new KeyValue<>("alice", "1"),
+                new KeyValue<>("bob", "1"),
+                new KeyValue<>("alice", "2"),
+                new KeyValue<>("bob", "2"),
+                new KeyValue<>("alice", "3")));
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-count.yaml")

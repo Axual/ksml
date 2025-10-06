@@ -75,9 +75,7 @@ public class WindowedAggregationTest {
         assertThat(outputTopic.getQueueSize()).isEqualTo(3);
 
         // Read final result
-        outputTopic.readValue(); // Skip first two
-        outputTopic.readValue();
-        String result = outputTopic.readValue();
+        String result = outputTopic.readValuesToList().getLast();
 
         JsonNode json = objectMapper.readTree(result);
         JsonNode stats = json.get("stats");
