@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# -- Define the k8s-resource selected to deploy the KSML Runner.
+# -- Define the k8s-resource selected to deploy the KSML Runner. When set to `Job`, the `PrometheusRule` "Down" alert is disabled (incompatible with Job lifecycle).
 deploymentMode: StatefulSet
 
 replicaCount: 1
@@ -13,7 +13,7 @@ job:
   ttlSecondsAfterFinished: 259200
   # -- Allows custom finalizers to be set on the job resource.
   finalizers: []
-  # -- pod specific configurations.
+  # -- Pod specific configurations.
   pod:
     # -- Allows custom finalizers to be set on the pod created by the job.
     finalizers: []
@@ -58,7 +58,7 @@ ksmlRunnerConfig:
       stopOnError: true
     # -- Error handling settings for produce related errors.
     produce:
-      # -- log a message when produce errors occur.
+      # -- Log a message when produce errors occur.
       log: true
       # -- Add the record payload to the log message.
       logPayload: false
@@ -68,7 +68,7 @@ ksmlRunnerConfig:
       stopOnError: true
     # -- Error handling settings for processing related errors.
     process:
-      # -- log a message when processing errors occur.
+      # -- Log a message when processing errors occur.
       log: true
       # -- Add the record payload to the log message.
       logPayload: false
@@ -395,7 +395,7 @@ prometheus:
 
 prometheusRule:
   # -- Enables creation of Prometheus Operator [PrometheusRule](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.PrometheusRule).
-  # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
+  # Ignored if prometheus is disabled.
   enabled: false
   # -- Determines how often rules in the group are evaluated.
   interval: ""
@@ -420,7 +420,7 @@ prometheusRule:
 
 serviceMonitor:
   # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitor).
-  # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
+  # Ignored if prometheus is disabled.
   enabled: false
   # -- Interval at which metrics should be scraped.
   interval: 30s
