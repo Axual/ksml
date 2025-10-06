@@ -21,9 +21,31 @@ package io.axual.ksml.data.mapper;
  */
 
 import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.TupleSchema;
+import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.UnionType;
 
 import java.util.List;
 
@@ -66,16 +88,15 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (type instanceof TupleType tupleType)
             return new TupleSchema(tupleType, this);
         if (type instanceof UnionType unionType) {
-            var fields = new DataField[unionType.memberTypes().length];
-            for (int index = 0; index < unionType.memberTypes().length; index++) {
-                final var memberType = unionType.memberTypes()[index];
-                fields[index] = new DataField(
+            var members = new UnionSchema.Member[unionType.members().length];
+            for (int index = 0; index < unionType.members().length; index++) {
+                final var memberType = unionType.members()[index];
+                members[index] = new UnionSchema.Member(
                         memberType.name(),
                         toDataSchema(memberType.type()),
-                        null,
                         memberType.tag());
             }
-            return new UnionSchema(fields);
+            return new UnionSchema(members);
         }
         throw new SchemaException("Can not convert dataType " + type + " to a schema");
     }
@@ -107,15 +128,15 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
             return new TupleType(convertFieldsToSubTypes(tupleSchema.fields()));
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema instanceof UnionSchema unionSchema) {
-            var types = new UnionType.MemberType[unionSchema.memberSchemas().length];
-            for (int index = 0; index < unionSchema.memberSchemas().length; index++) {
-                final var memberSchema = unionSchema.memberSchemas()[index];
-                types[index] = new UnionType.MemberType(
+            var members = new UnionType.Member[unionSchema.members().length];
+            for (int index = 0; index < unionSchema.members().length; index++) {
+                final var memberSchema = unionSchema.members()[index];
+                members[index] = new UnionType.Member(
                         memberSchema.name(),
                         fromDataSchema(memberSchema.schema()),
                         memberSchema.tag());
             }
-            return new UnionType(types);
+            return new UnionType(members);
         }
 
         throw new SchemaException("Can not convert schema " + schema + " to a dataType");

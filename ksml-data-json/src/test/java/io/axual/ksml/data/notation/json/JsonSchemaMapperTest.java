@@ -347,8 +347,8 @@ class JsonSchemaMapperTest {
         // Union anyOf
         softlyDataSchema.assertThat(struct.field("idUnion"))
                 .isEqualTo(new DataField("idUnion", new UnionSchema(
-                        new DataField(LONG_SCHEMA),
-                        new DataField(STRING_SCHEMA)
+                        new UnionSchema.Member(LONG_SCHEMA),
+                        new UnionSchema.Member(STRING_SCHEMA)
                 ), null, NO_TAG, false));
 
         // $ref to internal definition
@@ -362,8 +362,8 @@ class JsonSchemaMapperTest {
         softlyDataSchema.assertThat(struct.field("arrComplex"))
                 .isEqualTo(new DataField("arrComplex", new ListSchema(
                         new UnionSchema(
-                                new DataField(new EnumSchema(null, null, null, List.of(Symbol.of("A"), Symbol.of("B")))),
-                                new DataField(new StructSchema(null, null, null, List.of(
+                                new UnionSchema.Member(new EnumSchema(null, null, null, List.of(Symbol.of("A"), Symbol.of("B")))),
+                                new UnionSchema.Member(new StructSchema(null, null, null, List.of(
                                         new DataField("v", DOUBLE_SCHEMA, null, NO_TAG, false)
                                 )))
                         )
@@ -503,7 +503,7 @@ class JsonSchemaMapperTest {
         final var mapOfStrings = new MapSchema(STRING_SCHEMA);
 
         // Create union for id
-        final var idUnion = new UnionSchema(new DataField(LONG_SCHEMA), new DataField(STRING_SCHEMA));
+        final var idUnion = new UnionSchema(new UnionSchema.Member(LONG_SCHEMA), new UnionSchema.Member(STRING_SCHEMA));
 
         // Constant string field encoded as enum single value on JSON side
         final var constCode = new DataField("constCode", STRING_SCHEMA, "Constant Code", NO_TAG, true, true, new DataValue("X"));

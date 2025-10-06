@@ -214,24 +214,24 @@ class DataTypeDataSchemaMapperTest {
     @Test
     @DisplayName("UnionType round-trip preserves member order, names and tags")
     void unionTypeRoundTripPreservesMemberMetadata() {
-        final var memberInt = new UnionType.MemberType("intField", DataInteger.DATATYPE, 1);
-        final var memberString = new UnionType.MemberType("stringField", DataString.DATATYPE, 2);
+        final var memberInt = new UnionType.Member("intField", DataInteger.DATATYPE, 1);
+        final var memberString = new UnionType.Member("stringField", DataString.DATATYPE, 2);
         final var unionType = new UnionType(memberInt, memberString);
 
         final var unionSchema = mapper.toDataSchema(unionType);
         assertThat(unionSchema).isInstanceOf(UnionSchema.class);
         final var concreteUnionSchema = (UnionSchema) unionSchema;
-        assertThat(concreteUnionSchema.memberSchemas()).hasSize(2);
-        assertThat(concreteUnionSchema.memberSchemas()[0].name()).isEqualTo("intField");
-        assertThat(concreteUnionSchema.memberSchemas()[0].tag()).isEqualTo(1);
-        assertThat(concreteUnionSchema.memberSchemas()[0].schema()).isSameAs(DataSchema.INTEGER_SCHEMA);
-        assertThat(concreteUnionSchema.memberSchemas()[1].name()).isEqualTo("stringField");
-        assertThat(concreteUnionSchema.memberSchemas()[1].tag()).isEqualTo(2);
-        assertThat(concreteUnionSchema.memberSchemas()[1].schema()).isSameAs(DataSchema.STRING_SCHEMA);
+        assertThat(concreteUnionSchema.members()).hasSize(2);
+        assertThat(concreteUnionSchema.members()[0].name()).isEqualTo("intField");
+        assertThat(concreteUnionSchema.members()[0].tag()).isEqualTo(1);
+        assertThat(concreteUnionSchema.members()[0].schema()).isSameAs(DataSchema.INTEGER_SCHEMA);
+        assertThat(concreteUnionSchema.members()[1].name()).isEqualTo("stringField");
+        assertThat(concreteUnionSchema.members()[1].tag()).isEqualTo(2);
+        assertThat(concreteUnionSchema.members()[1].schema()).isSameAs(DataSchema.STRING_SCHEMA);
 
         final var mappedBackUnion = mapper.fromDataSchema(unionSchema);
         assertThat(mappedBackUnion).isInstanceOf(UnionType.class);
-        final var mappedMembers = ((UnionType) mappedBackUnion).memberTypes();
+        final var mappedMembers = ((UnionType) mappedBackUnion).members();
         assertThat(mappedMembers).hasSize(2);
         assertThat(mappedMembers[0].name()).isEqualTo("intField");
         assertThat(mappedMembers[0].tag()).isEqualTo(1);
@@ -247,11 +247,11 @@ class DataTypeDataSchemaMapperTest {
         final var emptyUnionType = new UnionType();
         final var unionSchema = mapper.toDataSchema(emptyUnionType);
         assertThat(unionSchema).isInstanceOf(UnionSchema.class);
-        assertThat(((UnionSchema) unionSchema).memberSchemas()).isEmpty();
+        assertThat(((UnionSchema) unionSchema).members()).isEmpty();
 
         final var mappedBack = mapper.fromDataSchema(unionSchema);
         assertThat(mappedBack).isInstanceOf(UnionType.class);
-        assertThat(((UnionType) mappedBack).memberTypes()).isEmpty();
+        assertThat(((UnionType) mappedBack).members()).isEmpty();
     }
 
     @Test

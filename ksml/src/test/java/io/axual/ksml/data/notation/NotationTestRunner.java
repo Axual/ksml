@@ -60,8 +60,8 @@ class NotationTestRunner {
         schemaTest(type, schemaMapper, (input, output) -> {
             assertThat(input)
                     .as("Input schema should match output schema")
-                    .returns(true, i -> i.isAssignableFrom(output))
-                    .returns(true, output::isAssignableFrom);
+                    .returns(true, i -> i.checkAssignableFrom(output).isOK())
+                    .returns(true, o -> o.checkAssignableFrom(input).isOK());
         });
     }
 

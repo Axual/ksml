@@ -20,13 +20,6 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.annotation.Nullable;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.SchemaResolver;
@@ -58,6 +51,12 @@ import io.axual.ksml.data.util.ConvertUtil;
 import io.axual.ksml.data.util.MapUtil;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Maps DataObjects to and from native Java structures (Object, Map, List, primitives, etc.).
@@ -96,7 +95,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     public DataObject toDataObject(DataType expected, Object value) {
         if (value instanceof CharSequence val) value = val.toString();
         var result = convertObjectToDataObject(expected, value);
-        if (expected != null && !expected.isAssignableFrom(result))
+        if (expected != null && !expected.checkAssignableFrom(result).isOK())
             result = converter.convert(null, null, expected, result, false);
         return result;
     }
@@ -226,7 +225,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         final var result = new DataList(valueType);
         list.forEach(element -> {
             var dataObject = toDataObject(valueType, element);
-            if (!valueType.isAssignableFrom(dataObject))
+            if (!valueType.checkAssignableFrom(dataObject).isOK())
                 dataObject = converter.convert(null, null, valueType, dataObject, false);
             result.add(toDataObject(valueType, dataObject));
         });

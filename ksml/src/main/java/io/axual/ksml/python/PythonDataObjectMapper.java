@@ -79,7 +79,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     }
 
     private DataObject polyglotValueToDataUnion(UnionType unionType, Object value) {
-        final var memberTypesInitialScan = new ArrayList<>(Arrays.asList(unionType.memberTypes()));
+        final var memberTypesInitialScan = new ArrayList<>(Arrays.asList(unionType.members()));
         // Remove any null memberTypes and scan the other types
         final var hasNullType = memberTypesInitialScan.removeIf(memberType -> DataNull.DATATYPE.equals(memberType.type()));
         for (final var memberType : memberTypesInitialScan) {

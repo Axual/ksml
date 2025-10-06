@@ -20,6 +20,8 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -44,6 +46,13 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 @Getter
 @EqualsAndHashCode
 public class UnionSchema extends DataSchema {
+    // Definition of a union member
+    public record Member(String name, DataSchema schema, int tag) {
+        public Member(DataSchema schema) {
+            this(null, schema, NO_TAG);
+        }
+    }
+
     /**
      * The list of possible schemas (types) that this union schema can represent. The
      * types are stored as DataFields to accommodate for schema types like Protobuf,
@@ -53,39 +62,39 @@ public class UnionSchema extends DataSchema {
      * one possible type for the data.
      * </p>
      */
-    private final DataField[] memberSchemas;
+    private final Member[] members;
 
     /**
-     * Constructs a {@code UnionSchema} with the given member schemas.
+     * Constructs a {@code UnionSchema} with the given members.
      *
-     * @param memberSchemas A list of {@link DataSchema} representing the types that this union schema can adopt.
-     *                      It must not be null or empty, and each schema must have a unique type.
+     * @param members A list of {@link Member}s representing the types that this union schema can adopt.
+     *                It must not be null or empty, and each schema must have a unique type.
      * @throws IllegalArgumentException if {@code memberSchemas} is null, empty, or contains duplicate or null schemas.
      */
-    public UnionSchema(DataField... memberSchemas) {
-        this(true, memberSchemas);
+    public UnionSchema(Member... members) {
+        this(true, members);
     }
 
     // Optimize
     // Make this public when the need arises to manually control optimization
-    private UnionSchema(boolean flatten, DataField... memberSchemas) {
+    private UnionSchema(boolean flatten, Member... members) {
         super(DataSchemaConstants.UNION_TYPE);
-        this.memberSchemas = flatten ? recursivelyGetMemberSchemas(memberSchemas) : memberSchemas;
+        this.members = flatten ? recursivelyGetMembers(members) : members;
     }
 
-    private DataField[] recursivelyGetMemberSchemas(DataField[] memberSchemas) {
+    private Member[] recursivelyGetMembers(Member[] members) {
         // Here we flatten the list of value types by recursively walking through all value types. Any sub-unions
         // are exploded and taken up in this union's list of value types.
-        final var result = new ArrayList<DataField>();
-        for (final var memberSchema : memberSchemas) {
-            if (memberSchema.schema() instanceof UnionSchema unionSchema) {
-                final var subFields = recursivelyGetMemberSchemas(unionSchema.memberSchemas);
-                result.addAll(Arrays.stream(subFields).toList());
+        final var result = new ArrayList<Member>();
+        for (final var member : members) {
+            if (member.schema() instanceof UnionSchema unionSchema) {
+                final var subMembers = recursivelyGetMembers(unionSchema.members);
+                result.addAll(Arrays.stream(subMembers).toList());
             } else {
-                result.add(memberSchema);
+                result.add(member);
             }
         }
-        return result.toArray(new DataField[]{});
+        return result.toArray(Member[]::new);
     }
 
     /**
@@ -95,8 +104,8 @@ public class UnionSchema extends DataSchema {
      * @return {@code true} if the schema is member of this union schema, {@code false} otherwise.
      */
     public boolean contains(DataSchema schema) {
-        for (final var memberSchema : memberSchemas) {
-            if (memberSchema.schema().equals(schema)) return true;
+        for (final var member : members) {
+            if (member.schema().equals(schema)) return true;
         }
         return false;
     }
@@ -108,48 +117,50 @@ public class UnionSchema extends DataSchema {
      * </p>
      *
      * @param otherSchema The {@link DataSchema} to check for compatibility.
-     * @return {@code true} if the other schema is assignable to this union schema, {@code false} otherwise.
+     * @param context     The validation context.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
         // Don't call the super method here, since that gives wrong semantics. As a union we are
         // assignable from any schema type, so we must skip the comparison of our own schema type
         // with that of the other schema.
 
         // By convention, we are not assignable if the other schema is null.
-        if (otherSchema == null) return false;
+        if (otherSchema == null) {
+            return context.addError("Union schema is not assignable from null schema");
+        }
 
         // If the other schema is a union, then we compare all value types of that union.
         if (otherSchema instanceof UnionSchema otherUnionSchema) {
             // This schema is assignable from the other union fields when all of its value types can be assigned to
             // this union.
-            for (final var otherUnionMemberSchema : otherUnionSchema.memberSchemas) {
-                if (!isAssignableFrom(otherUnionMemberSchema))
-                    return false;
+            for (final var otherUnionMember : otherUnionSchema.members) {
+                if (!checkAssignableFromMember(otherUnionMember, context).isOK())
+                    return context.schemaMismatch(this, otherUnionMember.schema);
             }
-            return true;
+            return context.ok();
         }
 
         // The other schema is not a union --> we are assignable from the other schema if at least
         // one of our value schema is assignable from the other schema.
-        for (final var memberSchema : memberSchemas) {
-            if (memberSchema.schema().isAssignableFrom(otherSchema)) return true;
+        for (final var memberSchema : members) {
+            if (memberSchema.schema().checkAssignableFrom(otherSchema, context).isOK()) return context.ok();
         }
-        return false;
+        return context.schemaMismatch(this, otherSchema);
     }
 
-    private boolean isAssignableFrom(DataField otherField) {
-        for (final var memberSchema : memberSchemas) {
-            // First check if the schema of this field and the other field are compatible
-            if (memberSchema.schema().isAssignableFrom(otherField.schema())) {
-                // If they are, then manually check if we allow assignment from the other field to this field
-                if (isAssignableByNameAndTag(memberSchema, otherField)) return true;
-            }
+    private ValidationResult checkAssignableFromMember(Member otherMember, ValidationContext context) {
+        for (final var member : members) {
+            // First, check if the schema of this field and the other field are compatible
+            if (member.schema().checkAssignableFrom(otherMember.schema()).isOK()
+                    // If they are, then manually check if we allow assignment from the other field to this field
+                    && isAssignableByNameAndTag(member, otherMember))
+                return context;
         }
-        return false;
+        return context.schemaMismatch(this, otherMember.schema);
     }
 
-    private boolean isAssignableByNameAndTag(DataField thisField, DataField otherField) {
+    private boolean isAssignableByNameAndTag(Member thisField, Member otherField) {
         // Allow assignments from an anonymous union type, having name or tag unset
         if (thisField.name() == null || otherField.name() == null) return true;
         if (thisField.tag() == NO_TAG || otherField.tag() == NO_TAG) return true;

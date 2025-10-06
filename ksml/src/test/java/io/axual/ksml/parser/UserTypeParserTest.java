@@ -63,8 +63,8 @@ class UserTypeParserTest {
         assertNotNull(userType);
         final var dataType = userType.dataType();
         assertEquals(String.class, dataType.containerClass());
-        assertTrue(dataType.isAssignableFrom("some random string"));
-        assertTrue(dataType.isAssignableFrom(String.class));
+        assertTrue(dataType.checkAssignableFrom("some random string").isOK());
+        assertTrue(dataType.checkAssignableFrom(String.class).isOK());
     }
 
     @ParameterizedTest

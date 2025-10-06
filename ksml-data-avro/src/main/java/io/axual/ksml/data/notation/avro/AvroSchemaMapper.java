@@ -103,7 +103,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             }
             case UNION -> {
                 final var unionSchemas = schema.getTypes();
-                final var unionDataFields = new DataField[unionSchemas.size()];
+                final var unionMembers = new UnionSchema.Member[unionSchemas.size()];
                 for (var i = 0; i < unionSchemas.size(); i++) {
                     final var memberSchema = unionSchemas.get(i);
                     final var memberDataSchema = switch (memberSchema.getType()) {
@@ -111,9 +111,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                                 toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
                         default -> toDataSchema(memberSchema);
                     };
-                    unionDataFields[i] = new DataField(memberDataSchema);
+                    unionMembers[i] = new UnionSchema.Member(memberDataSchema);
                 }
-                yield new UnionSchema(unionDataFields);
+                yield new UnionSchema(unionMembers);
             }
             case FIXED ->
                     new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
@@ -159,12 +159,12 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
         }
         if (schema instanceof UnionSchema unionSchema) {
-            var memberSchemas = unionSchema.memberSchemas();
-            var avroMemberSchemas = new Schema[memberSchemas.length];
-            for (var i = 0; i < memberSchemas.length; i++) {
-                avroMemberSchemas[i] = fromDataSchema(memberSchemas[i].schema());
+            var members = unionSchema.members();
+            var avroMembers = new Schema[members.length];
+            for (var i = 0; i < members.length; i++) {
+                avroMembers[i] = fromDataSchema(members[i].schema());
             }
-            return Schema.createUnion(avroMemberSchemas);
+            return Schema.createUnion(avroMembers);
         }
 
         return switch (schema.type()) {
@@ -243,13 +243,13 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         }
 
         // Create a new union schema with the potentially adjusted member list
-        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(memberSchemas).toArray(DataField[]::new)), isRequired);
+        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToUnionMembers(memberSchemas).toArray(UnionSchema.Member[]::new)), isRequired);
     }
 
-    private List<DataField> convertAvroSchemaToDataFields(List<Schema> schemas) {
-        final var result = new ArrayList<DataField>();
+    private List<UnionSchema.Member> convertAvroSchemaToUnionMembers(List<Schema> schemas) {
+        final var result = new ArrayList<UnionSchema.Member>();
         for (var schema : schemas) {
-            result.add(new DataField(convertAvroSchemaToDataSchemaAndRequired(schema).schema()));
+            result.add(new UnionSchema.Member(convertAvroSchemaToDataSchemaAndRequired(schema).schema()));
         }
         return result;
     }
@@ -297,7 +297,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (schema instanceof StructSchema structSchema)
             return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, convertFieldsToAvroFields(structSchema.fields()));
         if (schema instanceof UnionSchema unionSchema)
-            return Schema.createUnion(convertUnionMemberSchemasToAvro(Arrays.stream(unionSchema.memberSchemas()).map(DataField::schema).toArray(DataSchema[]::new)));
+            return Schema.createUnion(convertUnionMemberSchemasToAvro(Arrays.stream(unionSchema.members()).map(UnionSchema.Member::schema).toArray(DataSchema[]::new)));
         throw new SchemaException("Can not convert schema to AVRO: " + schema);
     }
 

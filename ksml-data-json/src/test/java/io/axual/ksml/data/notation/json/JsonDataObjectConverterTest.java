@@ -223,8 +223,8 @@ class JsonDataObjectConverterTest {
     void stringToUnion() {
         // Union of Struct or List
         var union = new UnionType(
-                new UnionType.MemberType(new StructType()),
-                new UnionType.MemberType(new ListType())
+                new UnionType.Member(new StructType()),
+                new UnionType.Member(new ListType())
         );
 
         // Case 1: JSON object should yield DataStruct

@@ -96,16 +96,19 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
         // Add all converted message fields to the result list
         for (final var field : messageFields) {
-            result.add(convertFieldElementToDataField(context, field));
+            result.add(convertFieldElementToUnionMember(context, field));
         }
 
         // Add all converted oneOfs to the result list
         for (final var oneOf : oneOfMap.entrySet()) {
             // Convert the oneOf to a UnionSchema
-            final var ooFields = new ArrayList<DataField>();
-            for (final var field : oneOf.getValue())
-                ooFields.add(convertFieldElementToDataField(context, field));
-            final var oneOfUnion = new UnionSchema(ooFields.toArray(DataField[]::new));
+            final var ooFields = new ArrayList<UnionSchema.Member>();
+            for (final var field : oneOf.getValue()) {
+                // Manually convert DataField to a union member
+                final var df = convertFieldElementToUnionMember(context, field);
+                ooFields.add(new UnionSchema.Member(df.name(), df.schema(), df.tag()));
+            }
+            final var oneOfUnion = new UnionSchema(ooFields.toArray(UnionSchema.Member[]::new));
             result.add(new DataField(oneOf.getKey().getName(), oneOfUnion, oneOf.getKey().getDocumentation()));
         }
 
@@ -113,7 +116,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         return result;
     }
 
-    private DataField convertFieldElementToDataField(ProtobufReadContext context, FieldElement field) {
+    private DataField convertFieldElementToUnionMember(ProtobufReadContext context, FieldElement field) {
         // Don't get a default value for an embedded message field
         final var defaultValue = field.getDefaultValue() != null ? field.getDefaultValue() : null;
         final var name = field.getName();
@@ -222,17 +225,17 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     private String convertDataFieldToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, List<OneOfElement> parentOneOfs, String parentName, DataField field) {
         if (field.schema() instanceof UnionSchema unionSchema) {
             final var memberTypes = new ArrayList<FieldElement>();
-            for (int index = 0; index < unionSchema.memberSchemas().length; index++) {
-                final var memberSchema = unionSchema.memberSchemas()[index];
+            for (int index = 0; index < unionSchema.members().length; index++) {
+                final var member = unionSchema.members()[index];
                 final var memberType = new FieldElement(
                         DEFAULT_LOCATION,
                         null,
-                        convertDataFieldToProtoType(context, parentNestedTypes, parentOneOfs, parentName, memberSchema),
-                        memberSchema.name(),
-                        memberSchema.defaultValue() != null ? memberSchema.defaultValue().toString() : null,
+                        convertDataFieldToProtoType(context, parentNestedTypes, parentOneOfs, parentName, new DataField(member.name(), member.schema(), "", member.tag())),
+                        member.name(),
                         null,
-                        memberSchema.tag(),
-                        memberSchema.doc(),
+                        null,
+                        member.tag(),
+                        "",
                         Collections.emptyList());
                 memberTypes.add(memberType);
             }

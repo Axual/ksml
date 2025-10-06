@@ -20,7 +20,7 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.ValidationException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.Getter;
@@ -50,9 +50,10 @@ public class DataPrimitive<T> implements DataObject {
 
     private void checkValue() {
         final var valid = value instanceof DataObject dataObject
-                ? type.isAssignableFrom(dataObject)
-                : type.isAssignableFrom(value);
-        if (!valid) throw new DataException("Value assigned to " + type + " can not be \"" + this + "\"");
+                ? type.checkAssignableFrom(dataObject)
+                : type.checkAssignableFrom(value);
+        if (!valid.isOK())
+            throw new ValidationException("Value assigned to " + type + " can not be \"" + this + "\"", valid);
     }
 
     /**

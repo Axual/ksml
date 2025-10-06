@@ -21,6 +21,8 @@ package io.axual.ksml.data.schema;
  */
 
 import com.google.common.collect.Lists;
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -196,22 +198,25 @@ public class StructSchema extends NamedSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to check for compatibility.
-     * @return {@code true} if the other schema is assignable to this schema, {@code false} otherwise.
+     * @param context     The validation context.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof StructSchema otherStructSchema)) return false;
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
+        if (!(otherSchema instanceof StructSchema otherStructSchema)) return context.schemaMismatch(this, otherSchema);
         // Ensure the other schema has the same fields with compatible types
-        for (var field : fields) {
+        for (final var field : fields) {
             // Get the field with the same name from the other schema
             final var otherField = otherStructSchema.field(field.name());
             // If the field exists in the other schema, then validate its compatibility
-            if (otherField != null && !field.isAssignableFrom(otherField)) return false;
+            if (otherField != null) field.checkAssignableFrom(otherField, context);
             // If this field has no default value, then the field should exist in the other schema
-            if (field.defaultValue() == null && otherField == null) return false;
+            if (field.defaultValue() == null && otherField == null) {
+                return context.addError("Other schema does not contain required field \"" + field.name() + "\"");
+            }
         }
-        return true;
+        // All fields are assignable, so return no error
+        return context.ok();
     }
 
     /**
@@ -233,8 +238,9 @@ public class StructSchema extends NamedSchema {
         if (other == null || getClass() != other.getClass()) return false;
         if (!super.equals(other)) return false;
         StructSchema that = (StructSchema) other;
-        if (!this.isAssignableFrom(that)) return false;
-        return that.isAssignableFrom(this);
+        return additionalFieldsAllowed == that.additionalFieldsAllowed
+                && Objects.equals(additionalFieldsSchema, that.additionalFieldsSchema)
+                && Objects.equals(this.fields, that.fields);
     }
 
     /**

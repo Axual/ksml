@@ -40,13 +40,16 @@ public class DataSchemaDSL {
     public static final String STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED_FIELD = "additionalFieldsAllowed";
     public static final String STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA_FIELD = "additionalFieldsSchema";
     public static final String DATA_FIELD_NAME_FIELD = "name";
-    public static final String DATA_FIELD_SCHEMA_FIELD = "type";
+    public static final String DATA_FIELD_SCHEMA_FIELD = DATA_SCHEMA_TYPE_FIELD;
     public static final String DATA_FIELD_DOC_FIELD = "doc";
     public static final String DATA_FIELD_REQUIRED_FIELD = "required";
     public static final String DATA_FIELD_CONSTANT_FIELD = "constant";
     public static final String DATA_FIELD_TAG_FIELD = "tag";
     public static final String DATA_FIELD_DEFAULT_VALUE_FIELD = "defaultValue";
     public static final String DATA_FIELD_ORDER_FIELD = "order";
+    public static final String UNION_MEMBER_NAME_FIELD = "name";
+    public static final String UNION_MEMBER_SCHEMA_FIELD = DATA_SCHEMA_TYPE_FIELD;
+    public static final String UNION_MEMBER_TAG_FIELD = "tag";
     public static final String UNKNOWN_TYPE = "?";
     public static final String NONE_TYPE = "none";
     public static final String INTEGER_TYPE_ALTERNATIVE = "int";

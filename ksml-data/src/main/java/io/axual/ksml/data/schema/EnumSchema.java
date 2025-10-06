@@ -22,6 +22,8 @@ package io.axual.ksml.data.schema;
 
 import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.util.ListUtil;
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -90,29 +92,25 @@ public class EnumSchema extends NamedSchema {
      * </p>
      *
      * @param otherSchema The schema to be checked for compatibility.
-     * @return {@code true} if the given schema is compatible; otherwise, {@code false}.
+     * @param context     The validation context.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
         // Always allow assigning from a string value (assuming a valid symbol)
-        if (otherSchema == DataSchema.STRING_SCHEMA) return true; // Strings are convertable to ENUM
-
+        if (otherSchema == DataSchema.STRING_SCHEMA) return context.ok();
         // Check super's compatibility
-        if (!super.isAssignableFrom(otherSchema)) return false;
-
-        // If okay then check class compatibility
-        if (!(otherSchema instanceof EnumSchema otherEnum)) return false;
-
-        // This schema is assignable from the other enum when the map of symbols is a superset
-        // of the otherEnum's set of symbols.
+        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
+        // Check class compatibility
+        if (!(otherSchema instanceof EnumSchema otherEnum)) return context.schemaMismatch(this, otherSchema);
+        // This schema is assignable from the other enum when the map of symbols is equal or a superset of the
+        // otherEnum's set of symbols.
         for (final var otherSymbol : otherEnum.symbols) {
             // Validate that the other symbol is present and equal in our own symbol list
-            if (ListUtil.find(symbols, thisSymbol -> thisSymbol.isAssignableFrom(otherSymbol)) == null)
-                return false;
+            if (ListUtil.find(symbols, thisSymbol -> thisSymbol.isAssignableFrom(otherSymbol)) == null) {
+                return context.addError("Symbol \"" + otherSymbol.name() + "\" not found in enumeration");
+            }
         }
-
-        // When we reach this point, it means that we can be assigned any
-        // value from the otherEnum.
-        return true;
+        // All symbols from the other union are contained within this one, so return no error
+        return context.ok();
     }
 }

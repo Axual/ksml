@@ -33,8 +33,8 @@ import io.axual.ksml.type.UserType;
 
 public class UserGenerator extends Invoker {
     public static final DataType EXPECTED_RESULT_TYPE = new UnionType(
-            new UnionType.MemberType("singleMessage", new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN), 1),
-            new UnionType.MemberType("listOfMessages", new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)), 2));
+            new UnionType.Member("singleMessage", new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN), 1),
+            new UnionType.Member("listOfMessages", new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)), 2));
 
     public UserGenerator(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_GENERATOR);

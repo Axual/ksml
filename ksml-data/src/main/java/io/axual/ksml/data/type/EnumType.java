@@ -23,6 +23,8 @@ package io.axual.ksml.data.type;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.util.ListUtil;
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -32,7 +34,7 @@ import java.util.List;
  * A {@link SimpleType} representing an enumeration of allowed string symbols.
  * <p>
  * Values are considered assignable only when they are strings that match one of the configured
- * {@link EnumType.Symbol} entries.
+ * {@link Symbol} entries.
  */
 @Getter
 @EqualsAndHashCode
@@ -45,8 +47,12 @@ public class EnumType extends SimpleType {
     }
 
     @Override
-    public boolean isAssignableFrom(DataObject value) {
-        if (!super.isAssignableFrom(value)) return false;
-        return ListUtil.find(symbols(), s -> s.name().equals(value.toString())) != null;
+    public ValidationResult checkAssignableFrom(DataObject value, ValidationContext context) {
+        if (!super.checkAssignableFrom(value, context).isOK()) return context;
+        if (context.isOK() && ListUtil.find(symbols(), s -> s.name().equals(value.toString())) == null) {
+            final var symbolsStr = symbols().stream().map(s -> "\"" + s.name() + "\"").toList();
+            return context.addError("Symbol \"" + value + "\" not found in enumeration with symbols " + String.join(", ", symbolsStr));
+        }
+        return context.ok();
     }
 }

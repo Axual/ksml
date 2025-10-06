@@ -20,14 +20,13 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataString;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,29 +45,29 @@ class EnumTypeTest {
     }
 
     @Test
-    @DisplayName("isAssignableFrom(DataObject) accepts only DataString values matching one of the symbols; null is rejected")
-    void isAssignableFromDataObject() {
+    @DisplayName("checkAssignableFrom(DataObject) accepts only DataString values matching one of the symbols; null is rejected")
+    void checkAssignableFromDataObject() {
         var type = new EnumType(List.of(new Symbol("A"), new Symbol("B")));
 
         // Matching symbols
-        assertThat(type.isAssignableFrom(new DataString("A"))).isTrue();
-        assertThat(type.isAssignableFrom(new DataString("B"))).isTrue();
+        assertThat(type.checkAssignableFrom(new DataString("A")).isOK()).isTrue();
+        assertThat(type.checkAssignableFrom(new DataString("B")).isOK()).isTrue();
 
         // Non-matching string
-        assertThat(type.isAssignableFrom(new DataString("C"))).isFalse();
+        assertThat(type.checkAssignableFrom(new DataString("C")).isOK()).isFalse();
 
         // Null is not considered assignable for EnumType
-        assertThat(type.isAssignableFrom(DataNull.INSTANCE)).isFalse();
+        assertThat(type.checkAssignableFrom(DataNull.INSTANCE).isOK()).isFalse();
     }
 
     @Test
-    @DisplayName("isAssignableFrom(DataObject) uses DataObject.toString for comparison (no quotes for internal printing)")
+    @DisplayName("checkAssignableFrom(DataObject) uses DataObject.toString for comparison (no quotes for internal printing)")
     void comparisonUsesToStringValue() {
         var type = new EnumType(List.of(new Symbol("hello")));
         var ds = new DataString("hello");
         var softly = new SoftAssertions();
         softly.assertThat(ds.toString()).isEqualTo("hello");
-        softly.assertThat(type.isAssignableFrom(ds)).isTrue();
+        softly.assertThat(type.checkAssignableFrom(ds).isOK()).isTrue();
         softly.assertAll();
     }
 }

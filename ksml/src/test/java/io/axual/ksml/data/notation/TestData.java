@@ -20,8 +20,18 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.Symbol;
 
 import java.util.List;
@@ -48,7 +58,7 @@ public class TestData {
                 new DataField(POSTAL_CODE, DataSchema.STRING_SCHEMA, "Postal code field", 12),
                 new DataField(CITY, DataSchema.STRING_SCHEMA, "City field", 13),
                 new DataField(COUNTRY, DataSchema.STRING_SCHEMA, "Country field", 14));
-        final var addressSchema = new StructSchema(NAMESPACE, "AddressSchema", "Address schema used for testing", addressFields);
+        final var addressSchema = new StructSchema(NAMESPACE, "AddressSchema", "Address schema used for testing", addressFields, false);
 
         final var eyeColorSymbols = List.of(
                 new Symbol("UNKNOWN", "Unknown color", 0),
@@ -61,8 +71,8 @@ public class TestData {
         final var luckyNumbersSchema = new ListSchema(DataSchema.LONG_SCHEMA);
 
         final var accountNumberSchema = new UnionSchema(
-                new DataField("bban", DataSchema.LONG_SCHEMA, "BBAN", 23),
-                new DataField("iban", DataSchema.STRING_SCHEMA, "IBAN", 24));
+                new UnionSchema.Member("bban", DataSchema.LONG_SCHEMA, 23),
+                new UnionSchema.Member("iban", DataSchema.STRING_SCHEMA, 24));
 
         final var fields = List.of(
                 new DataField(NAME, DataSchema.STRING_SCHEMA, "Name", 1),

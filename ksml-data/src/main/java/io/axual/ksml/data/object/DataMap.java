@@ -167,7 +167,7 @@ public class DataMap implements DataObject {
      * @throws IllegalArgumentException if the value type is invalid.
      */
     private DataObject verifiedValue(DataObject value) {
-        if (!type.valueType().isAssignableFrom(value.type())) {
+        if (!type.valueType().checkAssignableFrom(value.type()).isOK()) {
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
         }
         return value;

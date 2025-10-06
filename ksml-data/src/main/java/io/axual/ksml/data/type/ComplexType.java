@@ -20,6 +20,8 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -89,22 +91,32 @@ public abstract class ComplexType implements DataType {
     }
 
     @Override
-    public final boolean isAssignableFrom(Class<?> type) {
-        return this.containerClass.isAssignableFrom(type);
+    public final ValidationResult checkAssignableFrom(Class<?> otherContainerClass, ValidationContext context) {
+        if (!containerClass.isAssignableFrom(otherContainerClass)) {
+            return context.typeMismatch(this, otherContainerClass);
+        }
+        return context;
     }
 
     @Override
-    public boolean isAssignableFrom(DataType type) {
-        return type instanceof ComplexType otherType && isAssignableFrom(otherType);
-    }
-
-    private boolean isAssignableFrom(ComplexType type) {
-        if (!this.containerClass.isAssignableFrom(type.containerClass)) return false;
-        if (subTypes.length != type.subTypes.length) return false;
-        for (int i = 0; i < subTypes.length; i++) {
-            if (!subTypes[i].isAssignableFrom(type.subTypes[i])) return false;
+    public ValidationResult checkAssignableFrom(DataType otherType, ValidationContext context) {
+        if (otherType instanceof ComplexType otherComplexType) {
+            if (!checkAssignableFrom(otherComplexType.containerClass, context).isOK()) {
+                return context.typeMismatch(this, otherComplexType.containerClass);
+            }
+            if (subTypes.length != otherComplexType.subTypes.length) {
+                return context.addError("Type \"" + context.thatType(otherType) + "\" has a different number of sub-types than \"" + context.thisType(this) + "\"");
+            } else {
+                for (int i = 0; i < subTypes.length; i++) {
+                    subTypes[i].checkAssignableFrom(otherComplexType.subTypes[i], context);
+                }
+                return context;
+            }
+        } else if (otherType != null) {
+            return context.addError("Can not assign \"" + otherType + "\" to \"" + this + "\".");
+        } else {
+            return context.addError("No type specified, this is a bug in KSML");
         }
-        return true;
     }
 
     @Override
@@ -112,11 +124,20 @@ public abstract class ComplexType implements DataType {
         return name;
     }
 
+    private boolean subTypeEquals(ComplexType other) {
+        if (subTypes.length != other.subTypes.length) return false;
+        for (int i = 0; i < subTypes.length; i++) {
+            if (!subTypes[i].equals(other.subTypes[i])) return false;
+        }
+        return true;
+    }
+
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        ComplexType other = (ComplexType) obj;
-        return isAssignableFrom(other) && other.isAssignableFrom(this);
+        return obj != null
+                && getClass().equals(obj.getClass())
+                && containerClass.equals(((ComplexType) obj).containerClass)
+                && subTypeEquals((ComplexType) obj);
     }
 
     public int hashCode() {

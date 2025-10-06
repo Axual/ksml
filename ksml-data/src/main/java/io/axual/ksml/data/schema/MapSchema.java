@@ -20,6 +20,8 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -71,15 +73,14 @@ public class MapSchema extends DataSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
-     * @return {@code true} if the other schema is assignable from this schema;
-     * {@code false} otherwise.
+     * @param context     The validation context.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof MapSchema otherMapSchema)) return false;
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
+        if (!(otherSchema instanceof MapSchema otherMapSchema)) return context.schemaMismatch(this, otherSchema);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
-        return valueSchema.isAssignableFrom(otherMapSchema.valueSchema);
+        return valueSchema.checkAssignableFrom(otherMapSchema.valueSchema, context);
     }
 }

@@ -113,10 +113,10 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
                 if (fieldSchema instanceof UnionSchema unionSchema) {
                     var assigned = false;
                     var index = 0;
-                    while (!assigned && index < unionSchema.memberSchemas().length) {
-                        final var memberSchema = unionSchema.memberSchemas()[index];
+                    while (!assigned && index < unionSchema.members().length) {
+                        final var memberSchema = unionSchema.members()[index];
                         final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
-                        if (memberType.isAssignableFrom(fieldValue)) {
+                        if (memberType.checkAssignableFrom(fieldValue).isOK()) {
                             setMessageFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
                             assigned = true;
                         }

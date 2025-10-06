@@ -56,17 +56,17 @@ class ListSchemaTest {
         final var listOfDouble = new ListSchema(DataSchema.DOUBLE_SCHEMA);
 
         // Integers: integer accepts from long
-        assertThat(listOfInt.isAssignableFrom(listOfInt)).isTrue();
-        assertThat(listOfInt.isAssignableFrom(listOfLong)).isTrue();
-        assertThat(listOfInt.isAssignableFrom(listOfString)).isFalse();
+        assertThat(listOfInt.checkAssignableFrom(listOfInt).isOK()).isTrue();
+        assertThat(listOfInt.checkAssignableFrom(listOfLong).isOK()).isTrue();
+        assertThat(listOfInt.checkAssignableFrom(listOfString).isOK()).isFalse();
 
         // Floating: float and double accept from each other
-        assertThat(listOfFloat.isAssignableFrom(listOfDouble)).isTrue();
-        assertThat(listOfDouble.isAssignableFrom(listOfFloat)).isTrue();
+        assertThat(listOfFloat.checkAssignableFrom(listOfDouble).isOK()).isTrue();
+        assertThat(listOfDouble.checkAssignableFrom(listOfFloat).isOK()).isTrue();
 
         // Non-list should not be assignable
-        assertThat(listOfInt.isAssignableFrom(DataSchema.STRING_SCHEMA)).isFalse();
+        assertThat(listOfInt.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
         // Null not assignable
-        assertThat(listOfInt.isAssignableFrom(null)).isFalse();
+        assertThat(listOfInt.checkAssignableFrom(null).isOK()).isFalse();
     }
 }

@@ -26,6 +26,8 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.Getter;
 
 import java.util.Map;
@@ -63,11 +65,11 @@ public class StructType extends ComplexType {
                 DataString.DATATYPE,
                 DataType.UNKNOWN);
         if (schema == StructSchema.SCHEMALESS) schema = null; // If we're SCHEMALESS, then nullify the schema here
-        if( name != null && !name.isEmpty() ){
+        if (name != null && !name.isEmpty()) {
             this.name = name;
-        }else if( schema != null ){
+        } else if (schema != null) {
             this.name = schema.name();
-        }else {
+        } else {
             this.name = DEFAULT_NAME;
         }
         this.schema = schema;
@@ -99,12 +101,17 @@ public class StructType extends ComplexType {
     }
 
     @Override
-    public boolean isAssignableFrom(DataType type) {
-        if (type == DataNull.DATATYPE) return true; // Always allow Structs to be NULL (Kafka tombstones)
-        if (!super.isAssignableFrom(type)) return false;
-        if (!(type instanceof StructType structType)) return false;
-        if (schema == null) return true;
-        return schema.isAssignableFrom(structType.schema);
+    public ValidationResult checkAssignableFrom(DataType otherType, ValidationContext context) {
+        // Always allow Structs to be NULL (Kafka tombstones)
+        if (otherType == DataNull.DATATYPE) return context.ok();
+        // Perform superclass validation first
+        if (!super.checkAssignableFrom(otherType, context).isOK()) return context;
+        if (!(otherType instanceof StructType otherStructType))
+            return context.addError("Type \"" + context.thatType(otherType) + "\" is not a StructType");
+        // In case we have no schema, then we can be assigned values from any other struct, with or without a schema
+        if (schema == null) return context;
+        // When we have a schema, validate that the schema is assignable from the other struct's schema
+        return schema.checkAssignableFrom(otherStructType.schema, context);
     }
 
     @Override
@@ -113,8 +120,9 @@ public class StructType extends ComplexType {
         if (other == null || getClass() != other.getClass()) return false;
         if (!super.equals(other)) return false;
         StructType that = (StructType) other;
-        if(!Objects.equal(this.name, that.name)) return false;
-        return this.isAssignableFrom(that) && that.isAssignableFrom(this);
+        if (!Objects.equal(this.name, that.name)) return false;
+        if (schema == null && that.schema == null) return true;
+        return schema != null && schema.equals(that.schema);
     }
 
     @Override

@@ -102,7 +102,7 @@ public class UserTypeParser {
         final var internalType = parseType(dataType);
         if (internalType != null) {
             final var n = ExecutionContext.INSTANCE.notationLibrary().get(notation);
-            if (n.defaultType() != null && !n.defaultType().isAssignableFrom(internalType)) {
+            if (n.defaultType() != null && !n.defaultType().checkAssignableFrom(internalType).isOK()) {
                 throw new DataException("Notation " + n.name() + " does not allow for data type " + dataType);
             }
             return new UserType(notation, internalType);
@@ -165,7 +165,7 @@ public class UserTypeParser {
             final var memberTypesStr = dataType.substring(UNION_TYPE.length() + 1, dataType.length() - 1);
             final var memberTypes = parseListOfTypesAndNotation(memberTypesStr, DEFAULT_NOTATION);
             // Return a new union type with parsed member types
-            return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(memberTypes)).map(UnionType.MemberType::new).toArray(UnionType.MemberType[]::new)));
+            return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(memberTypes)).map(UnionType.Member::new).toArray(UnionType.Member[]::new)));
         }
 
         // windowed(type)
@@ -213,7 +213,7 @@ public class UserTypeParser {
                 // Load the schema
                 final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, dataType, false);
                 final var schemaType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
-                if (!not.defaultType().isAssignableFrom(schemaType)) {
+                if (!not.defaultType().checkAssignableFrom(schemaType).isOK()) {
                     throw new DataException("Notation does not allow for type: notation=" + not.name() + ", type=" + dataType);
                 }
                 return new UserType(notation, schemaType);

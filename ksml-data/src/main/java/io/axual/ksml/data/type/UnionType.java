@@ -21,6 +21,8 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -35,28 +37,28 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
  * - the other type is an equivalent union (member-wise assignable in both directions), or
  * - the value/type is assignable to at least one of the union's member types.
  * <p>
- * The nested {@link MemberType} record describes an individual member of the union.
+ * The nested {@link Member} record describes an individual member of the union.
  */
 @Getter
 public class UnionType extends ComplexType {
-    private final MemberType[] memberTypes;
+    private final Member[] members;
 
-    // A field type
-    public record MemberType(String name, DataType type, int tag) {
-        public MemberType(DataType type) {
+    // Definition of a union member
+    public record Member(String name, DataType type, int tag) {
+        public Member(DataType type) {
             this(null, type, NO_TAG);
         }
     }
 
-    public UnionType(MemberType... memberTypes) {
+    public UnionType(Member... members) {
         super(Object.class,
-                buildName("Union", "Of", "Or", memberTypesToDataTypes(memberTypes)),
-                DataSchemaConstants.UNION_TYPE + "(" + buildSpec(memberTypesToDataTypes(memberTypes)) + ")",
-                memberTypesToDataTypes(memberTypes));
-        this.memberTypes = memberTypes;
+                buildName("Union", "Of", "Or", memberTypesToDataTypes(members)),
+                DataSchemaConstants.UNION_TYPE + "(" + buildSpec(memberTypesToDataTypes(members)) + ")",
+                memberTypesToDataTypes(members));
+        this.members = members;
     }
 
-    private static DataType[] memberTypesToDataTypes(MemberType... memberTypes) {
+    private static DataType[] memberTypesToDataTypes(Member... memberTypes) {
         var result = new DataType[memberTypes.length];
         for (int index = 0; index < memberTypes.length; index++) {
             result[index] = memberTypes[index].type();
@@ -65,47 +67,64 @@ public class UnionType extends ComplexType {
     }
 
     @Override
-    public boolean isAssignableFrom(DataType type) {
-        if (this == type) return true;
+    public ValidationResult checkAssignableFrom(DataType type, ValidationContext context) {
+        if (this == type) return context.ok();
 
-        // If the other dataType is a union, then compare the union with this dataType
-        if (type instanceof UnionType otherUnion && isAssignableFromOtherUnion(otherUnion)) return true;
+        // If the other type is a union, then compare the union with this dataType
+        if (type instanceof UnionType otherUnion) {
+            // Check that all this union's member types are assignable from the other union. That is the case if and
+            // only if this union's member types are equal or a superset of the other union's member types. We can
+            // check this by making sure that all member types of the other union are assignable from this union.
+            for (final var otherMember : otherUnion.members) {
+                if (!isAssignableFromMember(otherMember)) {
+                    context.addError("Can not assign member type \"" + context.thatType(otherMember.type) + "\" to union type \"" + context.thisType(this) + "\".");
+                }
+            }
+            // All members can be assigned from other members, so return no error
+            return context.ok();
+        } else {
+            for (final var member : members) {
+                if (member.type().checkAssignableFrom(type).isOK()) return context.ok();
+            }
+            return context.addError("Can not assign type \"" + context.thatType(type) + "\" to union type \"" + context.thisType(this) + "\".");
+        }
+    }
 
-        // If the union did not match in its entirety, then check for assignable subtypes
-        for (var memberType : memberTypes) {
-            if (memberType.type().isAssignableFrom(type)) return true;
+    private boolean isAssignableFromMember(Member otherMember) {
+        // Check if the type is assignable from this union
+        for (final var member : members) {
+            if (member.type.checkAssignableFrom(otherMember.type).isOK()) return true;
         }
         return false;
     }
 
-    private boolean isAssignableFromOtherUnion(UnionType other) {
-        var otherMemberTypes = other.memberTypes();
-        if (memberTypes.length != otherMemberTypes.length) return false;
-        for (int index = 0; index < memberTypes.length; index++) {
-            if (!memberTypes[index].type().isAssignableFrom(otherMemberTypes[index].type()))
-                return false;
-            if (!otherMemberTypes[index].type().isAssignableFrom(memberTypes[index].type()))
-                return false;
+    @Override
+    public ValidationResult checkAssignableFrom(Object value, ValidationContext context) {
+        for (final var member : members) {
+            if (member.type().checkAssignableFrom(value).isOK()) return context.ok();
+        }
+        return context.typeMismatch(this, value);
+    }
+
+    private boolean unionEquals(UnionType other) {
+        // Two unions are equal if their members are all equal
+        var otherMembers = other.members;
+        if (members.length != otherMembers.length) return false;
+        for (int index = 0; index < members.length; index++) {
+            if (!members[index].equals(otherMembers[index])) return false;
         }
         return true;
     }
 
     @Override
-    public boolean isAssignableFrom(Object value) {
-        for (final var memberType : memberTypes) {
-            if (memberType.type().isAssignableFrom(value)) return true;
-        }
-        return false;
-    }
-
-    @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
-        return isAssignableFromOtherUnion((UnionType) other);
+        if (!(other instanceof UnionType otherUnion)) return false;
+        return unionEquals(otherUnion);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(memberTypes));
+        return Objects.hash(super.hashCode(), Arrays.hashCode(members));
     }
 }

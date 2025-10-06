@@ -21,6 +21,8 @@ package io.axual.ksml.data.type;
  */
 
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -53,23 +55,29 @@ public class SimpleType implements DataType {
     }
 
     @Override
-    public boolean isAssignableFrom(DataType other) {
+    public ValidationResult checkAssignableFrom(final DataType other, final ValidationContext context) {
         if (other instanceof SimpleType simpleType) {
-            return isAssignableFrom(simpleType.containerClass);
+            return checkAssignableFrom(simpleType.containerClass, context);
+        } else if (other != null) {
+            return context.typeMismatch(this, other);
+        } else {
+            return context.addError("No type specified, this is a bug in KSML");
         }
-        return false;
     }
 
     @Override
-    public boolean isAssignableFrom(Class<?> type) {
-        return containerClass.isAssignableFrom(type);
+    public ValidationResult checkAssignableFrom(final Class<?> otherContainerClass, final ValidationContext context) {
+        if (!containerClass.isAssignableFrom(otherContainerClass)) {
+            return context.typeMismatch(this, otherContainerClass);
+        }
+        return context;
     }
 
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        SimpleType other = (SimpleType) obj;
-        return isAssignableFrom(other) && other.isAssignableFrom(this);
+        return obj != null
+                && getClass().equals(obj.getClass())
+                && containerClass.equals(((SimpleType) obj).containerClass);
     }
 
     public int hashCode() {

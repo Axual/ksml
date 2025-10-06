@@ -65,11 +65,11 @@ public class SchemaUtil {
     private static List<StructSchema> getSubSchemas(DataSchema schema) {
         final var result = new ArrayList<StructSchema>();
         if (schema instanceof UnionSchema unionSchema) {
-            for (final var memberSchema : unionSchema.memberSchemas()) {
-                if (memberSchema.schema() instanceof StructSchema structSchema) {
+            for (final var member : unionSchema.members()) {
+                if (member.schema() instanceof StructSchema structSchema) {
                     result.add(structSchema);
                 } else {
-                    log.warn("Could not convert union subtype: {}", memberSchema.schema().type());
+                    log.warn("Could not convert union subtype: {}", member.schema().type());
                 }
             }
         } else {

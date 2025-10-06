@@ -20,6 +20,8 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -75,15 +77,13 @@ public class FixedSchema extends NamedSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
-     * @return {@code true} if the other schema is assignable from this schema;
-     * {@code false} otherwise.
+     * @param context     The validation context.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return false;
-        // This schema is assignable from the other schema when the maximum size is greater or
-        // equal than the other schema's maximum size.
-        return size >= otherFixedSchema.size;
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
+        if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return context.schemaMismatch(this, otherSchema);
+        if (size >= otherFixedSchema.size) return context.ok();
+        return context.addError("Size of fixed schema (" + size + ") is smaller than the other fixed schema's size (" + otherFixedSchema.size + ")");
     }
 }

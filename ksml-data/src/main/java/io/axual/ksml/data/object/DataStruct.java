@@ -21,6 +21,11 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.util.ValuePrinter;
+import lombok.Getter;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,12 +34,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
-
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.util.ValuePrinter;
-import lombok.Getter;
 
 /**
  * Represents a data structure that emulates a schema-based, key-value map with automatic sorting capabilities.
@@ -289,10 +288,9 @@ public class DataStruct implements DataObject {
      *
      * @param key   The key to insert.
      * @param value The value to associate with the key.
-     * @return The value associated with the key.
      */
-    public DataObject putIfNotNull(String key, DataObject value) {
-        return value != null ? put(key, value) : get(key);
+    public void putIfNotNull(String key, DataObject value) {
+        if (value != null) put(key, value);
     }
 
     /**
@@ -352,7 +350,7 @@ public class DataStruct implements DataObject {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         DataStruct that = (DataStruct) other;
-        if (!type.isAssignableFrom(that.type) || !that.type.isAssignableFrom(type)) return false;
+        if (!type.equals(that.type)) return false;
         return Objects.equals(contents, that.contents);
     }
 

@@ -23,6 +23,8 @@ package io.axual.ksml.data.type;
 
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 
 /**
  * Describes a KSML logical data type.
@@ -35,22 +37,42 @@ import io.axual.ksml.data.object.DataObject;
  * or value.
  */
 public interface DataType {
-    Class<?> containerClass();
-
     String name();
 
     String spec();
 
-    boolean isAssignableFrom(DataType type);
-
-    default boolean isAssignableFrom(DataObject value) {
-        return (value == DataNull.INSTANCE || isAssignableFrom(value.type()));
+    default ValidationResult checkAssignableFrom(DataType type) {
+        return checkAssignableFrom(type, new ValidationContext());
     }
 
-    boolean isAssignableFrom(Class<?> type);
+    ValidationResult checkAssignableFrom(final DataType type, final ValidationContext context);
 
-    default boolean isAssignableFrom(Object value) {
-        return value == null || isAssignableFrom(value.getClass());
+    default ValidationResult checkAssignableFrom(DataObject value) {
+        return checkAssignableFrom(value, new ValidationContext());
+    }
+
+    default ValidationResult checkAssignableFrom(DataObject value, ValidationContext context) {
+        // Always allow a null value to be assigned
+        if (value == DataNull.INSTANCE) return context;
+        // If not NULL, check the value type for assignability
+        return checkAssignableFrom(value.type(), context);
+    }
+
+    default ValidationResult checkAssignableFrom(Class<?> type) {
+        return checkAssignableFrom(type, new ValidationContext());
+    }
+
+    ValidationResult checkAssignableFrom(Class<?> type, ValidationContext context);
+
+    default ValidationResult checkAssignableFrom(Object value) {
+        return checkAssignableFrom(value, new ValidationContext());
+    }
+
+    default ValidationResult checkAssignableFrom(Object value, ValidationContext context) {
+        // Always allow a null value to be assigned
+        if (value == null) return context;
+        // If not NULL, check the value class for assignability
+        return checkAssignableFrom(value.getClass(), context);
     }
 
     DataType UNKNOWN = new DataType() {
@@ -68,18 +90,15 @@ public interface DataType {
         }
 
         @Override
-        public boolean isAssignableFrom(DataType type) {
-            return true;
+        public ValidationResult checkAssignableFrom(DataType type, ValidationContext context) {
+            // Do nothing to indicate any data type is assignable
+            return context;
         }
 
         @Override
-        public boolean isAssignableFrom(Class<?> type) {
-            return true;
-        }
-
-        @Override
-        public boolean isAssignableFrom(Object value) {
-            return true;
+        public ValidationResult checkAssignableFrom(Class<?> type, ValidationContext context) {
+            // Do nothing to indicate any value class is assignable
+            return context;
         }
 
         @Override

@@ -20,6 +20,8 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -127,14 +129,16 @@ public abstract class NamedSchema extends DataSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to check for assignability.
-     * @return {@code true} if the other schema is assignable to this schema, {@code false} otherwise.
+     * @param context     The validation context.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        // Return true if the other schema is also a named schema. We purposefully ignore namespace, name and doc
-        // fields to make JSON, Protobuf, XML etc comparable schema.
-        return otherSchema instanceof NamedSchema;
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+        if (super.checkAssignableFrom(otherSchema, context).isOK() && !(otherSchema instanceof NamedSchema))
+            return context.schemaMismatch(this, otherSchema);
+
+        // Return no error when the other schema is also a named schema. Namespace, name and documentation do not matter
+        // when checking for assignability (this is not an equality check).
+        return context.ok();
     }
 
     /**

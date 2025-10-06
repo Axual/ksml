@@ -40,11 +40,10 @@ import java.util.Map;
  * type. Null values are always supported and mapped to DataNull for deserialization.
  */
 public class UnionSerde implements Serde<Object> {
-    private record UnionMemberType(DataType type, Serializer<Object> serializer,
-                                   Deserializer<Object> deserializer) {
+    private record MemberSerde(DataType type, Serializer<Object> serializer, Deserializer<Object> deserializer) {
     }
 
-    private final List<UnionMemberType> memberTypes = new ArrayList<>();
+    private final List<MemberSerde> memberSerdes = new ArrayList<>();
 
     /**
      * Constructs a UnionSerde from a KSML UnionType. For each member type, a delegate Serde is
@@ -55,10 +54,10 @@ public class UnionSerde implements Serde<Object> {
      * @param serdeSupplier supplier used to obtain member Serdes
      */
     public UnionSerde(UnionType unionType, boolean isKey, SerdeSupplier serdeSupplier) {
-        for (int index = 0; index < unionType.memberTypes().length; index++) {
-            final var memberType = unionType.memberTypes()[index];
-            try (final var serde = serdeSupplier.get(memberType.type(), isKey)) {
-                memberTypes.add(new UnionMemberType(memberType.type(), serde.serializer(), serde.deserializer()));
+        for (int index = 0; index < unionType.members().length; index++) {
+            final var member = unionType.members()[index];
+            try (final var serde = serdeSupplier.get(member.type(), isKey)) {
+                memberSerdes.add(new MemberSerde(member.type(), serde.serializer(), serde.deserializer()));
             }
         }
     }
@@ -68,9 +67,9 @@ public class UnionSerde implements Serde<Object> {
      */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-        for (final var memberType : memberTypes) {
-            memberType.serializer.configure(configs, isKey);
-            memberType.deserializer.configure(configs, isKey);
+        for (final var memberSerde : memberSerdes) {
+            memberSerde.serializer.configure(configs, isKey);
+            memberSerde.deserializer.configure(configs, isKey);
         }
     }
 
@@ -90,8 +89,8 @@ public class UnionSerde implements Serde<Object> {
     private class UnionSerializer implements Serializer<Object> {
         @Override
         public void configure(Map<String, ?> configs, boolean isKey) {
-            for (final var memberType : memberTypes) {
-                memberType.serializer.configure(configs, isKey);
+            for (final var memberSerde : memberSerdes) {
+                memberSerde.serializer.configure(configs, isKey);
             }
         }
 
@@ -102,16 +101,16 @@ public class UnionSerde implements Serde<Object> {
             if (data == null || data == DataNull.INSTANCE) return null;
 
             // Iterate over all value types and call a type-compatible serializer
-            for (final var memberType : memberTypes) {
-                // Check if we are serializing a DataObject. If so, then check compatibility
-                // using its own data dataType, else check compatibility with Java native dataType.
+            for (final var memberSerde : memberSerdes) {
+                // Check if we are serializing a DataObject. If so, then check compatibility using its own data
+                // dataType, else check compatibility with Java native dataType.
                 if (data instanceof DataObject dataObject) {
-                    if (memberType.type.isAssignableFrom(dataObject)) {
-                        return memberType.serializer.serialize(topic, dataObject);
+                    if (memberSerde.type.checkAssignableFrom(dataObject).isOK()) {
+                        return memberSerde.serializer.serialize(topic, dataObject);
                     }
                 } else {
-                    if (memberType.type.isAssignableFrom(data)) {
-                        return memberType.serializer.serialize(topic, data);
+                    if (memberSerde.type.checkAssignableFrom(data).isOK()) {
+                        return memberSerde.serializer.serialize(topic, data);
                     }
                 }
             }
@@ -124,8 +123,8 @@ public class UnionSerde implements Serde<Object> {
     private class UnionDeserializer implements Deserializer<Object> {
         @Override
         public void configure(Map<String, ?> configs, boolean isKey) {
-            for (final var memberType : memberTypes) {
-                memberType.deserializer.configure(configs, isKey);
+            for (final var memberSerde : memberSerdes) {
+                memberSerde.deserializer.configure(configs, isKey);
             }
         }
 
@@ -135,14 +134,14 @@ public class UnionSerde implements Serde<Object> {
                 return DataNull.INSTANCE;
             }
 
-            for (final var memberType : memberTypes) {
+            for (final var memberSerde : memberSerdes) {
                 try {
-                    Object result = memberType.deserializer.deserialize(topic, data);
-                    if (result instanceof DataObject dataObject && memberType.type.isAssignableFrom(dataObject))
+                    Object result = memberSerde.deserializer.deserialize(topic, data);
+                    if (result instanceof DataObject dataObject && memberSerde.type.checkAssignableFrom(dataObject).isOK())
                         return result;
-                    if (memberType.type.isAssignableFrom(result)) return result;
+                    if (memberSerde.type.checkAssignableFrom(result).isOK()) return result;
                 } catch (Exception e) {
-                    // Not properly deserialized, so ignore and try next alternative
+                    // Not properly deserialized, so ignore and try the next alternative
                 }
             }
             throw new DataException("Can not deserialize data as union: memberTypes=" + memberTypesToString());
@@ -150,6 +149,6 @@ public class UnionSerde implements Serde<Object> {
     }
 
     private List<DataType> memberTypesToString() {
-        return memberTypes.stream().map(t -> t.type).toList();
+        return memberSerdes.stream().map(serde -> serde.type).toList();
     }
 }

@@ -20,9 +20,12 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -32,6 +35,8 @@ import java.util.Set;
 @Getter
 @EqualsAndHashCode
 public class DataSchema {
+    private static final String NO_SCHEMA_SPECIFIED = "No schema specified, this is a bug in KSML";
+
     /**
      * The type of this schema.
      */
@@ -65,9 +70,10 @@ public class DataSchema {
      */
     public static final DataSchema ANY_SCHEMA = new DataSchema(DataSchemaConstants.ANY_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            if (otherSchema == null) return context.addError("No other schema provided");
             // This schema is assumed to be assignable from any other schema.
-            return otherSchema != null;
+            return context.ok();
         }
     };
     /**
@@ -83,8 +89,9 @@ public class DataSchema {
      */
     public static final DataSchema BYTE_SCHEMA = new DataSchema(DataSchemaConstants.BYTE_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
-            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
+            return !INTEGER_TYPES.contains(otherSchema.type) ? context.schemaMismatch(this, otherSchema) : context;
         }
     };
     /**
@@ -92,8 +99,9 @@ public class DataSchema {
      */
     public static final DataSchema SHORT_SCHEMA = new DataSchema(DataSchemaConstants.SHORT_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
-            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
+            return !INTEGER_TYPES.contains(otherSchema.type) ? context.schemaMismatch(this, otherSchema) : context;
         }
     };
     /**
@@ -101,8 +109,9 @@ public class DataSchema {
      */
     public static final DataSchema INTEGER_SCHEMA = new DataSchema(DataSchemaConstants.INTEGER_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
-            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
+            return !INTEGER_TYPES.contains(otherSchema.type) ? context.schemaMismatch(this, otherSchema) : context;
         }
     };
     /**
@@ -110,8 +119,9 @@ public class DataSchema {
      */
     public static final DataSchema LONG_SCHEMA = new DataSchema(DataSchemaConstants.LONG_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
-            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
+            return !INTEGER_TYPES.contains(otherSchema.type) ? context.schemaMismatch(this, otherSchema) : context;
         }
     };
     /**
@@ -119,8 +129,9 @@ public class DataSchema {
      */
     public static final DataSchema DOUBLE_SCHEMA = new DataSchema(DataSchemaConstants.DOUBLE_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
-            return otherSchema != null && FLOATING_POINT_TYPES.contains(otherSchema.type);
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
+            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? context.schemaMismatch(this, otherSchema) : context;
         }
     };
     /**
@@ -128,8 +139,9 @@ public class DataSchema {
      */
     public static final DataSchema FLOAT_SCHEMA = new DataSchema(DataSchemaConstants.FLOAT_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
-            return otherSchema != null && FLOATING_POINT_TYPES.contains(otherSchema.type);
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
+            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? context.schemaMismatch(this, otherSchema) : context;
         }
     };
     /**
@@ -141,10 +153,13 @@ public class DataSchema {
      */
     public static final DataSchema STRING_SCHEMA = new DataSchema(DataSchemaConstants.STRING_TYPE) {
         @Override
-        public boolean isAssignableFrom(DataSchema otherSchema) {
-            if (otherSchema == NULL_SCHEMA) return true; // Allow assigning from NULL values
-            if (otherSchema.type.equals(DataSchemaConstants.ENUM_TYPE)) return true; // Allow assigning from ENUM values
-            return super.isAssignableFrom(otherSchema);
+        public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+            Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
+            if (otherSchema == NULL_SCHEMA || otherSchema.type.equals(DataSchemaConstants.ENUM_TYPE)) {
+                // Always allow assignment from NULL and ENUM schemas
+                return context;
+            }
+            return super.checkAssignableFrom(otherSchema, context);
         }
     };
 
@@ -153,11 +168,22 @@ public class DataSchema {
      * This means the other schema's type can be safely used in place of this schema's type.
      *
      * @param otherSchema The other schema to compare.
-     * @return {@code true} if this schema type can be assigned from the other schema, {@code false} otherwise.
      */
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (otherSchema == null) return false;
-        return type.equals(otherSchema.type); // Base scenario: compare types and return true if similar
+    public final ValidationResult checkAssignableFrom(DataSchema otherSchema) {
+        return checkAssignableFrom(otherSchema, new ValidationContext());
+    }
+
+    /**
+     * Checks if this schema type is assignable from another schema type.
+     * This means the other schema's type can be safely used in place of this schema's type.
+     *
+     * @param otherSchema The other schema to compare.
+     * @param context     The validation context to add state to.
+     */
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+        if (otherSchema == null) return context.addError("No other schema provided");
+        // Base scenario: compare types and return error if not equal
+        return !type.equals(otherSchema.type) ? context.schemaMismatch(this, otherSchema) : context;
     }
 
     /**

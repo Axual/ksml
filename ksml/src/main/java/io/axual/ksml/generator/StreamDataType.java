@@ -24,6 +24,7 @@ package io.axual.ksml.generator;
 import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.serde.UnionSerde;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.validation.ValidationResult;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.serialization.Serde;
@@ -32,8 +33,8 @@ import org.jetbrains.annotations.NotNull;
 public record StreamDataType(UserType userType, boolean isKey) {
     private static final DataTypeFlattener FLATTENER = new DataTypeFlattener();
 
-    public boolean isAssignableFrom(StreamDataType other) {
-        return userType.dataType().isAssignableFrom(other.userType.dataType());
+    public ValidationResult checkAssignableFrom(StreamDataType other) {
+        return userType.dataType().checkAssignableFrom(other.userType.dataType());
     }
 
     public StreamDataType flatten() {

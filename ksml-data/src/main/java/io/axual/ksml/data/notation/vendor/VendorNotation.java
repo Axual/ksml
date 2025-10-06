@@ -46,14 +46,14 @@ public abstract class VendorNotation extends BaseNotation {
      * Creates a vendor-backed Serde for the given type and key/value role.
      * Only supported when the requested type is assignable from the notation's default type.
      *
-     * @param type the data type to serialize/deserialize
+     * @param type  the data type to serialize/deserialize
      * @param isKey whether the serde will be used for keys (true) or values (false)
      * @return a configured Serde backed by the vendor implementation
      * @throws RuntimeException when the type is not supported
      */
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        if (!defaultType().isAssignableFrom(type)) throw noSerdeFor(type);
+        if (!defaultType().checkAssignableFrom(type).isOK()) throw noSerdeFor(type);
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used
         try (final var serde = serdeSupplier.get(type, isKey)) {

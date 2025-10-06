@@ -1,10 +1,10 @@
-package io.axual.ksml.schema.parser;
+package io.axual.ksml.data.validation;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,12 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.ParseNode;
+import java.util.List;
 
-public class UnionSchemaParser extends BaseParser<UnionSchema> {
-    @Override
-    public UnionSchema parse(ParseNode node) {
-        var memberTypes = new ListParser<>("union-type", "type", new UnionMemberParser()).parse(node);
-        return new UnionSchema(memberTypes.toArray(UnionSchema.Member[]::new));
+public interface ValidationResult {
+    List<ValidationError> errors();
+
+    default boolean isOK() {
+        return errors().isEmpty();
     }
 }

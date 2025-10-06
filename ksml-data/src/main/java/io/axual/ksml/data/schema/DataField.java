@@ -21,6 +21,8 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -200,10 +202,23 @@ public class DataField {
      * Checks whether the schema of this field is assignable from another field's schema.
      *
      * @param otherField The other field to compare against.
-     * @return true if this field's schema can be assigned from the provided field's schema, false otherwise.
      */
-    public boolean isAssignableFrom(DataField otherField) {
-        return otherField != null && schema.isAssignableFrom(otherField.schema);
+    public final ValidationResult checkAssignableFrom(DataField otherField) {
+        return checkAssignableFrom(otherField, new ValidationContext());
+    }
+
+    /**
+     * Checks whether the schema of this field is assignable from another field's schema.
+     *
+     * @param otherField The other field to compare against.
+     * @param context    The validation context.
+     */
+    public ValidationResult checkAssignableFrom(DataField otherField, ValidationContext context) {
+        if (otherField == null) {
+            return context.addError("Field \"" + context.thisType(name) + "\" not found");
+        } else {
+            return schema.checkAssignableFrom(otherField.schema, context.sub(name(), otherField.name()));
+        }
     }
 
     /**

@@ -20,6 +20,8 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.validation.ValidationContext;
+import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -111,14 +113,12 @@ public class ListSchema extends DataSchema {
      * {@code false} otherwise.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof ListSchema otherListSchema)) return false;
-        // If the value schema is null, then any schema can be assigned.
-        if (valueSchema == null) return true;
+    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
+        if (!(otherSchema instanceof ListSchema otherListSchema)) return context.schemaMismatch(this, otherSchema);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
-        return valueSchema.isAssignableFrom(otherListSchema.valueSchema);
+        return valueSchema.checkAssignableFrom(otherListSchema.valueSchema, context);
     }
 
     /**

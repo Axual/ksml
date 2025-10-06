@@ -21,16 +21,14 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
-
-import javax.annotation.Nonnull;
-
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.ListType;
 
 /**
  * Represents a list of {@link DataObject} instances within the {@link DataObject} framework.
@@ -140,7 +138,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @throws IllegalArgumentException if the value type is invalid.
      */
     private DataObject verifiedValue(DataObject value) {
-        if (!type.valueType().isAssignableFrom(value.type())) {
+        if (!type.valueType().checkAssignableFrom(value.type()).isOK()) {
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
         }
         return value;
@@ -201,7 +199,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof DataList otherList)) return false;
-        if (!type.isAssignableFrom(otherList.type)) return false;
+        if (!type.equals(otherList.type)) return false;
         return Objects.equals(this.contents, otherList.contents);
     }
 

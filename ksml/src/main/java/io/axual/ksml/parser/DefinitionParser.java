@@ -20,7 +20,12 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.util.ListUtil;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
@@ -42,10 +47,10 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
     private static final Parser<String> CODE_STRING_PARSER = new StringValueParser(value -> value ? "True" : "False");
     private static final DataSchema CODE_SCHEMA = new UnionSchema(
-            new DataField(null, DataSchema.BOOLEAN_SCHEMA),
-            new DataField(null, DataSchema.LONG_SCHEMA),
-            new DataField(null, DataSchema.DOUBLE_SCHEMA),
-            new DataField(null, DataSchema.STRING_SCHEMA));
+            new UnionSchema.Member(DataSchema.BOOLEAN_SCHEMA),
+            new UnionSchema.Member(DataSchema.LONG_SCHEMA),
+            new UnionSchema.Member(DataSchema.DOUBLE_SCHEMA),
+            new UnionSchema.Member(DataSchema.STRING_SCHEMA));
     protected static final ParserWithSchema<String> CODE_PARSER = ParserWithSchema.of(CODE_STRING_PARSER::parse, CODE_SCHEMA);
     private final DurationParser durationParser = new DurationParser();
     private StructsParser<T> parser;
@@ -110,7 +115,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
             final var parsedSchemas = valueParser.schemas();
             final var fieldSchema = parsedSchemas.size() == 1
                     ? parsedSchemas.getFirst()
-                    : new UnionSchema(parsedSchemas.stream().map(s -> new DataField(null, s)).toArray(DataField[]::new));
+                    : new UnionSchema(parsedSchemas.stream().map(UnionSchema.Member::new).toArray(UnionSchema.Member[]::new));
             field = new DataField(childName, fieldSchema, doc, NO_TAG, true, constant, defaultValue);
             schemas = List.of(structSchema((String) null, null, List.of(field)));
             this.valueParser = valueParser;

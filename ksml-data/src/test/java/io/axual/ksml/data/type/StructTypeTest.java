@@ -20,17 +20,16 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -88,16 +87,16 @@ class StructTypeTest {
     }
 
     @Test
-    @DisplayName("isAssignableFrom allows DataNull.DATATYPE; without schema defers to ComplexType; with schema uses schema assignability")
+    @DisplayName("checkAssignableFrom allows DataNull.DATATYPE; without schema defers to ComplexType; with schema uses schema assignability")
     void assignabilityBehavior() {
         // Without schema both are assignable due to same container and subtypes
         var a = new StructType();
         var b = new StructType();
-        assertThat(a.isAssignableFrom(b)).isTrue();
-        assertThat(b.isAssignableFrom(a)).isTrue();
+        assertThat(a.checkAssignableFrom(b).isOK()).isTrue();
+        assertThat(b.checkAssignableFrom(a).isOK()).isTrue();
 
         // Accept DataNull
-        assertThat(a.isAssignableFrom(DataNull.DATATYPE)).isTrue();
+        assertThat(a.checkAssignableFrom(DataNull.DATATYPE).isOK()).isTrue();
 
         // With schema: require other schema to have at least fields without defaults
         var req = new DataField("r", DataSchema.STRING_SCHEMA, null, 0); // required, no default
@@ -106,12 +105,12 @@ class StructTypeTest {
         // Other schema missing the required field -> not assignable
         var schemaB = new StructSchema("ns", "B", null, List.of());
         var tB = new StructType(schemaB);
-        assertThat(tA.isAssignableFrom(tB)).isFalse();
+        assertThat(tA.checkAssignableFrom(tB).isOK()).isFalse();
 
         // Other schema with the required field -> assignable
         var schemaC = new StructSchema("ns", "C", null, List.of(req));
         var tC = new StructType(schemaC);
-        assertThat(tA.isAssignableFrom(tC)).isTrue();
+        assertThat(tA.checkAssignableFrom(tC).isOK()).isTrue();
     }
 
     @Test

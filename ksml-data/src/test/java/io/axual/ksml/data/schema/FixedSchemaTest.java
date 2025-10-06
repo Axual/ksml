@@ -42,21 +42,21 @@ class FixedSchemaTest {
 
     @Test
     @DisplayName("Assignability based on size and type")
-    void isAssignableFromBehavior() {
+    void checkAssignableFromBehavior() {
         final var eight = new FixedSchema("ns", "F8", "", 8);
         final var four = new FixedSchema("ns", "F4", "", 4);
 
         // same or smaller size: assignable
-        assertThat(eight.isAssignableFrom(eight)).isTrue();
-        assertThat(eight.isAssignableFrom(four)).isTrue();
+        assertThat(eight.checkAssignableFrom(eight).isOK()).isTrue();
+        assertThat(eight.checkAssignableFrom(four).isOK()).isTrue();
 
         // larger size: not assignable
-        assertThat(four.isAssignableFrom(eight)).isFalse();
+        assertThat(four.checkAssignableFrom(eight).isOK()).isFalse();
 
         // different type (eg string schema) not assignable
-        assertThat(eight.isAssignableFrom(DataSchema.STRING_SCHEMA)).isFalse();
+        assertThat(eight.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
 
         // null not assignable
-        assertThat(eight.isAssignableFrom(null)).isFalse();
+        assertThat(eight.checkAssignableFrom(null).isOK()).isFalse();
     }
 }

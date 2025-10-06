@@ -31,8 +31,8 @@ class JsonTests {
     @Test
     void schemaTest() {
         NotationTestRunner.schemaTest(JsonNotation.NOTATION_NAME, new JsonSchemaMapper(false), (input, output) -> {
-            assertTrue(input.isAssignableFrom(output), "Input is not assignable from the output");
-            assertTrue(output.isAssignableFrom(input), "Output is not assignable from the input");
+            assertTrue(input.checkAssignableFrom(output).isOK(), "Input is not assignable from the output");
+            assertTrue(output.checkAssignableFrom(input).isOK(), "Output is not assignable from the input");
         });
     }
 

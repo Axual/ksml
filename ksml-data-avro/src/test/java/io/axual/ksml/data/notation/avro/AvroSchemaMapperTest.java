@@ -133,14 +133,14 @@ class AvroSchemaMapperTest {
         assertThat(singleUnion.required()).isFalse();
         assertThat(singleUnion.schema()).isInstanceOf(UnionSchema.class);
         var singleUnionSchema = (UnionSchema) singleUnion.schema();
-        assertThat(singleUnionSchema.memberSchemas()).hasSize(4);
+        assertThat(singleUnionSchema.members()).hasSize(4);
         // Ensure record X and enum Y are present among union member schemas
         var hasRecordX = false;
         var hasEnumY = false;
         var hasString = false;
         var hasInt = false;
         var hasNull = false;
-        for (var member : singleUnionSchema.memberSchemas()) {
+        for (var member : singleUnionSchema.members()) {
             var ms = member.schema();
             if (ms == DataSchema.STRING_SCHEMA) hasString = true;
             if (ms == DataSchema.INTEGER_SCHEMA) hasInt = true;
@@ -161,7 +161,7 @@ class AvroSchemaMapperTest {
         var listValue = ((ListSchema) unionList.schema()).valueSchema();
         assertThat(listValue).isInstanceOf(UnionSchema.class);
         var unionListValue = (UnionSchema) listValue;
-        assertThat(unionListValue.memberSchemas()).hasSize(4);
+        assertThat(unionListValue.members()).hasSize(4);
 
         // Round-trip stability
         var backToAvro = schemaMapper.fromDataSchema(ksml);
@@ -230,7 +230,7 @@ class AvroSchemaMapperTest {
                 .returns(false, DataField::required)
                 .returns(new MapSchema(DataSchema.INTEGER_SCHEMA), DataField::schema);
 
-        final var expectedOptRec = new StructSchema("io.axual.test", "OptInner", null, List.of(new DataField("id", DataSchema.INTEGER_SCHEMA)));
+        final var expectedOptRec = new StructSchema("io.axual.test", "OptInner", null, List.of(new DataField("id", DataSchema.INTEGER_SCHEMA)), false);
         assertThat(ksml.field("optRec"))
                 .returns(false, DataField::required)
                 .returns(expectedOptRec, DataField::schema);
@@ -362,13 +362,13 @@ class AvroSchemaMapperTest {
         final var avroUnionPrimitive = avroSchemaBuilder.unionOf()
                 .stringType().and().booleanType().and().bytesType().and().doubleType().and().floatType().and().intType().and().longType().endUnion();
         final var ksmlUnionPrimitive = new UnionSchema(
-                new DataField(DataSchema.STRING_SCHEMA),
-                new DataField(DataSchema.BOOLEAN_SCHEMA),
-                new DataField(DataSchema.BYTES_SCHEMA),
-                new DataField(DataSchema.DOUBLE_SCHEMA),
-                new DataField(DataSchema.FLOAT_SCHEMA),
-                new DataField(DataSchema.INTEGER_SCHEMA),
-                new DataField(DataSchema.LONG_SCHEMA)
+                new UnionSchema.Member(DataSchema.STRING_SCHEMA),
+                new UnionSchema.Member(DataSchema.BOOLEAN_SCHEMA),
+                new UnionSchema.Member(DataSchema.BYTES_SCHEMA),
+                new UnionSchema.Member(DataSchema.DOUBLE_SCHEMA),
+                new UnionSchema.Member(DataSchema.FLOAT_SCHEMA),
+                new UnionSchema.Member(DataSchema.INTEGER_SCHEMA),
+                new UnionSchema.Member(DataSchema.LONG_SCHEMA)
         );
         testData.add(new SchemaPairAndDescription("Union Schema - Primitives", avroUnionPrimitive, ksmlUnionPrimitive));
 
@@ -398,6 +398,7 @@ class AvroSchemaMapperTest {
                 .name("TestingSimpleRecord")
                 .doc("Some simple record")
                 .field(new DataField("simple", DataSchema.STRING_SCHEMA))
+                .additionalFieldsAllowed(false)
                 .build();
         testData.add(new SchemaPairAndDescription("Record Schema - Simple", avroRecordSimple, ksmlRecordSimple));
 
@@ -432,6 +433,7 @@ class AvroSchemaMapperTest {
                 .field(new DataField("enumeration", ksmlEnum, null, NO_TAG, true))
                 .field(new DataField("mapPrimitive", ksmlMapPrimitive, null, NO_TAG, true))
                 .field(new DataField("arrayPrimitive", ksmlArrayPrimitive, null, NO_TAG, true))
+                .additionalFieldsAllowed(false)
                 .build();
         testData.add(new SchemaPairAndDescription("Record Schema - Advanced", avroRecordAdvanced, ksmlRecordAdvanced));
 
@@ -448,19 +450,19 @@ class AvroSchemaMapperTest {
 
     // Create a KSML DataSchema counterpart of the Avro nullable schemas
     static UnionSchema ksmlNullable(DataSchema dataSchema, DataSchema... additionalSchemas) {
-        final var schemas = new ArrayList<DataField>();
-        addSchemas(dataSchema, additionalSchemas, schemas);
+        final var schemas = new ArrayList<UnionSchema.Member>();
+        addMembers(dataSchema, additionalSchemas, schemas);
 
         // add Null last to make it nullable
-        schemas.add(new DataField(DataSchema.NULL_SCHEMA));
-        return new UnionSchema(schemas.toArray(new DataField[0]));
+        schemas.add(new UnionSchema.Member(DataSchema.NULL_SCHEMA));
+        return new UnionSchema(schemas.toArray(UnionSchema.Member[]::new));
     }
 
-    private static void addSchemas(final DataSchema dataSchema, final DataSchema[] additionalSchemas, final ArrayList<DataField> schemas) {
-        schemas.add(new DataField(dataSchema));
+    private static void addMembers(final DataSchema dataSchema, final DataSchema[] additionalSchemas, final ArrayList<UnionSchema.Member> schemas) {
+        schemas.add(new UnionSchema.Member(dataSchema));
         if (additionalSchemas != null) {
             for (var additionalSchema : additionalSchemas) {
-                schemas.add(new DataField(additionalSchema));
+                schemas.add(new UnionSchema.Member(additionalSchema));
             }
         }
     }

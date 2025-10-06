@@ -20,7 +20,6 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.exception.TopologyException;
@@ -33,8 +32,8 @@ import java.util.function.ToLongFunction;
 @Getter
 public class DurationParser implements ParserWithSchemas<Duration> {
     private final List<DataSchema> schemas = List.of(new UnionSchema(
-            new DataField(null, DataSchema.LONG_SCHEMA, "Duration in milliseconds"),
-            new DataField(null, DataSchema.STRING_SCHEMA, "Duration with unit")));
+            new UnionSchema.Member(DataSchema.LONG_SCHEMA),
+            new UnionSchema.Member(DataSchema.STRING_SCHEMA)));
 
     @Override
     public Duration parse(ParseNode node) {

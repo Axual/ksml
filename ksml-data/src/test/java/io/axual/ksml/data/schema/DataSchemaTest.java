@@ -42,19 +42,19 @@ class DataSchemaTest {
     }
 
     @Test
-    @DisplayName("Base isAssignableFrom matches by type and handles null")
-    void baseIsAssignableFrom() {
-        assertThat(DataSchema.BOOLEAN_SCHEMA.isAssignableFrom(null)).isFalse();
-        assertThat(DataSchema.BOOLEAN_SCHEMA.isAssignableFrom(DataSchema.BOOLEAN_SCHEMA)).isTrue();
-        assertThat(DataSchema.BOOLEAN_SCHEMA.isAssignableFrom(DataSchema.STRING_SCHEMA)).isFalse();
+    @DisplayName("Base checkAssignableFrom matches by type and handles null")
+    void basecheckAssignableFrom() {
+        assertThat(DataSchema.BOOLEAN_SCHEMA.checkAssignableFrom(null).isOK()).isFalse();
+        assertThat(DataSchema.BOOLEAN_SCHEMA.checkAssignableFrom(DataSchema.BOOLEAN_SCHEMA).isOK()).isTrue();
+        assertThat(DataSchema.BOOLEAN_SCHEMA.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
     }
 
     @Test
     @DisplayName("ANY schema accepts any non-null schema and rejects null")
     void anySchemaAssignability() {
-        assertThat(DataSchema.ANY_SCHEMA.isAssignableFrom(null)).isFalse();
-        assertThat(DataSchema.ANY_SCHEMA.isAssignableFrom(DataSchema.STRING_SCHEMA)).isTrue();
-        assertThat(DataSchema.ANY_SCHEMA.isAssignableFrom(DataSchema.NULL_SCHEMA)).isTrue();
+        assertThat(DataSchema.ANY_SCHEMA.checkAssignableFrom(null).isOK()).isFalse();
+        assertThat(DataSchema.ANY_SCHEMA.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isTrue();
+        assertThat(DataSchema.ANY_SCHEMA.checkAssignableFrom(DataSchema.NULL_SCHEMA).isOK()).isTrue();
     }
 
     static Stream<DataSchema> integerSchemas() {
@@ -82,14 +82,14 @@ class DataSchemaTest {
                 DataSchema.INTEGER_SCHEMA,
                 DataSchema.LONG_SCHEMA
         }) {
-            assertThat(target.isAssignableFrom(candidate))
+            assertThat(target.checkAssignableFrom(candidate).isOK())
                     .as(target + " should accept from " + candidate)
                     .isTrue();
         }
         // But should not accept from floating or string
-        assertThat(target.isAssignableFrom(DataSchema.FLOAT_SCHEMA)).isFalse();
-        assertThat(target.isAssignableFrom(DataSchema.DOUBLE_SCHEMA)).isFalse();
-        assertThat(target.isAssignableFrom(DataSchema.STRING_SCHEMA)).isFalse();
+        assertThat(target.checkAssignableFrom(DataSchema.FLOAT_SCHEMA).isOK()).isFalse();
+        assertThat(target.checkAssignableFrom(DataSchema.DOUBLE_SCHEMA).isOK()).isFalse();
+        assertThat(target.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
     }
 
     @ParameterizedTest(name = "{index}: {0} accepts all floating-point types")
@@ -99,20 +99,20 @@ class DataSchemaTest {
                 DataSchema.FLOAT_SCHEMA,
                 DataSchema.DOUBLE_SCHEMA
         }) {
-            assertThat(target.isAssignableFrom(candidate))
+            assertThat(target.checkAssignableFrom(candidate).isOK())
                     .as(target + " should accept from " + candidate)
                     .isTrue();
         }
         // But should not accept from integer or string
-        assertThat(target.isAssignableFrom(DataSchema.BYTE_SCHEMA)).isFalse();
-        assertThat(target.isAssignableFrom(DataSchema.LONG_SCHEMA)).isFalse();
-        assertThat(target.isAssignableFrom(DataSchema.STRING_SCHEMA)).isFalse();
+        assertThat(target.checkAssignableFrom(DataSchema.BYTE_SCHEMA).isOK()).isFalse();
+        assertThat(target.checkAssignableFrom(DataSchema.LONG_SCHEMA).isOK()).isFalse();
+        assertThat(target.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
     }
 
     @Test
     @DisplayName("STRING accepts from NULL and ENUM, and itself")
     void stringSpecialAssignability() {
-        assertThat(DataSchema.STRING_SCHEMA.isAssignableFrom(DataSchema.NULL_SCHEMA)).isTrue();
+        assertThat(DataSchema.STRING_SCHEMA.checkAssignableFrom(DataSchema.NULL_SCHEMA).isOK()).isTrue();
         // Create an enum schema instance to test ENUM behavior
         final var enumSchema = new EnumSchema(
                 DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE,
@@ -120,9 +120,9 @@ class DataSchemaTest {
                 "Enum of colors",
                 List.of(new Symbol("RED"), new Symbol("GREEN"), new Symbol("BLUE"))
         );
-        assertThat(DataSchema.STRING_SCHEMA.isAssignableFrom(enumSchema)).isTrue();
-        assertThat(DataSchema.STRING_SCHEMA.isAssignableFrom(DataSchema.STRING_SCHEMA)).isTrue();
-        assertThat(DataSchema.STRING_SCHEMA.isAssignableFrom(DataSchema.BOOLEAN_SCHEMA)).isFalse();
+        assertThat(DataSchema.STRING_SCHEMA.checkAssignableFrom(enumSchema).isOK()).isTrue();
+        assertThat(DataSchema.STRING_SCHEMA.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isTrue();
+        assertThat(DataSchema.STRING_SCHEMA.checkAssignableFrom(DataSchema.BOOLEAN_SCHEMA).isOK()).isFalse();
     }
 
     @Nested
@@ -136,7 +136,8 @@ class DataSchemaTest {
                     .isEqualTo(DataSchema.STRING_SCHEMA)
                     .hasSameHashCodeAs(DataSchema.STRING_SCHEMA);
 
-            assertThat(new DataSchema(DataSchemaConstants.BOOLEAN_TYPE) {})
+            assertThat(new DataSchema(DataSchemaConstants.BOOLEAN_TYPE) {
+            })
                     .isEqualTo(DataSchema.BOOLEAN_SCHEMA)
                     .isNotEqualTo(DataSchema.STRING_SCHEMA);
         }

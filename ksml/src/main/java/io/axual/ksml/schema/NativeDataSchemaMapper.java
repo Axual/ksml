@@ -60,8 +60,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     public Object fromDataSchema(DataSchema schema) {
         if (schema instanceof UnionSchema unionSchema) {
             final var result = new ArrayList<>();
-            for (final var memberSchema : unionSchema.memberSchemas())
-                result.add(convertField(memberSchema));
+            for (final var memberSchema : unionSchema.members())
+                result.add(convertMember(memberSchema));
             return result;
         }
 
@@ -164,6 +164,14 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         result.put(DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null) encodeDefaultValue(result, field.defaultValue());
         result.put(DataSchemaDSL.DATA_FIELD_ORDER_FIELD, field.order().toString());
+        return result;
+    }
+
+    private Map<String, Object> convertMember(UnionSchema.Member member) {
+        final var result = new LinkedHashMap<String, Object>();
+        result.put(DataSchemaDSL.UNION_MEMBER_NAME_FIELD, member.name());
+        result.put(DataSchemaDSL.UNION_MEMBER_SCHEMA_FIELD, convertSchema(member.schema()));
+        result.put(DataSchemaDSL.UNION_MEMBER_TAG_FIELD, member.tag());
         return result;
     }
 
