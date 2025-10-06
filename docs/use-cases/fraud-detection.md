@@ -89,7 +89,7 @@ locations, coming at an unsual speed, or are for a high amount:
 ??? info "Basic fraud detection pipeline (click to expand)"
 
     ```yaml
-    {% include "../definitions/use-cases/fraud-detection/fraud-detection.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-detection.yaml" %}
     ```
 
 ## Advanced Fraud Detection Techniques
@@ -101,9 +101,7 @@ To detect complex fraud patterns, you can implement more sophisticated algorithm
 ??? info "Pattern recognition processor (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/fraud-detection/fraud-pattern-detection.yaml"
-      start="## Functions"
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-pattern-detection.yaml" start="## Functions"
       end="## End of Functions"
     %}
     ```
@@ -115,9 +113,7 @@ For more advanced fraud detection, you can integrate machine learning models:
 ??? info "Machine learning fraud detector (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/fraud-detection/fraud-detection-machine-learning.yaml"
-      start="## Functions"
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-detection-machine-learning.yaml" start="## Functions"
       end="## End of Functions"
     %}
     ```
@@ -129,9 +125,7 @@ To make your fraud detection system actionable, you need to generate alerts:
 ??? info "Real-time alerting processor (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/fraud-detection/fraud-notifications.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-notifications.yaml" %}
     ```
 
 ## Testing and Validation

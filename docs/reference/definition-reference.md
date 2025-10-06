@@ -150,23 +150,19 @@ tables:
 This example demonstrates using a custom inline state store for a table. The table uses custom persistence and caching settings, and the processor function accesses the table to enrich streaming data.
 
 ```yaml
---8<-- "definitions/reference/table-store-processor.yaml:11:22"
+--8<-- "docs-examples/reference/table-store-processor.yaml:11:22"
 ```
 
 ??? info "Producer - User Profile Data (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/table-store-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/table-store-producer.yaml" %}
     ```
 
 ??? info "Processor - Enrich Activity with Profiles (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/table-store-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/table-store-processor.yaml" %}
     ```
 
 The table `user_profiles` uses an inline store definition with custom settings:

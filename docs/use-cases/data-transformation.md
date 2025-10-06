@@ -114,9 +114,7 @@ Now, let's create our KSML definition file:
 ??? info "Data transformation processor (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/data-transformation/data-transformation.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/data-transformation.yaml" %}
     ```
 
 ## Setting up two producers for test data
@@ -128,9 +126,7 @@ The first producer is a _single shot producer_ that generates data for the `cust
 ??? info "Segment data producer (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/data-transformation/segment-data-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/segment-data-producer.yaml" %}
     ```
 
 The second producer produces a message every second to the `legacy_customer_data` topic, using a randomly chosen
@@ -139,9 +135,7 @@ segment:
 ??? info "Customer data producer (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/data-transformation/customer-data-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/customer-data-producer.yaml" %}
     ```
 
 ## Running the Application
@@ -149,19 +143,17 @@ segment:
 To run the application:
 
 1. Save the processor definition to
-   [`data_transformation.yaml`](../definitions/use-cases/data-transformation/data-transformation.yaml).
+   [`data_transformation.yaml`](../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/data-transformation.yaml).
 2. Save the producers to
-   [`segment-data-producer.yaml`](../definitions/use-cases/data-transformation/segment-data-producer.yaml)
+   [`segment-data-producer.yaml`](../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/segment-data-producer.yaml)
    and
-   [`customer-data-producer.yaml`](../definitions/use-cases/data-transformation/customer-data-producer.yaml).
+   [`customer-data-producer.yaml`](../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/customer-data-producer.yaml).
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
 
 ??? info "KSML runner configuration (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/data-transformation/ksml-runner.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/ksml-runner.yaml" %}
     ```
 
 4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.

@@ -110,9 +110,7 @@ Now, let's create our KSML definition file:
 ??? info "Inventory event processor (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/event-driven-applications/inventory-event-processors.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/inventory-event-processors.yaml" %}
     ```
 
 ## Setting up the producers for test data
@@ -126,9 +124,7 @@ a randomly generated product order:
 ??? info "Product and order event producer (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/event-driven-applications/product-and-order-event-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/product-and-order-event-producer.yaml" %}
     ```
 
 ## Running the Application
@@ -136,19 +132,17 @@ a randomly generated product order:
 To run the application:
 
 1. Save the processor definition to
-   [`inventory-event-processors.yaml`](../definitions/use-cases/event-driven-applications/inventory-event-processors.yaml).
+   [`inventory-event-processors.yaml`](../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/inventory-event-processors.yaml).
 2. Save the producers to
-   [`product-and-order-event-producer`](../definitions/use-cases/event-driven-applications/product-and-order-event-producer.yaml)
+   [`product-and-order-event-producer`](../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/product-and-order-event-producer.yaml)
    and
-   [`customer-data-producer.yaml`](../definitions/use-cases/data-transformation/customer-data-producer.yaml).
+   [`customer-data-producer.yaml`](../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/customer-data-producer.yaml).
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
 
 ??? info "KSML runner configuration (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/use-cases/data-transformation/ksml-runner.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/ksml-runner.yaml" %}
     ```
 
 4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.

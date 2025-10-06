@@ -151,13 +151,13 @@ Track user shopping behavior by correlating clicks and purchases within a 30-min
 ??? info "Producer: Clicks and Purchases (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/producer-clicks-purchases.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-clicks-purchases.yaml" %}
     ```
 
 ??? info "Processor: Stream-Stream Join (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/processor-stream-stream-join-working.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-stream-stream-join-working.yaml" %}
     ```
 
 ### Key Configuration Points
@@ -191,19 +191,19 @@ Enrich order events with customer information by joining the orders stream with 
 ??? info "Producer: Orders (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/producer-orders.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-orders.yaml" %}
     ```
 
 ??? info "Producer: Customers (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/producer-customers.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-customers.yaml" %}
     ```
 
 ??? info "Processor: Stream-Table Join (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/processor-stream-table-join.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml" %}
     ```
 
 ### Rekeying Pattern
@@ -233,13 +233,13 @@ Enrich orders with product details using a foreign key join with a global produc
 ??? info "Producer: Orders and Products (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/producer-orders-products.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-orders-products.yaml" %}
     ```
 
 ??? info "Processor: Foreign Key Join (click to expand)"
 
     ```yaml
-    {% include "../../definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml" %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-foreign-key-join.yaml" %}
     ```
 
 ### Foreign Key Extraction
@@ -270,17 +270,13 @@ Enrich user activity events with location data, preserving all activities even w
 ??? info "Producer: User Activity and Locations (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/joins/producer-user-activity-locations.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-user-activity-locations.yaml" %}
     ```
 
 ??? info "Processor: Stream-Table Left Join (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/joins/processor-stream-table-left-join.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-stream-table-left-join.yaml" %}
     ```
 
 This example demonstrates:
@@ -315,17 +311,13 @@ Track user sessions by correlating login and logout events, capturing incomplete
 ??? info "Producer: Login and Logout Events (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/joins/producer-login-logout-events.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-login-logout-events.yaml" %}
     ```
 
 ??? info "Processor: Stream-Stream Outer Join (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/joins/processor-stream-stream-outer-join.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-stream-stream-outer-join.yaml" %}
     ```
 
 This example demonstrates:

@@ -1,0 +1,58 @@
+streams:
+  orders:
+    topic: customer_orders
+    keyType: string
+    valueType: json
+
+  customer_totals:
+    topic: customer_totals
+    keyType: string
+    valueType: json
+
+functions:
+  init_order_stats:
+    type: initializer
+    code: |
+      result = {
+        "total_amount": 0.0,
+        "order_count": 0,
+        "customer": ""
+      }
+    expression: result
+    resultType: json
+
+  aggregate_orders:
+    type: aggregator
+    code: |
+      # Add order amount and increment count
+      if value is not None:
+        aggregatedValue["total_amount"] = aggregatedValue.get("total_amount", 0) + value.get("amount", 0)
+        aggregatedValue["order_count"] = aggregatedValue.get("order_count", 0) + 1
+        aggregatedValue["customer"] = key
+
+      result = aggregatedValue
+    expression: result
+    resultType: json
+
+pipelines:
+  customer_order_totals:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator: aggregate_orders
+      - type: aggregate
+        initializer: init_order_stats
+        store:
+          name: customer_totals_store
+          type: keyValue
+          caching: true
+      - type: toStream
+      - type: peek
+        forEach:
+          code: |
+            log.info("CUSTOMER ORDER TOTALS - Customer: {}, Total: ${}, Count: {}",
+                     key,
+                     value.get("total_amount", 0),
+                     value.get("order_count", 0))
+    to: customer_totals

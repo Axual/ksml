@@ -1,0 +1,119 @@
+# Data Transformation Use Case
+# This definition shows how to take legacy customer data in XML, join it with a customer segments table on Kafka,
+# and write out the customer data in another structure as JSON.
+
+streams:
+  legacy_customers:
+    topic: legacy_customer_data
+    keyType: string  # customer_id
+    valueType: xml  # XML customer data
+
+  transformed_customers:
+    topic: standardized_customer_data
+    keyType: string  # customer_id
+    valueType: json  # transformed customer data
+
+tables:
+  segment_reference:
+    topic: customer_segments
+    keyType: string  # segment code
+    valueType: json  # segment details
+
+functions:
+  transform_customer:
+    type: valueTransformer
+    code: |
+      import datetime
+
+      # Extract values from XML
+      customer_id = value.get("cust_id")
+      first_name = value.get("fname")
+      last_name = value.get("lname")
+      birth_date = value.get("dob")
+      phone = value.get("phone")
+      legacy_segment = value.get("legacy_segment")
+      customer_since = value.get("account_created")
+
+      # Extract address
+      address = value.get("addr")
+      street = address.get("street")
+      city = address.get("city")
+      state = address.get("state")
+      zip_code = address.get("zip")
+
+      # Generate email (not in source data)
+      email = f"{first_name.lower()}.{last_name.lower()}@example.com"
+
+      # Get segment info from reference data
+      segment_info = value.get("segment_info")
+      segment_name = segment_info.get("segment_name") if segment_info else "Unknown"
+      discount_tier = segment_info.get("discount_tier") if segment_info else "Unknown"
+      marketing_group = segment_info.get("marketing_group") if segment_info else "Unknown"
+
+      # Current timestamp for metadata
+      current_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+      # Create transformed customer object
+      return {
+        "customer_id": customer_id,
+        "name": {
+          "first": first_name,
+          "last": last_name
+        },
+        "contact_info": {
+          "email": email,
+          "phone": phone,
+          "address": {
+            "street": street,
+            "city": city,
+            "state": state,
+            "postal_code": zip_code,
+            "country": "USA"  # Default value not in source
+          }
+        },
+        "birth_date": birth_date,
+        "customer_since": customer_since,
+        "segment": segment_name,
+        "marketing_preferences": {
+          "group": marketing_group,
+          "discount_tier": discount_tier
+        },
+        "metadata": {
+          "source": "legacy_system",
+          "last_updated": current_time
+        }
+      }
+    resultType: json
+
+pipelines:
+  customer_transformation_pipeline:
+    from: legacy_customers
+    via:
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processing customer: {}", key)
+      - type: transformKey
+        mapper:
+          expression: value.get("legacy_segment")
+          resultType: string
+      - type: leftJoin
+        table: segment_reference
+        valueJoiner:
+          expression: |
+            {
+              **value1,
+              "segment_info": value2
+            }
+          resultType: json
+      - type: transformValue
+        mapper: transform_customer
+      - type: transformKey
+        mapper:
+          expression: value.get("customer_id")
+          resultType: string
+      - type: peek
+        forEach:
+          code: |
+            log.info("Transformed customer: {} = {}", key, value)
+    to: transformed_customers

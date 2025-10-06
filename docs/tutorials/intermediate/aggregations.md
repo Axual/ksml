@@ -187,17 +187,13 @@ Simple counting of events per key:
 ??? info "User actions producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-user-actions.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-user-actions.yaml" %}
     ```
 
 ??? info "Count user actions processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-count.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-count.yaml" %}
     ```
 
 ### How Count Works
@@ -233,17 +229,13 @@ This example demonstrates the core reduce concept with minimal complexity, using
 ??? info "Simple producer (binary long values) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-simple.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-simple.yaml" %}
     ```
 
 ??? info "Simple processor (reduce only) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-simple.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-simple.yaml" %}
     ```
 
 **Verifying the results:**
@@ -274,17 +266,13 @@ This example shows the same reduce logic but with JSON messages for better visib
 ??? info "JSON producer (human-readable) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-transactions.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-transactions.yaml" %}
     ```
 
 ??? info "JSON processor (with transformations) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-reduce.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-reduce.yaml" %}
     ```
 
 ### Reduce vs Aggregate
@@ -325,17 +313,13 @@ This example demonstrates the core aggregate concept with minimal complexity, us
 ??? info "Simple producer (binary long values) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-simple-aggregate.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-simple-aggregate.yaml" %}
     ```
 
 ??? info "Simple processor (aggregate only) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-simple-aggregate.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-simple-aggregate.yaml" %}
     ```
 
 **Verifying the results:**
@@ -373,17 +357,13 @@ This example shows advanced aggregation with comprehensive statistics using JSON
 ??? info "JSON payment events producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-payments.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-payments.yaml" %}
     ```
 
 ??? info "JSON statistics processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml" %}
     ```
 
 Both approaches demonstrate the flexibility of the `aggregate` operation. The simple version focuses on the core concept, while the complex version shows real-world statistical aggregation with human-readable JSON output.
@@ -459,17 +439,13 @@ This example demonstrates windowed aggregation by calculating temperature statis
 ??? info "Temperature sensor producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-windowed.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-windowed.yaml" %}
     ```
 
 ??? info "Windowed temperature statistics processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-windowed-aggregate.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-windowed-aggregate.yaml" %}
     ```
 
 **Understanding the WindowedString key:**
@@ -540,17 +516,13 @@ Cogroup allows combining multiple grouped streams into a single aggregation. Thi
 ??? info "Orders, Refunds, and Bonuses Producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-cogroup.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-cogroup.yaml" %}
     ```
 
 ??? info "Cogroup Processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-cogroup.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml" %}
     ```
 
 ### How Cogroup Works
@@ -587,17 +559,13 @@ This example demonstrates rekeying (changing the grouping key) and windowed aggr
 ??? info "Sales events producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/producer-sales.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-sales.yaml" %}
     ```
 
 ??? info "Regional sales analytics processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/aggregations/processor-sales-analytics.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/processor-sales-analytics.yaml" %}
     ```
 
 **Pipeline flow:**

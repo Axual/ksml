@@ -109,9 +109,7 @@ In the `examples/` directory, create `iot-analytics.yaml`:
        > This is a definition for a demo KSML application showing device health monitoring. It is not required at this point to understand this YAML & Python syntax, we will explain what it does and how it works later.
 
     ```yaml
-    {%
-      include "../definitions/quick-start/processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/quick-start/processor.yaml" %}
     ```
 
 Now create the KSML runner configuration file `ksml-runner.yaml`:

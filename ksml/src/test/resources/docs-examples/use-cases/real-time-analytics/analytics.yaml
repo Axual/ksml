@@ -1,0 +1,141 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+streams:
+  transactions:
+    topic: ecommerce_transactions
+    keyType: string  # transaction_id
+    valueType: json  # transaction data
+
+  sales_by_category:
+    topic: sales_by_category
+    keyType: string  # product_category
+    valueType: json  # aggregated sales data
+
+  avg_order_value:
+    topic: avg_order_value
+    keyType: windowed(string)  # time window
+    valueType: json  # average order value
+
+  transactions_by_region:
+    topic: transactions_by_region
+    keyType: string  # region
+    valueType: string  # transaction count
+
+functions:
+  calculate_total:
+    type: aggregator
+    resultType: json
+    code: |
+      if aggregatedValue is None:
+        return {"total_sales": value.get("price") * value.get("quantity"), "count": 1}
+      else:
+        return {
+          "total_sales": aggregatedValue.get("total_sales") + (value.get("price") * value.get("quantity")),
+          "count": aggregatedValue.get("count") + 1
+        }
+
+  extract_category:
+    type: keyTransformer
+    resultType: string
+    code: |
+      if value is None: return None
+      return value.get("product_category")
+
+  init_category_counter:
+    type: initializer
+    resultType: json
+    code: |
+      return {"total_sales": 0, "count": 0}
+
+  group_all:
+    type: keyTransformer
+    resultType: string
+    code: |
+      return "all"
+
+  init_sales_counter:
+    type: initializer
+    resultType: json
+    code: |
+      return {"total_sales": 0.0, "count": 0}
+
+  aggregate_window_sales:
+    type: aggregator
+    resultType: json
+    code: |
+      return {
+        "total_sales": aggregatedValue.get("total_sales") + (value.get("price") * value.get("quantity")),
+        "count": aggregatedValue.get("count") + 1
+      }
+
+  calc_avg_order:
+    type: valueTransformer
+    resultType: json
+    code: |
+      if value and value.get("count") and value.get("count") > 0:
+        return {"avg_order_value": value.get("total_sales") / value.get("count")}
+      else:
+        return {"avg_order_value": 0}
+
+  extract_region:
+    type: keyTransformer
+    resultType: string
+    code: |
+      if value is None: return None
+      return value.get("region")
+
+pipelines:
+  # Pipeline for sales by category
+  sales_by_category_pipeline:
+    from: transactions
+    via:
+      - type: selectKey
+        mapper: extract_category
+      - type: groupByKey
+      - type: aggregate
+        store:
+          name: category_store
+          type: keyValue
+        initializer: init_category_counter
+        aggregator: calculate_total
+      - type: toStream
+    to: sales_by_category
+
+  # Pipeline for average order value (windowed)
+  avg_order_value_pipeline:
+    from: transactions
+    via:
+      - type: groupBy
+        mapper: group_all
+      - type: windowByTime
+        windowType: tumbling
+        duration: 10s
+      - type: aggregate
+        store:
+          name: avg_order_store_10s
+          type: window
+          windowSize: 10s
+          retention: 30s
+        initializer: init_sales_counter
+        aggregator: aggregate_window_sales
+      - type: suppress
+        until: windowCloses
+      - type: toStream
+      - type: convertKey
+        into: json:windowed(string)
+      - type: mapValues
+        mapper: calc_avg_order
+    to: avg_order_value
+
+  # Pipeline for transactions by region
+  transactions_by_region_pipeline:
+    from: transactions
+    via:
+      - type: selectKey
+        mapper: extract_region
+      - type: groupByKey
+      - type: count
+      - type: toStream
+      - type: convertValue
+        into: string
+    to: transactions_by_region

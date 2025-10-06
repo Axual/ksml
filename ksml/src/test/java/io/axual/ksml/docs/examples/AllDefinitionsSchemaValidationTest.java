@@ -48,7 +48,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * JSON Schema validation test for all YAML definition files
- * in docs-examples and pipelines folders.
+ * in docs-examples and pipelines folders from both the ksml module
+ * and the ksml-integration-tests module.
  * The KSML JSON schema is generated dynamically using the same
  * TopologyDefinitionParser and JsonSchemaMapper that the KSML
  * runner uses when invoked with the --schema flag.
@@ -58,26 +59,49 @@ public class AllDefinitionsSchemaValidationTest {
     private static Schema ksmlSchema;
 
     /**
-     * Discovers all YAML files in the resources directory
+     * Discovers all YAML files in the resources directory from both the ksml module
+     * and the ksml-integration-tests module.
+     * Note: The Stream returned by this method is automatically closed by JUnit 5
+     * after all parameterized tests complete. See JUnit 5 documentation:
+     * <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests-argument-sources">...</a>
      */
     static Stream<Path> provideYamlFiles() throws URISyntaxException, IOException {
-        // Get the directory containing the YAML files
-        var testResourcesUri = AllDefinitionsSchemaValidationTest.class
-            .getResource("/").toURI();
-        Path branchingDir = Paths.get(testResourcesUri);
+        // Get the directory containing the YAML files from ksml module
+        var testResourcesUrl = AllDefinitionsSchemaValidationTest.class.getResource("/");
+        if (testResourcesUrl == null) {
+            throw new IllegalStateException("Test resources directory not found");
+        }
+        Path ksmlTestResourcesDir = Paths.get(testResourcesUrl.toURI());
 
-        // Find all .yaml files
-        return Files.walk(branchingDir)
+        // Get the integration tests directory
+        // From target/test-classes, go up 3 levels to reach project root, then navigate to integration tests
+        Path integrationTestsDir = ksmlTestResourcesDir.getParent().getParent().getParent()
+            .resolve("ksml-integration-tests/src/test/resources/docs-examples");
+
+        // Find all .yaml files from both directories, excluding ksml-runner.yaml files (runner config, not KSML definitions)
+        Stream<Path> ksmlFiles = Files.walk(ksmlTestResourcesDir)
             .filter(Files::isRegularFile)
             .filter(path -> path.toString().endsWith(".yaml"))
-            .sorted(); // Sort for consistent test ordering
+            .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"));
+
+        // Add integration tests files if the directory exists
+        Stream<Path> integrationFiles = Stream.empty();
+        if (Files.exists(integrationTestsDir)) {
+            integrationFiles = Files.walk(integrationTestsDir)
+                .filter(Files::isRegularFile)
+                .filter(path -> path.toString().endsWith(".yaml"))
+                .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"));
+        }
+
+        // Combine both streams and sort for consistent test ordering
+        return Stream.concat(ksmlFiles, integrationFiles).sorted();
     }
 
     /**
      * Generates the KSML JSON schema dynamically using TopologyDefinitionParser
      */
     @BeforeAll
-    static void generateSchema() throws Exception {
+    static void generateSchema() {
         // Generate the schema dynamically using the same approach as KSML runner
         final var parser = new TopologyDefinitionParser("dummy");
         final var schemaJson = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
@@ -97,7 +121,7 @@ public class AllDefinitionsSchemaValidationTest {
     /**
      * Returns the generated KSML JSON schema
      */
-    private static Schema getKsmlSchema() throws Exception {
+    private static Schema getKsmlSchema() {
         assertNotNull(ksmlSchema, "Schema was not generated. Run generateSchema() first.");
         return ksmlSchema;
     }

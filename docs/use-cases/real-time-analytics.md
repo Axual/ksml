@@ -75,9 +75,7 @@ Now, let's create our KSML definition file:
 ??? info "Real-time analytics processor (click to expand)"
 
     ```yaml
-    {% 
-       include "../definitions/use-cases/real-time-analytics/analytics.yaml" 
-     %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/real-time-analytics/analytics.yaml" %}
     ```
 
 ## Running the Application
@@ -88,9 +86,7 @@ four hard coded sales records into the input stream and exit.
 ??? info "Transaction data producer (click to expand)"
 
     ```yaml
-    {% 
-       include "../definitions/use-cases/real-time-analytics/example-producer.yaml" 
-     %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/real-time-analytics/example-producer.yaml" %}
     ```
 
 To run the application:

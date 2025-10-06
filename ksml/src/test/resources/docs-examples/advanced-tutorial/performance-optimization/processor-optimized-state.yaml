@@ -1,0 +1,111 @@
+# Processor demonstrating optimized state store configuration and usage
+
+streams:
+  user_activity:
+    topic: user_activity
+    keyType: string
+    valueType: json
+
+stores:
+  # Optimized state store configuration
+  user_metrics_store:
+    type: keyValue
+    keyType: string
+    valueType: string  # Using compact string format for state storage performance
+    persistent: true
+    caching: true
+
+functions:
+  update_user_metrics:
+    type: valueTransformer
+    globalCode: |
+      # Use compact string format for state storage to reduce serialization overhead
+      def parse_metrics(metrics_str):
+        """Parse compact metrics format: count:login:page_view:click:purchase:logout:total_score"""
+        if not metrics_str:
+          return [0, 0, 0, 0, 0, 0, 0]  # Default metrics
+        parts = metrics_str.split(":")
+        return [int(x) for x in parts] if len(parts) == 7 else [0, 0, 0, 0, 0, 0, 0]
+      
+      def format_metrics(metrics_list):
+        """Format metrics into compact string"""
+        return ":".join(str(x) for x in metrics_list)
+        
+    code: |
+      # Extract activity data from JSON
+      activity_type = value.get("activity_type")
+      if not activity_type:
+        return None
+        
+      score = value.get("score", 0)
+      timestamp = value.get("timestamp", 0)
+      duration_ms = value.get("duration_ms", 0)
+      
+      # Get current metrics from optimized state store
+      current_metrics_str = user_metrics_store.get(key)
+      metrics = parse_metrics(current_metrics_str)
+      
+      # Update metrics efficiently - avoid object creation
+      metrics[0] += 1  # total_count
+      
+      # Update activity-specific counters using index mapping
+      activity_indices = {
+        "login": 1, "page_view": 2, "click": 3, "purchase": 4, "logout": 5
+      }
+      
+      if activity_type in activity_indices:
+        metrics[activity_indices[activity_type]] += 1
+      
+      metrics[6] += score  # total_score
+      
+      # Store back in compact format
+      user_metrics_store.put(key, format_metrics(metrics))
+      
+      # Calculate derived metrics efficiently
+      avg_score = metrics[6] / metrics[0] if metrics[0] > 0 else 0
+      
+      # Return summary as JSON for better readability in Kowl UI
+      result = {
+        "user_id": key,
+        "metrics": {
+          "total_count": metrics[0],
+          "login_count": metrics[1],
+          "page_view_count": metrics[2],
+          "click_count": metrics[3],
+          "purchase_count": metrics[4],
+          "logout_count": metrics[5],
+          "total_score": metrics[6],
+          "avg_score": round(avg_score, 2)
+        },
+        "last_activity": {
+          "type": activity_type,
+          "score": score,
+          "duration_ms": duration_ms,
+          "timestamp": timestamp
+        }
+      }
+      
+      # Log only significant changes to reduce I/O
+      if metrics[0] % 10 == 0:  # Log every 10th event
+        log.info("User {} metrics: {} total activities, avg score: {:.2f}", key, metrics[0], avg_score)
+      
+      return result
+      
+    expression: result if result else None
+    resultType: json
+    stores:
+      - user_metrics_store
+
+pipelines:
+  optimized_state_pipeline:
+    from: user_activity
+    via:
+      - type: mapValues
+        mapper: update_user_metrics
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: user_metrics_summary
+      keyType: string
+      valueType: json

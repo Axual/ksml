@@ -1,0 +1,57 @@
+# Demonstrates automatic type conversion in KSML functions
+# Shows how KSML automatically converts function return values to match the declared resultType
+
+functions:
+  # Example 1: String to int conversion (valid numeric string)
+  string_to_int:
+    type: valueTransformer
+    code: |
+      result = "123"        # Return a valid numeric string
+    expression: result
+    resultType: int         # Automatic conversion: "123" to 123
+
+  # Example 2: Int to string conversion
+  int_to_string:
+    type: valueTransformer
+    code: |
+      result = 456          # Return an integer
+    expression: result
+    resultType: string      # Automatic conversion: 456 to "456"
+
+  # Example 3: Dict to string conversion (JSON serialization)
+  dict_to_string:
+    type: valueTransformer
+    code: |
+      result = {
+        "sensor": key,
+        "temp_celsius": value.get("temperature", 20),
+        "status": "active"
+      }
+    expression: result
+    resultType: string      # Automatic conversion: dict to JSON string
+
+pipelines:
+  demonstrate_auto_conversion:
+    from:
+      topic: sensor_data
+      keyType: string
+      valueType: json
+      offsetResetPolicy: earliest
+    via:
+      # Test 1: String to int
+      - type: transformValue
+        mapper: string_to_int
+      - type: peek
+        forEach:
+          code: 'log.info("String to Int: type={}, value={}", type(value).__name__, value)'
+
+      # Test 2: Int to string
+      - type: transformValue
+        mapper: int_to_string
+      - type: peek
+        forEach:
+          code: 'log.info("Int to String: type={}, value={}", type(value).__name__, value)'
+    to:
+      topic: converted_data
+      keyType: string
+      valueType: string

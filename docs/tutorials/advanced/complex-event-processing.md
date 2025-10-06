@@ -53,17 +53,13 @@ Pattern detection identifies specific sequences of events within a stream. This 
 ??? info "Pattern Events Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/producer-pattern-detection.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/producer-pattern-detection.yaml" %}
     ```
 
 ??? info "Pattern Detection Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/processor-pattern-detection.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/processor-pattern-detection.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -87,17 +83,13 @@ Temporal patterns add time constraints to event sequences. This example detects 
 ??? info "Temporal Events Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/producer-temporal-events.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/producer-temporal-events.yaml" %}
     ```
 
 ??? info "Temporal Pattern Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/processor-temporal-pattern.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/processor-temporal-pattern.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -121,17 +113,13 @@ Event correlation combines related events from different streams to provide enri
 ??? info "Correlation Events Producer (generates both user and system events) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/producer-correlation-events.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/producer-correlation-events.yaml" %}
     ```
 
 ??? info "Event Correlation Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/processor-event-correlation.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/processor-event-correlation.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -155,17 +143,13 @@ Anomaly detection identifies unusual patterns using statistical analysis.
 ??? info "Metrics Producer (with occasional anomalies) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/producer-metrics.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/producer-metrics.yaml" %}
     ```
 
 ??? info "Anomaly Detection Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/processor-anomaly-detection.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/processor-anomaly-detection.yaml" %}
     ```
 
 **Key concepts demonstrated**:
@@ -189,17 +173,13 @@ A practical example combining multiple CEP techniques for real-time fraud detect
 ??? info "Credit Card Transactions Producer - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/producer-transactions.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/producer-transactions.yaml" %}
     ```
 
 ??? info "Fraud Detection Processor - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/complex-event-processing/processor-fraud-detection.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/complex-event-processing/processor-fraud-detection.yaml" %}
     ```
 
 **Key concepts demonstrated**:
