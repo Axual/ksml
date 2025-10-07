@@ -11,3 +11,50 @@
 .md-typeset table td:first-of-type {
   min-width: 190px;
 }
+
+/* 1. Make font smaller everywhere */
+.md-typeset {
+  font-size: 0.7rem; /* Default is 0.8rem, adjust as needed */
+  line-height: 1.5;
+}
+
+.md-typeset h1 {
+  font-size: 1.7rem; /* Adjust heading sizes proportionally */
+}
+
+.md-typeset h2 {
+  font-size: 1.3rem;
+}
+
+.md-typeset h3 {
+  font-size: 1.05rem;
+}
+
+.md-typeset h4 {
+  font-size: 0.9rem;
+}
+
+.md-typeset code {
+  font-size: 0.55rem; /* Smaller code blocks */
+}
+
+/* 2. Make content container wider */
+.md-grid {
+  max-width: 120rem !important; /* Default is 61rem, increase for wider layout */
+}
+
+/* Adjust the main content area to use more space */
+.md-main__inner {
+  margin-left: 3rem;  /* Move left sidebar further left (default is 12.1rem) */
+  margin-right: 3rem; /* Move right TOC further right (default is 12.1rem) */
+}
+
+/* Make sidebar narrower to give more space to content */
+.md-sidebar--primary {
+  width: 11rem; /* Default is 12.1rem */
+}
+
+/* Make TOC narrower */
+.md-sidebar--secondary {
+  width: 11rem; /* Default is 12.1rem */
+}

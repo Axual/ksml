@@ -69,7 +69,8 @@ Full JsonSchema support added for better data validation and schema management. 
 #### Notation and Schema Registry Configuration
 New configuration system for data serialization and schema registries. Configure different implementations for each notation type (Avro, Protobuf, JsonSchema) and schema registry connections.
 
-**Tutorial:** [Working with JsonSchema Data](tutorials/beginner/data-formats.md#specifying-data-formats)
+**Tutorial:** [Working with JsonSchema Data](tutorials/beginner/data-formats.md#working-with-jsonschema-data)
+
 **Example:** [ksml-runner.yaml](https://github.com/Axual/ksml/blob/main/examples/ksml-runner.yaml)
 ```yaml
 ksml:
