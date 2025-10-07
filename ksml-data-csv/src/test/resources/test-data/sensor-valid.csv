@@ -1,0 +1,3 @@
+"sensor001","1234567890","23.5","temperature","celsius","red","Amsterdam","alice"
+"sensor002","1234567891","65.2","humidity","percent","blue","Rotterdam","bob"
+"sensor003","1234567892","1013.25","pressure","hPa","green","Utrecht","charlie"
