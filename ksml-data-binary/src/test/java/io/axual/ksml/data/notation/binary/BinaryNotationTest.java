@@ -20,6 +20,10 @@ package io.axual.ksml.data.notation.binary;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +33,7 @@ import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.serde.ByteSerde;
 import io.axual.ksml.data.serde.NullSerde;
+import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.SimpleType;
@@ -50,7 +55,7 @@ class BinaryNotationTest {
     @Test
     @DisplayName("Default properties: name, extension, default type")
     void basicProperties() {
-        // Given: a standard binary notation context (no vendor)
+        // Given: a standard binary notation context
         var context = new NotationContext(BinaryNotation.NOTATION_NAME);
 
         // When: constructing BinaryNotation
@@ -93,33 +98,43 @@ class BinaryNotationTest {
 
         // Byte type should use ByteSerde
         var byteType = new SimpleType(Byte.class, "byte");
-        softly.assertThat(notation.serde(byteType, false))
-                .as("Byte type should have ByteSerde")
-                .isInstanceOf(ByteSerde.class);
+        try (var serde = notation.serde(byteType, false)) {
+            softly.assertThat(serde)
+                    .as("Byte type should have ByteSerde")
+                    .isInstanceOf(ByteSerde.class);
+        }
 
         // Null type should use NullSerde
         var nullType = new SimpleType(Null.class, "null");
-        softly.assertThat(notation.serde(nullType, false))
-                .as("Null type should have NullSerde")
-                .isInstanceOf(NullSerde.class);
+        try (var serde = notation.serde(nullType, false)) {
+            softly.assertThat(serde)
+                    .as("Null type should have NullSerde")
+                    .isInstanceOf(NullSerde.class);
+        }
 
         // Integer type should use BinaryNotation.BinarySerde wrapper
         var intType = new SimpleType(Integer.class, "int");
-        softly.assertThat(notation.serde(intType, false))
-                .as("Integer type should have serde")
-                .isNotNull();
+        try (var serde = notation.serde(intType, false)) {
+            softly.assertThat(serde)
+                    .as("Integer type should have serde")
+                    .isNotNull();
+        }
 
         // Long type should use BinaryNotation.BinarySerde wrapper
         var longType = new SimpleType(Long.class, "long");
-        softly.assertThat(notation.serde(longType, false))
-                .as("Long type should have serde")
-                .isNotNull();
+        try (var serde = notation.serde(longType, false)) {
+            softly.assertThat(serde)
+                    .as("Long type should have serde")
+                    .isNotNull();
+        }
 
         // String type should use BinaryNotation.BinarySerde wrapper
         var stringType = new SimpleType(String.class, "string");
-        softly.assertThat(notation.serde(stringType, false))
-                .as("String type should have serde")
-                .isNotNull();
+        try (var serde = notation.serde(stringType, false)) {
+            softly.assertThat(serde)
+                    .as("String type should have serde")
+                    .isNotNull();
+        }
 
         softly.assertAll();
     }
@@ -143,24 +158,29 @@ class BinaryNotationTest {
     void complexTypeWithSupplier() {
         // Given: Binary notation with a mock SerdeSupplier
         var context = new NotationContext(BinaryNotation.NOTATION_NAME);
-        var mockSupplier = (io.axual.ksml.data.serde.SerdeSupplier) (type, isKey) -> {
-            // Return a mock serde for testing
-            @SuppressWarnings("unchecked")
-            var serde = (org.apache.kafka.common.serialization.Serde<Object>) (Object) org.apache.kafka.common.serialization.Serdes.String();
-            return serde;
+        var mockSupplier = (SerdeSupplier) (type, isKey) -> new Serde<>() {
+            @Override
+            public Serializer<Object> serializer() {
+                return (topic, data) -> new byte[0];
+            }
+
+            @Override
+            public Deserializer<Object> deserializer() {
+                return (topic, data) -> new Object();
+            }
         };
         var notation = new BinaryNotation(context, mockSupplier);
 
         // When: requesting serde for complex type
         var complexType = new ListType();
-        var serde = notation.serde(complexType, false);
-
-        // Then: should return serde from supplier
-        assertThat(serde).isNotNull();
+        try (var serde = notation.serde(complexType, false)) {
+            // Then: should return serde from supplier
+            assertThat(serde).isNotNull();
+        }
     }
 
     @Test
-    @DisplayName("File extension is null (binary data typically doesn't have a standard extension in KSML)")
+    @DisplayName("File extension is null (binary data doesn't have a standard extension in KSML)")
     void filenameExtension() {
         // Given: Binary notation
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
@@ -189,13 +209,17 @@ class BinaryNotationTest {
         // When/Then: create serdes for both key and value
         var softly = new SoftAssertions();
 
-        softly.assertThat(notation.serde(byteType, true))
-                .as("Key serde should be created")
-                .isInstanceOf(ByteSerde.class);
+        try (var serde = notation.serde(byteType, true)) {
+            softly.assertThat(serde)
+                    .as("Key serde should be created")
+                    .isInstanceOf(ByteSerde.class);
+        }
 
-        softly.assertThat(notation.serde(byteType, false))
-                .as("Value serde should be created")
-                .isInstanceOf(ByteSerde.class);
+        try (var serde = notation.serde(byteType, false)) {
+            softly.assertThat(serde)
+                    .as("Value serde should be created")
+                    .isInstanceOf(ByteSerde.class);
+        }
 
         softly.assertAll();
     }
