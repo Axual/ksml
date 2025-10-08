@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SensorData>
+    <name>sensor001</name>
+    <timestamp>1234567890</timestamp>
+    <value>23.5</value>
+    <type>temperature</type>
+    <unit>celsius</unit>
+    <color>red</color>
+    <city>Amsterdam</city>
+    <owner>alice</owner>
+</SensorData>
