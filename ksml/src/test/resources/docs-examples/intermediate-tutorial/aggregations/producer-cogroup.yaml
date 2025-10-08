@@ -1,0 +1,33 @@
+functions:
+  generate_order:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      order_counter = 0
+      customers = ["alice", "bob", "charlie", "diana", "eve"]
+    code: |
+      global order_counter, customers
+
+      order_counter += 1
+      customer = random.choice(customers)
+
+      value = {
+        "order_id": f"ORD{order_counter:04d}",
+        "customer": customer,
+        "amount": round(random.uniform(10, 500), 2),
+        "timestamp": int(time.time() * 1000)
+      }
+
+      key = customer
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  order_producer:
+    generator: generate_order
+    interval: 2s
+    to:
+      topic: customer_orders
+      keyType: string
+      valueType: json

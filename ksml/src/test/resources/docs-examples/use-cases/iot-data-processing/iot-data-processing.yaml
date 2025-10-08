@@ -1,0 +1,136 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+streams:
+  sensor_readings:
+    topic: iot_sensor_readings
+    keyType: string  # device_id
+    valueType: json  # sensor data
+
+  temperature_alerts:
+    topic: temperature_alerts
+    keyType: string  # device_id
+    valueType: json  # alert data
+
+  device_status:
+    topic: device_status
+    keyType: string  # device_id
+    valueType: json  # status information
+
+  energy_consumption:
+    topic: energy_consumption
+    keyType: string  # location
+    valueType: json  # aggregated energy data
+
+  building_analytics:
+    topic: building_analytics
+    keyType: string  # building/floor
+    valueType: json  # aggregated analytics
+
+functions:
+  extract_temperature:
+    type: valueTransformer
+    resultType: float
+    expression: value.get("readings", {}).get("temperature")
+
+  check_temperature_threshold:
+    type: predicate
+    code: |
+      temp = value.get("readings", {}).get("temperature")
+      return temp is not None and (temp > 30.0 or temp < 10.0)
+
+  create_temperature_alert:
+    type: valueTransformer
+    resultType: json
+    code: |
+      temp = value.get("readings", {}).get("temperature")
+      return {
+        "device_id": value.get("device_id"),
+        "timestamp": value.get("timestamp"),
+        "location": value.get("location"),
+        "alert_type": "temperature_threshold",
+        "reading": temp,
+        "status": "critical" if (temp > 35.0 or temp < 5.0) else "warning"
+      }
+
+  check_battery_level:
+    type: predicate
+    expression: value.get("battery_level", 100) < 20
+
+  create_battery_alert:
+    type: valueTransformer
+    resultType: json
+    code: |
+      return {
+        "device_id": value.get("device_id"),
+        "timestamp": value.get("timestamp"),
+        "location": value.get("location"),
+        "alert_type": "low_battery",
+        "battery_level": value.get("battery_level"),
+        "status": "warning"
+      }
+
+  filter_energy_meter:
+    type: predicate
+    resultType: boolean
+    code: |
+      return value.get("device_type") == "energy_meter"
+
+  group_by_building_floor:
+    type: keyTransformer
+    resultType: string
+    code: |
+      return value.get("location", {}).get("building") + "-" + str(value.get("location", {}).get("floor"))
+
+  init_energy_counter:
+    type: initializer
+    resultType: json
+    code: |
+      return {"total_consumption": 0, "count": 0}
+
+  aggregate_energy:
+    type: aggregator
+    resultType: json
+    code: |
+      return {
+        "total_consumption": aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0),
+        "count": aggregatedValue.get("count") + 1,
+        "average": (aggregatedValue.get("total_consumption") + value.get("readings", {}).get("energy", 0)) / (aggregatedValue.get("count") + 1)
+      }
+
+pipelines:
+  # Pipeline for temperature monitoring
+  temperature_monitoring:
+    from: sensor_readings
+    via:
+      - type: filter
+        if: check_temperature_threshold
+      - type: transformValue
+        mapper: create_temperature_alert
+    to: temperature_alerts
+
+  # Pipeline for device status monitoring
+  device_status_monitoring:
+    from: sensor_readings
+    via:
+      - type: filter
+        if: check_battery_level
+      - type: transformValue
+        mapper: create_battery_alert
+    to: device_status
+
+  # Pipeline for energy consumption analytics
+  energy_analytics:
+    from: sensor_readings
+    via:
+      - type: filter
+        if: filter_energy_meter
+      - type: groupBy
+        mapper: group_by_building_floor
+      - type: aggregate
+        store:
+          name: energy_consumption_store
+          type: keyValue
+        initializer: init_energy_counter
+        aggregator: aggregate_energy
+      - type: toStream
+    to: energy_consumption

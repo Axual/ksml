@@ -266,7 +266,7 @@ Processes each message for side effects like logging, without changing the messa
 None (the function is called for its side effects)
 
 ```yaml
---8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
+--8<-- "docs-examples/reference/functions/keytransformer-processor.yaml:11:17"
 ```
 
 **Full example for `forEach`**:
@@ -294,7 +294,7 @@ New key for the output message
 **Function Definition:**
 
 ```yaml
---8<-- "definitions/reference/functions/keytransformer-processor.yaml:11:17"
+--8<-- "docs-examples/reference/functions/keytransformer-processor.yaml:11:17"
 ```
 
 This function extracts the region from transaction data to use as the new message key, enabling region-based
@@ -305,17 +305,13 @@ partitioning.
 ??? info "Producer - `keyTransformer` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/functions/keytransformer-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keytransformer-producer.yaml" %}
     ```
 
 ??? info "Processor - `keyTransformer` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/functions/keytransformer-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keytransformer-processor.yaml" %}
     ```
 
 **Additional Example:**
@@ -342,7 +338,7 @@ A list of key-value pairs `[(key1, value1), (key2, value2), ...]`
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml:12:42"
+--8<-- "docs-examples/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml:12:42"
 ```
 
 This example demonstrates splitting batch orders into individual orders with unique keys, useful for processing bulk
@@ -351,13 +347,13 @@ data into individual records.
 ??? info "Producer - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
 
       ```yaml
-      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
+      {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keyvaluetokeyvaluelisttransformer-producer.yaml" %}
       ```
 
 ??? info "Processor - `keyvaluetokeyvaluelisttransformer` example (click to expand)"
 
       ```yaml
-      {% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
+      {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keyvaluetokeyvaluelisttransformer-processor.yaml" %}
       ```
 
 ### keyValueToValueListTransformer
@@ -379,23 +375,19 @@ A list of values `[value1, value2, ...]` that will be combined with the original
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/keyvaluetovaluelisttransformer-processor.yaml:12:40"
+--8<-- "docs-examples/reference/functions/keyvaluetovaluelisttransformer-processor.yaml:12:40"
 ```
 
 ??? info "Producer - `keyValueToValueListTransformer` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/functions/keyvaluetovaluelisttransformer-producer.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keyvaluetovaluelisttransformer-producer.yaml" %}
     ```
 
 ??? info "Processor - `keyValueToValueListTransformer` example (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/reference/functions/keyvaluetovaluelisttransformer-processor.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keyvaluetovaluelisttransformer-processor.yaml" %}
     ```
 
 ### keyValueTransformer
@@ -416,7 +408,7 @@ A tuple of (new_key, new_value)
 #### Example
 
 ```yaml
---8<-- "definitions/advanced-tutorial/external-integration/processor-async-integration.yaml:25:93"
+--8<-- "docs-examples/advanced-tutorial/external-integration/processor-async-integration.yaml:25:93"
 ```
 
 **Full example for `keyValueTransformer`**:
@@ -442,7 +434,7 @@ Boolean (true or false)
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml:12:25"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-custom-filter.yaml:12:25"
 ```
 
 **Full example for `predicate`**:
@@ -468,7 +460,7 @@ New value for the output message
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:24:34"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-multiple-transform.yaml:24:34"
 ```
 
 **Full example for `valueTransformer`**:
@@ -497,7 +489,7 @@ New aggregated value
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:26:45"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:26:45"
 ```
 
 **Full example for `aggregator`**:
@@ -520,7 +512,7 @@ Initial value for aggregation
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:13:24"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:13:24"
 ```
 
 **Full example for `initializer`**:
@@ -546,20 +538,20 @@ The merged aggregation result
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/merger-example-processor.yaml:23:35"
+--8<-- "docs-examples/reference/functions/merger-example-processor.yaml:23:35"
 ```
 
 
 ??? info "Producer - `merger` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/merger-example-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/merger-example-producer.yaml" %}
     ```
 
 ??? info "Processor - `merger` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/merger-example-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/merger-example-processor.yaml" %}
     ```
 
 The merger function is specifically designed for session window aggregations where late-arriving events can merge
@@ -607,7 +599,7 @@ Combined value
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/aggregations/processor-reduce.yaml:24:30"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-reduce.yaml:24:30"
 ```
 
 **Full example for `reducer`**:
@@ -633,20 +625,20 @@ The key to look up in the table being joined with
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/foreignkeyextractor-processor.yaml:15:26"
+--8<-- "docs-examples/reference/functions/foreignkeyextractor-processor.yaml:15:26"
 ```
 
 
 ??? info "Producer - `foreignKeyExtractor` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/foreignkeyextractor-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/foreignkeyextractor-producer.yaml" %}
     ```
 
 ??? info "Processor - `foreignKeyExtractor` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/foreignkeyextractor-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/foreignkeyextractor-processor.yaml" %}
     ```
 
 The foreignKeyExtractor enables table joins where the join key is embedded within the record value rather than being the
@@ -700,7 +692,7 @@ A tuple of (key, value) representing the generated message
 #### Example
 
 ```yaml
---8<-- "definitions/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml:2:16"
+--8<-- "docs-examples/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml:2:16"
 ```
 
 **Full example for `generator`**:
@@ -726,7 +718,7 @@ Tuple of (new_key, new_value)
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:19:25"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-foreign-key-join.yaml:19:25"
 ```
 
 **Full example for `keyValueMapper`**:
@@ -756,13 +748,13 @@ data into formatted reports for monitoring and debugging.
 ??? info "Producer - `keyValuePrinter` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/keyvalueprinter-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keyvalueprinter-producer.yaml" %}
     ```
 
 ??? info "Processor - `keyValuePrinter` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/keyvalueprinter-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/keyvalueprinter-processor.yaml" %}
     ```
 
 **What the example does:**
@@ -807,19 +799,19 @@ Modified metadata for the output message
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/metadatatransformer-processor.yaml:8:32"
+--8<-- "docs-examples/reference/functions/metadatatransformer-processor.yaml:8:32"
 ```
 
 ??? info "Producer - `metadataTransformer` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/metadatatransformer-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/metadatatransformer-producer.yaml" %}
     ```
 
 ??? info "Processor - `metadataTransformer` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/metadatatransformer-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/metadatatransformer-processor.yaml" %}
     ```
 
 **This example:**
@@ -872,19 +864,19 @@ kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partit
 ```
 
 ```yaml
---8<-- "definitions/reference/functions/streampartitioner-example-processor.yaml:13:55"
+--8<-- "docs-examples/reference/functions/streampartitioner-example-processor.yaml:13:55"
 ```
 
 ??? info "Producer - `streamPartitioner` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/streampartitioner-example-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/streampartitioner-example-producer.yaml" %}
     ```
 
 ??? info "Processor - `streamPartitioner` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/streampartitioner-example-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/streampartitioner-example-processor.yaml" %}
     ```
 
 The streamPartitioner function provides custom control over how records are distributed across topic partitions. This example demonstrates intelligent order routing based on business priorities and geographic regions.
@@ -938,7 +930,7 @@ Combined value
 #### Example
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml:27:47"
+--8<-- "docs-examples/intermediate-tutorial/joins/processor-foreign-key-join.yaml:27:47"
 ```
 
 **Full example for `valueJoiner`**:
@@ -965,19 +957,19 @@ Timestamp in milliseconds (long)
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/timestampextractor-processor.yaml:7:35"
+--8<-- "docs-examples/reference/functions/timestampextractor-processor.yaml:7:35"
 ```
 
 ??? info "Producer - `timestampExtractor` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/timestampextractor-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/timestampextractor-producer.yaml" %}
     ```
 
 ??? info "Processor - `timestampExtractor` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/timestampextractor-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/timestampextractor-processor.yaml" %}
     ```
 
 **What the example does:**
@@ -1021,19 +1013,19 @@ String representing the topic name to send the message to
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/topicnameextractor-processor.yaml:24:47"
+--8<-- "docs-examples/reference/functions/topicnameextractor-processor.yaml:24:47"
 ```
 
 ??? info "Producer - `topicNameExtractor` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/topicnameextractor-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/topicnameextractor-producer.yaml" %}
     ```
 
 ??? info "Processor - `topicNameExtractor` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/topicnameextractor-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/topicnameextractor-processor.yaml" %}
     ```
 
 **What the example does:**
@@ -1080,19 +1072,19 @@ Any value, depending on the function's purpose
 #### Example
 
 ```yaml
---8<-- "definitions/reference/functions/generic-processor.yaml:8:34"
+--8<-- "docs-examples/reference/functions/generic-processor.yaml:8:34"
 ```
 
 ??? info "Producer - `generic` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/generic-producer.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/generic-producer.yaml" %}
     ```
 
 ??? info "Processor - `generic` example (click to expand)"
 
     ```yaml
-    {% include "../definitions/reference/functions/generic-processor.yaml" %}
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/generic-processor.yaml" %}
     ```
 
 **What the example does:**

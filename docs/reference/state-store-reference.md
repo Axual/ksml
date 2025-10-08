@@ -32,11 +32,11 @@ KSML supports three types of state stores, each optimized for specific use cases
 Define once in the `stores` section, reuse across operations:
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
+--8<-- "docs-examples/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
 ```
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
+--8<-- "docs-examples/intermediate-tutorial/state-stores/processor-predefined-store.yaml:17:26"
 ```
 
 **Full example:**
@@ -48,7 +48,7 @@ Define once in the `stores` section, reuse across operations:
 Define directly within operations for custom configurations:
 
 ```yaml
---8<-- "definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml:58:67"
+--8<-- "docs-examples/intermediate-tutorial/state-stores/processor-inline-store.yaml:58:67"
 ```
 
 **Full example:**
@@ -148,17 +148,13 @@ functions:
 ??? info "State Store with Manual State Access (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/intermediate-tutorial/state-stores/producer-user-events.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-user-events.yaml" %}
     ```
 
 ??? info "State Store with Manual State Access (click to expand)"
 
     ```yaml
-    {%
-      include "../definitions/intermediate-tutorial/state-stores/processor-manual-store.yaml"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/processor-manual-store.yaml" %}
     ```
 
 This example demonstrates:

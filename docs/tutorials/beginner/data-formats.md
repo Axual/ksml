@@ -256,9 +256,7 @@ This producer generates JSON sensor data directly (no format conversion needed):
 ??? info "Producer definition for JSON messages (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-json.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/producer-json.yaml" %}
     ```
 
 This processor demonstrates key-value transformation using `keyValueTransformer` to modify both message keys and values:
@@ -266,9 +264,7 @@ This processor demonstrates key-value transformation using `keyValueTransformer`
 ??? info "Processor definition for JSON messages (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-json.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/processor-json.yaml" %}
     ```
 
 ## Working with CSV Data
@@ -422,9 +418,7 @@ This producer creates SOAP request messages with envelope/body structure (no WSD
 ??? info "Producer definition for SOAP messages (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-soap.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/producer-soap.yaml" %}
     ```
 
 This processor transforms SOAP requests into SOAP responses (extracts request data and creates response with sensor values):
@@ -432,9 +426,7 @@ This processor transforms SOAP requests into SOAP responses (extracts request da
 ??? info "Processor definition for SOAP messages (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-soap.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/processor-soap.yaml" %}
     ```
 
 ## Converting Between Data Formats
@@ -450,9 +442,7 @@ This producer generates Avro messages for format conversion demonstrations:
 ??? info "Producer definition (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/producer-converting.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/producer-converting.yaml" %}
     ```
 
 This processor demonstrates multiple format conversions (Avro → JSON → String → JSON) using `convertValue`:
@@ -460,9 +450,7 @@ This processor demonstrates multiple format conversions (Avro → JSON → Strin
 ??? info "Processing definition for converting between multiple formats (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/beginner-tutorial/different-data-formats/processor-converting.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/processor-converting.yaml" %}
     ```
 
 ### Format Conversion and Multiple Formats

@@ -49,17 +49,13 @@ The API enrichment pattern calls external REST APIs to add additional data to st
 ??? info "User Events Producer (API enrichment demo) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/external-integration/producer-api-enrichment.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/external-integration/producer-api-enrichment.yaml" %}
     ```
 
 ??? info "API Enrichment Processor (external API calls) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/external-integration/processor-api-enrichment.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/external-integration/processor-api-enrichment.yaml" %}
     ```
 
 **API enrichment benefits:**
@@ -107,17 +103,13 @@ This way you get rich product information without hitting a database for every s
 ??? info "Product Events Producer (database lookup demo) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/external-integration/producer-product-events.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/external-integration/producer-product-events.yaml" %}
     ```
 
 ??? info "Database Lookup Processor (cached reference data) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/external-integration/processor-database-lookup.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/external-integration/processor-database-lookup.yaml" %}
     ```
 
 **Key concepts demonstrated:**
@@ -148,17 +140,13 @@ The async integration pattern uses separate Kafka topics for communication with 
 ??? info "Order Events Producer (async integration demo) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/external-integration/producer-orders.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/external-integration/producer-orders.yaml" %}
     ```
 
 ??? info "Async Integration Processor (request-response pattern) - click to expand"
 
     ```yaml
-    {%
-      include "../../definitions/advanced-tutorial/external-integration/processor-async-integration.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/advanced-tutorial/external-integration/processor-async-integration.yaml" %}
     ```
 
 **Async integration features:**

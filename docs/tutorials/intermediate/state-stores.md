@@ -45,17 +45,13 @@ Define stores in the global `stores` section and reference them by name:
 ??? info "Sensor Ownership Producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml" %}
     ```
 
 ??? info "Predefined Store Processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/processor-predefined-store.yaml" %}
     ```
 
 This example demonstrates:
@@ -87,17 +83,13 @@ Define stores directly within operations for single-use scenarios:
 ??? info "Sensor Ownership Producer (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml" %}
     ```
 
 ??? info "Inline Store Processor (click to expand)"
 
     ```yaml
-    {%
-      include "../../definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml"
-    %}
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/processor-inline-store.yaml" %}
     ```
 
 This example demonstrates:
