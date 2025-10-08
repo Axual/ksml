@@ -1,4 +1,4 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.data.exception;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,6 +20,10 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-public interface DataTypeComparer {
-    boolean compare(DataType other);
+public class VerifyException extends BaseException {
+    private static final String ACTIVITY = "validation";
+
+    public VerifyException(String message) {
+        super(ACTIVITY, message);
+    }
 }

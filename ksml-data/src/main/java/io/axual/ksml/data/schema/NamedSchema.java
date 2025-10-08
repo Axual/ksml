@@ -20,10 +20,16 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Compared;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import java.util.Objects;
+
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_NAMED_SCHEMA_DOC;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_NAMED_SCHEMA_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_NAMED_SCHEMA_NAMESPACE;
 
 /**
  * An abstract base class for schemas with a name and namespace in the KSML framework.
@@ -129,16 +135,43 @@ public abstract class NamedSchema extends DataSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to check for assignability.
-     * @param context     The validation context.
      */
     @Override
-    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
-        if (super.checkAssignableFrom(otherSchema, context).isOK() && !(otherSchema instanceof NamedSchema))
-            return context.schemaMismatch(this, otherSchema);
+    public Compared checkAssignableFrom(DataSchema otherSchema) {
+        if (super.checkAssignableFrom(otherSchema).isError() || !(otherSchema instanceof NamedSchema))
+            return Compared.schemaMismatch(this, otherSchema);
 
         // Return no error when the other schema is also a named schema. Namespace, name and documentation do not matter
         // when checking for assignability (this is not an equality check).
-        return context.ok();
+        return Compared.ok();
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Compared equals(Object obj, Flags flags) {
+        final var superVerified = super.equals(obj, flags);
+        if (superVerified.isError()) return superVerified;
+
+        final var that = (NamedSchema) obj;
+
+        // Compare namespace
+        if (!flags.isSet(IGNORE_NAMED_SCHEMA_NAMESPACE) && !Objects.equals(namespace, that.namespace))
+            return Compared.fieldNotEqual("namespace", this, namespace, that, that.namespace);
+
+        // Compare name
+        if (!flags.isSet(IGNORE_NAMED_SCHEMA_NAME) && !Objects.equals(name, that.name))
+            return Compared.fieldNotEqual("name", this, namespace, that, that.namespace);
+
+        // Compare doc
+        if (!flags.isSet(IGNORE_NAMED_SCHEMA_DOC) && !Objects.equals(doc, that.doc))
+            return Compared.fieldNotEqual("doc", this, doc, that, that.doc);
+
+        return super.equals(obj, flags);
     }
 
     /**

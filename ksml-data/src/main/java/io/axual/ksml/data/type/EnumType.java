@@ -20,39 +20,37 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.util.ListUtil;
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.util.List;
 
 /**
  * A {@link SimpleType} representing an enumeration of allowed string symbols.
  * <p>
  * Values are considered assignable only when they are strings that match one of the configured
- * {@link Symbol} entries.
+ * {@link EnumSymbol} entries.
  */
 @Getter
 @EqualsAndHashCode
 public class EnumType extends SimpleType {
-    private final List<Symbol> symbols;
+    private final EnumSchema schema;
 
-    public EnumType(List<Symbol> symbols) {
-        super(String.class, DataSchemaConstants.ENUM_TYPE);
-        this.symbols = symbols;
+    public EnumType(EnumSchema schema) {
+        super(String.class, schema.name(), DataSchemaConstants.ENUM_TYPE);
+        this.schema = schema;
     }
 
     @Override
-    public ValidationResult checkAssignableFrom(DataObject value, ValidationContext context) {
-        if (!super.checkAssignableFrom(value, context).isOK()) return context;
-        if (context.isOK() && ListUtil.find(symbols(), s -> s.name().equals(value.toString())) == null) {
-            final var symbolsStr = symbols().stream().map(s -> "\"" + s.name() + "\"").toList();
-            return context.addError("Symbol \"" + value + "\" not found in enumeration with symbols " + String.join(", ", symbolsStr));
-        }
-        return context.ok();
+    public Compared checkAssignableFrom(DataObject value) {
+        final var superVerified = super.checkAssignableFrom(value);
+        if (superVerified.isError()) return superVerified;
+        final var valueStr = value.toString();
+        if (ListUtil.find(schema.symbols(), s -> s.name().equals(valueStr)) != null) return Compared.ok();
+        final var symbolsStr = schema.symbols().stream().map(s -> "\"" + s.name() + "\"").toList();
+        return Compared.error("Symbol \"" + valueStr + "\" not found in enumeration with symbols " + String.join(", ", symbolsStr));
     }
 }

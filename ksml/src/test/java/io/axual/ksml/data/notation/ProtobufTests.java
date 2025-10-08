@@ -27,9 +27,18 @@ import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
 import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufDescriptorFileElementMapper;
 import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufNotationProvider;
 import io.axual.ksml.data.notation.protobuf.confluent.ConfluentProtobufDescriptorFileElementMapper;
+import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_DOC;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_NAMED_SCHEMA_DOC;
+
 class ProtobufTests {
+    private static final Flags PROTOBUF_FLAGS = new Flags(
+            IGNORE_DATA_FIELD_DOC,
+            IGNORE_NAMED_SCHEMA_DOC
+    );
+
     @Test
     void apicurioSchemaTest() {
         NotationTestRunner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ApicurioProtobufDescriptorFileElementMapper()));
@@ -42,7 +51,7 @@ class ProtobufTests {
 
     @Test
     void apicurioDataTest() {
-        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper()));
+        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper()), PROTOBUF_FLAGS);
     }
 
     @Test
@@ -56,7 +65,7 @@ class ProtobufTests {
         final var provider = new ApicurioProtobufNotationProvider(registryClient);
         final var notationContext = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
         final var notation = provider.createNotation(notationContext);
-        NotationTestRunner.serdeTest(notation, true);
+        NotationTestRunner.serdeTest(notation, true, PROTOBUF_FLAGS);
     }
 
     @Test

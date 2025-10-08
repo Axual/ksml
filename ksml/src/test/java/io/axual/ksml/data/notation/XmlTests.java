@@ -23,6 +23,7 @@ package io.axual.ksml.data.notation;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaMapper;
+import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
 class XmlTests {
@@ -33,11 +34,11 @@ class XmlTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true));
+        NotationTestRunner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true), Flags.EMPTY);
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME)), false);
+        NotationTestRunner.serdeTest(new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME)), false, new Flags());
     }
 }

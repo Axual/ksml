@@ -31,7 +31,6 @@ import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
@@ -342,7 +341,12 @@ class JsonSchemaMapperTest {
 
         // Enum
         assertThat(struct.field("color"))
-                .isEqualTo(new DataField("color", new EnumSchema(null, null, null, List.of(Symbol.of("RED"), Symbol.of("GREEN"), Symbol.of("BLUE"))), null, NO_TAG, false));
+                .isEqualTo(new DataField("color",
+                        new EnumSchema(List.of(
+                                EnumSchema.Symbol.of("RED"),
+                                EnumSchema.Symbol.of("GREEN"),
+                                EnumSchema.Symbol.of("BLUE"))
+                        ), null, NO_TAG, false));
 
         // Union anyOf
         softlyDataSchema.assertThat(struct.field("idUnion"))
@@ -353,7 +357,7 @@ class JsonSchemaMapperTest {
 
         // $ref to internal definition
         softlyDataSchema.assertThat(struct.field("innerRef"))
-                .isEqualTo(new DataField("innerRef", new StructSchema(null, null, null, List.of(
+                .isEqualTo(new DataField("innerRef", new StructSchema(List.of(
                         new DataField("x", STRING_SCHEMA, null, NO_TAG, true),
                         new DataField("y", LONG_SCHEMA, null, NO_TAG, false)
                 )), null, NO_TAG, false));
@@ -362,8 +366,8 @@ class JsonSchemaMapperTest {
         softlyDataSchema.assertThat(struct.field("arrComplex"))
                 .isEqualTo(new DataField("arrComplex", new ListSchema(
                         new UnionSchema(
-                                new UnionSchema.Member(new EnumSchema(null, null, null, List.of(Symbol.of("A"), Symbol.of("B")))),
-                                new UnionSchema.Member(new StructSchema(null, null, null, List.of(
+                                new UnionSchema.Member(new EnumSchema(List.of(EnumSchema.Symbol.of("A"), EnumSchema.Symbol.of("B")))),
+                                new UnionSchema.Member(new StructSchema(List.of(
                                         new DataField("v", DOUBLE_SCHEMA, null, NO_TAG, false)
                                 )))
                         )
@@ -508,7 +512,7 @@ class JsonSchemaMapperTest {
         // Constant string field encoded as enum single value on JSON side
         final var constCode = new DataField("constCode", STRING_SCHEMA, "Constant Code", NO_TAG, true, true, new DataValue("X"));
 
-        final var colorSchema = new EnumSchema("", "Color", "", List.of(new Symbol("RED"), new Symbol("GREEN"), new Symbol("BLUE")), new Symbol("GREEN"));
+        final var colorSchema = new EnumSchema("", "Color", "", List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN"), new EnumSchema.Symbol("BLUE")), new EnumSchema.Symbol("GREEN"));
         final var color = new DataField("color", colorSchema, "The color", NO_TAG, true, true, new DataValue("RED"));
 
         final var topStruct = StructSchema.builder().namespace("ns").name("Top").doc("top doc")

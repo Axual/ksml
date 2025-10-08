@@ -25,9 +25,28 @@ import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.AvroSchemaMapper;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
+import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_DOC;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_TYPE_MEMBER_TAG;
+
 class AvroTests {
+    private static final Flags AVRO_FLAGS = new Flags(
+            IGNORE_DATA_FIELD_TAG,
+            IGNORE_ENUM_SYMBOL_DOC,
+            IGNORE_ENUM_SYMBOL_TAG,
+            IGNORE_UNION_SCHEMA_MEMBER_NAME,
+            IGNORE_UNION_SCHEMA_MEMBER_TAG,
+            IGNORE_UNION_TYPE_MEMBER_NAME,
+            IGNORE_UNION_TYPE_MEMBER_TAG
+    );
+
     @Test
     void schemaTest() {
         NotationTestRunner.schemaTest(AvroNotation.NOTATION_NAME, new AvroSchemaMapper());
@@ -35,7 +54,7 @@ class AvroTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper());
+        NotationTestRunner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper(), AVRO_FLAGS);
     }
 
     @Test
@@ -53,6 +72,6 @@ class AvroTests {
         final var provider = new ConfluentAvroNotationProvider(registryClient);
         final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
         final var notation = provider.createNotation(context);
-        NotationTestRunner.serdeTest(notation, true);
+        NotationTestRunner.serdeTest(notation, true, AVRO_FLAGS);
     }
 }

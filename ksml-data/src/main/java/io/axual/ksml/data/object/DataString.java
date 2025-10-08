@@ -20,7 +20,9 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.SimpleType;
 
 /**
@@ -81,5 +83,12 @@ public class DataString extends DataPrimitive<String> {
      */
     public static DataString from(String value) {
         return value != null ? new DataString(value) : null;
+    }
+
+    @Override
+    public Compared equals(Object other, Flags flags) {
+        if (other instanceof String str && str.equals(value())) return Compared.ok();
+        if (other instanceof DataEnum enm && enm.value().equals(value())) return Compared.ok();
+        return super.equals(other, flags);
     }
 }

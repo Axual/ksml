@@ -23,7 +23,16 @@ package io.axual.ksml.parser;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.execution.ExecutionContext;
@@ -37,7 +46,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UserTypeParserTest {
     @BeforeAll
@@ -51,15 +62,16 @@ class UserTypeParserTest {
     @ValueSource(strings = {"boolean", "byte", "bytes", "short", "double", "float", "int", "long", "?", "none", "str", "string"})
     void testParseValidTypes(String type) {
         var userType = UserTypeParser.parse(type);
+        assertTrue(userType.isOk());
         assertNotNull(userType);
-        assertEquals(UserType.DEFAULT_NOTATION, userType.notation(), "notation for " + type + "should default to " + UserType.DEFAULT_NOTATION);
+        assertEquals(UserType.DEFAULT_NOTATION, userType.result().notation(), "notation for " + type + "should default to " + UserType.DEFAULT_NOTATION);
     }
 
     @ParameterizedTest
     @DisplayName("Test parsing for dataType String (types 'str' and 'string'")
     @ValueSource(strings = {"str", "string"})
     void testParseStringType(String type) {
-        final var userType = UserTypeParser.parse(type);
+        final var userType = UserTypeParser.parse(type).result();
         assertNotNull(userType);
         final var dataType = userType.dataType();
         assertEquals(String.class, dataType.containerClass());
@@ -71,7 +83,7 @@ class UserTypeParserTest {
     @DisplayName("Test mapping of dataType names to correct user types class")
     @MethodSource("typesAndDataTypes")
     void testDataTypes(String type, DataType dataType) {
-        final var userType = UserTypeParser.parse(type);
+        final var userType = UserTypeParser.parse(type).result();
         assertNotNull(userType);
 
         assertEquals(dataType, userType.dataType(), "DataType for '" + type + "' should be set to " + dataType);

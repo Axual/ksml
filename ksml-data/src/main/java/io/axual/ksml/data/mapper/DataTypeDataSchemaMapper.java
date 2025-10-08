@@ -77,16 +77,12 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (type == DataBytes.DATATYPE) return DataSchema.BYTES_SCHEMA;
         if (type == DataString.DATATYPE) return DataSchema.STRING_SCHEMA;
 
-        if (type instanceof EnumType enumType)
-            return new EnumSchema(null, enumType.name(), "", enumType.symbols());
-        if (type instanceof ListType listType)
-            return new ListSchema(toDataSchema(listType.valueType()));
-        if (type instanceof MapType mapType)
-            return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
+        if (type instanceof EnumType enumType) return enumType.schema();
+        if (type instanceof ListType listType) return new ListSchema(toDataSchema(listType.valueType()));
+        if (type instanceof MapType mapType) return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
         if (type instanceof StructType structType)
             return structType.schema() != null ? new StructSchema(structType.schema()) : StructSchema.SCHEMALESS;
-        if (type instanceof TupleType tupleType)
-            return new TupleSchema(tupleType, this);
+        if (type instanceof TupleType tupleType) return new TupleSchema(tupleType, this);
         if (type instanceof UnionType unionType) {
             var members = new UnionSchema.Member[unionType.members().length];
             for (int index = 0; index < unionType.members().length; index++) {
@@ -120,7 +116,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (schema == DataSchema.DOUBLE_SCHEMA) return DataDouble.DATATYPE;
         if (schema == DataSchema.BYTES_SCHEMA) return DataBytes.DATATYPE;
         if (schema == DataSchema.STRING_SCHEMA) return DataString.DATATYPE;
-        if (schema instanceof EnumSchema enumSchema) return new EnumType(enumSchema.symbols());
+        if (schema instanceof EnumSchema enumSchema) return new EnumType(enumSchema);
         if (schema instanceof ListSchema listSchema) return new ListType(fromDataSchema(listSchema.valueSchema()));
         if (schema instanceof MapSchema mapSchema) return new MapType(fromDataSchema(mapSchema.valueSchema()));
         // Process TupleSchema first, since it inherits from StructSchema

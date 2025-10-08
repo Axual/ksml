@@ -20,6 +20,7 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -40,6 +41,7 @@ import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -677,5 +679,9 @@ class NativeDataObjectMapperTest {
             return "UNKNOWN";
         }
 
+        @Override
+        public Compared equals(Object obj, Flags flags) {
+            return Compared.error("Fake error");
+        }
     }
 }

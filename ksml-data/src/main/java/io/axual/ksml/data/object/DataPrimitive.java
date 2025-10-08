@@ -20,12 +20,13 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ValidationException;
+import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.exception.VerifyException;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.util.ValuePrinter;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.util.Objects;
 
 /**
  * Represents a wrapper for a primitive value as part of the {@link DataObject} framework.
@@ -37,6 +38,7 @@ import java.util.Objects;
  *
  * @see DataObject
  */
+@EqualsAndHashCode
 @Getter
 public class DataPrimitive<T> implements DataObject {
     private final DataType type;
@@ -49,11 +51,11 @@ public class DataPrimitive<T> implements DataObject {
     }
 
     private void checkValue() {
-        final var valid = value instanceof DataObject dataObject
+        final var verified = value instanceof DataObject dataObject
                 ? type.checkAssignableFrom(dataObject)
                 : type.checkAssignableFrom(value);
-        if (!valid.isOK())
-            throw new ValidationException("Value assigned to " + type + " can not be \"" + this + "\"", valid);
+        if (!verified.isOK())
+            throw new VerifyException("Value assigned to " + type + " can not be \"" + this + "\": " + verified.errorMessage());
     }
 
     /**
@@ -79,16 +81,14 @@ public class DataPrimitive<T> implements DataObject {
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        DataPrimitive<?> that = (DataPrimitive<?>) other;
-        if (value == null) return that.value == null;
-        return value.equals(that.value);
-    }
+    public Compared equals(Object other, Flags flags) {
+        if (this == other) return Compared.ok();
+        if (other == null) return Compared.otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(value);
+        final var that = (DataPrimitive<?>) other;
+
+        if (value == null) return that.value == null ? Compared.ok() : Compared.otherIsNull(this);
+        return value.equals(that.value) ? Compared.ok() : Compared.notEqual(this, that);
     }
 }

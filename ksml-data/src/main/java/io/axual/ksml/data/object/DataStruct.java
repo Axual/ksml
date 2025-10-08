@@ -21,19 +21,24 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ValuePrinter;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
+
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_STRUCT_CONTENTS;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_STRUCT_TYPE;
 
 /**
  * Represents a data structure that emulates a schema-based, key-value map with automatic sorting capabilities.
@@ -50,6 +55,7 @@ import java.util.function.BiConsumer;
  *
  * <p>This implementation ensures consistent ordering of keys and maintains safety through its encapsulated operations.</p>
  */
+@EqualsAndHashCode
 @Getter
 public class DataStruct implements DataObject {
     /**
@@ -345,17 +351,48 @@ public class DataStruct implements DataObject {
         }
     }
 
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        DataStruct that = (DataStruct) other;
-        if (!type.equals(that.type)) return false;
-        return Objects.equals(contents, that.contents);
+    public Compared equals(Object other, Flags flags) {
+        if (this == other) return Compared.ok();
+        if (other == null) return Compared.otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+
+        final var that = (DataStruct) other;
+
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_STRUCT_TYPE)) {
+            final var typeCompared = type.equals(that.type, flags);
+            if (typeCompared.isError())
+                return Compared.notEqual(type, that.type, typeCompared);
+        }
+
+        // Compare contents
+        if (!flags.isSet(IGNORE_DATA_STRUCT_CONTENTS)) {
+            if (contents == null) return that.contents != null ? Compared.notEqual(this, that) : Compared.ok();
+            if (that.contents == null) return Compared.notEqual(this, that);
+            if (contents.size() != that.contents.size()) return Compared.notEqual(this, that);
+            final var contentsCompared = contentsEqual(contents, that.contents, flags);
+            if (contentsCompared.isError()) return Compared.notEqual(this, that, contentsCompared);
+        }
+
+        return Compared.ok();
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), contents, type);
+    private static Compared contentsEqual(TreeMap<String, DataObject> left, TreeMap<String, DataObject> right, Flags flags) {
+        for (var entry : left.entrySet()) {
+            final var thatValue = right.get(entry.getKey());
+            if (entry.getValue() == null && thatValue == null) continue;
+            if (entry.getValue() == null || thatValue == null) return Compared.notEqual(entry.getValue(), thatValue);
+            final var entryCompared = entry.getValue().equals(thatValue, flags);
+            if (entryCompared.isError())
+                return Compared.fieldNotEqual(entry.getKey(), "DataStruct", entry.getValue(), thatValue, entryCompared);
+        }
+        return Compared.ok();
     }
 }

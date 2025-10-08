@@ -20,19 +20,6 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.avro.JsonProperties;
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericFixed;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.util.Utf8;
-
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
@@ -40,6 +27,7 @@ import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataEnum;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
@@ -57,6 +45,18 @@ import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.JsonProperties;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericFixed;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * DataObjectMapper implementation for Avro native values.
@@ -385,6 +385,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case ENUM -> {
                 if (value instanceof DataString s)
                     return new GenericData.EnumSymbol(schema, s.value());
+                if (value instanceof DataEnum e)
+                    return new GenericData.EnumSymbol(schema, e.value());
                 return null;
             }
             case ARRAY -> {
@@ -407,7 +409,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                 for (var branch : schema.getTypes()) {
                     if (branch.getType() == Schema.Type.NULL) continue;
                     var candidate = convertDataObjectToAvroBySchema(value, branch);
-                    if (candidate != null || value instanceof DataNull) return candidate;
+                    if (candidate != null) return candidate;
                 }
                 // Last resort
                 return fromDataObject(value);

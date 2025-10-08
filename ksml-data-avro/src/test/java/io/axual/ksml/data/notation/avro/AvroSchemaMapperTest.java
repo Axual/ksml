@@ -30,7 +30,6 @@ import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -235,7 +234,7 @@ class AvroSchemaMapperTest {
                 .returns(false, DataField::required)
                 .returns(expectedOptRec, DataField::schema);
 
-        final var expectedOptEnum = new EnumSchema("io.axual.test", "OptColor", null, List.of(new Symbol("RED"), new Symbol("GREEN"), new Symbol("BLUE")));
+        final var expectedOptEnum = new EnumSchema("io.axual.test", "OptColor", null, List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN"), new EnumSchema.Symbol("BLUE")));
         assertThat(ksml.field("optEnum"))
                 .returns(false, DataField::required)
                 .returns(expectedOptEnum, DataField::schema);
@@ -356,7 +355,7 @@ class AvroSchemaMapperTest {
         testData.add(new SchemaPairAndDescription("Fixed Schema", avroFixed, ksmlFixed));
 
         final var avroEnum = avroSchemaBuilder.enumeration("TestingEnum").doc("Some enum").defaultSymbol("B").symbols("A", "B", "C");
-        final var ksmlEnum = new EnumSchema(testNamespace, "TestingEnum", "Some enum", List.of(new Symbol("A"), new Symbol("B"), new Symbol("C")), new Symbol("B"));
+        final var ksmlEnum = new EnumSchema(testNamespace, "TestingEnum", "Some enum", List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B"), new EnumSchema.Symbol("C")), new EnumSchema.Symbol("B"));
         testData.add(new SchemaPairAndDescription("Enum Schema", avroEnum, ksmlEnum));
 
         final var avroUnionPrimitive = avroSchemaBuilder.unionOf()

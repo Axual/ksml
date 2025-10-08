@@ -29,8 +29,10 @@ import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,23 +50,41 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
 
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value instanceof Message message) return convertMessageToDataObject(message);
+        if (value instanceof Message message) {
+            final var expectedSchema = expected instanceof StructType expectedStructType ? expectedStructType.schema() : null;
+            return convertMessageToDataObject(expectedSchema, message);
+        }
         return super.toDataObject(expected, value);
     }
 
-    private DataObject convertMessageToDataObject(Message message) {
+    private DataObject convertMessageToDataObject(StructSchema expected, Message message) {
         final var descriptor = message.getDescriptorForType();
         final var namespace = descriptor.getFile().getPackage();
         final var name = descriptor.getName();
         final var fileElement = descriptorElementMapper.toFileElement(descriptor);
         final var schema = ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, fileElement);
-        final var result = new DataStruct(schema);
+
+        // Ensure schema compatibility
+
+        final StructSchema resultSchema;
+        if (expected != null) {
+            final var compared = expected.checkAssignableFrom(schema);
+            if (compared.isError()) {
+                throw new SchemaException("PROTOBUF schema incompatibility: schema=" + schema + ", expected=" + expected);
+            }
+            resultSchema = expected;
+        } else {
+            resultSchema = schema;
+        }
+
+        final var result = new DataStruct(resultSchema);
+
         for (final var field : message.getAllFields().entrySet()) {
             var val = field.getValue();
             if (val instanceof Descriptors.EnumValueDescriptor enumValue) val = enumValue.getName();
             final var parentOneOf = field.getKey().getContainingOneof();
             final var fieldName = parentOneOf != null ? parentOneOf.getName() : field.getKey().getName();
-            final var expectedType = DATA_TYPE_MAPPER.fromDataSchema(schema.field(fieldName).schema());
+            final var expectedType = DATA_TYPE_MAPPER.fromDataSchema(resultSchema.field(fieldName).schema());
             final var dataObject = convertUtil.convert(null, null, expectedType, toDataObject(val), false);
             result.put(fieldName, dataObject);
         }

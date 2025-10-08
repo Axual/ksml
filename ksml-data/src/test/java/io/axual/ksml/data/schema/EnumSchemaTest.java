@@ -20,7 +20,6 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.Symbol;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -33,9 +32,9 @@ class EnumSchemaTest {
     @Test
     @DisplayName("EnumSchema: STRING is assignable and superset of symbols is required")
     void enumAssignabilityRules() {
-        final var colors = new EnumSchema("ns", "Color", "doc", List.of(new Symbol("RED"), new Symbol("GREEN")));
-        final var redOnly = new EnumSchema("ns", "Color", "doc", List.of(new Symbol("RED")));
-        final var blueOnly = new EnumSchema("ns", "Color", "doc", List.of(new Symbol("BLUE")));
+        final var colors = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN")));
+        final var redOnly = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("RED")));
+        final var blueOnly = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("BLUE")));
 
         // Strings are assignable to enum
         assertThat(colors.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isTrue();

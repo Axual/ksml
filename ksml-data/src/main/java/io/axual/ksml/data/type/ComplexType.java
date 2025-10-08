@@ -20,26 +20,26 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.Objects;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
 
 /**
- * Base class for composite {@link DataType} implementations that have one or more sub-types.
+ * Base class for composite {@link DataType} implementations that have one or more subtypes.
  * <p>
  * Examples include lists, maps, tuples, unions and structs. ComplexType provides helpers to
  * build readable names/specs and implements assignability rules that compare the container
- * class and all sub-types.
+ * class and all subtypes.
  */
+@EqualsAndHashCode(exclude = {"name", "spec"})
 @Getter
 public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;
+    private final DataType[] subTypes;
     private final String name;
     private final String spec;
-    private final DataType[] subTypes;
 
     protected ComplexType(Class<?> containerClass, String name, String spec, DataType... subTypes) {
         this.containerClass = containerClass;
@@ -91,56 +91,55 @@ public abstract class ComplexType implements DataType {
     }
 
     @Override
-    public final ValidationResult checkAssignableFrom(Class<?> otherContainerClass, ValidationContext context) {
+    public final Compared checkAssignableFrom(Class<?> otherContainerClass) {
         if (!containerClass.isAssignableFrom(otherContainerClass)) {
-            return context.typeMismatch(this, otherContainerClass);
+            return Compared.typeMismatch(this, otherContainerClass);
         }
-        return context;
+        return Compared.ok();
     }
 
     @Override
-    public ValidationResult checkAssignableFrom(DataType otherType, ValidationContext context) {
+    public Compared checkAssignableFrom(DataType otherType) {
         if (otherType instanceof ComplexType otherComplexType) {
-            if (!checkAssignableFrom(otherComplexType.containerClass, context).isOK()) {
-                return context.typeMismatch(this, otherComplexType.containerClass);
+            if (!checkAssignableFrom(otherComplexType.containerClass).isOK()) {
+                return Compared.typeMismatch(this, otherComplexType.containerClass);
             }
             if (subTypes.length != otherComplexType.subTypes.length) {
-                return context.addError("Type \"" + context.thatType(otherType) + "\" has a different number of sub-types than \"" + context.thisType(this) + "\"");
+                return Compared.error("Type \"" + otherType + "\" has a different number of subtypes than \"" + this + "\"");
             } else {
                 for (int i = 0; i < subTypes.length; i++) {
-                    subTypes[i].checkAssignableFrom(otherComplexType.subTypes[i], context);
+                    final var subTypeVerified = subTypes[i].checkAssignableFrom(otherComplexType.subTypes[i]);
+                    if (subTypeVerified.isError()) return subTypeVerified;
                 }
-                return context;
+                return Compared.ok();
             }
-        } else if (otherType != null) {
-            return context.addError("Can not assign \"" + otherType + "\" to \"" + this + "\".");
-        } else {
-            return context.addError("No type specified, this is a bug in KSML");
         }
+        return Compared.typeMismatch(this, otherType);
+    }
+
+    @Override
+    public Compared equals(Object obj, Flags flags) {
+        if (this == obj) return Compared.ok();
+        if (obj == null) return Compared.otherIsNull(this);
+        if (!getClass().equals(obj.getClass())) return Compared.notEqual(getClass(), obj.getClass());
+        final var that = (ComplexType) obj;
+        if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
+            return Compared.notEqual(containerClass, that.containerClass);
+        return subTypesEqual((ComplexType) obj, flags);
+    }
+
+    private Compared subTypesEqual(ComplexType other, Flags flags) {
+        if (subTypes.length != other.subTypes.length)
+            return Compared.error("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
+        for (int i = 0; i < subTypes.length; i++) {
+            final var subTypeCompared = subTypes[i].equals(other.subTypes[i], flags);
+            if (subTypeCompared.isError()) return subTypeCompared;
+        }
+        return Compared.ok();
     }
 
     @Override
     public String toString() {
         return name;
-    }
-
-    private boolean subTypeEquals(ComplexType other) {
-        if (subTypes.length != other.subTypes.length) return false;
-        for (int i = 0; i < subTypes.length; i++) {
-            if (!subTypes[i].equals(other.subTypes[i])) return false;
-        }
-        return true;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        return obj != null
-                && getClass().equals(obj.getClass())
-                && containerClass.equals(((ComplexType) obj).containerClass)
-                && subTypeEquals((ComplexType) obj);
-    }
-
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), containerClass.hashCode(), Arrays.hashCode(subTypes));
     }
 }

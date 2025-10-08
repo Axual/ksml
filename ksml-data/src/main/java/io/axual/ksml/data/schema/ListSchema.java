@@ -20,11 +20,16 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.type.Flags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+
+import java.util.Objects;
+
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_LIST_SCHEMA_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_LIST_SCHEMA_VALUE_SCHEMA;
 
 /**
  * A schema representation for lists in the KSML framework.
@@ -113,12 +118,40 @@ public class ListSchema extends DataSchema {
      * {@code false} otherwise.
      */
     @Override
-    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
-        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
-        if (!(otherSchema instanceof ListSchema otherListSchema)) return context.schemaMismatch(this, otherSchema);
+    public Compared checkAssignableFrom(DataSchema otherSchema) {
+        final var superVerified = super.checkAssignableFrom(otherSchema);
+        if (superVerified.isError()) return superVerified;
+        if (!(otherSchema instanceof ListSchema otherListSchema)) return Compared.schemaMismatch(this, otherSchema);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
-        return valueSchema.checkAssignableFrom(otherListSchema.valueSchema, context);
+        return valueSchema.checkAssignableFrom(otherListSchema.valueSchema);
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Compared equals(Object obj, Flags flags) {
+        final var superVerified = super.equals(obj, flags);
+        if (superVerified.isError()) return superVerified;
+
+        final var that = (ListSchema) obj;
+
+        // Compare name
+        if (!flags.isSet(IGNORE_LIST_SCHEMA_NAME) && !Objects.equals(name, that.name))
+            return Compared.fieldNotEqual("name", this, name, that, that.name);
+
+        // Compare valueSchema
+        if (!flags.isSet(IGNORE_LIST_SCHEMA_VALUE_SCHEMA)) {
+            final var valueSchemaCompared = valueSchema.equals(that.valueSchema, flags);
+            if (valueSchemaCompared.isError())
+                return Compared.fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaCompared);
+        }
+
+        return super.equals(obj, flags);
     }
 
     /**

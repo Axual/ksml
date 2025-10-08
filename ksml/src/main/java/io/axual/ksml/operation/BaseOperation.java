@@ -25,8 +25,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
@@ -125,7 +124,7 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected interface TypeCompatibilityChecker {
-        ValidationResult compare(DataType type, ValidationContext context);
+        Compared compare(DataType type);
     }
 
     protected record TypeComparator(DataType type, TypeCompatibilityChecker checker, String faultDescription) {
@@ -210,8 +209,9 @@ public abstract class BaseOperation implements StreamOperation {
     protected TypeComparator equalTo(DataType compareType) {
         return new TypeComparator(
                 compareType,
-                (myDataType, context) -> {
-                    if (!compareType.checkAssignableFrom(myDataType, context).isOK()) return context;
+                myDataType -> {
+                    final var verified = compareType.checkAssignableFrom(myDataType);
+                    if (verified.isError()) return verified;
                     return myDataType.checkAssignableFrom(compareType);
                 },
                 "of type " + compareType);
@@ -239,7 +239,7 @@ public abstract class BaseOperation implements StreamOperation {
 
     protected TypeComparator superOf(DataType compareType) {
         return new TypeComparator(compareType,
-                (myDataType, context) -> myDataType.checkAssignableFrom(compareType, context),
+                myDataType -> myDataType.checkAssignableFrom(compareType),
                 "(superclass of) type " + compareType);
     }
 
@@ -264,9 +264,9 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected void checkType(String subject, DataType type, TypeComparator comparator) {
-        final var context = new ValidationContext();
-        if (!comparator.checker.compare(type, context).isOK()) {
-            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + context.errors().getFirst() + ")");
+        final var verified = comparator.checker.compare(type);
+        if (verified.isError()) {
+            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + verified.errorMessage() + ")");
         }
     }
 

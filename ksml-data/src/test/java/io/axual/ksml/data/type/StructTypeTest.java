@@ -59,15 +59,6 @@ class StructTypeTest {
     }
 
     @Test
-    @DisplayName("constructor with explicit name sets that name when schema is null")
-    void constructorWithExplicitName() {
-        var t = new StructType("Order");
-        assertThat(t)
-                .returns("Order", StructType::toString)
-                .returns("Order", StructType::name);
-    }
-
-    @Test
     @DisplayName("fieldType returns incaseNoSchema when no schema; maps field type when schema present; incaseNoSuchField when missing")
     void fieldTypeBehavior() {
         // No schema -> returns incaseNoSchema
@@ -118,13 +109,10 @@ class StructTypeTest {
     void equalsAndHashCode() {
         var s1 = new StructType();
         var s2 = new StructType();
-        var s3 = new StructType("Other");
         var softly = new SoftAssertions();
         softly.assertThat(s1.equals(s1)).isTrue();
         softly.assertThat(s1).isEqualTo(s2);
-        softly.assertThat(s1).isNotEqualTo(s3);
         softly.assertThat(s1.hashCode()).isEqualTo(s1.hashCode());
-        softly.assertThat(s3.hashCode()).isEqualTo(s3.hashCode());
         softly.assertAll();
     }
 }

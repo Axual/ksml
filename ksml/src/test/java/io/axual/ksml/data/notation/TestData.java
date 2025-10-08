@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataEnum;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
@@ -32,7 +33,7 @@ import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.type.EnumType;
 
 import java.util.List;
 
@@ -61,11 +62,11 @@ public class TestData {
         final var addressSchema = new StructSchema(NAMESPACE, "AddressSchema", "Address schema used for testing", addressFields, false);
 
         final var eyeColorSymbols = List.of(
-                new Symbol("UNKNOWN", "Unknown color", 0),
-                new Symbol("BLUE", "Blue eyes", 1),
-                new Symbol("GREEN", "Green eyes", 2),
-                new Symbol("BROWN", "Brown eyes", 3),
-                new Symbol("GREY", "Grey eyes", 4));
+                new EnumSchema.Symbol("UNKNOWN", "Unknown color", 0),
+                new EnumSchema.Symbol("BLUE", "Blue eyes", 1),
+                new EnumSchema.Symbol("GREEN", "Green eyes", 2),
+                new EnumSchema.Symbol("BROWN", "Brown eyes", 3),
+                new EnumSchema.Symbol("GREY", "Grey eyes", 4));
         final var eyeColorSchema = new EnumSchema(NAMESPACE, "EyeColor", "The color of one's eyes", eyeColorSymbols);
 
         final var luckyNumbersSchema = new ListSchema(DataSchema.LONG_SCHEMA);
@@ -82,7 +83,7 @@ public class TestData {
                 new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataValue("BLUE")),
                 new DataField(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
                 new DataField(ACCOUNT_NUMBER, accountNumberSchema, "Account number", NO_TAG, false));
-        return new StructSchema(NAMESPACE, "TestSchema", "Schema used for testing", fields);
+        return new StructSchema(NAMESPACE, "TestSchema", "Schema used for testing", fields, false);
     }
 
     public static DataStruct testStruct() {
@@ -102,7 +103,7 @@ public class TestData {
         result.put(NAME, new DataString("Jim Kirk"));
         result.put(AGE, new DataInteger(74));
         result.put(ADDRESS, address);
-        result.put(EYE_COLOR, new DataString("BLUE"));
+        result.put(EYE_COLOR, new DataEnum(new EnumType((EnumSchema) testSchema().field(EYE_COLOR).schema()), "BLUE"));
         result.put(LUCKY_NUMBERS, luckyNumbers);
         result.put(ACCOUNT_NUMBER, new DataString("NL99BANK123456789"));
 

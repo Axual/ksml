@@ -1,4 +1,4 @@
-package io.axual.ksml.data.validation;
+package io.axual.ksml.data.type;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,5 +20,34 @@ package io.axual.ksml.data.validation;
  * =========================LICENSE_END==================================
  */
 
-public record ValidationError(String message) {
+import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+@Getter
+public class Flags {
+    public static final Flags EMPTY = new Flags();
+    private final Set<String> flagSet = new HashSet<>();
+
+    public Flags() {
+    }
+
+    public Flags(String... flags) {
+        flagSet.addAll(Arrays.asList(flags));
+    }
+
+    public Flags(Set<String> flagSet) {
+        this.flagSet.addAll(flagSet);
+    }
+
+    public Flags add(String flag) {
+        flagSet.add(flag);
+        return this;
+    }
+
+    public boolean isSet(String flag) {
+        return flagSet.contains(flag);
+    }
 }

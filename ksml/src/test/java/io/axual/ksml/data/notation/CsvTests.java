@@ -26,11 +26,29 @@ import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.csv.CsvSchemaMapper;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_DOC;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_TYPE_MEMBER_TAG;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class CsvTests {
+    private static final String[] CSV_EQUALITY_FLAGS = new String[]{
+            IGNORE_DATA_FIELD_TAG,
+            IGNORE_ENUM_SYMBOL_DOC,
+            IGNORE_ENUM_SYMBOL_TAG,
+            IGNORE_UNION_SCHEMA_MEMBER_NAME,
+            IGNORE_UNION_SCHEMA_MEMBER_TAG,
+            IGNORE_UNION_TYPE_MEMBER_NAME,
+            IGNORE_UNION_TYPE_MEMBER_TAG
+    };
+    private static final Flags CSV_FLAGS = new Flags(CSV_EQUALITY_FLAGS);
 
     @Test
     void schemaTest() {
@@ -44,11 +62,11 @@ class CsvTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper());
+        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper(), CSV_FLAGS);
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME, new NativeDataObjectMapper())), true);
+        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME, new NativeDataObjectMapper())), true, CSV_FLAGS);
     }
 }

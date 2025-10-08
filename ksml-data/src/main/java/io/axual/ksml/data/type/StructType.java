@@ -20,17 +20,18 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.base.Objects;
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Map;
+
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_TYPE_SCHEMA;
 
 /**
  * A {@link ComplexType} representing a structured map-like type that may be backed by a
@@ -39,39 +40,30 @@ import java.util.Map;
  * When a schema is provided, field types and assignability are validated against it. StructType
  * allows {@code null} values to support Kafka tombstones.
  */
+@EqualsAndHashCode
 @Getter
 public class StructType extends ComplexType {
     private static final String DEFAULT_NAME = "Struct";
     private static final DataTypeDataSchemaMapper MAPPER = new DataTypeDataSchemaMapper();
-    private final String name;
     private final StructSchema schema;
 
+    public interface CompareFilter {
+        default boolean ignoreTags() {
+            return false;
+        }
+    }
+
     public StructType() {
-        this(null, null);
+        this(null);
     }
 
     public StructType(StructSchema schema) {
-        this(null, schema);
-    }
-
-    public StructType(String name) {
-        this(name, null);
-    }
-
-    private StructType(String name, StructSchema schema) {
         super(Map.class,
-                buildName("Map", DataType.UNKNOWN),
-                DataSchemaConstants.MAP_TYPE + "(" + buildSpec(DataType.UNKNOWN) + ")",
+                schema != null ? schema.name() : DEFAULT_NAME,
+                DataSchemaConstants.STRUCT_TYPE,
                 DataString.DATATYPE,
                 DataType.UNKNOWN);
         if (schema == StructSchema.SCHEMALESS) schema = null; // If we're SCHEMALESS, then nullify the schema here
-        if (name != null && !name.isEmpty()) {
-            this.name = name;
-        } else if (schema != null) {
-            this.name = schema.name();
-        } else {
-            this.name = DEFAULT_NAME;
-        }
         this.schema = schema;
     }
 
@@ -85,12 +77,7 @@ public class StructType extends ComplexType {
 
     @Override
     public String toString() {
-        return name;
-    }
-
-    @Override
-    public String name() {
-        return schema != null ? schema.name() : name;
+        return name();
     }
 
     public DataType fieldType(String fieldName, DataType incaseNoSchema, DataType incaseNoSuchField) {
@@ -101,32 +88,45 @@ public class StructType extends ComplexType {
     }
 
     @Override
-    public ValidationResult checkAssignableFrom(DataType otherType, ValidationContext context) {
+    public Compared checkAssignableFrom(DataType otherType) {
         // Always allow Structs to be NULL (Kafka tombstones)
-        if (otherType == DataNull.DATATYPE) return context.ok();
+        if (otherType == DataNull.DATATYPE) return Compared.ok();
         // Perform superclass validation first
-        if (!super.checkAssignableFrom(otherType, context).isOK()) return context;
+        final var superVerified = super.checkAssignableFrom(otherType);
+        if (superVerified.isError()) return superVerified;
         if (!(otherType instanceof StructType otherStructType))
-            return context.addError("Type \"" + context.thatType(otherType) + "\" is not a StructType");
+            return Compared.error("Type \"" + otherType + "\" is not a StructType");
         // In case we have no schema, then we can be assigned values from any other struct, with or without a schema
-        if (schema == null) return context;
+        if (schema == null) return Compared.ok();
         // When we have a schema, validate that the schema is assignable from the other struct's schema
-        return schema.checkAssignableFrom(otherStructType.schema, context);
+        return schema.checkAssignableFrom(otherStructType.schema);
     }
 
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        if (!super.equals(other)) return false;
-        StructType that = (StructType) other;
-        if (!Objects.equal(this.name, that.name)) return false;
-        if (schema == null && that.schema == null) return true;
-        return schema != null && schema.equals(that.schema);
-    }
+    public Compared equals(Object other, Flags flags) {
+        if (this == other) return Compared.ok();
+        if (other == null) return Compared.otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), name, schema);
+        final var superCompared = super.equals(other, flags);
+        if (superCompared.isError()) return superCompared;
+
+        final var that = (StructType) other;
+
+        // Compare schema
+        if (!flags.isSet(IGNORE_STRUCT_TYPE_SCHEMA) && (schema != null || that.schema != null)) {
+            if (schema == null || that.schema == null)
+                return Compared.fieldNotEqual("schema", this, schema, that, that.schema);
+            final var schemaCompared = schema.equals(that.schema, flags);
+            return schemaCompared.isError() ? Compared.schemaMismatch(schema, that.schema, schemaCompared) : Compared.ok();
+        }
+
+        return Compared.ok();
     }
 }

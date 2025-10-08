@@ -21,11 +21,11 @@ package io.axual.ksml.data.type;
  */
 
 
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Objects;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
 
 /**
  * A concrete {@link DataType} backed by a single Java container class.
@@ -33,6 +33,7 @@ import java.util.Objects;
  * SimpleType represents scalar/primitive-like types where assignability is based on the
  * assignability of the configured {@code containerClass}.
  */
+@EqualsAndHashCode(exclude = {"name", "spec"})
 @Getter
 public class SimpleType implements DataType {
     private final Class<?> containerClass;
@@ -55,32 +56,35 @@ public class SimpleType implements DataType {
     }
 
     @Override
-    public ValidationResult checkAssignableFrom(final DataType other, final ValidationContext context) {
-        if (other instanceof SimpleType simpleType) {
-            return checkAssignableFrom(simpleType.containerClass, context);
-        } else if (other != null) {
-            return context.typeMismatch(this, other);
-        } else {
-            return context.addError("No type specified, this is a bug in KSML");
-        }
+    public Compared checkAssignableFrom(final DataType other) {
+        if (other instanceof SimpleType simpleType) return checkAssignableFrom(simpleType.containerClass);
+        return Compared.typeMismatch(this, other);
     }
 
     @Override
-    public ValidationResult checkAssignableFrom(final Class<?> otherContainerClass, final ValidationContext context) {
-        if (!containerClass.isAssignableFrom(otherContainerClass)) {
-            return context.typeMismatch(this, otherContainerClass);
-        }
-        return context;
+    public Compared checkAssignableFrom(final Class<?> otherContainerClass) {
+        if (containerClass.isAssignableFrom(otherContainerClass)) return Compared.ok();
+        return Compared.typeMismatch(this, otherContainerClass);
     }
 
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        return obj != null
-                && getClass().equals(obj.getClass())
-                && containerClass.equals(((SimpleType) obj).containerClass);
-    }
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Compared equals(Object other, Flags flags) {
+        if (this == other) return Compared.ok();
+        if (other == null) return Compared.otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
 
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), containerClass.hashCode());
+        final var that = (SimpleType) other;
+
+        // Compare containerClass
+        if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
+            return Compared.notEqual(containerClass, that.containerClass);
+
+        return Compared.ok();
     }
 }

@@ -23,8 +23,7 @@ package io.axual.ksml.data.object;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.value.Null;
 
 /**
@@ -46,13 +45,13 @@ public class DataNull extends DataPrimitive<Object> {
      */
     public static final SimpleType DATATYPE = new SimpleType(Null.class, DataSchemaConstants.NULL_TYPE) {
         @Override
-        public ValidationResult checkAssignableFrom(DataType type, ValidationContext context) {
-            return this != type ? context.addError("Can only assign \"null\" types to variables of type \"null\"") : context.ok();
+        public Compared checkAssignableFrom(DataType type) {
+            return this != type ? Compared.error("Can only assign \"null\" types to variables of type \"null\"") : Compared.ok();
         }
 
         @Override
-        public ValidationResult checkAssignableFrom(Object value, ValidationContext context) {
-            return value != null ? context.addError("Can only assign \"null\" values to variables of type \"null\"") : context.ok();
+        public Compared checkAssignableFrom(Object value) {
+            return value != null ? Compared.error("Can only assign \"null\" values to variables of type \"null\"") : Compared.ok();
         }
     };
 

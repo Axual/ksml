@@ -34,7 +34,6 @@ import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -217,11 +216,12 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
 
         final var enumSymbols = specStruct.get(ENUM_NAME);
         if (enumSymbols instanceof DataList enumList) {
-            final var symbols = new ArrayList<Symbol>();
+            final var symbols = new ArrayList<EnumSchema.Symbol>();
             enumList.forEach(enumSymbol -> {
-                if (enumSymbol instanceof DataString enumSymbolStr) symbols.add(new Symbol(enumSymbolStr.value()));
+                if (enumSymbol instanceof DataString enumSymbolStr)
+                    symbols.add(new EnumSchema.Symbol(enumSymbolStr.value()));
             });
-            return new EnumSchema(null, null, null, symbols);
+            return new EnumSchema(symbols);
         }
 
         final var type = specStruct.getAsString(TYPE_NAME);

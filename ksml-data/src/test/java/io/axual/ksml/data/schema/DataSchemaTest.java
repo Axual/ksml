@@ -20,7 +20,6 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.Symbol;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -118,7 +117,7 @@ class DataSchemaTest {
                 DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE,
                 "Color",
                 "Enum of colors",
-                List.of(new Symbol("RED"), new Symbol("GREEN"), new Symbol("BLUE"))
+                List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN"), new EnumSchema.Symbol("BLUE"))
         );
         assertThat(DataSchema.STRING_SCHEMA.checkAssignableFrom(enumSchema).isOK()).isTrue();
         assertThat(DataSchema.STRING_SCHEMA.checkAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isTrue();

@@ -24,7 +24,6 @@ import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.exception.ParseException;
 import lombok.Getter;
 
@@ -67,7 +66,7 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             final var isDefault = entry.getValue().size() == 1 && entry.getValue().getFirst().equals(defaultValue);
             final var required = schemaToChildValues.size() > 1 && !isDefault;
             // Add the "type" field to the list of fields for the converted schema
-            final var enumSchema = new EnumSchema(schema.namespace(), enumType, doc, entry.getValue().stream().map(Symbol::new).toList(), null);
+            final var enumSchema = new EnumSchema(schema.namespace(), enumType, doc, entry.getValue().stream().map(EnumSchema.Symbol::new).toList(), null);
             final var field = new DataField(childName, enumSchema, doc, NO_TAG, required, defaultValue != null, defaultValue != null ? new DataValue(defaultValue) : null);
             newFields.add(field);
             // Create a converted schema, which includes the "type" field

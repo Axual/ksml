@@ -29,12 +29,13 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NotationTestRunner {
     public interface Tester<T> {
@@ -65,7 +66,7 @@ class NotationTestRunner {
         });
     }
 
-    static <T> void dataTest(String type, DataObjectMapper<T> objectMapper) {
+    static <T> void dataTest(String type, DataObjectMapper<T> objectMapper, Flags flags) {
         try {
             final var inputData = TestData.testStruct();
             System.out.println("INPUT DATA: " + inputData);
@@ -73,13 +74,14 @@ class NotationTestRunner {
             System.out.println(type.toUpperCase() + " DATA: " + nativeObject);
             final var outputData = objectMapper.toDataObject(inputData.type(), nativeObject);
             System.out.println("OUTPUT DATA: " + outputData);
-            assertEquals(inputData, outputData, "Input data should match output data");
+            final var compared = inputData.equals(outputData, flags);
+            assertTrue(compared.isOK(), "Input data should match output data:\n" + compared.toString(true));
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }
     }
 
-    static void serdeTest(Notation notation, boolean strictTypeChecking) {
+    static void serdeTest(Notation notation, boolean strictTypeChecking, Flags flags) {
         try {
             final var inputData = TestData.testStruct();
             System.out.println("INPUT DATA: " + inputData);
@@ -99,7 +101,8 @@ class NotationTestRunner {
                 outputData = new DataObjectConverter().convert(null, outputData, new UserType(null, inputData.type()));
                 System.out.println("CONVERTED OUTPUT DATA: " + outputData);
             }
-            assertEquals(inputData, outputData, "Input data should match output data");
+            final var compared = inputData.equals(outputData, flags);
+            assertTrue(compared.isOK(), "Input data should match output data\n" + compared.toString(true));
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }

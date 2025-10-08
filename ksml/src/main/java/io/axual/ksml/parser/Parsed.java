@@ -1,10 +1,10 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.parser;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library
+ * KSML
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,31 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+import lombok.Getter;
 
-public record Symbol(String name, String doc, int tag) {
-    public Symbol(String name) {
-        this(name, null, NO_TAG);
+@Getter
+public class Parsed<T> {
+    private final T result;
+    private final String errorMessage;
+
+    private Parsed(T result, String errorMessage) {
+        this.result = result;
+        this.errorMessage = errorMessage;
     }
 
-    public boolean hasDoc() {
-        return doc != null && !doc.isEmpty();
+    public static <T> Parsed<T> ok(T result) {
+        return new Parsed<>(result, null);
     }
 
-    public boolean isAssignableFrom(Symbol other) {
-        if (!name.equals(other.name)) return false;
-        if (tag == NO_TAG || other.tag == NO_TAG) return true;
-        return tag == other.tag;
+    public static <T> Parsed<T> error(String errorMessage) {
+        return new Parsed<>(null, errorMessage);
     }
 
-    public static Symbol of(String symbol) {
-        return new Symbol(symbol);
+    public boolean isOk() {
+        return errorMessage == null;
+    }
+
+    public boolean isError() {
+        return errorMessage != null;
     }
 }

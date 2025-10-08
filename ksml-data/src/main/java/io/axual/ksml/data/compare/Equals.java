@@ -1,4 +1,4 @@
-package io.axual.ksml.data.validation;
+package io.axual.ksml.data.compare;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,12 +20,8 @@ package io.axual.ksml.data.validation;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
+import io.axual.ksml.data.type.Flags;
 
-public interface ValidationResult {
-    List<ValidationError> errors();
-
-    default boolean isOK() {
-        return errors().isEmpty();
-    }
+public interface Equals {
+    Compared equals(Object obj, Flags flags);
 }

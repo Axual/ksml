@@ -20,13 +20,19 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.List;
+
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_TUPLE_CONTENTS;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_TUPLE_TYPE;
 
 /**
  * Represents a tuple of {@link DataObject} values within the {@link DataObject} framework.
@@ -91,5 +97,52 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Compared equals(Object other, Flags flags) {
+        if (this == other) return Compared.ok();
+        if (other == null) return Compared.otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+
+        final var that = (DataTuple) other;
+
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_TUPLE_TYPE)) {
+            final var typeCompared = type.equals(that.type, flags);
+            if (typeCompared.isError())
+                return Compared.notEqual(type, that.type, typeCompared);
+        }
+
+        // Compare contents
+        if (!flags.isSet(IGNORE_DATA_TUPLE_CONTENTS)) {
+            if (elements() == null) return that.elements() != null ? Compared.notEqual(this, that) : Compared.ok();
+            if (that.elements() == null) return Compared.notEqual(this, that);
+            if (elements().size() != that.elements().size()) return Compared.notEqual(this, that);
+            final var contentsCompared = contentsEqual(elements(), that.elements(), flags);
+            if (contentsCompared.isError()) return Compared.notEqual(this, that, contentsCompared);
+        }
+
+        return Compared.ok();
+    }
+
+    private static Compared contentsEqual(List<DataObject> left, List<DataObject> right, Flags flags) {
+        var index = 0;
+        for (var entry : left) {
+            final var thatValue = right.get(index);
+            if (entry == null && thatValue == null) continue;
+            if (entry == null || thatValue == null) return Compared.notEqual(entry, thatValue);
+            final var entryCompared = entry.equals(thatValue, flags);
+            if (entryCompared.isError())
+                return Compared.fieldNotEqual("[" + index + "]", "DataTuple", entry, thatValue, entryCompared);
+            index++;
+        }
+        return Compared.ok();
     }
 }

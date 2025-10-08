@@ -20,15 +20,24 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equals;
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.type.Flags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_CONSTANT;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_DEFAULT_VALUE;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_DOC;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_ORDER;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_REQUIRED;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_SCHEMA;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_TAG;
 
 /**
  * Represents a field in a data schema, containing metadata about the field such as its name,
@@ -37,7 +46,7 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
  */
 @Getter
 @EqualsAndHashCode
-public class DataField {
+public class DataField implements Equals {
     /**
      * Enum representing the sorting order of the field.
      * <ul>
@@ -203,21 +212,11 @@ public class DataField {
      *
      * @param otherField The other field to compare against.
      */
-    public final ValidationResult checkAssignableFrom(DataField otherField) {
-        return checkAssignableFrom(otherField, new ValidationContext());
-    }
-
-    /**
-     * Checks whether the schema of this field is assignable from another field's schema.
-     *
-     * @param otherField The other field to compare against.
-     * @param context    The validation context.
-     */
-    public ValidationResult checkAssignableFrom(DataField otherField, ValidationContext context) {
+    public Compared checkAssignableFrom(DataField otherField) {
         if (otherField == null) {
-            return context.addError("Field \"" + context.thisType(name) + "\" not found");
+            return Compared.error("Field \"" + name + "\" not found");
         } else {
-            return schema.checkAssignableFrom(otherField.schema, context.sub(name(), otherField.name()));
+            return schema.checkAssignableFrom(otherField.schema);
         }
     }
 
@@ -229,5 +228,56 @@ public class DataField {
     @Override
     public String toString() {
         return (name != null ? name : "<anonymous>") + ": " + schema + " (" + tag + (required ? "" : ", optional") + ")";
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    public Compared equals(Object obj, Flags flags) {
+        if (this == obj) return Compared.ok();
+        if (obj == null) return Compared.otherIsNull(this);
+        if (!getClass().equals(obj.getClass())) return Compared.notEqual(getClass(), obj.getClass());
+
+        final var that = (DataField) obj;
+
+        // Compare name
+        if (!flags.isSet(IGNORE_DATA_FIELD_NAME) && !Objects.equals(name, that.name))
+            return Compared.fieldNotEqual("name", this, name, that, that.name);
+
+        // Compare schema
+        if (!flags.isSet(IGNORE_DATA_FIELD_SCHEMA)) {
+            final var schemaCompared = schema.equals(that.schema, flags);
+            if (schemaCompared.isError())
+                return Compared.fieldNotEqual("schema", this, schema, that, that.schema, schemaCompared);
+        }
+
+        // Compare doc
+        if (!flags.isSet(IGNORE_DATA_FIELD_DOC) && !Objects.equals(doc, that.doc))
+            return Compared.fieldNotEqual("doc", this, doc, that, that.doc);
+
+        // Compare required
+        if (!flags.isSet(IGNORE_DATA_FIELD_REQUIRED) && !Objects.equals(required, that.required))
+            return Compared.fieldNotEqual("required", this, required, that, that.required);
+
+        // Compare constant
+        if (!flags.isSet(IGNORE_DATA_FIELD_CONSTANT) && !Objects.equals(constant, that.constant))
+            return Compared.fieldNotEqual("constant", this, constant, that, that.constant);
+
+        // Compare tag
+        if (!flags.isSet(IGNORE_DATA_FIELD_TAG) && !Objects.equals(tag, that.tag))
+            return Compared.fieldNotEqual("tag", this, tag, that, that.tag);
+
+        // Compare defaultValue
+        if (!flags.isSet(IGNORE_DATA_FIELD_DEFAULT_VALUE) && !Objects.equals(defaultValue, that.defaultValue))
+            return Compared.fieldNotEqual("defaultValue", this, defaultValue, that, that.defaultValue);
+
+        // Compare order
+        if (!flags.isSet(IGNORE_DATA_FIELD_ORDER) && !Objects.equals(order, that.order))
+            return Compared.fieldNotEqual("order", this, order, that, that.order);
+
+        return Compared.ok();
     }
 }

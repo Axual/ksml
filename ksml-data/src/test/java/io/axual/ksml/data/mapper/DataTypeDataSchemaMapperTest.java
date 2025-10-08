@@ -46,7 +46,6 @@ import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import org.junit.jupiter.api.DisplayName;
@@ -104,8 +103,8 @@ class DataTypeDataSchemaMapperTest {
     @Test
     @DisplayName("EnumType <-> EnumSchema round-trip preserves symbols")
     void enumRoundTripPreservesSymbols() {
-        final var allowedSymbols = List.of(new Symbol("A"), new Symbol("B"));
-        final var enumType = new EnumType(allowedSymbols);
+        final var allowedSymbols = List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B"));
+        final var enumType = new EnumType(new EnumSchema(allowedSymbols));
 
         final var enumSchema = mapper.toDataSchema(enumType);
         assertThat(enumSchema).isInstanceOf(EnumSchema.class);
@@ -114,14 +113,14 @@ class DataTypeDataSchemaMapperTest {
 
         final var mappedBackType = mapper.fromDataSchema(enumSchema);
         assertThat(mappedBackType).isInstanceOf(EnumType.class);
-        assertThat(((EnumType) mappedBackType).symbols()).containsExactlyElementsOf(allowedSymbols);
+        assertThat(((EnumType) mappedBackType).schema().symbols()).containsExactlyElementsOf(allowedSymbols);
     }
 
     @Test
     @DisplayName("EnumSchema ignores provided namespace and uses default enum name")
     void enumSchemaIgnoresProvidedNamespace() {
-        final var allowedSymbols = List.of(new Symbol("X"), new Symbol("Y"));
-        final var enumType = new EnumType(allowedSymbols);
+        final var allowedSymbols = List.of(new EnumSchema.Symbol("X"), new EnumSchema.Symbol("Y"));
+        final var enumType = new EnumType(new EnumSchema(allowedSymbols));
 
         final var enumSchema = mapper.toDataSchema("custom.ns", "CustomName", enumType);
         assertThat(enumSchema).isInstanceOf(EnumSchema.class);

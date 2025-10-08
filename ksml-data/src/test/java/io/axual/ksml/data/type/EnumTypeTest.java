@@ -22,6 +22,7 @@ package io.axual.ksml.data.type;
 
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.EnumSchema;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,19 +36,19 @@ class EnumTypeTest {
     @Test
     @DisplayName("Constructor sets container class to String and name/spec to 'enum'; symbols are retained")
     void constructorAndProperties() {
-        var type = new EnumType(List.of(new Symbol("A"), new Symbol("B", "desc", 1)));
+        var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B", "desc", 1))));
         assertThat(type)
                 .returns(String.class, EnumType::containerClass)
                 .returns("enum", EnumType::name)
                 .returns("enum", EnumType::spec)
                 .hasToString("enum");
-        assertThat(type.symbols()).extracting(Symbol::name).containsExactly("A", "B");
+        assertThat(type.schema().symbols()).extracting(EnumSchema.Symbol::name).containsExactly("A", "B");
     }
 
     @Test
     @DisplayName("checkAssignableFrom(DataObject) accepts only DataString values matching one of the symbols; null is rejected")
     void checkAssignableFromDataObject() {
-        var type = new EnumType(List.of(new Symbol("A"), new Symbol("B")));
+        var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B"))));
 
         // Matching symbols
         assertThat(type.checkAssignableFrom(new DataString("A")).isOK()).isTrue();
@@ -63,7 +64,7 @@ class EnumTypeTest {
     @Test
     @DisplayName("checkAssignableFrom(DataObject) uses DataObject.toString for comparison (no quotes for internal printing)")
     void comparisonUsesToStringValue() {
-        var type = new EnumType(List.of(new Symbol("hello")));
+        var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("hello"))));
         var ds = new DataString("hello");
         var softly = new SoftAssertions();
         softly.assertThat(ds.toString()).isEqualTo("hello");

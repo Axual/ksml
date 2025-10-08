@@ -27,6 +27,7 @@ import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataEnum;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
@@ -41,11 +42,9 @@ import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.util.ConvertUtil;
 import io.axual.ksml.data.util.MapUtil;
@@ -172,20 +171,10 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof Float) return DataFloat.DATATYPE;
         if (value instanceof byte[]) return DataBytes.DATATYPE;
         if (value instanceof String) return DataString.DATATYPE;
-        if (value instanceof Enum<?> val) return inferEnumTypeFromEnum(val);
         if (value instanceof List<?> val) return inferListTypeFromList(val);
         if (value instanceof Map<?, ?> val) return inferDataTypeFromNativeMap(val, null);
         if (value instanceof Tuple<?> val) return inferTupleTypeFromTuple(val);
         return DataType.UNKNOWN;
-    }
-
-    private EnumType inferEnumTypeFromEnum(Enum<?> value) {
-        final var enumConstants = value.getClass().getEnumConstants();
-        final var symbols = new ArrayList<Symbol>();
-        for (final var enumConstant : enumConstants) {
-            symbols.add(new Symbol(enumConstant.toString()));
-        }
-        return new EnumType(symbols);
     }
 
     private ListType inferListTypeFromList(List<?> list) {
@@ -288,6 +277,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value instanceof DataString val) return val.value();
 
+        if (value instanceof DataEnum val) return val.value();
         if (value instanceof DataList val) return convertDataListToList(val);
         if (value instanceof DataMap val) return convertDataMapToMap(val);
         if (value instanceof DataStruct val) return convertDataStructToMap(val);

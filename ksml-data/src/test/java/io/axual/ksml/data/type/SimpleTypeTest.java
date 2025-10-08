@@ -20,8 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,8 +64,9 @@ class SimpleTypeTest {
             @Override public Class<?> containerClass() { return Object.class; }
             @Override public String name() { return "X"; }
             @Override public String spec() { return "X"; }
-            @Override public ValidationResult checkAssignableFrom(DataType type, ValidationContext context) { return context.addError("Fake error"); }
-            @Override public ValidationResult checkAssignableFrom(Class<?> type, ValidationContext context) { return context.addError("Fake error"); }
+            @Override public Compared checkAssignableFrom(DataType type) { return Compared.error("Fake error"); }
+            @Override public Compared checkAssignableFrom(Class<?> type) { return Compared.error("Fake error"); }
+            @Override public Compared equals(Object other, Flags flags) { return Compared.error("Fake error"); }
         };
         assertThat(numberType.checkAssignableFrom(other).isOK()).isFalse();
     }

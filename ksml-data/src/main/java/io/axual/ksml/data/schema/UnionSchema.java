@@ -20,8 +20,9 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equals;
+import io.axual.ksml.data.type.Flags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -30,6 +31,10 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBERS;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_SCHEMA;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
 
 /**
  * Represents a union schema that allows for multiple possible types in the KSML framework.
@@ -47,9 +52,39 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 @EqualsAndHashCode
 public class UnionSchema extends DataSchema {
     // Definition of a union member
-    public record Member(String name, DataSchema schema, int tag) {
+    public record Member(String name, DataSchema schema, int tag) implements Equals {
         public Member(DataSchema schema) {
             this(null, schema, NO_TAG);
+        }
+
+        @Override
+        public Compared equals(Object obj, Flags flags) {
+            if (this == obj) return Compared.ok();
+            if (obj == null) return Compared.otherIsNull(this);
+            if (!getClass().equals(obj.getClass())) return Compared.notEqual(getClass(), obj.getClass());
+
+            final var that = (Member) obj;
+
+            // Compare name
+            if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_NAME) && !Objects.equals(name, that.name))
+                return Compared.fieldNotEqual("name", this, name, that, that.name);
+
+            // Compare schema
+            if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_SCHEMA)) {
+                final var schemaCompared = schema.equals(that.schema, flags);
+                if (schemaCompared.isError())
+                    return Compared.fieldNotEqual("schema", this, schema, that, that.schema, schemaCompared);
+            }
+
+            // Compare tag
+            if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_TAG) && !Objects.equals(tag, that.tag))
+                return Compared.fieldNotEqual("tag", this, tag, that, that.tag);
+
+            return Compared.ok();
+        }
+
+        public String toString() {
+            return "Member(name=" + name + ", schema=" + schema + ", tag=" + tag + ")";
         }
     }
 
@@ -117,17 +152,16 @@ public class UnionSchema extends DataSchema {
      * </p>
      *
      * @param otherSchema The {@link DataSchema} to check for compatibility.
-     * @param context     The validation context.
      */
     @Override
-    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
+    public Compared checkAssignableFrom(DataSchema otherSchema) {
         // Don't call the super method here, since that gives wrong semantics. As a union we are
         // assignable from any schema type, so we must skip the comparison of our own schema type
         // with that of the other schema.
 
         // By convention, we are not assignable if the other schema is null.
         if (otherSchema == null) {
-            return context.addError("Union schema is not assignable from null schema");
+            return Compared.error("Union schema is not assignable from null schema");
         }
 
         // If the other schema is a union, then we compare all value types of that union.
@@ -135,29 +169,29 @@ public class UnionSchema extends DataSchema {
             // This schema is assignable from the other union fields when all of its value types can be assigned to
             // this union.
             for (final var otherUnionMember : otherUnionSchema.members) {
-                if (!checkAssignableFromMember(otherUnionMember, context).isOK())
-                    return context.schemaMismatch(this, otherUnionMember.schema);
+                if (!checkAssignableFromMember(otherUnionMember).isOK())
+                    return Compared.schemaMismatch(this, otherUnionMember.schema);
             }
-            return context.ok();
+            return Compared.ok();
         }
 
         // The other schema is not a union --> we are assignable from the other schema if at least
         // one of our value schema is assignable from the other schema.
         for (final var memberSchema : members) {
-            if (memberSchema.schema().checkAssignableFrom(otherSchema, context).isOK()) return context.ok();
+            if (memberSchema.schema().checkAssignableFrom(otherSchema).isOK()) return Compared.ok();
         }
-        return context.schemaMismatch(this, otherSchema);
+        return Compared.schemaMismatch(this, otherSchema);
     }
 
-    private ValidationResult checkAssignableFromMember(Member otherMember, ValidationContext context) {
+    private Compared checkAssignableFromMember(Member otherMember) {
         for (final var member : members) {
             // First, check if the schema of this field and the other field are compatible
             if (member.schema().checkAssignableFrom(otherMember.schema()).isOK()
                     // If they are, then manually check if we allow assignment from the other field to this field
                     && isAssignableByNameAndTag(member, otherMember))
-                return context;
+                return Compared.ok();
         }
-        return context.schemaMismatch(this, otherMember.schema);
+        return Compared.schemaMismatch(this, otherMember.schema);
     }
 
     private boolean isAssignableByNameAndTag(Member thisField, Member otherField) {
@@ -168,5 +202,33 @@ public class UnionSchema extends DataSchema {
         // assignment only if both fields match.
         if (!Objects.equals(thisField.name(), otherField.name())) return false;
         return Objects.equals(thisField.tag(), otherField.tag());
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Compared equals(Object other, Flags flags) {
+        final var superVerified = super.equals(other, flags);
+        if (superVerified.isError()) return superVerified;
+
+        final var that = (UnionSchema) other;
+
+        // Compare members
+        if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBERS)) {
+            if (members.length != that.members.length)
+                return Compared.fieldNotEqual("memberCount", this, members.length, that, that.members.length);
+
+            for (int i = 0; i < members.length; i++) {
+                final var memberCompared = members[i].equals(that.members[i], flags);
+                if (memberCompared.isError())
+                    return Compared.fieldNotEqual("member[" + i + "]", this, members[i], that, that.members[i], memberCompared);
+            }
+        }
+
+        return Compared.ok();
     }
 }

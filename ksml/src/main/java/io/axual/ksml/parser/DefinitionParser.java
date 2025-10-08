@@ -225,7 +225,9 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return StructsParser.of(node -> {
                     final var content = stringParser.parse(node);
                     if (content == null) return defaultValue;
-                    return UserTypeParser.parse(content);
+                    final var parsedContent = UserTypeParser.parse(content);
+                    if (parsedContent.isError()) throw new ParseException(node, parsedContent.errorMessage());
+                    return parsedContent.result();
                 },
                 schemas);
     }

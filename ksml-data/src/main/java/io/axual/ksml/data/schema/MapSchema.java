@@ -20,11 +20,13 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.type.Flags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_MAP_SCHEMA_VALUE_SCHEMA;
 
 /**
  * A schema representation for maps in the KSML framework.
@@ -73,14 +75,37 @@ public class MapSchema extends DataSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
-     * @param context     The validation context.
      */
     @Override
-    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
-        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
-        if (!(otherSchema instanceof MapSchema otherMapSchema)) return context.schemaMismatch(this, otherSchema);
+    public Compared checkAssignableFrom(DataSchema otherSchema) {
+        final var superVerified = super.checkAssignableFrom(otherSchema);
+        if (superVerified.isError()) return superVerified;
+        if (!(otherSchema instanceof MapSchema otherMapSchema)) return Compared.schemaMismatch(this, otherSchema);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
-        return valueSchema.checkAssignableFrom(otherMapSchema.valueSchema, context);
+        return valueSchema.checkAssignableFrom(otherMapSchema.valueSchema);
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Compared equals(Object obj, Flags flags) {
+        final var superVerified = super.equals(obj, flags);
+        if (superVerified.isError()) return superVerified;
+
+        final var that = (MapSchema) obj;
+
+        // Compare valueSchema
+        if (!flags.isSet(IGNORE_MAP_SCHEMA_VALUE_SCHEMA)) {
+            final var valueSchemaCompared = valueSchema.equals(that.valueSchema, flags);
+            if (valueSchemaCompared.isError())
+                return Compared.fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaCompared);
+        }
+
+        return super.equals(obj, flags);
     }
 }

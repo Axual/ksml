@@ -21,9 +21,10 @@ package io.axual.ksml.data.schema;
  */
 
 import com.google.common.collect.Lists;
-import io.axual.ksml.data.validation.ValidationContext;
-import io.axual.ksml.data.validation.ValidationResult;
+import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.type.Flags;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
 
@@ -33,6 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA;
+import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_SCHEMA_FIELDS;
+
 /**
  * Represents a structured schema with named fields in the KSML framework.
  * <p>
@@ -41,6 +46,7 @@ import java.util.Objects;
  * where each field has a name, a type (defined by {@link DataSchema}), and optionally additional metadata.
  * </p>
  */
+@EqualsAndHashCode
 public class StructSchema extends NamedSchema {
     /**
      * This instance exists for compatibility reasons: if we define eg. JSON Objects, or schema-less Structs, then we
@@ -95,6 +101,16 @@ public class StructSchema extends NamedSchema {
      */
     public StructSchema(StructSchema other) {
         this(other.namespace(), other.name(), other.doc(), other.fields(), other.additionalFieldsAllowed(), other.additionalFieldsSchema());
+    }
+
+    /**
+     * Constructs a {@code StructSchema} with the specified namespace, name, documentation, and fields.
+     *
+     * @param fields The list of fields that make up the schema. May be empty but not null.
+     * @throws IllegalArgumentException if {@code name} is null or empty.
+     */
+    public StructSchema(@Singular List<DataField> fields) {
+        this(null, null, null, fields, true);
     }
 
     /**
@@ -198,64 +214,68 @@ public class StructSchema extends NamedSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to check for compatibility.
-     * @param context     The validation context.
      */
     @Override
-    public ValidationResult checkAssignableFrom(DataSchema otherSchema, ValidationContext context) {
-        if (!super.checkAssignableFrom(otherSchema, context).isOK()) return context;
-        if (!(otherSchema instanceof StructSchema otherStructSchema)) return context.schemaMismatch(this, otherSchema);
+    public Compared checkAssignableFrom(DataSchema otherSchema) {
+        final var superVerified = super.checkAssignableFrom(otherSchema);
+        if (superVerified.isError()) return superVerified;
+        if (!(otherSchema instanceof StructSchema otherStructSchema)) return Compared.schemaMismatch(this, otherSchema);
         // Ensure the other schema has the same fields with compatible types
         for (final var field : fields) {
             // Get the field with the same name from the other schema
             final var otherField = otherStructSchema.field(field.name());
             // If the field exists in the other schema, then validate its compatibility
-            if (otherField != null) field.checkAssignableFrom(otherField, context);
+            if (otherField != null) {
+                final var fieldVerified = field.checkAssignableFrom(otherField);
+                if (fieldVerified.isError()) return fieldVerified;
+            }
             // If this field has no default value, then the field should exist in the other schema
             if (field.defaultValue() == null && otherField == null) {
-                return context.addError("Other schema does not contain required field \"" + field.name() + "\"");
+                return Compared.error("Other schema does not contain required field \"" + field.name() + "\"");
             }
         }
         // All fields are assignable, so return no error
-        return context.ok();
+        return Compared.ok();
     }
 
     /**
-     * Compares this object with the specified object for equality.
-     * <p>
-     * This method checks whether the provided object is of the same type
-     * and whether all significant fields of this object are equal to the respective
-     * fields of the provided object. It performs a deep comparison of fields to
-     * determine structural equivalence.
-     * </p>
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
      *
-     * @param other The object to compare with this instance.
-     * @return {@code true} if the specified object is equal to this one; {@code false} otherwise.
-     * @see Object#equals(Object)
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
      */
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        if (!super.equals(other)) return false;
-        StructSchema that = (StructSchema) other;
-        return additionalFieldsAllowed == that.additionalFieldsAllowed
-                && Objects.equals(additionalFieldsSchema, that.additionalFieldsSchema)
-                && Objects.equals(this.fields, that.fields);
-    }
+    public Compared equals(Object obj, Flags flags) {
+        final var superVerified = super.equals(obj, flags);
+        if (superVerified.isError()) return superVerified;
 
-    /**
-     * Computes a hash code for this object based on its significant fields.
-     * <p>
-     * The hash code is computed in such a way that it is consistent with the
-     * {@link #equals(Object)} method. That is, if two objects are equal according
-     * to the {@code equals} method, they must have the same hash code.
-     * </p>
-     *
-     * @return The hash code value for this object.
-     * @see Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), fields, additionalFieldsAllowed, additionalFieldsSchema);
+        final var that = (StructSchema) obj;
+
+        // Compare additionalFieldsAllowed
+        if (!flags.isSet(IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED) && !Objects.equals(additionalFieldsAllowed, that.additionalFieldsAllowed))
+            return Compared.fieldNotEqual("additionalFieldsAllowed", this, additionalFieldsAllowed, that, that.additionalFieldsAllowed);
+
+        // Compare additionalFieldsSchema
+        if (!flags.isSet(IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA) && (additionalFieldsSchema != null || that.additionalFieldsSchema != null)) {
+            if (additionalFieldsSchema == null || that.additionalFieldsSchema == null)
+                return Compared.fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema);
+            final var additionalFieldsSchemaCompared = additionalFieldsSchema.equals(that.additionalFieldsSchema, flags);
+            if (additionalFieldsSchemaCompared.isError())
+                return Compared.fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema, additionalFieldsSchemaCompared);
+        }
+
+        // Compare fields
+        if (!flags.isSet(IGNORE_STRUCT_SCHEMA_FIELDS)) {
+            if (fields.size() != that.fields.size())
+                return Compared.fieldNotEqual("fieldCount", this, fields.size(), that, that.fields.size());
+
+            for (int i = 0; i < fields.size(); i++) {
+                final var fieldCompared = fields.get(i).equals(that.fields.get(i), flags);
+                if (fieldCompared.isError())
+                    return Compared.fieldNotEqual("field[" + i + "]", this, fields.get(i), that, that.fields.get(i), fieldCompared);
+            }
+        }
+
+        return super.equals(obj, flags);
     }
 }

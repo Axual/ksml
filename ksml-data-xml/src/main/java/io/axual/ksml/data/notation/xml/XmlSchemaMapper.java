@@ -28,7 +28,6 @@ import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAnnotated;
 import org.apache.ws.commons.schema.XmlSchemaAnnotation;
@@ -168,11 +167,11 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                 return new ListSchema(itemType);
             }
             if (content instanceof XmlSchemaSimpleTypeRestriction restriction) {
-                final var symbols = new ArrayList<Symbol>();
+                final var symbols = new ArrayList<EnumSchema.Symbol>();
                 for (final var facet : restriction.getFacets()) {
                     if (facet instanceof XmlSchemaEnumerationFacet enumFacet) {
                         final var value = enumFacet.getValue().toString();
-                        symbols.add(new Symbol(value));
+                        symbols.add(new EnumSchema.Symbol(value));
                     }
                 }
                 return new EnumSchema(null, type.getName(), extractDoc(type.getAnnotation()), symbols);
