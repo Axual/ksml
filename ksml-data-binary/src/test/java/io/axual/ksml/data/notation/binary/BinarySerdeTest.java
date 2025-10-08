@@ -50,13 +50,14 @@ class BinarySerdeTest {
         Byte value = (byte) 42;
 
         // When: serializing to bytes and deserializing back
-        var serde = notation.serde(byteType, false);
-        var bytes = serde.serializer().serialize("test-topic", value);
-        var result = serde.deserializer().deserialize("test-topic", bytes);
+        try (var serde = notation.serde(byteType, false)) {
+            var bytes = serde.serializer().serialize("test-topic", value);
+            var result = serde.deserializer().deserialize("test-topic", bytes);
 
-        // Then: should get the same byte value back
-        assertThat(result).isInstanceOf(Byte.class);
-        assertThat(result).isEqualTo(value);
+            // Then: should get the same byte value back
+            assertThat(result).isInstanceOf(Byte.class);
+            assertThat(result).isEqualTo(value);
+        }
     }
 
     @Test
@@ -70,13 +71,14 @@ class BinarySerdeTest {
         Integer value = 123456;
 
         // When: serializing to bytes and deserializing back
-        var serde = notation.serde(intType, false);
-        var bytes = serde.serializer().serialize("test-topic", value);
-        var result = serde.deserializer().deserialize("test-topic", bytes);
+        try (var serde = notation.serde(intType, false)) {
+            var bytes = serde.serializer().serialize("test-topic", value);
+            var result = serde.deserializer().deserialize("test-topic", bytes);
 
-        // Then: should get the same integer value back
-        assertThat(result).isInstanceOf(Integer.class);
-        assertThat(result).isEqualTo(value);
+            // Then: should get the same integer value back
+            assertThat(result).isInstanceOf(Integer.class);
+            assertThat(result).isEqualTo(value);
+        }
     }
 
     @Test
@@ -90,13 +92,14 @@ class BinarySerdeTest {
         Long value = 9876543210L;
 
         // When: serializing to bytes and deserializing back
-        var serde = notation.serde(longType, false);
-        var bytes = serde.serializer().serialize("test-topic", value);
-        var result = serde.deserializer().deserialize("test-topic", bytes);
+        try (var serde = notation.serde(longType, false)) {
+            var bytes = serde.serializer().serialize("test-topic", value);
+            var result = serde.deserializer().deserialize("test-topic", bytes);
 
-        // Then: should get the same long value back
-        assertThat(result).isInstanceOf(Long.class);
-        assertThat(result).isEqualTo(value);
+            // Then: should get the same long value back
+            assertThat(result).isInstanceOf(Long.class);
+            assertThat(result).isEqualTo(value);
+        }
     }
 
     @Test
@@ -110,13 +113,14 @@ class BinarySerdeTest {
         String value = "Hello KSML";
 
         // When: serializing to bytes and deserializing back
-        var serde = notation.serde(stringType, false);
-        var bytes = serde.serializer().serialize("test-topic", value);
-        var result = serde.deserializer().deserialize("test-topic", bytes);
+        try (var serde = notation.serde(stringType, false)) {
+            var bytes = serde.serializer().serialize("test-topic", value);
+            var result = serde.deserializer().deserialize("test-topic", bytes);
 
-        // Then: should get the same string value back
-        assertThat(result).isInstanceOf(String.class);
-        assertThat(result).isEqualTo(value);
+            // Then: should get the same string value back
+            assertThat(result).isInstanceOf(String.class);
+            assertThat(result).isEqualTo(value);
+        }
     }
 
     @Test
@@ -125,22 +129,23 @@ class BinarySerdeTest {
         // Given: Binary notation with Byte type
         var byteType = new SimpleType(Byte.class, "byte");
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
-        var serde = notation.serde(byteType, false);
 
         // When/Then: verify multiple different byte values round-trip correctly
-        var softly = new SoftAssertions();
+        try (var serde = notation.serde(byteType, false)) {
+            var softly = new SoftAssertions();
 
-        // Test various byte values including edge cases
-        byte[] testValues = {0, 1, 42, 127, -1, -128, (byte) 255};
-        for (byte testValue : testValues) {
-            var bytes = serde.serializer().serialize("topic", testValue);
-            var result = serde.deserializer().deserialize("topic", bytes);
-            softly.assertThat(result)
-                    .as("Byte value %d should round-trip correctly", testValue)
-                    .isEqualTo(testValue);
+            // Test various byte values including edge cases
+            byte[] testValues = {0, 1, 42, 127, -1, -128, (byte) 255};
+            for (byte testValue : testValues) {
+                var bytes = serde.serializer().serialize("topic", testValue);
+                var result = serde.deserializer().deserialize("topic", bytes);
+                softly.assertThat(result)
+                        .as("Byte value %d should round-trip correctly", testValue)
+                        .isEqualTo(testValue);
+            }
+
+            softly.assertAll();
         }
-
-        softly.assertAll();
     }
 
     @Test
@@ -154,18 +159,19 @@ class BinarySerdeTest {
         var softly = new SoftAssertions();
 
         // Test counter values like in the docs example
-        for (int counter = 0; counter < 10; counter++) {
-            int counterByte = counter % 256;
+        try (var serde = notation.serde(intType, false)) {
+            for (int counter = 0; counter < 10; counter++) {
+                int counterByte = counter % 256;
 
-            // When: serializing and deserializing
-            var serde = notation.serde(intType, false);
-            var bytes = serde.serializer().serialize("ksml_sensordata_binary", counterByte);
-            var result = serde.deserializer().deserialize("ksml_sensordata_binary", bytes);
+                // When: serializing and deserializing
+                var bytes = serde.serializer().serialize("ksml_sensordata_binary", counterByte);
+                var result = serde.deserializer().deserialize("ksml_sensordata_binary", bytes);
 
-            // Then: value should be preserved
-            softly.assertThat(result)
-                    .as("Counter byte %d should round-trip correctly", counterByte)
-                    .isEqualTo(counterByte);
+                // Then: value should be preserved
+                softly.assertThat(result)
+                        .as("Counter byte %d should round-trip correctly", counterByte)
+                        .isEqualTo(counterByte);
+            }
         }
 
         softly.assertAll();
@@ -179,15 +185,16 @@ class BinarySerdeTest {
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
 
         // When: creating key serde and using it for round-trip
-        var keySerde = notation.serde(stringType, true);
-        String keyValue = "key123";
+        try (var keySerde = notation.serde(stringType, true)) {
+            String keyValue = "key123";
 
-        var bytes = keySerde.serializer().serialize("topic", keyValue);
-        var result = keySerde.deserializer().deserialize("topic", bytes);
+            var bytes = keySerde.serializer().serialize("topic", keyValue);
+            var result = keySerde.deserializer().deserialize("topic", bytes);
 
-        // Then: should work correctly
-        assertThat(result).isInstanceOf(String.class);
-        assertThat(result).isEqualTo(keyValue);
+            // Then: should work correctly
+            assertThat(result).isInstanceOf(String.class);
+            assertThat(result).isEqualTo(keyValue);
+        }
     }
 
     @Test
@@ -198,15 +205,16 @@ class BinarySerdeTest {
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
 
         // When: serializing null
-        var serde = notation.serde(stringType, false);
-        var bytes = serde.serializer().serialize("topic", null);
+        try (var serde = notation.serde(stringType, false)) {
+            var bytes = serde.serializer().serialize("topic", null);
 
-        // Then: bytes should be null
-        assertThat(bytes).isNull();
+            // Then: bytes should be null
+            assertThat(bytes).isNull();
 
-        // And: deserializing null bytes should return null
-        var result = serde.deserializer().deserialize("topic", null);
-        assertThat(result).isNull();
+            // And: deserializing null bytes should return null
+            var result = serde.deserializer().deserialize("topic", null);
+            assertThat(result).isNull();
+        }
     }
 
     @Test
@@ -220,13 +228,14 @@ class BinarySerdeTest {
         String value = "";
 
         // When: serializing to bytes and deserializing back
-        var serde = notation.serde(stringType, false);
-        var bytes = serde.serializer().serialize("topic", value);
-        var result = serde.deserializer().deserialize("topic", bytes);
+        try (var serde = notation.serde(stringType, false)) {
+            var bytes = serde.serializer().serialize("topic", value);
+            var result = serde.deserializer().deserialize("topic", bytes);
 
-        // Then: should get empty string back
-        assertThat(result).isInstanceOf(String.class);
-        assertThat(result).isEqualTo(value);
+            // Then: should get empty string back
+            assertThat(result).isInstanceOf(String.class);
+            assertThat(result).isEqualTo(value);
+        }
     }
 
     @Test
@@ -244,17 +253,18 @@ class BinarySerdeTest {
                 "KSML",
                 "Temperature: 23.5°C",
                 "Multi\nLine\nString",
-                "Unicode: \u2764 \u2605",
+                "Unicode: ❤ ★",
                 "Emoji: 🤖"
         };
 
-        var serde = notation.serde(stringType, false);
-        for (String testString : testStrings) {
-            var bytes = serde.serializer().serialize("topic", testString);
-            var result = serde.deserializer().deserialize("topic", bytes);
-            softly.assertThat(result)
-                    .as("String '%s' should round-trip correctly", testString)
-                    .isEqualTo(testString);
+        try (var serde = notation.serde(stringType, false)) {
+            for (String testString : testStrings) {
+                var bytes = serde.serializer().serialize("topic", testString);
+                var result = serde.deserializer().deserialize("topic", bytes);
+                softly.assertThat(result)
+                        .as("String '%s' should round-trip correctly", testString)
+                        .isEqualTo(testString);
+            }
         }
 
         softly.assertAll();
@@ -266,30 +276,31 @@ class BinarySerdeTest {
         // Given: Binary notation with Integer type
         var intType = new SimpleType(Integer.class, "int");
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
-        var serde = notation.serde(intType, false);
 
         // When/Then: verify edge case integer values round-trip correctly
-        var softly = new SoftAssertions();
+        try (var serde = notation.serde(intType, false)) {
+            var softly = new SoftAssertions();
 
-        Integer[] testValues = {
-                0,
-                1,
-                -1,
-                Integer.MAX_VALUE,
-                Integer.MIN_VALUE,
-                256,
-                -256
-        };
+            Integer[] testValues = {
+                    0,
+                    1,
+                    -1,
+                    Integer.MAX_VALUE,
+                    Integer.MIN_VALUE,
+                    256,
+                    -256
+            };
 
-        for (Integer testValue : testValues) {
-            var bytes = serde.serializer().serialize("topic", testValue);
-            var result = serde.deserializer().deserialize("topic", bytes);
-            softly.assertThat(result)
-                    .as("Integer value %d should round-trip correctly", testValue)
-                    .isEqualTo(testValue);
+            for (Integer testValue : testValues) {
+                var bytes = serde.serializer().serialize("topic", testValue);
+                var result = serde.deserializer().deserialize("topic", bytes);
+                softly.assertThat(result)
+                        .as("Integer value %d should round-trip correctly", testValue)
+                        .isEqualTo(testValue);
+            }
+
+            softly.assertAll();
         }
-
-        softly.assertAll();
     }
 
     @Test
@@ -298,30 +309,31 @@ class BinarySerdeTest {
         // Given: Binary notation with Long type
         var longType = new SimpleType(Long.class, "long");
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
-        var serde = notation.serde(longType, false);
 
         // When/Then: verify edge case long values round-trip correctly
-        var softly = new SoftAssertions();
+        try (var serde = notation.serde(longType, false)) {
+            var softly = new SoftAssertions();
 
-        Long[] testValues = {
-                0L,
-                1L,
-                -1L,
-                Long.MAX_VALUE,
-                Long.MIN_VALUE,
-                1234567890123456789L,
-                -1234567890123456789L
-        };
+            Long[] testValues = {
+                    0L,
+                    1L,
+                    -1L,
+                    Long.MAX_VALUE,
+                    Long.MIN_VALUE,
+                    1234567890123456789L,
+                    -1234567890123456789L
+            };
 
-        for (Long testValue : testValues) {
-            var bytes = serde.serializer().serialize("topic", testValue);
-            var result = serde.deserializer().deserialize("topic", bytes);
-            softly.assertThat(result)
-                    .as("Long value %d should round-trip correctly", testValue)
-                    .isEqualTo(testValue);
+            for (Long testValue : testValues) {
+                var bytes = serde.serializer().serialize("topic", testValue);
+                var result = serde.deserializer().deserialize("topic", bytes);
+                softly.assertThat(result)
+                        .as("Long value %d should round-trip correctly", testValue)
+                        .isEqualTo(testValue);
+            }
+
+            softly.assertAll();
         }
-
-        softly.assertAll();
     }
 
     @Test
@@ -330,23 +342,24 @@ class BinarySerdeTest {
         // Given: Binary notation with Byte type (simulating byte manipulation)
         var byteType = new SimpleType(Byte.class, "byte");
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
-        var serde = notation.serde(byteType, false);
 
         // Simulate the docs example: increment first byte operation
         byte originalValue = 42;
 
         // When: serialize, "process" (increment), serialize again
-        var bytes = serde.serializer().serialize("topic", originalValue);
-        var deserialized = (Byte) serde.deserializer().deserialize("topic", bytes);
+        try (var serde = notation.serde(byteType, false)) {
+            var bytes = serde.serializer().serialize("topic", originalValue);
+            var deserialized = (Byte) serde.deserializer().deserialize("topic", bytes);
 
-        // Simulate Python: modified[0] = (modified[0] + 1) % 256
-        byte modifiedValue = (byte) ((deserialized + 1) % 256);
+            // Simulate Python: modified[0] = (modified[0] + 1) % 256
+            byte modifiedValue = (byte) ((deserialized + 1) % 256);
 
-        var modifiedBytes = serde.serializer().serialize("topic", modifiedValue);
-        var finalResult = serde.deserializer().deserialize("topic", modifiedBytes);
+            var modifiedBytes = serde.serializer().serialize("topic", modifiedValue);
+            var finalResult = serde.deserializer().deserialize("topic", modifiedBytes);
 
-        // Then: should have incremented value
-        assertThat(finalResult).isEqualTo(modifiedValue);
-        assertThat((Byte) finalResult).isEqualTo((byte) 43);
+            // Then: should have incremented value
+            assertThat(finalResult).isEqualTo(modifiedValue);
+            assertThat((Byte) finalResult).isEqualTo((byte) 43);
+        }
     }
 }
