@@ -24,11 +24,26 @@ import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.Flags;
 
+/**
+ * {@link DataObject} wrapper for enum-like string values with an associated {@link EnumType}.
+ *
+ * <p>Two DataEnum instances are equal when both type and value are equal. For convenience,
+ * this class also considers equality with a {@link DataString} holding the same string value.</p>
+ */
 public class DataEnum extends DataPrimitive<String> {
+    /**
+     * Create a DataEnum.
+     *
+     * @param type  enum type descriptor
+     * @param value enum symbol value
+     */
     public DataEnum(EnumType type, String value) {
         super(type, value);
     }
 
+    /**
+     * Compares this enum to another object, allowing equality to a DataString with the same value.
+     */
     @Override
     public Equal equals(Object other, Flags flags) {
         if (other instanceof DataString dataString && value().equals(dataString.value())) return Equal.ok();

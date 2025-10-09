@@ -21,7 +21,7 @@ package io.axual.ksml.data.object;
  */
 
 import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.exception.VerifyException;
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.util.EqualUtil;
@@ -61,7 +61,7 @@ public class DataPrimitive<T> implements DataObject {
                 ? type.isAssignableFrom(dataObject)
                 : type.isAssignableFrom(value);
         if (assignable.isNotAssignable())
-            throw new VerifyException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable.message());
+            throw new DataException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable.message());
     }
 
     /**

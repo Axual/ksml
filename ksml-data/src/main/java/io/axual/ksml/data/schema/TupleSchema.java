@@ -27,11 +27,26 @@ import io.axual.ksml.data.type.TupleType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Schema representation for a positional {@link io.axual.ksml.data.value.Tuple}.
+ *
+ * <p>Implemented as a specialized {@link StructSchema} whose fields are named "elem0",
+ * "elem1", ... in order. The number of fields equals the {@link TupleType#subTypeCount()}.</p>
+ */
 public class TupleSchema extends StructSchema {
+    /**
+     * Build a TupleSchema from a TupleType by mapping each subtype to a field in order.
+     *
+     * @param type   the tuple type descriptor
+     * @param mapper converter to turn DataType subtypes into DataSchema fields
+     */
     public TupleSchema(TupleType type, DataTypeDataSchemaMapper mapper) {
         super(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, type.toString(), "Tuple with " + type.subTypeCount() + " fields", convertTupleTypeToFields(type, mapper), false);
     }
 
+    /**
+     * Helper to create Struct fields for each tuple element.
+     */
     private static List<DataField> convertTupleTypeToFields(TupleType type, DataTypeDataSchemaMapper mapper) {
         if (type.subTypeCount() == 0) {
             throw new SchemaException("TupleSchema requires at least one field: type=" + type);
