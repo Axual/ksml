@@ -75,7 +75,12 @@ public class KSMLRunner {
             var ksmlTitle = determineTitle();
 
             // Check if we need to output the schema and then exit
-            checkForSchemaOutput(args);
+            if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
+                log.info("Generating schema and exiting");
+                var filename = args.length > 1 ? args[1] : null;
+                printJsonSchema(filename);
+                return;
+            }
 
             log.info("Starting {}", ksmlTitle);
 
@@ -347,35 +352,31 @@ public class KSMLRunner {
         return titleBuilder.toString();
     }
 
-    private static void checkForSchemaOutput(String[] args) {
+    private static void printJsonSchema(String filename) {
         // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
         // KSML definitions with on stdout and exit
-        if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
-            final var parser = new TopologyDefinitionParser("dummy");
-            final var schema = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
+        final var parser = new TopologyDefinitionParser("dummy");
+        final var schema = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
 
-            final var filename = args.length >= 2 ? args[1] : null;
-            if (filename != null) {
-                try {
-                    final var writer = new PrintWriter(filename);
-                    writer.println(schema);
-                    writer.close();
-                    log.info("KSML JSON schema written to file: {}", filename);
-                } catch (Exception e) {
-                    // Ignore
-                    log.atError()
-                            .setMessage("""
-                                    Error writing KSML JSON schema to file: {}
-                                    Error: {}
-                                    """)
-                            .addArgument(filename)
-                            .addArgument(e::getMessage)
-                            .log();
-                }
-            } else {
-                System.out.println(schema);
+        if (filename != null) {
+            try {
+                final var writer = new PrintWriter(filename);
+                writer.println(schema);
+                writer.close();
+                log.info("KSML JSON schema written to file: {}", filename);
+            } catch (Exception e) {
+                // Ignore
+                log.atError()
+                        .setMessage("""
+                                Error writing KSML JSON schema to file: {}
+                                Error: {}
+                                """)
+                        .addArgument(filename)
+                        .addArgument(e::getMessage)
+                        .log();
             }
-            System.exit(0);
+        } else {
+            System.out.println(schema);
         }
     }
 
