@@ -2134,19 +2134,20 @@ in your data streams and trigger appropriate actions in response.</p>
 <a id="__codelineno-4-261" name="__codelineno-4-261" href="#__codelineno-4-261"></a><span class="w">            </span><span class="no">inventory_store.put(key, value)</span>
 <a id="__codelineno-4-262" name="__codelineno-4-262" href="#__codelineno-4-262"></a>
 <a id="__codelineno-4-263" name="__codelineno-4-263" href="#__codelineno-4-263"></a><span class="w">            </span><span class="no">return value</span>
-<a id="__codelineno-4-264" name="__codelineno-4-264" href="#__codelineno-4-264"></a><span class="w">          </span><span class="nt">stores</span><span class="p">:</span>
-<a id="__codelineno-4-265" name="__codelineno-4-265" href="#__codelineno-4-265"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_store</span>
-<a id="__codelineno-4-266" name="__codelineno-4-266" href="#__codelineno-4-266"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-4-267" name="__codelineno-4-267" href="#__codelineno-4-267"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-4-268" name="__codelineno-4-268" href="#__codelineno-4-268"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-4-269" name="__codelineno-4-269" href="#__codelineno-4-269"></a><span class="w">            </span><span class="no">log.info(&quot;Restocked product: {}&quot;, value)</span>
-<a id="__codelineno-4-270" name="__codelineno-4-270" href="#__codelineno-4-270"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
-<a id="__codelineno-4-271" name="__codelineno-4-271" href="#__codelineno-4-271"></a>
-<a id="__codelineno-4-272" name="__codelineno-4-272" href="#__codelineno-4-272"></a><span class="w">  </span><span class="nt">inventory_monitor</span><span class="p">:</span>
-<a id="__codelineno-4-273" name="__codelineno-4-273" href="#__codelineno-4-273"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
-<a id="__codelineno-4-274" name="__codelineno-4-274" href="#__codelineno-4-274"></a><span class="w">    </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-4-275" name="__codelineno-4-275" href="#__codelineno-4-275"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-4-276" name="__codelineno-4-276" href="#__codelineno-4-276"></a><span class="w">        </span><span class="no">log.info(&quot;Inventory updated: {}&quot;, value)</span>
+<a id="__codelineno-4-264" name="__codelineno-4-264" href="#__codelineno-4-264"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-4-265" name="__codelineno-4-265" href="#__codelineno-4-265"></a><span class="w">          </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-4-266" name="__codelineno-4-266" href="#__codelineno-4-266"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_store</span>
+<a id="__codelineno-4-267" name="__codelineno-4-267" href="#__codelineno-4-267"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-4-268" name="__codelineno-4-268" href="#__codelineno-4-268"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-269" name="__codelineno-4-269" href="#__codelineno-4-269"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-270" name="__codelineno-4-270" href="#__codelineno-4-270"></a><span class="w">            </span><span class="no">log.info(&quot;Restocked product: {}&quot;, value)</span>
+<a id="__codelineno-4-271" name="__codelineno-4-271" href="#__codelineno-4-271"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-272" name="__codelineno-4-272" href="#__codelineno-4-272"></a>
+<a id="__codelineno-4-273" name="__codelineno-4-273" href="#__codelineno-4-273"></a><span class="w">  </span><span class="nt">inventory_monitor</span><span class="p">:</span>
+<a id="__codelineno-4-274" name="__codelineno-4-274" href="#__codelineno-4-274"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-275" name="__codelineno-4-275" href="#__codelineno-4-275"></a><span class="w">    </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-276" name="__codelineno-4-276" href="#__codelineno-4-276"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-277" name="__codelineno-4-277" href="#__codelineno-4-277"></a><span class="w">        </span><span class="no">log.info(&quot;Inventory updated: {}&quot;, value)</span>
 </code></pre></div>
 </details>
 <h2 id="setting-up-the-producers-for-test-data">Setting up the producers for test data</h2>
@@ -2234,11 +2235,9 @@ a randomly generated product order:</p>
 <p>To run the application:</p>
 <ol>
 <li>Save the processor definition to
-   <a href="../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/inventory-event-processors.yaml"><code>inventory-event-processors.yaml</code></a>.</li>
+   <a href="#creating-the-ksml-definition"><code>inventory-event-processors.yaml</code></a>.</li>
 <li>Save the producers to
-   <a href="../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/product-and-order-event-producer.yaml"><code>product-and-order-event-producer</code></a>
-   and
-   <a href="../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/customer-data-producer.yaml"><code>customer-data-producer.yaml</code></a>.</li>
+   <a href="#setting-up-the-producers-for-test-data"><code>product-and-order-event-producer.yaml</code></a></li>
 <li>Set up your <code>ksml-runner.yaml</code> configuration, pointing to your Kafka installation.</li>
 </ol>
 <details class="info">
