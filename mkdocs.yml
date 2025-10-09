@@ -3,6 +3,8 @@ site_author: Axual
 site_description: Documentation for the KSML project
 
 site_dir: _site
+exclude_docs: |
+  ksml-language-spec.md
 theme:
   name: material
   features:

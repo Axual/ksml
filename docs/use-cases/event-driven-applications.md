@@ -132,11 +132,9 @@ a randomly generated product order:
 To run the application:
 
 1. Save the processor definition to
-   [`inventory-event-processors.yaml`](../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/inventory-event-processors.yaml).
+   [`inventory-event-processors.yaml`](#creating-the-ksml-definition).
 2. Save the producers to
-   [`product-and-order-event-producer`](../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/product-and-order-event-producer.yaml)
-   and
-   [`customer-data-producer.yaml`](../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/customer-data-producer.yaml).
+   [`product-and-order-event-producer.yaml`](#setting-up-the-producers-for-test-data)
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
 
 ??? info "KSML runner configuration (click to expand)"

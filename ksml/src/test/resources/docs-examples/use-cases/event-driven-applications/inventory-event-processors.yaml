@@ -261,6 +261,7 @@ pipelines:
             inventory_store.put(key, value)
             
             return value
+          resultType: struct
           stores:
             - inventory_store
       - type: peek

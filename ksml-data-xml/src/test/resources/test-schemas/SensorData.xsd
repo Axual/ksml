@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="SensorData">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="timestamp" type="xs:long"/>
+                <xs:element name="value" type="xs:string"/>
+                <xs:element name="type" type="xs:string"/>
+                <xs:element name="unit" type="xs:string"/>
+                <xs:element name="color" type="xs:string" minOccurs="0"/>
+                <xs:element name="city" type="xs:string" minOccurs="0"/>
+                <xs:element name="owner" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

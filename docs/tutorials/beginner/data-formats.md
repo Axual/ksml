@@ -468,4 +468,3 @@ For complete syntax reference, type definitions, and advanced format features, r
 
 - [Logging and Monitoring](logging-monitoring.md) for adding effective logging to pipelines
 - [Intermediate Tutorials](../intermediate/index.md) for advanced KSML features
-- [KSML Examples](../../resources/examples-library.md) for more data format examples
