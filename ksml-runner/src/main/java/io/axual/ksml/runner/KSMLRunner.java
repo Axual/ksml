@@ -75,7 +75,11 @@ public class KSMLRunner {
             var ksmlTitle = determineTitle();
 
             // Check if we need to output the schema and then exit
-            checkForSchemaOutput(args);
+            if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
+                log.info("Generating schema and exiting");
+                checkForSchemaOutput(args);
+                return;
+            }
 
             log.info("Starting {}", ksmlTitle);
 
@@ -375,7 +379,6 @@ public class KSMLRunner {
             } else {
                 System.out.println(schema);
             }
-            System.exit(0);
         }
     }
 
