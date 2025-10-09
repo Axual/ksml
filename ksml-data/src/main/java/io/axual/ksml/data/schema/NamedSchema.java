@@ -32,7 +32,7 @@ import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_NAMED_SCHEMA_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_NAMED_SCHEMA_NAME;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_NAMED_SCHEMA_NAMESPACE;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * An abstract base class for schemas with a name and namespace in the KSML framework.

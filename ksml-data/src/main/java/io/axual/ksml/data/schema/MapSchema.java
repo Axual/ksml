@@ -30,7 +30,7 @@ import lombok.NonNull;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_MAP_SCHEMA_VALUE_SCHEMA;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * A schema representation for maps in the KSML framework.

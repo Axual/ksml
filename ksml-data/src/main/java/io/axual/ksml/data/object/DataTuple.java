@@ -24,7 +24,7 @@ import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.value.Tuple;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -33,10 +33,10 @@ import java.util.Arrays;
 
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_TUPLE_CONTENTS;
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_TUPLE_TYPE;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.objectNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.typeNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a tuple of {@link DataObject} values within the {@link DataObject} framework.
@@ -113,7 +113,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
     public Equal equals(Object other, Flags flags) {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+        if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataTuple) other;
 
@@ -127,7 +127,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
         // Compare contents
         if (!flags.isSet(IGNORE_DATA_TUPLE_CONTENTS)) {
             if (elements() != null || that.elements() != null) {
-                if (elements() == null || that.elements() == null) return EqualsUtil.objectNotEqual(this, that);
+                if (elements() == null || that.elements() == null) return EqualUtil.objectNotEqual(this, that);
                 final var contentsEqual = equalContents(this, that, flags);
                 if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
             }

@@ -23,14 +23,14 @@ package io.axual.ksml.data.type;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * A concrete {@link DataType} backed by a single Java container class.
@@ -83,13 +83,13 @@ public class SimpleType implements DataType {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
-            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (SimpleType) other;
 
         // Compare containerClass
         if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
-            return EqualsUtil.containerClassNotEqual(containerClass, that.containerClass);
+            return EqualUtil.containerClassNotEqual(containerClass, that.containerClass);
 
         return Equal.ok();
     }

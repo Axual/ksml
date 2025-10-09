@@ -23,7 +23,7 @@ package io.axual.ksml.data.schema;
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -32,8 +32,8 @@ import java.util.Set;
 
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_SCHEMA_TYPE;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a generic internal schema definition, capable of handling various schema types.
@@ -192,7 +192,7 @@ public class DataSchema {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
-            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataSchema) other;
 

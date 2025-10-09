@@ -27,12 +27,12 @@ import io.axual.ksml.data.type.DataType;
 
 import static io.axual.ksml.data.compare.Equal.error;
 
-public class EqualsUtil {
+public class EqualUtil {
     private static final String CONTAINER_CLASS_STRING = "Container class";
     private static final String OBJECT_STRING = "Object";
     private static final String TYPE_STRING = "Type";
 
-    private EqualsUtil() {
+    private EqualUtil() {
     }
 
     public static Equal otherIsNull(Object thisObject) {

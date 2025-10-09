@@ -26,7 +26,7 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.MapType;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 
@@ -38,10 +38,10 @@ import java.util.function.BiConsumer;
 
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_MAP_CONTENTS;
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_MAP_TYPE;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.objectNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
-import static io.axual.ksml.data.util.EqualsUtil.typeNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * Represents a map with {@code String} keys and {@link DataObject} values within the
@@ -292,7 +292,7 @@ public class DataMap implements DataObject {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
-            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataMap) other;
 
@@ -305,7 +305,7 @@ public class DataMap implements DataObject {
 
         // Compare contents
         if (!flags.isSet(IGNORE_DATA_MAP_CONTENTS) && (contents != null || that.contents != null)) {
-            if (contents == null || that.contents == null) return EqualsUtil.objectNotEqual(this, that);
+            if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
             final var contentsEqual = equalContents(this, that, flags);
             if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
         }

@@ -24,7 +24,7 @@ import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.FilteredEquals;
 import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -39,8 +39,8 @@ import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBO
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_NAME;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a named schema for enumerations in the KSML framework.
@@ -88,7 +88,7 @@ public class EnumSchema extends NamedSchema {
             if (this == other) return Equal.ok();
             if (other == null) return otherIsNull(this);
             if (!getClass().equals(other.getClass()))
-                return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+                return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
             final var that = (Symbol) other;
 

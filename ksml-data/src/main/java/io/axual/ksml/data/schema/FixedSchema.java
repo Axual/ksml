@@ -30,7 +30,7 @@ import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_FIXED_SCHEMA_SIZE;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * A schema representation for fixed-size binary data in the KSML framework.

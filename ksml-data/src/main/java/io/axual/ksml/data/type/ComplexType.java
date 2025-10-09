@@ -23,14 +23,14 @@ package io.axual.ksml.data.type;
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.util.AssignableUtil;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Base class for composite {@link DataType} implementations that have one or more subtypes.
@@ -121,10 +121,10 @@ public abstract class ComplexType implements DataType {
     public Equal equals(Object obj, Flags flags) {
         if (this == obj) return Equal.ok();
         if (obj == null) return otherIsNull(this);
-        if (!getClass().equals(obj.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), obj.getClass());
+        if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
         final var that = (ComplexType) obj;
         if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
-            return EqualsUtil.containerClassNotEqual(containerClass, that.containerClass);
+            return EqualUtil.containerClassNotEqual(containerClass, that.containerClass);
         return subTypesEqual((ComplexType) obj, flags);
     }
 

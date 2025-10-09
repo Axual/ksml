@@ -24,7 +24,7 @@ import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.FilteredEquals;
 import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -38,8 +38,8 @@ import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMB
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_SCHEMA;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a union schema that allows for multiple possible types in the KSML framework.
@@ -67,7 +67,7 @@ public class UnionSchema extends DataSchema {
             if (this == obj) return Equal.ok();
             if (obj == null) return otherIsNull(this);
             if (!getClass().equals(obj.getClass()))
-                return EqualsUtil.containerClassNotEqual(getClass(), obj.getClass());
+                return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
 
             final var that = (Member) obj;
 

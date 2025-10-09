@@ -40,7 +40,7 @@ import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_ADD
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_FIELDS;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * Represents a structured schema with named fields in the KSML framework.

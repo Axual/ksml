@@ -25,7 +25,7 @@ import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.FilteredEquals;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -40,8 +40,8 @@ import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_ORDER;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_REQUIRED;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_SCHEMA;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_TAG;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a field in a data schema, containing metadata about the field such as its name,
@@ -244,7 +244,7 @@ public class DataField implements FilteredEquals {
     public Equal equals(Object obj, Flags flags) {
         if (this == obj) return Equal.ok();
         if (obj == null) return otherIsNull(this);
-        if (!getClass().equals(obj.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), obj.getClass());
+        if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
 
         final var that = (DataField) obj;
 

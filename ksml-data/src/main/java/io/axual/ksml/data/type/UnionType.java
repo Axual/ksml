@@ -24,7 +24,7 @@ import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.FilteredEquals;
 import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -38,9 +38,9 @@ import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_TYP
 import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromMember;
 import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromType;
 import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromValue;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
-import static io.axual.ksml.data.util.EqualsUtil.typeNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * A {@link ComplexType} representing a tagged union (sum type) composed of multiple member types.
@@ -67,7 +67,7 @@ public class UnionType extends ComplexType {
             if (this == other) return Equal.ok();
             if (other == null) return otherIsNull(this);
             if (!getClass().equals(other.getClass()))
-                return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+                return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
             final var that = (Member) other;
 
@@ -159,7 +159,7 @@ public class UnionType extends ComplexType {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
-            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var superEqual = super.equals(other, flags);
         if (superEqual.isError()) return superEqual;

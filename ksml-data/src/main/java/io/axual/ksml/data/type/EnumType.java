@@ -25,14 +25,14 @@ import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_ENUM_TYPE_SCHEMA;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * A {@link SimpleType} representing an enumeration of allowed string symbols.
@@ -67,7 +67,7 @@ public class EnumType extends SimpleType {
     public Equal equals(Object other, Flags flags) {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+        if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var superEqual = super.equals(other, flags);
         if (superEqual.isError()) return superEqual;

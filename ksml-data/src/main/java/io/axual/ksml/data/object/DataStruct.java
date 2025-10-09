@@ -26,7 +26,7 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -40,10 +40,10 @@ import java.util.function.BiConsumer;
 
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_STRUCT_CONTENTS;
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_STRUCT_TYPE;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.objectNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
-import static io.axual.ksml.data.util.EqualsUtil.typeNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * Represents a data structure that emulates a schema-based, key-value map with automatic sorting capabilities.
@@ -366,7 +366,7 @@ public class DataStruct implements DataObject {
     public Equal equals(Object other, Flags flags) {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+        if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataStruct) other;
 
@@ -379,7 +379,7 @@ public class DataStruct implements DataObject {
 
         // Compare contents
         if (!flags.isSet(IGNORE_DATA_STRUCT_CONTENTS) && (contents != null || that.contents != null)) {
-            if (contents == null || that.contents == null) return EqualsUtil.objectNotEqual(this, that);
+            if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
             final var contentsEqual = equalContents(that, that, flags);
             if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
         }

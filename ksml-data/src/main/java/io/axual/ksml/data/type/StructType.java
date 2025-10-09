@@ -27,7 +27,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -36,8 +36,8 @@ import java.util.Map;
 import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_STRUCT_TYPE_SCHEMA;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * A {@link ComplexType} representing a structured map-like type that may be backed by a
@@ -127,7 +127,7 @@ public class StructType extends ComplexType {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
-            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var superEqual = super.equals(other, flags);
         if (superEqual.isError()) return superEqual;

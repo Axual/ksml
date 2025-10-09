@@ -33,7 +33,7 @@ import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_LIST_SCHEMA_NAME;
 import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_LIST_SCHEMA_VALUE_SCHEMA;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * A schema representation for lists in the KSML framework.

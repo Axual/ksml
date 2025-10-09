@@ -24,15 +24,15 @@ import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.exception.VerifyException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.util.EqualsUtil;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_PRIMITIVE_TYPE;
 import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_PRIMITIVE_VALUE;
-import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
-import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a wrapper for a primitive value as part of the {@link DataObject} framework.
@@ -90,7 +90,7 @@ public class DataPrimitive<T> implements DataObject {
     public Equal equals(Object other, Flags flags) {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
+        if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataPrimitive<?>) other;
 
@@ -103,7 +103,7 @@ public class DataPrimitive<T> implements DataObject {
 
         // Compare value
         if (!flags.isSet(IGNORE_DATA_PRIMITIVE_VALUE) && (value != null || that.value != null)) {
-            if (value == null || that.value == null) return EqualsUtil.objectNotEqual(this, that);
+            if (value == null || that.value == null) return EqualUtil.objectNotEqual(this, that);
             if (value instanceof DataObject dataValue) {
                 final var valueEqual = dataValue.equals(that.value, flags);
                 if (valueEqual.isError())
