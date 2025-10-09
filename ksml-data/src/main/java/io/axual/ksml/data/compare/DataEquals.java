@@ -22,6 +22,6 @@ package io.axual.ksml.data.compare;
 
 import io.axual.ksml.data.type.Flags;
 
-public interface FilteredEquals {
+public interface DataEquals {
     Equal equals(Object obj, Flags flags);
 }

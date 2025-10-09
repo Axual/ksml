@@ -23,7 +23,7 @@ package io.axual.ksml.data.type;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.compare.FilteredEquals;
+import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 
@@ -40,7 +40,7 @@ import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
  * The {@link #UNKNOWN} constant acts as a wildcard type that is assignable from any other type
  * or value.
  */
-public interface DataType extends FilteredEquals {
+public interface DataType extends DataEquals {
     Class<?> containerClass();
 
     String name();

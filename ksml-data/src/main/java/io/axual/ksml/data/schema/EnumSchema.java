@@ -22,7 +22,7 @@ package io.axual.ksml.data.schema;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.compare.FilteredEquals;
+import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ListUtil;
@@ -60,7 +60,7 @@ import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 @Getter
 @EqualsAndHashCode
 public class EnumSchema extends NamedSchema {
-    public record Symbol(String name, String doc, int tag) implements FilteredEquals {
+    public record Symbol(String name, String doc, int tag) implements DataEquals {
         public Symbol(String name, String doc, Integer tag) {
             this(name, doc, tag != null ? tag : NO_TAG);
         }

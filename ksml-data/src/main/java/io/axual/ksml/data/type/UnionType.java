@@ -22,7 +22,7 @@ package io.axual.ksml.data.type;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.compare.FilteredEquals;
+import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
@@ -57,7 +57,7 @@ public class UnionType extends ComplexType {
     private final Member[] members;
 
     // Definition of a union member
-    public record Member(String name, DataType type, int tag) implements FilteredEquals {
+    public record Member(String name, DataType type, int tag) implements DataEquals {
         public Member(DataType type) {
             this(null, type, NO_TAG);
         }

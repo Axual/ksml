@@ -62,7 +62,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class KSMLRunner {
@@ -74,8 +78,8 @@ public class KSMLRunner {
             // Load name and version from manifest
             var ksmlTitle = determineTitle();
 
-            // Check if we need to output the schema and then exit
-            checkForSchemaOutput(args);
+            // Check if we need to output the schema, and if so, then exit
+            if (checkForSchemaOutput(args)) return;
 
             log.info("Starting {}", ksmlTitle);
 
@@ -148,8 +152,8 @@ public class KSMLRunner {
             // Ensure typical defaults are used for AVRO
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if(ksmlConfig.notations().isEmpty()){
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME,null,  new DataObjectFlattener(), config.kafkaConfig()));
+            if (ksmlConfig.notations().isEmpty()) {
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, null, new DataObjectFlattener(), config.kafkaConfig()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
             }
@@ -347,7 +351,7 @@ public class KSMLRunner {
         return titleBuilder.toString();
     }
 
-    private static void checkForSchemaOutput(String[] args) {
+    private static boolean checkForSchemaOutput(String[] args) {
         // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
         // KSML definitions with on stdout and exit
         if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
@@ -375,8 +379,9 @@ public class KSMLRunner {
             } else {
                 System.out.println(schema);
             }
-            System.exit(0);
+            return true;
         }
+        return false;
     }
 
     private static KSMLRunnerConfig readConfiguration(File configFile) {

@@ -20,7 +20,7 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.FilteredEquals;
+import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.compare.Equal;
@@ -32,7 +32,7 @@ import io.axual.ksml.data.compare.Equal;
  * their {@link DataType} metadata so values can be validated, printed and processed in a
  * schema-aware way across the framework.</p>
  */
-public interface DataObject extends FilteredEquals {
+public interface DataObject extends DataEquals {
     /**
      * Returns the {@link DataType} that describes this value.
      */

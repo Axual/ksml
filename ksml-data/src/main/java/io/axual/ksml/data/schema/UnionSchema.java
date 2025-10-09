@@ -22,7 +22,7 @@ package io.axual.ksml.data.schema;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.compare.FilteredEquals;
+import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
@@ -57,7 +57,7 @@ import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 @EqualsAndHashCode
 public class UnionSchema extends DataSchema {
     // Definition of a union member
-    public record Member(String name, DataSchema schema, int tag) implements FilteredEquals {
+    public record Member(String name, DataSchema schema, int tag) implements DataEquals {
         public Member(DataSchema schema) {
             this(null, schema, NO_TAG);
         }
