@@ -222,7 +222,7 @@ public class StructSchema extends NamedSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         final var superAssignable = super.isAssignableFrom(otherSchema);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
         if (!(otherSchema instanceof StructSchema that))
             return schemaMismatch(this, otherSchema);
         // Ensure the other schema has the same fields with compatible types
@@ -232,12 +232,12 @@ public class StructSchema extends NamedSchema {
             // If the field exists in the other schema, then validate its compatibility
             if (thatField != null) {
                 final var fieldAssignable = field.isAssignableFrom(thatField);
-                if (fieldAssignable.isError())
+                if (fieldAssignable.isNotAssignable())
                     return fieldNotAssignable(field.name(), this, field, that, thatField, fieldAssignable);
             }
             // If this field has no default value, then the field should exist in the other schema
             if (field.defaultValue() == null && thatField == null) {
-                return Assignable.error("Other schema does not contain required field \"" + field.name() + "\"");
+                return Assignable.notAssignable("Other schema does not contain required field \"" + field.name() + "\"");
             }
         }
         // All fields are assignable, so return no error
@@ -253,7 +253,7 @@ public class StructSchema extends NamedSchema {
     @Override
     public Equal equals(Object obj, Flags flags) {
         final var superEqual = super.equals(obj, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (StructSchema) obj;
 
@@ -266,7 +266,7 @@ public class StructSchema extends NamedSchema {
             if (additionalFieldsSchema == null || that.additionalFieldsSchema == null)
                 return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema);
             final var additionalFieldsSchemaEqual = additionalFieldsSchema.equals(that.additionalFieldsSchema, flags);
-            if (additionalFieldsSchemaEqual.isError())
+            if (additionalFieldsSchemaEqual.isNotEqual())
                 return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema, additionalFieldsSchemaEqual);
         }
 
@@ -277,7 +277,7 @@ public class StructSchema extends NamedSchema {
 
             for (int i = 0; i < fields.size(); i++) {
                 final var fieldEqual = fields.get(i).equals(that.fields.get(i), flags);
-                if (fieldEqual.isError())
+                if (fieldEqual.isNotEqual())
                     return fieldNotEqual("field[" + i + "]", this, fields.get(i), that, that.fields.get(i), fieldEqual);
             }
         }

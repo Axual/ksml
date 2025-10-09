@@ -50,11 +50,11 @@ public class EnumType extends SimpleType {
     @Override
     public Assignable isAssignableFrom(DataObject value) {
         final var superAssignable = super.isAssignableFrom(value);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
         final var valueStr = value.toString();
         if (ListUtil.find(schema.symbols(), s -> s.name().equals(valueStr)) != null) return Assignable.ok();
         final var symbolsStr = schema.symbols().stream().map(s -> "\"" + s.name() + "\"").toList();
-        return Assignable.error("Symbol \"" + valueStr + "\" not found in enumeration with symbols " + String.join(", ", symbolsStr));
+        return Assignable.notAssignable("Symbol \"" + valueStr + "\" not found in enumeration with symbols " + String.join(", ", symbolsStr));
     }
 
     /**
@@ -70,7 +70,7 @@ public class EnumType extends SimpleType {
         if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var superEqual = super.equals(other, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (EnumType) other;
 
@@ -79,7 +79,7 @@ public class EnumType extends SimpleType {
             if (schema == null || that.schema == null)
                 return fieldNotEqual("schema", this, schema, that, that.schema);
             final var schemaEqual = schema.equals(that.schema, flags);
-            if (schemaEqual.isError())
+            if (schemaEqual.isNotEqual())
                 return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
         }
 

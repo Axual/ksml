@@ -68,7 +68,7 @@ public interface DataType extends DataEquals {
 
         // Check containerClass
         final var containerClassAssignable = isAssignableFrom(value.getClass());
-        if (containerClassAssignable.isError())
+        if (containerClassAssignable.isNotAssignable())
             return fieldNotAssignable("containerClass", this, containerClass(), value, value.getClass(), containerClassAssignable);
 
         return Assignable.ok();
@@ -103,7 +103,7 @@ public interface DataType extends DataEquals {
         @Override
         public Equal equals(Object obj, Flags flags) {
             if (this == obj) return Equal.ok();
-            return Equal.error("Type \"" + this + "\" is not type \"" + (obj != null ? obj : "null") + "\"");
+            return Equal.notEqual("Type \"" + this + "\" is not type \"" + (obj != null ? obj : "null") + "\"");
         }
 
         @Override

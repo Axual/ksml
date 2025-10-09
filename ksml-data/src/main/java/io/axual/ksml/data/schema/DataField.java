@@ -218,7 +218,7 @@ public class DataField implements DataEquals {
      */
     public Assignable isAssignableFrom(DataField otherField) {
         if (otherField == null) {
-            return Assignable.error("Field \"" + name + "\" not found");
+            return Assignable.notAssignable("Field \"" + name + "\" not found");
         } else {
             return schema.isAssignableFrom(otherField.schema);
         }
@@ -255,7 +255,7 @@ public class DataField implements DataEquals {
         // Compare schema
         if (!flags.isSet(IGNORE_DATA_FIELD_SCHEMA)) {
             final var schemaEqual = schema.equals(that.schema, flags);
-            if (schemaEqual.isError())
+            if (schemaEqual.isNotEqual())
                 return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
         }
 

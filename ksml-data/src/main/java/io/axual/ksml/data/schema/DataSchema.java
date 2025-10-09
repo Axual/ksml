@@ -78,7 +78,7 @@ public class DataSchema {
     public static final DataSchema ANY_SCHEMA = new DataSchema(DataSchemaConstants.ANY_TYPE) {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
-            if (otherSchema == null) return Assignable.error("No other schema provided");
+            if (otherSchema == null) return Assignable.notAssignable("No other schema provided");
             // This schema is assumed to be assignable from any other schema.
             return Assignable.ok();
         }
@@ -177,7 +177,7 @@ public class DataSchema {
      * @param otherSchema The other schema to compare.
      */
     public Assignable isAssignableFrom(DataSchema otherSchema) {
-        if (otherSchema == null) return Assignable.error("No other schema provided");
+        if (otherSchema == null) return Assignable.notAssignable("No other schema provided");
         // Base scenario: check assignability of types and return error if not assignable
         return !type.equals(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
     }

@@ -373,7 +373,7 @@ public class DataStruct implements DataObject {
         // Compare type
         if (!flags.isSet(IGNORE_DATA_STRUCT_TYPE)) {
             final var typeEqual = type.equals(that.type, flags);
-            if (typeEqual.isError())
+            if (typeEqual.isNotEqual())
                 return typeNotEqual(type, that.type, typeEqual);
         }
 
@@ -381,7 +381,7 @@ public class DataStruct implements DataObject {
         if (!flags.isSet(IGNORE_DATA_STRUCT_CONTENTS) && (contents != null || that.contents != null)) {
             if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
             final var contentsEqual = equalContents(that, that, flags);
-            if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
+            if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
         return Equal.ok();
@@ -397,7 +397,7 @@ public class DataStruct implements DataObject {
                 if (entry.getValue() == null || thatValue == null)
                     return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue);
                 final var entryEqual = entry.getValue().equals(thatValue, flags);
-                if (entryEqual.isError())
+                if (entryEqual.isNotEqual())
                     return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue, entryEqual);
             }
         }

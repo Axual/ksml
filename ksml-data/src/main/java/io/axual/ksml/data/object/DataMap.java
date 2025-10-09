@@ -183,7 +183,7 @@ public class DataMap implements DataObject {
      */
     private DataObject assignableValue(DataObject value) {
         final var assignable = type.valueType().isAssignableFrom(value.type());
-        if (assignable.isError()) {
+        if (assignable.isNotAssignable()) {
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
         }
         return value;
@@ -299,7 +299,7 @@ public class DataMap implements DataObject {
         // Compare type
         if (!flags.isSet(IGNORE_DATA_MAP_TYPE)) {
             final var typeEquals = type.equals(that.type, flags);
-            if (typeEquals.isError())
+            if (typeEquals.isNotEqual())
                 return typeNotEqual(type, that.type, typeEquals);
         }
 
@@ -307,7 +307,7 @@ public class DataMap implements DataObject {
         if (!flags.isSet(IGNORE_DATA_MAP_CONTENTS) && (contents != null || that.contents != null)) {
             if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
             final var contentsEqual = equalContents(this, that, flags);
-            if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
+            if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
         return Equal.ok();
@@ -323,7 +323,7 @@ public class DataMap implements DataObject {
                 if (entry.getValue() == null || thatValue == null)
                     return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue);
                 final var entryEqual = entry.getValue().equals(thatValue, flags);
-                if (entryEqual.isError())
+                if (entryEqual.isNotEqual())
                     return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue, entryEqual);
             }
         }

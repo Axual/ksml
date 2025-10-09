@@ -124,12 +124,12 @@ public class ListSchema extends DataSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema other) {
         final var superAssignable = super.isAssignableFrom(other);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
         if (!(other instanceof ListSchema that)) return schemaMismatch(this, other);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
         final var valueSchemaAssignable = valueSchema.isAssignableFrom(that.valueSchema);
-        if (valueSchemaAssignable.isError())
+        if (valueSchemaAssignable.isNotAssignable())
             return fieldNotAssignable("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaAssignable);
         return Assignable.ok();
     }
@@ -143,7 +143,7 @@ public class ListSchema extends DataSchema {
     @Override
     public Equal equals(Object other, Flags flags) {
         final var superEqual = super.equals(other, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (ListSchema) other;
 
@@ -154,7 +154,7 @@ public class ListSchema extends DataSchema {
         // Compare valueSchema
         if (!flags.isSet(IGNORE_LIST_SCHEMA_VALUE_SCHEMA)) {
             final var valueSchemaEqual = valueSchema.equals(that.valueSchema, flags);
-            if (valueSchemaEqual.isError())
+            if (valueSchemaEqual.isNotEqual())
                 return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
         }
 

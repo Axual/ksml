@@ -88,10 +88,10 @@ public class FixedSchema extends NamedSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         final var superAssignable = super.isAssignableFrom(otherSchema);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
         if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return schemaMismatch(this, otherSchema);
         if (size >= otherFixedSchema.size) return Assignable.ok();
-        return Assignable.error("Size of fixed schema (" + size + ") is smaller than the other fixed schema's size (" + otherFixedSchema.size + ")");
+        return Assignable.notAssignable("Size of fixed schema (" + size + ") is smaller than the other fixed schema's size (" + otherFixedSchema.size + ")");
     }
 
     /**
@@ -103,7 +103,7 @@ public class FixedSchema extends NamedSchema {
     @Override
     public Equal equals(Object obj, Flags flags) {
         final var superEqual = super.equals(obj, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (FixedSchema) obj;
 

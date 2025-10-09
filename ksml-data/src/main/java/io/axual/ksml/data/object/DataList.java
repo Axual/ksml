@@ -150,7 +150,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      */
     private DataObject assignableValue(DataObject value) {
         final var assignable = type.valueType().isAssignableFrom(value.type());
-        if (assignable.isError())
+        if (assignable.isNotAssignable())
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
         return value;
     }
@@ -248,7 +248,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
         // Compare type
         if (!flags.isSet(IGNORE_DATA_LIST_TYPE)) {
             final var typeEqual = type.equals(that.type, flags);
-            if (typeEqual.isError())
+            if (typeEqual.isNotEqual())
                 return typeNotEqual(type, that.type, typeEqual);
         }
 
@@ -256,7 +256,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
         if (!flags.isSet(IGNORE_DATA_LIST_CONTENTS) && (contents != null || that.contents != null)) {
             if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
             final var contentsEqual = equalContents(this, that, flags);
-            if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
+            if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
         return Equal.ok();
@@ -273,7 +273,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
                 if (element == null || thatElement == null)
                     return fieldNotEqual("element[" + index + "]", left, element, right, thatElement);
                 final var entryEqual = element.equals(thatElement, flags);
-                if (entryEqual.isError())
+                if (entryEqual.isNotEqual())
                     return fieldNotEqual("element[" + index + "]", left, element, right, thatElement, entryEqual);
             }
             index++;

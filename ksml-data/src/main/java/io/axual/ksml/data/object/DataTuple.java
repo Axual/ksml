@@ -120,7 +120,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
         // Compare type
         if (!flags.isSet(IGNORE_DATA_TUPLE_TYPE)) {
             final var typeEqual = type.equals(that.type, flags);
-            if (typeEqual.isError())
+            if (typeEqual.isNotEqual())
                 return typeNotEqual(type, that.type, typeEqual);
         }
 
@@ -129,7 +129,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
             if (elements() != null || that.elements() != null) {
                 if (elements() == null || that.elements() == null) return EqualUtil.objectNotEqual(this, that);
                 final var contentsEqual = equalContents(this, that, flags);
-                if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
+                if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
             }
         }
 
@@ -147,7 +147,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
                 if (element == null || thatElement == null)
                     return fieldNotEqual("field[" + index + "]", left, element, right, thatElement);
                 final var entryEqual = element.equals(thatElement, flags);
-                if (entryEqual.isError())
+                if (entryEqual.isNotEqual())
                     return fieldNotEqual("field[" + index + "]", left, element, right, thatElement, entryEqual);
             }
             index++;

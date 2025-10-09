@@ -176,7 +176,7 @@ public class EnumSchema extends NamedSchema {
         if (otherSchema == DataSchema.STRING_SCHEMA) return Assignable.ok();
         // Check super's compatibility
         final var superAssignable = super.isAssignableFrom(otherSchema);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
         // Check class compatibility
         if (!(otherSchema instanceof EnumSchema otherEnum)) return schemaMismatch(this, otherSchema);
         // This schema is assignable from the other enum when the map of symbols is equal or a superset of the
@@ -184,7 +184,7 @@ public class EnumSchema extends NamedSchema {
         for (final var otherSymbol : otherEnum.symbols) {
             // Validate that the other symbol is present and equal in our own symbol list
             if (ListUtil.find(symbols, thisSymbol -> thisSymbol.isAssignableFrom(otherSymbol)) == null) {
-                return Assignable.error("Symbol \"" + otherSymbol.name() + "\" not found in enumeration");
+                return Assignable.notAssignable("Symbol \"" + otherSymbol.name() + "\" not found in enumeration");
             }
         }
         // All symbols from the other union are contained within this one, so return no error
@@ -200,7 +200,7 @@ public class EnumSchema extends NamedSchema {
     @Override
     public Equal equals(Object obj, Flags flags) {
         final var superEqual = super.equals(obj, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (EnumSchema) obj;
 
@@ -211,7 +211,7 @@ public class EnumSchema extends NamedSchema {
                 return fieldNotEqual("symbolCount", this, symbols.size(), that, that.symbols.size());
             for (int index = 0; index < symbols.size(); index++) {
                 final var symbolEqual = symbols.get(index).equals(that.symbols.get(index), flags);
-                if (symbolEqual.isError())
+                if (symbolEqual.isNotEqual())
                     return fieldNotEqual("symbol[" + index + "]", this, symbols.get(index), that, that.symbols.get(index), symbolEqual);
             }
         }

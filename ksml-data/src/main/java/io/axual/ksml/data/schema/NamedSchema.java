@@ -142,7 +142,7 @@ public abstract class NamedSchema extends DataSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         final var superAssignable = super.isAssignableFrom(otherSchema);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
 
         if (!(otherSchema instanceof NamedSchema))
             return schemaMismatch(this, otherSchema);
@@ -161,7 +161,7 @@ public abstract class NamedSchema extends DataSchema {
     @Override
     public Equal equals(Object obj, Flags flags) {
         final var superEqual = super.equals(obj, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (NamedSchema) obj;
 

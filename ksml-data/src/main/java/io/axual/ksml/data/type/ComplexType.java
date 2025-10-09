@@ -110,7 +110,7 @@ public abstract class ComplexType implements DataType {
             return AssignableUtil.fieldNotAssignable("subTypeCount", this, subTypes.length, that, that.subTypes.length);
         for (int i = 0; i < subTypes.length; i++) {
             final var subTypeAssignable = subTypes[i].isAssignableFrom(that.subTypes[i]);
-            if (subTypeAssignable.isError())
+            if (subTypeAssignable.isNotAssignable())
                 return AssignableUtil.fieldNotAssignable("subTypes[" + i + "]", this, subTypes[i], that, that.subTypes[i], subTypeAssignable);
         }
 
@@ -130,10 +130,10 @@ public abstract class ComplexType implements DataType {
 
     private Equal subTypesEqual(ComplexType other, Flags flags) {
         if (subTypes.length != other.subTypes.length)
-            return Equal.error("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
+            return Equal.notEqual("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
         for (int i = 0; i < subTypes.length; i++) {
             final var subTypeEqual = subTypes[i].equals(other.subTypes[i], flags);
-            if (subTypeEqual.isError()) return subTypeEqual;
+            if (subTypeEqual.isNotEqual()) return subTypeEqual;
         }
         return Equal.ok();
     }

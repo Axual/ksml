@@ -69,7 +69,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         final StructSchema resultSchema;
         if (expected != null) {
             final var assignable = expected.isAssignableFrom(schema);
-            if (assignable.isError()) {
+            if (assignable.isNotAssignable()) {
                 throw new SchemaException("PROTOBUF schema incompatibility: schema=" + schema + ", expected=" + expected);
             }
             resultSchema = expected;

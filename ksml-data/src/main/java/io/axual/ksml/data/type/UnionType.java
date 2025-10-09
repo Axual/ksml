@@ -78,7 +78,7 @@ public class UnionType extends ComplexType {
             // Compare type
             if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_TYPE)) {
                 final var typeEqual = type.equals(that.type, flags);
-                if (typeEqual.isError())
+                if (typeEqual.isNotEqual())
                     return fieldNotEqual("type", this, type, that, that.type, typeEqual);
             }
 
@@ -162,7 +162,7 @@ public class UnionType extends ComplexType {
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var superEqual = super.equals(other, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (UnionType) other;
 
@@ -173,7 +173,7 @@ public class UnionType extends ComplexType {
                 return fieldNotEqual("memberCount", this, members, that, that.members);
             for (int index = 0; index < members.length; index++) {
                 final var memberEqual = members[index].equals(that.members[index], flags);
-                if (memberEqual.isError()) return typeNotEqual(this, that, memberEqual);
+                if (memberEqual.isNotEqual()) return typeNotEqual(this, that, memberEqual);
             }
         }
 

@@ -53,7 +53,7 @@ public abstract class VendorNotation extends BaseNotation {
      */
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        if (defaultType().isAssignableFrom(type).isError()) throw noSerdeFor(type);
+        if (defaultType().isAssignableFrom(type).isNotAssignable()) throw noSerdeFor(type);
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used
         try (final var serde = serdeSupplier.get(type, isKey)) {

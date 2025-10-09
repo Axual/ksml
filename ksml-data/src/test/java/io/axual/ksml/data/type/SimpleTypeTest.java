@@ -65,8 +65,8 @@ class SimpleTypeTest {
             @Override public Class<?> containerClass() { return Object.class; }
             @Override public String name() { return "X"; }
             @Override public String spec() { return "X"; }
-            @Override public Assignable isAssignableFrom(DataType type) { return Assignable.error("Fake error"); }
-            @Override public Equal equals(Object other, Flags flags) { return Equal.error("Fake error"); }
+            @Override public Assignable isAssignableFrom(DataType type) { return Assignable.notAssignable("Fake error"); }
+            @Override public Equal equals(Object other, Flags flags) { return Equal.notEqual("Fake error"); }
         };
         assertThat(numberType.isAssignableFrom(other).isOK()).isFalse();
     }

@@ -42,11 +42,6 @@ public class Flags {
         this.flagSet.addAll(flagSet);
     }
 
-    public Flags add(String flag) {
-        flagSet.add(flag);
-        return this;
-    }
-
     public boolean isSet(String flag) {
         return flagSet.contains(flag);
     }

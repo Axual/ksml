@@ -681,7 +681,7 @@ class NativeDataObjectMapperTest {
 
         @Override
         public Equal equals(Object obj, Flags flags) {
-            return Equal.error("Fake error");
+            return Equal.notEqual("Fake error");
         }
     }
 }

@@ -60,8 +60,8 @@ public class DataPrimitive<T> implements DataObject {
         final var assignable = value instanceof DataObject dataObject
                 ? type.isAssignableFrom(dataObject)
                 : type.isAssignableFrom(value);
-        if (assignable.isError())
-            throw new VerifyException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable.errorMessage());
+        if (assignable.isNotAssignable())
+            throw new VerifyException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable.message());
     }
 
     /**
@@ -97,7 +97,7 @@ public class DataPrimitive<T> implements DataObject {
         // Compare type
         if (!flags.isSet(IGNORE_DATA_PRIMITIVE_TYPE)) {
             final var typeEqual = type.equals(that.type, flags);
-            if (typeEqual.isError())
+            if (typeEqual.isNotEqual())
                 return fieldNotEqual("type", this, type, that, that.type, typeEqual);
         }
 
@@ -106,7 +106,7 @@ public class DataPrimitive<T> implements DataObject {
             if (value == null || that.value == null) return EqualUtil.objectNotEqual(this, that);
             if (value instanceof DataObject dataValue) {
                 final var valueEqual = dataValue.equals(that.value, flags);
-                if (valueEqual.isError())
+                if (valueEqual.isNotEqual())
                     return fieldNotEqual("value", this, dataValue, that, that.value, valueEqual);
             } else {
                 if (!value.equals(that.value)) return fieldNotEqual("value", this, value, that, that.value);

@@ -211,7 +211,7 @@ public abstract class BaseOperation implements StreamOperation {
                 compareType,
                 myDataType -> {
                     final var assignable = compareType.isAssignableFrom(myDataType);
-                    if (assignable.isError()) return assignable;
+                    if (assignable.isNotAssignable()) return assignable;
                     return myDataType.isAssignableFrom(compareType);
                 },
                 "of type " + compareType);
@@ -265,8 +265,8 @@ public abstract class BaseOperation implements StreamOperation {
 
     protected void checkType(String subject, DataType type, TypeComparator comparator) {
         final var assignable = comparator.checker.isAssignableFrom(type);
-        if (assignable.isError()) {
-            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + assignable.errorMessage() + ")");
+        if (assignable.isNotAssignable()) {
+            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + assignable.message() + ")");
         }
     }
 
@@ -326,7 +326,7 @@ public abstract class BaseOperation implements StreamOperation {
             throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple with " + elements.length + " elements");
         }
         for (int index = 0; index < elements.length; index++) {
-            if (elements[index].isAssignableFrom(tupleType.subType(index)).isError()) {
+            if (elements[index].isAssignableFrom(tupleType.subType(index)).isNotAssignable()) {
                 throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " tuple element " + index + " is expected to be (subclass) of type " + elements[index]);
             }
         }
@@ -562,7 +562,7 @@ public abstract class BaseOperation implements StreamOperation {
             return;
         }
 
-        if (storeKeyOrValueType != null && storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType()).isError()) {
+        if (storeKeyOrValueType != null && storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType()).isNotAssignable()) {
             throw new ExecutionException("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
         }
     }

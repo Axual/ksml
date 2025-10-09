@@ -22,35 +22,44 @@ package io.axual.ksml.data.compare;
 
 import lombok.Getter;
 
+import java.util.Objects;
+
+/**
+ * This class is used as a return value for isAssignableFrom methods in several classes. It can represent two states:
+ * (1) OK --> indicates that an object is assignable from another object.
+ * (2) Not OK --> indicates that an issue was found and the object is not assignable from the other object.
+ * Since case (1) is unique (message field is null), this case is optimized by using a singleton instance.
+ */
 @Getter
 public class Assignable {
     private static final Assignable OK = new Assignable(null, null);
-    private final String errorMessage;
+    private final String message;
     private final Assignable cause;
 
-    private Assignable(String errorMessage, Assignable cause) {
-        this.errorMessage = errorMessage;
-        this.cause = cause != null && cause.isError() ? cause : null;
+    private Assignable(String message, Assignable cause) {
+        this.message = message;
+        this.cause = cause != null && cause.isNotAssignable() ? cause : null;
     }
 
     public static Assignable ok() {
         return OK;
     }
 
-    public static Assignable error(String errorMessage) {
-        return error(errorMessage, null);
+    public static Assignable notAssignable(String message) {
+        return notAssignable(message, null);
     }
 
-    public static Assignable error(String errorMessage, Assignable cause) {
-        return errorMessage != null ? new Assignable(errorMessage, cause) : ok();
+    public static Assignable notAssignable(String message, Assignable cause) {
+        Objects.requireNonNull(message, "message must not be null");
+        return new Assignable(message, cause);
     }
 
     public boolean isOK() {
-        return errorMessage == null;
+        return message == null;
     }
 
-    public boolean isError() {
-        return errorMessage != null;
+    public boolean isNotAssignable() {
+        return message != null;
     }
 
     @Override
@@ -67,7 +76,7 @@ public class Assignable {
         for (var i = this; i != null; i = i.cause) {
             if (i != this) builder.append("\n");
             if (i != this || prefixFirstLine) builder.append(linePrefix);
-            builder.append(i.errorMessage);
+            builder.append(i.message);
         }
         return builder.toString();
     }

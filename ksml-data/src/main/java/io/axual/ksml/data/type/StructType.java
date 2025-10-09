@@ -101,7 +101,7 @@ public class StructType extends ComplexType {
 
         // Perform superclass validation first
         final var superAssignable = super.isAssignableFrom(type);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
 
         if (!(type instanceof StructType that))
             return typeMismatch(this, type);
@@ -109,7 +109,7 @@ public class StructType extends ComplexType {
         // Check the schema if we have one
         if (schema != null) {
             final var schemaAssignable = schema.isAssignableFrom(that.schema);
-            if (schemaAssignable.isError())
+            if (schemaAssignable.isNotAssignable())
                 return fieldNotAssignable(SCHEMA_FIELD, this, schema, that, that.schema, schemaAssignable);
         }
 
@@ -130,7 +130,7 @@ public class StructType extends ComplexType {
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var superEqual = super.equals(other, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (StructType) other;
 
@@ -139,7 +139,7 @@ public class StructType extends ComplexType {
             if (schema == null || that.schema == null)
                 return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema);
             final var schemaEqual = schema.equals(that.schema, flags);
-            if (schemaEqual.isError())
+            if (schemaEqual.isNotEqual())
                 return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema, schemaEqual);
         }
 

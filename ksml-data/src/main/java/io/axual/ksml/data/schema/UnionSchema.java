@@ -78,7 +78,7 @@ public class UnionSchema extends DataSchema {
             // Compare schema
             if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_SCHEMA)) {
                 final var schemaEqual = schema.equals(that.schema, flags);
-                if (schemaEqual.isError())
+                if (schemaEqual.isNotEqual())
                     return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
             }
 
@@ -167,7 +167,7 @@ public class UnionSchema extends DataSchema {
 
         // By convention, we are not assignable if the other schema is null.
         if (otherSchema == null) {
-            return Assignable.error("Union schema is not assignable from null schema");
+            return Assignable.notAssignable("Union schema is not assignable from null schema");
         }
 
         // If the other schema is a union, then we compare all value types of that union.
@@ -175,7 +175,7 @@ public class UnionSchema extends DataSchema {
             // This schema is assignable from the other union fields when all of its value types can be assigned to
             // this union.
             for (final var otherUnionMember : otherUnionSchema.members) {
-                if (isAssignableFromMember(otherUnionMember).isError())
+                if (isAssignableFromMember(otherUnionMember).isNotAssignable())
                     return schemaMismatch(this, otherUnionMember.schema);
             }
             return Assignable.ok();
@@ -219,7 +219,7 @@ public class UnionSchema extends DataSchema {
     @Override
     public Equal equals(Object other, Flags flags) {
         final var superEqual = super.equals(other, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (UnionSchema) other;
 
@@ -230,7 +230,7 @@ public class UnionSchema extends DataSchema {
 
             for (int i = 0; i < members.length; i++) {
                 final var memberEqual = members[i].equals(that.members[i], flags);
-                if (memberEqual.isError())
+                if (memberEqual.isNotEqual())
                     return fieldNotEqual("member[" + i + "]", this, members[i], that, that.members[i], memberEqual);
             }
         }

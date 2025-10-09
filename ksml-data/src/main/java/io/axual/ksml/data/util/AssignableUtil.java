@@ -26,7 +26,7 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UnionType;
 
-import static io.axual.ksml.data.compare.Assignable.error;
+import static io.axual.ksml.data.compare.Assignable.notAssignable;
 
 public class AssignableUtil {
     private static final String SCHEMA_STRING = "Schema";
@@ -40,7 +40,7 @@ public class AssignableUtil {
     }
 
     public static Assignable fieldNotAssignable(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue, Assignable cause) {
-        return error(strOf(thisType) + " is not assignable from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
+        return notAssignable(strOf(thisType) + " is not assignable from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
     }
 
     public static Assignable schemaMismatch(DataSchema thisSchema, DataSchema thatSchema) {
@@ -52,7 +52,7 @@ public class AssignableUtil {
     }
 
     private static Assignable mismatch(String type, Object thisType, Object thatType) {
-        return error(type + " mismatch: expected \"" + strOf(thisType) + "\", but got \"" + strOf(thatType) + "\"");
+        return Assignable.notAssignable(type + " mismatch: expected \"" + strOf(thisType) + "\", but got \"" + strOf(thatType) + "\"");
     }
 
     public static Assignable unionNotAssignableFromMember(UnionType thisType, UnionType.Member thatMember) {
@@ -68,7 +68,7 @@ public class AssignableUtil {
     }
 
     private static Assignable unionNotAssignable(Object thisObject, String thatType, Object thatValue) {
-        return Assignable.error("Union \"" + strOf(thisObject) + "\" is not assignable from " + strOf(thatType) + " \"" + strOf(thatValue) + "\"", null);
+        return Assignable.notAssignable("Union \"" + strOf(thisObject) + "\" is not assignable from " + strOf(thatType) + " \"" + strOf(thatValue) + "\"", null);
     }
 
     private static String strOf(Object obj) {

@@ -83,12 +83,12 @@ public class MapSchema extends DataSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         final var superAssignable = super.isAssignableFrom(otherSchema);
-        if (superAssignable.isError()) return superAssignable;
+        if (superAssignable.isNotAssignable()) return superAssignable;
         if (!(otherSchema instanceof MapSchema that)) return schemaMismatch(this, otherSchema);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
         final var valueSchemaAssignable = valueSchema.isAssignableFrom(that.valueSchema);
-        if (valueSchemaAssignable.isError())
+        if (valueSchemaAssignable.isNotAssignable())
             return fieldNotAssignable("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaAssignable);
         return Assignable.ok();
     }
@@ -102,14 +102,14 @@ public class MapSchema extends DataSchema {
     @Override
     public Equal equals(Object obj, Flags flags) {
         final var superEqual = super.equals(obj, flags);
-        if (superEqual.isError()) return superEqual;
+        if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (MapSchema) obj;
 
         // Compare valueSchema
         if (!flags.isSet(IGNORE_MAP_SCHEMA_VALUE_SCHEMA)) {
             final var valueSchemaEqual = valueSchema.equals(that.valueSchema, flags);
-            if (valueSchemaEqual.isError())
+            if (valueSchemaEqual.isNotEqual())
                 return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
         }
 

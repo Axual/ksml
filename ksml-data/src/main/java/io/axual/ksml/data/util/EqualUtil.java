@@ -25,7 +25,7 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
-import static io.axual.ksml.data.compare.Equal.error;
+import static io.axual.ksml.data.compare.Equal.notEqual;
 
 public class EqualUtil {
     private static final String CONTAINER_CLASS_STRING = "Container class";
@@ -38,7 +38,7 @@ public class EqualUtil {
     public static Equal otherIsNull(Object thisObject) {
         if (thisObject == null)
             throw new DataException("Can not handle NULL object, this is a bug in KSML");
-        return error("Cannot compare " + strOf(thisObject) + " to null");
+        return Equal.notEqual("Cannot compare " + strOf(thisObject) + " to null");
     }
 
     public static Equal containerClassNotEqual(Class<?> thisClass, Class<?> thatClass) {
@@ -62,11 +62,11 @@ public class EqualUtil {
     }
 
     public static Equal fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue, Equal cause) {
-        return error(strOf(thisType) + " differs from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
+        return Equal.notEqual(strOf(thisType) + " differs from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
     }
 
     private static Equal notEqual(String type, Object thisType, Object thatType, Equal cause) {
-        return error(type + " \"" + strOf(thisType) + "\" is not equal to \"" + strOf(thatType) + "\"", cause);
+        return Equal.notEqual(type + " \"" + strOf(thisType) + "\" is not equal to \"" + strOf(thatType) + "\"", cause);
     }
 
     private static String strOf(Object obj) {

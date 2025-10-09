@@ -75,7 +75,7 @@ class NotationTestRunner {
             final var outputData = objectMapper.toDataObject(inputData.type(), nativeObject);
             System.out.println("OUTPUT DATA: " + outputData);
             final var equal = inputData.equals(outputData, flags);
-            assertTrue(equal.isOK(), "Input data should match output data:\n" + equal.toString(true));
+            assertTrue(equal.isEqual(), "Input data should match output data:\n" + equal.toString(true));
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }
@@ -102,7 +102,7 @@ class NotationTestRunner {
                 System.out.println("CONVERTED OUTPUT DATA: " + outputData);
             }
             final var equal = inputData.equals(outputData, flags);
-            assertTrue(equal.isOK(), "Input data should match output data\n" + equal.toString(true));
+            assertTrue(equal.isEqual(), "Input data should match output data\n" + equal.toString(true));
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }

@@ -97,7 +97,7 @@ public class UserFunction {
 
     protected void checkType(DataType expected, DataObject value) {
         if (value instanceof DataNull) return;
-        if (expected != null && value != null && expected.isAssignableFrom(value.type()).isError()) {
+        if (expected != null && value != null && expected.isAssignableFrom(value.type()).isNotAssignable()) {
             throw DataException.conversionFailed(expected, value.type());
         }
     }
