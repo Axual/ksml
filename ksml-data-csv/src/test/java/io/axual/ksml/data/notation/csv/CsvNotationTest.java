@@ -159,9 +159,9 @@ class CsvNotationTest {
         assertThat(defaultType).isNotNull();
 
         // Verify it accepts StructType
-        assertThat(defaultType.isAssignableFrom(new StructType())).isTrue();
+        assertThat(defaultType.isAssignableFrom(new StructType()).isOK()).isTrue();
 
         // Verify it accepts ListType
-        assertThat(defaultType.isAssignableFrom(new ListType())).isTrue();
+        assertThat(defaultType.isAssignableFrom(new ListType()).isOK()).isTrue();
     }
 }
