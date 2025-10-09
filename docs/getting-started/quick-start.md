@@ -255,6 +255,3 @@ Ready to learn more?
 1. **[Schema Validation](schema-validation.md)** - Set up IDE validation for error-free development
 2. **[Understanding KSML](introduction.md)** - Learn the concepts
 3. **[KSML Basics Tutorial](basics-tutorial.md)** - Build more advanced pipelines
-4. **[Examples Library](../resources/examples-library.md)** - More patterns
-
-**Need help?** Check our [Troubleshooting Guide](../resources/troubleshooting.md)
