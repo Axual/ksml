@@ -20,14 +20,17 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.compare.Compared;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Objects;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_FIXED_SCHEMA_SIZE;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_FIXED_SCHEMA_SIZE;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
 
 /**
  * A schema representation for fixed-size binary data in the KSML framework.
@@ -83,12 +86,12 @@ public class FixedSchema extends NamedSchema {
      * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
      */
     @Override
-    public Compared checkAssignableFrom(DataSchema otherSchema) {
-        final var superVerified = super.checkAssignableFrom(otherSchema);
-        if (superVerified.isError()) return superVerified;
-        if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return Compared.schemaMismatch(this, otherSchema);
-        if (size >= otherFixedSchema.size) return Compared.ok();
-        return Compared.error("Size of fixed schema (" + size + ") is smaller than the other fixed schema's size (" + otherFixedSchema.size + ")");
+    public Assignable isAssignableFrom(DataSchema otherSchema) {
+        final var superAssignable = super.isAssignableFrom(otherSchema);
+        if (superAssignable.isError()) return superAssignable;
+        if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return schemaMismatch(this, otherSchema);
+        if (size >= otherFixedSchema.size) return Assignable.ok();
+        return Assignable.error("Size of fixed schema (" + size + ") is smaller than the other fixed schema's size (" + otherFixedSchema.size + ")");
     }
 
     /**
@@ -98,16 +101,16 @@ public class FixedSchema extends NamedSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object obj, Flags flags) {
-        final var superVerified = super.equals(obj, flags);
-        if (superVerified.isError()) return superVerified;
+    public Equal equals(Object obj, Flags flags) {
+        final var superEqual = super.equals(obj, flags);
+        if (superEqual.isError()) return superEqual;
 
         final var that = (FixedSchema) obj;
 
         // Compare size
         if (!flags.isSet(IGNORE_FIXED_SCHEMA_SIZE) && !Objects.equals(size, that.size))
-            return Compared.fieldNotEqual("size", this, size, that, that.size);
+            return fieldNotEqual("size", this, size, that, that.size);
 
-        return super.equals(obj, flags);
+        return Equal.ok();
     }
 }

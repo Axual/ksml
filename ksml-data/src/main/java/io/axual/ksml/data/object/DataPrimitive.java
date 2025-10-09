@@ -20,13 +20,19 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.exception.VerifyException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.util.EqualsUtil;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_PRIMITIVE_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_PRIMITIVE_VALUE;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
 
 /**
  * Represents a wrapper for a primitive value as part of the {@link DataObject} framework.
@@ -51,11 +57,11 @@ public class DataPrimitive<T> implements DataObject {
     }
 
     private void checkValue() {
-        final var verified = value instanceof DataObject dataObject
-                ? type.checkAssignableFrom(dataObject)
-                : type.checkAssignableFrom(value);
-        if (!verified.isOK())
-            throw new VerifyException("Value assigned to " + type + " can not be \"" + this + "\": " + verified.errorMessage());
+        final var assignable = value instanceof DataObject dataObject
+                ? type.isAssignableFrom(dataObject)
+                : type.isAssignableFrom(value);
+        if (assignable.isError())
+            throw new VerifyException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable.errorMessage());
     }
 
     /**
@@ -81,14 +87,32 @@ public class DataPrimitive<T> implements DataObject {
     }
 
     @Override
-    public Compared equals(Object other, Flags flags) {
-        if (this == other) return Compared.ok();
-        if (other == null) return Compared.otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataPrimitive<?>) other;
 
-        if (value == null) return that.value == null ? Compared.ok() : Compared.otherIsNull(this);
-        return value.equals(that.value) ? Compared.ok() : Compared.notEqual(this, that);
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_PRIMITIVE_TYPE)) {
+            final var typeEqual = type.equals(that.type, flags);
+            if (typeEqual.isError())
+                return fieldNotEqual("type", this, type, that, that.type, typeEqual);
+        }
+
+        // Compare value
+        if (!flags.isSet(IGNORE_DATA_PRIMITIVE_VALUE) && (value != null || that.value != null)) {
+            if (value == null || that.value == null) return EqualsUtil.objectNotEqual(this, that);
+            if (value instanceof DataObject dataValue) {
+                final var valueEqual = dataValue.equals(that.value, flags);
+                if (valueEqual.isError())
+                    return fieldNotEqual("value", this, dataValue, that, that.value, valueEqual);
+            } else {
+                if (!value.equals(that.value)) return fieldNotEqual("value", this, value, that, that.value);
+            }
+        }
+
+        return Equal.ok();
     }
 }

@@ -21,11 +21,12 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.util.EqualsUtil;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,8 +38,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_STRUCT_CONTENTS;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_STRUCT_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_STRUCT_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_STRUCT_TYPE;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualsUtil.typeNotEqual;
 
 /**
  * Represents a data structure that emulates a schema-based, key-value map with automatic sorting capabilities.
@@ -358,41 +363,45 @@ public class DataStruct implements DataObject {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object other, Flags flags) {
-        if (this == other) return Compared.ok();
-        if (other == null) return Compared.otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataStruct) other;
 
         // Compare type
         if (!flags.isSet(IGNORE_DATA_STRUCT_TYPE)) {
-            final var typeCompared = type.equals(that.type, flags);
-            if (typeCompared.isError())
-                return Compared.notEqual(type, that.type, typeCompared);
+            final var typeEqual = type.equals(that.type, flags);
+            if (typeEqual.isError())
+                return typeNotEqual(type, that.type, typeEqual);
         }
 
         // Compare contents
-        if (!flags.isSet(IGNORE_DATA_STRUCT_CONTENTS)) {
-            if (contents == null) return that.contents != null ? Compared.notEqual(this, that) : Compared.ok();
-            if (that.contents == null) return Compared.notEqual(this, that);
-            if (contents.size() != that.contents.size()) return Compared.notEqual(this, that);
-            final var contentsCompared = contentsEqual(contents, that.contents, flags);
-            if (contentsCompared.isError()) return Compared.notEqual(this, that, contentsCompared);
+        if (!flags.isSet(IGNORE_DATA_STRUCT_CONTENTS) && (contents != null || that.contents != null)) {
+            if (contents == null || that.contents == null) return EqualsUtil.objectNotEqual(this, that);
+            final var contentsEqual = equalContents(that, that, flags);
+            if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Compared.ok();
+        return Equal.ok();
     }
 
-    private static Compared contentsEqual(TreeMap<String, DataObject> left, TreeMap<String, DataObject> right, Flags flags) {
+    private static Equal equalContents(DataStruct left, DataStruct right, Flags flags) {
+        if (left.size() != right.size())
+            return fieldNotEqual("contentSize", left, left.size(), right, right.size());
+
         for (var entry : left.entrySet()) {
             final var thatValue = right.get(entry.getKey());
-            if (entry.getValue() == null && thatValue == null) continue;
-            if (entry.getValue() == null || thatValue == null) return Compared.notEqual(entry.getValue(), thatValue);
-            final var entryCompared = entry.getValue().equals(thatValue, flags);
-            if (entryCompared.isError())
-                return Compared.fieldNotEqual(entry.getKey(), "DataStruct", entry.getValue(), thatValue, entryCompared);
+            if (entry.getValue() != null || thatValue != null) {
+                if (entry.getValue() == null || thatValue == null)
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue);
+                final var entryEqual = entry.getValue().equals(thatValue, flags);
+                if (entryEqual.isError())
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue, entryEqual);
+            }
         }
-        return Compared.ok();
+
+        return Equal.ok();
     }
 }

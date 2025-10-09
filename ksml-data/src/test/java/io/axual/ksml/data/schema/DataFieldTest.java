@@ -96,16 +96,16 @@ class DataFieldTest {
     }
 
     @Test
-    @DisplayName("checkAssignableFrom delegates to underlying schema")
-    void checkAssignableFromBehavior() {
+    @DisplayName("isAssignableFrom delegates to underlying schema")
+    void isAssignableFromBehavior() {
         final var target = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 0);
         // other with long type is compatible (integer group)
         final var otherInt = new DataField("l", DataSchema.LONG_SCHEMA, null, 0);
-        assertThat(target.checkAssignableFrom(otherInt).isOK()).isTrue();
+        assertThat(target.isAssignableFrom(otherInt).isOK()).isTrue();
         // float is not compatible with integer
         final var otherFloat = new DataField("f", DataSchema.FLOAT_SCHEMA, null, 0);
-        assertThat(target.checkAssignableFrom(otherFloat).isOK()).isFalse();
+        assertThat(target.isAssignableFrom(otherFloat).isOK()).isFalse();
         // null is not assignable
-        assertThat(target.checkAssignableFrom(null).isOK()).isFalse();
+        assertThat(target.isAssignableFrom(null).isOK()).isFalse();
     }
 }

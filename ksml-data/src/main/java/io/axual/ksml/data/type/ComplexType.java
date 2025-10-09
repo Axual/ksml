@@ -20,11 +20,17 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.util.AssignableUtil;
+import io.axual.ksml.data.util.EqualsUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
 
 /**
  * Base class for composite {@link DataType} implementations that have one or more subtypes.
@@ -91,51 +97,45 @@ public abstract class ComplexType implements DataType {
     }
 
     @Override
-    public final Compared checkAssignableFrom(Class<?> otherContainerClass) {
-        if (!containerClass.isAssignableFrom(otherContainerClass)) {
-            return Compared.typeMismatch(this, otherContainerClass);
+    public Assignable isAssignableFrom(DataType type) {
+        if (!(type instanceof ComplexType that))
+            return typeMismatch(this, type);
+
+        // Check containerClass
+        if (!containerClass.isAssignableFrom(that.containerClass))
+            return fieldNotAssignable("containerClass", this, containerClass, that, that.containerClass);
+
+        // Check subTypes
+        if (subTypes.length != that.subTypes.length)
+            return AssignableUtil.fieldNotAssignable("subTypeCount", this, subTypes.length, that, that.subTypes.length);
+        for (int i = 0; i < subTypes.length; i++) {
+            final var subTypeAssignable = subTypes[i].isAssignableFrom(that.subTypes[i]);
+            if (subTypeAssignable.isError())
+                return AssignableUtil.fieldNotAssignable("subTypes[" + i + "]", this, subTypes[i], that, that.subTypes[i], subTypeAssignable);
         }
-        return Compared.ok();
+
+        return Assignable.ok();
     }
 
     @Override
-    public Compared checkAssignableFrom(DataType otherType) {
-        if (otherType instanceof ComplexType otherComplexType) {
-            if (!checkAssignableFrom(otherComplexType.containerClass).isOK()) {
-                return Compared.typeMismatch(this, otherComplexType.containerClass);
-            }
-            if (subTypes.length != otherComplexType.subTypes.length) {
-                return Compared.error("Type \"" + otherType + "\" has a different number of subtypes than \"" + this + "\"");
-            } else {
-                for (int i = 0; i < subTypes.length; i++) {
-                    final var subTypeVerified = subTypes[i].checkAssignableFrom(otherComplexType.subTypes[i]);
-                    if (subTypeVerified.isError()) return subTypeVerified;
-                }
-                return Compared.ok();
-            }
-        }
-        return Compared.typeMismatch(this, otherType);
-    }
-
-    @Override
-    public Compared equals(Object obj, Flags flags) {
-        if (this == obj) return Compared.ok();
-        if (obj == null) return Compared.otherIsNull(this);
-        if (!getClass().equals(obj.getClass())) return Compared.notEqual(getClass(), obj.getClass());
+    public Equal equals(Object obj, Flags flags) {
+        if (this == obj) return Equal.ok();
+        if (obj == null) return otherIsNull(this);
+        if (!getClass().equals(obj.getClass())) return EqualsUtil.containerClassNotEqual(getClass(), obj.getClass());
         final var that = (ComplexType) obj;
         if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
-            return Compared.notEqual(containerClass, that.containerClass);
+            return EqualsUtil.containerClassNotEqual(containerClass, that.containerClass);
         return subTypesEqual((ComplexType) obj, flags);
     }
 
-    private Compared subTypesEqual(ComplexType other, Flags flags) {
+    private Equal subTypesEqual(ComplexType other, Flags flags) {
         if (subTypes.length != other.subTypes.length)
-            return Compared.error("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
+            return Equal.error("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
         for (int i = 0; i < subTypes.length; i++) {
-            final var subTypeCompared = subTypes[i].equals(other.subTypes[i], flags);
-            if (subTypeCompared.isError()) return subTypeCompared;
+            final var subTypeEqual = subTypes[i].equals(other.subTypes[i], flags);
+            if (subTypeEqual.isError()) return subTypeEqual;
         }
-        return Compared.ok();
+        return Equal.ok();
     }
 
     @Override

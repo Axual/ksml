@@ -121,7 +121,7 @@ public class UserTypeParser {
         final var internalType = parseType(dataType);
         if (internalType != null) {
             final var n = ExecutionContext.INSTANCE.notationLibrary().get(notation);
-            if (n.defaultType() != null && !n.defaultType().checkAssignableFrom(internalType).isOK()) {
+            if (n.defaultType() != null && n.defaultType().isAssignableFrom(internalType).isError()) {
                 return Parsed.error("Notation " + n.name() + " does not allow for data type " + dataType);
             }
             return Parsed.ok(new UserType(notation, internalType));
@@ -240,7 +240,7 @@ public class UserTypeParser {
                 // Load the schema
                 final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, dataType, false);
                 final var schemaType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
-                if (!not.defaultType().checkAssignableFrom(schemaType).isOK()) {
+                if (not.defaultType().isAssignableFrom(schemaType).isError()) {
                     return Parsed.error("Notation does not allow for type: notation=" + not.name() + ", type=" + dataType);
                 }
                 return Parsed.ok(new UserType(notation, schemaType));

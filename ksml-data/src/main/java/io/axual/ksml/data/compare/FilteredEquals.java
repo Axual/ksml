@@ -1,4 +1,4 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.data.compare;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,6 +20,8 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-public interface DataTypeComparer {
-    boolean compare(DataType other);
+import io.axual.ksml.data.type.Flags;
+
+public interface FilteredEquals {
+    Equal equals(Object obj, Flags flags);
 }

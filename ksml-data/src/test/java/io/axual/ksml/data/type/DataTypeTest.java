@@ -20,12 +20,11 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataNull;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataNull;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,43 +41,43 @@ class DataTypeTest {
                 .hasToString("?");
 
         // Assignable from other DataTypes
-        assertThat(unknown.checkAssignableFrom(new SimpleType(Integer.class, "integer")).isOK()).isTrue();
-        assertThat(unknown.checkAssignableFrom(new SimpleType(String.class, "string")).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(new SimpleType(Integer.class, "integer")).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(new SimpleType(String.class, "string")).isOK()).isTrue();
 
         // Assignable from any Class
-        assertThat(unknown.checkAssignableFrom(Integer.class).isOK()).isTrue();
-        assertThat(unknown.checkAssignableFrom(String.class).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(Integer.class).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(String.class).isOK()).isTrue();
 
         // Assignable from any Object including null
-        assertThat(unknown.checkAssignableFrom(new Object()).isOK()).isTrue();
-        assertThat(unknown.checkAssignableFrom("abc").isOK()).isTrue();
-        assertThat(unknown.checkAssignableFrom((Object) null).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(new Object()).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom("abc").isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom((Object) null).isOK()).isTrue();
     }
 
     @Test
-    @DisplayName("Default checkAssignableFrom(DataObject) accepts DataNull and delegates to type for others")
-    void defaultcheckAssignableFromDataObject() {
+    @DisplayName("Default isAssignableFrom(DataObject) accepts DataNull and delegates to type for others")
+    void defaultIsAssignableFromDataObject() {
         var numberType = new SimpleType(Number.class, "number");
         var stringType = new SimpleType(String.class, "string");
 
         // DataNull short-circuit should return true for any DataType
-        assertThat(numberType.checkAssignableFrom(DataNull.INSTANCE).isOK()).isTrue();
-        assertThat(stringType.checkAssignableFrom(DataNull.INSTANCE).isOK()).isTrue();
+        assertThat(numberType.isAssignableFrom(DataNull.INSTANCE).isOK()).isTrue();
+        assertThat(stringType.isAssignableFrom(DataNull.INSTANCE).isOK()).isTrue();
 
-        // Delegates to checkAssignableFrom(DataType)
+        // Delegates to isAssignableFrom(DataType)
         var dataInt = new DataInteger(42);
-        assertThat(numberType.checkAssignableFrom(dataInt).isOK()).isTrue();
-        assertThat(stringType.checkAssignableFrom(dataInt).isOK()).isFalse();
+        assertThat(numberType.isAssignableFrom(dataInt).isOK()).isTrue();
+        assertThat(stringType.isAssignableFrom(dataInt).isOK()).isFalse();
     }
 
     @Test
-    @DisplayName("Default checkAssignableFrom(Object) allows null and checks runtime class against DataType")
-    void defaultcheckAssignableFromObject() {
+    @DisplayName("Default isAssignableFrom(Object) allows null and checks runtime class against DataType")
+    void defaultIsAssignableFromObject() {
         var numberType = new SimpleType(Number.class, "number");
         var softly = new SoftAssertions();
-        softly.assertThat(numberType.checkAssignableFrom((Object) null).isOK()).isTrue();
-        softly.assertThat(numberType.checkAssignableFrom(Integer.valueOf(5)).isOK()).isTrue();
-        softly.assertThat(numberType.checkAssignableFrom("text").isOK()).isFalse();
+        softly.assertThat(numberType.isAssignableFrom((Object) null).isOK()).isTrue();
+        softly.assertThat(numberType.isAssignableFrom(Integer.valueOf(5)).isOK()).isTrue();
+        softly.assertThat(numberType.isAssignableFrom("text").isOK()).isFalse();
         softly.assertAll();
     }
 }

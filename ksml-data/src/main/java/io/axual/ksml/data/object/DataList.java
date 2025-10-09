@@ -21,20 +21,24 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.util.EqualsUtil;
 import lombok.EqualsAndHashCode;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_LIST_CONTENTS;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_LIST_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_LIST_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_LIST_TYPE;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualsUtil.typeNotEqual;
 
 /**
  * Represents a list of {@link DataObject} instances within the {@link DataObject} framework.
@@ -144,10 +148,10 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @return The same {@link DataObject} if the type is valid.
      * @throws IllegalArgumentException if the value type is invalid.
      */
-    private DataObject verifiedValue(DataObject value) {
-        if (type.valueType().checkAssignableFrom(value.type()).isError()) {
+    private DataObject assignableValue(DataObject value) {
+        final var assignable = type.valueType().isAssignableFrom(value.type());
+        if (assignable.isError())
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
-        }
         return value;
     }
 
@@ -159,7 +163,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @throws IllegalArgumentException if the value type is invalid.
      */
     public boolean add(DataObject value) {
-        return contents.add(verifiedValue(value));
+        return contents.add(assignableValue(value));
     }
 
     /**
@@ -233,43 +237,47 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object other, Flags flags) {
-        if (this == other) return Compared.ok();
-        if (other == null) return Compared.otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataList) other;
 
         // Compare type
         if (!flags.isSet(IGNORE_DATA_LIST_TYPE)) {
-            final var typeCompared = type.equals(that.type, flags);
-            if (typeCompared.isError())
-                return Compared.notEqual(type, that.type, typeCompared);
+            final var typeEqual = type.equals(that.type, flags);
+            if (typeEqual.isError())
+                return typeNotEqual(type, that.type, typeEqual);
         }
 
         // Compare contents
-        if (!flags.isSet(IGNORE_DATA_LIST_CONTENTS)) {
-            if (contents == null) return that.contents != null ? Compared.notEqual(this, that) : Compared.ok();
-            if (that.contents == null) return Compared.notEqual(this, that);
-            if (contents.size() != that.contents.size()) return Compared.notEqual(this, that);
-            final var contentsCompared = contentsEqual(contents, that.contents, flags);
-            if (contentsCompared.isError()) return Compared.notEqual(this, that, contentsCompared);
+        if (!flags.isSet(IGNORE_DATA_LIST_CONTENTS) && (contents != null || that.contents != null)) {
+            if (contents == null || that.contents == null) return EqualsUtil.objectNotEqual(this, that);
+            final var contentsEqual = equalContents(this, that, flags);
+            if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Compared.ok();
+        return Equal.ok();
     }
 
-    private static Compared contentsEqual(List<DataObject> left, List<DataObject> right, Flags flags) {
+    private static Equal equalContents(DataList left, DataList right, Flags flags) {
+        if (left.size() != right.size())
+            return fieldNotEqual("elementCount", left, left.size(), right, right.size());
+
         var index = 0;
-        for (var entry : left) {
-            final var thatValue = right.get(index);
-            if (entry == null && thatValue == null) continue;
-            if (entry == null || thatValue == null) return Compared.notEqual(entry, thatValue);
-            final var entryCompared = entry.equals(thatValue, flags);
-            if (entryCompared.isError())
-                return Compared.fieldNotEqual("[" + index + "]", "DataList", entry, thatValue, entryCompared);
+        for (var element : left) {
+            final var thatElement = right.get(index);
+            if (element != null || thatElement != null) {
+                if (element == null || thatElement == null)
+                    return fieldNotEqual("element[" + index + "]", left, element, right, thatElement);
+                final var entryEqual = element.equals(thatElement, flags);
+                if (entryEqual.isError())
+                    return fieldNotEqual("element[" + index + "]", left, element, right, thatElement, entryEqual);
+            }
             index++;
         }
-        return Compared.ok();
+        return Equal.ok();
     }
 }

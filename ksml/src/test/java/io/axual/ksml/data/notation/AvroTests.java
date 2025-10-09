@@ -28,19 +28,19 @@ import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_TAG;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_DOC;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_TAG;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_TYPE_MEMBER_NAME;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_UNION_TYPE_MEMBER_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_TAG;
 
 class AvroTests {
     private static final Flags AVRO_FLAGS = new Flags(
             IGNORE_DATA_FIELD_TAG,
-            IGNORE_ENUM_SYMBOL_DOC,
-            IGNORE_ENUM_SYMBOL_TAG,
+            IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
+            IGNORE_ENUM_SCHEMA_SYMBOL_TAG,
             IGNORE_UNION_SCHEMA_MEMBER_NAME,
             IGNORE_UNION_SCHEMA_MEMBER_TAG,
             IGNORE_UNION_TYPE_MEMBER_NAME,

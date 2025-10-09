@@ -243,12 +243,12 @@ public class TopologyBuildContext {
             final var topic = definition.topic() != null ? definition.topic() : "unknown topic";
             final var defKeyType = definition.keyType();
             final var wrapperKeyType = wrapper.keyType().userType();
-            if (defKeyType != null && !defKeyType.dataType().checkAssignableFrom(wrapperKeyType.dataType()).isOK()) {
+            if (defKeyType != null && defKeyType.dataType().isAssignableFrom(wrapperKeyType.dataType()).isError()) {
                 throw new TopologyException("Expected keyType " + defKeyType + " for topic " + definition.topic() + " differs from real keyType " + wrapperKeyType);
             }
             final var defValueType = definition.valueType();
             final var wrapperValueType = wrapper.valueType().userType();
-            if (defValueType != null && !defValueType.dataType().checkAssignableFrom(wrapperValueType.dataType()).isOK()) {
+            if (defValueType != null && defValueType.dataType().isAssignableFrom(wrapperValueType.dataType()).isError()) {
                 throw new TopologyException("Expected valueType " + defValueType + " for topic '" + topic + "' differs from real valueType " + wrapperValueType);
             }
         }

@@ -21,7 +21,8 @@ package io.axual.ksml.data.schema;
  */
 
 import com.google.common.collect.Lists;
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.Flags;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -34,9 +35,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_SCHEMA_FIELDS;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_FIELDS;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
 
 /**
  * Represents a structured schema with named fields in the KSML framework.
@@ -216,26 +220,28 @@ public class StructSchema extends NamedSchema {
      * @param otherSchema The other {@link DataSchema} to check for compatibility.
      */
     @Override
-    public Compared checkAssignableFrom(DataSchema otherSchema) {
-        final var superVerified = super.checkAssignableFrom(otherSchema);
-        if (superVerified.isError()) return superVerified;
-        if (!(otherSchema instanceof StructSchema otherStructSchema)) return Compared.schemaMismatch(this, otherSchema);
+    public Assignable isAssignableFrom(DataSchema otherSchema) {
+        final var superAssignable = super.isAssignableFrom(otherSchema);
+        if (superAssignable.isError()) return superAssignable;
+        if (!(otherSchema instanceof StructSchema that))
+            return schemaMismatch(this, otherSchema);
         // Ensure the other schema has the same fields with compatible types
         for (final var field : fields) {
             // Get the field with the same name from the other schema
-            final var otherField = otherStructSchema.field(field.name());
+            final var thatField = that.field(field.name());
             // If the field exists in the other schema, then validate its compatibility
-            if (otherField != null) {
-                final var fieldVerified = field.checkAssignableFrom(otherField);
-                if (fieldVerified.isError()) return fieldVerified;
+            if (thatField != null) {
+                final var fieldAssignable = field.isAssignableFrom(thatField);
+                if (fieldAssignable.isError())
+                    return fieldNotAssignable(field.name(), this, field, that, thatField, fieldAssignable);
             }
             // If this field has no default value, then the field should exist in the other schema
-            if (field.defaultValue() == null && otherField == null) {
-                return Compared.error("Other schema does not contain required field \"" + field.name() + "\"");
+            if (field.defaultValue() == null && thatField == null) {
+                return Assignable.error("Other schema does not contain required field \"" + field.name() + "\"");
             }
         }
         // All fields are assignable, so return no error
-        return Compared.ok();
+        return Assignable.ok();
     }
 
     /**
@@ -245,37 +251,37 @@ public class StructSchema extends NamedSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object obj, Flags flags) {
-        final var superVerified = super.equals(obj, flags);
-        if (superVerified.isError()) return superVerified;
+    public Equal equals(Object obj, Flags flags) {
+        final var superEqual = super.equals(obj, flags);
+        if (superEqual.isError()) return superEqual;
 
         final var that = (StructSchema) obj;
 
         // Compare additionalFieldsAllowed
         if (!flags.isSet(IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED) && !Objects.equals(additionalFieldsAllowed, that.additionalFieldsAllowed))
-            return Compared.fieldNotEqual("additionalFieldsAllowed", this, additionalFieldsAllowed, that, that.additionalFieldsAllowed);
+            return fieldNotEqual("additionalFieldsAllowed", this, additionalFieldsAllowed, that, that.additionalFieldsAllowed);
 
         // Compare additionalFieldsSchema
         if (!flags.isSet(IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA) && (additionalFieldsSchema != null || that.additionalFieldsSchema != null)) {
             if (additionalFieldsSchema == null || that.additionalFieldsSchema == null)
-                return Compared.fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema);
-            final var additionalFieldsSchemaCompared = additionalFieldsSchema.equals(that.additionalFieldsSchema, flags);
-            if (additionalFieldsSchemaCompared.isError())
-                return Compared.fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema, additionalFieldsSchemaCompared);
+                return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema);
+            final var additionalFieldsSchemaEqual = additionalFieldsSchema.equals(that.additionalFieldsSchema, flags);
+            if (additionalFieldsSchemaEqual.isError())
+                return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema, additionalFieldsSchemaEqual);
         }
 
         // Compare fields
         if (!flags.isSet(IGNORE_STRUCT_SCHEMA_FIELDS)) {
             if (fields.size() != that.fields.size())
-                return Compared.fieldNotEqual("fieldCount", this, fields.size(), that, that.fields.size());
+                return fieldNotEqual("fieldCount", this, fields.size(), that, that.fields.size());
 
             for (int i = 0; i < fields.size(); i++) {
-                final var fieldCompared = fields.get(i).equals(that.fields.get(i), flags);
-                if (fieldCompared.isError())
-                    return Compared.fieldNotEqual("field[" + i + "]", this, fields.get(i), that, that.fields.get(i), fieldCompared);
+                final var fieldEqual = fields.get(i).equals(that.fields.get(i), flags);
+                if (fieldEqual.isError())
+                    return fieldNotEqual("field[" + i + "]", this, fields.get(i), that, that.fields.get(i), fieldEqual);
             }
         }
 
-        return super.equals(obj, flags);
+        return Equal.ok();
     }
 }

@@ -20,18 +20,24 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.util.EqualsUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Map;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_TYPE_SCHEMA;
+import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_STRUCT_TYPE_SCHEMA;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
 
 /**
  * A {@link ComplexType} representing a structured map-like type that may be backed by a
@@ -44,6 +50,7 @@ import static io.axual.ksml.data.type.EqualityFlags.IGNORE_STRUCT_TYPE_SCHEMA;
 @Getter
 public class StructType extends ComplexType {
     private static final String DEFAULT_NAME = "Struct";
+    private static final String SCHEMA_FIELD = "schema";
     private static final DataTypeDataSchemaMapper MAPPER = new DataTypeDataSchemaMapper();
     private final StructSchema schema;
 
@@ -88,18 +95,25 @@ public class StructType extends ComplexType {
     }
 
     @Override
-    public Compared checkAssignableFrom(DataType otherType) {
+    public Assignable isAssignableFrom(DataType type) {
         // Always allow Structs to be NULL (Kafka tombstones)
-        if (otherType == DataNull.DATATYPE) return Compared.ok();
+        if (type == DataNull.DATATYPE) return Assignable.ok();
+
         // Perform superclass validation first
-        final var superVerified = super.checkAssignableFrom(otherType);
-        if (superVerified.isError()) return superVerified;
-        if (!(otherType instanceof StructType otherStructType))
-            return Compared.error("Type \"" + otherType + "\" is not a StructType");
-        // In case we have no schema, then we can be assigned values from any other struct, with or without a schema
-        if (schema == null) return Compared.ok();
-        // When we have a schema, validate that the schema is assignable from the other struct's schema
-        return schema.checkAssignableFrom(otherStructType.schema);
+        final var superAssignable = super.isAssignableFrom(type);
+        if (superAssignable.isError()) return superAssignable;
+
+        if (!(type instanceof StructType that))
+            return typeMismatch(this, type);
+
+        // Check the schema if we have one
+        if (schema != null) {
+            final var schemaAssignable = schema.isAssignableFrom(that.schema);
+            if (schemaAssignable.isError())
+                return fieldNotAssignable(SCHEMA_FIELD, this, schema, that, that.schema, schemaAssignable);
+        }
+
+        return Assignable.ok();
     }
 
     /**
@@ -109,24 +123,26 @@ public class StructType extends ComplexType {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object other, Flags flags) {
-        if (this == other) return Compared.ok();
-        if (other == null) return Compared.otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
 
-        final var superCompared = super.equals(other, flags);
-        if (superCompared.isError()) return superCompared;
+        final var superEqual = super.equals(other, flags);
+        if (superEqual.isError()) return superEqual;
 
         final var that = (StructType) other;
 
         // Compare schema
         if (!flags.isSet(IGNORE_STRUCT_TYPE_SCHEMA) && (schema != null || that.schema != null)) {
             if (schema == null || that.schema == null)
-                return Compared.fieldNotEqual("schema", this, schema, that, that.schema);
-            final var schemaCompared = schema.equals(that.schema, flags);
-            return schemaCompared.isError() ? Compared.schemaMismatch(schema, that.schema, schemaCompared) : Compared.ok();
+                return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema);
+            final var schemaEqual = schema.equals(that.schema, flags);
+            if (schemaEqual.isError())
+                return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema, schemaEqual);
         }
 
-        return Compared.ok();
+        return Equal.ok();
     }
 }

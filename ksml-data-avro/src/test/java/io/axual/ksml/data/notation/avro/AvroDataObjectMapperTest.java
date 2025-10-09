@@ -21,7 +21,7 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import com.google.common.collect.Maps;
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
 import io.axual.ksml.data.object.DataBoolean;
@@ -677,8 +677,8 @@ class AvroDataObjectMapperTest {
         }
 
         @Override
-        public Compared equals(Object obj, Flags flags) {
-            return Compared.error("Fake error");
+        public Equal equals(Object obj, Flags flags) {
+            return Equal.error("Fake error");
         }
     }
 

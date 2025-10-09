@@ -88,7 +88,7 @@ public class JsonNotation extends BaseNotation {
     public Serde<Object> serde(DataType type, boolean isKey) {
         // JSON types can be Map (or Struct), List, or the union type of both Struct and List.
         // The union coverage is checked via assignability to DEFAULT_TYPE.
-        if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.checkAssignableFrom(type).isOK())
+        if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type).isOK())
             return new JsonSerde(context().nativeDataObjectMapper(), type);
         // Other types cannot be serialized as JSON.
         throw new DataException("JSON serde not found for data type: " + type);

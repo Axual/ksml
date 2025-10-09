@@ -97,7 +97,7 @@ public class UserFunction {
 
     protected void checkType(DataType expected, DataObject value) {
         if (value instanceof DataNull) return;
-        if (expected != null && value != null && !expected.checkAssignableFrom(value.type()).isOK()) {
+        if (expected != null && value != null && expected.isAssignableFrom(value.type()).isError()) {
             throw DataException.conversionFailed(expected, value.type());
         }
     }
@@ -140,15 +140,15 @@ public class UserFunction {
     public KeyValue<Object, Object> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
         if (result instanceof DataList list &&
                 list.size() == 2 &&
-                keyType.checkAssignableFrom(list.get(0).type()).isOK() &&
-                valueType.checkAssignableFrom(list.get(1).type()).isOK()) {
+                keyType.isAssignableFrom(list.get(0).type()).isOK() &&
+                valueType.isAssignableFrom(list.get(1).type()).isOK()) {
             return new KeyValue<>(list.get(0), list.get(1));
         }
 
         if (result instanceof DataTuple tuple &&
                 tuple.elements().size() == 2 &&
-                keyType.checkAssignableFrom(tuple.elements().get(0).type()).isOK() &&
-                valueType.checkAssignableFrom(tuple.elements().get(1).type()).isOK()) {
+                keyType.isAssignableFrom(tuple.elements().get(0).type()).isOK() &&
+                valueType.isAssignableFrom(tuple.elements().get(1).type()).isOK()) {
             return new KeyValue<>(tuple.elements().get(0), tuple.elements().get(1));
         }
 

@@ -20,7 +20,7 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.Flags;
 
@@ -30,8 +30,8 @@ public class DataEnum extends DataPrimitive<String> {
     }
 
     @Override
-    public Compared equals(Object other, Flags flags) {
-        if (other instanceof DataString dataString && value().equals(dataString.value())) return Compared.ok();
+    public Equal equals(Object other, Flags flags) {
+        if (other instanceof DataString dataString && value().equals(dataString.value())) return Equal.ok();
         return super.equals(other, flags);
     }
 }

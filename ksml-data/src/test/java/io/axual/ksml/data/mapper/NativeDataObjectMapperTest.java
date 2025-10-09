@@ -20,7 +20,7 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -680,8 +680,8 @@ class NativeDataObjectMapperTest {
         }
 
         @Override
-        public Compared equals(Object obj, Flags flags) {
-            return Compared.error("Fake error");
+        public Equal equals(Object obj, Flags flags) {
+            return Equal.error("Fake error");
         }
     }
 }

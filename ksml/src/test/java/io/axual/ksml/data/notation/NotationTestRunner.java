@@ -61,8 +61,8 @@ class NotationTestRunner {
         schemaTest(type, schemaMapper, (input, output) -> {
             assertThat(input)
                     .as("Input schema should match output schema")
-                    .returns(true, i -> i.checkAssignableFrom(output).isOK())
-                    .returns(true, o -> o.checkAssignableFrom(input).isOK());
+                    .returns(true, i -> i.isAssignableFrom(output).isOK())
+                    .returns(true, o -> o.isAssignableFrom(input).isOK());
         });
     }
 
@@ -74,8 +74,8 @@ class NotationTestRunner {
             System.out.println(type.toUpperCase() + " DATA: " + nativeObject);
             final var outputData = objectMapper.toDataObject(inputData.type(), nativeObject);
             System.out.println("OUTPUT DATA: " + outputData);
-            final var compared = inputData.equals(outputData, flags);
-            assertTrue(compared.isOK(), "Input data should match output data:\n" + compared.toString(true));
+            final var equal = inputData.equals(outputData, flags);
+            assertTrue(equal.isOK(), "Input data should match output data:\n" + equal.toString(true));
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }
@@ -101,8 +101,8 @@ class NotationTestRunner {
                 outputData = new DataObjectConverter().convert(null, outputData, new UserType(null, inputData.type()));
                 System.out.println("CONVERTED OUTPUT DATA: " + outputData);
             }
-            final var compared = inputData.equals(outputData, flags);
-            assertTrue(compared.isOK(), "Input data should match output data\n" + compared.toString(true));
+            final var equal = inputData.equals(outputData, flags);
+            assertTrue(equal.isOK(), "Input data should match output data\n" + equal.toString(true));
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }

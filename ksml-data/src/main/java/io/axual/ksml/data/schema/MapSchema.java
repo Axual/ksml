@@ -20,13 +20,17 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.Flags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_MAP_SCHEMA_VALUE_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_MAP_SCHEMA_VALUE_SCHEMA;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
 
 /**
  * A schema representation for maps in the KSML framework.
@@ -77,13 +81,16 @@ public class MapSchema extends DataSchema {
      * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
      */
     @Override
-    public Compared checkAssignableFrom(DataSchema otherSchema) {
-        final var superVerified = super.checkAssignableFrom(otherSchema);
-        if (superVerified.isError()) return superVerified;
-        if (!(otherSchema instanceof MapSchema otherMapSchema)) return Compared.schemaMismatch(this, otherSchema);
+    public Assignable isAssignableFrom(DataSchema otherSchema) {
+        final var superAssignable = super.isAssignableFrom(otherSchema);
+        if (superAssignable.isError()) return superAssignable;
+        if (!(otherSchema instanceof MapSchema that)) return schemaMismatch(this, otherSchema);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
-        return valueSchema.checkAssignableFrom(otherMapSchema.valueSchema);
+        final var valueSchemaAssignable = valueSchema.isAssignableFrom(that.valueSchema);
+        if (valueSchemaAssignable.isError())
+            return fieldNotAssignable("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaAssignable);
+        return Assignable.ok();
     }
 
     /**
@@ -93,19 +100,19 @@ public class MapSchema extends DataSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object obj, Flags flags) {
-        final var superVerified = super.equals(obj, flags);
-        if (superVerified.isError()) return superVerified;
+    public Equal equals(Object obj, Flags flags) {
+        final var superEqual = super.equals(obj, flags);
+        if (superEqual.isError()) return superEqual;
 
         final var that = (MapSchema) obj;
 
         // Compare valueSchema
         if (!flags.isSet(IGNORE_MAP_SCHEMA_VALUE_SCHEMA)) {
-            final var valueSchemaCompared = valueSchema.equals(that.valueSchema, flags);
-            if (valueSchemaCompared.isError())
-                return Compared.fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaCompared);
+            final var valueSchemaEqual = valueSchema.equals(that.valueSchema, flags);
+            if (valueSchemaEqual.isError())
+                return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
         }
 
-        return super.equals(obj, flags);
+        return Equal.ok();
     }
 }

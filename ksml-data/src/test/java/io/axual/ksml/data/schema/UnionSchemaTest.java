@@ -46,35 +46,35 @@ class UnionSchemaTest {
     }
 
     @Test
-    @DisplayName("checkAssignableFrom supports single schema and union with matching name/tag rules")
+    @DisplayName("isAssignableFrom supports single schema and union with matching name/tag rules")
     void assignabilityRules() {
         final var intField = new UnionSchema.Member("i", DataSchema.INTEGER_SCHEMA, 1);
         final var strField = new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2);
         final var union = new UnionSchema(intField, strField);
 
         // Single schema assignability
-        assertThat(union.checkAssignableFrom(DataSchema.INTEGER_SCHEMA).isOK()).isTrue();
-        assertThat(union.checkAssignableFrom(DataSchema.FLOAT_SCHEMA).isOK()).isFalse();
+        assertThat(union.isAssignableFrom(DataSchema.INTEGER_SCHEMA).isOK()).isTrue();
+        assertThat(union.isAssignableFrom(DataSchema.FLOAT_SCHEMA).isOK()).isFalse();
 
         // Other union with matching names/tags
         final var other = new UnionSchema(
                 new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, 1), // compatible by integer group and tag/name match
                 new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2)
         );
-        assertThat(union.checkAssignableFrom(other).isOK()).isTrue();
+        assertThat(union.isAssignableFrom(other).isOK()).isTrue();
 
         // Mismatched tag prevents assignment
         final var wrongTag = new UnionSchema(
                 new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, 99),
                 new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2)
         );
-        assertThat(union.checkAssignableFrom(wrongTag).isOK()).isFalse();
+        assertThat(union.isAssignableFrom(wrongTag).isOK()).isFalse();
 
         // Anonymous fields or NO_TAG allow assignment regardless of mismatch
         final var anonymous = new UnionSchema(
                 new UnionSchema.Member(null, DataSchema.LONG_SCHEMA, NO_TAG),
                 new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2)
         );
-        assertThat(union.checkAssignableFrom(anonymous).isOK()).isTrue();
+        assertThat(union.isAssignableFrom(anonymous).isOK()).isTrue();
     }
 }

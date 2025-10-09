@@ -20,7 +20,8 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,42 +53,41 @@ class SimpleTypeTest {
     }
 
     @Test
-    @DisplayName("Assignability between DataTypes follows Java Class.checkAssignableFrom")
-    void checkAssignableFromDataType() {
+    @DisplayName("Assignability between DataTypes follows Java Class.isAssignableFrom")
+    void isAssignableFromDataType() {
         var numberType = new SimpleType(Number.class, "number");
         var integerType = new SimpleType(Integer.class, "integer");
-        assertThat(numberType.checkAssignableFrom(integerType).isOK()).isTrue();
-        assertThat(integerType.checkAssignableFrom(numberType).isOK()).isFalse();
+        assertThat(numberType.isAssignableFrom(integerType).isOK()).isTrue();
+        assertThat(integerType.isAssignableFrom(numberType).isOK()).isFalse();
 
         // Non-SimpleType should be rejected: using anonymous DataType not a SimpleType
         var other = new DataType() {
             @Override public Class<?> containerClass() { return Object.class; }
             @Override public String name() { return "X"; }
             @Override public String spec() { return "X"; }
-            @Override public Compared checkAssignableFrom(DataType type) { return Compared.error("Fake error"); }
-            @Override public Compared checkAssignableFrom(Class<?> type) { return Compared.error("Fake error"); }
-            @Override public Compared equals(Object other, Flags flags) { return Compared.error("Fake error"); }
+            @Override public Assignable isAssignableFrom(DataType type) { return Assignable.error("Fake error"); }
+            @Override public Equal equals(Object other, Flags flags) { return Equal.error("Fake error"); }
         };
-        assertThat(numberType.checkAssignableFrom(other).isOK()).isFalse();
+        assertThat(numberType.isAssignableFrom(other).isOK()).isFalse();
     }
 
     @Test
-    @DisplayName("Assignability from Class uses containerClass.checkAssignableFrom")
-    void checkAssignableFromClass() {
+    @DisplayName("Assignability from Class uses containerClass.isAssignableFrom")
+    void isAssignableFromClass() {
         var numberType = new SimpleType(Number.class, "number");
         var integerType = new SimpleType(Integer.class, "integer");
-        assertThat(numberType.checkAssignableFrom(Integer.class).isOK()).isTrue();
-        assertThat(integerType.checkAssignableFrom(Number.class).isOK()).isFalse();
+        assertThat(numberType.isAssignableFrom(Integer.class).isOK()).isTrue();
+        assertThat(integerType.isAssignableFrom(Number.class).isOK()).isFalse();
     }
 
     @Test
     @DisplayName("Assignability from Object allows null and checks runtime class")
-    void checkAssignableFromObject() {
+    void isAssignableFromObject() {
         var numberType = new SimpleType(Number.class, "number");
         var integerType = new SimpleType(Integer.class, "integer");
-        assertThat(numberType.checkAssignableFrom(Integer.valueOf(123)).isOK()).isTrue();
-        assertThat(integerType.checkAssignableFrom(new Object()).isOK()).isFalse();
-        assertThat(integerType.checkAssignableFrom((Object) null).isOK()).isTrue(); // DataType default allows null
+        assertThat(numberType.isAssignableFrom(Integer.valueOf(123)).isOK()).isTrue();
+        assertThat(integerType.isAssignableFrom(new Object()).isOK()).isFalse();
+        assertThat(integerType.isAssignableFrom((Object) null).isOK()).isTrue(); // DataType default allows null
     }
 
     @Test

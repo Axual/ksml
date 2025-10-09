@@ -30,8 +30,8 @@ import io.axual.ksml.data.notation.protobuf.confluent.ConfluentProtobufDescripto
 import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_FIELD_DOC;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_NAMED_SCHEMA_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_NAMED_SCHEMA_DOC;
 
 class ProtobufTests {
     private static final Flags PROTOBUF_FLAGS = new Flags(

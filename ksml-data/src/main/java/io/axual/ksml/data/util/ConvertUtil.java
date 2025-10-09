@@ -161,7 +161,7 @@ public class ConvertUtil {
         var convertedValue = applyNotationConverters(sourceNotation, targetNotation, targetType, value);
 
         // If the notation conversion was good enough, then return that result
-        if (targetType.checkAssignableFrom(convertedValue).isOK()) return convertedValue;
+        if (targetType.isAssignableFrom(convertedValue).isOK()) return convertedValue;
 
         // As a final attempt to convert to the right type, run it through the compatibility converter
         convertedValue = convertDataObject(targetType, convertedValue, allowFail);
@@ -178,13 +178,13 @@ public class ConvertUtil {
         // First we see if the target notation is able to interpret the source value
         if (targetNotation != null && targetNotation.converter() != null) {
             final var target = targetNotation.converter().convert(value, targetType);
-            if (target != null && targetType.checkAssignableFrom(target.type()).isOK()) return target;
+            if (target != null && targetType.isAssignableFrom(target.type()).isOK()) return target;
         }
 
         // If the target notation was not able to convert, then try the source notation
         if (sourceNotation != null && sourceNotation.converter() != null) {
             final var target = sourceNotation.converter().convert(value, targetType);
-            if (target != null && targetType.checkAssignableFrom(target.type()).isOK()) return target;
+            if (target != null && targetType.isAssignableFrom(target.type()).isOK()) return target;
         }
 
         return value;
@@ -193,7 +193,7 @@ public class ConvertUtil {
     private DataObject convertDataObject(DataType targetType, DataObject value, boolean allowFail) {
         // If we're already compatible with the target type, then return the value itself. This line is here mainly
         // for recursive calls from lists and maps.
-        if (targetType.checkAssignableFrom(value).isOK()) return value;
+        if (targetType.isAssignableFrom(value).isOK()) return value;
 
         // Convert from anything to string
         if (targetType == DataString.DATATYPE) return new DataString(value.toString());
@@ -303,7 +303,7 @@ public class ConvertUtil {
         final var result = new DataList(listType.valueType());
         for (final var element : elements) {
             final var dataObject = dataObjectMapper.toDataObject(listType.valueType(), element);
-            if (!listType.valueType().checkAssignableFrom(dataObject).isOK())
+            if (!listType.valueType().isAssignableFrom(dataObject).isOK())
                 throw convertError(dataObject != null ? dataObject.type() : null, listType.valueType(), dataObject);
             result.add(dataObject);
         }
@@ -354,7 +354,7 @@ public class ConvertUtil {
         for (final var element : elements) {
             final var targetType = tupleType.subType(index);
             final var targetValue = dataObjectMapper.toDataObject(targetType, element);
-            if (!targetType.checkAssignableFrom(targetValue).isOK())
+            if (!targetType.isAssignableFrom(targetValue).isOK())
                 throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
             tupleElements[index++] = targetValue;
         }
@@ -365,7 +365,7 @@ public class ConvertUtil {
         final var valueString = new DataString(value);
         for (final var member : unionType.members()) {
             final var dataObject = convert(member.type(), valueString, true);
-            if (dataObject != null && member.type().checkAssignableFrom(dataObject).isOK())
+            if (dataObject != null && member.type().isAssignableFrom(dataObject).isOK())
                 return dataObject;
         }
         if (!allowFail)

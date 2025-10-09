@@ -62,20 +62,20 @@ class MapTypeTest {
     void assignabilityBetweenMaps() {
         var numberMap = new MapType(new SimpleType(Number.class, "number"));
         var integerMap = new MapType(new SimpleType(Integer.class, "integer"));
-        assertThat(numberMap.checkAssignableFrom(integerMap).isOK()).isTrue();
-        assertThat(integerMap.checkAssignableFrom(numberMap).isOK()).isFalse();
+        assertThat(numberMap.isAssignableFrom(integerMap).isOK()).isTrue();
+        assertThat(integerMap.isAssignableFrom(numberMap).isOK()).isFalse();
 
         // Different container class (e.g., ListType) is not assignable
         var listOfNumber = new ListType(new SimpleType(Number.class, "number"));
-        assertThat(numberMap.checkAssignableFrom(listOfNumber).isOK()).isFalse();
+        assertThat(numberMap.isAssignableFrom(listOfNumber).isOK()).isFalse();
     }
 
     @Test
-    @DisplayName("Assignability from Class uses containerClass.checkAssignableFrom(Class)")
+    @DisplayName("Assignability from Class uses containerClass.isAssignableFrom(Class)")
     void assignabilityFromClass() {
         var anyMap = new MapType();
-        assertThat(anyMap.checkAssignableFrom(HashMap.class).isOK()).isTrue();
-        assertThat(anyMap.checkAssignableFrom(String.class).isOK()).isFalse();
+        assertThat(anyMap.isAssignableFrom(HashMap.class).isOK()).isTrue();
+        assertThat(anyMap.isAssignableFrom(String.class).isOK()).isFalse();
     }
 
     @Test

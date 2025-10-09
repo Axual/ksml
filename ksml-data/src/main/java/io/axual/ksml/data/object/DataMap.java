@@ -21,11 +21,12 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.util.EqualsUtil;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 
@@ -35,8 +36,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_MAP_CONTENTS;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_MAP_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_MAP_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_MAP_TYPE;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualsUtil.typeNotEqual;
 
 /**
  * Represents a map with {@code String} keys and {@link DataObject} values within the
@@ -176,8 +181,9 @@ public class DataMap implements DataObject {
      * @return The same {@link DataObject} if the type is valid.
      * @throws IllegalArgumentException if the value type is invalid.
      */
-    private DataObject verifiedValue(DataObject value) {
-        if (type.valueType().checkAssignableFrom(value.type()).isError()) {
+    private DataObject assignableValue(DataObject value) {
+        final var assignable = type.valueType().isAssignableFrom(value.type());
+        if (assignable.isError()) {
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
         }
         return value;
@@ -194,7 +200,7 @@ public class DataMap implements DataObject {
     public DataObject put(String key, DataObject value) {
         if (contents == null)
             throw new DataException("Can not add item to a NULL Map: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
-        contents.put(key, verifiedValue(value));
+        contents.put(key, assignableValue(value));
         return value;
     }
 
@@ -209,7 +215,7 @@ public class DataMap implements DataObject {
     public DataObject putIfAbsent(String key, DataObject value) {
         if (contents == null)
             throw new DataException("Can not add item to a NULL Map: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
-        return contents.computeIfAbsent(key, k -> verifiedValue(value));
+        return contents.computeIfAbsent(key, k -> assignableValue(value));
     }
 
     /**
@@ -282,41 +288,46 @@ public class DataMap implements DataObject {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object other, Flags flags) {
-        if (this == other) return Compared.ok();
-        if (other == null) return Compared.otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (DataMap) other;
 
         // Compare type
         if (!flags.isSet(IGNORE_DATA_MAP_TYPE)) {
-            final var typeCompared = type.equals(that.type, flags);
-            if (typeCompared.isError())
-                return Compared.notEqual(type, that.type, typeCompared);
+            final var typeEquals = type.equals(that.type, flags);
+            if (typeEquals.isError())
+                return typeNotEqual(type, that.type, typeEquals);
         }
 
         // Compare contents
-        if (!flags.isSet(IGNORE_DATA_MAP_CONTENTS)) {
-            if (contents == null) return that.contents != null ? Compared.notEqual(this, that) : Compared.ok();
-            if (that.contents == null) return Compared.notEqual(this, that);
-            if (contents.size() != that.contents.size()) return Compared.notEqual(this, that);
-            final var contentsCompared = contentsEqual(contents, that.contents, flags);
-            if (contentsCompared.isError()) return Compared.notEqual(this, that, contentsCompared);
+        if (!flags.isSet(IGNORE_DATA_MAP_CONTENTS) && (contents != null || that.contents != null)) {
+            if (contents == null || that.contents == null) return EqualsUtil.objectNotEqual(this, that);
+            final var contentsEqual = equalContents(this, that, flags);
+            if (contentsEqual.isError()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Compared.ok();
+        return Equal.ok();
     }
 
-    private static Compared contentsEqual(TreeMap<String, DataObject> left, TreeMap<String, DataObject> right, Flags flags) {
+    private static Equal equalContents(DataMap left, DataMap right, Flags flags) {
+        if (left.size() != right.size())
+            return fieldNotEqual("contentSize", left, left.size(), right, right.size());
+
         for (var entry : left.entrySet()) {
             final var thatValue = right.get(entry.getKey());
-            if (entry.getValue() == null && thatValue == null) continue;
-            if (entry.getValue() == null || thatValue == null) return Compared.notEqual(entry.getValue(), thatValue);
-            final var entryCompared = entry.getValue().equals(thatValue, flags);
-            if (entryCompared.isError())
-                return Compared.fieldNotEqual(entry.getKey(), "DataMap", entry.getValue(), thatValue, entryCompared);
+            if (entry.getValue() != null || thatValue != null) {
+                if (entry.getValue() == null || thatValue == null)
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue);
+                final var entryEqual = entry.getValue().equals(thatValue, flags);
+                if (entryEqual.isError())
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue, entryEqual);
+            }
         }
-        return Compared.ok();
+
+        return Equal.ok();
     }
 }

@@ -124,7 +124,7 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
             throw new IllegalArgumentException("Invalid Kafka Headers type: " + value.type());
         }
         for (final var element : headers) {
-            if (!HEADER_TYPE.checkAssignableFrom(element).isOK() || !(element instanceof DataStruct header)) {
+            if (HEADER_TYPE.isAssignableFrom(element).isError() || !(element instanceof DataStruct header)) {
                 throw new IllegalArgumentException("Invalid Kafka Header type: " + element.type());
             }
             if (header.size() != 2) {

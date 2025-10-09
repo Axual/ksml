@@ -20,10 +20,10 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Equals;
+import io.axual.ksml.data.compare.FilteredEquals;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Equal;
 
 /**
  * Defines the common abstraction for all values that participate in the KSML data model.
@@ -32,7 +32,7 @@ import io.axual.ksml.data.compare.Compared;
  * their {@link DataType} metadata so values can be validated, printed and processed in a
  * schema-aware way across the framework.</p>
  */
-public interface DataObject extends Equals {
+public interface DataObject extends FilteredEquals {
     /**
      * Returns the {@link DataType} that describes this value.
      */
@@ -41,7 +41,7 @@ public interface DataObject extends Equals {
     /**
      * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
      */
-    Compared equals(Object obj, Flags flags);
+    Equal equals(Object obj, Flags flags);
 
     /**
      * Printer options controlling how values are rendered to strings.

@@ -20,10 +20,10 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
-import io.axual.ksml.data.compare.Compared;
 import io.axual.ksml.data.value.Null;
 
 /**
@@ -45,13 +45,13 @@ public class DataNull extends DataPrimitive<Object> {
      */
     public static final SimpleType DATATYPE = new SimpleType(Null.class, DataSchemaConstants.NULL_TYPE) {
         @Override
-        public Compared checkAssignableFrom(DataType type) {
-            return this != type ? Compared.error("Can only assign \"null\" types to variables of type \"null\"") : Compared.ok();
+        public Assignable isAssignableFrom(DataType type) {
+            return this != type ? Assignable.error("Can only assign \"null\" types to variables of type \"null\"") : Assignable.ok();
         }
 
         @Override
-        public Compared checkAssignableFrom(Object value) {
-            return value != null ? Compared.error("Can only assign \"null\" values to variables of type \"null\"") : Compared.ok();
+        public Assignable isAssignableFrom(Object value) {
+            return value != null ? Assignable.error("Can only assign \"null\" values to variables of type \"null\"") : Assignable.ok();
         }
     };
 

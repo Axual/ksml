@@ -20,9 +20,11 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Compared;
-import io.axual.ksml.data.compare.Equals;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.FilteredEquals;
 import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.util.EqualsUtil;
 import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -31,11 +33,14 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SCHEMA_DEFAULT_VALUE;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SCHEMA_SYMBOLS;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_DOC;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_NAME;
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_DEFAULT_VALUE;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOLS;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualsUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
 
 /**
  * Represents a named schema for enumerations in the KSML framework.
@@ -47,11 +52,15 @@ import static io.axual.ksml.data.type.EqualityFlags.IGNORE_ENUM_SYMBOL_TAG;
  * <p>
  * This schema is used in cases where a predefined set of acceptable values is required.
  * </p>
+ * <p>
+ * Values are considered assignable only when they are strings that match one of the configured
+ * {@link Symbol} entries.
+ * </p>
  */
 @Getter
 @EqualsAndHashCode
 public class EnumSchema extends NamedSchema {
-    public record Symbol(String name, String doc, int tag) implements Equals {
+    public record Symbol(String name, String doc, int tag) implements FilteredEquals {
         public Symbol(String name, String doc, Integer tag) {
             this(name, doc, tag != null ? tag : NO_TAG);
         }
@@ -75,26 +84,27 @@ public class EnumSchema extends NamedSchema {
         }
 
         @Override
-        public Compared equals(Object other, Flags flags) {
-            if (this == other) return Compared.ok();
-            if (other == null) return Compared.otherIsNull(this);
-            if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+        public Equal equals(Object other, Flags flags) {
+            if (this == other) return Equal.ok();
+            if (other == null) return otherIsNull(this);
+            if (!getClass().equals(other.getClass()))
+                return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
 
             final var that = (Symbol) other;
 
             // Compare name
-            if (!flags.isSet(IGNORE_ENUM_SYMBOL_NAME) && !Objects.equals(name, that.name))
-                return Compared.fieldNotEqual("name", this, name, that, that.name);
+            if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_NAME) && !Objects.equals(name, that.name))
+                return fieldNotEqual("name", this, name, that, that.name);
 
             // Compare schema
-            if (!flags.isSet(IGNORE_ENUM_SYMBOL_DOC) && !Objects.equals(doc, that.doc))
-                return Compared.fieldNotEqual("doc", this, doc, that, that.doc);
+            if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_DOC) && !Objects.equals(doc, that.doc))
+                return fieldNotEqual("doc", this, doc, that, that.doc);
 
             // Compare tag
-            if (!flags.isSet(IGNORE_ENUM_SYMBOL_TAG) && !Objects.equals(tag, that.tag))
-                return Compared.fieldNotEqual("tag", this, tag, that, that.tag);
+            if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_TAG) && !Objects.equals(tag, that.tag))
+                return fieldNotEqual("tag", this, tag, that, that.tag);
 
-            return Compared.ok();
+            return Equal.ok();
         }
     }
 
@@ -161,24 +171,24 @@ public class EnumSchema extends NamedSchema {
      * @param otherSchema The schema to be checked for compatibility.
      */
     @Override
-    public Compared checkAssignableFrom(DataSchema otherSchema) {
+    public Assignable isAssignableFrom(DataSchema otherSchema) {
         // Always allow assigning from a string value (assuming a valid symbol)
-        if (otherSchema == DataSchema.STRING_SCHEMA) return Compared.ok();
+        if (otherSchema == DataSchema.STRING_SCHEMA) return Assignable.ok();
         // Check super's compatibility
-        final var superVerified = super.checkAssignableFrom(otherSchema);
-        if (superVerified.isError()) return superVerified;
+        final var superAssignable = super.isAssignableFrom(otherSchema);
+        if (superAssignable.isError()) return superAssignable;
         // Check class compatibility
-        if (!(otherSchema instanceof EnumSchema otherEnum)) return Compared.schemaMismatch(this, otherSchema);
+        if (!(otherSchema instanceof EnumSchema otherEnum)) return schemaMismatch(this, otherSchema);
         // This schema is assignable from the other enum when the map of symbols is equal or a superset of the
         // otherEnum's set of symbols.
         for (final var otherSymbol : otherEnum.symbols) {
             // Validate that the other symbol is present and equal in our own symbol list
             if (ListUtil.find(symbols, thisSymbol -> thisSymbol.isAssignableFrom(otherSymbol)) == null) {
-                return Compared.error("Symbol \"" + otherSymbol.name() + "\" not found in enumeration");
+                return Assignable.error("Symbol \"" + otherSymbol.name() + "\" not found in enumeration");
             }
         }
         // All symbols from the other union are contained within this one, so return no error
-        return Compared.ok();
+        return Assignable.ok();
     }
 
     /**
@@ -188,26 +198,28 @@ public class EnumSchema extends NamedSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object obj, Flags flags) {
-        final var superVerified = super.equals(obj, flags);
-        if (superVerified.isError()) return superVerified;
+    public Equal equals(Object obj, Flags flags) {
+        final var superEqual = super.equals(obj, flags);
+        if (superEqual.isError()) return superEqual;
 
         final var that = (EnumSchema) obj;
 
         // Compare symbols
         if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOLS)) {
             // Two unions are equal if their members are all equal
-            if (symbols.size() != that.symbols.size()) return Compared.notEqual(this, that);
+            if (symbols.size() != that.symbols.size())
+                return fieldNotEqual("symbolCount", this, symbols.size(), that, that.symbols.size());
             for (int index = 0; index < symbols.size(); index++) {
-                final var symbolCompared = symbols.get(index).equals(that.symbols.get(index), flags);
-                if (symbolCompared.isError()) return Compared.notEqual(this, that, symbolCompared);
+                final var symbolEqual = symbols.get(index).equals(that.symbols.get(index), flags);
+                if (symbolEqual.isError())
+                    return fieldNotEqual("symbol[" + index + "]", this, symbols.get(index), that, that.symbols.get(index), symbolEqual);
             }
         }
 
         // Compare defaultValue
         if (!flags.isSet(IGNORE_ENUM_SCHEMA_DEFAULT_VALUE) && !Objects.equals(defaultValue, that.defaultValue))
-            return Compared.fieldNotEqual("defaultValue", this, defaultValue, that, that.defaultValue);
+            return fieldNotEqual("defaultValue", this, defaultValue, that, that.defaultValue);
 
-        return Compared.ok();
+        return Equal.ok();
     }
 }

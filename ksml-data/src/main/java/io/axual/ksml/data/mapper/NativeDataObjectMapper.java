@@ -94,7 +94,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     public DataObject toDataObject(DataType expected, Object value) {
         if (value instanceof CharSequence val) value = val.toString();
         var result = convertObjectToDataObject(expected, value);
-        if (expected != null && !expected.checkAssignableFrom(result).isOK())
+        if (expected != null && expected.isAssignableFrom(result).isError())
             result = converter.convert(null, null, expected, result, false);
         return result;
     }
@@ -214,7 +214,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         final var result = new DataList(valueType);
         list.forEach(element -> {
             var dataObject = toDataObject(valueType, element);
-            if (!valueType.checkAssignableFrom(dataObject).isOK())
+            if (!valueType.isAssignableFrom(dataObject).isOK())
                 dataObject = converter.convert(null, null, valueType, dataObject, false);
             result.add(toDataObject(valueType, dataObject));
         });

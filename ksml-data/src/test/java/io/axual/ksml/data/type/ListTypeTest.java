@@ -59,20 +59,20 @@ class ListTypeTest {
     void assignabilityBetweenLists() {
         var numberList = new ListType(new SimpleType(Number.class, "number"));
         var integerList = new ListType(new SimpleType(Integer.class, "integer"));
-        assertThat(numberList.checkAssignableFrom(integerList).isOK()).isTrue();
-        assertThat(integerList.checkAssignableFrom(numberList).isOK()).isFalse();
+        assertThat(numberList.isAssignableFrom(integerList).isOK()).isTrue();
+        assertThat(integerList.isAssignableFrom(numberList).isOK()).isFalse();
 
         // Different container class (e.g., MapType) is not assignable
         var mapOfNumber = new MapType(new SimpleType(Number.class, "number"));
-        assertThat(numberList.checkAssignableFrom(mapOfNumber).isOK()).isFalse();
+        assertThat(numberList.isAssignableFrom(mapOfNumber).isOK()).isFalse();
     }
 
     @Test
     @DisplayName("Assignability from Class uses containerClass.isAssignableFrom(Class)")
     void assignabilityFromClass() {
         var anyList = new ListType();
-        assertThat(anyList.checkAssignableFrom(ArrayList.class).isOK()).isTrue();
-        assertThat(anyList.checkAssignableFrom(String.class).isOK()).isFalse();
+        assertThat(anyList.isAssignableFrom(ArrayList.class).isOK()).isTrue();
+        assertThat(anyList.isAssignableFrom(String.class).isOK()).isFalse();
     }
 
     @Test

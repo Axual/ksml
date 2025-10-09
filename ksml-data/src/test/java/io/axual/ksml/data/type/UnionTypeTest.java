@@ -51,32 +51,32 @@ class UnionTypeTest {
     }
 
     @Test
-    @DisplayName("checkAssignableFrom: Union from member type, from other union (ignore order), and from values")
-    void checkAssignableFromBehavior() {
+    @DisplayName("isAssignableFrom: Union from member type, from other union (ignore order), and from values")
+    void isAssignableFromBehavior() {
         var intType = new SimpleType(Integer.class, "integer");
         var strType = new SimpleType(String.class, "string");
         var u = new UnionType(new UnionType.Member("i", intType, 1), new UnionType.Member("s", strType, 2));
 
         // From member type
-        assertThat(u.checkAssignableFrom(intType).isOK()).isTrue();
-        assertThat(u.checkAssignableFrom(strType).isOK()).isTrue();
-        assertThat(u.checkAssignableFrom(new SimpleType(Double.class, "double")).isOK()).isFalse();
+        assertThat(u.isAssignableFrom(intType).isOK()).isTrue();
+        assertThat(u.isAssignableFrom(strType).isOK()).isTrue();
+        assertThat(u.isAssignableFrom(new SimpleType(Double.class, "double")).isOK()).isFalse();
 
         // From other union: types match, tags may differ, order must match
         var sameOrderDifferentTags = new UnionType(
                 new UnionType.Member("i", intType, 99), new UnionType.Member("s", strType, 100));
-        assertThat(u.checkAssignableFrom(sameOrderDifferentTags).isOK()).isTrue();
+        assertThat(u.isAssignableFrom(sameOrderDifferentTags).isOK()).isTrue();
 
         // Different order should still be assignable as union-to-union
         var swapped = new UnionType(
                 new UnionType.Member("s", strType, 2), new UnionType.Member("i", intType, 1));
-        assertThat(u.checkAssignableFrom(swapped).isOK()).isTrue();
+        assertThat(u.isAssignableFrom(swapped).isOK()).isTrue();
 
         // From Object values
-        assertThat(u.checkAssignableFrom(123).isOK()).isTrue();
-        assertThat(u.checkAssignableFrom("abc").isOK()).isTrue();
+        assertThat(u.isAssignableFrom(123).isOK()).isTrue();
+        assertThat(u.isAssignableFrom("abc").isOK()).isTrue();
         // Per current DataType default behavior, null is accepted by memberType checks
-        assertThat(u.checkAssignableFrom((Object) null).isOK()).isTrue();
+        assertThat(u.isAssignableFrom((Object) null).isOK()).isTrue();
     }
 
     @Test
@@ -94,9 +94,9 @@ class UnionTypeTest {
         softly.assertThat(a.equals(a)).isTrue();
 
         // Same types, same order, tags differ -> assignable true
-        softly.assertThat(a.checkAssignableFrom(aDifferentTags).isOK()).isTrue();
+        softly.assertThat(a.isAssignableFrom(aDifferentTags).isOK()).isTrue();
         // Same types, same order, tags differ -> assignable true
-        softly.assertThat(aDifferentTags.checkAssignableFrom(a).isOK()).isTrue();
+        softly.assertThat(aDifferentTags.isAssignableFrom(a).isOK()).isTrue();
 
         // Same types, same order, tags differ -> equals false
         softly.assertThat(a).isNotEqualTo(aDifferentTags);

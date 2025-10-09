@@ -1,4 +1,4 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.data.schema;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,8 +20,8 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-public class EqualityFlags {
-    private EqualityFlags() {
+public class DataSchemaFlags {
+    private DataSchemaFlags() {
     }
 
     public static final String IGNORE_DATA_FIELD_CONSTANT = "DataField.constant";
@@ -32,21 +32,12 @@ public class EqualityFlags {
     public static final String IGNORE_DATA_FIELD_REQUIRED = "DataField.required";
     public static final String IGNORE_DATA_FIELD_SCHEMA = "DataField.schema";
     public static final String IGNORE_DATA_FIELD_TAG = "DataField.tag";
-    public static final String IGNORE_DATA_LIST_CONTENTS = "DataStruct.contents";
-    public static final String IGNORE_DATA_LIST_TYPE = "DataStruct.type";
-    public static final String IGNORE_DATA_MAP_CONTENTS = "DataMap.contents";
-    public static final String IGNORE_DATA_MAP_TYPE = "DataMap.type";
     public static final String IGNORE_DATA_SCHEMA_TYPE = "DataSchema.type";
-    public static final String IGNORE_DATA_STRUCT_CONTENTS = "DataStruct.contents";
-    public static final String IGNORE_DATA_STRUCT_TYPE = "DataStruct.type";
-    public static final String IGNORE_DATA_TUPLE_CONTENTS = "DataTuple.contents";
-    public static final String IGNORE_DATA_TUPLE_TYPE = "DataTuple.type";
-    public static final String IGNORE_DATA_TYPE_CONTAINER_CLASS = "DataType.containerClass";
     public static final String IGNORE_ENUM_SCHEMA_DEFAULT_VALUE = "EnumSchema.defaultValue";
     public static final String IGNORE_ENUM_SCHEMA_SYMBOLS = "EnumSchema.symbols";
-    public static final String IGNORE_ENUM_SYMBOL_DOC = "EnumSymbol.doc";
-    public static final String IGNORE_ENUM_SYMBOL_NAME = "EnumSymbol.name";
-    public static final String IGNORE_ENUM_SYMBOL_TAG = "EnumSymbol.tag";
+    public static final String IGNORE_ENUM_SCHEMA_SYMBOL_DOC = "EnumSchema.Symbol.doc";
+    public static final String IGNORE_ENUM_SCHEMA_SYMBOL_NAME = "EnumSchema.Symbol.name";
+    public static final String IGNORE_ENUM_SCHEMA_SYMBOL_TAG = "EnumSchema.Symbol.tag";
     public static final String IGNORE_FIXED_SCHEMA_SIZE = "FixedSchema.size";
     public static final String IGNORE_LIST_SCHEMA_NAME = "ListSchema.name";
     public static final String IGNORE_LIST_SCHEMA_VALUE_SCHEMA = "ListSchema.valueSchema";
@@ -57,13 +48,8 @@ public class EqualityFlags {
     public static final String IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED = "StructSchema.additionalFieldsAllowed";
     public static final String IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA = "StructSchema.additionalFieldsSchema";
     public static final String IGNORE_STRUCT_SCHEMA_FIELDS = "StructSchema.fields";
-    public static final String IGNORE_STRUCT_TYPE_SCHEMA = "StructType.schema";
     public static final String IGNORE_UNION_SCHEMA_MEMBERS = "UnionSchema.members";
     public static final String IGNORE_UNION_SCHEMA_MEMBER_NAME = "UnionSchema.Member.name";
     public static final String IGNORE_UNION_SCHEMA_MEMBER_SCHEMA = "UnionSchema.Member.schema";
     public static final String IGNORE_UNION_SCHEMA_MEMBER_TAG = "UnionSchema.Member.tag";
-    public static final String IGNORE_UNION_TYPE_MEMBERS = "UnionType.members";
-    public static final String IGNORE_UNION_TYPE_MEMBER_NAME = "UnionType.Member.name";
-    public static final String IGNORE_UNION_TYPE_MEMBER_TAG = "UnionType.Member.tag";
-    public static final String IGNORE_UNION_TYPE_MEMBER_TYPE = "UnionType.Member.type";
 }

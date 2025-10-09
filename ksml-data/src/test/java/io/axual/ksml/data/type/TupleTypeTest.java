@@ -49,16 +49,16 @@ class TupleTypeTest {
     void assignabilityBetweenTuples() {
         var numberString = new TupleType(new SimpleType(Number.class, "number"), new SimpleType(String.class, "string"));
         var integerString = new TupleType(new SimpleType(Integer.class, "integer"), new SimpleType(String.class, "string"));
-        assertThat(numberString.checkAssignableFrom(integerString).isOK()).isTrue();
-        assertThat(integerString.checkAssignableFrom(numberString).isOK()).isFalse();
+        assertThat(numberString.isAssignableFrom(integerString).isOK()).isTrue();
+        assertThat(integerString.isAssignableFrom(numberString).isOK()).isFalse();
     }
 
     @Test
     @DisplayName("Assignability from Class checks Tuple.class")
     void assignabilityFromClass() {
         var anyTuple = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
-        assertThat(anyTuple.checkAssignableFrom(Tuple.class).isOK()).isTrue();
-        assertThat(anyTuple.checkAssignableFrom(Object.class).isOK()).isFalse();
+        assertThat(anyTuple.isAssignableFrom(Tuple.class).isOK()).isTrue();
+        assertThat(anyTuple.isAssignableFrom(Object.class).isOK()).isFalse();
     }
 
     @Test

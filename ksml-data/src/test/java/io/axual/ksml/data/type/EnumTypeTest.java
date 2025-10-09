@@ -46,29 +46,29 @@ class EnumTypeTest {
     }
 
     @Test
-    @DisplayName("checkAssignableFrom(DataObject) accepts only DataString values matching one of the symbols; null is rejected")
-    void checkAssignableFromDataObject() {
+    @DisplayName("isAssignableFrom(DataObject) accepts only DataString values matching one of the symbols; null is rejected")
+    void isAssignableFromDataObject() {
         var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B"))));
 
         // Matching symbols
-        assertThat(type.checkAssignableFrom(new DataString("A")).isOK()).isTrue();
-        assertThat(type.checkAssignableFrom(new DataString("B")).isOK()).isTrue();
+        assertThat(type.isAssignableFrom(new DataString("A")).isOK()).isTrue();
+        assertThat(type.isAssignableFrom(new DataString("B")).isOK()).isTrue();
 
         // Non-matching string
-        assertThat(type.checkAssignableFrom(new DataString("C")).isOK()).isFalse();
+        assertThat(type.isAssignableFrom(new DataString("C")).isOK()).isFalse();
 
         // Null is not considered assignable for EnumType
-        assertThat(type.checkAssignableFrom(DataNull.INSTANCE).isOK()).isFalse();
+        assertThat(type.isAssignableFrom(DataNull.INSTANCE).isOK()).isFalse();
     }
 
     @Test
-    @DisplayName("checkAssignableFrom(DataObject) uses DataObject.toString for comparison (no quotes for internal printing)")
+    @DisplayName("isAssignableFrom(DataObject) uses DataObject.toString for comparison (no quotes for internal printing)")
     void comparisonUsesToStringValue() {
         var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("hello"))));
         var ds = new DataString("hello");
         var softly = new SoftAssertions();
         softly.assertThat(ds.toString()).isEqualTo("hello");
-        softly.assertThat(type.checkAssignableFrom(ds).isOK()).isTrue();
+        softly.assertThat(type.isAssignableFrom(ds).isOK()).isTrue();
         softly.assertAll();
     }
 }

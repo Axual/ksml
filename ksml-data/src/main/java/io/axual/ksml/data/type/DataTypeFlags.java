@@ -1,4 +1,4 @@
-package io.axual.ksml.data.compare;
+package io.axual.ksml.data.type;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,8 +20,15 @@ package io.axual.ksml.data.compare;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.Flags;
+public class DataTypeFlags {
+    private DataTypeFlags() {
+    }
 
-public interface Equals {
-    Compared equals(Object obj, Flags flags);
+    public static final String IGNORE_DATA_TYPE_CONTAINER_CLASS = "DataType.containerClass";
+    public static final String IGNORE_ENUM_TYPE_SCHEMA = "EnumType.schema";
+    public static final String IGNORE_STRUCT_TYPE_SCHEMA = "StructType.schema";
+    public static final String IGNORE_UNION_TYPE_MEMBERS = "UnionType.members";
+    public static final String IGNORE_UNION_TYPE_MEMBER_NAME = "UnionType.Member.name";
+    public static final String IGNORE_UNION_TYPE_MEMBER_TAG = "UnionType.Member.tag";
+    public static final String IGNORE_UNION_TYPE_MEMBER_TYPE = "UnionType.Member.type";
 }

@@ -68,8 +68,8 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
 
         final StructSchema resultSchema;
         if (expected != null) {
-            final var compared = expected.checkAssignableFrom(schema);
-            if (compared.isError()) {
+            final var assignable = expected.isAssignableFrom(schema);
+            if (assignable.isError()) {
                 throw new SchemaException("PROTOBUF schema incompatibility: schema=" + schema + ", expected=" + expected);
             }
             resultSchema = expected;
@@ -136,7 +136,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
                     while (!assigned && index < unionSchema.members().length) {
                         final var memberSchema = unionSchema.members()[index];
                         final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
-                        if (memberType.checkAssignableFrom(fieldValue).isOK()) {
+                        if (memberType.isAssignableFrom(fieldValue).isOK()) {
                             setMessageFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
                             assigned = true;
                         }

@@ -257,11 +257,11 @@ public class ExecutableProducer {
 
             var okay = true;
 
-            if (key != null && !keyType.dataType().checkAssignableFrom(key.type()).isOK()) {
+            if (key != null && keyType.dataType().isAssignableFrom(key.type()).isError()) {
                 log.error("Wrong topic key type: expected={} key={}", keyType, key.type());
                 okay = false;
             }
-            if (value != null && !valueType.dataType().checkAssignableFrom(value.type()).isOK()) {
+            if (value != null && valueType.dataType().isAssignableFrom(value.type()).isError()) {
                 log.error("Wrong topic value type: expected={} value={}", valueType, value.type());
                 okay = false;
             }

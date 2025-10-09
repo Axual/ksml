@@ -21,11 +21,16 @@ package io.axual.ksml.data.type;
  */
 
 
-import io.axual.ksml.data.compare.Compared;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.util.EqualsUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import static io.axual.ksml.data.type.EqualityFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
+import static io.axual.ksml.data.util.EqualsUtil.otherIsNull;
 
 /**
  * A concrete {@link DataType} backed by a single Java container class.
@@ -56,15 +61,15 @@ public class SimpleType implements DataType {
     }
 
     @Override
-    public Compared checkAssignableFrom(final DataType other) {
-        if (other instanceof SimpleType simpleType) return checkAssignableFrom(simpleType.containerClass);
-        return Compared.typeMismatch(this, other);
-    }
+    public Assignable isAssignableFrom(final DataType type) {
+        if (!(type instanceof SimpleType that))
+            return typeMismatch(this, type);
 
-    @Override
-    public Compared checkAssignableFrom(final Class<?> otherContainerClass) {
-        if (containerClass.isAssignableFrom(otherContainerClass)) return Compared.ok();
-        return Compared.typeMismatch(this, otherContainerClass);
+        // Check containerClass
+        if (!containerClass.isAssignableFrom(that.containerClass))
+            return fieldNotAssignable("containerClass", this, containerClass, that, that.containerClass);
+
+        return Assignable.ok();
     }
 
     /**
@@ -74,17 +79,18 @@ public class SimpleType implements DataType {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Compared equals(Object other, Flags flags) {
-        if (this == other) return Compared.ok();
-        if (other == null) return Compared.otherIsNull(this);
-        if (!getClass().equals(other.getClass())) return Compared.notEqual(getClass(), other.getClass());
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualsUtil.containerClassNotEqual(getClass(), other.getClass());
 
         final var that = (SimpleType) other;
 
         // Compare containerClass
         if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
-            return Compared.notEqual(containerClass, that.containerClass);
+            return EqualsUtil.containerClassNotEqual(containerClass, that.containerClass);
 
-        return Compared.ok();
+        return Equal.ok();
     }
 }
