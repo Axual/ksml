@@ -21,6 +21,7 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.util.EqualUtil;
@@ -41,7 +42,7 @@ import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
  */
 @Getter
 @EqualsAndHashCode
-public class DataSchema {
+public class DataSchema implements DataEquals  {
     private static final String NO_SCHEMA_SPECIFIED = "No schema specified, this is a bug in KSML";
 
     /**
@@ -188,6 +189,7 @@ public class DataSchema {
      * @param other The other schema to compare.
      * @param flags The flags that indicate what to compare.
      */
+    @Override
     public Equal equals(Object other, Flags flags) {
         if (this == other) return Equal.ok();
         if (other == null) return otherIsNull(this);

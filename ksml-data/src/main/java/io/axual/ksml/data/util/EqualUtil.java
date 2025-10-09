@@ -25,8 +25,13 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
-import static io.axual.ksml.data.compare.Equal.notEqual;
-
+/**
+ * Helper utilities to construct uniform {@link io.axual.ksml.data.compare.Equal} results.
+ *
+ * <p>These methods standardize human-readable difference messages for deep-equality checks
+ * across the KSML data model. They produce consistent messages and allow chaining causes to
+ * pinpoint where comparisons diverge.</p>
+ */
 public class EqualUtil {
     private static final String CONTAINER_CLASS_STRING = "Container class";
     private static final String OBJECT_STRING = "Object";
@@ -35,32 +40,90 @@ public class EqualUtil {
     private EqualUtil() {
     }
 
+    /**
+     * Create an Equal result indicating the other object was null while this object was not.
+     *
+     * @param thisObject the non-null lhs object participating in the comparison
+     * @return a non-equal result explaining the null mismatch
+     * @throws io.axual.ksml.data.exception.DataException if thisObject is null (logic error)
+     */
     public static Equal otherIsNull(Object thisObject) {
         if (thisObject == null)
             throw new DataException("Can not handle NULL object, this is a bug in KSML");
         return Equal.notEqual("Cannot compare " + strOf(thisObject) + " to null");
     }
 
+    /**
+     * Report a difference between container classes.
+     *
+     * @param thisClass the container class of the left-hand side
+     * @param thatClass the container class of the right-hand side
+     * @return an Equal indicating inequality with a standardized message
+     */
     public static Equal containerClassNotEqual(Class<?> thisClass, Class<?> thatClass) {
         return notEqual(CONTAINER_CLASS_STRING, thisClass, thatClass, null);
     }
 
+    /**
+     * Report that two DataObject instances differ, without a nested cause.
+     *
+     * @param thisObject the left-hand side object
+     * @param thatObject the right-hand side object
+     * @return a non-equal result describing the difference
+     */
     public static Equal objectNotEqual(DataObject thisObject, DataObject thatObject) {
         return objectNotEqual(thisObject, thatObject, null);
     }
 
+    /**
+     * Report that two DataObject instances differ, with an optional nested cause detailing the mismatch.
+     *
+     * @param thisObject the left-hand side object
+     * @param thatObject the right-hand side object
+     * @param cause      an underlying reason providing more context; may be null
+     * @return a non-equal result describing the difference and including the cause
+     */
     public static Equal objectNotEqual(DataObject thisObject, DataObject thatObject, Equal cause) {
         return notEqual(OBJECT_STRING, thisObject, thatObject, cause);
     }
 
+    /**
+     * Report a difference between two DataType descriptors, with an optional nested cause detailing the mismatch.
+     *
+     * @param thisType the left-hand side type
+     * @param thatType the right-hand side type (may be a DataType or another descriptor)
+     * @param cause    an underlying reason providing more context; may be null
+     * @return a non-equal result describing the type mismatch
+     */
     public static Equal typeNotEqual(DataType thisType, Object thatType, Equal cause) {
         return notEqual(TYPE_STRING, thisType, thatType, cause);
     }
 
+    /**
+     * Report that a named field differs between two structures.
+     *
+     * @param fieldName the field being compared
+     * @param thisType  a descriptor for the left-hand container/type
+     * @param thisValue the left-hand field value
+     * @param thatType  a descriptor for the right-hand container/type
+     * @param thatValue the right-hand field value
+     * @return a non-equal result describing the field mismatch
+     */
     public static Equal fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue) {
         return fieldNotEqual(fieldName, thisType, thisValue, thatType, thatValue, null);
     }
 
+    /**
+     * Report that a named field differs between two structures, with an optional nested cause detailing the mismatch.
+     *
+     * @param fieldName the field being compared
+     * @param thisType  a descriptor for the left-hand container/type
+     * @param thisValue the left-hand field value
+     * @param thatType  a descriptor for the right-hand container/type
+     * @param thatValue the right-hand field value
+     * @param cause     an underlying reason providing more context; may be null
+     * @return a non-equal result describing the field mismatch with cause
+     */
     public static Equal fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue, Equal cause) {
         return Equal.notEqual(strOf(thisType) + " differs from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
     }

@@ -303,7 +303,7 @@ public class ConvertUtil {
         final var result = new DataList(listType.valueType());
         for (final var element : elements) {
             final var dataObject = dataObjectMapper.toDataObject(listType.valueType(), element);
-            if (!listType.valueType().isAssignableFrom(dataObject).isOK())
+            if (listType.valueType().isAssignableFrom(dataObject).isNotAssignable())
                 throw convertError(dataObject != null ? dataObject.type() : null, listType.valueType(), dataObject);
             result.add(dataObject);
         }
@@ -354,7 +354,7 @@ public class ConvertUtil {
         for (final var element : elements) {
             final var targetType = tupleType.subType(index);
             final var targetValue = dataObjectMapper.toDataObject(targetType, element);
-            if (!targetType.isAssignableFrom(targetValue).isOK())
+            if (targetType.isAssignableFrom(targetValue).isNotAssignable())
                 throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
             tupleElements[index++] = targetValue;
         }

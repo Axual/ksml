@@ -214,7 +214,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         final var result = new DataList(valueType);
         list.forEach(element -> {
             var dataObject = toDataObject(valueType, element);
-            if (!valueType.isAssignableFrom(dataObject).isOK())
+            if (valueType.isAssignableFrom(dataObject).isNotAssignable())
                 dataObject = converter.convert(null, null, valueType, dataObject, false);
             result.add(toDataObject(valueType, dataObject));
         });

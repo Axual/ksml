@@ -20,15 +20,31 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Flags used to influence deep-equality comparisons for {@code DataType} implementations.
+ *
+ * <p>These string constants can be supplied via {@link io.axual.ksml.data.type.Flags}
+ * to selectively ignore certain aspects of type metadata when comparing
+ * {@code DataType} instances (for example in DataType.equals(Flags)–style logic).
+ * This allows callers to relax comparisons in scenarios where full structural
+ * equality is not required.</p>
+ */
 public class DataTypeFlags {
     private DataTypeFlags() {
     }
 
+    /** Ignore differences in the container class that backs a DataType */
     public static final String IGNORE_DATA_TYPE_CONTAINER_CLASS = "DataType.containerClass";
+    /** Ignore the schema attached to an {@code EnumType} when comparing */
     public static final String IGNORE_ENUM_TYPE_SCHEMA = "EnumType.schema";
+    /** Ignore the schema attached to a {@code StructType} when comparing */
     public static final String IGNORE_STRUCT_TYPE_SCHEMA = "StructType.schema";
+    /** Ignore membership differences between {@code UnionType}s */
     public static final String IGNORE_UNION_TYPE_MEMBERS = "UnionType.members";
+    /** Ignore the name of a {@code UnionType.Member} when comparing */
     public static final String IGNORE_UNION_TYPE_MEMBER_NAME = "UnionType.Member.name";
+    /** Ignore the tag of a {@code UnionType.Member} when comparing */
     public static final String IGNORE_UNION_TYPE_MEMBER_TAG = "UnionType.Member.tag";
+    /** Ignore the type of {@code UnionType.Member} when comparing */
     public static final String IGNORE_UNION_TYPE_MEMBER_TYPE = "UnionType.Member.type";
 }
