@@ -126,6 +126,7 @@ class CsvNotationTest {
 
     @Test
     @DisplayName("Throws exception for unsupported type (not List or Struct)")
+    @SuppressWarnings("resource") // Expected to throw, no serde created to close
     void unsupportedTypeThrowsException() {
         // Given: CSV notation
         var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));

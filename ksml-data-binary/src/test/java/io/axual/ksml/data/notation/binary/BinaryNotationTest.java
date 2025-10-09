@@ -22,7 +22,6 @@ package io.axual.ksml.data.notation.binary;
 
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
@@ -141,6 +140,7 @@ class BinaryNotationTest {
 
     @Test
     @DisplayName("Throws exception for complex types without SerdeSupplier")
+    @SuppressWarnings("resource") // Expected to throw, no serde created to close
     void unsupportedComplexTypeWithoutSupplierThrowsException() {
         // Given: Binary notation without complex type serde supplier
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);

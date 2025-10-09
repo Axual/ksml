@@ -237,6 +237,7 @@ class CsvSerdeTest {
 
     @Test
     @DisplayName("Throws exception when trying to create serde for unsupported type")
+    @SuppressWarnings("resource") // Expected to throw, no serde created to close
     void unsupportedTypeThrowsException() {
         // Given: CSV notation
         var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
