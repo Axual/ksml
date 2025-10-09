@@ -34,9 +34,3 @@ path. Each tutorial includes:
 3. **Step-by-step instructions**: Detailed walkthrough with explanations
 4. **Complete examples**: Working code you can run and modify
 5. **Next steps**: Suggestions for what to learn next
-
-## Getting Help
-
-If you encounter any issues while working through these tutorials, check
-the [Troubleshooting Guide](../resources/troubleshooting.md) or reach out to
-the [KSML Community](../resources/community.md) for assistance.
