@@ -66,7 +66,5 @@ You can follow these guides end-to-end to implement the complete solution, or ad
 
 ## Additional Resources
 
-- [Examples Library](../resources/examples-library.md) for ready-to-use examples for common patterns
 - [KSML Definition Reference](../reference/definition-reference.md) for a full explanation of the KSML definition syntax
 - [Reference Documentation](../reference/operation-reference.md) for complete reference for all KSML operations
-- [Community and Support](../resources/community.md) for connecting with other KSML users and get help
