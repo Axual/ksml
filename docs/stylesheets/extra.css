@@ -38,23 +38,73 @@
   font-size: 0.55rem; /* Smaller code blocks */
 }
 
-/* 2. Make content container wider */
+/* 2. Make content container wider (DESKTOP ONLY) */
 .md-grid {
   max-width: 120rem !important; /* Default is 61rem, increase for wider layout */
 }
 
-/* Adjust the main content area to use more space */
+/* Adjust the main content area to use more space (DESKTOP ONLY) */
 .md-main__inner {
   margin-left: 3rem;  /* Move left sidebar further left (default is 12.1rem) */
   margin-right: 3rem; /* Move right TOC further right (default is 12.1rem) */
 }
 
-/* Make sidebar narrower to give more space to content */
+/* Make sidebar narrower to give more space to content (DESKTOP ONLY) */
 .md-sidebar--primary {
   width: 11rem; /* Default is 12.1rem */
 }
 
-/* Make TOC narrower */
+/* Make TOC narrower (DESKTOP ONLY) */
 .md-sidebar--secondary {
   width: 11rem; /* Default is 12.1rem */
+}
+
+/* MOBILE OPTIMIZATIONS - Make content much wider on mobile */
+@media screen and (max-width: 76.1875em) {
+  /* Remove side margins on mobile to maximize content width */
+  .md-main__inner {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Ensure grid uses full width on mobile */
+  .md-grid {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Minimal padding for maximum width */
+  .md-content {
+    padding-left: 0.3rem !important;
+    padding-right: 0.3rem !important;
+  }
+
+  /* Remove container padding */
+  .md-content__inner {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0.3rem !important;
+    padding-right: 0.3rem !important;
+  }
+}
+
+/* Extra small mobile devices */
+@media screen and (max-width: 44.9375em) {
+  .md-main__inner {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .md-content {
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
+
+  .md-content__inner {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
 }
