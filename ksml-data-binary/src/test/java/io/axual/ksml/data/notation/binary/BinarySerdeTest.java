@@ -23,6 +23,8 @@ package io.axual.ksml.data.notation.binary;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.type.SimpleType;
@@ -123,28 +125,23 @@ class BinarySerdeTest {
         }
     }
 
-    @Test
+    @ParameterizedTest
     @DisplayName("Multiple byte values round-trip correctly")
-    void multipleByteRoundTrips() {
+    @ValueSource(bytes = {0, 1, 42, 127, -1, -128, (byte) 255})
+    void multipleByteRoundTrips(byte value) {
         // Given: Binary notation with Byte type
         var byteType = new SimpleType(Byte.class, "byte");
         var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
 
-        // When/Then: verify multiple different byte values round-trip correctly
+        // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(byteType, false)) {
-            var softly = new SoftAssertions();
+            var bytes = serde.serializer().serialize("topic", value);
+            var result = serde.deserializer().deserialize("topic", bytes);
 
-            // Test various byte values including edge cases
-            byte[] testValues = {0, 1, 42, 127, -1, -128, (byte) 255};
-            for (byte testValue : testValues) {
-                var bytes = serde.serializer().serialize("topic", testValue);
-                var result = serde.deserializer().deserialize("topic", bytes);
-                softly.assertThat(result)
-                        .as("Byte value %d should round-trip correctly", testValue)
-                        .isEqualTo(testValue);
-            }
-
-            softly.assertAll();
+            // Then: should round-trip correctly
+            assertThat(result)
+                    .as("Byte value %d should round-trip correctly", value)
+                    .isEqualTo(value);
         }
     }
 

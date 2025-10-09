@@ -121,10 +121,11 @@ class XmlDataObjectMapperTest {
         // When: converting with compact mode (default)
         var compactXml = mapper.fromDataObject(struct);
 
-        // Then: should be more compact (fewer/no newlines between tags)
+        // Then: should be single-line XML (no newlines)
         assertThat(compactXml).isNotNull();
         assertThat(compactXml).contains("<name>test</name>");
         assertThat(compactXml).contains("<value>123</value>");
+        assertThat(compactXml.split("\n").length).isEqualTo(1);
     }
 
     @Test
