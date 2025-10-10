@@ -83,11 +83,11 @@ class StructTypeTest {
         // Without schema both are assignable due to same container and subtypes
         var a = new StructType();
         var b = new StructType();
-        assertThat(a.isAssignableFrom(b).isOK()).isTrue();
-        assertThat(b.isAssignableFrom(a).isOK()).isTrue();
+        assertThat(a.isAssignableFrom(b).isAssignable()).isTrue();
+        assertThat(b.isAssignableFrom(a).isAssignable()).isTrue();
 
         // Accept DataNull
-        assertThat(a.isAssignableFrom(DataNull.DATATYPE).isOK()).isTrue();
+        assertThat(a.isAssignableFrom(DataNull.DATATYPE).isAssignable()).isTrue();
 
         // With schema: require other schema to have at least fields without defaults
         var req = new DataField("r", DataSchema.STRING_SCHEMA, null, 0); // required, no default
@@ -96,12 +96,12 @@ class StructTypeTest {
         // Other schema missing the required field -> not assignable
         var schemaB = new StructSchema("ns", "B", null, List.of());
         var tB = new StructType(schemaB);
-        assertThat(tA.isAssignableFrom(tB).isOK()).isFalse();
+        assertThat(tA.isAssignableFrom(tB).isAssignable()).isFalse();
 
         // Other schema with the required field -> assignable
         var schemaC = new StructSchema("ns", "C", null, List.of(req));
         var tC = new StructType(schemaC);
-        assertThat(tA.isAssignableFrom(tC).isOK()).isTrue();
+        assertThat(tA.isAssignableFrom(tC).isAssignable()).isTrue();
     }
 
     @Test

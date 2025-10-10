@@ -37,14 +37,14 @@ class EnumSchemaTest {
         final var blueOnly = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("BLUE")));
 
         // Strings are assignable to enum
-        assertThat(colors.isAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isTrue();
+        assertThat(colors.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isTrue();
 
         // Superset rule: colors accepts from redOnly
-        assertThat(colors.isAssignableFrom(redOnly).isOK()).isTrue();
+        assertThat(colors.isAssignableFrom(redOnly).isAssignable()).isTrue();
         // But redOnly does not accept from colors
-        assertThat(redOnly.isAssignableFrom(colors).isOK()).isFalse();
+        assertThat(redOnly.isAssignableFrom(colors).isAssignable()).isFalse();
 
         // No overlap: should be false
-        assertThat(colors.isAssignableFrom(blueOnly).isOK()).isFalse();
+        assertThat(colors.isAssignableFrom(blueOnly).isAssignable()).isFalse();
     }
 }

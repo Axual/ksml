@@ -47,16 +47,16 @@ class FixedSchemaTest {
         final var four = new FixedSchema("ns", "F4", "", 4);
 
         // same or smaller size: assignable
-        assertThat(eight.isAssignableFrom(eight).isOK()).isTrue();
-        assertThat(eight.isAssignableFrom(four).isOK()).isTrue();
+        assertThat(eight.isAssignableFrom(eight).isAssignable()).isTrue();
+        assertThat(eight.isAssignableFrom(four).isAssignable()).isTrue();
 
         // larger size: not assignable
-        assertThat(four.isAssignableFrom(eight).isOK()).isFalse();
+        assertThat(four.isAssignableFrom(eight).isAssignable()).isFalse();
 
         // different type (eg string schema) not assignable
-        assertThat(eight.isAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
+        assertThat(eight.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isFalse();
 
         // null not assignable
-        assertThat(eight.isAssignableFrom(null).isOK()).isFalse();
+        assertThat(eight.isAssignableFrom(null).isAssignable()).isFalse();
     }
 }

@@ -51,14 +51,14 @@ class EnumTypeTest {
         var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B"))));
 
         // Matching symbols
-        assertThat(type.isAssignableFrom(new DataString("A")).isOK()).isTrue();
-        assertThat(type.isAssignableFrom(new DataString("B")).isOK()).isTrue();
+        assertThat(type.isAssignableFrom(new DataString("A")).isAssignable()).isTrue();
+        assertThat(type.isAssignableFrom(new DataString("B")).isAssignable()).isTrue();
 
         // Non-matching string
-        assertThat(type.isAssignableFrom(new DataString("C")).isOK()).isFalse();
+        assertThat(type.isAssignableFrom(new DataString("C")).isAssignable()).isFalse();
 
         // Null is not considered assignable for EnumType
-        assertThat(type.isAssignableFrom(DataNull.INSTANCE).isOK()).isFalse();
+        assertThat(type.isAssignableFrom(DataNull.INSTANCE).isAssignable()).isFalse();
     }
 
     @Test
@@ -68,7 +68,7 @@ class EnumTypeTest {
         var ds = new DataString("hello");
         var softly = new SoftAssertions();
         softly.assertThat(ds.toString()).isEqualTo("hello");
-        softly.assertThat(type.isAssignableFrom(ds).isOK()).isTrue();
+        softly.assertThat(type.isAssignableFrom(ds).isAssignable()).isTrue();
         softly.assertAll();
     }
 }

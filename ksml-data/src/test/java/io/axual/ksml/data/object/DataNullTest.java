@@ -48,14 +48,14 @@ class DataNullTest {
     @DisplayName("DataNull datatype assignability: only itself as DataType; only null as value; and DataObject singleton")
     void datatypeAssignability() {
         var dt = DataNull.DATATYPE;
-        assertThat(dt.isAssignableFrom(DataNull.DATATYPE).isOK()).isTrue();
+        assertThat(dt.isAssignableFrom(DataNull.DATATYPE).isAssignable()).isTrue();
         // Different SimpleType instance with the same container/name is NOT considered assignable per override
-        assertThat(dt.isAssignableFrom(new SimpleType(io.axual.ksml.data.value.Null.class, "null")).isOK()).isFalse();
+        assertThat(dt.isAssignableFrom(new SimpleType(io.axual.ksml.data.value.Null.class, "null")).isAssignable()).isFalse();
 
-        assertThat(dt.isAssignableFrom((Object) null).isOK()).isTrue();
-        assertThat(dt.isAssignableFrom("not null").isOK()).isFalse();
+        assertThat(dt.isAssignableFrom((Object) null).isAssignable()).isTrue();
+        assertThat(dt.isAssignableFrom("not null").isAssignable()).isFalse();
 
-        assertThat(dt.isAssignableFrom(DataNull.INSTANCE).isOK()).isTrue();
-        assertThat(dt.isAssignableFrom(new DataString()).isOK()).isFalse();
+        assertThat(dt.isAssignableFrom(DataNull.INSTANCE).isAssignable()).isTrue();
+        assertThat(dt.isAssignableFrom(new DataString()).isAssignable()).isFalse();
     }
 }

@@ -21,8 +21,7 @@ package io.axual.ksml.data.compare;
  */
 
 import lombok.Getter;
-
-import java.util.Objects;
+import lombok.NonNull;
 
 /**
  * Represents the result of an assignability check (typically used by isAssignableFrom-like methods).
@@ -79,8 +78,7 @@ public class Assignable {
      * @return a new Assignable instance representing a failure
      * @throws NullPointerException if {@code message} is {@code null}
      */
-    public static Assignable notAssignable(String message, Assignable cause) {
-        Objects.requireNonNull(message, "message must not be null");
+    public static Assignable notAssignable(@NonNull String message, Assignable cause) {
         return new Assignable(message, cause);
     }
 
@@ -89,7 +87,7 @@ public class Assignable {
      *
      * @return {@code true} if assignment is allowed; {@code false} otherwise
      */
-    public boolean isOK() {
+    public boolean isAssignable() {
         return message == null;
     }
 
@@ -130,6 +128,10 @@ public class Assignable {
      * @return the formatted explanation chain
      */
     public String toString(String linePrefix, boolean prefixFirstLine) {
+        if (isAssignable()) {
+            return "OK";
+        }
+
         final var builder = new StringBuilder();
         for (var i = this; i != null; i = i.cause) {
             if (i != this) builder.append("\n");

@@ -65,20 +65,20 @@ class StructSchemaTest {
         final var other1 = new StructSchema("ns", "PersonOther", null, List.of(
                 new DataField("id", DataSchema.LONG_SCHEMA, null, 0)
         ));
-        assertThat(target.isAssignableFrom(other1).isOK()).isTrue();
+        assertThat(target.isAssignableFrom(other1).isAssignable()).isTrue();
 
         // Missing required id -> not assignable
         final var other2 = new StructSchema("ns", "PersonOther", null, List.of(
                 optionalStringWithDefault("name")
         ));
-        assertThat(target.isAssignableFrom(other2).isOK()).isFalse();
+        assertThat(target.isAssignableFrom(other2).isAssignable()).isFalse();
 
         // Present name with incompatible type -> not assignable
         final var other3 = new StructSchema("ns", "PersonOther", null, List.of(
                 requiredInt("id"),
                 new DataField("name", DataSchema.FLOAT_SCHEMA, null, 0)
         ));
-        assertThat(target.isAssignableFrom(other3).isOK()).isFalse();
+        assertThat(target.isAssignableFrom(other3).isAssignable()).isFalse();
 
         // Other may contain extra fields -> still assignable
         final var other4 = new StructSchema("ns", "PersonOther", null, List.of(
@@ -86,7 +86,7 @@ class StructSchemaTest {
                 optionalStringWithDefault("name"),
                 new DataField("extra", DataSchema.STRING_SCHEMA, null, 0)
         ));
-        assertThat(target.isAssignableFrom(other4).isOK()).isTrue();
+        assertThat(target.isAssignableFrom(other4).isAssignable()).isTrue();
     }
 
     @Test

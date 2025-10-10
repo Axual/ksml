@@ -86,7 +86,7 @@ public abstract class Invoker {
 
     private void verifyTypeInternal(UserType type, DataType expected) {
         verify(type != null, "Function does not return a result, while " + expected + " was expected");
-        verify(expected.isAssignableFrom(type.dataType()).isOK(), "Function does not return expected " + expected + ". but " + type.dataType() + " instead");
+        verify(expected.isAssignableFrom(type.dataType()).isAssignable(), "Function does not return expected " + expected + ". but " + type.dataType() + " instead");
     }
 
     protected void verifyNoStoresUsed() {

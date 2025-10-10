@@ -101,11 +101,11 @@ class DataFieldTest {
         final var target = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 0);
         // other with long type is compatible (integer group)
         final var otherInt = new DataField("l", DataSchema.LONG_SCHEMA, null, 0);
-        assertThat(target.isAssignableFrom(otherInt).isOK()).isTrue();
+        assertThat(target.isAssignableFrom(otherInt).isAssignable()).isTrue();
         // float is not compatible with integer
         final var otherFloat = new DataField("f", DataSchema.FLOAT_SCHEMA, null, 0);
-        assertThat(target.isAssignableFrom(otherFloat).isOK()).isFalse();
+        assertThat(target.isAssignableFrom(otherFloat).isAssignable()).isFalse();
         // null is not assignable
-        assertThat(target.isAssignableFrom(null).isOK()).isFalse();
+        assertThat(target.isAssignableFrom(null).isAssignable()).isFalse();
     }
 }

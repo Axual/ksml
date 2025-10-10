@@ -21,8 +21,7 @@ package io.axual.ksml.data.compare;
  */
 
 import lombok.Getter;
-
-import java.util.Objects;
+import lombok.NonNull;
 
 /**
  * Represents the result of a deep equality comparison performed via {@link DataEquals#equals(Object, io.axual.ksml.data.type.Flags)}.
@@ -79,8 +78,7 @@ public class Equal {
      * @return a new Equal instance representing inequality
      * @throws NullPointerException if {@code message} is {@code null}
      */
-    public static Equal notEqual(String message, Equal cause) {
-        Objects.requireNonNull(message, "message must not be null");
+    public static Equal notEqual(@NonNull String message, Equal cause) {
         return new Equal(message, cause);
     }
 
@@ -130,6 +128,9 @@ public class Equal {
      * @return the formatted explanation chain
      */
     public String toString(String linePrefix, boolean prefixFirstLine) {
+        if (isEqual()) {
+            return "OK";
+        }
         final var builder = new StringBuilder();
         for (var i = this; i != null; i = i.cause) {
             if (i != this) builder.append("\n");

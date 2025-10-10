@@ -184,7 +184,7 @@ public class UnionSchema extends DataSchema {
         // The other schema is not a union --> we are assignable from the other schema if at least
         // one of our value schema is assignable from the other schema.
         for (final var memberSchema : members) {
-            if (memberSchema.schema().isAssignableFrom(otherSchema).isOK()) return Assignable.ok();
+            if (memberSchema.schema().isAssignableFrom(otherSchema).isAssignable()) return Assignable.ok();
         }
         return schemaMismatch(this, otherSchema);
     }
@@ -192,7 +192,7 @@ public class UnionSchema extends DataSchema {
     private Assignable isAssignableFromMember(Member otherMember) {
         for (final var member : members) {
             // First, check if the schema of this field and the other field are compatible
-            if (member.schema().isAssignableFrom(otherMember.schema()).isOK()
+            if (member.schema().isAssignableFrom(otherMember.schema()).isAssignable()
                     // If they are, then manually check if we allow assignment from the other field to this field
                     && isAssignableByNameAndTag(member, otherMember))
                 return Assignable.ok();

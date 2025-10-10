@@ -127,7 +127,7 @@ public class UnionType extends ComplexType {
 
         // Check all our members. If one of them is assignable, then return OK, else error
         for (final var member : members) {
-            if (member.type().isAssignableFrom(type).isOK()) return Assignable.ok();
+            if (member.type().isAssignableFrom(type).isAssignable()) return Assignable.ok();
         }
         return unionNotAssignableFromType(this, type);
     }
@@ -135,7 +135,7 @@ public class UnionType extends ComplexType {
     private boolean isAssignableFromMember(Member otherMember) {
         // Check if the type is assignable from this union
         for (final var member : members) {
-            if (member.type.isAssignableFrom(otherMember.type).isOK()) return true;
+            if (member.type.isAssignableFrom(otherMember.type).isAssignable()) return true;
         }
         return false;
     }
@@ -143,7 +143,7 @@ public class UnionType extends ComplexType {
     @Override
     public Assignable isAssignableFrom(Object value) {
         for (final var member : members) {
-            if (member.type().isAssignableFrom(value).isOK()) return Assignable.ok();
+            if (member.type().isAssignableFrom(value).isAssignable()) return Assignable.ok();
         }
         return unionNotAssignableFromValue(this, value);
     }

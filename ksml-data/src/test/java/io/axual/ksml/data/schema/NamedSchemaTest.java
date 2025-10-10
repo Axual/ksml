@@ -54,13 +54,13 @@ class NamedSchemaTest {
         final var base = new TestNamedSchema(DataSchemaConstants.STRUCT_TYPE, "ns1", "A", "doc1");
         // StructSchema is a NamedSchema with same type "struct"
         final var struct = new StructSchema("ns2", "B", "doc2", null);
-        assertThat(base.isAssignableFrom(struct).isOK()).isTrue();
+        assertThat(base.isAssignableFrom(struct).isAssignable()).isTrue();
 
         // Different type not assignable
         final var enumNamed = new TestNamedSchema(DataSchemaConstants.ENUM_TYPE, "ns", "E", null);
-        assertThat(enumNamed.isAssignableFrom(struct).isOK()).isFalse();
+        assertThat(enumNamed.isAssignableFrom(struct).isAssignable()).isFalse();
 
         // Non-named different base type not assignable
-        assertThat(base.isAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
+        assertThat(base.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isFalse();
     }
 }

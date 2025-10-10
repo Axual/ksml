@@ -52,17 +52,17 @@ class MapSchemaTest {
         final var mapOfDouble = new MapSchema(DataSchema.DOUBLE_SCHEMA);
 
         // integer group: integer accepts from long
-        assertThat(mapOfInt.isAssignableFrom(mapOfInt).isOK()).isTrue();
-        assertThat(mapOfInt.isAssignableFrom(mapOfLong).isOK()).isTrue();
-        assertThat(mapOfInt.isAssignableFrom(mapOfString).isOK()).isFalse();
+        assertThat(mapOfInt.isAssignableFrom(mapOfInt).isAssignable()).isTrue();
+        assertThat(mapOfInt.isAssignableFrom(mapOfLong).isAssignable()).isTrue();
+        assertThat(mapOfInt.isAssignableFrom(mapOfString).isAssignable()).isFalse();
 
         // floating group: float/double accept from each other
-        assertThat(mapOfFloat.isAssignableFrom(mapOfDouble).isOK()).isTrue();
-        assertThat(mapOfDouble.isAssignableFrom(mapOfFloat).isOK()).isTrue();
+        assertThat(mapOfFloat.isAssignableFrom(mapOfDouble).isAssignable()).isTrue();
+        assertThat(mapOfDouble.isAssignableFrom(mapOfFloat).isAssignable()).isTrue();
 
         // Non-map should not be assignable
-        assertThat(mapOfInt.isAssignableFrom(DataSchema.STRING_SCHEMA).isOK()).isFalse();
+        assertThat(mapOfInt.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isFalse();
         // Null not assignable
-        assertThat(mapOfInt.isAssignableFrom(null).isOK()).isFalse();
+        assertThat(mapOfInt.isAssignableFrom(null).isAssignable()).isFalse();
     }
 }

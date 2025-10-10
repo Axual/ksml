@@ -58,25 +58,25 @@ class UnionTypeTest {
         var u = new UnionType(new UnionType.Member("i", intType, 1), new UnionType.Member("s", strType, 2));
 
         // From member type
-        assertThat(u.isAssignableFrom(intType).isOK()).isTrue();
-        assertThat(u.isAssignableFrom(strType).isOK()).isTrue();
-        assertThat(u.isAssignableFrom(new SimpleType(Double.class, "double")).isOK()).isFalse();
+        assertThat(u.isAssignableFrom(intType).isAssignable()).isTrue();
+        assertThat(u.isAssignableFrom(strType).isAssignable()).isTrue();
+        assertThat(u.isAssignableFrom(new SimpleType(Double.class, "double")).isAssignable()).isFalse();
 
         // From other union: types match, tags may differ, order must match
         var sameOrderDifferentTags = new UnionType(
                 new UnionType.Member("i", intType, 99), new UnionType.Member("s", strType, 100));
-        assertThat(u.isAssignableFrom(sameOrderDifferentTags).isOK()).isTrue();
+        assertThat(u.isAssignableFrom(sameOrderDifferentTags).isAssignable()).isTrue();
 
         // Different order should still be assignable as union-to-union
         var swapped = new UnionType(
                 new UnionType.Member("s", strType, 2), new UnionType.Member("i", intType, 1));
-        assertThat(u.isAssignableFrom(swapped).isOK()).isTrue();
+        assertThat(u.isAssignableFrom(swapped).isAssignable()).isTrue();
 
         // From Object values
-        assertThat(u.isAssignableFrom(123).isOK()).isTrue();
-        assertThat(u.isAssignableFrom("abc").isOK()).isTrue();
+        assertThat(u.isAssignableFrom(123).isAssignable()).isTrue();
+        assertThat(u.isAssignableFrom("abc").isAssignable()).isTrue();
         // Per current DataType default behavior, null is accepted by memberType checks
-        assertThat(u.isAssignableFrom((Object) null).isOK()).isTrue();
+        assertThat(u.isAssignableFrom((Object) null).isAssignable()).isTrue();
     }
 
     @Test
@@ -94,9 +94,9 @@ class UnionTypeTest {
         softly.assertThat(a.equals(a)).isTrue();
 
         // Same types, same order, tags differ -> assignable true
-        softly.assertThat(a.isAssignableFrom(aDifferentTags).isOK()).isTrue();
+        softly.assertThat(a.isAssignableFrom(aDifferentTags).isAssignable()).isTrue();
         // Same types, same order, tags differ -> assignable true
-        softly.assertThat(aDifferentTags.isAssignableFrom(a).isOK()).isTrue();
+        softly.assertThat(aDifferentTags.isAssignableFrom(a).isAssignable()).isTrue();
 
         // Same types, same order, tags differ -> equals false
         softly.assertThat(a).isNotEqualTo(aDifferentTags);

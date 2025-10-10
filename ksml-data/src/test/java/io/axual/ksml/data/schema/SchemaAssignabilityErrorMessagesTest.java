@@ -316,11 +316,11 @@ class SchemaAssignabilityErrorMessagesTest {
     @DisplayName("Integer type family assignability")
     void integerTypeFamilyAssignability() {
         // Integer types should be assignable among themselves
-        assertThat(DataSchema.INTEGER_SCHEMA.isAssignableFrom(DataSchema.BYTE_SCHEMA).isOK())
+        assertThat(DataSchema.INTEGER_SCHEMA.isAssignableFrom(DataSchema.BYTE_SCHEMA).isAssignable())
             .as("INTEGER should be assignable from BYTE")
             .isTrue();
 
-        assertThat(DataSchema.LONG_SCHEMA.isAssignableFrom(DataSchema.SHORT_SCHEMA).isOK())
+        assertThat(DataSchema.LONG_SCHEMA.isAssignableFrom(DataSchema.SHORT_SCHEMA).isAssignable())
             .as("LONG should be assignable from SHORT")
             .isTrue();
 
@@ -350,7 +350,7 @@ class SchemaAssignabilityErrorMessagesTest {
         // String should accept enum (special case)
         Assignable result = DataSchema.STRING_SCHEMA.isAssignableFrom(colorEnum);
 
-        assertThat(result.isOK())
+        assertThat(result.isAssignable())
             .as("STRING schema should accept ENUM schema")
             .isTrue();
     }

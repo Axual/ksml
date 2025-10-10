@@ -105,11 +105,11 @@ public class UnionSerde implements Serde<Object> {
                 // Check if we are serializing a DataObject. If so, then check compatibility using its own data
                 // dataType, else check compatibility with Java native dataType.
                 if (data instanceof DataObject dataObject) {
-                    if (memberSerde.type.isAssignableFrom(dataObject).isOK()) {
+                    if (memberSerde.type.isAssignableFrom(dataObject).isAssignable()) {
                         return memberSerde.serializer.serialize(topic, dataObject);
                     }
                 } else {
-                    if (memberSerde.type.isAssignableFrom(data).isOK()) {
+                    if (memberSerde.type.isAssignableFrom(data).isAssignable()) {
                         return memberSerde.serializer.serialize(topic, data);
                     }
                 }
@@ -137,9 +137,9 @@ public class UnionSerde implements Serde<Object> {
             for (final var memberSerde : memberSerdes) {
                 try {
                     Object result = memberSerde.deserializer.deserialize(topic, data);
-                    if (result instanceof DataObject dataObject && memberSerde.type.isAssignableFrom(dataObject).isOK())
+                    if (result instanceof DataObject dataObject && memberSerde.type.isAssignableFrom(dataObject).isAssignable())
                         return result;
-                    if (memberSerde.type.isAssignableFrom(result).isOK()) return result;
+                    if (memberSerde.type.isAssignableFrom(result).isAssignable()) return result;
                 } catch (Exception e) {
                     // Not properly deserialized, so ignore and try the next alternative
                 }

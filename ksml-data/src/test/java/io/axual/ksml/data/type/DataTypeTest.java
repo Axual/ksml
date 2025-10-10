@@ -41,17 +41,17 @@ class DataTypeTest {
                 .hasToString("?");
 
         // Assignable from other DataTypes
-        assertThat(unknown.isAssignableFrom(new SimpleType(Integer.class, "integer")).isOK()).isTrue();
-        assertThat(unknown.isAssignableFrom(new SimpleType(String.class, "string")).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(new SimpleType(Integer.class, "integer")).isAssignable()).isTrue();
+        assertThat(unknown.isAssignableFrom(new SimpleType(String.class, "string")).isAssignable()).isTrue();
 
         // Assignable from any Class
-        assertThat(unknown.isAssignableFrom(Integer.class).isOK()).isTrue();
-        assertThat(unknown.isAssignableFrom(String.class).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(Integer.class).isAssignable()).isTrue();
+        assertThat(unknown.isAssignableFrom(String.class).isAssignable()).isTrue();
 
         // Assignable from any Object including null
-        assertThat(unknown.isAssignableFrom(new Object()).isOK()).isTrue();
-        assertThat(unknown.isAssignableFrom("abc").isOK()).isTrue();
-        assertThat(unknown.isAssignableFrom((Object) null).isOK()).isTrue();
+        assertThat(unknown.isAssignableFrom(new Object()).isAssignable()).isTrue();
+        assertThat(unknown.isAssignableFrom("abc").isAssignable()).isTrue();
+        assertThat(unknown.isAssignableFrom((Object) null).isAssignable()).isTrue();
     }
 
     @Test
@@ -61,13 +61,13 @@ class DataTypeTest {
         var stringType = new SimpleType(String.class, "string");
 
         // DataNull short-circuit should return true for any DataType
-        assertThat(numberType.isAssignableFrom(DataNull.INSTANCE).isOK()).isTrue();
-        assertThat(stringType.isAssignableFrom(DataNull.INSTANCE).isOK()).isTrue();
+        assertThat(numberType.isAssignableFrom(DataNull.INSTANCE).isAssignable()).isTrue();
+        assertThat(stringType.isAssignableFrom(DataNull.INSTANCE).isAssignable()).isTrue();
 
         // Delegates to isAssignableFrom(DataType)
         var dataInt = new DataInteger(42);
-        assertThat(numberType.isAssignableFrom(dataInt).isOK()).isTrue();
-        assertThat(stringType.isAssignableFrom(dataInt).isOK()).isFalse();
+        assertThat(numberType.isAssignableFrom(dataInt).isAssignable()).isTrue();
+        assertThat(stringType.isAssignableFrom(dataInt).isAssignable()).isFalse();
     }
 
     @Test
@@ -75,9 +75,9 @@ class DataTypeTest {
     void defaultIsAssignableFromObject() {
         var numberType = new SimpleType(Number.class, "number");
         var softly = new SoftAssertions();
-        softly.assertThat(numberType.isAssignableFrom((Object) null).isOK()).isTrue();
-        softly.assertThat(numberType.isAssignableFrom(Integer.valueOf(5)).isOK()).isTrue();
-        softly.assertThat(numberType.isAssignableFrom("text").isOK()).isFalse();
+        softly.assertThat(numberType.isAssignableFrom((Object) null).isAssignable()).isTrue();
+        softly.assertThat(numberType.isAssignableFrom(Integer.valueOf(5)).isAssignable()).isTrue();
+        softly.assertThat(numberType.isAssignableFrom("text").isAssignable()).isFalse();
         softly.assertAll();
     }
 }

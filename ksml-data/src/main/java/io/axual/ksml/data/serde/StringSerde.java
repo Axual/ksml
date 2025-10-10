@@ -75,7 +75,7 @@ public class StringSerde implements Serde<Object> {
         return (topic, data) -> {
             final var dataObject = nativeMapper.toDataObject(expectedType, data);
             // TODO No longer needed as this check is done in the nativeMapper toDataObject
-            if (!expectedType.isAssignableFrom(dataObject).isOK()) {
+            if (!expectedType.isAssignableFrom(dataObject).isAssignable()) {
                 throw new DataException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
             }
             var str = stringMapper.fromDataObject(dataObject);
@@ -92,7 +92,7 @@ public class StringSerde implements Serde<Object> {
         return (topic, data) -> {
             final var str = deserializer.deserialize(topic, data);
             final var dataObject = stringMapper.toDataObject(expectedType, str);
-            if (dataObject != null && !expectedType.isAssignableFrom(dataObject).isOK()) {
+            if (dataObject != null && !expectedType.isAssignableFrom(dataObject).isAssignable()) {
                 throw new DataException("Wrong type retrieved from state store: expected " + expectedType + ", got " + dataObject.type());
             }
             return dataObject;
