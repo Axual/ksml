@@ -43,7 +43,6 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.util.ListUtil;
 
 import java.util.ArrayList;
@@ -96,16 +95,19 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
         // Add all converted message fields to the result list
         for (final var field : messageFields) {
-            result.add(convertFieldElementToDataField(context, field));
+            result.add(convertFieldElementToUnionMember(context, field));
         }
 
         // Add all converted oneOfs to the result list
         for (final var oneOf : oneOfMap.entrySet()) {
             // Convert the oneOf to a UnionSchema
-            final var ooFields = new ArrayList<DataField>();
-            for (final var field : oneOf.getValue())
-                ooFields.add(convertFieldElementToDataField(context, field));
-            final var oneOfUnion = new UnionSchema(ooFields.toArray(DataField[]::new));
+            final var ooFields = new ArrayList<UnionSchema.Member>();
+            for (final var field : oneOf.getValue()) {
+                // Manually convert DataField to a union member
+                final var df = convertFieldElementToUnionMember(context, field);
+                ooFields.add(new UnionSchema.Member(df.name(), df.schema(), df.tag()));
+            }
+            final var oneOfUnion = new UnionSchema(ooFields.toArray(UnionSchema.Member[]::new));
             result.add(new DataField(oneOf.getKey().getName(), oneOfUnion, oneOf.getKey().getDocumentation()));
         }
 
@@ -113,7 +115,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         return result;
     }
 
-    private DataField convertFieldElementToDataField(ProtobufReadContext context, FieldElement field) {
+    private DataField convertFieldElementToUnionMember(ProtobufReadContext context, FieldElement field) {
         // Don't get a default value for an embedded message field
         final var defaultValue = field.getDefaultValue() != null ? field.getDefaultValue() : null;
         final var name = field.getName();
@@ -149,12 +151,12 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         if (!field.getType().isEmpty()) {
             final var reference = context.get(field.getType());
             if (reference != null && reference.type() instanceof EnumElement enumElement) {
-                final var symbols = enumElement.getConstants().stream().map(constant -> new Symbol(constant.getName(), constant.getDocumentation(), constant.getTag())).toList();
+                final var symbols = enumElement.getConstants().stream().map(constant -> new EnumSchema.Symbol(constant.getName(), constant.getDocumentation(), constant.getTag())).toList();
                 if (symbols.isEmpty()) {
                     throw new SchemaException("Protobuf enum type '" + enumElement.getName() + "' has no constants defined");
                 }
                 final var defaultValue = ListUtil.find(symbols, symbol -> symbol.tag() == PROTOBUF_ENUM_DEFAULT_VALUE_INDEX);
-                return new EnumSchema(reference.namespace(), enumElement.getName(), reference.type().getDocumentation(), symbols, defaultValue != null ? new Symbol(defaultValue.name()) : null);
+                return new EnumSchema(reference.namespace(), enumElement.getName(), reference.type().getDocumentation(), symbols, defaultValue != null ? new EnumSchema.Symbol(defaultValue.name()) : null);
             }
             if (reference != null && reference.type() instanceof MessageElement msgElement) {
                 final var fields = convertMessageFieldsToDataFields(context, msgElement);
@@ -209,7 +211,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         final var defaultValue = field.defaultValue() != null ? field.defaultValue().toString() : null;
         return new FieldElement(
                 DEFAULT_LOCATION,
-                required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
+                required ? Field.Label.REQUIRED : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
                 type,
                 field.name(),
                 defaultValue,
@@ -222,17 +224,17 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     private String convertDataFieldToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, List<OneOfElement> parentOneOfs, String parentName, DataField field) {
         if (field.schema() instanceof UnionSchema unionSchema) {
             final var memberTypes = new ArrayList<FieldElement>();
-            for (int index = 0; index < unionSchema.memberSchemas().length; index++) {
-                final var memberSchema = unionSchema.memberSchemas()[index];
+            for (int index = 0; index < unionSchema.members().length; index++) {
+                final var member = unionSchema.members()[index];
                 final var memberType = new FieldElement(
                         DEFAULT_LOCATION,
                         null,
-                        convertDataFieldToProtoType(context, parentNestedTypes, parentOneOfs, parentName, memberSchema),
-                        memberSchema.name(),
-                        memberSchema.defaultValue() != null ? memberSchema.defaultValue().toString() : null,
+                        convertDataFieldToProtoType(context, parentNestedTypes, parentOneOfs, parentName, new DataField(member.name(), member.schema(), "", member.tag())),
+                        member.name(),
                         null,
-                        memberSchema.tag(),
-                        memberSchema.doc(),
+                        null,
+                        member.tag(),
+                        "",
                         Collections.emptyList());
                 memberTypes.add(memberType);
             }

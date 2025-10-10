@@ -95,8 +95,8 @@ public class DataFieldParser extends BaseParser<DataField> {
         if (!unionSchema.contains(DataSchema.NULL_SCHEMA)) return Pair.of(schema, true);
 
         // Create a copy of the UnionSchema excluding NULL types, and mark the field as optional.
-        final var newMembers = Arrays.asList(unionSchema.memberSchemas());
+        final var newMembers = Arrays.asList(unionSchema.members());
         newMembers.removeIf(field -> field.schema() == DataSchema.NULL_SCHEMA);
-        return Pair.of(new UnionSchema(newMembers.toArray(DataField[]::new)), false);
+        return Pair.of(new UnionSchema(newMembers.toArray(UnionSchema.Member[]::new)), false);
     }
 }

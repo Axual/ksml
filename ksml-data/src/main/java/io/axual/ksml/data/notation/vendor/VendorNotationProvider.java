@@ -24,13 +24,25 @@ import io.axual.ksml.data.notation.NotationProvider;
 import lombok.Getter;
 
 /**
- * Convenience base for NotationProvider implementations that are vendor-specific.
+ * Convenience base for vendor-specific {@link NotationProvider} implementations.
+ *
+ * <p>Captures the generic notation name (e.g., "avro", "jsonschema") and the concrete vendor
+ * identity (e.g., "apicurio", "confluent"). Subclasses can use these for naming, logging and
+ * discovery.</p>
  */
 @Getter
 public abstract class VendorNotationProvider implements NotationProvider {
+    /** Generic notation name (e.g., "avro"). */
     private final String notationName;
+    /** Concrete vendor identity (e.g., "apicurio"). */
     private final String vendorName;
 
+    /**
+     * Create a vendor-specific notation provider.
+     *
+     * @param notationName generic notation identifier
+     * @param vendorName   vendor identity
+     */
     protected VendorNotationProvider(String notationName, String vendorName) {
         this.notationName = notationName;
         this.vendorName = vendorName;

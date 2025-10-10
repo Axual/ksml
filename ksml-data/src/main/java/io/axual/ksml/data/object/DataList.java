@@ -21,16 +21,24 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.util.EqualUtil;
+import lombok.EqualsAndHashCode;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Objects;
 
-import javax.annotation.Nonnull;
-
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.ListType;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_LIST_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_LIST_TYPE;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * Represents a list of {@link DataObject} instances within the {@link DataObject} framework.
@@ -43,6 +51,7 @@ import io.axual.ksml.data.type.ListType;
  * @see DataObject
  * @see ListType
  */
+@EqualsAndHashCode
 public class DataList implements DataObject, Iterable<DataObject> {
     /**
      * Represents the static list type for lists of unknown element types.
@@ -139,10 +148,10 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @return The same {@link DataObject} if the type is valid.
      * @throws IllegalArgumentException if the value type is invalid.
      */
-    private DataObject verifiedValue(DataObject value) {
-        if (!type.valueType().isAssignableFrom(value.type())) {
+    private DataObject assignableValue(DataObject value) {
+        final var assignable = type.valueType().isAssignableFrom(value.type());
+        if (assignable.isNotAssignable())
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
-        }
         return value;
     }
 
@@ -154,7 +163,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @throws IllegalArgumentException if the value type is invalid.
      */
     public boolean add(DataObject value) {
-        return contents.add(verifiedValue(value));
+        return contents.add(assignableValue(value));
     }
 
     /**
@@ -199,18 +208,6 @@ public class DataList implements DataObject, Iterable<DataObject> {
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof DataList otherList)) return false;
-        if (!type.isAssignableFrom(otherList.type)) return false;
-        return Objects.equals(this.contents, otherList.contents);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(type.hashCode(), contents);
-    }
-
-    @Override
     public String toString() {
         return toString(Printer.INTERNAL);
     }
@@ -231,5 +228,56 @@ public class DataList implements DataObject, Iterable<DataObject> {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
+
+        final var that = (DataList) other;
+
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_LIST_TYPE)) {
+            final var typeEqual = type.equals(that.type, flags);
+            if (typeEqual.isNotEqual())
+                return typeNotEqual(type, that.type, typeEqual);
+        }
+
+        // Compare contents
+        if (!flags.isSet(IGNORE_DATA_LIST_CONTENTS) && (contents != null || that.contents != null)) {
+            if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
+            final var contentsEqual = equalContents(this, that, flags);
+            if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
+        }
+
+        return Equal.ok();
+    }
+
+    private static Equal equalContents(DataList left, DataList right, Flags flags) {
+        if (left.size() != right.size())
+            return fieldNotEqual("elementCount", left, left.size(), right, right.size());
+
+        var index = 0;
+        for (var element : left) {
+            final var thatElement = right.get(index);
+            if (element != null || thatElement != null) {
+                if (element == null || thatElement == null)
+                    return fieldNotEqual("element[" + index + "]", left, element, right, thatElement);
+                final var entryEqual = element.equals(thatElement, flags);
+                if (entryEqual.isNotEqual())
+                    return fieldNotEqual("element[" + index + "]", left, element, right, thatElement, entryEqual);
+            }
+            index++;
+        }
+        return Equal.ok();
     }
 }

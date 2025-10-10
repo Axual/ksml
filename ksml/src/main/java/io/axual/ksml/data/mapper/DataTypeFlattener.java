@@ -40,6 +40,14 @@ public class DataTypeFlattener extends DataTypeDataSchemaMapper {
         return super.toDataSchema(namespace, name, type);
     }
 
+    public StreamDataType flatten(StreamDataType streamDataType) {
+        return new StreamDataType(flatten(streamDataType.userType()), streamDataType.isKey());
+    }
+
+    public UserType flatten(UserType userType) {
+        return new UserType(userType.notation(), flatten(userType.dataType()));
+    }
+
     public DataType flatten(DataType dataType) {
         // This method translates any internal Kafka Streams datatype to an externally usable type
 
@@ -54,25 +62,16 @@ public class DataTypeFlattener extends DataTypeDataSchemaMapper {
         return dataType;
     }
 
-    public UserType flatten(UserType userType) {
-        return new UserType(userType.notation(), flatten(userType.dataType()));
-    }
-
-    public StreamDataType flatten(StreamDataType streamDataType) {
-        return new StreamDataType(flatten(streamDataType.userType()), streamDataType.isKey());
-    }
-
-    public UnionType.MemberType flatten(UnionType.MemberType fieldType) {
-        return new UnionType.MemberType(fieldType.name(), flatten(fieldType.type()), fieldType.tag());
-    }
-
     public UnionType flatten(UnionType unionType) {
         // When we get a UnionType, we flatten it recursively
-        var cookedUnionTypes = new UnionType.MemberType[unionType.memberTypes().length];
-        for (int index = 0; index < unionType.memberTypes().length; index++) {
-            final var fieldType = unionType.memberTypes()[index];
-            cookedUnionTypes[index] = flatten(fieldType);
+        var flatMembers = new UnionType.Member[unionType.members().length];
+        for (int index = 0; index < unionType.members().length; index++) {
+            flatMembers[index] = flatten(unionType.members()[index]);
         }
-        return new UnionType(cookedUnionTypes);
+        return new UnionType(flatMembers);
+    }
+
+    private UnionType.Member flatten(UnionType.Member fieldType) {
+        return new UnionType.Member(fieldType.name(), flatten(fieldType.type()), fieldType.tag());
     }
 }

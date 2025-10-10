@@ -21,17 +21,6 @@ package io.axual.ksml.data.notation.json;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
@@ -41,6 +30,15 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -109,8 +107,8 @@ class JsonSerdeTest {
     @DisplayName("UnionType(Struct|List): supports both object and array inputs")
     void unionRoundTrip() {
         DataType union = new UnionType(
-                new UnionType.MemberType(new StructType()),
-                new UnionType.MemberType(new ListType())
+                new UnionType.Member(new StructType()),
+                new UnionType.Member(new ListType())
         );
         var serde = new JsonSerde(new NativeDataObjectMapper(), union);
 

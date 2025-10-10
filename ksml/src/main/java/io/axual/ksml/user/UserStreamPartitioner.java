@@ -39,8 +39,8 @@ import java.util.Set;
 
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
     public static final DataType EXPECTED_RESULT_TYPE = new UnionType(
-            new UnionType.MemberType("singlePartition", DataInteger.DATATYPE, 1),
-            new UnionType.MemberType("setOfPartitions", new ListType(DataInteger.DATATYPE), 2));
+            new UnionType.Member("singlePartition", DataInteger.DATATYPE, 1),
+            new UnionType.Member("setOfPartitions", new ListType(DataInteger.DATATYPE), 2));
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserStreamPartitioner(UserFunction function, MetricTags tags) {

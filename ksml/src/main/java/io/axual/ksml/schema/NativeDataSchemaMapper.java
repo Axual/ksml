@@ -32,7 +32,6 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.util.JsonNodeUtil;
 import io.axual.ksml.data.util.ListUtil;
 import io.axual.ksml.exception.ExecutionException;
@@ -60,8 +59,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     public Object fromDataSchema(DataSchema schema) {
         if (schema instanceof UnionSchema unionSchema) {
             final var result = new ArrayList<>();
-            for (final var memberSchema : unionSchema.memberSchemas())
-                result.add(convertField(memberSchema));
+            for (final var memberSchema : unionSchema.members())
+                result.add(convertMember(memberSchema));
             return result;
         }
 
@@ -120,11 +119,11 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         }
     }
 
-    private List<Object> convertSymbols(List<Symbol> symbols) {
+    private List<Object> convertSymbols(List<EnumSchema.Symbol> symbols) {
         return ListUtil.map(symbols, this::convertSymbol);
     }
 
-    private Map<String, Object> convertSymbol(Symbol symbol) {
+    private Map<String, Object> convertSymbol(EnumSchema.Symbol symbol) {
         final var result = new LinkedHashMap<String, Object>();
         result.put(DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD, symbol.name());
         if (symbol.hasDoc()) result.put(DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD, symbol.doc());
@@ -164,6 +163,14 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         result.put(DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null) encodeDefaultValue(result, field.defaultValue());
         result.put(DataSchemaDSL.DATA_FIELD_ORDER_FIELD, field.order().toString());
+        return result;
+    }
+
+    private Map<String, Object> convertMember(UnionSchema.Member member) {
+        final var result = new LinkedHashMap<String, Object>();
+        result.put(DataSchemaDSL.UNION_MEMBER_NAME_FIELD, member.name());
+        result.put(DataSchemaDSL.UNION_MEMBER_SCHEMA_FIELD, convertSchema(member.schema()));
+        result.put(DataSchemaDSL.UNION_MEMBER_TAG_FIELD, member.tag());
         return result;
     }
 

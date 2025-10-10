@@ -20,13 +20,23 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.value.Tuple;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Arrays;
+
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_TUPLE_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_TUPLE_TYPE;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a tuple of {@link DataObject} values within the {@link DataObject} framework.
@@ -91,5 +101,57 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Equal equals(Object other, Flags flags) {
+        if (this == other) return Equal.ok();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
+
+        final var that = (DataTuple) other;
+
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_TUPLE_TYPE)) {
+            final var typeEqual = type.equals(that.type, flags);
+            if (typeEqual.isNotEqual())
+                return typeNotEqual(type, that.type, typeEqual);
+        }
+
+        // Compare contents
+        if (!flags.isSet(IGNORE_DATA_TUPLE_CONTENTS)) {
+            if (elements() != null || that.elements() != null) {
+                if (elements() == null || that.elements() == null) return EqualUtil.objectNotEqual(this, that);
+                final var contentsEqual = equalContents(this, that, flags);
+                if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
+            }
+        }
+
+        return Equal.ok();
+    }
+
+    private static Equal equalContents(DataTuple left, DataTuple right, Flags flags) {
+        if (left.elements().size() != right.elements().size())
+            return fieldNotEqual("elementCount", left, left.elements().size(), right, right.elements().size());
+
+        var index = 0;
+        for (var element : left.elements()) {
+            final var thatElement = right.elements().get(index);
+            if (element != null || thatElement != null) {
+                if (element == null || thatElement == null)
+                    return fieldNotEqual("field[" + index + "]", left, element, right, thatElement);
+                final var entryEqual = element.equals(thatElement, flags);
+                if (entryEqual.isNotEqual())
+                    return fieldNotEqual("field[" + index + "]", left, element, right, thatElement, entryEqual);
+            }
+            index++;
+        }
+        return Equal.ok();
     }
 }
