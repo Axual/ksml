@@ -496,7 +496,7 @@ Produce 1000 messages in batches of 100 with minimal delay:
 ??? info "Batch Producer (click to expand)"
 
     ```yaml
-    --8<-- "examples/00-example-generate-sensordata-avro-batch.yaml:39:49"
+    --8<-- "docs-examples/getting-started/producer-batch-example.yaml:39:49"
     ```
 
 This producer uses:
