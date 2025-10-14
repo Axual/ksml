@@ -18,6 +18,6 @@ producers:
     generator: generate_binary
     interval: 3s
     to:
-      topic: binary_data
+      topic: my_topic
       keyType: string
       valueType: bytes

@@ -12,7 +12,7 @@ producers:
     generator: my_generator
     interval: 5s
     to:
-      topic: xml_data
+      topic: my_topic
       keyType: string
       valueType: xml
 
@@ -20,6 +20,6 @@ producers:
     generator: my_generator
     interval: 5s
     to:
-      topic: csv_data
+      topic: my_topic
       keyType: string
       valueType: csv

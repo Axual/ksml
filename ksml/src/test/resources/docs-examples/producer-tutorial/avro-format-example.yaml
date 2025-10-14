@@ -19,6 +19,6 @@ producers:
     generator: generate_avro_data
     interval: 3s
     to:
-      topic: sensor_data_avro
+      topic: my_topic
       keyType: string
       valueType: avro:SensorData  # Output as Avro with schema name

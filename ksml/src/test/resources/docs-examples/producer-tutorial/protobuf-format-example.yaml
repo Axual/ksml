@@ -19,6 +19,6 @@ producers:
     generator: generate_protobuf_data
     interval: 3s
     to:
-      topic: sensor_data_protobuf
+      topic: my_topic
       keyType: string
       valueType: protobuf:sensor_data  # Protobuf message type

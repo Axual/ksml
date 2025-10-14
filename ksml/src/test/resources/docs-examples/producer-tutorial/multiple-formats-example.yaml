@@ -19,7 +19,7 @@ producers:
     generator: generate_device_config
     interval: 10s
     to:
-      topic: device_config
+      topic: my_topic
       keyType: string
       valueType: json
 
@@ -28,6 +28,6 @@ producers:
     generator: generate_sensor_reading
     interval: 3s
     to:
-      topic: sensor_readings
+      topic: my_topic
       keyType: string
       valueType: avro:SensorData

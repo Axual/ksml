@@ -20,4 +20,7 @@ producers:
     interval: 100  # 100ms between batches
     batchSize: 100  # 100 messages per batch
     count: 10000  # Total 10,000 messages = 100 batches
-    to: high_volume_topic
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

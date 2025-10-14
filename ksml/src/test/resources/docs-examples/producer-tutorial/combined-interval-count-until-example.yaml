@@ -28,6 +28,6 @@ producers:
     until:                # Stop early if anomaly detected
       expression: anomaly_detected
     to:
-      topic: sensor_readings
+      topic: my_topic
       keyType: string
       valueType: json

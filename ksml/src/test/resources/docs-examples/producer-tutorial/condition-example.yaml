@@ -18,6 +18,6 @@ producers:
     condition: only_high_values  # Only produce if value > 50
     interval: 1s
     to:
-      topic: high_values
+      topic: my_topic
       keyType: string
       valueType: json

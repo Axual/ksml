@@ -21,6 +21,6 @@ producers:
     interval: 5s
     batchSize: 10  # Matches the generator's batch size
     to:
-      topic: sensor_data
+      topic: my_topic
       keyType: string
       valueType: json

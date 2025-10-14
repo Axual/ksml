@@ -13,4 +13,7 @@ producers:
     generator: my_generator
     interval: 1s
     count: 100
-    to: my_topic
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

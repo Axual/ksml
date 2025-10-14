@@ -19,6 +19,6 @@ producers:
     until: stop_at_10  # Stop when count reaches 10
     interval: 1s
     to:
-      topic: sequence_data
+      topic: my_topic
       keyType: string
       valueType: json

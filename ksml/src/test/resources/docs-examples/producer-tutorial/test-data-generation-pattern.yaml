@@ -14,4 +14,7 @@ producers:
     generator: test_data_generator
     count: 100  # Exactly 100 test records
     interval: 10  # Fast generation
-    to: test_topic
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

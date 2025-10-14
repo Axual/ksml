@@ -17,4 +17,7 @@ producers:
     generator: event_generator
     condition: is_valid_event  # Only produce valid events
     interval: 500
-    to: valid_events
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

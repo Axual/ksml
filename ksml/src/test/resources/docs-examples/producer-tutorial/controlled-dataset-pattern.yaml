@@ -20,4 +20,7 @@ producers:
     generator: load_from_list
     until: all_data_loaded  # Stop when list is exhausted
     interval: 100
-    to: dataset_topic
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

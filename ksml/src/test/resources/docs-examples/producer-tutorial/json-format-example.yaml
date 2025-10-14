@@ -21,6 +21,6 @@ producers:
     generator: generate_json
     interval: 2s
     to:
-      topic: sensor_data_json
+      topic: my_topic
       keyType: string
       valueType: json

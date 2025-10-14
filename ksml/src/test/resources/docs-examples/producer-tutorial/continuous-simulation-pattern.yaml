@@ -15,4 +15,7 @@ producers:
     generator: sensor_data_generator
     interval: 1s  # One reading per second
     # No count or until = runs indefinitely
-    to: sensor_stream
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

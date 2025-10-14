@@ -23,6 +23,6 @@ producers:
       expression: done  # Access global variable
     interval: 1s
     to:
-      topic: smart_data
+      topic: my_topic
       keyType: string
       valueType: json
