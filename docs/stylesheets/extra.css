@@ -31,7 +31,11 @@
 }
 
 .md-typeset h4 {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+}
+
+.md-typeset h4 code {
+    font-size: 0.85rem; /* Make code in h4 headings closer to heading size */
 }
 
 .md-typeset code {

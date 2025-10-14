@@ -1,8 +1,8 @@
 # Producer Tutorial
 
-KSML, besides being a powerful Kafka Streams wrapper, is also a great way to write business logic for producing messages to Kafka topics. This approach beats the alternative of writing long Java applications to do the same - you can define complex message generation logic in a simple YAML file with Python functions.
+KSML producers let you quickly send test messages to Kafka in different formats like JSON, Avro, Protobuf, XML, CSV, and Binary. Write simple Python code to generate your data, and KSML handles the rest - no building or compiling needed.
 
-In this tutorial, you'll learn everything about producer definitions in KSML, including all available properties and how to use them effectively.
+In this tutorial, you'll learn all the properties and features of KSML producers.
 
 ## What You'll Learn
 
@@ -16,11 +16,18 @@ By the end of this tutorial, you'll understand:
 
 ## Prerequisites
 
-Before you begin, make sure you have:
+Before starting this tutorial:
 
-- Completed the [KSML Basics Tutorial](basics-tutorial.md)
-- Basic understanding of YAML and Python
-- Your KSML environment running
+- Complete the [Quick Start Guide](quick-start.md)
+- Have the [Docker Compose environment running](quick-start.md#step-1-set-up-your-environment)
+- Add the following topic to your `kafka-setup` service in `docker-compose.yml` to run the examples:
+
+??? info "Topic creation commands (click to expand)"
+
+    ```yaml
+    # Producer Tutorial Topics
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic my_topic \
+    ```
 
 ## Basic Producer Structure
 
@@ -35,7 +42,10 @@ Here's the simplest possible producer:
 functions:
   simple_generator:
     type: generator
-    expression: ("key1", {"message": "Hello, Kafka!"})
+    code: |
+      key = "key1"
+      value = {"message": "Hello, Kafka!"}
+    expression: (key, value)
     resultType: (string, json)
 
 producers:
@@ -47,7 +57,7 @@ producers:
       valueType: json
 ```
 
-This producer will generate **one message** and stop, because no interval, count, or until condition is specified.
+This producer will generate **one JSON message** and stop, because no `interval`, `count`, or `until` condition is specified.
 
 ## Producer Properties Reference
 
@@ -67,8 +77,11 @@ producers:
 ```
 
 The generator function must return:
+
 - A tuple `(key, value)` for a single message, or
 - A list of tuples `[(key1, value1), (key2, value2), ...]` for multiple messages
+
+For detailed information about generator functions, see the [Generator Function Reference](../reference/function-reference.md#generator).
 
 #### `to` (required)
 
@@ -157,9 +170,9 @@ producers:
 
 The number of messages to generate in each call to the generator. This is useful for performance optimization.
 
-**Default**: `1` (one message per generator call)
-**Range**: Must be between 1 and 1000
-**Validation**: Values outside this range will trigger a warning and default to 1
+- **Default**: `1` (one message per generator call)
+- **Range**: Must be between 1 and 1000
+- **Validation**: Values outside this range will trigger a warning and default to 1
 
 ```yaml
 functions:
@@ -223,6 +236,7 @@ producers:
 ```
 
 **Use Cases**:
+
 - Filtering out invalid or unwanted messages
 - Implementing probabilistic message generation
 - Ensuring data quality before producing
@@ -291,6 +305,7 @@ producers:
 ```
 
 **Use Cases**:
+
 - Producing a predetermined dataset exactly once
 - Implementing time-based or condition-based stopping logic
 - Creating test data with specific characteristics
@@ -702,41 +717,6 @@ producers:
     to: valid_events
 ```
 
-## Additional Documentation Ideas
-
-Based on the producer capabilities, consider documenting:
-
-1. **Integration with Schema Registry**: How producers work with Confluent and Apicurio Schema Registry for Avro/Protobuf
-2. **Error Handling**: What happens when a generator throws an exception
-3. **Python Best Practices**: Guidelines for writing efficient generator functions
-4. **State Management**: Patterns for managing state in generator functions
-5. **Performance Tuning**: Detailed guide on optimizing producer performance
-6. **Testing Strategies**: How to test producer definitions before deployment
-7. **Monitoring**: How to monitor producer metrics and health
-
-## Troubleshooting
-
-### Producer Not Starting
-
-**Issue**: Producer doesn't generate messages
-- Check KSML logs for errors: `docker compose logs ksml`
-- Verify the generator function is properly defined
-- Ensure the topic exists or is properly defined in streams section
-
-### Messages Not Appearing
-
-**Issue**: Producer runs but no messages appear
-- Check if `condition` is filtering all messages
-- Verify topic configuration matches producer output types
-- Check `until` predicate - it might be stopping immediately
-
-### Performance Issues
-
-**Issue**: Producer is too slow or too fast
-- Adjust `interval` to control message rate
-- Use `batchSize` for higher throughput
-- Consider system resources and Kafka broker capacity
-
 ## Next Steps
 
 Now that you understand producers, you can:
@@ -745,16 +725,3 @@ Now that you understand producers, you can:
 2. Explore [Different Data Formats](../tutorials/beginner/data-formats.md)
 3. Learn about [State Stores](../tutorials/intermediate/state-stores.md)
 4. Check the [Function Reference](../reference/function-reference.md) for advanced generator patterns
-
-## Summary
-
-In this tutorial, you learned:
-
-- ✅ The structure of producer definitions
-- ✅ All producer properties (`generator`, `to`, `interval`, `count`, `batchSize`, `condition`, `until`)
-- ✅ How to work with different data formats (JSON, Avro, Binary, Protobuf, XML, CSV)
-- ✅ Producer behavior with different property combinations
-- ✅ Performance optimization with batching
-- ✅ Common patterns and use cases
-
-KSML producers provide a powerful, declarative way to generate Kafka messages without writing complex Java code. Experiment with different configurations to find what works best for your use case!
