@@ -17,19 +17,10 @@ producers:
       keyType: string
       valueType: json
 
-  # Produce every 500 milliseconds
-  fast_producer:
-    generator: my_generator
-    interval: 500ms
-    to:
-      topic: my_topic
-      keyType: string
-      valueType: json
-
   # Produce as fast as possible for 100 messages
   rapid_producer:
     generator: my_generator
-    interval: 1ms   # Very fast (not 0, to be explicit)
+    interval: 1ms   # Very fast (can be 0 for no delay)
     count: 100      # Must specify count or until to avoid infinite loop
     to:
       topic: my_topic

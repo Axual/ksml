@@ -79,7 +79,7 @@ Simple format:
 producers:
   my_producer:
     generator: my_generator
-    to: my_topic  # Topic must be defined in streams section
+    to: my_topic 
 ```
 
 Detailed format:
@@ -163,7 +163,6 @@ A predicate function that validates whether a generated message should be produc
 
 - Filtering out invalid or unwanted messages
 - Implementing probabilistic message generation
-- Ensuring data quality before producing
 
 #### `until`
 
@@ -187,7 +186,6 @@ A predicate function that determines when to stop producing. When this function 
 
 - Producing a predetermined dataset exactly once
 - Implementing time-based or condition-based stopping logic
-- Creating test data with specific characteristics
 
 ## Working with Different Data Formats
 
@@ -293,6 +291,7 @@ Here's an example that uses all three properties together:
     ```
 
 **This producer will:**
+
 - Generate a sensor reading every 2 seconds
 - Stop after 50 readings (count limit)
 - **OR** stop immediately if an anomaly is detected (reading > 95)
@@ -305,7 +304,7 @@ Understanding when a producer starts and stops is crucial. Here's the complete b
 | interval | count | until | Behavior |
 |----------|-------|-------|----------|
 | **Not specified** | Not specified | Not specified | Produces **1 message** then stops ("once mode") |
-| **Specified** (any value) | Not specified | Not specified | Produces **indefinitely** at the specified interval ⚠️ |
+| **Specified** (any value) | Not specified | Not specified | Produces **indefinitely** at the specified interval |
 | **Specified** | **Specified** | Not specified | Produces `count` messages at the specified interval, then stops |
 | **Specified** | Not specified | **Specified** | Produces indefinitely until `until` returns true, checking at each interval |
 | **Specified** | **Specified** | **Specified** | Produces until `count` is reached **OR** `until` returns true (whichever comes first) |
@@ -314,7 +313,7 @@ Understanding when a producer starts and stops is crucial. Here's the complete b
 
 - **"Not specified"** means the property is completely omitted from the YAML
 - **"Specified"** means the property is included, even if set to a minimal value like `interval: 1ms`
-- ⚠️ Using `interval` without `count` or `until` will produce messages indefinitely - make sure this is intentional!
+- Using `interval` without `count` or `until` will produce messages indefinitely.
 - When both `count` and `until` are specified, the producer stops when **either** condition is met first
 
 ## Performance Considerations
@@ -419,12 +418,3 @@ Only produce messages that meet criteria:
     ```yaml
     {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/filtered-production-pattern.yaml" %}
     ```
-
-## Next Steps
-
-Now that you understand producers, you can:
-
-1. Combine producers with processors from the [KSML Basics Tutorial](basics-tutorial.md)
-2. Explore [Different Data Formats](../tutorials/beginner/data-formats.md)
-3. Learn about [State Stores](../tutorials/intermediate/state-stores.md)
-4. Check the [Function Reference](../reference/function-reference.md) for advanced generator patterns

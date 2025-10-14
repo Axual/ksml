@@ -8,11 +8,11 @@ functions:
     resultType: (string, json)
 
 producers:
-  # Produce exactly 100 messages
+  # Produce exactly 10 messages
   limited_producer:
     generator: my_generator
     interval: 1s
-    count: 100
+    count: 10
     to:
       topic: my_topic
       keyType: string
