@@ -720,10 +720,6 @@ This generator returns a **list of tuples** - generating 10 messages in a single
     {% include "../../ksml/src/test/resources/docs-examples/reference/functions/generator-batch-producer.yaml" %}
     ```
 
-**To test run this full batch generator Example, please follow this tutorial**:
-
-- [Full Batch Generator Example: Generating Avro data](../tutorials/beginner/data-formats.md#avro-examples)
-
 ### keyValueMapper
 
 Transforms both the key and value of a record.

@@ -43,6 +43,6 @@ producers:
     generator: generate_sensordata_batch
     interval: 3s
     to:
-      topic: ksml_sensordata_avro
+      topic: sensor_data
       keyType: string
-      valueType: avro:SensorData
+      valueType: json
