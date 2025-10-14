@@ -187,59 +187,6 @@ A predicate function that determines when to stop producing. When this function 
 - Producing a predetermined dataset exactly once
 - Implementing time-based or condition-based stopping logic
 
-## Working with Different Data Formats
-
-KSML supports multiple data formats for message keys and values. Here are examples for common formats:
-
-### JSON Format
-
-??? info "JSON Format Example (click to expand)"
-
-    ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/json-format-example.yaml" %}
-    ```
-
-### Avro Format
-
-??? info "Avro Format Example (click to expand)"
-
-    ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/avro-format-example.yaml" %}
-    ```
-
-### Binary Format
-
-??? info "Binary Format Example (click to expand)"
-
-    ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/binary-format-example.yaml" %}
-    ```
-
-### Protobuf Format
-
-??? info "Protobuf Format Example (click to expand)"
-
-    ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/protobuf-format-example.yaml" %}
-    ```
-
-### XML and CSV Formats
-
-??? info "XML and CSV Formats Example (click to expand)"
-
-    ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/xml-csv-formats-example.yaml" %}
-    ```
-
-### Multiple Producers with Different Formats
-
-You can define multiple producers in the same file, each targeting different topics with different formats:
-
-??? info "Multiple Producers with Different Formats (click to expand)"
-
-    ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/multiple-formats-example.yaml" %}
-    ```
 
 ## Complete Examples
 
@@ -418,3 +365,7 @@ Only produce messages that meet criteria:
     ```yaml
     {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/filtered-production-pattern.yaml" %}
     ```
+
+## Working with Different Data Formats
+
+To learn about producing messages in different formats like JSON, Avro, Protobuf, XML, CSV, and Binary, see the [Different Data Formats](../tutorials/beginner/data-formats.md) tutorial.
