@@ -38,24 +38,11 @@ A KSML producer definition consists of two main parts:
 
 Here's the simplest possible producer:
 
-```yaml
-functions:
-  simple_generator:
-    type: generator
-    code: |
-      key = "key1"
-      value = {"message": "Hello, Kafka!"}
-    expression: (key, value)
-    resultType: (string, json)
+??? info "Simplest Producer (click to expand)"
 
-producers:
-  my_producer:
-    generator: simple_generator
-    to:
-      topic: my_topic
-      keyType: string
-      valueType: json
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/simplest-producer.yaml" %}
+    ```
 
 This producer will generate **one JSON message** and stop, because no `interval`, `count`, or `until` condition is specified.
 
@@ -126,27 +113,11 @@ The time to wait between generator calls. Supports various duration formats base
 
 **Important**: Specifying `interval` (even as `0` or `1ms`) is different from omitting it entirely. See the behavior table below.
 
-```yaml
-producers:
-  # Produce every 3 seconds (indefinitely)
-  slow_producer:
-    generator: my_generator
-    interval: 3s
-    to: my_topic
+??? info "Interval Examples (click to expand)"
 
-  # Produce every 500 milliseconds
-  fast_producer:
-    generator: my_generator
-    interval: 500ms
-    to: my_topic
-
-  # Produce as fast as possible for 100 messages
-  rapid_producer:
-    generator: my_generator
-    interval: 1ms   # Very fast (not 0, to be explicit)
-    count: 100      # Must specify count or until to avoid infinite loop
-    to: my_topic
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/interval-examples.yaml" %}
+    ```
 
 #### `count`
 
@@ -154,15 +125,11 @@ The total number of messages to produce before stopping.
 
 **Default**: If not specified (and `until` is also not specified), produces indefinitely.
 
-```yaml
-producers:
-  # Produce exactly 100 messages
-  limited_producer:
-    generator: my_generator
-    interval: 1s
-    count: 100
-    to: my_topic
-```
+??? info "Count Example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/count-example.yaml" %}
+    ```
 
 **Note**: The producer will stop when either `count` is reached OR the `until` condition becomes true, whichever comes first.
 
@@ -174,34 +141,11 @@ The number of messages to generate in each call to the generator. This is useful
 - **Range**: Must be between 1 and 1000
 - **Validation**: Values outside this range will trigger a warning and default to 1
 
-```yaml
-functions:
-  batch_generator:
-    type: generator
-    globalCode: |
-      counter = 0
-    code: |
-      global counter
-      # Generate multiple messages in one call
-      messages = []
-      for i in range(10):  # Generate 10 messages
-        key = f"sensor{counter}"
-        value = {"id": counter, "reading": counter * 10}
-        messages.append((key, value))
-        counter += 1
-      return messages  # Return list of tuples
-    resultType: list(tuple(string, json))
+??? info "Batch Size Example (click to expand)"
 
-producers:
-  batch_producer:
-    generator: batch_generator
-    interval: 5s
-    batchSize: 10  # Matches the generator's batch size
-    to:
-      topic: sensor_data
-      keyType: string
-      valueType: json
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/batch-example.yaml" %}
+    ```
 
 **Performance Note**: Using batching can significantly improve throughput when producing large volumes of data.
 
@@ -209,31 +153,11 @@ producers:
 
 A predicate function that validates whether a generated message should be produced. If the condition returns `false`, the message is discarded and the generator is called again.
 
-```yaml
-functions:
-  generate_random_value:
-    type: generator
-    globalCode: |
-      import random
-    code: |
-      value = random.randint(0, 100)
-      return ("sensor1", {"value": value})
-    resultType: (string, json)
+??? info "Condition Example (click to expand)"
 
-  only_high_values:
-    type: predicate
-    expression: value.get("value", 0) > 50
-
-producers:
-  filtered_producer:
-    generator: generate_random_value
-    condition: only_high_values  # Only produce if value > 50
-    interval: 1s
-    to:
-      topic: high_values
-      keyType: string
-      valueType: json
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/condition-example.yaml" %}
+    ```
 
 **Use Cases**:
 
@@ -245,64 +169,19 @@ producers:
 
 A predicate function that determines when to stop producing. When this function returns `true`, the producer stops immediately.
 
-```yaml
-functions:
-  generate_sequence:
-    type: generator
-    globalCode: |
-      counter = 0
-    code: |
-      global counter
-      counter += 1
-      return (f"key{counter}", {"count": counter})
-    resultType: (string, json)
+??? info "Until Example (click to expand)"
 
-  stop_at_10:
-    type: predicate
-    expression: value.get("count", 0) >= 10
-
-producers:
-  sequence_producer:
-    generator: generate_sequence
-    until: stop_at_10  # Stop when count reaches 10
-    interval: 1s
-    to:
-      topic: sequence_data
-      keyType: string
-      valueType: json
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/until-example.yaml" %}
+    ```
 
 **Alternative with global state**:
-```yaml
-functions:
-  generate_with_stop:
-    type: generic
-    resultType: boolean
-    globalCode: |
-      counter = 0
-      done = False
 
-      def next_message():
-        global counter, done
-        counter += 1
-        if counter >= 10:
-          done = True
-        return (f"key{counter}", {"count": counter})
+??? info "Until with Global State Example (click to expand)"
 
-producers:
-  smart_producer:
-    generator:
-      code: |
-        return next_message()
-      resultType: (string, json)
-    until:
-      expression: done  # Access global variable
-    interval: 1s
-    to:
-      topic: smart_data
-      keyType: string
-      valueType: json
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/until-global-state-example.yaml" %}
+    ```
 
 **Use Cases**:
 
@@ -316,181 +195,53 @@ KSML supports multiple data formats for message keys and values. Here are exampl
 
 ### JSON Format
 
-```yaml
-functions:
-  generate_json:
-    type: generator
-    globalCode: |
-      import random
-      counter = 0
-    code: |
-      global counter
-      key = f"sensor{counter}"
-      counter = (counter + 1) % 10
-      value = {
-        "id": counter,
-        "temperature": random.randint(0, 100),
-        "humidity": random.randint(0, 100)
-      }
-      return (key, value)
-    resultType: (string, json)
+??? info "JSON Format Example (click to expand)"
 
-producers:
-  json_producer:
-    generator: generate_json
-    interval: 2s
-    to:
-      topic: sensor_data_json
-      keyType: string
-      valueType: json
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/json-format-example.yaml" %}
+    ```
 
 ### Avro Format
 
-```yaml
-functions:
-  generate_avro_data:
-    type: generator
-    globalCode: |
-      import time
-      import random
-    code: |
-      # Generate as JSON, KSML will convert to Avro using schema
-      data = {
-        "name": "sensor1",
-        "timestamp": str(round(time.time() * 1000)),
-        "value": str(random.randint(0, 100))
-      }
-      return ("sensor1", data)
-    resultType: (string, json)  # Generate as JSON
+??? info "Avro Format Example (click to expand)"
 
-producers:
-  avro_producer:
-    generator: generate_avro_data
-    interval: 3s
-    to:
-      topic: sensor_data_avro
-      keyType: string
-      valueType: avro:SensorData  # Output as Avro with schema name
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/avro-format-example.yaml" %}
+    ```
 
 ### Binary Format
 
-```yaml
-functions:
-  generate_binary:
-    type: generator
-    globalCode: |
-      from random import randbytes, randrange
-      counter = 0
-    code: |
-      global counter
-      key = f"sensor{counter}"
-      counter = (counter + 1) % 10
-      # Generate random bytes
-      value = list(randbytes(randrange(100, 1000)))
-      return (key, value)
-    resultType: (string, bytes)
+??? info "Binary Format Example (click to expand)"
 
-producers:
-  binary_producer:
-    generator: generate_binary
-    interval: 3s
-    to:
-      topic: binary_data
-      keyType: string
-      valueType: bytes
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/binary-format-example.yaml" %}
+    ```
 
 ### Protobuf Format
 
-```yaml
-functions:
-  generate_protobuf_data:
-    type: generator
-    globalCode: |
-      import time
-      import random
-    code: |
-      # Generate as JSON, KSML will convert to Protobuf
-      data = {
-        "name": "sensor1",
-        "timestamp": str(round(time.time() * 1000)),
-        "value": str(random.randint(0, 100))
-      }
-      return ("sensor1", data)
-    resultType: (string, json)
+??? info "Protobuf Format Example (click to expand)"
 
-producers:
-  protobuf_producer:
-    generator: generate_protobuf_data
-    interval: 3s
-    to:
-      topic: sensor_data_protobuf
-      keyType: string
-      valueType: protobuf:sensor_data  # Protobuf message type
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/protobuf-format-example.yaml" %}
+    ```
 
 ### XML and CSV Formats
 
-```yaml
-producers:
-  xml_producer:
-    generator: my_generator
-    interval: 5s
-    to:
-      topic: xml_data
-      keyType: string
-      valueType: xml
+??? info "XML and CSV Formats Example (click to expand)"
 
-  csv_producer:
-    generator: my_generator
-    interval: 5s
-    to:
-      topic: csv_data
-      keyType: string
-      valueType: csv
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/xml-csv-formats-example.yaml" %}
+    ```
 
 ### Multiple Producers with Different Formats
 
 You can define multiple producers in the same file, each targeting different topics with different formats:
 
-```yaml
-functions:
-  generate_device_config:
-    type: generator
-    code: |
-      config = {"device_id": "dev1", "threshold": 50}
-      return ("dev1", config)
-    resultType: (string, json)
+??? info "Multiple Producers with Different Formats (click to expand)"
 
-  generate_sensor_reading:
-    type: generator
-    code: |
-      reading = {"sensor": "temp1", "value": 25}
-      return ("temp1", reading)
-    resultType: (string, json)
-
-producers:
-  # JSON configuration every 10 seconds
-  config_producer:
-    generator: generate_device_config
-    interval: 10s
-    to:
-      topic: device_config
-      keyType: string
-      valueType: json
-
-  # Avro readings every 3 seconds
-  reading_producer:
-    generator: generate_sensor_reading
-    interval: 3s
-    to:
-      topic: sensor_readings
-      keyType: string
-      valueType: avro:SensorData
-```
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/multiple-formats-example.yaml" %}
+    ```
 
 ## Complete Examples
 
@@ -538,39 +289,7 @@ Here's an example that uses all three properties together:
 ??? info "Combined Interval, Count, and Until (click to expand)"
 
     ```yaml
-    functions:
-      generate_sensor_reading:
-        type: generator
-        globalCode: |
-          import random
-          counter = 0
-          anomaly_detected = False
-
-          def check_anomaly(value):
-            # Simulate anomaly detection
-            return value > 95
-        code: |
-          global counter, anomaly_detected
-          counter += 1
-          reading = random.randint(0, 100)
-
-          if check_anomaly(reading):
-            anomaly_detected = True
-
-          return (f"sensor{counter}", {"reading": reading, "count": counter})
-        resultType: (string, json)
-
-    producers:
-      sensor_with_limits:
-        generator: generate_sensor_reading
-        interval: 2s          # Check every 2 seconds
-        count: 50             # Maximum 50 readings
-        until:                # Stop early if anomaly detected
-          expression: anomaly_detected
-        to:
-          topic: sensor_readings
-          keyType: string
-          valueType: json
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/combined-interval-count-until-example.yaml" %}
     ```
 
 **This producer will:**
@@ -604,15 +323,11 @@ Understanding when a producer starts and stops is crucial. Here's the complete b
 
 When producing large volumes of data, use batching:
 
-```yaml
-producers:
-  high_volume_producer:
-    generator: batch_generator  # Should return list of tuples
-    interval: 100  # 100ms between batches
-    batchSize: 100  # 100 messages per batch
-    count: 10000  # Total 10,000 messages = 100 batches
-    to: high_volume_topic
-```
+??? info "High Throughput Batching Example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/high-throughput-batching-example.yaml" %}
+    ```
 
 This produces 100 messages every 100ms, achieving 1000 messages/second.
 
@@ -669,53 +384,41 @@ Or use the Kafka UI at [http://localhost:8080](http://localhost:8080).
 
 Generate a fixed dataset for testing:
 
-```yaml
-producers:
-  test_data:
-    generator: test_data_generator
-    count: 100  # Exactly 100 test records
-    interval: 10  # Fast generation
-    to: test_topic
-```
+??? info "Test Data Generation Pattern (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/test-data-generation-pattern.yaml" %}
+    ```
 
 ### 2. Continuous Simulation
 
 Simulate continuous sensor data:
 
-```yaml
-producers:
-  sensor_simulator:
-    generator: sensor_data_generator
-    interval: 1s  # One reading per second
-    # No count or until = runs indefinitely
-    to: sensor_stream
-```
+??? info "Continuous Simulation Pattern (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/continuous-simulation-pattern.yaml" %}
+    ```
 
 ### 3. Controlled Dataset
 
 Produce a specific dataset and stop:
 
-```yaml
-producers:
-  dataset_loader:
-    generator: load_from_list
-    until: all_data_loaded  # Stop when list is exhausted
-    interval: 100
-    to: dataset_topic
-```
+??? info "Controlled Dataset Pattern (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/controlled-dataset-pattern.yaml" %}
+    ```
 
 ### 4. Filtered Production
 
 Only produce messages that meet criteria:
 
-```yaml
-producers:
-  filtered_events:
-    generator: event_generator
-    condition: is_valid_event  # Only produce valid events
-    interval: 500
-    to: valid_events
-```
+??? info "Filtered Production Pattern (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/producer-tutorial/filtered-production-pattern.yaml" %}
+    ```
 
 ## Next Steps
 

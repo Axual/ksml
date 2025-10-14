@@ -1,0 +1,20 @@
+functions:
+  event_generator:
+    type: generator
+    globalCode: |
+      import random
+    code: |
+      event_type = random.choice(["valid", "invalid"])
+      return ("event1", {"type": event_type, "value": random.randint(0, 100)})
+    resultType: (string, json)
+
+  is_valid_event:
+    type: predicate
+    expression: value.get("type") == "valid"
+
+producers:
+  filtered_events:
+    generator: event_generator
+    condition: is_valid_event  # Only produce valid events
+    interval: 500
+    to: valid_events

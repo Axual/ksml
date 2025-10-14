@@ -1,0 +1,23 @@
+functions:
+  generate_random_value:
+    type: generator
+    globalCode: |
+      import random
+    code: |
+      value = random.randint(0, 100)
+      return ("sensor1", {"value": value})
+    resultType: (string, json)
+
+  only_high_values:
+    type: predicate
+    expression: value.get("value", 0) > 50
+
+producers:
+  filtered_producer:
+    generator: generate_random_value
+    condition: only_high_values  # Only produce if value > 50
+    interval: 1s
+    to:
+      topic: high_values
+      keyType: string
+      valueType: json

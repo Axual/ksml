@@ -1,0 +1,33 @@
+functions:
+  generate_device_config:
+    type: generator
+    code: |
+      config = {"device_id": "dev1", "threshold": 50}
+      return ("dev1", config)
+    resultType: (string, json)
+
+  generate_sensor_reading:
+    type: generator
+    code: |
+      reading = {"sensor": "temp1", "value": 25}
+      return ("temp1", reading)
+    resultType: (string, json)
+
+producers:
+  # JSON configuration every 10 seconds
+  config_producer:
+    generator: generate_device_config
+    interval: 10s
+    to:
+      topic: device_config
+      keyType: string
+      valueType: json
+
+  # Avro readings every 3 seconds
+  reading_producer:
+    generator: generate_sensor_reading
+    interval: 3s
+    to:
+      topic: sensor_readings
+      keyType: string
+      valueType: avro:SensorData

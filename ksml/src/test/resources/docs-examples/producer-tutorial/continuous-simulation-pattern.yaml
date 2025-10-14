@@ -1,0 +1,18 @@
+functions:
+  sensor_data_generator:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+    code: |
+      global counter
+      counter += 1
+      return (f"sensor{counter % 10}", {"reading": random.randint(0, 100)})
+    resultType: (string, json)
+
+producers:
+  sensor_simulator:
+    generator: sensor_data_generator
+    interval: 1s  # One reading per second
+    # No count or until = runs indefinitely
+    to: sensor_stream

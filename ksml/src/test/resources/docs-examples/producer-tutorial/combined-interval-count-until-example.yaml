@@ -1,0 +1,33 @@
+functions:
+  generate_sensor_reading:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+      anomaly_detected = False
+
+      def check_anomaly(value):
+        # Simulate anomaly detection
+        return value > 95
+    code: |
+      global counter, anomaly_detected
+      counter += 1
+      reading = random.randint(0, 100)
+
+      if check_anomaly(reading):
+        anomaly_detected = True
+
+      return (f"sensor{counter}", {"reading": reading, "count": counter})
+    resultType: (string, json)
+
+producers:
+  sensor_with_limits:
+    generator: generate_sensor_reading
+    interval: 2s          # Check every 2 seconds
+    count: 50             # Maximum 50 readings
+    until:                # Stop early if anomaly detected
+      expression: anomaly_detected
+    to:
+      topic: sensor_readings
+      keyType: string
+      valueType: json

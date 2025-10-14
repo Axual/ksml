@@ -1,0 +1,24 @@
+functions:
+  generate_avro_data:
+    type: generator
+    globalCode: |
+      import time
+      import random
+    code: |
+      # Generate as JSON, KSML will convert to Avro using schema
+      data = {
+        "name": "sensor1",
+        "timestamp": str(round(time.time() * 1000)),
+        "value": str(random.randint(0, 100))
+      }
+      return ("sensor1", data)
+    resultType: (string, json)  # Generate as JSON
+
+producers:
+  avro_producer:
+    generator: generate_avro_data
+    interval: 3s
+    to:
+      topic: sensor_data_avro
+      keyType: string
+      valueType: avro:SensorData  # Output as Avro with schema name
