@@ -22,6 +22,12 @@ package io.axual.ksml.data.notation.xml;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
 
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
@@ -86,11 +92,28 @@ class XmlDataObjectMapperTest {
         // When: converting back to XML
         var resultXml = mapper.fromDataObject(struct);
 
-        // Then: should produce valid XML with all values
+        // Then: should produce valid, well-formed XML with all values
         assertThat(resultXml).isNotNull();
-        assertThat(resultXml).contains("<name>sensor001</name>");
-        assertThat(resultXml).contains("<city>Amsterdam</city>");
-        assertThat(resultXml).contains("<owner>alice</owner>");
+
+        try {
+            // Parse the XML using DOM parser to verify it's valid and well-formed
+            var doc = parseXmlDocument(resultXml);
+
+            // Verify root element
+            assertThat(doc.getDocumentElement().getTagName()).as("Root element should be SensorData").isEqualTo("SensorData");
+
+            // Verify all fields are present and correct
+            assertThat(getElementTextContent(doc, "name")).as("name element").isEqualTo("sensor001");
+            assertThat(getElementTextContent(doc, "timestamp")).as("timestamp element").isEqualTo("1234567890");
+            assertThat(getElementTextContent(doc, "value")).as("value element").isEqualTo("23.5");
+            assertThat(getElementTextContent(doc, "type")).as("type element").isEqualTo("temperature");
+            assertThat(getElementTextContent(doc, "unit")).as("unit element").isEqualTo("celsius");
+            assertThat(getElementTextContent(doc, "color")).as("color element").isEqualTo("red");
+            assertThat(getElementTextContent(doc, "city")).as("city element").isEqualTo("Amsterdam");
+            assertThat(getElementTextContent(doc, "owner")).as("owner element").isEqualTo("alice");
+        } catch (Exception e) {
+            throw new AssertionError("Failed to parse XML result: " + resultXml, e);
+        }
     }
 
     @Test
@@ -121,11 +144,23 @@ class XmlDataObjectMapperTest {
         // When: converting with compact mode (default)
         var compactXml = mapper.fromDataObject(struct);
 
-        // Then: should be single-line XML (no newlines)
+        // Then: should be valid, well-formed single-line XML
         assertThat(compactXml).isNotNull();
-        assertThat(compactXml).contains("<name>test</name>");
-        assertThat(compactXml).contains("<value>123</value>");
-        assertThat(compactXml.split("\n").length).isEqualTo(1);
+        assertThat(compactXml.split("\n").length).as("Compact XML should be single line").isEqualTo(1);
+
+        try {
+            // Parse the XML using DOM parser to verify it's valid and well-formed
+            var doc = parseXmlDocument(compactXml);
+
+            // Verify root element
+            assertThat(doc.getDocumentElement().getTagName()).as("Root element should be SimpleData").isEqualTo("SimpleData");
+
+            // Verify all fields are present and correct
+            assertThat(getElementTextContent(doc, "name")).as("name element").isEqualTo("test");
+            assertThat(getElementTextContent(doc, "value")).as("value element").isEqualTo("123");
+        } catch (Exception e) {
+            throw new AssertionError("Failed to parse compact XML result: " + compactXml, e);
+        }
     }
 
     @Test
@@ -144,12 +179,13 @@ class XmlDataObjectMapperTest {
         // When: parsing XML
         var dataObject = mapper.toDataObject(new StructType(schema), xml);
 
-        // Then: special characters should be decoded
+        // Then: special characters should be decoded correctly
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
-        assertThat(struct.get("name").toString()).contains("test & example");
-        assertThat(struct.get("description").toString()).contains("<value>");
-        assertThat(struct.get("description").toString()).contains("\"quotes\"");
+
+        // Verify exact decoded values after XML parsing
+        assertThat(struct.get("name").toString()).isEqualTo("test & example");
+        assertThat(struct.get("description").toString()).isEqualTo("<value> with \"quotes\"");
     }
 
     @Test
@@ -280,5 +316,29 @@ class XmlDataObjectMapperTest {
             fields.add(new DataField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }
         return new StructSchema("io.axual.test", "SimpleData", "Simple schema", fields, false);
+    }
+
+    /**
+     * Parse an XML string into a DOM Document using standard Java XML parser.
+     * This validates that the XML is well-formed and provides structured access to elements.
+     *
+     * @param xmlString The XML string to parse
+     * @return Document object representing the parsed XML
+     */
+    private Document parseXmlDocument(String xmlString) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(new InputSource(new StringReader(xmlString)));
+    }
+
+    /**
+     * Extract the text content of an XML element by tag name.
+     *
+     * @param doc The XML document
+     * @param tagName The tag name to extract
+     * @return The text content of the element
+     */
+    private String getElementTextContent(Document doc, String tagName) {
+        return doc.getElementsByTagName(tagName).item(0).getTextContent();
     }
 }

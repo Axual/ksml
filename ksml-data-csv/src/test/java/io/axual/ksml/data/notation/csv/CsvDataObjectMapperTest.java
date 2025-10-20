@@ -20,8 +20,13 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.io.StringReader;
 
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
@@ -75,11 +80,26 @@ class CsvDataObjectMapperTest {
         // When: converting back to CSV
         var resultCsv = mapper.fromDataObject(struct);
 
-        // Then: should produce equivalent CSV (field order preserved by schema)
+        // Then: should produce valid, parseable CSV with all field values
         assertThat(resultCsv).isNotNull();
-        assertThat(resultCsv).contains("sensor001");
-        assertThat(resultCsv).contains("Amsterdam");
-        assertThat(resultCsv).contains("alice");
+
+        try {
+            // Parse the CSV using Apache Commons CSV to verify it's valid and well-formed
+            var csvRecord = parseCsvRecord(resultCsv);
+
+            // Verify all fields are present in correct order (schema order)
+            assertThat(csvRecord.size()).as("CSV should have 8 fields").isEqualTo(8);
+            assertThat(csvRecord.get(0)).as("name field").isEqualTo("sensor001");
+            assertThat(csvRecord.get(1)).as("timestamp field").isEqualTo("1234567890");
+            assertThat(csvRecord.get(2)).as("value field").isEqualTo("23.5");
+            assertThat(csvRecord.get(3)).as("type field").isEqualTo("temperature");
+            assertThat(csvRecord.get(4)).as("unit field").isEqualTo("celsius");
+            assertThat(csvRecord.get(5)).as("color field").isEqualTo("red");
+            assertThat(csvRecord.get(6)).as("city field").isEqualTo("Amsterdam");
+            assertThat(csvRecord.get(7)).as("owner field").isEqualTo("alice");
+        } catch (Exception e) {
+            throw new AssertionError("Failed to parse CSV result: " + resultCsv, e);
+        }
     }
 
     @Test
@@ -113,11 +133,21 @@ class CsvDataObjectMapperTest {
         // When: converting to CSV
         var csv = mapper.fromDataObject(originalList);
 
-        // Then: should produce CSV line
+        // Then: should produce valid, parseable CSV line
         assertThat(csv).isNotNull();
-        assertThat(csv).contains("first");
-        assertThat(csv).contains("second");
-        assertThat(csv).contains("third");
+
+        try {
+            // Parse the CSV using Apache Commons CSV to verify it's valid and well-formed
+            var csvRecord = parseCsvRecord(csv);
+
+            // Verify all values are present in correct order
+            assertThat(csvRecord.size()).as("CSV should have 3 fields").isEqualTo(3);
+            assertThat(csvRecord.get(0)).as("first element").isEqualTo("first");
+            assertThat(csvRecord.get(1)).as("second element").isEqualTo("second");
+            assertThat(csvRecord.get(2)).as("third element").isEqualTo("third");
+        } catch (Exception e) {
+            throw new AssertionError("Failed to parse CSV result: " + csv, e);
+        }
 
         // When: converting back to DataList
         var resultList = mapper.toDataObject(null, csv);
@@ -284,5 +314,23 @@ class CsvDataObjectMapperTest {
             fields.add(new DataField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }
         return new StructSchema("io.axual.test", "Simple", "Simple schema", fields, false);
+    }
+
+    /**
+     * Parse a CSV string using Apache Commons CSV library.
+     * This provides robust CSV parsing that handles all edge cases including:
+     * - Quoted fields with commas
+     * - Escaped quotes
+     * - Newlines in fields
+     *
+     * @param csvString The CSV string to parse
+     * @return CSVRecord containing parsed fields
+     */
+    private CSVRecord parseCsvRecord(String csvString) throws Exception {
+        try (CSVParser parser = CSVFormat.DEFAULT.parse(new StringReader(csvString))) {
+            var records = parser.getRecords();
+            assertThat(records).as("CSV should parse to exactly one record").hasSize(1);
+            return records.get(0);
+        }
     }
 }

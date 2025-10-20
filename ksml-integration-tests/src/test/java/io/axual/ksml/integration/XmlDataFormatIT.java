@@ -29,9 +29,17 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import io.axual.ksml.integration.testutil.KSMLContainer;
@@ -77,6 +85,7 @@ class XmlDataFormatIT {
 
         // Check ksml_sensordata_xml topic (producer output - XML data)
         final Properties consumerProps = createConsumerProperties("test-consumer-xml");
+        Map<String, String> originalMessages = new LinkedHashMap<>(); // Store original XML for comparison
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("ksml_sensordata_xml"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
@@ -84,32 +93,47 @@ class XmlDataFormatIT {
             assertThat(records).as("Should have generated sensor data in ksml_sensordata_xml topic").isNotEmpty();
             log.info("Found {} XML sensor messages", records.count());
 
-            // Validate XML messages
+            // Validate XML messages using proper DOM parsing
             records.forEach(record -> {
                 log.info("XML Sensor: key={}, value={}", record.key(), record.value());
                 assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
-                // Validate XML structure - should contain XML tags
                 String xmlValue = record.value();
-                assertThat(xmlValue).as("XML message should contain <SensorData> root element").contains("<SensorData>");
-                assertThat(xmlValue).as("XML message should contain </SensorData> closing tag").contains("</SensorData>");
+                try {
+                    // Parse XML using DOM parser - this validates well-formedness
+                    Document doc = parseXmlDocument(xmlValue);
 
-                // XML messages should contain sensor data fields (as XML format)
-                assertThat(xmlValue)
-                    .as("XML message should contain all sensor data elements")
-                    .contains("<name>")
-                    .contains("<city>")
-                    .contains("<timestamp>")
-                    .contains("<value>")
-                    .contains("<type>")
-                    .contains("<unit>")
-                    .contains("<color>")
-                    .contains("<owner>");
+                    // Verify root element
+                    Element root = doc.getDocumentElement();
+                    assertThat(root.getTagName()).as("Root element should be SensorData").isEqualTo("SensorData");
 
-                // Validate that XML is well-formed (has proper opening/closing tags)
-                long openingTags = xmlValue.chars().filter(ch -> ch == '<').count();
-                long closingTags = xmlValue.chars().filter(ch -> ch == '>').count();
-                assertThat(openingTags).as("XML should have equal opening and closing angle brackets").isEqualTo(closingTags);
+                    // Validate all required sensor data fields exist and are non-empty
+                    String name = getElementTextContent(doc, "name");
+                    String timestamp = getElementTextContent(doc, "timestamp");
+                    String value = getElementTextContent(doc, "value");
+                    String type = getElementTextContent(doc, "type");
+                    String unit = getElementTextContent(doc, "unit");
+                    String color = getElementTextContent(doc, "color");
+                    String city = getElementTextContent(doc, "city");
+                    String owner = getElementTextContent(doc, "owner");
+
+                    assertThat(name).as("Name field should not be empty").isNotEmpty();
+                    assertThat(timestamp).as("Timestamp field should not be empty").isNotEmpty();
+                    assertThat(value).as("Value field should not be empty").isNotEmpty();
+                    assertThat(type).as("Type field should not be empty").isNotEmpty();
+                    assertThat(unit).as("Unit field should not be empty").isNotEmpty();
+                    assertThat(color).as("Color field should not be empty").isNotEmpty();
+                    assertThat(city).as("City field should not be empty").isNotEmpty();
+                    assertThat(owner).as("Owner field should not be empty").isNotEmpty();
+
+                    log.info("Parsed XML fields: name={}, timestamp={}, value={}, type={}, unit={}, color={}, city={}, owner={}",
+                        name, timestamp, value, type, unit, color, city, owner);
+
+                    // Store original for comparison with processed version
+                    originalMessages.put(record.key(), xmlValue);
+                } catch (Exception e) {
+                    throw new AssertionError("Failed to parse XML: " + xmlValue, e);
+                }
             });
         }
 
@@ -122,22 +146,62 @@ class XmlDataFormatIT {
             assertThat(records).as("Should have processed sensor data in ksml_sensordata_xml_processed topic").isNotEmpty();
             log.info("Found {} processed XML messages", records.count());
 
-            // Validate processed XML messages
+            // Validate processed XML messages against originals using proper DOM parsing
             records.forEach(record -> {
                 log.info("Processed XML: key={}, value={}", record.key(), record.value());
                 assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
-                // Validate XML structure contains processed data
-                String xmlValue = record.value();
-                assertThat(xmlValue)
-                    .as("Processed XML message should contain SensorData root elements")
-                    .contains("<SensorData>")
-                    .contains("</SensorData>");
+                String processedXmlValue = record.value();
+                String originalXmlValue = originalMessages.get(record.key());
+                assertThat(originalXmlValue).as("Should have original message for key: " + record.key()).isNotNull();
 
-                // Validate that XML is well-formed
-                long openingTags = xmlValue.chars().filter(ch -> ch == '<').count();
-                long closingTags = xmlValue.chars().filter(ch -> ch == '>').count();
-                assertThat(openingTags).as("Processed XML should have equal opening and closing angle brackets").isEqualTo(closingTags);
+                try {
+                    // Parse both original and processed XML using DOM parser
+                    Document processedDoc = parseXmlDocument(processedXmlValue);
+                    Document originalDoc = parseXmlDocument(originalXmlValue);
+
+                    // Verify root element
+                    Element processedRoot = processedDoc.getDocumentElement();
+                    assertThat(processedRoot.getTagName()).as("Processed root element should be SensorData").isEqualTo("SensorData");
+
+                    // Extract all fields from processed XML
+                    String processedName = getElementTextContent(processedDoc, "name");
+                    String processedTimestamp = getElementTextContent(processedDoc, "timestamp");
+                    String processedValue = getElementTextContent(processedDoc, "value");
+                    String processedType = getElementTextContent(processedDoc, "type");
+                    String processedUnit = getElementTextContent(processedDoc, "unit");
+                    String processedColor = getElementTextContent(processedDoc, "color");
+                    String processedCity = getElementTextContent(processedDoc, "city");
+                    String processedOwner = getElementTextContent(processedDoc, "owner");
+
+                    // Extract corresponding fields from original XML
+                    String originalName = getElementTextContent(originalDoc, "name");
+                    String originalTimestamp = getElementTextContent(originalDoc, "timestamp");
+                    String originalValue = getElementTextContent(originalDoc, "value");
+                    String originalType = getElementTextContent(originalDoc, "type");
+                    String originalUnit = getElementTextContent(originalDoc, "unit");
+                    String originalColor = getElementTextContent(originalDoc, "color");
+                    String originalCity = getElementTextContent(originalDoc, "city");
+                    String originalOwner = getElementTextContent(originalDoc, "owner");
+
+                    // Verify transformation: city should be uppercase
+                    assertThat(processedCity).isEqualTo(originalCity.toUpperCase())
+                        .as("City should be uppercase: original='%s', processed='%s'", originalCity, processedCity);
+
+                    log.info("Verified city transformation: '{}' -> '{}'", originalCity, processedCity);
+
+                    // Verify other fields remain unchanged
+                    assertThat(processedName).isEqualTo(originalName).as("Name should remain unchanged");
+                    assertThat(processedTimestamp).isEqualTo(originalTimestamp).as("Timestamp should remain unchanged");
+                    assertThat(processedValue).isEqualTo(originalValue).as("Value should remain unchanged");
+                    assertThat(processedType).isEqualTo(originalType).as("Type should remain unchanged");
+                    assertThat(processedUnit).isEqualTo(originalUnit).as("Unit should remain unchanged");
+                    assertThat(processedColor).isEqualTo(originalColor).as("Color should remain unchanged");
+                    assertThat(processedOwner).isEqualTo(originalOwner).as("Owner should remain unchanged");
+
+                } catch (Exception e) {
+                    throw new AssertionError("Failed to parse and compare XML documents. Original: " + originalXmlValue + ", Processed: " + processedXmlValue, e);
+                }
             });
         }
 
@@ -173,6 +237,30 @@ class XmlDataFormatIT {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         return props;
+    }
+
+    /**
+     * Parse an XML string into a DOM Document using standard Java XML parser.
+     * This validates that the XML is well-formed and provides structured access to elements.
+     *
+     * @param xmlString The XML string to parse
+     * @return Document object representing the parsed XML
+     */
+    private Document parseXmlDocument(String xmlString) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(new InputSource(new StringReader(xmlString)));
+    }
+
+    /**
+     * Extract the text content of an XML element by tag name.
+     *
+     * @param doc The XML document
+     * @param tagName The tag name to extract
+     * @return The text content of the element
+     */
+    private String getElementTextContent(Document doc, String tagName) {
+        return doc.getElementsByTagName(tagName).item(0).getTextContent();
     }
 
 }
