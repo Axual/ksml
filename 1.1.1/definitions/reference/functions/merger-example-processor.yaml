@@ -1,0 +1,68 @@
+streams:
+  user_activity_input:
+    topic: user_activity
+    keyType: string
+    valueType: json
+
+functions:
+  # Initialize session counter
+  init_counter:
+    type: initializer
+    expression: 0
+    resultType: int
+    
+  # Count events in session
+  count_events:
+    type: aggregator
+    code: |
+      # Increment the counter for each event
+      return (aggregatedValue or 0) + 1
+    resultType: int
+    
+  # Merge session counters when sessions are combined
+  merge_counts:
+    type: merger
+    code: |
+      # This function is called when two session windows need to be merged
+      # For example, when a late-arriving event connects two previously separate sessions
+      
+      count1 = value1 or 0
+      count2 = value2 or 0
+      merged_total = count1 + count2
+      
+      log.info("Merging sessions: {} + {} = {}", count1, count2, merged_total)
+      return merged_total
+    resultType: int
+
+pipelines:
+  session_counting:
+    from: user_activity_input
+    via:
+      - type: groupByKey
+      - type: windowBySession
+        inactivityGap: 10m  # Session ends after 10 minutes of inactivity
+        grace: 2m          # Allow 2 minutes for late events
+      - type: aggregate
+        initializer: init_counter
+        aggregator: count_events
+        merger: merge_counts  # Required for session windows - merges overlapping sessions
+        store:
+          type: session
+          retention: 1h
+      - type: toStream
+      - type: peek
+        forEach:
+          code: |
+            log.info("User {} session: {} events", key, value)
+      # Convert windowed key to string for output serialization
+      - type: mapKey
+        mapper:
+          code: |
+            # Convert windowed key to readable string format
+            # The windowed key is a dictionary with 'key', 'start', 'end' fields
+            return f"user_{key['key']}_window_{key['start']}_{key['end']}"
+          resultType: string
+    to:
+      topic: session_counts
+      keyType: string  # Now using simple string keys after transformation
+      valueType: int

@@ -1,0 +1,30 @@
+# Producer demonstrating list() and tuple() syntax alternatives
+
+functions:
+  generate_student_data:
+    type: generator
+    resultType: tuple(string, json)  # Alternative to "(string, json)"
+    globalCode: |
+      import random
+    code: |
+      student_id = f"student_{random.randint(1000, 9999)}"
+      
+      # Generate student data with lists and tuples using function syntax
+      student_data = {
+        "grades": [random.randint(70, 100) for _ in range(3)],  # Will be processed as list(int)
+        "coordinates": (random.uniform(-90, 90), random.uniform(-180, 180)),  # Will be processed as tuple(double, double)
+        "subjects": ["math", "science", "english"][0:random.randint(1, 3)]
+      }
+    expression: (student_id, student_data)
+
+streams:
+  student_records:
+    topic: student_records
+    keyType: string
+    valueType: json
+
+producers:
+  student_producer:
+    to: student_records
+    interval: 3000
+    generator: generate_student_data

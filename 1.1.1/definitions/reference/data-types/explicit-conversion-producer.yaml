@@ -1,0 +1,39 @@
+# Producer for explicit format conversion example
+# Generates JSON messages that will be converted to different formats
+
+streams:
+  json_messages:
+    topic: json_messages
+    keyType: string
+    valueType: json
+
+functions:
+  generate_json_data:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      counter = 0
+      cities = ["Amsterdam", "Rotterdam", "Utrecht", "The Hague", "Eindhoven"]
+      types = ["temperature", "humidity", "pressure"]
+    code: |
+      global counter, cities, types
+      counter += 1
+      
+      sensor_data = {
+        "sensor_id": f"sensor_{counter % 10}",
+        "city": random.choice(cities),
+        "type": random.choice(types),
+        "value": round(random.uniform(0, 100), 2),
+        "unit": "%" if types == "humidity" else "°C" if types == "temperature" else "hPa",
+        "timestamp": int(time.time())
+      }
+      
+      return (sensor_data["sensor_id"], sensor_data)
+    resultType: (string, json)
+
+producers:
+  json_generator:
+    generator: generate_json_data
+    interval: 2s
+    to: json_messages

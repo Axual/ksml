@@ -1,0 +1,73 @@
+# Producer for async integration demo - generates order events
+
+functions:
+  generate_orders:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      order_counter = 0
+      customer_ids = ["CUST001", "CUST002", "CUST003", "CUST004"]
+      statuses = ["created", "paid", "shipped", "delivered"]
+    code: |
+      global order_counter, customer_ids, statuses
+      
+      order_counter += 1
+      order_id = f"ORDER_{order_counter:04d}"
+      customer_id = random.choice(customer_ids)
+      status = random.choice(statuses)
+      amount = round(random.uniform(10.0, 500.0), 2)
+      current_timestamp = int(time.time() * 1000)
+      
+      # Create structured JSON order event for better readability in Kowl UI
+      order_event = {
+        "order_id": order_id,
+        "customer_id": customer_id,
+        "status": status,
+        "amount": amount,
+        "timestamp": current_timestamp,
+        "sequence_number": order_counter,
+        "order_details": {
+          "currency": "USD",
+          "payment_method": random.choice(["credit_card", "debit_card", "paypal", "bank_transfer"]),
+          "shipping_method": random.choice(["standard", "express", "overnight", "pickup"]),
+          "order_source": random.choice(["web", "mobile", "phone", "store"])
+        },
+        "customer_info": {
+          "customer_tier": random.choice(["bronze", "silver", "gold", "platinum"]),
+          "loyalty_points": random.randint(0, 5000),
+          "previous_orders": random.randint(0, 50)
+        },
+        "fulfillment": {
+          "warehouse_id": f"WH_{random.randint(1, 5):02d}",
+          "estimated_ship_date": current_timestamp + random.randint(1, 7) * 24 * 60 * 60 * 1000,  # 1-7 days
+          "shipping_address": {
+            "country": random.choice(["US", "CA", "UK", "DE", "FR"]),
+            "region": random.choice(["North", "South", "East", "West", "Central"])
+          }
+        },
+        "business_context": {
+          "requires_external_processing": status == "paid",
+          "high_value": amount > 200,
+          "priority": "high" if amount > 300 else "normal",
+          "async_processing_needed": True
+        },
+        "metadata": {
+          "simulation": True,
+          "async_integration": True,
+          "correlation_id": f"corr_{order_id}_{current_timestamp}",
+          "processing_version": "1.0"
+        }
+      }
+      
+    expression: (order_id, order_event)
+    resultType: (string, json)
+
+producers:
+  order_producer:
+    generator: generate_orders
+    interval: 3s
+    to:
+      topic: order_events
+      keyType: string
+      valueType: json

@@ -1,0 +1,47 @@
+# User events producer for manual state store access example
+# Generates user activity events to demonstrate cache enrichment
+
+streams:
+  user_events:
+    topic: user_events
+    keyType: string
+    valueType: json
+
+functions:
+  generate_user_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      
+      users = ["user_001", "user_002", "user_003", "user_004", "user_005"]
+      actions = ["login", "view_product", "add_to_cart", "checkout", "logout"]
+      products = ["laptop", "phone", "tablet", "monitor", "keyboard"]
+      event_counter = 0
+    code: |
+      global event_counter
+      event_counter += 1
+      
+      user_id = random.choice(users)
+      action = random.choice(actions)
+      
+      event = {
+        "event_id": f"evt_{event_counter}",
+        "user_id": user_id,
+        "action": action,
+        "timestamp": int(time.time() * 1000)
+      }
+      
+      # Add product info for relevant actions
+      if action in ["view_product", "add_to_cart"]:
+        event["product"] = random.choice(products)
+        event["price"] = round(random.uniform(50, 2000), 2)
+      
+      return (user_id, event)
+    resultType: (string, json)
+
+producers:
+  user_event_generator:
+    generator: generate_user_events
+    interval: 2s
+    to: user_events

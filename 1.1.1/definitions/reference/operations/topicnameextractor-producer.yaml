@@ -1,0 +1,35 @@
+streams:
+  system_events:
+    topic: system_events
+    keyType: string
+    valueType: json
+
+functions:
+  generate_system_event:
+    type: generator
+    resultType: (string,json)
+    code: |
+      import random, time
+      sev = random.choice(["INFO", "WARNING", "ERROR", "CRITICAL"])
+      msgs = {
+        "CRITICAL": ["System failure", "Service down"],
+        "ERROR": ["Request timeout", "DB failed"],
+        "WARNING": ["High CPU", "Disk low"],
+        "INFO": ["Service started", "Health OK"]
+      }
+      eid = f"e{random.randint(1000, 9999)}"
+      return eid, {
+        "event_id": eid,
+        "severity": sev,
+        "component": random.choice(["api", "db", "cache"]),
+        "message": random.choice(msgs[sev]),
+        "timestamp": int(time.time()),
+        "cpu": random.uniform(10 if sev=="INFO" else 70, 100)
+      }
+
+producers:
+  # Produce system events every 2 seconds
+  system_event_producer:
+    generator: generate_system_event
+    interval: 2s
+    to: system_events

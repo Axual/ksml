@@ -1,0 +1,44 @@
+# Monitoring processor with message counting and conditional logging
+# Demonstrates peek operations for monitoring without data modification
+
+streams:
+  monitor_input:
+    topic: ksml_logging_input  
+    keyType: string
+    valueType: json
+  monitor_output:
+    topic: ksml_monitoring_output
+    keyType: string
+    valueType: json
+
+functions:
+  monitor_messages:
+    type: forEach
+    code: |
+      # Count messages
+      global message_count
+      if 'message_count' not in globals():
+        message_count = 0
+      message_count += 1
+      
+      # Conditional logging - only log ERROR level messages
+      if value.get("level") == "ERROR":
+        log.error("Error detected: {}", value.get("message"))
+      
+      # Log high importance messages as warnings
+      if value.get("importance", 0) > 8:
+        log.warn("High importance message ({}): {}", 
+                value.get("importance"), value.get("message"))
+      
+      # Log every 10th message  
+      if message_count % 10 == 0:
+        log.info("Processed {} messages", message_count)
+
+pipelines:
+  monitoring_pipeline:
+    from: monitor_input
+    via:
+      - type: peek
+        forEach:
+          code: monitor_messages(key, value)
+    to: monitor_output

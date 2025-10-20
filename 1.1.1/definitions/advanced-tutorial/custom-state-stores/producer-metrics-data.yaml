@@ -1,0 +1,75 @@
+# Producer for window store demo - generates time-series metrics
+
+functions:
+  generate_metrics:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      import math
+      metric_counter = 0
+      metrics = ["cpu_usage", "memory_usage", "disk_io", "network_io"]
+      servers = ["server_001", "server_002", "server_003"]
+    code: |
+      global metric_counter, metrics, servers
+      
+      metric_counter += 1
+      server = random.choice(servers)
+      metric_name = random.choice(metrics)
+      
+      # Generate realistic metric values
+      base_value = {
+        "cpu_usage": 30,
+        "memory_usage": 60,
+        "disk_io": 1000,
+        "network_io": 500
+      }[metric_name]
+      
+      # Add some variation and trends
+      trend = math.sin(metric_counter / 20) * 10
+      noise = random.uniform(-5, 5)
+      value = max(0, base_value + trend + noise)
+      
+      current_timestamp = int(time.time() * 1000)
+      
+      # Create structured JSON metric for better readability in Kowl UI
+      metric = {
+        "server_id": server,
+        "metric_name": metric_name,
+        "value": round(value, 2),
+        "timestamp": current_timestamp,
+        "metric_id": f"metric_{metric_counter:06d}",
+        "unit": {
+          "cpu_usage": "percent",
+          "memory_usage": "percent", 
+          "disk_io": "MB/s",
+          "network_io": "MB/s"
+        }[metric_name],
+        "datacenter": random.choice(["dc1", "dc2", "dc3"]),
+        "environment": random.choice(["prod", "staging", "test"]),
+        "service": random.choice(["web", "api", "database", "cache"]),
+        "alerting": {
+          "enabled": True,
+          "threshold_high": base_value * 1.5,
+          "threshold_critical": base_value * 2.0
+        },
+        "metadata": {
+          "simulation": True,
+          "window_aggregation": True,
+          "baseline_value": base_value,
+          "trend_component": round(trend, 2),
+          "noise_component": round(noise, 2)
+        }
+      }
+      
+    expression: (server, metric)
+    resultType: (string, json)
+
+producers:
+  metrics_producer:
+    generator: generate_metrics
+    interval: 1s
+    to:
+      topic: server_metrics
+      keyType: string
+      valueType: json

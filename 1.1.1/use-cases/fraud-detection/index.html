@@ -1,0 +1,2353 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the KSML project">
+      
+      
+        <meta name="author" content="Axual">
+      
+      
+      
+        <link rel="prev" href="../real-time-analytics/">
+      
+      
+        <link rel="next" href="../../reference/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Fraud Detection - KSML Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fraud-detection-with-ksml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="KSML Documentation" class="md-header__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KSML Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Fraud Detection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="KSML Documentation" class="md-nav__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KSML Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Understanding KSML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/schema-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schema Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/basics-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KSML Basics Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Beginner Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Beginner Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/filtering-transforming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filtering and Transforming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/data-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Different Data Formats
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/logging-monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Logging and Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Intermediate Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Intermediate Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/branching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Branching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/aggregations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Aggregations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/joins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Joins
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/windowing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Windowing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/error-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Error Handling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/state-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    State Stores
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/complex-event-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Complex Event Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/custom-state-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom State Stores
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/performance-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/external-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integration with External Systems
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Use Case Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Use Case Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-transformation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Transformation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-driven-applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event-Driven Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iot-data-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    IoT Data Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-time-analytics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Real-time Analytics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Fraud Detection
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fraud Detection
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Use Case
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-the-topics-for-the-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      Define the topics for the use case
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defining the Data Model
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-the-ksml-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating the KSML Definition
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-fraud-detection-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Fraud Detection Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Fraud Detection Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pattern-recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pattern Recognition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#machine-learning-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Machine Learning Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-time-alerting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-time Alerting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-and-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing and Validation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Considerations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    References
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            References
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/definition-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KSML Definition Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/pipeline-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/function-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Function Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/operation-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operation Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/data-and-formats-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Types and Notations Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/state-store-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    State Store Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Use Case
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-the-topics-for-the-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      Define the topics for the use case
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defining the Data Model
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-the-ksml-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating the KSML Definition
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-fraud-detection-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Fraud Detection Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Fraud Detection Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pattern-recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pattern Recognition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#machine-learning-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Machine Learning Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-time-alerting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-time Alerting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-and-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing and Validation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Considerations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="fraud-detection-with-ksml">Fraud Detection with KSML</h1>
+<p>This guide demonstrates how to build a real-time fraud detection system using KSML. You'll learn how to analyze transaction streams, identify suspicious patterns, and generate alerts for potential fraud.</p>
+<h2 id="introduction">Introduction</h2>
+<p>Fraud detection is a critical application of stream processing, allowing organizations to identify and respond to fraudulent activities in real-time. Key benefits include:</p>
+<ul>
+<li>Minimizing financial losses by detecting fraud as it happens</li>
+<li>Reducing false positives through multi-factor analysis</li>
+<li>Adapting to evolving fraud patterns with flexible detection rules</li>
+<li>Providing immediate alerts to security teams and customers</li>
+</ul>
+<p>KSML provides powerful capabilities for building sophisticated fraud detection systems that can process high volumes of transactions and apply complex detection algorithms in real-time.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Before starting this guide, you should:</p>
+<ul>
+<li>Understand basic KSML concepts (streams, functions, pipelines)</li>
+<li>Have completed the <a href="../../getting-started/basics-tutorial/">KSML Basics Tutorial</a></li>
+<li>Be familiar with <a href="../../tutorials/intermediate/aggregations/">Aggregations</a></li>
+<li>Have a basic understanding of <a href="../../tutorials/intermediate/windowing/">Windowed Operations</a></li>
+<li>Be familiar with <a href="../../tutorials/intermediate/state-stores/">State Stores</a></li>
+</ul>
+<h2 id="the-use-case">The Use Case</h2>
+<p>Imagine you're building a fraud detection system for a financial institution that processes millions of credit card transactions daily. You want to:</p>
+<ol>
+<li>Identify suspicious transactions based on multiple risk factors</li>
+<li>Track unusual patterns in customer behavior</li>
+<li>Generate real-time alerts for high-risk activities</li>
+<li>Maintain a low rate of false positives</li>
+</ol>
+<h2 id="define-the-topics-for-the-use-case">Define the topics for the use case</h2>
+<p>In earlier tutorials, you created a Docker Compose file with all the necessary containers. For this use case guide, some other topics
+are needed.
+To have these created, open the <code>docker-compose.yml</code> in the examples directory, and find the definitions for the <code>kafka-setup</code> container
+which creates the topics.
+<br>
+Change the definition so that the startup command for the setup container (the <code>command</code> section) looks like the following:</p>
+<details class="info">
+<summary><code>command</code> section for the kafka-setup container (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bash</span><span class="nv"> </span><span class="s">-c</span><span class="nv"> </span><span class="s">&#39;echo</span><span class="nv"> </span><span class="s">Creating</span><span class="nv"> </span><span class="s">topics...</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">                       </span><span class="s">kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">credit_card_transactions</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">                       </span><span class="s">kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">high_value_transactions</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">                       </span><span class="s">kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">unusual_location_alerts</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">                       </span><span class="s">kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">transaction_velocity_alerts</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">                       </span><span class="s">kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">transaction_pattern_alerts</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">                       </span><span class="s">kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">fraud_alerts</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">                       </span><span class="s">kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">fraud_notifications&#39;&quot;</span>
+</code></pre></div>
+</details>
+<h2 id="defining-the-data-model">Defining the Data Model</h2>
+<p>Our transaction data will have the following structure:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;transaction_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tx-123456&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1625097600000</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;card_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;card-789&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">&quot;customer_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cust-456&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">&quot;merchant&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;merch-123&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Online Electronics Store&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;electronics&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">&quot;country&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;US&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CA&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">&quot;city&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;San Francisco&quot;</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nt">&quot;amount&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">299.99</span><span class="p">,</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="nt">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;USD&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nt">&quot;transaction_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;online&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="nt">&quot;ip_address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;203.0.113.45&quot;</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="creating-the-ksml-definition">Creating the KSML Definition</h2>
+<p>Now, let's create our KSML definition file. This defines operations that check for transactions coming from unusual
+locations, coming at an unsual speed, or are for a high amount:</p>
+<details class="info">
+<summary>Basic fraud detection pipeline (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">transactions</span><span class="p">:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">credit_card_transactions</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># transaction_id</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># transaction data</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">high_value_transactions</span><span class="p">:</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">high_value_transactions</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># transaction_id</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># transaction data</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="nt">unusual_location_alerts</span><span class="p">:</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unusual_location_alerts</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># card_id</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># alert data</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="nt">velocity_alerts</span><span class="p">:</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transaction_velocity_alerts</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># card_id</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># alert data</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="nt">fraud_alerts</span><span class="p">:</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_alerts</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># transaction_id</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># consolidated alert data</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">  </span><span class="nt">customer_transaction_history</span><span class="p">:</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">    </span><span class="nt">persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">  </span><span class="nt">card_location_history</span><span class="p">:</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">    </span><span class="nt">persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">  </span><span class="nt">check_high_value</span><span class="p">:</span>
+<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">      </span><span class="no"># Define thresholds for different merchant categories</span>
+<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">      </span><span class="no">thresholds = {</span>
+<a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">        </span><span class="no">&quot;electronics&quot;: 1000,</span>
+<a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="w">        </span><span class="no">&quot;jewelry&quot;: 2000,</span>
+<a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="w">        </span><span class="no">&quot;travel&quot;: 3000,</span>
+<a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a><span class="w">        </span><span class="no">&quot;default&quot;: 500</span>
+<a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a>
+<a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a><span class="w">      </span><span class="no">category = value.get(&quot;merchant&quot;, {}).get(&quot;category&quot;, &quot;default&quot;)</span>
+<a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a><span class="w">      </span><span class="no">threshold = thresholds.get(category, thresholds[&quot;default&quot;])</span>
+<a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a>
+<a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a><span class="w">      </span><span class="no">return value.get(&quot;amount&quot;, 0) &gt; threshold</span>
+<a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a>
+<a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a><span class="w">  </span><span class="nt">create_high_value_alert</span><span class="p">:</span>
+<a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-62" name="__codelineno-2-62" href="#__codelineno-2-62"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-2-63" name="__codelineno-2-63" href="#__codelineno-2-63"></a><span class="w">        </span><span class="no">&quot;transaction_id&quot;: value.get(&quot;transaction_id&quot;),</span>
+<a id="__codelineno-2-64" name="__codelineno-2-64" href="#__codelineno-2-64"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: value.get(&quot;timestamp&quot;),</span>
+<a id="__codelineno-2-65" name="__codelineno-2-65" href="#__codelineno-2-65"></a><span class="w">        </span><span class="no">&quot;customer_id&quot;: value.get(&quot;customer_id&quot;),</span>
+<a id="__codelineno-2-66" name="__codelineno-2-66" href="#__codelineno-2-66"></a><span class="w">        </span><span class="no">&quot;card_id&quot;: value.get(&quot;card_id&quot;),</span>
+<a id="__codelineno-2-67" name="__codelineno-2-67" href="#__codelineno-2-67"></a><span class="w">        </span><span class="no">&quot;merchant&quot;: value.get(&quot;merchant&quot;),</span>
+<a id="__codelineno-2-68" name="__codelineno-2-68" href="#__codelineno-2-68"></a><span class="w">        </span><span class="no">&quot;amount&quot;: value.get(&quot;amount&quot;),</span>
+<a id="__codelineno-2-69" name="__codelineno-2-69" href="#__codelineno-2-69"></a><span class="w">        </span><span class="no">&quot;alert_type&quot;: &quot;high_value_transaction&quot;,</span>
+<a id="__codelineno-2-70" name="__codelineno-2-70" href="#__codelineno-2-70"></a><span class="w">        </span><span class="no">&quot;risk_score&quot;: min(100, value.get(&quot;amount&quot;) / 10)  # Simple scoring based on amount</span>
+<a id="__codelineno-2-71" name="__codelineno-2-71" href="#__codelineno-2-71"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-2-72" name="__codelineno-2-72" href="#__codelineno-2-72"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-2-73" name="__codelineno-2-73" href="#__codelineno-2-73"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-2-74" name="__codelineno-2-74" href="#__codelineno-2-74"></a>
+<a id="__codelineno-2-75" name="__codelineno-2-75" href="#__codelineno-2-75"></a><span class="w">  </span><span class="nt">check_unusual_location</span><span class="p">:</span>
+<a id="__codelineno-2-76" name="__codelineno-2-76" href="#__codelineno-2-76"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-2-77" name="__codelineno-2-77" href="#__codelineno-2-77"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-78" name="__codelineno-2-78" href="#__codelineno-2-78"></a><span class="w">      </span><span class="no">card_id = value.get(&quot;card_id&quot;)</span>
+<a id="__codelineno-2-79" name="__codelineno-2-79" href="#__codelineno-2-79"></a><span class="w">      </span><span class="no">current_country = value.get(&quot;merchant&quot;, {}).get(&quot;location&quot;, {}).get(&quot;country&quot;)</span>
+<a id="__codelineno-2-80" name="__codelineno-2-80" href="#__codelineno-2-80"></a><span class="w">      </span><span class="no">current_state = value.get(&quot;merchant&quot;, {}).get(&quot;location&quot;, {}).get(&quot;state&quot;)</span>
+<a id="__codelineno-2-81" name="__codelineno-2-81" href="#__codelineno-2-81"></a>
+<a id="__codelineno-2-82" name="__codelineno-2-82" href="#__codelineno-2-82"></a><span class="w">      </span><span class="no"># Get location history for this card</span>
+<a id="__codelineno-2-83" name="__codelineno-2-83" href="#__codelineno-2-83"></a><span class="w">      </span><span class="no">location_history = card_location_history.get(card_id)</span>
+<a id="__codelineno-2-84" name="__codelineno-2-84" href="#__codelineno-2-84"></a><span class="w">      </span><span class="no">unusual_location = False</span>
+<a id="__codelineno-2-85" name="__codelineno-2-85" href="#__codelineno-2-85"></a>
+<a id="__codelineno-2-86" name="__codelineno-2-86" href="#__codelineno-2-86"></a><span class="w">      </span><span class="no">if location_history is None:</span>
+<a id="__codelineno-2-87" name="__codelineno-2-87" href="#__codelineno-2-87"></a><span class="w">        </span><span class="no"># First transaction for this card, initialize history</span>
+<a id="__codelineno-2-88" name="__codelineno-2-88" href="#__codelineno-2-88"></a><span class="w">        </span><span class="no">location_history = {</span>
+<a id="__codelineno-2-89" name="__codelineno-2-89" href="#__codelineno-2-89"></a><span class="w">          </span><span class="no">&quot;last_countries&quot;: [current_country],</span>
+<a id="__codelineno-2-90" name="__codelineno-2-90" href="#__codelineno-2-90"></a><span class="w">          </span><span class="no">&quot;last_states&quot;: [current_state],</span>
+<a id="__codelineno-2-91" name="__codelineno-2-91" href="#__codelineno-2-91"></a><span class="w">          </span><span class="no">&quot;last_transaction_time&quot;: value.get(&quot;timestamp&quot;)</span>
+<a id="__codelineno-2-92" name="__codelineno-2-92" href="#__codelineno-2-92"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-2-93" name="__codelineno-2-93" href="#__codelineno-2-93"></a><span class="w">        </span><span class="no">card_location_history.put(card_id, location_history)</span>
+<a id="__codelineno-2-94" name="__codelineno-2-94" href="#__codelineno-2-94"></a><span class="w">      </span><span class="no">else:</span>
+<a id="__codelineno-2-95" name="__codelineno-2-95" href="#__codelineno-2-95"></a><span class="w">        </span><span class="no"># Check for unusual location</span>
+<a id="__codelineno-2-96" name="__codelineno-2-96" href="#__codelineno-2-96"></a><span class="w">        </span><span class="no">time_since_last = value.get(&quot;timestamp&quot;) - location_history.get(&quot;last_transaction_time&quot;, 0)</span>
+<a id="__codelineno-2-97" name="__codelineno-2-97" href="#__codelineno-2-97"></a>
+<a id="__codelineno-2-98" name="__codelineno-2-98" href="#__codelineno-2-98"></a><span class="w">        </span><span class="no"># If transaction is in a different country than any in history</span>
+<a id="__codelineno-2-99" name="__codelineno-2-99" href="#__codelineno-2-99"></a><span class="w">        </span><span class="no">if current_country not in location_history.get(&quot;last_countries&quot;, []):</span>
+<a id="__codelineno-2-100" name="__codelineno-2-100" href="#__codelineno-2-100"></a><span class="w">          </span><span class="no">unusual_location = True</span>
+<a id="__codelineno-2-101" name="__codelineno-2-101" href="#__codelineno-2-101"></a>
+<a id="__codelineno-2-102" name="__codelineno-2-102" href="#__codelineno-2-102"></a><span class="w">        </span><span class="no"># If transaction is in a different state and happened within 2 hours of last transaction</span>
+<a id="__codelineno-2-103" name="__codelineno-2-103" href="#__codelineno-2-103"></a><span class="w">        </span><span class="no">elif (current_state not in location_history.get(&quot;last_states&quot;, []) and time_since_last &lt; 7200000):  # 2 hours in milliseconds</span>
+<a id="__codelineno-2-104" name="__codelineno-2-104" href="#__codelineno-2-104"></a><span class="w">          </span><span class="no">unusual_location = True</span>
+<a id="__codelineno-2-105" name="__codelineno-2-105" href="#__codelineno-2-105"></a>
+<a id="__codelineno-2-106" name="__codelineno-2-106" href="#__codelineno-2-106"></a><span class="w">        </span><span class="no"># Update location history (keep last 3)</span>
+<a id="__codelineno-2-107" name="__codelineno-2-107" href="#__codelineno-2-107"></a><span class="w">        </span><span class="no">last_countries = location_history.get(&quot;last_countries&quot;, [])</span>
+<a id="__codelineno-2-108" name="__codelineno-2-108" href="#__codelineno-2-108"></a><span class="w">        </span><span class="no">if current_country not in last_countries:</span>
+<a id="__codelineno-2-109" name="__codelineno-2-109" href="#__codelineno-2-109"></a><span class="w">          </span><span class="no">last_countries.append(current_country)</span>
+<a id="__codelineno-2-110" name="__codelineno-2-110" href="#__codelineno-2-110"></a><span class="w">        </span><span class="no">if len(last_countries) &gt; 3:</span>
+<a id="__codelineno-2-111" name="__codelineno-2-111" href="#__codelineno-2-111"></a><span class="w">          </span><span class="no">last_countries = last_countries[-3:]</span>
+<a id="__codelineno-2-112" name="__codelineno-2-112" href="#__codelineno-2-112"></a>
+<a id="__codelineno-2-113" name="__codelineno-2-113" href="#__codelineno-2-113"></a><span class="w">        </span><span class="no">last_states = location_history.get(&quot;last_states&quot;, [])</span>
+<a id="__codelineno-2-114" name="__codelineno-2-114" href="#__codelineno-2-114"></a><span class="w">        </span><span class="no">if current_state not in last_states:</span>
+<a id="__codelineno-2-115" name="__codelineno-2-115" href="#__codelineno-2-115"></a><span class="w">          </span><span class="no">last_states.append(current_state)</span>
+<a id="__codelineno-2-116" name="__codelineno-2-116" href="#__codelineno-2-116"></a><span class="w">        </span><span class="no">if len(last_states) &gt; 3:</span>
+<a id="__codelineno-2-117" name="__codelineno-2-117" href="#__codelineno-2-117"></a><span class="w">          </span><span class="no">last_states = last_states[-3:]</span>
+<a id="__codelineno-2-118" name="__codelineno-2-118" href="#__codelineno-2-118"></a>
+<a id="__codelineno-2-119" name="__codelineno-2-119" href="#__codelineno-2-119"></a><span class="w">        </span><span class="no">location_history = {</span>
+<a id="__codelineno-2-120" name="__codelineno-2-120" href="#__codelineno-2-120"></a><span class="w">          </span><span class="no">&quot;last_countries&quot;: last_countries,</span>
+<a id="__codelineno-2-121" name="__codelineno-2-121" href="#__codelineno-2-121"></a><span class="w">          </span><span class="no">&quot;last_states&quot;: last_states,</span>
+<a id="__codelineno-2-122" name="__codelineno-2-122" href="#__codelineno-2-122"></a><span class="w">          </span><span class="no">&quot;last_transaction_time&quot;: value.get(&quot;timestamp&quot;)</span>
+<a id="__codelineno-2-123" name="__codelineno-2-123" href="#__codelineno-2-123"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-2-124" name="__codelineno-2-124" href="#__codelineno-2-124"></a><span class="w">        </span><span class="no">card_location_history.put(card_id, location_history)</span>
+<a id="__codelineno-2-125" name="__codelineno-2-125" href="#__codelineno-2-125"></a>
+<a id="__codelineno-2-126" name="__codelineno-2-126" href="#__codelineno-2-126"></a><span class="w">      </span><span class="no">if unusual_location:</span>
+<a id="__codelineno-2-127" name="__codelineno-2-127" href="#__codelineno-2-127"></a><span class="w">        </span><span class="no">result = {</span>
+<a id="__codelineno-2-128" name="__codelineno-2-128" href="#__codelineno-2-128"></a><span class="w">          </span><span class="no">&quot;transaction_id&quot;: value.get(&quot;transaction_id&quot;),</span>
+<a id="__codelineno-2-129" name="__codelineno-2-129" href="#__codelineno-2-129"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: value.get(&quot;timestamp&quot;),</span>
+<a id="__codelineno-2-130" name="__codelineno-2-130" href="#__codelineno-2-130"></a><span class="w">          </span><span class="no">&quot;customer_id&quot;: value.get(&quot;customer_id&quot;),</span>
+<a id="__codelineno-2-131" name="__codelineno-2-131" href="#__codelineno-2-131"></a><span class="w">          </span><span class="no">&quot;card_id&quot;: card_id,</span>
+<a id="__codelineno-2-132" name="__codelineno-2-132" href="#__codelineno-2-132"></a><span class="w">          </span><span class="no">&quot;current_location&quot;: {</span>
+<a id="__codelineno-2-133" name="__codelineno-2-133" href="#__codelineno-2-133"></a><span class="w">            </span><span class="no">&quot;country&quot;: current_country,</span>
+<a id="__codelineno-2-134" name="__codelineno-2-134" href="#__codelineno-2-134"></a><span class="w">            </span><span class="no">&quot;state&quot;: current_state</span>
+<a id="__codelineno-2-135" name="__codelineno-2-135" href="#__codelineno-2-135"></a><span class="w">          </span><span class="no">},</span>
+<a id="__codelineno-2-136" name="__codelineno-2-136" href="#__codelineno-2-136"></a><span class="w">          </span><span class="no">&quot;previous_locations&quot;: {</span>
+<a id="__codelineno-2-137" name="__codelineno-2-137" href="#__codelineno-2-137"></a><span class="w">            </span><span class="no">&quot;countries&quot;: location_history.get(&quot;last_countries&quot;, [])[:-1],</span>
+<a id="__codelineno-2-138" name="__codelineno-2-138" href="#__codelineno-2-138"></a><span class="w">            </span><span class="no">&quot;states&quot;: location_history.get(&quot;last_states&quot;, [])[:-1]</span>
+<a id="__codelineno-2-139" name="__codelineno-2-139" href="#__codelineno-2-139"></a><span class="w">          </span><span class="no">},</span>
+<a id="__codelineno-2-140" name="__codelineno-2-140" href="#__codelineno-2-140"></a><span class="w">          </span><span class="no">&quot;time_since_last_transaction&quot;: time_since_last,</span>
+<a id="__codelineno-2-141" name="__codelineno-2-141" href="#__codelineno-2-141"></a><span class="w">          </span><span class="no">&quot;alert_type&quot;: &quot;unusual_location&quot;,</span>
+<a id="__codelineno-2-142" name="__codelineno-2-142" href="#__codelineno-2-142"></a><span class="w">          </span><span class="no">&quot;risk_score&quot;: 70 if current_country not in location_history.get(&quot;last_countries&quot;, [])[:-1] else 40</span>
+<a id="__codelineno-2-143" name="__codelineno-2-143" href="#__codelineno-2-143"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-2-144" name="__codelineno-2-144" href="#__codelineno-2-144"></a><span class="w">      </span><span class="no">else:</span>
+<a id="__codelineno-2-145" name="__codelineno-2-145" href="#__codelineno-2-145"></a><span class="w">        </span><span class="no">result = None</span>
+<a id="__codelineno-2-146" name="__codelineno-2-146" href="#__codelineno-2-146"></a>
+<a id="__codelineno-2-147" name="__codelineno-2-147" href="#__codelineno-2-147"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-2-148" name="__codelineno-2-148" href="#__codelineno-2-148"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-2-149" name="__codelineno-2-149" href="#__codelineno-2-149"></a><span class="w">    </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-2-150" name="__codelineno-2-150" href="#__codelineno-2-150"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">card_location_history</span>
+<a id="__codelineno-2-151" name="__codelineno-2-151" href="#__codelineno-2-151"></a>
+<a id="__codelineno-2-152" name="__codelineno-2-152" href="#__codelineno-2-152"></a><span class="w">  </span><span class="nt">check_transaction_velocity</span><span class="p">:</span>
+<a id="__codelineno-2-153" name="__codelineno-2-153" href="#__codelineno-2-153"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-2-154" name="__codelineno-2-154" href="#__codelineno-2-154"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-155" name="__codelineno-2-155" href="#__codelineno-2-155"></a><span class="w">      </span><span class="no">card_id = value.get(&quot;card_id&quot;)</span>
+<a id="__codelineno-2-156" name="__codelineno-2-156" href="#__codelineno-2-156"></a><span class="w">      </span><span class="no">current_time = value.get(&quot;timestamp&quot;)</span>
+<a id="__codelineno-2-157" name="__codelineno-2-157" href="#__codelineno-2-157"></a><span class="w">      </span><span class="no">result = None</span>
+<a id="__codelineno-2-158" name="__codelineno-2-158" href="#__codelineno-2-158"></a>
+<a id="__codelineno-2-159" name="__codelineno-2-159" href="#__codelineno-2-159"></a><span class="w">      </span><span class="no"># Get transaction history for this card</span>
+<a id="__codelineno-2-160" name="__codelineno-2-160" href="#__codelineno-2-160"></a><span class="w">      </span><span class="no">history = customer_transaction_history.get(card_id)</span>
+<a id="__codelineno-2-161" name="__codelineno-2-161" href="#__codelineno-2-161"></a>
+<a id="__codelineno-2-162" name="__codelineno-2-162" href="#__codelineno-2-162"></a><span class="w">      </span><span class="no">if history is None:</span>
+<a id="__codelineno-2-163" name="__codelineno-2-163" href="#__codelineno-2-163"></a><span class="w">        </span><span class="no"># First transaction for this card, initialize history</span>
+<a id="__codelineno-2-164" name="__codelineno-2-164" href="#__codelineno-2-164"></a><span class="w">        </span><span class="no">history = {</span>
+<a id="__codelineno-2-165" name="__codelineno-2-165" href="#__codelineno-2-165"></a><span class="w">          </span><span class="no">&quot;transaction_times&quot;: [current_time],</span>
+<a id="__codelineno-2-166" name="__codelineno-2-166" href="#__codelineno-2-166"></a><span class="w">          </span><span class="no">&quot;transaction_count_1h&quot;: 1,</span>
+<a id="__codelineno-2-167" name="__codelineno-2-167" href="#__codelineno-2-167"></a><span class="w">          </span><span class="no">&quot;transaction_count_24h&quot;: 1,</span>
+<a id="__codelineno-2-168" name="__codelineno-2-168" href="#__codelineno-2-168"></a><span class="w">          </span><span class="no">&quot;total_amount_24h&quot;: value.get(&quot;amount&quot;, 0)</span>
+<a id="__codelineno-2-169" name="__codelineno-2-169" href="#__codelineno-2-169"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-2-170" name="__codelineno-2-170" href="#__codelineno-2-170"></a><span class="w">        </span><span class="no">customer_transaction_history.put(card_id, history)</span>
+<a id="__codelineno-2-171" name="__codelineno-2-171" href="#__codelineno-2-171"></a><span class="w">        </span><span class="no">result = None  # No alert for first transaction</span>
+<a id="__codelineno-2-172" name="__codelineno-2-172" href="#__codelineno-2-172"></a><span class="w">      </span><span class="no">else:</span>
+<a id="__codelineno-2-173" name="__codelineno-2-173" href="#__codelineno-2-173"></a>
+<a id="__codelineno-2-174" name="__codelineno-2-174" href="#__codelineno-2-174"></a><span class="w">        </span><span class="no"># Update transaction history</span>
+<a id="__codelineno-2-175" name="__codelineno-2-175" href="#__codelineno-2-175"></a><span class="w">        </span><span class="no">transaction_times = history.get(&quot;transaction_times&quot;, [])</span>
+<a id="__codelineno-2-176" name="__codelineno-2-176" href="#__codelineno-2-176"></a><span class="w">        </span><span class="no">transaction_times.append(current_time)</span>
+<a id="__codelineno-2-177" name="__codelineno-2-177" href="#__codelineno-2-177"></a>
+<a id="__codelineno-2-178" name="__codelineno-2-178" href="#__codelineno-2-178"></a><span class="w">        </span><span class="no"># Keep only transactions from the last 24 hours</span>
+<a id="__codelineno-2-179" name="__codelineno-2-179" href="#__codelineno-2-179"></a><span class="w">        </span><span class="no">one_day_ago = current_time - 86400000  # 24 hours in milliseconds</span>
+<a id="__codelineno-2-180" name="__codelineno-2-180" href="#__codelineno-2-180"></a><span class="w">        </span><span class="no">transaction_times = [t for t in transaction_times if t &gt; one_day_ago]</span>
+<a id="__codelineno-2-181" name="__codelineno-2-181" href="#__codelineno-2-181"></a>
+<a id="__codelineno-2-182" name="__codelineno-2-182" href="#__codelineno-2-182"></a><span class="w">        </span><span class="no"># Count transactions in the last hour</span>
+<a id="__codelineno-2-183" name="__codelineno-2-183" href="#__codelineno-2-183"></a><span class="w">        </span><span class="no">one_hour_ago = current_time - 3600000  # 1 hour in milliseconds</span>
+<a id="__codelineno-2-184" name="__codelineno-2-184" href="#__codelineno-2-184"></a><span class="w">        </span><span class="no">transaction_count_1h = sum(1 for t in transaction_times if t &gt; one_hour_ago)</span>
+<a id="__codelineno-2-185" name="__codelineno-2-185" href="#__codelineno-2-185"></a>
+<a id="__codelineno-2-186" name="__codelineno-2-186" href="#__codelineno-2-186"></a><span class="w">        </span><span class="no"># Calculate total amount in the last 24 hours</span>
+<a id="__codelineno-2-187" name="__codelineno-2-187" href="#__codelineno-2-187"></a><span class="w">        </span><span class="no">total_amount_24h = history.get(&quot;total_amount_24h&quot;, 0) + value.get(&quot;amount&quot;, 0)</span>
+<a id="__codelineno-2-188" name="__codelineno-2-188" href="#__codelineno-2-188"></a><span class="w">        </span><span class="no">if len(transaction_times) &lt; len(history.get(&quot;transaction_times&quot;, [])):</span>
+<a id="__codelineno-2-189" name="__codelineno-2-189" href="#__codelineno-2-189"></a><span class="w">          </span><span class="no"># Some transactions dropped out of the 24h window, recalculate total</span>
+<a id="__codelineno-2-190" name="__codelineno-2-190" href="#__codelineno-2-190"></a><span class="w">          </span><span class="no"># In a real system, you would store individual transaction amounts</span>
+<a id="__codelineno-2-191" name="__codelineno-2-191" href="#__codelineno-2-191"></a><span class="w">          </span><span class="no"># This is simplified for the example</span>
+<a id="__codelineno-2-192" name="__codelineno-2-192" href="#__codelineno-2-192"></a><span class="w">          </span><span class="no">total_amount_24h = value.get(&quot;amount&quot;, 0) * len(transaction_times)</span>
+<a id="__codelineno-2-193" name="__codelineno-2-193" href="#__codelineno-2-193"></a>
+<a id="__codelineno-2-194" name="__codelineno-2-194" href="#__codelineno-2-194"></a><span class="w">        </span><span class="no"># Update history</span>
+<a id="__codelineno-2-195" name="__codelineno-2-195" href="#__codelineno-2-195"></a><span class="w">        </span><span class="no">history = {</span>
+<a id="__codelineno-2-196" name="__codelineno-2-196" href="#__codelineno-2-196"></a><span class="w">          </span><span class="no">&quot;transaction_times&quot;: transaction_times,</span>
+<a id="__codelineno-2-197" name="__codelineno-2-197" href="#__codelineno-2-197"></a><span class="w">          </span><span class="no">&quot;transaction_count_1h&quot;: transaction_count_1h,</span>
+<a id="__codelineno-2-198" name="__codelineno-2-198" href="#__codelineno-2-198"></a><span class="w">          </span><span class="no">&quot;transaction_count_24h&quot;: len(transaction_times),</span>
+<a id="__codelineno-2-199" name="__codelineno-2-199" href="#__codelineno-2-199"></a><span class="w">          </span><span class="no">&quot;total_amount_24h&quot;: total_amount_24h</span>
+<a id="__codelineno-2-200" name="__codelineno-2-200" href="#__codelineno-2-200"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-2-201" name="__codelineno-2-201" href="#__codelineno-2-201"></a><span class="w">        </span><span class="no">customer_transaction_history.put(card_id, history)</span>
+<a id="__codelineno-2-202" name="__codelineno-2-202" href="#__codelineno-2-202"></a>
+<a id="__codelineno-2-203" name="__codelineno-2-203" href="#__codelineno-2-203"></a><span class="w">        </span><span class="no"># More than 5 transactions in an hour</span>
+<a id="__codelineno-2-204" name="__codelineno-2-204" href="#__codelineno-2-204"></a><span class="w">        </span><span class="no">if transaction_count_1h &gt; 5:</span>
+<a id="__codelineno-2-205" name="__codelineno-2-205" href="#__codelineno-2-205"></a><span class="w">          </span><span class="no">result = {</span>
+<a id="__codelineno-2-206" name="__codelineno-2-206" href="#__codelineno-2-206"></a><span class="w">            </span><span class="no">&quot;transaction_id&quot;: value.get(&quot;transaction_id&quot;),</span>
+<a id="__codelineno-2-207" name="__codelineno-2-207" href="#__codelineno-2-207"></a><span class="w">            </span><span class="no">&quot;timestamp&quot;: value.get(&quot;timestamp&quot;),</span>
+<a id="__codelineno-2-208" name="__codelineno-2-208" href="#__codelineno-2-208"></a><span class="w">            </span><span class="no">&quot;customer_id&quot;: value.get(&quot;customer_id&quot;),</span>
+<a id="__codelineno-2-209" name="__codelineno-2-209" href="#__codelineno-2-209"></a><span class="w">            </span><span class="no">&quot;card_id&quot;: card_id,</span>
+<a id="__codelineno-2-210" name="__codelineno-2-210" href="#__codelineno-2-210"></a><span class="w">            </span><span class="no">&quot;transactions_last_hour&quot;: transaction_count_1h,</span>
+<a id="__codelineno-2-211" name="__codelineno-2-211" href="#__codelineno-2-211"></a><span class="w">            </span><span class="no">&quot;transactions_last_day&quot;: len(transaction_times),</span>
+<a id="__codelineno-2-212" name="__codelineno-2-212" href="#__codelineno-2-212"></a><span class="w">            </span><span class="no">&quot;total_amount_24h&quot;: total_amount_24h,</span>
+<a id="__codelineno-2-213" name="__codelineno-2-213" href="#__codelineno-2-213"></a><span class="w">            </span><span class="no">&quot;alert_type&quot;: &quot;high_transaction_velocity&quot;,</span>
+<a id="__codelineno-2-214" name="__codelineno-2-214" href="#__codelineno-2-214"></a><span class="w">            </span><span class="no">&quot;risk_score&quot;: min(100, transaction_count_1h * 10)</span>
+<a id="__codelineno-2-215" name="__codelineno-2-215" href="#__codelineno-2-215"></a><span class="w">          </span><span class="no">}</span>
+<a id="__codelineno-2-216" name="__codelineno-2-216" href="#__codelineno-2-216"></a>
+<a id="__codelineno-2-217" name="__codelineno-2-217" href="#__codelineno-2-217"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-2-218" name="__codelineno-2-218" href="#__codelineno-2-218"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-2-219" name="__codelineno-2-219" href="#__codelineno-2-219"></a><span class="w">    </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-2-220" name="__codelineno-2-220" href="#__codelineno-2-220"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_transaction_history</span>
+<a id="__codelineno-2-221" name="__codelineno-2-221" href="#__codelineno-2-221"></a>
+<a id="__codelineno-2-222" name="__codelineno-2-222" href="#__codelineno-2-222"></a><span class="w">  </span><span class="nt">calculate_fraud_score</span><span class="p">:</span>
+<a id="__codelineno-2-223" name="__codelineno-2-223" href="#__codelineno-2-223"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-2-224" name="__codelineno-2-224" href="#__codelineno-2-224"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-225" name="__codelineno-2-225" href="#__codelineno-2-225"></a><span class="w">      </span><span class="no"># Base risk score from the alert</span>
+<a id="__codelineno-2-226" name="__codelineno-2-226" href="#__codelineno-2-226"></a><span class="w">      </span><span class="no">risk_score = value.get(&quot;risk_score&quot;, 0)</span>
+<a id="__codelineno-2-227" name="__codelineno-2-227" href="#__codelineno-2-227"></a>
+<a id="__codelineno-2-228" name="__codelineno-2-228" href="#__codelineno-2-228"></a><span class="w">      </span><span class="no"># Additional factors</span>
+<a id="__codelineno-2-229" name="__codelineno-2-229" href="#__codelineno-2-229"></a><span class="w">      </span><span class="no">alert_type = value.get(&quot;alert_type&quot;, &quot;&quot;)</span>
+<a id="__codelineno-2-230" name="__codelineno-2-230" href="#__codelineno-2-230"></a>
+<a id="__codelineno-2-231" name="__codelineno-2-231" href="#__codelineno-2-231"></a><span class="w">      </span><span class="no"># Adjust score based on transaction type</span>
+<a id="__codelineno-2-232" name="__codelineno-2-232" href="#__codelineno-2-232"></a><span class="w">      </span><span class="no">if value.get(&quot;transaction_type&quot;) == &quot;online&quot;:</span>
+<a id="__codelineno-2-233" name="__codelineno-2-233" href="#__codelineno-2-233"></a><span class="w">        </span><span class="no">risk_score += 10</span>
+<a id="__codelineno-2-234" name="__codelineno-2-234" href="#__codelineno-2-234"></a>
+<a id="__codelineno-2-235" name="__codelineno-2-235" href="#__codelineno-2-235"></a><span class="w">      </span><span class="no"># Adjust score based on merchant category</span>
+<a id="__codelineno-2-236" name="__codelineno-2-236" href="#__codelineno-2-236"></a><span class="w">      </span><span class="no">high_risk_categories = [&quot;electronics&quot;, &quot;jewelry&quot;, &quot;digital_goods&quot;]</span>
+<a id="__codelineno-2-237" name="__codelineno-2-237" href="#__codelineno-2-237"></a><span class="w">      </span><span class="no">if value.get(&quot;merchant&quot;, {}).get(&quot;category&quot;) in high_risk_categories:</span>
+<a id="__codelineno-2-238" name="__codelineno-2-238" href="#__codelineno-2-238"></a><span class="w">        </span><span class="no">risk_score += 15</span>
+<a id="__codelineno-2-239" name="__codelineno-2-239" href="#__codelineno-2-239"></a>
+<a id="__codelineno-2-240" name="__codelineno-2-240" href="#__codelineno-2-240"></a><span class="w">      </span><span class="no"># Cap the score at 100</span>
+<a id="__codelineno-2-241" name="__codelineno-2-241" href="#__codelineno-2-241"></a><span class="w">      </span><span class="no">risk_score = min(100, risk_score)</span>
+<a id="__codelineno-2-242" name="__codelineno-2-242" href="#__codelineno-2-242"></a>
+<a id="__codelineno-2-243" name="__codelineno-2-243" href="#__codelineno-2-243"></a><span class="w">      </span><span class="no"># Add the calculated score to the alert</span>
+<a id="__codelineno-2-244" name="__codelineno-2-244" href="#__codelineno-2-244"></a><span class="w">      </span><span class="no">value[&quot;final_risk_score&quot;] = risk_score</span>
+<a id="__codelineno-2-245" name="__codelineno-2-245" href="#__codelineno-2-245"></a><span class="w">      </span><span class="no">value[&quot;is_likely_fraud&quot;] = risk_score &gt; 70</span>
+<a id="__codelineno-2-246" name="__codelineno-2-246" href="#__codelineno-2-246"></a>
+<a id="__codelineno-2-247" name="__codelineno-2-247" href="#__codelineno-2-247"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value</span>
+<a id="__codelineno-2-248" name="__codelineno-2-248" href="#__codelineno-2-248"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-2-249" name="__codelineno-2-249" href="#__codelineno-2-249"></a>
+<a id="__codelineno-2-250" name="__codelineno-2-250" href="#__codelineno-2-250"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-2-251" name="__codelineno-2-251" href="#__codelineno-2-251"></a><span class="w">  </span><span class="c1"># Pipeline for high-value transaction detection</span>
+<a id="__codelineno-2-252" name="__codelineno-2-252" href="#__codelineno-2-252"></a><span class="w">  </span><span class="nt">high_value_detection</span><span class="p">:</span>
+<a id="__codelineno-2-253" name="__codelineno-2-253" href="#__codelineno-2-253"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transactions</span>
+<a id="__codelineno-2-254" name="__codelineno-2-254" href="#__codelineno-2-254"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-2-255" name="__codelineno-2-255" href="#__codelineno-2-255"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-2-256" name="__codelineno-2-256" href="#__codelineno-2-256"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check_high_value</span>
+<a id="__codelineno-2-257" name="__codelineno-2-257" href="#__codelineno-2-257"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-2-258" name="__codelineno-2-258" href="#__codelineno-2-258"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">create_high_value_alert</span>
+<a id="__codelineno-2-259" name="__codelineno-2-259" href="#__codelineno-2-259"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">high_value_transactions</span>
+<a id="__codelineno-2-260" name="__codelineno-2-260" href="#__codelineno-2-260"></a>
+<a id="__codelineno-2-261" name="__codelineno-2-261" href="#__codelineno-2-261"></a><span class="w">  </span><span class="c1"># Pipeline for unusual location detection</span>
+<a id="__codelineno-2-262" name="__codelineno-2-262" href="#__codelineno-2-262"></a><span class="w">  </span><span class="nt">unusual_location_detection</span><span class="p">:</span>
+<a id="__codelineno-2-263" name="__codelineno-2-263" href="#__codelineno-2-263"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transactions</span>
+<a id="__codelineno-2-264" name="__codelineno-2-264" href="#__codelineno-2-264"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-2-265" name="__codelineno-2-265" href="#__codelineno-2-265"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-2-266" name="__codelineno-2-266" href="#__codelineno-2-266"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check_unusual_location</span>
+<a id="__codelineno-2-267" name="__codelineno-2-267" href="#__codelineno-2-267"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-2-268" name="__codelineno-2-268" href="#__codelineno-2-268"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-2-269" name="__codelineno-2-269" href="#__codelineno-2-269"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value is not None</span>
+<a id="__codelineno-2-270" name="__codelineno-2-270" href="#__codelineno-2-270"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unusual_location_alerts</span>
+<a id="__codelineno-2-271" name="__codelineno-2-271" href="#__codelineno-2-271"></a>
+<a id="__codelineno-2-272" name="__codelineno-2-272" href="#__codelineno-2-272"></a><span class="w">  </span><span class="c1"># Pipeline for transaction velocity monitoring</span>
+<a id="__codelineno-2-273" name="__codelineno-2-273" href="#__codelineno-2-273"></a><span class="w">  </span><span class="nt">velocity_monitoring</span><span class="p">:</span>
+<a id="__codelineno-2-274" name="__codelineno-2-274" href="#__codelineno-2-274"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transactions</span>
+<a id="__codelineno-2-275" name="__codelineno-2-275" href="#__codelineno-2-275"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-2-276" name="__codelineno-2-276" href="#__codelineno-2-276"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-2-277" name="__codelineno-2-277" href="#__codelineno-2-277"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check_transaction_velocity</span>
+<a id="__codelineno-2-278" name="__codelineno-2-278" href="#__codelineno-2-278"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-2-279" name="__codelineno-2-279" href="#__codelineno-2-279"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-2-280" name="__codelineno-2-280" href="#__codelineno-2-280"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value is not None</span>
+<a id="__codelineno-2-281" name="__codelineno-2-281" href="#__codelineno-2-281"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">velocity_alerts</span>
+<a id="__codelineno-2-282" name="__codelineno-2-282" href="#__codelineno-2-282"></a>
+<a id="__codelineno-2-283" name="__codelineno-2-283" href="#__codelineno-2-283"></a><span class="w">  </span><span class="c1"># Pipeline for consolidating alerts and calculating final fraud score</span>
+<a id="__codelineno-2-284" name="__codelineno-2-284" href="#__codelineno-2-284"></a><span class="w">  </span><span class="nt">fraud_scoring_high_value</span><span class="p">:</span>
+<a id="__codelineno-2-285" name="__codelineno-2-285" href="#__codelineno-2-285"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">high_value_transactions</span>
+<a id="__codelineno-2-286" name="__codelineno-2-286" href="#__codelineno-2-286"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-2-287" name="__codelineno-2-287" href="#__codelineno-2-287"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-2-288" name="__codelineno-2-288" href="#__codelineno-2-288"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">calculate_fraud_score</span>
+<a id="__codelineno-2-289" name="__codelineno-2-289" href="#__codelineno-2-289"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_alerts</span>
+<a id="__codelineno-2-290" name="__codelineno-2-290" href="#__codelineno-2-290"></a>
+<a id="__codelineno-2-291" name="__codelineno-2-291" href="#__codelineno-2-291"></a><span class="w">  </span><span class="nt">fraud_scoring_location</span><span class="p">:</span>
+<a id="__codelineno-2-292" name="__codelineno-2-292" href="#__codelineno-2-292"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unusual_location_alerts</span>
+<a id="__codelineno-2-293" name="__codelineno-2-293" href="#__codelineno-2-293"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-2-294" name="__codelineno-2-294" href="#__codelineno-2-294"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-2-295" name="__codelineno-2-295" href="#__codelineno-2-295"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">calculate_fraud_score</span>
+<a id="__codelineno-2-296" name="__codelineno-2-296" href="#__codelineno-2-296"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_alerts</span>
+<a id="__codelineno-2-297" name="__codelineno-2-297" href="#__codelineno-2-297"></a>
+<a id="__codelineno-2-298" name="__codelineno-2-298" href="#__codelineno-2-298"></a><span class="w">  </span><span class="nt">fraud_scoring_velocity</span><span class="p">:</span>
+<a id="__codelineno-2-299" name="__codelineno-2-299" href="#__codelineno-2-299"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">velocity_alerts</span>
+<a id="__codelineno-2-300" name="__codelineno-2-300" href="#__codelineno-2-300"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-2-301" name="__codelineno-2-301" href="#__codelineno-2-301"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-2-302" name="__codelineno-2-302" href="#__codelineno-2-302"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">calculate_fraud_score</span>
+<a id="__codelineno-2-303" name="__codelineno-2-303" href="#__codelineno-2-303"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_alerts</span>
+</code></pre></div>
+</details>
+<h2 id="advanced-fraud-detection-techniques">Advanced Fraud Detection Techniques</h2>
+<h3 id="pattern-recognition">Pattern Recognition</h3>
+<p>To detect complex fraud patterns, you can implement more sophisticated algorithms:</p>
+<details class="info">
+<summary>Pattern recognition processor (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">detect_fraud_pattern</span><span class="p">:</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">      </span><span class="no"># Pattern: Small test transaction followed by large transaction</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="no">card_id = value.get(&quot;card_id&quot;)</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">      </span><span class="no">current_amount = value.get(&quot;amount&quot;, 0)</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">      </span><span class="no"># Get transaction history</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">      </span><span class="no">history = customer_transaction_history.get(card_id)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="no">if history is None or &quot;recent_transactions&quot; not in history:</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">        </span><span class="no"># Initialize history</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">        </span><span class="no">history = {&quot;recent_transactions&quot;: [{&quot;amount&quot;: current_amount, &quot;time&quot;: value.get(&quot;timestamp&quot;)}]}</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">        </span><span class="no">customer_transaction_history.put(card_id, history)</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">        </span><span class="no">return None</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">      </span><span class="no"># Add current transaction to history</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">      </span><span class="no">recent_transactions = history.get(&quot;recent_transactions&quot;, [])</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">      </span><span class="no">recent_transactions.append({&quot;amount&quot;: current_amount, &quot;time&quot;: value.get(&quot;timestamp&quot;)})</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">      </span><span class="no"># Keep only recent transactions (last 24 hours)</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">      </span><span class="no">one_day_ago = value.get(&quot;timestamp&quot;) - 86400000</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">      </span><span class="no">recent_transactions = [t for t in recent_transactions if t.get(&quot;time&quot;, 0) &gt; one_day_ago]</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">      </span><span class="no"># Sort by time</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">      </span><span class="no">recent_transactions.sort(key=lambda x: x.get(&quot;time&quot;, 0))</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">      </span><span class="no"># Look for pattern: small transaction (&lt; $5) followed by large transaction within 30 minutes</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">      </span><span class="no">pattern_found = False</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">      </span><span class="no">for i in range(len(recent_transactions) - 1):</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="w">        </span><span class="no">if (recent_transactions[i].get(&quot;amount&quot;, 0) &lt; 5 and </span>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="w">            </span><span class="no">recent_transactions[i+1].get(&quot;amount&quot;, 0) &gt; 100 and</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="w">            </span><span class="no">recent_transactions[i+1].get(&quot;time&quot;, 0) - recent_transactions[i].get(&quot;time&quot;, 0) &lt; 1800000):  # 30 minutes</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="w">          </span><span class="no">pattern_found = True</span>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a><span class="w">          </span><span class="no">break</span>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="w">      </span><span class="no"># Update history</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a><span class="w">      </span><span class="no">history[&quot;recent_transactions&quot;] = recent_transactions</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="w">      </span><span class="no">customer_transaction_history.put(card_id, history)</span>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="w">      </span><span class="no">if pattern_found:</span>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a><span class="w">        </span><span class="no">return {</span>
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a><span class="w">          </span><span class="no">&quot;transaction_id&quot;: value.get(&quot;transaction_id&quot;),</span>
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: value.get(&quot;timestamp&quot;),</span>
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a><span class="w">          </span><span class="no">&quot;customer_id&quot;: value.get(&quot;customer_id&quot;),</span>
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a><span class="w">          </span><span class="no">&quot;card_id&quot;: card_id,</span>
+<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a><span class="w">          </span><span class="no">&quot;alert_type&quot;: &quot;fraud_pattern_detected&quot;,</span>
+<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a><span class="w">          </span><span class="no">&quot;pattern_type&quot;: &quot;test_then_charge&quot;,</span>
+<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a><span class="w">          </span><span class="no">&quot;risk_score&quot;: 85</span>
+<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a><span class="w">        </span><span class="no">}</span>
+<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a>
+<a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a><span class="w">      </span><span class="no">return None</span>
+<a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a><span class="w">    </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_transaction_history</span>
+<a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a>
+<a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a><span class="w">  </span><span class="nt">calculate_fraud_score</span><span class="p">:</span>
+<a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-3-61" name="__codelineno-3-61" href="#__codelineno-3-61"></a><span class="w">      </span><span class="no"># Base risk score from the alert</span>
+<a id="__codelineno-3-62" name="__codelineno-3-62" href="#__codelineno-3-62"></a><span class="w">      </span><span class="no">risk_score = value.get(&quot;risk_score&quot;, 0)</span>
+<a id="__codelineno-3-63" name="__codelineno-3-63" href="#__codelineno-3-63"></a>
+<a id="__codelineno-3-64" name="__codelineno-3-64" href="#__codelineno-3-64"></a><span class="w">      </span><span class="no"># Additional factors</span>
+<a id="__codelineno-3-65" name="__codelineno-3-65" href="#__codelineno-3-65"></a><span class="w">      </span><span class="no">alert_type = value.get(&quot;alert_type&quot;, &quot;&quot;)</span>
+<a id="__codelineno-3-66" name="__codelineno-3-66" href="#__codelineno-3-66"></a>
+<a id="__codelineno-3-67" name="__codelineno-3-67" href="#__codelineno-3-67"></a><span class="w">      </span><span class="no"># Adjust score based on transaction type</span>
+<a id="__codelineno-3-68" name="__codelineno-3-68" href="#__codelineno-3-68"></a><span class="w">      </span><span class="no">if value.get(&quot;transaction_type&quot;) == &quot;online&quot;:</span>
+<a id="__codelineno-3-69" name="__codelineno-3-69" href="#__codelineno-3-69"></a><span class="w">        </span><span class="no">risk_score += 10</span>
+<a id="__codelineno-3-70" name="__codelineno-3-70" href="#__codelineno-3-70"></a>
+<a id="__codelineno-3-71" name="__codelineno-3-71" href="#__codelineno-3-71"></a><span class="w">      </span><span class="no"># Adjust score based on merchant category</span>
+<a id="__codelineno-3-72" name="__codelineno-3-72" href="#__codelineno-3-72"></a><span class="w">      </span><span class="no">high_risk_categories = [&quot;electronics&quot;, &quot;jewelry&quot;, &quot;digital_goods&quot;]</span>
+<a id="__codelineno-3-73" name="__codelineno-3-73" href="#__codelineno-3-73"></a><span class="w">      </span><span class="no">if value.get(&quot;merchant&quot;, {}).get(&quot;category&quot;) in high_risk_categories:</span>
+<a id="__codelineno-3-74" name="__codelineno-3-74" href="#__codelineno-3-74"></a><span class="w">        </span><span class="no">risk_score += 15</span>
+<a id="__codelineno-3-75" name="__codelineno-3-75" href="#__codelineno-3-75"></a>
+<a id="__codelineno-3-76" name="__codelineno-3-76" href="#__codelineno-3-76"></a><span class="w">      </span><span class="no"># Cap the score at 100</span>
+<a id="__codelineno-3-77" name="__codelineno-3-77" href="#__codelineno-3-77"></a><span class="w">      </span><span class="no">risk_score = min(100, risk_score)</span>
+<a id="__codelineno-3-78" name="__codelineno-3-78" href="#__codelineno-3-78"></a>
+<a id="__codelineno-3-79" name="__codelineno-3-79" href="#__codelineno-3-79"></a><span class="w">      </span><span class="no"># Add the calculated score to the alert</span>
+<a id="__codelineno-3-80" name="__codelineno-3-80" href="#__codelineno-3-80"></a><span class="w">      </span><span class="no">value[&quot;final_risk_score&quot;] = risk_score</span>
+<a id="__codelineno-3-81" name="__codelineno-3-81" href="#__codelineno-3-81"></a><span class="w">      </span><span class="no">value[&quot;is_likely_fraud&quot;] = risk_score &gt; 70</span>
+</code></pre></div>
+</details>
+<h3 id="machine-learning-integration">Machine Learning Integration</h3>
+<p>For more advanced fraud detection, you can integrate machine learning models:</p>
+<details class="info">
+<summary>Machine learning fraud detector (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">ml_fraud_prediction</span><span class="p">:</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">object</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="no"># In a real implementation, you would call an external ML service</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="no"># This is a simplified example</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">      </span><span class="no"># Extract features</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">      </span><span class="no">features = {</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">        </span><span class="no">&quot;amount&quot;: value.get(&quot;amount&quot;, 0),</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">        </span><span class="no">&quot;is_international&quot;: value.get(&quot;merchant&quot;, {}).get(&quot;location&quot;, {}).get(&quot;country&quot;) != &quot;US&quot;,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">        </span><span class="no">&quot;is_online&quot;: value.get(&quot;transaction_type&quot;) == &quot;online&quot;,</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">        </span><span class="no">&quot;high_risk_merchant&quot;: value.get(&quot;merchant&quot;, {}).get(&quot;category&quot;) in [&quot;electronics&quot;, &quot;jewelry&quot;, &quot;digital_goods&quot;],</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">        </span><span class="no">&quot;transaction_hour&quot;: (value.get(&quot;timestamp&quot;, 0) / 3600000) % 24,  # Hour of day</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">        </span><span class="no">&quot;transaction_count_1h&quot;: value.get(&quot;transactions_last_hour&quot;, 1),</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">        </span><span class="no">&quot;transaction_count_24h&quot;: value.get(&quot;transactions_last_day&quot;, 1)</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">      </span><span class="no"># Simple rule-based model (in reality, this would be a trained ML model)</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">      </span><span class="no">score = 0</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">      </span><span class="no">if features[&quot;amount&quot;] &gt; 1000: score += 20</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">      </span><span class="no">if features[&quot;is_international&quot;]: score += 15</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">      </span><span class="no">if features[&quot;is_online&quot;]: score += 10</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">      </span><span class="no">if features[&quot;high_risk_merchant&quot;]: score += 15</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">      </span><span class="no">if features[&quot;transaction_hour&quot;] &gt; 22 or features[&quot;transaction_hour&quot;] &lt; 6: score += 10</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">      </span><span class="no">if features[&quot;transaction_count_1h&quot;] &gt; 3: score += 15</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">      </span><span class="no">if features[&quot;transaction_count_24h&quot;] &gt; 10: score += 15</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="w">      </span><span class="no"># Normalize score to 0-100</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="w">      </span><span class="no">score = min(100, score)</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a>
+<a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="w">      </span><span class="no"># Add prediction to the transaction</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="w">      </span><span class="no">value[&quot;ml_fraud_score&quot;] = score</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="w">      </span><span class="no">value[&quot;ml_fraud_probability&quot;] = score / 100.0</span>
+<a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="w">      </span><span class="no">value[&quot;ml_is_fraud&quot;] = score &gt; 60</span>
+<a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a>
+<a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="w">      </span><span class="no">return value</span>
+</code></pre></div>
+</details>
+<h2 id="real-time-alerting">Real-time Alerting</h2>
+<p>To make your fraud detection system actionable, you need to generate alerts:</p>
+<details class="info">
+<summary>Real-time alerting processor (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">fraud_alerts</span><span class="p">:</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_alerts</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># transaction_id</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># consolidated alert data</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nt">fraud_notifications</span><span class="p">:</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_notifications</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># transaction_id</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># notifications to be sent out</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">  </span><span class="nt">generate_notification</span><span class="p">:</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">      </span><span class="no">risk_score = value.get(&quot;final_risk_score&quot;, 0)</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">      </span><span class="no"># Determine alert level</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">      </span><span class="no">alert_level = &quot;low&quot;</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">      </span><span class="no">if risk_score &gt; 70:</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">        </span><span class="no">alert_level = &quot;high&quot;</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">      </span><span class="no">elif risk_score &gt; 40:</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">        </span><span class="no">alert_level = &quot;medium&quot;</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">      </span><span class="no"># Create alert message</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">      </span><span class="no">alert = {</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="w">        </span><span class="no">&quot;transaction_id&quot;: value.get(&quot;transaction_id&quot;),</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: value.get(&quot;timestamp&quot;),</span>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="w">        </span><span class="no">&quot;customer_id&quot;: value.get(&quot;customer_id&quot;),</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="w">        </span><span class="no">&quot;card_id&quot;: value.get(&quot;card_id&quot;),</span>
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="w">        </span><span class="no">&quot;merchant&quot;: value.get(&quot;merchant&quot;),</span>
+<a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a><span class="w">        </span><span class="no">&quot;amount&quot;: value.get(&quot;amount&quot;),</span>
+<a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a><span class="w">        </span><span class="no">&quot;alert_type&quot;: value.get(&quot;alert_type&quot;),</span>
+<a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a><span class="w">        </span><span class="no">&quot;risk_score&quot;: risk_score,</span>
+<a id="__codelineno-5-37" name="__codelineno-5-37" href="#__codelineno-5-37"></a><span class="w">        </span><span class="no">&quot;alert_level&quot;: alert_level,</span>
+<a id="__codelineno-5-38" name="__codelineno-5-38" href="#__codelineno-5-38"></a><span class="w">        </span><span class="no">&quot;alert_message&quot;: f&quot;Potential fraud detected: {value.get(&#39;alert_type&#39;)} with risk score {risk_score}&quot;,</span>
+<a id="__codelineno-5-39" name="__codelineno-5-39" href="#__codelineno-5-39"></a><span class="w">        </span><span class="no">&quot;recommended_action&quot;: &quot;block&quot; if alert_level == &quot;high&quot; else &quot;review&quot;</span>
+<a id="__codelineno-5-40" name="__codelineno-5-40" href="#__codelineno-5-40"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-5-41" name="__codelineno-5-41" href="#__codelineno-5-41"></a>
+<a id="__codelineno-5-42" name="__codelineno-5-42" href="#__codelineno-5-42"></a><span class="w">      </span><span class="no">return alert</span>
+<a id="__codelineno-5-43" name="__codelineno-5-43" href="#__codelineno-5-43"></a>
+<a id="__codelineno-5-44" name="__codelineno-5-44" href="#__codelineno-5-44"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-5-45" name="__codelineno-5-45" href="#__codelineno-5-45"></a><span class="w">  </span><span class="nt">alert_generation</span><span class="p">:</span>
+<a id="__codelineno-5-46" name="__codelineno-5-46" href="#__codelineno-5-46"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_alerts</span>
+<a id="__codelineno-5-47" name="__codelineno-5-47" href="#__codelineno-5-47"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-5-48" name="__codelineno-5-48" href="#__codelineno-5-48"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-5-49" name="__codelineno-5-49" href="#__codelineno-5-49"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-5-50" name="__codelineno-5-50" href="#__codelineno-5-50"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;final_risk_score&quot;, 0) &gt; 30</span><span class="w">  </span><span class="c1"># Only notify on medium to high risk</span>
+<a id="__codelineno-5-51" name="__codelineno-5-51" href="#__codelineno-5-51"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-5-52" name="__codelineno-5-52" href="#__codelineno-5-52"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_notification</span>
+<a id="__codelineno-5-53" name="__codelineno-5-53" href="#__codelineno-5-53"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fraud_notifications</span>
+</code></pre></div>
+</details>
+<h2 id="testing-and-validation">Testing and Validation</h2>
+<p>To test your fraud detection system:</p>
+<ol>
+<li>Generate sample transaction data with known fraud patterns</li>
+<li>Deploy your KSML application using the <a href="../../reference/configuration-reference/">proper configuration</a></li>
+<li>Monitor the alert topics to verify detection accuracy</li>
+<li>Adjust thresholds and rules to balance detection rate and false positives</li>
+</ol>
+<h2 id="production-considerations">Production Considerations</h2>
+<p>When deploying fraud detection systems to production:</p>
+<ol>
+<li><strong>Performance</strong>: Ensure your system can handle peak transaction volumes</li>
+<li><strong>Latency</strong>: Minimize processing time to detect fraud quickly</li>
+<li><strong>False Positives</strong>: Continuously tune your system to reduce false alarms</li>
+<li><strong>Adaptability</strong>: Implement mechanisms to update rules and models as fraud patterns evolve</li>
+<li><strong>Compliance</strong>: Ensure your system meets regulatory requirements for financial monitoring</li>
+<li><strong>Security</strong>: Protect sensitive transaction data with appropriate encryption and access controls</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>KSML provides a powerful platform for building sophisticated fraud detection systems that can process high volumes of transactions in real-time. By combining multiple detection techniques, including pattern recognition, anomaly detection, and machine learning, you can create a robust system that effectively identifies fraudulent activities while minimizing false positives.</p>
+<p>For more advanced fraud detection scenarios, explore:</p>
+<ul>
+<li><a href="../../tutorials/advanced/complex-event-processing/">Complex Event Processing</a> for detecting multi-stage fraud patterns</li>
+<li><a href="../../tutorials/advanced/external-integration/">External Service Integration</a> for incorporating third-party risk scores</li>
+<li><a href="../../reference/definition-reference/">KSML Definition Reference</a> for a full explanation of the KSML definition syntax</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,147 @@
+# Processor demonstrating optimized pipeline design with early filtering
+
+streams:
+  mixed_quality_events:
+    topic: mixed_quality_events
+    keyType: string
+    valueType: json
+
+  filtered_events:
+    topic: filtered_events
+    keyType: string
+    valueType: json
+
+  enriched_events:
+    topic: enriched_events
+    keyType: string
+    valueType: json
+
+functions:
+  early_filter:
+    type: predicate
+    code: |
+      # Early filtering - extract minimal data and filter out unwanted events immediately
+      event_type = value.get("event_type", "")
+      priority = value.get("priority", "")
+      is_valid = value.get("is_valid", False)
+      
+      # Filter out spam, invalid, and bot traffic early to reduce downstream processing
+      return is_valid and event_type.startswith("valid") and priority != "spam"
+    
+    expression: result
+    resultType: boolean
+
+  lightweight_enricher:
+    type: valueTransformer
+    code: |
+      # Lightweight enrichment - add only essential data
+      event_type = value.get("event_type", "")
+      priority = value.get("priority", "")
+      score = value.get("score", 0)
+      timestamp = value.get("timestamp", 0)
+      
+      # Add minimal enrichment data as JSON for better readability
+      enriched = {
+        "status": "ENRICHED",
+        "event_type": event_type,
+        "priority": priority,
+        "score": score,
+        "timestamp": timestamp,
+        "batch_id": value.get("batch_id", 0),
+        "source": value.get("source", "unknown")
+      }
+      
+      return enriched
+      
+    expression: result if result else None
+    resultType: json
+
+  heavy_processor:
+    type: valueTransformer
+    globalCode: |
+      # Expensive operations that should only run on filtered data
+      def calculate_complex_score(event_type, priority, base_score):
+        """Simulate expensive calculation"""
+        multipliers = {"high": 3.0, "medium": 2.0, "low": 1.0}
+        type_bonus = 50 if "purchase" in event_type else 10
+        
+        # Simulate complex computation
+        complex_score = base_score * multipliers.get(priority, 1.0) + type_bonus
+        
+        # Additional expensive operations
+        for i in range(100):  # Simulate computational overhead
+          complex_score += (i % 5) * 0.1
+        
+        return round(complex_score, 2)
+      
+    code: |
+      # Heavy processing - only runs on pre-filtered valid events
+      event_type = value.get("event_type", "")
+      priority = value.get("priority", "")
+      base_score = value.get("score", 0)
+      timestamp = value.get("timestamp", 0)
+      
+      # Expensive calculation only on filtered data
+      complex_score = calculate_complex_score(event_type, priority, base_score)
+      
+      # Generate comprehensive result as JSON for better readability in Kowl UI
+      result = {
+        "status": "PROCESSED",
+        "event_type": event_type,
+        "priority": priority,
+        "scores": {
+          "base_score": base_score,
+          "complex_score": complex_score
+        },
+        "timestamp": timestamp,
+        "batch_id": value.get("batch_id", 0),
+        "source": value.get("source", "unknown"),
+        "processing_stage": "final"
+      }
+      
+      log.info("Completed heavy processing for {}: score {:.2f}", event_type, complex_score)
+      
+      return result
+      
+    expression: result if result else None
+    resultType: json
+
+pipelines:
+  # Stage 1: Early filtering to reduce data volume
+  filter_stage:
+    from: mixed_quality_events
+    via:
+      - type: filter
+        if: early_filter  # Filter out 70-80% of events early
+    to:
+      topic: filtered_events
+      keyType: string
+      valueType: json
+
+  # Stage 2: Lightweight enrichment on filtered data
+  enrich_stage:
+    from: filtered_events
+    via:
+      - type: mapValues
+        mapper: lightweight_enricher
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: enriched_events
+      keyType: string
+      valueType: json
+
+  # Stage 3: Heavy processing only on high-quality filtered data
+  process_stage:
+    from: enriched_events
+    via:
+      - type: mapValues
+        mapper: heavy_processor
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: final_processed_events
+      keyType: string
+      valueType: json

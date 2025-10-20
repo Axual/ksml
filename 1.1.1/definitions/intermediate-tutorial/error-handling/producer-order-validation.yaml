@@ -1,0 +1,55 @@
+# Producer for validation example - generates orders with various quality issues
+
+functions:
+  generate_orders:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+    code: |
+      global counter
+      counter += 1
+      
+      # Generate different order scenarios
+      if counter % 4 == 1:
+        # Valid order
+        order = {
+          "order_id": f"order_{counter}",
+          "customer_id": f"customer_{random.randint(1, 5)}",
+          "product_id": f"product_{random.randint(1, 3)}",
+          "quantity": random.randint(1, 5),
+          "price": round(random.uniform(10.0, 100.0), 2)
+        }
+      elif counter % 4 == 2:
+        # Missing required field
+        order = {
+          "order_id": f"order_{counter}",
+          "customer_id": f"customer_{random.randint(1, 5)}"
+          # Missing product_id, quantity, price
+        }
+      elif counter % 4 == 3:
+        # Invalid quantity
+        order = {
+          "order_id": f"order_{counter}",
+          "customer_id": f"customer_{random.randint(1, 5)}",
+          "product_id": f"product_{random.randint(1, 3)}",
+          "quantity": -1,
+          "price": round(random.uniform(10.0, 100.0), 2)
+        }
+      else:
+        # Malformed order
+        order = {"malformed": True}
+      
+      key = f"order_{counter}"
+    expression: (key, order)
+    resultType: (string, json)
+
+producers:
+  order_producer:
+    generator: generate_orders
+    interval: 2s
+    count: 16
+    to:
+      topic: incoming_orders
+      keyType: string
+      valueType: json

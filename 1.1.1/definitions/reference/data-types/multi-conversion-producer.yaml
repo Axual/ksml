@@ -1,0 +1,37 @@
+# Producer for multiple format conversions example
+# Generates JSON data that will be converted through multiple formats
+
+streams:
+  multi_format_data:
+    topic: multi_format_data
+    keyType: string
+    valueType: json
+
+functions:
+  generate_data:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      counter = 0
+    code: |
+      global counter
+      counter += 1
+      
+      data = {
+        "id": counter,
+        "product": f"product_{counter}",
+        "price": round(random.uniform(10.0, 500.0), 2),
+        "quantity": random.randint(1, 10),
+        "available": counter % 2 == 0,
+        "timestamp": int(time.time())
+      }
+      
+      return (f"item_{counter}", data)
+    resultType: (string, json)
+
+producers:
+  data_generator:
+    generator: generate_data
+    interval: 2s
+    to: multi_format_data

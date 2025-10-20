@@ -1,0 +1,39 @@
+streams:
+  user_profiles_output:
+    topic: user_profiles
+    keyType: string
+    valueType: json
+
+functions:
+  generate_user_profile:
+    type: generator
+    resultType: (string, json)
+    code: |
+      import random
+      import time
+      
+      # Generate realistic user profile data
+      user_id = "user_" + str(random.randint(1, 1000))
+      departments = ["engineering", "marketing", "sales", "support", "hr"]
+      locations = ["new_york", "london", "tokyo", "sydney"]
+      
+      profile = {
+        "user_id": user_id,
+        "name": f"User {user_id.split('_')[1]}",
+        "email": f"{user_id}@company.com",
+        "department": random.choice(departments),
+        "location": random.choice(locations),
+        "created_at": int(time.time() * 1000),
+        "is_active": True
+      }
+      
+      return (user_id, profile)
+
+producers:
+  user_profile_producer:
+    to:
+      topic: user_profiles
+      keyType: string
+      valueType: json
+    generator: generate_user_profile
+    interval: 3000

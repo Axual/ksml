@@ -1,0 +1,99 @@
+streams:
+  user_activity:
+    topic: user_activity
+    keyType: string
+    valueType: json
+  enriched_activity_output:
+    topic: enriched_user_activity
+    keyType: string
+    valueType: json
+
+tables:
+  user_profiles:
+    topic: user_profiles
+    keyType: string
+    valueType: json
+    store:
+      type: keyValue
+      keyType: string
+      valueType: json
+      persistent: true
+      caching: true
+      logging: false
+
+functions:
+  enrich_with_user_profile:
+    type: valueTransformer
+    stores:
+      - user_profiles
+    code: |
+      import time
+      
+      # Look up user profile from the custom store
+      user_id = value.get("user_id")
+      if not user_id:
+        log.warn("No user_id found in activity event")
+        return value
+      
+      # Access the table which uses the custom store
+      profile = user_profiles.get(user_id)
+      if profile:
+        # Enrich activity with user profile data
+        enriched_activity = {
+          **value,
+          "user_name": profile.get("name", "Unknown"),
+          "user_department": profile.get("department", "Unknown"),
+          "user_location": profile.get("location", "Unknown"),
+          "enriched_at": int(time.time() * 1000),
+          "store_used": "custom_inline_store"
+        }
+        log.info("Enriched activity for user: {}, department: {}, location: {}", 
+                 user_id, profile.get("department"), profile.get("location"))
+        return enriched_activity
+      else:
+        log.warn("User profile not found for user_id: {}", user_id)
+        return {
+          **value,
+          "enriched_at": int(time.time() * 1000),
+          "enrichment_status": "profile_not_found"
+        }
+
+producers:
+  user_activity_producer:
+    to:
+      topic: user_activity
+      keyType: string
+      valueType: json
+    generator:
+      type: generator
+      resultType: (string, json)
+      code: |
+        import random
+        import time
+        
+        # Generate activity events referencing existing users
+        user_id = "user_" + str(random.randint(1, 1000))
+        activities = ["login", "logout", "page_view", "document_upload", "meeting_join"]
+        
+        activity = {
+          "user_id": user_id,
+          "activity_type": random.choice(activities),
+          "timestamp": int(time.time() * 1000),
+          "session_id": "session_" + str(random.randint(1000, 9999))
+        }
+        
+        return (user_id, activity)
+    interval: 2000
+
+pipelines:
+  enrich_user_activity:
+    from: user_activity
+    via:
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processing activity: {} for user: {}", 
+                     value.get("activity_type"), value.get("user_id"))
+      - type: transformValue
+        mapper: enrich_with_user_profile
+    to: enriched_activity_output

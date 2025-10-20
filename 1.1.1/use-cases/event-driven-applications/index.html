@@ -1,0 +1,2365 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the KSML project">
+      
+      
+        <meta name="author" content="Axual">
+      
+      
+      
+        <link rel="prev" href="../data-transformation/">
+      
+      
+        <link rel="next" href="../iot-data-processing/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Event-Driven Applications - KSML Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#event-driven-applications-with-ksml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="KSML Documentation" class="md-header__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KSML Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Event-Driven Applications
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="KSML Documentation" class="md-nav__button md-logo" aria-label="KSML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KSML Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Understanding KSML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/schema-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schema Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/basics-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KSML Basics Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Beginner Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Beginner Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/filtering-transforming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filtering and Transforming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/data-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Different Data Formats
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/beginner/logging-monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Logging and Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Intermediate Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Intermediate Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/branching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Branching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/aggregations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Aggregations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/joins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Joins
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/windowing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Windowing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/error-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Error Handling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/intermediate/state-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    State Stores
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/complex-event-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Complex Event Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/custom-state-stores/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom State Stores
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/performance-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/advanced/external-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integration with External Systems
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Use Case Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Use Case Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-transformation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Transformation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Event-Driven Applications
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event-Driven Applications
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Use Case
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defining the Data Models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Defining the Data Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inventory-update-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inventory Update Events
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Order Events
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reorder-events-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reorder Events (Output)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-events-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alert Events (Output)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-the-ksml-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating the KSML Definition
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-the-producers-for-test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting up the producers for test data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running the Application
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-the-event-driven-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extending the Event-Driven System
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extending the Event-Driven System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#integration-with-external-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with External Systems
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-more-event-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding More Event Types
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices-for-event-driven-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices for Event-Driven Applications
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iot-data-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    IoT Data Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-time-analytics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Real-time Analytics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fraud-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fraud Detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    References
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            References
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/definition-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KSML Definition Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/pipeline-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/function-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Function Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/operation-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operation Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/data-and-formats-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Types and Notations Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/state-store-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    State Store Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Use Case
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defining the Data Models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Defining the Data Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inventory-update-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inventory Update Events
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Order Events
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reorder-events-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reorder Events (Output)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-events-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alert Events (Output)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-the-ksml-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating the KSML Definition
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-the-producers-for-test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting up the producers for test data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running the Application
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-the-event-driven-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extending the Event-Driven System
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extending the Event-Driven System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#integration-with-external-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with External Systems
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-more-event-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding More Event Types
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices-for-event-driven-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices for Event-Driven Applications
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="event-driven-applications-with-ksml">Event-Driven Applications with KSML</h1>
+<p>This tutorial demonstrates how to build event-driven applications using KSML. You'll learn how to detect specific events
+in your data streams and trigger appropriate actions in response.</p>
+<h2 id="introduction">Introduction</h2>
+<p>Event-driven architecture is a powerful paradigm for building responsive, real-time applications. In this approach:</p>
+<ul>
+<li>Systems react to events as they occur</li>
+<li>Components communicate through events rather than direct calls</li>
+<li>Business logic is triggered by changes in state</li>
+<li>Applications can scale and evolve independently</li>
+</ul>
+<p>KSML is particularly well-suited for event-driven applications because it allows you to:</p>
+<ul>
+<li>Process streams of events in real-time</li>
+<li>Detect complex patterns and conditions</li>
+<li>Transform events into actionable insights</li>
+<li>Trigger downstream processes automatically</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Before starting this tutorial, you should:</p>
+<ul>
+<li>Understand basic KSML concepts (streams, functions, pipelines)</li>
+<li>Have completed the <a href="../../getting-started/basics-tutorial/">KSML Basics Tutorial</a></li>
+<li>Be familiar with <a href="../../tutorials/beginner/filtering-transforming/">Filtering and Transforming</a></li>
+<li>Have a basic understanding of <a href="../../tutorials/advanced/complex-event-processing/">Complex Event Processing</a></li>
+</ul>
+<h2 id="the-use-case">The Use Case</h2>
+<p>In this tutorial, we'll build an event-driven inventory management system for an e-commerce platform. The system will:</p>
+<ol>
+<li>Monitor product inventory levels in real-time</li>
+<li>Detect when items are running low</li>
+<li>Generate reorder events for the procurement system</li>
+<li>Alert warehouse staff about critical inventory situations</li>
+<li>Update inventory dashboards in real-time</li>
+</ol>
+<h2 id="defining-the-data-models">Defining the Data Models</h2>
+<h3 id="inventory-update-events">Inventory Update Events</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;product_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod-123&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;product_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Wireless Headphones&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;electronics&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">&quot;current_stock&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">&quot;warehouse_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wh-east-1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1625097600000</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">&quot;unit_price&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">79.99</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="order-events">Order Events</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;order_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;order-456&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;customer_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cust-789&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">&quot;product_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod-123&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">&quot;quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">&quot;unit_price&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">79.99</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nt">&quot;order_total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">159.98</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1625097600000</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="reorder-events-output">Reorder Events (Output)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;event_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;reorder-789&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;product_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod-123&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;product_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Wireless Headphones&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">&quot;current_stock&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">&quot;reorder_quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">&quot;priority&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">&quot;warehouse_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wh-east-1&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1625097600000</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="alert-events-output">Alert Events (Output)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;alert_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;alert-123&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;alert_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;critical_inventory&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;product_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod-123&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;product_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Wireless Headphones&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">&quot;current_stock&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">&quot;threshold&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">&quot;warehouse_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wh-east-1&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1625097600000</span><span class="p">,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Critical inventory level: Wireless Headphones (2 units remaining)&quot;</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="creating-the-ksml-definition">Creating the KSML Definition</h2>
+<p>Now, let's create our KSML definition file:</p>
+<details class="info">
+<summary>Inventory event processor (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">order_events</span><span class="p">:</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_events</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># order_id</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># order data</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">inventory_updates</span><span class="p">:</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># product_id</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># alert data</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="nt">reorder_events</span><span class="p">:</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reorder_events</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># event_id</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># reorder data</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="nt">inventory_alerts</span><span class="p">:</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_alerts</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># alert_id</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># alert data</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="nt">tables</span><span class="p">:</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">  </span><span class="nt">product_catalog</span><span class="p">:</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_catalog</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># product_id</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># product details including thresholds</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">  </span><span class="nt">inventory_store</span><span class="p">:</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="w">  </span><span class="c1"># Pipeline for updating inventory based on orders</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="w">  </span><span class="nt">order_pipeline</span><span class="p">:</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_events</span>
+<a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformKeyValueToKeyValueList</span>
+<a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a><span class="w">            </span><span class="no"># For each item in the order, emit a key-value pair with product_id as key and ordered item as value</span>
+<a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a><span class="w">            </span><span class="no">result = []</span>
+<a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a><span class="w">            </span><span class="no">for item in value.get(&quot;items&quot;, []):</span>
+<a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a><span class="w">              </span><span class="no">product_id = item.get(&quot;product_id&quot;)</span>
+<a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a><span class="w">              </span><span class="no">if product_id:</span>
+<a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a><span class="w">                </span><span class="no">result.append((product_id, {**item, &quot;order_id&quot;:key}))</span>
+<a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a><span class="w">            </span><span class="no">return result</span>
+<a id="__codelineno-4-49" name="__codelineno-4-49" href="#__codelineno-4-49"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(tuple(string, struct))</span>
+<a id="__codelineno-4-50" name="__codelineno-4-50" href="#__codelineno-4-50"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-4-51" name="__codelineno-4-51" href="#__codelineno-4-51"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-52" name="__codelineno-4-52" href="#__codelineno-4-52"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-53" name="__codelineno-4-53" href="#__codelineno-4-53"></a><span class="w">            </span><span class="no">log.info(&quot;Ordered item: {}&quot;, value)</span>
+<a id="__codelineno-4-54" name="__codelineno-4-54" href="#__codelineno-4-54"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-4-55" name="__codelineno-4-55" href="#__codelineno-4-55"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-56" name="__codelineno-4-56" href="#__codelineno-4-56"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-57" name="__codelineno-4-57" href="#__codelineno-4-57"></a><span class="w">            </span><span class="no">inventory = inventory_store.get(key)</span>
+<a id="__codelineno-4-58" name="__codelineno-4-58" href="#__codelineno-4-58"></a><span class="w">            </span><span class="no">if not inventory:</span>
+<a id="__codelineno-4-59" name="__codelineno-4-59" href="#__codelineno-4-59"></a><span class="w">              </span><span class="no">inventory = {</span>
+<a id="__codelineno-4-60" name="__codelineno-4-60" href="#__codelineno-4-60"></a><span class="w">                </span><span class="no">&quot;product_id&quot;: key,</span>
+<a id="__codelineno-4-61" name="__codelineno-4-61" href="#__codelineno-4-61"></a><span class="w">                </span><span class="no">&quot;current_stock&quot;: 0</span>
+<a id="__codelineno-4-62" name="__codelineno-4-62" href="#__codelineno-4-62"></a><span class="w">              </span><span class="no">}</span>
+<a id="__codelineno-4-63" name="__codelineno-4-63" href="#__codelineno-4-63"></a><span class="w">            </span><span class="no">return {            </span>
+<a id="__codelineno-4-64" name="__codelineno-4-64" href="#__codelineno-4-64"></a><span class="w">              </span><span class="no">&quot;order_item&quot;: value,</span>
+<a id="__codelineno-4-65" name="__codelineno-4-65" href="#__codelineno-4-65"></a><span class="w">              </span><span class="no">&quot;inventory&quot;: inventory</span>
+<a id="__codelineno-4-66" name="__codelineno-4-66" href="#__codelineno-4-66"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-67" name="__codelineno-4-67" href="#__codelineno-4-67"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-4-68" name="__codelineno-4-68" href="#__codelineno-4-68"></a><span class="w">          </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-4-69" name="__codelineno-4-69" href="#__codelineno-4-69"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_store</span>
+<a id="__codelineno-4-70" name="__codelineno-4-70" href="#__codelineno-4-70"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-4-71" name="__codelineno-4-71" href="#__codelineno-4-71"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-72" name="__codelineno-4-72" href="#__codelineno-4-72"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-73" name="__codelineno-4-73" href="#__codelineno-4-73"></a><span class="w">            </span><span class="no">log.info(&quot;Looked up inventory: {}&quot;, value)</span>
+<a id="__codelineno-4-74" name="__codelineno-4-74" href="#__codelineno-4-74"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mapValues</span>
+<a id="__codelineno-4-75" name="__codelineno-4-75" href="#__codelineno-4-75"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-76" name="__codelineno-4-76" href="#__codelineno-4-76"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-77" name="__codelineno-4-77" href="#__codelineno-4-77"></a><span class="w">            </span><span class="no"># Get the product_id from the key</span>
+<a id="__codelineno-4-78" name="__codelineno-4-78" href="#__codelineno-4-78"></a><span class="w">            </span><span class="no">product_id = key</span>
+<a id="__codelineno-4-79" name="__codelineno-4-79" href="#__codelineno-4-79"></a>
+<a id="__codelineno-4-80" name="__codelineno-4-80" href="#__codelineno-4-80"></a><span class="w">            </span><span class="no"># Get the ordered item from the value</span>
+<a id="__codelineno-4-81" name="__codelineno-4-81" href="#__codelineno-4-81"></a><span class="w">            </span><span class="no">order_item = value.get(&quot;order_item&quot;)</span>
+<a id="__codelineno-4-82" name="__codelineno-4-82" href="#__codelineno-4-82"></a><span class="w">            </span><span class="no">if order_item is None:</span>
+<a id="__codelineno-4-83" name="__codelineno-4-83" href="#__codelineno-4-83"></a><span class="w">              </span><span class="no">return None</span>
+<a id="__codelineno-4-84" name="__codelineno-4-84" href="#__codelineno-4-84"></a>
+<a id="__codelineno-4-85" name="__codelineno-4-85" href="#__codelineno-4-85"></a><span class="w">            </span><span class="no"># Get the inventory from the value, or set to zero if no inventory found</span>
+<a id="__codelineno-4-86" name="__codelineno-4-86" href="#__codelineno-4-86"></a><span class="w">            </span><span class="no">inventory = value.get(&quot;inventory&quot;)</span>
+<a id="__codelineno-4-87" name="__codelineno-4-87" href="#__codelineno-4-87"></a>
+<a id="__codelineno-4-88" name="__codelineno-4-88" href="#__codelineno-4-88"></a><span class="w">            </span><span class="no"># Get the ordered amount</span>
+<a id="__codelineno-4-89" name="__codelineno-4-89" href="#__codelineno-4-89"></a><span class="w">            </span><span class="no">ordered_quantity = order_item.get(&quot;quantity&quot;)</span>
+<a id="__codelineno-4-90" name="__codelineno-4-90" href="#__codelineno-4-90"></a><span class="w">            </span><span class="no">if ordered_quantity == 0:</span>
+<a id="__codelineno-4-91" name="__codelineno-4-91" href="#__codelineno-4-91"></a><span class="w">              </span><span class="no">return None</span>
+<a id="__codelineno-4-92" name="__codelineno-4-92" href="#__codelineno-4-92"></a>
+<a id="__codelineno-4-93" name="__codelineno-4-93" href="#__codelineno-4-93"></a><span class="w">            </span><span class="no"># Update inventory with new stock level</span>
+<a id="__codelineno-4-94" name="__codelineno-4-94" href="#__codelineno-4-94"></a><span class="w">            </span><span class="no">current_stock = inventory.get(&quot;current_stock&quot;, 0)</span>
+<a id="__codelineno-4-95" name="__codelineno-4-95" href="#__codelineno-4-95"></a><span class="w">            </span><span class="no">new_stock = max(0, current_stock - ordered_quantity)</span>
+<a id="__codelineno-4-96" name="__codelineno-4-96" href="#__codelineno-4-96"></a>
+<a id="__codelineno-4-97" name="__codelineno-4-97" href="#__codelineno-4-97"></a><span class="w">            </span><span class="no"># Update the inventory in the store</span>
+<a id="__codelineno-4-98" name="__codelineno-4-98" href="#__codelineno-4-98"></a><span class="w">            </span><span class="no">value = {</span>
+<a id="__codelineno-4-99" name="__codelineno-4-99" href="#__codelineno-4-99"></a><span class="w">              </span><span class="no">**inventory,</span>
+<a id="__codelineno-4-100" name="__codelineno-4-100" href="#__codelineno-4-100"></a><span class="w">              </span><span class="no">&quot;current_stock&quot;: new_stock,</span>
+<a id="__codelineno-4-101" name="__codelineno-4-101" href="#__codelineno-4-101"></a><span class="w">              </span><span class="no">&quot;last_order_id&quot;: order_item.get(&quot;order_id&quot;),</span>
+<a id="__codelineno-4-102" name="__codelineno-4-102" href="#__codelineno-4-102"></a><span class="w">              </span><span class="no">&quot;last_updated&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-4-103" name="__codelineno-4-103" href="#__codelineno-4-103"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-104" name="__codelineno-4-104" href="#__codelineno-4-104"></a>
+<a id="__codelineno-4-105" name="__codelineno-4-105" href="#__codelineno-4-105"></a><span class="w">            </span><span class="no">inventory_store.put(key, value)</span>
+<a id="__codelineno-4-106" name="__codelineno-4-106" href="#__codelineno-4-106"></a><span class="w">            </span><span class="no">return value</span>
+<a id="__codelineno-4-107" name="__codelineno-4-107" href="#__codelineno-4-107"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-4-108" name="__codelineno-4-108" href="#__codelineno-4-108"></a><span class="w">          </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-4-109" name="__codelineno-4-109" href="#__codelineno-4-109"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_store</span>
+<a id="__codelineno-4-110" name="__codelineno-4-110" href="#__codelineno-4-110"></a><span class="w">      </span><span class="c1"># Only propagate valid inventory updates to the topic</span>
+<a id="__codelineno-4-111" name="__codelineno-4-111" href="#__codelineno-4-111"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-4-112" name="__codelineno-4-112" href="#__codelineno-4-112"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-4-113" name="__codelineno-4-113" href="#__codelineno-4-113"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value is not None</span>
+<a id="__codelineno-4-114" name="__codelineno-4-114" href="#__codelineno-4-114"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-4-115" name="__codelineno-4-115" href="#__codelineno-4-115"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-116" name="__codelineno-4-116" href="#__codelineno-4-116"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-117" name="__codelineno-4-117" href="#__codelineno-4-117"></a><span class="w">            </span><span class="no">log.info(&quot;Updating inventory: {}&quot;, value)</span>
+<a id="__codelineno-4-118" name="__codelineno-4-118" href="#__codelineno-4-118"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-119" name="__codelineno-4-119" href="#__codelineno-4-119"></a>
+<a id="__codelineno-4-120" name="__codelineno-4-120" href="#__codelineno-4-120"></a><span class="w">  </span><span class="c1"># Pipeline for detecting low inventory and generating reorder events</span>
+<a id="__codelineno-4-121" name="__codelineno-4-121" href="#__codelineno-4-121"></a><span class="w">  </span><span class="nt">reorder_pipeline</span><span class="p">:</span>
+<a id="__codelineno-4-122" name="__codelineno-4-122" href="#__codelineno-4-122"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-123" name="__codelineno-4-123" href="#__codelineno-4-123"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-4-124" name="__codelineno-4-124" href="#__codelineno-4-124"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
+<a id="__codelineno-4-125" name="__codelineno-4-125" href="#__codelineno-4-125"></a><span class="w">        </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_catalog</span>
+<a id="__codelineno-4-126" name="__codelineno-4-126" href="#__codelineno-4-126"></a><span class="w">        </span><span class="nt">valueJoiner</span><span class="p">:</span>
+<a id="__codelineno-4-127" name="__codelineno-4-127" href="#__codelineno-4-127"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-128" name="__codelineno-4-128" href="#__codelineno-4-128"></a><span class="w">            </span><span class="no">{</span>
+<a id="__codelineno-4-129" name="__codelineno-4-129" href="#__codelineno-4-129"></a><span class="w">              </span><span class="no">&quot;product&quot;: value2,</span>
+<a id="__codelineno-4-130" name="__codelineno-4-130" href="#__codelineno-4-130"></a><span class="w">              </span><span class="no">&quot;inventory&quot;: value1</span>
+<a id="__codelineno-4-131" name="__codelineno-4-131" href="#__codelineno-4-131"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-132" name="__codelineno-4-132" href="#__codelineno-4-132"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-4-133" name="__codelineno-4-133" href="#__codelineno-4-133"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-4-134" name="__codelineno-4-134" href="#__codelineno-4-134"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-4-135" name="__codelineno-4-135" href="#__codelineno-4-135"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-136" name="__codelineno-4-136" href="#__codelineno-4-136"></a><span class="w">            </span><span class="no">product = value.get(&quot;product&quot;)</span>
+<a id="__codelineno-4-137" name="__codelineno-4-137" href="#__codelineno-4-137"></a><span class="w">            </span><span class="no">inventory = value.get(&quot;inventory&quot;)</span>
+<a id="__codelineno-4-138" name="__codelineno-4-138" href="#__codelineno-4-138"></a><span class="w">            </span><span class="no">return inventory.get(&quot;current_stock&quot;, 0) &lt;= product.get(&quot;reorder_threshold&quot;, 0)</span>
+<a id="__codelineno-4-139" name="__codelineno-4-139" href="#__codelineno-4-139"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformKeyValue</span>
+<a id="__codelineno-4-140" name="__codelineno-4-140" href="#__codelineno-4-140"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-141" name="__codelineno-4-141" href="#__codelineno-4-141"></a><span class="w">          </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-142" name="__codelineno-4-142" href="#__codelineno-4-142"></a><span class="w">            </span><span class="no">import uuid</span>
+<a id="__codelineno-4-143" name="__codelineno-4-143" href="#__codelineno-4-143"></a><span class="w">            </span><span class="no">import time</span>
+<a id="__codelineno-4-144" name="__codelineno-4-144" href="#__codelineno-4-144"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-145" name="__codelineno-4-145" href="#__codelineno-4-145"></a><span class="w">            </span><span class="no"># Get reorder threshold and quantity from product reference data</span>
+<a id="__codelineno-4-146" name="__codelineno-4-146" href="#__codelineno-4-146"></a><span class="w">            </span><span class="no">product = value.get(&quot;product&quot;)</span>
+<a id="__codelineno-4-147" name="__codelineno-4-147" href="#__codelineno-4-147"></a><span class="w">            </span><span class="no">reorder_threshold = product.get(&quot;reorder_threshold&quot;, 10)</span>
+<a id="__codelineno-4-148" name="__codelineno-4-148" href="#__codelineno-4-148"></a><span class="w">            </span><span class="no">reorder_quantity = product.get(&quot;reorder_quantity&quot;, 50)</span>
+<a id="__codelineno-4-149" name="__codelineno-4-149" href="#__codelineno-4-149"></a>
+<a id="__codelineno-4-150" name="__codelineno-4-150" href="#__codelineno-4-150"></a><span class="w">            </span><span class="no"># Determine priority based on current stock</span>
+<a id="__codelineno-4-151" name="__codelineno-4-151" href="#__codelineno-4-151"></a><span class="w">            </span><span class="no">inventory = value.get(&quot;inventory&quot;)</span>
+<a id="__codelineno-4-152" name="__codelineno-4-152" href="#__codelineno-4-152"></a><span class="w">            </span><span class="no">current_stock = inventory.get(&quot;current_stock&quot;, 0)</span>
+<a id="__codelineno-4-153" name="__codelineno-4-153" href="#__codelineno-4-153"></a><span class="w">            </span><span class="no">priority = &quot;urgent&quot; if current_stock &lt;= 5 else &quot;normal&quot;</span>
+<a id="__codelineno-4-154" name="__codelineno-4-154" href="#__codelineno-4-154"></a>
+<a id="__codelineno-4-155" name="__codelineno-4-155" href="#__codelineno-4-155"></a><span class="w">            </span><span class="no"># Generate event ID</span>
+<a id="__codelineno-4-156" name="__codelineno-4-156" href="#__codelineno-4-156"></a><span class="w">            </span><span class="no">event_id = f&quot;reorder-{uuid.uuid4().hex[:8]}&quot;</span>
+<a id="__codelineno-4-157" name="__codelineno-4-157" href="#__codelineno-4-157"></a>
+<a id="__codelineno-4-158" name="__codelineno-4-158" href="#__codelineno-4-158"></a><span class="w">            </span><span class="no"># Create reorder event</span>
+<a id="__codelineno-4-159" name="__codelineno-4-159" href="#__codelineno-4-159"></a><span class="w">            </span><span class="no">value = {</span>
+<a id="__codelineno-4-160" name="__codelineno-4-160" href="#__codelineno-4-160"></a><span class="w">              </span><span class="no">&quot;event_id&quot;: event_id,</span>
+<a id="__codelineno-4-161" name="__codelineno-4-161" href="#__codelineno-4-161"></a><span class="w">              </span><span class="no">&quot;product_id&quot;: product.get(&quot;id&quot;),</span>
+<a id="__codelineno-4-162" name="__codelineno-4-162" href="#__codelineno-4-162"></a><span class="w">              </span><span class="no">&quot;product_name&quot;: product.get(&quot;name&quot;),</span>
+<a id="__codelineno-4-163" name="__codelineno-4-163" href="#__codelineno-4-163"></a><span class="w">              </span><span class="no">&quot;current_stock&quot;: current_stock,</span>
+<a id="__codelineno-4-164" name="__codelineno-4-164" href="#__codelineno-4-164"></a><span class="w">              </span><span class="no">&quot;reorder_quantity&quot;: reorder_quantity,</span>
+<a id="__codelineno-4-165" name="__codelineno-4-165" href="#__codelineno-4-165"></a><span class="w">              </span><span class="no">&quot;priority&quot;: priority,</span>
+<a id="__codelineno-4-166" name="__codelineno-4-166" href="#__codelineno-4-166"></a><span class="w">              </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-4-167" name="__codelineno-4-167" href="#__codelineno-4-167"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-168" name="__codelineno-4-168" href="#__codelineno-4-168"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(value.get(&quot;event_id&quot;), value)</span>
+<a id="__codelineno-4-169" name="__codelineno-4-169" href="#__codelineno-4-169"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, struct)</span>
+<a id="__codelineno-4-170" name="__codelineno-4-170" href="#__codelineno-4-170"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reorder_events</span>
+<a id="__codelineno-4-171" name="__codelineno-4-171" href="#__codelineno-4-171"></a>
+<a id="__codelineno-4-172" name="__codelineno-4-172" href="#__codelineno-4-172"></a><span class="w">  </span><span class="c1"># Pipeline for detecting critical inventory levels and generating alerts</span>
+<a id="__codelineno-4-173" name="__codelineno-4-173" href="#__codelineno-4-173"></a><span class="w">  </span><span class="nt">alert_pipeline</span><span class="p">:</span>
+<a id="__codelineno-4-174" name="__codelineno-4-174" href="#__codelineno-4-174"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-175" name="__codelineno-4-175" href="#__codelineno-4-175"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-4-176" name="__codelineno-4-176" href="#__codelineno-4-176"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
+<a id="__codelineno-4-177" name="__codelineno-4-177" href="#__codelineno-4-177"></a><span class="w">        </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_catalog</span>
+<a id="__codelineno-4-178" name="__codelineno-4-178" href="#__codelineno-4-178"></a><span class="w">        </span><span class="nt">valueJoiner</span><span class="p">:</span>
+<a id="__codelineno-4-179" name="__codelineno-4-179" href="#__codelineno-4-179"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-180" name="__codelineno-4-180" href="#__codelineno-4-180"></a><span class="w">            </span><span class="no">{</span>
+<a id="__codelineno-4-181" name="__codelineno-4-181" href="#__codelineno-4-181"></a><span class="w">              </span><span class="no">&quot;product&quot;: value2,</span>
+<a id="__codelineno-4-182" name="__codelineno-4-182" href="#__codelineno-4-182"></a><span class="w">              </span><span class="no">&quot;inventory&quot;: value1</span>
+<a id="__codelineno-4-183" name="__codelineno-4-183" href="#__codelineno-4-183"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-184" name="__codelineno-4-184" href="#__codelineno-4-184"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-4-185" name="__codelineno-4-185" href="#__codelineno-4-185"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-4-186" name="__codelineno-4-186" href="#__codelineno-4-186"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span>
+<a id="__codelineno-4-187" name="__codelineno-4-187" href="#__codelineno-4-187"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-188" name="__codelineno-4-188" href="#__codelineno-4-188"></a><span class="w">            </span><span class="no">product = value.get(&quot;product&quot;)</span>
+<a id="__codelineno-4-189" name="__codelineno-4-189" href="#__codelineno-4-189"></a><span class="w">            </span><span class="no">inventory = value.get(&quot;inventory&quot;)</span>
+<a id="__codelineno-4-190" name="__codelineno-4-190" href="#__codelineno-4-190"></a><span class="w">            </span><span class="no">return inventory.get(&quot;current_stock&quot;, 0) &lt;= product.get(&quot;critical_threshold&quot;, 0)</span>
+<a id="__codelineno-4-191" name="__codelineno-4-191" href="#__codelineno-4-191"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mapValues</span>
+<a id="__codelineno-4-192" name="__codelineno-4-192" href="#__codelineno-4-192"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-193" name="__codelineno-4-193" href="#__codelineno-4-193"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-194" name="__codelineno-4-194" href="#__codelineno-4-194"></a><span class="w">            </span><span class="no">import uuid</span>
+<a id="__codelineno-4-195" name="__codelineno-4-195" href="#__codelineno-4-195"></a><span class="w">            </span><span class="no">import time</span>
+<a id="__codelineno-4-196" name="__codelineno-4-196" href="#__codelineno-4-196"></a>
+<a id="__codelineno-4-197" name="__codelineno-4-197" href="#__codelineno-4-197"></a><span class="w">            </span><span class="no"># Get critical threshold from product reference data</span>
+<a id="__codelineno-4-198" name="__codelineno-4-198" href="#__codelineno-4-198"></a><span class="w">            </span><span class="no">product = value.get(&quot;product&quot;)</span>
+<a id="__codelineno-4-199" name="__codelineno-4-199" href="#__codelineno-4-199"></a><span class="w">            </span><span class="no">critical_threshold = product.get(&quot;critical_threshold&quot;, 5)</span>
+<a id="__codelineno-4-200" name="__codelineno-4-200" href="#__codelineno-4-200"></a><span class="w">            </span><span class="no">product_name = product.get(&quot;name&quot;, &quot;Unknown&quot;)</span>
+<a id="__codelineno-4-201" name="__codelineno-4-201" href="#__codelineno-4-201"></a>
+<a id="__codelineno-4-202" name="__codelineno-4-202" href="#__codelineno-4-202"></a><span class="w">            </span><span class="no"># Get current stock</span>
+<a id="__codelineno-4-203" name="__codelineno-4-203" href="#__codelineno-4-203"></a><span class="w">            </span><span class="no">inventory = value.get(&quot;inventory&quot;)</span>
+<a id="__codelineno-4-204" name="__codelineno-4-204" href="#__codelineno-4-204"></a><span class="w">            </span><span class="no">current_stock = inventory.get(&quot;current_stock&quot;, 0)</span>
+<a id="__codelineno-4-205" name="__codelineno-4-205" href="#__codelineno-4-205"></a>
+<a id="__codelineno-4-206" name="__codelineno-4-206" href="#__codelineno-4-206"></a><span class="w">            </span><span class="no"># Generate alert ID</span>
+<a id="__codelineno-4-207" name="__codelineno-4-207" href="#__codelineno-4-207"></a><span class="w">            </span><span class="no">alert_id = f&quot;alert-{uuid.uuid4().hex[:8]}&quot;</span>
+<a id="__codelineno-4-208" name="__codelineno-4-208" href="#__codelineno-4-208"></a>
+<a id="__codelineno-4-209" name="__codelineno-4-209" href="#__codelineno-4-209"></a><span class="w">            </span><span class="no"># Create alert message</span>
+<a id="__codelineno-4-210" name="__codelineno-4-210" href="#__codelineno-4-210"></a><span class="w">            </span><span class="no">message = f&quot;Critical inventory level: {product_name} ({current_stock} units remaining)&quot;</span>
+<a id="__codelineno-4-211" name="__codelineno-4-211" href="#__codelineno-4-211"></a>
+<a id="__codelineno-4-212" name="__codelineno-4-212" href="#__codelineno-4-212"></a><span class="w">            </span><span class="no"># Create alert event</span>
+<a id="__codelineno-4-213" name="__codelineno-4-213" href="#__codelineno-4-213"></a><span class="w">            </span><span class="no">return {</span>
+<a id="__codelineno-4-214" name="__codelineno-4-214" href="#__codelineno-4-214"></a><span class="w">              </span><span class="no">&quot;alert_id&quot;: alert_id,</span>
+<a id="__codelineno-4-215" name="__codelineno-4-215" href="#__codelineno-4-215"></a><span class="w">              </span><span class="no">&quot;alert_type&quot;: &quot;critical_inventory&quot;,</span>
+<a id="__codelineno-4-216" name="__codelineno-4-216" href="#__codelineno-4-216"></a><span class="w">              </span><span class="no">&quot;product_id&quot;: product.get(&quot;id&quot;),</span>
+<a id="__codelineno-4-217" name="__codelineno-4-217" href="#__codelineno-4-217"></a><span class="w">              </span><span class="no">&quot;product_name&quot;: product_name,</span>
+<a id="__codelineno-4-218" name="__codelineno-4-218" href="#__codelineno-4-218"></a><span class="w">              </span><span class="no">&quot;current_stock&quot;: current_stock,</span>
+<a id="__codelineno-4-219" name="__codelineno-4-219" href="#__codelineno-4-219"></a><span class="w">              </span><span class="no">&quot;threshold&quot;: critical_threshold,</span>
+<a id="__codelineno-4-220" name="__codelineno-4-220" href="#__codelineno-4-220"></a><span class="w">              </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000),</span>
+<a id="__codelineno-4-221" name="__codelineno-4-221" href="#__codelineno-4-221"></a><span class="w">              </span><span class="no">&quot;message&quot;: message</span>
+<a id="__codelineno-4-222" name="__codelineno-4-222" href="#__codelineno-4-222"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-223" name="__codelineno-4-223" href="#__codelineno-4-223"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-4-224" name="__codelineno-4-224" href="#__codelineno-4-224"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_alerts</span>
+<a id="__codelineno-4-225" name="__codelineno-4-225" href="#__codelineno-4-225"></a>
+<a id="__codelineno-4-226" name="__codelineno-4-226" href="#__codelineno-4-226"></a><span class="w">  </span><span class="nt">restock_pipeline</span><span class="p">:</span>
+<a id="__codelineno-4-227" name="__codelineno-4-227" href="#__codelineno-4-227"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reorder_events</span>
+<a id="__codelineno-4-228" name="__codelineno-4-228" href="#__codelineno-4-228"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-4-229" name="__codelineno-4-229" href="#__codelineno-4-229"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformKey</span>
+<a id="__codelineno-4-230" name="__codelineno-4-230" href="#__codelineno-4-230"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-231" name="__codelineno-4-231" href="#__codelineno-4-231"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;product_id&quot;)</span>
+<a id="__codelineno-4-232" name="__codelineno-4-232" href="#__codelineno-4-232"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-233" name="__codelineno-4-233" href="#__codelineno-4-233"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-4-234" name="__codelineno-4-234" href="#__codelineno-4-234"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-235" name="__codelineno-4-235" href="#__codelineno-4-235"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-236" name="__codelineno-4-236" href="#__codelineno-4-236"></a><span class="w">            </span><span class="no">inventory = inventory_store.get(key)</span>
+<a id="__codelineno-4-237" name="__codelineno-4-237" href="#__codelineno-4-237"></a><span class="w">            </span><span class="no">if not inventory:</span>
+<a id="__codelineno-4-238" name="__codelineno-4-238" href="#__codelineno-4-238"></a><span class="w">              </span><span class="no">inventory = {</span>
+<a id="__codelineno-4-239" name="__codelineno-4-239" href="#__codelineno-4-239"></a><span class="w">                </span><span class="no">&quot;product_id&quot;: key,</span>
+<a id="__codelineno-4-240" name="__codelineno-4-240" href="#__codelineno-4-240"></a><span class="w">                </span><span class="no">&quot;current_stock&quot;: 0</span>
+<a id="__codelineno-4-241" name="__codelineno-4-241" href="#__codelineno-4-241"></a><span class="w">              </span><span class="no">}</span>
+<a id="__codelineno-4-242" name="__codelineno-4-242" href="#__codelineno-4-242"></a><span class="w">            </span><span class="no">return {</span>
+<a id="__codelineno-4-243" name="__codelineno-4-243" href="#__codelineno-4-243"></a><span class="w">              </span><span class="no">&quot;reorder&quot;: value,</span>
+<a id="__codelineno-4-244" name="__codelineno-4-244" href="#__codelineno-4-244"></a><span class="w">              </span><span class="no">&quot;inventory&quot;: inventory</span>
+<a id="__codelineno-4-245" name="__codelineno-4-245" href="#__codelineno-4-245"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-246" name="__codelineno-4-246" href="#__codelineno-4-246"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
+<a id="__codelineno-4-247" name="__codelineno-4-247" href="#__codelineno-4-247"></a><span class="w">          </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-4-248" name="__codelineno-4-248" href="#__codelineno-4-248"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_store</span>
+<a id="__codelineno-4-249" name="__codelineno-4-249" href="#__codelineno-4-249"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-4-250" name="__codelineno-4-250" href="#__codelineno-4-250"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-4-251" name="__codelineno-4-251" href="#__codelineno-4-251"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-252" name="__codelineno-4-252" href="#__codelineno-4-252"></a><span class="w">            </span><span class="no">reorder = value.get(&quot;reorder&quot;)</span>
+<a id="__codelineno-4-253" name="__codelineno-4-253" href="#__codelineno-4-253"></a><span class="w">            </span><span class="no">inventory = value.get(&quot;inventory&quot;)</span>
+<a id="__codelineno-4-254" name="__codelineno-4-254" href="#__codelineno-4-254"></a><span class="w">            </span><span class="no">value = {</span>
+<a id="__codelineno-4-255" name="__codelineno-4-255" href="#__codelineno-4-255"></a><span class="w">              </span><span class="no">**inventory,</span>
+<a id="__codelineno-4-256" name="__codelineno-4-256" href="#__codelineno-4-256"></a><span class="w">              </span><span class="no">&quot;current_stock&quot;: inventory.get(&quot;current_stock&quot;, 0) + reorder.get(&quot;reorder_quantity&quot;, 0),</span>
+<a id="__codelineno-4-257" name="__codelineno-4-257" href="#__codelineno-4-257"></a><span class="w">              </span><span class="no">&quot;last_reorder_id&quot;: reorder.get(&quot;event_id&quot;),</span>
+<a id="__codelineno-4-258" name="__codelineno-4-258" href="#__codelineno-4-258"></a><span class="w">              </span><span class="no">&quot;last_updated&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-4-259" name="__codelineno-4-259" href="#__codelineno-4-259"></a><span class="w">            </span><span class="no">}</span>
+<a id="__codelineno-4-260" name="__codelineno-4-260" href="#__codelineno-4-260"></a>
+<a id="__codelineno-4-261" name="__codelineno-4-261" href="#__codelineno-4-261"></a><span class="w">            </span><span class="no">inventory_store.put(key, value)</span>
+<a id="__codelineno-4-262" name="__codelineno-4-262" href="#__codelineno-4-262"></a>
+<a id="__codelineno-4-263" name="__codelineno-4-263" href="#__codelineno-4-263"></a><span class="w">            </span><span class="no">return value</span>
+<a id="__codelineno-4-264" name="__codelineno-4-264" href="#__codelineno-4-264"></a><span class="w">          </span><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-4-265" name="__codelineno-4-265" href="#__codelineno-4-265"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_store</span>
+<a id="__codelineno-4-266" name="__codelineno-4-266" href="#__codelineno-4-266"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-4-267" name="__codelineno-4-267" href="#__codelineno-4-267"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-268" name="__codelineno-4-268" href="#__codelineno-4-268"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-269" name="__codelineno-4-269" href="#__codelineno-4-269"></a><span class="w">            </span><span class="no">log.info(&quot;Restocked product: {}&quot;, value)</span>
+<a id="__codelineno-4-270" name="__codelineno-4-270" href="#__codelineno-4-270"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-271" name="__codelineno-4-271" href="#__codelineno-4-271"></a>
+<a id="__codelineno-4-272" name="__codelineno-4-272" href="#__codelineno-4-272"></a><span class="w">  </span><span class="nt">inventory_monitor</span><span class="p">:</span>
+<a id="__codelineno-4-273" name="__codelineno-4-273" href="#__codelineno-4-273"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory_updates</span>
+<a id="__codelineno-4-274" name="__codelineno-4-274" href="#__codelineno-4-274"></a><span class="w">    </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-4-275" name="__codelineno-4-275" href="#__codelineno-4-275"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-4-276" name="__codelineno-4-276" href="#__codelineno-4-276"></a><span class="w">        </span><span class="no">log.info(&quot;Inventory updated: {}&quot;, value)</span>
+</code></pre></div>
+</details>
+<h2 id="setting-up-the-producers-for-test-data">Setting up the producers for test data</h2>
+<p>To test out the topology above, we create a test data producer definition.</p>
+<p>The definition consists of two producers. The first producer is a <em>single shot producer</em> that generates three records
+for the <code>product_catalog</code> topic. The second producer produces a message every second to the <code>order_events</code> topic, using
+a randomly generated product order:</p>
+<details class="info">
+<summary>Product and order event producer (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Product</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">Order</span><span class="nv"> </span><span class="s">Event</span><span class="nv"> </span><span class="s">Producer&quot;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="no">This producer is part of the Event-Driven Applications Use Case in KSML documentation. It produces a fixed series of</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="no">records to the product_catalog topic. Next to that, every second a random product order is generated and sent to the</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="no">order_events topic.</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nt">global_function</span><span class="p">:</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="no"># Global product catalog</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">      </span><span class="no">products = [</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">        </span><span class="no">{&quot;id&quot;: &quot;prod-123&quot;, &quot;name&quot;: &quot;Wireless Headphones&quot;, &quot;category&quot;: &quot;electronics&quot;, &quot;price&quot;: 79.99, &quot;reorder_threshold&quot;: 10, &quot;reorder_quantity&quot;: 50, &quot;critical_threshold&quot;: 5},</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">        </span><span class="no">{&quot;id&quot;: &quot;prod-456&quot;, &quot;name&quot;: &quot;Laptop Charger&quot;, &quot;category&quot;: &quot;electronics&quot;, &quot;price&quot;: 55.99, &quot;reorder_threshold&quot;: 5, &quot;reorder_quantity&quot;: 25, &quot;critical_threshold&quot;: 3},</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">        </span><span class="no">{&quot;id&quot;: &quot;prod-789&quot;, &quot;name&quot;: &quot;Phone Cover&quot;, &quot;category&quot;: &quot;accessories&quot;, &quot;price&quot;: 12.99, &quot;reorder_threshold&quot;: 20, &quot;reorder_quantity&quot;: 100, &quot;critical_threshold&quot;: 10}</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">      </span><span class="no">]</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">  </span><span class="nt">product_catalog_generator</span><span class="p">:</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">      </span><span class="no">import time</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">      </span><span class="no">count = 0</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">      </span><span class="no">global count</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">      </span><span class="no">count = (count + 1) % len(products)</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">      </span><span class="no">value = products[count]</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="w">      </span><span class="no">key = value.get(&quot;id&quot;)</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">      </span><span class="no">return (key, value)</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, struct)</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="w">  </span><span class="nt">order_event_generator</span><span class="p">:</span>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="w">      </span><span class="no">import random</span>
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a><span class="w">      </span><span class="no">items = []</span>
+<a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a><span class="w">      </span><span class="no">total_price = 0</span>
+<a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a><span class="w">      </span><span class="no">for item in range(random.randrange(1,4)):</span>
+<a id="__codelineno-5-37" name="__codelineno-5-37" href="#__codelineno-5-37"></a><span class="w">        </span><span class="no">product = random.choice(products)</span>
+<a id="__codelineno-5-38" name="__codelineno-5-38" href="#__codelineno-5-38"></a><span class="w">        </span><span class="no">quantity = random.randrange(1,10)</span>
+<a id="__codelineno-5-39" name="__codelineno-5-39" href="#__codelineno-5-39"></a><span class="w">        </span><span class="no">price = product.get(&quot;price&quot;) * quantity</span>
+<a id="__codelineno-5-40" name="__codelineno-5-40" href="#__codelineno-5-40"></a><span class="w">        </span><span class="no">total_price += price</span>
+<a id="__codelineno-5-41" name="__codelineno-5-41" href="#__codelineno-5-41"></a><span class="w">        </span><span class="no">items += [{</span>
+<a id="__codelineno-5-42" name="__codelineno-5-42" href="#__codelineno-5-42"></a><span class="w">          </span><span class="no">&quot;product_id&quot;: product.get(&quot;id&quot;),</span>
+<a id="__codelineno-5-43" name="__codelineno-5-43" href="#__codelineno-5-43"></a><span class="w">          </span><span class="no">&quot;quantity&quot;: quantity,</span>
+<a id="__codelineno-5-44" name="__codelineno-5-44" href="#__codelineno-5-44"></a><span class="w">          </span><span class="no">&quot;unit_price&quot;: product.get(&quot;price&quot;)</span>
+<a id="__codelineno-5-45" name="__codelineno-5-45" href="#__codelineno-5-45"></a><span class="w">        </span><span class="no">}]</span>
+<a id="__codelineno-5-46" name="__codelineno-5-46" href="#__codelineno-5-46"></a>
+<a id="__codelineno-5-47" name="__codelineno-5-47" href="#__codelineno-5-47"></a><span class="w">      </span><span class="no"># Return order event</span>
+<a id="__codelineno-5-48" name="__codelineno-5-48" href="#__codelineno-5-48"></a><span class="w">      </span><span class="no">value = {</span>
+<a id="__codelineno-5-49" name="__codelineno-5-49" href="#__codelineno-5-49"></a><span class="w">        </span><span class="no">&quot;order_id&quot;: &quot;order-&quot;+str(random.randrange(999999)),</span>
+<a id="__codelineno-5-50" name="__codelineno-5-50" href="#__codelineno-5-50"></a><span class="w">        </span><span class="no">&quot;customer_id&quot;: &quot;cust-&quot;+str(random.randrange(999999)),</span>
+<a id="__codelineno-5-51" name="__codelineno-5-51" href="#__codelineno-5-51"></a><span class="w">        </span><span class="no">&quot;items&quot;: items,</span>
+<a id="__codelineno-5-52" name="__codelineno-5-52" href="#__codelineno-5-52"></a><span class="w">        </span><span class="no">&quot;order_total&quot;: total_price,</span>
+<a id="__codelineno-5-53" name="__codelineno-5-53" href="#__codelineno-5-53"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-5-54" name="__codelineno-5-54" href="#__codelineno-5-54"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-5-55" name="__codelineno-5-55" href="#__codelineno-5-55"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(value.get(&quot;order_id&quot;), value)</span>
+<a id="__codelineno-5-56" name="__codelineno-5-56" href="#__codelineno-5-56"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, struct)</span>
+<a id="__codelineno-5-57" name="__codelineno-5-57" href="#__codelineno-5-57"></a>
+<a id="__codelineno-5-58" name="__codelineno-5-58" href="#__codelineno-5-58"></a><span class="nt">producers</span><span class="p">:</span>
+<a id="__codelineno-5-59" name="__codelineno-5-59" href="#__codelineno-5-59"></a><span class="w">  </span><span class="nt">product_catalog_producer</span><span class="p">:</span>
+<a id="__codelineno-5-60" name="__codelineno-5-60" href="#__codelineno-5-60"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_catalog_generator</span>
+<a id="__codelineno-5-61" name="__codelineno-5-61" href="#__codelineno-5-61"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<a id="__codelineno-5-62" name="__codelineno-5-62" href="#__codelineno-5-62"></a><span class="w">    </span><span class="nt">count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<a id="__codelineno-5-63" name="__codelineno-5-63" href="#__codelineno-5-63"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-5-64" name="__codelineno-5-64" href="#__codelineno-5-64"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_catalog</span>
+<a id="__codelineno-5-65" name="__codelineno-5-65" href="#__codelineno-5-65"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># Product id</span>
+<a id="__codelineno-5-66" name="__codelineno-5-66" href="#__codelineno-5-66"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># Product information including reorder info</span>
+<a id="__codelineno-5-67" name="__codelineno-5-67" href="#__codelineno-5-67"></a>
+<a id="__codelineno-5-68" name="__codelineno-5-68" href="#__codelineno-5-68"></a><span class="w">  </span><span class="nt">order_event_producer</span><span class="p">:</span>
+<a id="__codelineno-5-69" name="__codelineno-5-69" href="#__codelineno-5-69"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_event_generator</span>
+<a id="__codelineno-5-70" name="__codelineno-5-70" href="#__codelineno-5-70"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1s</span>
+<a id="__codelineno-5-71" name="__codelineno-5-71" href="#__codelineno-5-71"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-5-72" name="__codelineno-5-72" href="#__codelineno-5-72"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_events</span>
+<a id="__codelineno-5-73" name="__codelineno-5-73" href="#__codelineno-5-73"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">  </span><span class="c1"># stock key (warehouse id + product id)</span>
+<a id="__codelineno-5-74" name="__codelineno-5-74" href="#__codelineno-5-74"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># JSON inventory data</span>
+</code></pre></div>
+</details>
+<h2 id="running-the-application">Running the Application</h2>
+<p>To run the application:</p>
+<ol>
+<li>Save the processor definition to
+   <a href="../../definitions/use-cases/event-driven-applications/inventory-event-processors.yaml"><code>inventory-event-processors.yaml</code></a>.</li>
+<li>Save the producers to
+   <a href="../../definitions/use-cases/event-driven-applications/product-and-order-event-producer.yaml"><code>product-and-order-event-producer</code></a>
+   and
+   <a href="../../definitions/use-cases/data-transformation/customer-data-producer.yaml"><code>customer-data-producer.yaml</code></a>.</li>
+<li>Set up your <code>ksml-runner.yaml</code> configuration, pointing to your Kafka installation.</li>
+</ol>
+<details class="info">
+<summary>KSML runner configuration (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">ksml</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">enableProducers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">              </span><span class="c1"># Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">enablePipelines</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">              </span><span class="c1"># Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">definitions</span><span class="p">:</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">segment_data_producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">segment-data-producer.yaml</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="nt">customer_data_producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer-data-producer.yaml</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nt">data_transformation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data-transformation.yaml</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="nt">kafka</span><span class="p">:</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">broker:9093</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="nt">application.id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your.app.id</span>
+</code></pre></div>
+</details>
+<ol>
+<li>Start the <code>customer_segment_producer</code> to produce the sample segment information to Kafka.</li>
+<li>Start the <code>legacy_customer_data_producer</code> to produce some sample data to the input topic.</li>
+<li>Start the <code>data_transformation</code> topology to initiate the continuous data transformation logic.</li>
+<li>Monitor the output topic to see the transformed data.</li>
+</ol>
+<h2 id="extending-the-event-driven-system">Extending the Event-Driven System</h2>
+<h3 id="integration-with-external-systems">Integration with External Systems</h3>
+<p>To make this event-driven system truly useful, you can integrate it with external systems:</p>
+<ol>
+<li><strong>Procurement System</strong>: Connect the reorder events to your procurement system to automatically create purchase orders</li>
+<li><strong>Notification Service</strong>: Send the alerts to a notification service that can email or text warehouse staff</li>
+<li><strong>Analytics Platform</strong>: Stream all events to an analytics platform for business intelligence</li>
+<li><strong>Dashboard</strong>: Connect to a real-time dashboard for inventory visualization</li>
+</ol>
+<h3 id="adding-more-event-types">Adding More Event Types</h3>
+<p>You can extend the system with additional event types:</p>
+<ul>
+<li><strong>Price Change Events</strong>: Automatically adjust prices based on inventory levels or competitor data</li>
+<li><strong>Promotion Events</strong>: Trigger promotions for overstocked items</li>
+<li><strong>Fraud Detection Events</strong>: Flag suspicious order patterns</li>
+<li><strong>Shipping Delay Events</strong>: Notify customers about potential delays due to inventory issues</li>
+</ul>
+<h2 id="best-practices-for-event-driven-applications">Best Practices for Event-Driven Applications</h2>
+<p>When building event-driven applications with KSML, consider these best practices:</p>
+<ol>
+<li><strong>Event Schema Design</strong>: Design your events to be self-contained and include all necessary context</li>
+<li><strong>Idempotent Processing</strong>: Ensure your event handlers can process the same event multiple times without side effects</li>
+<li><strong>Event Versioning</strong>: Include version information in your events to handle schema evolution</li>
+<li><strong>Monitoring and Observability</strong>: Add logging and metrics to track event flow and processing</li>
+<li><strong>Error Handling</strong>: Implement proper error handling and dead-letter queues for failed events</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this tutorial, you've learned how to:</p>
+<ul>
+<li>Build an event-driven application using KSML</li>
+<li>Detect specific conditions in your data streams</li>
+<li>Generate events in response to those conditions</li>
+<li>Process events to update state and trigger further actions</li>
+<li>Design an end-to-end event-driven architecture</li>
+</ul>
+<p>Event-driven applications are a powerful use case for KSML, allowing you to build responsive, real-time systems that
+react automatically to changing conditions.</p>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li>Learn about <a href="../real-time-analytics/">Real-Time Analytics</a> to analyze your event data</li>
+<li>Explore <a href="../data-transformation/">Data Transformation</a> for more complex event processing</li>
+<li>Check out <a href="../../tutorials/advanced/external-integration/">External Integration</a> for connecting your events to external
+  systems</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,152 @@
+# Processor demonstrating multi-store pattern for complex order processing
+
+streams:
+  order_events:
+    topic: order_events
+    keyType: string
+    valueType: string
+
+stores:
+  # Store for current order state
+  order_state_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+  
+  # Store for customer metrics
+  customer_metrics_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+  
+  # Store for product inventory tracking
+  product_inventory_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+
+functions:
+  process_order_with_multiple_stores:
+    type: valueTransformer
+    stores:
+      - order_state_store
+      - customer_metrics_store
+      - product_inventory_store
+    code: |
+      import json
+      
+      # Parse order event: "status:product_id:quantity:price:timestamp"
+      parts = value.split(":")
+      if len(parts) != 5:
+        return None
+      
+      status = parts[0]
+      product_id = parts[1]
+      quantity = int(parts[2])
+      price = float(parts[3])
+      timestamp = int(parts[4])
+      
+      order_id = key
+      
+      # 1. Update order state store
+      order_state = {
+        "order_id": order_id,
+        "status": status,
+        "product_id": product_id,
+        "quantity": quantity,
+        "price": price,
+        "last_updated": timestamp
+      }
+      order_state_store.put(order_id, json.dumps(order_state))
+      
+      # 2. Update customer metrics (extract customer from order_id or use a lookup)
+      customer_id = f"cust_{hash(order_id) % 4 + 1:03d}"  # Simple customer mapping
+      
+      customer_data_str = customer_metrics_store.get(customer_id)
+      if customer_data_str:
+        customer_data = json.loads(customer_data_str)
+      else:
+        customer_data = {
+          "customer_id": customer_id,
+          "total_orders": 0,
+          "total_spent": 0,
+          "order_history": []
+        }
+      
+      # Update customer metrics based on status
+      if status == "created":
+        customer_data["total_orders"] += 1
+        customer_data["order_history"].append(order_id)
+        # Keep only last 10 orders for memory efficiency
+        if len(customer_data["order_history"]) > 10:
+          customer_data["order_history"] = customer_data["order_history"][-10:]
+      
+      elif status == "paid":
+        customer_data["total_spent"] += price * quantity
+      
+      customer_metrics_store.put(customer_id, json.dumps(customer_data))
+      
+      # 3. Update product inventory
+      inventory_data_str = product_inventory_store.get(product_id)
+      if inventory_data_str:
+        inventory_data = json.loads(inventory_data_str)
+      else:
+        inventory_data = {
+          "product_id": product_id,
+          "reserved_quantity": 0,
+          "sold_quantity": 0,
+          "available_stock": 100  # Default stock
+        }
+      
+      # Update inventory based on order status
+      if status == "created":
+        inventory_data["reserved_quantity"] += quantity
+        inventory_data["available_stock"] -= quantity
+      elif status == "shipped":
+        inventory_data["reserved_quantity"] -= quantity
+        inventory_data["sold_quantity"] += quantity
+      elif status == "cancelled":
+        inventory_data["reserved_quantity"] -= quantity
+        inventory_data["available_stock"] += quantity
+      
+      product_inventory_store.put(product_id, json.dumps(inventory_data))
+      
+      # Generate comprehensive order summary using all stores
+      summary = {
+        "order_id": order_id,
+        "status": status,
+        "customer_total_orders": customer_data["total_orders"],
+        "customer_total_spent": customer_data["total_spent"],
+        "product_available": inventory_data["available_stock"],
+        "product_reserved": inventory_data["reserved_quantity"]
+      }
+      
+      result = f"ORDER_PROCESSED:{order_id}:status={status}:customer_orders={customer_data['total_orders']}:stock_left={inventory_data['available_stock']}"
+      
+      log.info("Processed order {} with status {}: customer has {} orders, product {} has {} stock left", 
+               order_id, status, customer_data["total_orders"], product_id, inventory_data["available_stock"])
+      
+      return result
+      
+    expression: result if result else None
+    resultType: string
+
+pipelines:
+  multi_store_order_processing:
+    from: order_events
+    via:
+      - type: mapValues
+        mapper: process_order_with_multiple_stores
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: order_processing_results
+      keyType: string
+      valueType: string

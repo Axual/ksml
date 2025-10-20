@@ -1,0 +1,63 @@
+functions:
+  generate_stream_a:
+    type: generator
+    globalCode: |
+      import random
+      message_id = 0
+      colors = ["red", "blue", "green"]
+    code: |
+      global message_id
+      message_id += 1
+      
+      message = {
+        "id": f"stream_a_{message_id}",
+        "color": random.choice(colors),
+        "source": "stream_a"
+      }
+      
+      log.info("Generated message from stream A: {} - color: {}", message["id"], message["color"])
+      
+      key = message["color"]
+      value = message
+    expression: (key, value)
+    resultType: (string, json)
+
+  generate_stream_b:
+    type: generator
+    globalCode: |
+      import random
+      message_id = 0
+      colors = ["red", "blue", "green"]
+    code: |
+      global message_id
+      message_id += 1
+      
+      message = {
+        "id": f"stream_b_{message_id}",
+        "color": random.choice(colors),
+        "source": "stream_b"
+      }
+      
+      log.info("Generated message from stream B: {} - color: {}", message["id"], message["color"])
+      
+      key = message["color"]
+      value = message
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  stream_a_producer:
+    generator: generate_stream_a
+    interval: 3s
+    to:
+      topic: stream_a
+      keyType: string
+      valueType: json
+
+  stream_b_producer:
+    generator: generate_stream_b
+    interval: 2s
+    to:
+      topic: stream_b
+      keyType: string
+      valueType: json

@@ -1,0 +1,12 @@
+pipelines:
+  my_pipeline:
+    from: my_input_stream
+    via:
+      - type: filter
+        if:
+          expression: value.get('temperature') > 70
+      - type: mapValues
+        mapper:
+          expression: |
+            {"temp_celsius": (value.get('temperature') - 32) * 5/9}
+    to: my_output_stream

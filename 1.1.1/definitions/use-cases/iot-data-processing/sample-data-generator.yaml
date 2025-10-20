@@ -1,0 +1,77 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+streams:
+  sensor_readings:
+    topic: iot_sensor_readings
+    keyType: string  # device_id
+    valueType: json  # sensor data
+
+functions:
+  generate_sensor_reading:
+    type: generic
+    resultType: boolean
+    expression: False
+    globalCode: |
+      import random
+      import time
+      
+      # Static data
+      rooms = ["conference-a", "conference-b", "conference-c"]
+      device_types = ["temperature_sensor", "energy_meter"]
+      
+      # Counter for generating unique device IDs
+      global counter
+      counter = 0
+      
+      def generate_reading():
+        global counter
+        counter += 1
+        
+        # Select room and device type
+        room = rooms[counter % len(rooms)]
+        device_type = device_types[counter % len(device_types)]
+        device_id = f"{device_type}-{room}"
+        
+        # Generate random readings, generate extreme temperature every 50 readings
+        if counter % 50 == 0:
+          temperature = random.choice([4.0, 36.0])
+        else:
+          temperature = round(random.uniform(19.0, 24.0), 1)
+        
+        humidity = round(random.uniform(40.0, 70.0), 1)
+        energy = random.randint(50, 150)
+        
+        # Create sensor reading
+        reading = {
+          "device_id": device_id,
+          "timestamp": int(time.time() * 1000),
+          "device_type": device_type,
+          "location": {
+            "building": "headquarters",
+            "floor": 3,
+            "room": room,
+            "coordinates": {
+              "lat": 37.7749,
+              "lng": -122.4194
+            }
+          },
+          "readings": {
+            "temperature": temperature,
+            "humidity": humidity,
+            "energy": energy
+          },
+          "battery_level": random.randint(17, 100),
+          "status": "active"
+        }
+        
+        return reading
+
+producers:
+  iot_sensor_producer:
+    to: sensor_readings
+    interval: 1000  # Generate every second
+    generator:
+      code: |
+        reading = generate_reading()
+      expression: '(reading.get("device_id"), reading)'
+      resultType: (string, json)

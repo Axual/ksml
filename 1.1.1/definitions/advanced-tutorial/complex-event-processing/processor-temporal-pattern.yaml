@@ -1,0 +1,119 @@
+# Processor for temporal pattern matching - detects actions within time windows
+
+streams:
+  temporal_events:
+    topic: temporal_events
+    keyType: string
+    valueType: json
+
+stores:
+  temporal_state:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+
+functions:
+  detect_temporal_pattern:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import json
+    stores:
+      - temporal_state
+    code: |
+      # Extract fields from JSON event
+      action = value.get("action")
+      event_time = value.get("timestamp")
+      user_id = value.get("user_id")
+      event_id = value.get("event_id")
+      session_id = value.get("session_id")
+      current_time = int(time.time() * 1000)
+      
+      if not action or not event_time:
+        return None
+      
+      # Get stored state
+      state = temporal_state.get(key)
+      
+      if action == "add_to_cart":
+        # Store cart event with detailed JSON state
+        cart_state = {
+          "event": "add_to_cart",
+          "timestamp": event_time,
+          "event_id": event_id,
+          "session_id": session_id,
+          "product_id": value.get("product_id"),
+          "quantity": value.get("quantity"),
+          "price": value.get("price")
+        }
+        temporal_state.put(key, json.dumps(cart_state))
+        log.info("Cart event for {}: {}", key, event_time)
+        return None
+        
+      elif action == "checkout" and state:
+        # Parse stored cart state
+        try:
+          cart_data = json.loads(state)
+          if cart_data.get("event") == "add_to_cart":
+            cart_time = cart_data.get("timestamp")
+            time_diff = event_time - cart_time
+            
+            # Create structured result
+            result = {
+              "pattern_type": "TEMPORAL_CHECKOUT",
+              "user_id": user_id,
+              "session_id": session_id,
+              "cart_event": {
+                "event_id": cart_data.get("event_id"),
+                "timestamp": cart_time,
+                "product_id": cart_data.get("product_id"),
+                "quantity": cart_data.get("quantity"),
+                "price": cart_data.get("price")
+              },
+              "checkout_event": {
+                "event_id": event_id,
+                "timestamp": event_time,
+                "total_amount": value.get("total_amount"),
+                "payment_method": value.get("payment_method")
+              },
+              "time_difference_ms": time_diff,
+              "time_difference_minutes": round(time_diff / 60000, 2),
+              "detection_timestamp": current_time,
+              "processing_time": current_time - event_time
+            }
+            
+            if time_diff <= 300000:  # Within 5 minutes
+              temporal_state.delete(key)
+              result["status"] = "QUICK_CHECKOUT"
+              result["is_quick"] = True
+              log.info("QUICK CHECKOUT detected for {} in {}ms", key, time_diff)
+              return result
+            else:
+              temporal_state.delete(key)
+              result["status"] = "SLOW_CHECKOUT"
+              result["is_quick"] = False
+              log.info("Slow checkout for {} ({}ms)", key, time_diff)
+              return result
+        except (json.JSONDecodeError, KeyError) as e:
+          log.warn("Error parsing cart state for {}: {}", key, str(e))
+          temporal_state.delete(key)
+      
+      return None
+      
+    expression: result if result else None
+    resultType: json
+
+pipelines:
+  temporal_pattern_pipeline:
+    from: temporal_events
+    via:
+      - type: mapValues
+        mapper: detect_temporal_pattern
+      - type: filter
+        if:
+          expression: value is not None
+    to:
+      topic: temporal_patterns
+      keyType: string
+      valueType: json

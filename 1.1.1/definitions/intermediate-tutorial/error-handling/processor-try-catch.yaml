@@ -1,0 +1,86 @@
+# Try-catch error handling example using exception handling in functions
+
+streams:
+  sensor_readings:
+    topic: sensor_readings
+    keyType: string
+    valueType: json
+    
+  processed_sensors:
+    topic: processed_sensors
+    keyType: string
+    valueType: json
+    
+  sensor_errors:
+    topic: sensor_errors
+    keyType: string
+    valueType: json
+
+functions:
+  process_sensor_reading:
+    type: valueTransformer
+    code: |
+      try:
+        # Attempt to process the sensor data
+        if value is None:
+          raise ValueError("Null sensor data")
+          
+        sensor_id = value.get("sensor_id")
+        if not sensor_id:
+          raise ValueError("Missing sensor_id")
+          
+        # Try to get and validate temperature
+        temp = value.get("temperature")
+        if temp is None:
+          raise ValueError("Missing temperature")
+          
+        # Convert temperature to float (may raise ValueError)
+        temp_float = float(temp)
+        
+        # Get humidity with default
+        humidity = float(value.get("humidity", 0))
+        
+        # Create processed result
+        result = {
+          "sensor_id": sensor_id,
+          "temperature": temp_float,
+          "humidity": humidity,
+          "status": "normal" if temp_float < 100 else "warning",
+          "processed_at": sensor_id  # Use sensor_id as timestamp marker
+        }
+        
+      except (ValueError, TypeError) as e:
+        # Handle processing errors
+        result = {
+          "sensor_id": value.get("sensor_id", "unknown") if value else "unknown",
+          "error": str(e),
+          "status": "error",
+          "original_data": value,
+          "processed_at": key
+        }
+    
+    expression: result
+    resultType: json
+
+pipelines:
+  process_sensors:
+    from: sensor_readings
+    via:
+      - type: transformValue
+        mapper: process_sensor_reading
+      - type: peek
+        forEach:
+          code: |
+            status = value.get("status", "unknown")
+            sensor_id = value.get("sensor_id", "unknown")
+            if status == "error":
+              log.error("SENSOR ERROR - {}: {}", sensor_id, value.get("error"))
+            else:
+              log.info("SENSOR OK - {}: temp={}C", sensor_id, value.get("temperature"))
+    branch:
+      # Route successful processing
+      - if:
+          expression: value.get("status") != "error"
+        to: processed_sensors
+      # Route errors to error topic
+      - to: sensor_errors

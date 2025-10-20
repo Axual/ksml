@@ -1,0 +1,36 @@
+# Simple processor demonstrating list() syntax alternative
+
+streams:
+  student_grades:
+    topic: student_grades
+    keyType: string
+    valueType: json
+
+  enhanced_grades:
+    topic: enhanced_grades
+    keyType: string
+    valueType: json
+
+functions:
+  enhance_grades:
+    type: valueTransformer
+    resultType: list(int)    # Alternative to "[int]" - demonstrates list() syntax without quotes
+    code: |
+      grades = value.get("grades", [])
+      # Add a bonus point to each grade
+      enhanced_grades = [grade + 5 for grade in grades if grade < 95]
+    expression: enhanced_grades
+
+pipelines:
+  process_grades:
+    from: student_grades
+    via:
+      - type: transformValue
+        mapper: enhance_grades
+      - type: convertValue
+        into: json
+      - type: peek
+        forEach:
+          code: |
+            log.info("ENHANCED GRADES - Student: {}, enhanced_grades: {}", key, value)
+    to: enhanced_grades

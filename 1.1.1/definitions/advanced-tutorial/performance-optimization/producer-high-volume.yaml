@@ -1,0 +1,47 @@
+# Producer for performance optimization demo - generates high volume events
+
+functions:
+  generate_high_volume_events:
+    type: generator
+    globalCode: |
+      import random
+      import time
+      event_counter = 0
+      user_ids = [f"user_{i:04d}" for i in range(1, 101)]  # 100 users
+      event_types = ["view", "click", "purchase", "search", "scroll", "hover"]
+      product_categories = ["electronics", "clothing", "books", "home", "sports"]
+    code: |
+      global event_counter, user_ids, event_types, product_categories
+      
+      event_counter += 1
+      user_id = random.choice(user_ids)
+      event_type = random.choice(event_types)
+      
+      # Generate realistic event data for performance testing
+      event_data = {
+        "event_id": f"evt_{event_counter:08d}",
+        "type": event_type,
+        "user_id": user_id,
+        "timestamp": int(time.time() * 1000),
+        "product_id": f"prod_{random.randint(1, 1000):04d}",
+        "category": random.choice(product_categories),
+        "value": round(random.uniform(1.0, 100.0), 2) if event_type == "purchase" else 0,
+        "session_id": f"sess_{hash(user_id) % 50:03d}",
+        "metadata": {
+          "source": "web",
+          "device": random.choice(["desktop", "mobile", "tablet"]),
+          "browser": random.choice(["chrome", "firefox", "safari"])
+        }
+      }
+      
+    expression: (user_id, event_data)
+    resultType: (string, json)
+
+producers:
+  high_volume_producer:
+    generator: generate_high_volume_events
+    interval: 1s  # High frequency for performance testing
+    to:
+      topic: high_volume_events
+      keyType: string
+      valueType: json
