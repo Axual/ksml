@@ -233,7 +233,7 @@ class CsvDataFormatIT {
         try (CSVParser parser = CSVFormat.DEFAULT.parse(new StringReader(csvString))) {
             List<CSVRecord> records = parser.getRecords();
             assertThat(records).as("CSV should parse to exactly one record").hasSize(1);
-            return records.get(0);
+            return records.getFirst();
         }
     }
 
