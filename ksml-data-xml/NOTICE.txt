@@ -13,7 +13,7 @@ Lists of 23 third-party dependencies.
      (Apache License, Version 2.0) Guava: Google Core Libraries for Java (com.google.guava:guava:33.5.0-jre - https://github.com/google/guava)
      (The Apache Software License, Version 2.0) Guava ListenableFuture only (com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava - https://github.com/google/guava/listenablefuture)
      (Apache License, Version 2.0) J2ObjC Annotations (com.google.j2objc:j2objc-annotations:3.1 - https://github.com/google/j2objc/)
-     (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.1 - https://github.com/Axual/ksml/ksml-data)
+     (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.2-SNAPSHOT - https://github.com/Axual/ksml/ksml-data)
      (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.0.0 - https://kafka.apache.org)
      (Apache License, Version 2.0) XmlSchema Core (org.apache.ws.xmlschema:xmlschema-core:2.3.1 - https://ws.apache.org/commons/xmlschema20/xmlschema-core/)
      (The BSD 2-Clause License) Stax2 API (org.codehaus.woodstox:stax2-api:4.2.2 - http://github.com/FasterXML/stax2-api)
