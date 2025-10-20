@@ -1,0 +1,8 @@
+ksml:
+  definitions:
+    repartition-producer: repartition-example-producer.yaml
+    repartition-processor: repartition-example-processor.yaml
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.repartition.test

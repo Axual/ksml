@@ -75,6 +75,7 @@ public class KSMLContainer implements Startable {
     private final Map<String, String> systemProperties = new HashMap<>();
     private final List<Startable> dependencies = new ArrayList<>();
     private final List<String> topicsToCreate = new ArrayList<>();
+    private int topicPartitionCount = 1; // Default to 1 partition
     private SetupCallback setupCallback;
 
     public enum SchemaRegistryType {
@@ -169,6 +170,22 @@ public class KSMLContainer implements Startable {
      */
     public KSMLContainer withTopics(String... topics) {
         Collections.addAll(this.topicsToCreate, topics);
+        return this;
+    }
+
+    /**
+     * Specifies the number of partitions to use when creating topics.
+     * This applies to all topics created via {@link #withTopics(String...)}.
+     * Default is 1 partition if not specified.
+     *
+     * @param partitionCount Number of partitions for topics
+     * @return this container for method chaining
+     */
+    public KSMLContainer withPartitions(int partitionCount) {
+        if (partitionCount < 1) {
+            throw new IllegalArgumentException("Partition count must be at least 1");
+        }
+        this.topicPartitionCount = partitionCount;
         return this;
     }
 
@@ -298,11 +315,11 @@ public class KSMLContainer implements Startable {
             try (AdminClient adminClient = AdminClient.create(props)) {
                 List<NewTopic> topics = new ArrayList<>();
                 for (String topicName : topicsToCreate) {
-                    topics.add(new NewTopic(topicName, 1, (short) 1));
+                    topics.add(new NewTopic(topicName, topicPartitionCount, (short) 1));
                 }
 
                 adminClient.createTopics(topics).all().get();
-                log.info("Created Kafka topics: {}", topicsToCreate);
+                log.info("Created Kafka topics: {} with {} partitions", topicsToCreate, topicPartitionCount);
             }
         } catch (Exception e) {
             log.error("Failed to create Kafka topics", e);

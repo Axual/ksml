@@ -450,19 +450,19 @@ Redistributes records across partitions, optionally using custom partitioning lo
 > ```
 
 ```yaml
---8<-- "docs-examples/reference/operations/repartition-example-processor.yaml:73:76"
+--8<-- "docs-examples/reference/operations/repartition-example-processor.yaml:76:78"
 ```
 
 ??? info "Producer - `repartition` example (click to expand)"
 
     ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-producer.yaml" %}
+    {% include "../../ksml-integration-tests/src/test/resources/docs-examples/reference/operations/repartition-example-producer.yaml" %}
     ```
 
 ??? info "Processor - `repartition` example (click to expand)"
 
     ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/repartition-example-processor.yaml" %}
+    {% include "../../ksml-integration-tests/src/test/resources/docs-examples/reference/operations/repartition-example-processor.yaml" %}
     ```
 
 The repartition operation demonstrates data redistribution by changing keys from regions to user IDs, then using custom partitioning logic to distribute activities based on user patterns. This ensures related user activities are processed together while optimizing partition utilization.
@@ -473,8 +473,8 @@ Demonstrates intelligent data redistribution for user-centric processing:
 
 * Changes partitioning strategy from region-based to user-based keys
 * Applies custom partitioning logic based on user ID patterns
-* Routes even user numbers (002, 004) to partitions 0-1
-* Routes odd user numbers (001, 003, 005) to partitions 2-3
+* Routes even user numbers (002, 004, 006, ...) to partitions 0-1 (alternating: 002→1, 004→0, 006→1)
+* Routes odd user numbers (001, 003, 005, ...) to partitions 2-3 (alternating: 001→2, 003→3, 005→2)
 * Producer generates activities initially keyed by region for realistic repartitioning scenario
 
 **Key Features:**
@@ -484,7 +484,8 @@ Demonstrates intelligent data redistribution for user-centric processing:
 * Guaranteed co-location of activities for the same user
 * Processing metadata tracking for observability
 * Explicit partition count handling (4 partitions total)
-* Fallback to partition 0 for edge cases
+* Partitioner applied both in repartition operation and output topic for consistency
+* Fallback to partition 0 for edge cases (missing user_id)
 
 **Expected Results:**
 
@@ -493,9 +494,12 @@ When running this example, you'll see log messages like:
 - `"Generated activity: activity_0001 for user user_001 in region south - type: purchase"` - Producer creating activities
 - `"Changing key from region 'south' to user_id 'user_001'"` - Key transformation
 - `"Repartitioned activity user_001: Repartitioned by user: user_001 -> user-based partitioning applied"` - Successful repartitioning
-- User_001 and user_003 (odd numbers) go to partitions 2-3
-- User_002 and user_004 (even numbers) go to partitions 0-1
-- Activities for the same user are guaranteed to be processed in order
+
+Partition assignments follow the custom logic:
+
+- **Odd users**: user_001 → partition 2, user_003 → partition 3, user_005 → partition 2
+- **Even users**: user_002 → partition 1, user_004 → partition 0, user_006 → partition 1
+- Activities for the same user are guaranteed to go to the same partition (ensuring order)
 
 
 ## Stateful Aggregation Operations
