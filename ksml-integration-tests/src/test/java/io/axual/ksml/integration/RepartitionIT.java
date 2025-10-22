@@ -124,7 +124,20 @@ class RepartitionIT {
         // Validate we have records
         assertThat(allRecords).as("Should have collected repartitioned records").isNotEmpty();
 
-        // Validate partitioning logic for each user
+        // Verify partitioning and transformations
+        verifyPartitioningLogic(userPartitions);
+        verifyKeyTransformationAndValueEnrichment(allRecords);
+    }
+
+    /**
+     * Verifies that the custom partitioning logic correctly distributes users to partitions.
+     * <p>
+     * Validates:
+     * - All records for the same user go to the same partition
+     * - Even user numbers (002, 004) are routed to partitions 0-1
+     * - Odd user numbers (001, 003, 005) are routed to partitions 2-3
+     */
+    private void verifyPartitioningLogic(Map<String, List<Integer>> userPartitions) {
         for (Map.Entry<String, List<Integer>> entry : userPartitions.entrySet()) {
             String userId = entry.getKey();
             List<Integer> partitions = entry.getValue();
@@ -157,8 +170,18 @@ class RepartitionIT {
             log.info("✓ User {} (num {}) correctly routed to partition {} ({})",
                      userId, userNum, actualPartition, userNum % 2 == 0 ? "even" : "odd");
         }
+    }
 
-        // Validate key transformation and value enrichment
+    /**
+     * Verifies that key transformation and value enrichment operations were applied correctly.
+     * <p>
+     * Validates:
+     * - Keys are transformed from region to user_id
+     * - Values contain all required fields (user_id, activity_id, activity_type, region)
+     * - Processing metadata is added (processing_info, original_region)
+     * - Key matches the user_id in the value
+     */
+    private void verifyKeyTransformationAndValueEnrichment(List<ConsumerRecord<String, String>> allRecords) throws Exception {
         for (ConsumerRecord<String, String> record : allRecords) {
             String userId = record.key();
 
@@ -185,11 +208,6 @@ class RepartitionIT {
             // Validate key matches user_id in value
             assertThat(value.get("user_id").asText()).as("Key should match user_id in value").isEqualTo(userId);
         }
-
-        log.info("✓ Repartitioning test completed successfully!");
-        log.info("✓ Verified custom partitioner logic distributes users correctly");
-        log.info("✓ Verified key transformation from region to user_id");
-        log.info("✓ Verified value enrichment with processing metadata");
     }
 
     private Properties createConsumerProperties() {
