@@ -32,8 +32,9 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets:
       base_path:
-        - docs                        # the default docs dir
-        - ksml/src/test/resources     # test resources (sibling of docs)
+        - docs                                            # the default docs dir
+        - ksml/src/test/resources                        # unit test resources
+        - ksml-integration-tests/src/test/resources      # integration test resources
       check_paths: true
   - pymdownx.superfences
   - pymdownx.details

@@ -24,12 +24,14 @@ functions:
         # Extract user number from user_001, user_002, etc.
         user_num = int(user_id.split("_")[-1])
         
-        # Even user numbers (002, 004) -> partitions 0-1
-        # Odd user numbers (001, 003, 005) -> partitions 2-3
+        # Even user numbers (002, 004, 006, ...) -> partitions 0-1
+        # Odd user numbers (001, 003, 005, ...) -> partitions 2-3
         if user_num % 2 == 0:
-          partition = user_num % 2  # 0 or 1
+          # Distribute even users across partitions 0 and 1
+          partition = (user_num // 2) % 2  # 002->1, 004->0, 006->1, 008->0
         else:
-          partition = 2 + (user_num % 2)  # 2 or 3
+          # Distribute odd users across partitions 2 and 3
+          partition = 2 + ((user_num // 2) % 2)  # 001->2, 003->3, 005->2, 007->3
         
         log.debug("Routing user {} (num:{}) to partition {}", 
                   user_id, user_num, partition)
@@ -88,3 +90,4 @@ pipelines:
       topic: repartitioned_activities
       keyType: string
       valueType: json
+      partitioner: activity_partitioner

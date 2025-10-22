@@ -213,6 +213,7 @@ git push origin 1.0.9
    - **"What's Changed"**: Write concise summary of key changes
    - **"Full Changelog"**: Keep auto-generated commit list
 6. Publish the release
+7. Upload ksml-language-spec.json
 
 ### Step 9: Monitor Build and Push Branch
 
@@ -227,7 +228,9 @@ git push origin 1.0.9
 ```bash
 mvn versions:set -DgenerateBackupPoms=false
 # Enter next patch snapshot: 1.0.10-SNAPSHOT
+mvn clean package -DskipTests # To generate NOTICE.TXT
 ```
+Update `Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0-snapshot""
 Commit: `git commit -m "Prepare for next development iteration"`
 Push: `git push origin release/1.0.x`
 
