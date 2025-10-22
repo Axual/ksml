@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.2a3383ac.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
       
       
 
@@ -4918,10 +4918,9 @@
 <a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>kafka-topics.sh<span class="w"> </span>--create<span class="w"> </span>--if-not-exists<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker:9093<span class="w"> </span>--partitions<span class="w"> </span><span class="m">4</span><span class="w"> </span>--replication-factor<span class="w"> </span><span class="m">1</span><span class="w"> </span>--topic<span class="w"> </span>repartitioned_activities
 </code></pre></div>
 </blockquote>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="w">      </span><span class="c1"># Repartition with custom partitioner for user-based distribution</span>
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">repartition</span>
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">        </span><span class="nt">numberOfPartitions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">        </span><span class="nt">partitioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">activity_partitioner</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">repartition</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">        </span><span class="nt">numberOfPartitions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">        </span><span class="nt">partitioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">activity_partitioner</span>
 </code></pre></div>
 <details class="info">
 <summary>Producer - <code>repartition</code> example (click to expand)</summary>
@@ -4998,70 +4997,73 @@
 <a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a><span class="w">        </span><span class="no"># Extract user number from user_001, user_002, etc.</span>
 <a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a><span class="w">        </span><span class="no">user_num = int(user_id.split(&quot;_&quot;)[-1])</span>
 <a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a>
-<a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a><span class="w">        </span><span class="no"># Even user numbers (002, 004) -&gt; partitions 0-1</span>
-<a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a><span class="w">        </span><span class="no"># Odd user numbers (001, 003, 005) -&gt; partitions 2-3</span>
+<a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a><span class="w">        </span><span class="no"># Even user numbers (002, 004, 006, ...) -&gt; partitions 0-1</span>
+<a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a><span class="w">        </span><span class="no"># Odd user numbers (001, 003, 005, ...) -&gt; partitions 2-3</span>
 <a id="__codelineno-22-29" name="__codelineno-22-29" href="#__codelineno-22-29"></a><span class="w">        </span><span class="no">if user_num % 2 == 0:</span>
-<a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a><span class="w">          </span><span class="no">partition = user_num % 2  # 0 or 1</span>
-<a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a><span class="w">        </span><span class="no">else:</span>
-<a id="__codelineno-22-32" name="__codelineno-22-32" href="#__codelineno-22-32"></a><span class="w">          </span><span class="no">partition = 2 + (user_num % 2)  # 2 or 3</span>
-<a id="__codelineno-22-33" name="__codelineno-22-33" href="#__codelineno-22-33"></a>
-<a id="__codelineno-22-34" name="__codelineno-22-34" href="#__codelineno-22-34"></a><span class="w">        </span><span class="no">log.debug(&quot;Routing user {} (num:{}) to partition {}&quot;, </span>
-<a id="__codelineno-22-35" name="__codelineno-22-35" href="#__codelineno-22-35"></a><span class="w">                  </span><span class="no">user_id, user_num, partition)</span>
-<a id="__codelineno-22-36" name="__codelineno-22-36" href="#__codelineno-22-36"></a>
-<a id="__codelineno-22-37" name="__codelineno-22-37" href="#__codelineno-22-37"></a><span class="w">        </span><span class="no">return partition</span>
+<a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a><span class="w">          </span><span class="no"># Distribute even users across partitions 0 and 1</span>
+<a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a><span class="w">          </span><span class="no">partition = (user_num // 2) % 2  # 002-&gt;1, 004-&gt;0, 006-&gt;1, 008-&gt;0</span>
+<a id="__codelineno-22-32" name="__codelineno-22-32" href="#__codelineno-22-32"></a><span class="w">        </span><span class="no">else:</span>
+<a id="__codelineno-22-33" name="__codelineno-22-33" href="#__codelineno-22-33"></a><span class="w">          </span><span class="no"># Distribute odd users across partitions 2 and 3</span>
+<a id="__codelineno-22-34" name="__codelineno-22-34" href="#__codelineno-22-34"></a><span class="w">          </span><span class="no">partition = 2 + ((user_num // 2) % 2)  # 001-&gt;2, 003-&gt;3, 005-&gt;2, 007-&gt;3</span>
+<a id="__codelineno-22-35" name="__codelineno-22-35" href="#__codelineno-22-35"></a>
+<a id="__codelineno-22-36" name="__codelineno-22-36" href="#__codelineno-22-36"></a><span class="w">        </span><span class="no">log.debug(&quot;Routing user {} (num:{}) to partition {}&quot;, </span>
+<a id="__codelineno-22-37" name="__codelineno-22-37" href="#__codelineno-22-37"></a><span class="w">                  </span><span class="no">user_id, user_num, partition)</span>
 <a id="__codelineno-22-38" name="__codelineno-22-38" href="#__codelineno-22-38"></a>
-<a id="__codelineno-22-39" name="__codelineno-22-39" href="#__codelineno-22-39"></a><span class="w">      </span><span class="no"># Default to partition 0</span>
-<a id="__codelineno-22-40" name="__codelineno-22-40" href="#__codelineno-22-40"></a><span class="w">      </span><span class="no">return 0</span>
-<a id="__codelineno-22-41" name="__codelineno-22-41" href="#__codelineno-22-41"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
-<a id="__codelineno-22-42" name="__codelineno-22-42" href="#__codelineno-22-42"></a>
-<a id="__codelineno-22-43" name="__codelineno-22-43" href="#__codelineno-22-43"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-22-44" name="__codelineno-22-44" href="#__codelineno-22-44"></a><span class="w">  </span><span class="nt">repartition_activities</span><span class="p">:</span>
-<a id="__codelineno-22-45" name="__codelineno-22-45" href="#__codelineno-22-45"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_activities</span>
-<a id="__codelineno-22-46" name="__codelineno-22-46" href="#__codelineno-22-46"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-22-47" name="__codelineno-22-47" href="#__codelineno-22-47"></a><span class="w">      </span><span class="c1"># First, change key from region to user_id for user-based processing</span>
-<a id="__codelineno-22-48" name="__codelineno-22-48" href="#__codelineno-22-48"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mapKey</span>
-<a id="__codelineno-22-49" name="__codelineno-22-49" href="#__codelineno-22-49"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-22-50" name="__codelineno-22-50" href="#__codelineno-22-50"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-22-51" name="__codelineno-22-51" href="#__codelineno-22-51"></a><span class="w">            </span><span class="no"># Extract user_id from the activity to become the new key</span>
-<a id="__codelineno-22-52" name="__codelineno-22-52" href="#__codelineno-22-52"></a><span class="w">            </span><span class="no">if value and &quot;user_id&quot; in value:</span>
-<a id="__codelineno-22-53" name="__codelineno-22-53" href="#__codelineno-22-53"></a><span class="w">              </span><span class="no">user_key = value[&quot;user_id&quot;]</span>
-<a id="__codelineno-22-54" name="__codelineno-22-54" href="#__codelineno-22-54"></a><span class="w">              </span><span class="no">log.info(&quot;Changing key from region &#39;{}&#39; to user_id &#39;{}&#39;&quot;, key, user_key)</span>
-<a id="__codelineno-22-55" name="__codelineno-22-55" href="#__codelineno-22-55"></a><span class="w">              </span><span class="no">result = user_key</span>
-<a id="__codelineno-22-56" name="__codelineno-22-56" href="#__codelineno-22-56"></a><span class="w">            </span><span class="no">else:</span>
-<a id="__codelineno-22-57" name="__codelineno-22-57" href="#__codelineno-22-57"></a><span class="w">              </span><span class="no">result = key</span>
-<a id="__codelineno-22-58" name="__codelineno-22-58" href="#__codelineno-22-58"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-22-59" name="__codelineno-22-59" href="#__codelineno-22-59"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-22-60" name="__codelineno-22-60" href="#__codelineno-22-60"></a>
-<a id="__codelineno-22-61" name="__codelineno-22-61" href="#__codelineno-22-61"></a><span class="w">      </span><span class="c1"># Add processing metadata</span>
-<a id="__codelineno-22-62" name="__codelineno-22-62" href="#__codelineno-22-62"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
-<a id="__codelineno-22-63" name="__codelineno-22-63" href="#__codelineno-22-63"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-22-64" name="__codelineno-22-64" href="#__codelineno-22-64"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-22-65" name="__codelineno-22-65" href="#__codelineno-22-65"></a><span class="w">            </span><span class="no"># Add repartitioning info to track the transformation</span>
-<a id="__codelineno-22-66" name="__codelineno-22-66" href="#__codelineno-22-66"></a><span class="w">            </span><span class="no">if value:</span>
-<a id="__codelineno-22-67" name="__codelineno-22-67" href="#__codelineno-22-67"></a><span class="w">              </span><span class="no">value[&quot;processing_info&quot;] = f&quot;Repartitioned by user: {value.get(&#39;user_id&#39;, &#39;unknown&#39;)}&quot;</span>
-<a id="__codelineno-22-68" name="__codelineno-22-68" href="#__codelineno-22-68"></a><span class="w">              </span><span class="no">value[&quot;original_region&quot;] = key  # Keep track of original region</span>
-<a id="__codelineno-22-69" name="__codelineno-22-69" href="#__codelineno-22-69"></a><span class="w">            </span><span class="no">result = value</span>
-<a id="__codelineno-22-70" name="__codelineno-22-70" href="#__codelineno-22-70"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-22-71" name="__codelineno-22-71" href="#__codelineno-22-71"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-22-72" name="__codelineno-22-72" href="#__codelineno-22-72"></a>
-<a id="__codelineno-22-73" name="__codelineno-22-73" href="#__codelineno-22-73"></a><span class="w">      </span><span class="c1"># Repartition with custom partitioner for user-based distribution</span>
-<a id="__codelineno-22-74" name="__codelineno-22-74" href="#__codelineno-22-74"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">repartition</span>
-<a id="__codelineno-22-75" name="__codelineno-22-75" href="#__codelineno-22-75"></a><span class="w">        </span><span class="nt">numberOfPartitions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
-<a id="__codelineno-22-76" name="__codelineno-22-76" href="#__codelineno-22-76"></a><span class="w">        </span><span class="nt">partitioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">activity_partitioner</span>
-<a id="__codelineno-22-77" name="__codelineno-22-77" href="#__codelineno-22-77"></a>
-<a id="__codelineno-22-78" name="__codelineno-22-78" href="#__codelineno-22-78"></a><span class="w">      </span><span class="c1"># Log the repartitioned activity</span>
-<a id="__codelineno-22-79" name="__codelineno-22-79" href="#__codelineno-22-79"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-22-80" name="__codelineno-22-80" href="#__codelineno-22-80"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-22-81" name="__codelineno-22-81" href="#__codelineno-22-81"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-22-82" name="__codelineno-22-82" href="#__codelineno-22-82"></a><span class="w">            </span><span class="no">if value:</span>
-<a id="__codelineno-22-83" name="__codelineno-22-83" href="#__codelineno-22-83"></a><span class="w">              </span><span class="no">log.info(&quot;Repartitioned activity {}: {} -&gt; user-based partitioning applied&quot;, </span>
-<a id="__codelineno-22-84" name="__codelineno-22-84" href="#__codelineno-22-84"></a><span class="w">                       </span><span class="no">key, value.get(&quot;processing_info&quot;, &quot;unknown&quot;))</span>
-<a id="__codelineno-22-85" name="__codelineno-22-85" href="#__codelineno-22-85"></a>
-<a id="__codelineno-22-86" name="__codelineno-22-86" href="#__codelineno-22-86"></a><span class="w">    </span><span class="c1"># Send to output topic to observe the repartitioning results</span>
-<a id="__codelineno-22-87" name="__codelineno-22-87" href="#__codelineno-22-87"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-22-88" name="__codelineno-22-88" href="#__codelineno-22-88"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">repartitioned_activities</span>
-<a id="__codelineno-22-89" name="__codelineno-22-89" href="#__codelineno-22-89"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-22-90" name="__codelineno-22-90" href="#__codelineno-22-90"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-22-39" name="__codelineno-22-39" href="#__codelineno-22-39"></a><span class="w">        </span><span class="no">return partition</span>
+<a id="__codelineno-22-40" name="__codelineno-22-40" href="#__codelineno-22-40"></a>
+<a id="__codelineno-22-41" name="__codelineno-22-41" href="#__codelineno-22-41"></a><span class="w">      </span><span class="no"># Default to partition 0</span>
+<a id="__codelineno-22-42" name="__codelineno-22-42" href="#__codelineno-22-42"></a><span class="w">      </span><span class="no">return 0</span>
+<a id="__codelineno-22-43" name="__codelineno-22-43" href="#__codelineno-22-43"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
+<a id="__codelineno-22-44" name="__codelineno-22-44" href="#__codelineno-22-44"></a>
+<a id="__codelineno-22-45" name="__codelineno-22-45" href="#__codelineno-22-45"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-22-46" name="__codelineno-22-46" href="#__codelineno-22-46"></a><span class="w">  </span><span class="nt">repartition_activities</span><span class="p">:</span>
+<a id="__codelineno-22-47" name="__codelineno-22-47" href="#__codelineno-22-47"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_activities</span>
+<a id="__codelineno-22-48" name="__codelineno-22-48" href="#__codelineno-22-48"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-22-49" name="__codelineno-22-49" href="#__codelineno-22-49"></a><span class="w">      </span><span class="c1"># First, change key from region to user_id for user-based processing</span>
+<a id="__codelineno-22-50" name="__codelineno-22-50" href="#__codelineno-22-50"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mapKey</span>
+<a id="__codelineno-22-51" name="__codelineno-22-51" href="#__codelineno-22-51"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-22-52" name="__codelineno-22-52" href="#__codelineno-22-52"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-22-53" name="__codelineno-22-53" href="#__codelineno-22-53"></a><span class="w">            </span><span class="no"># Extract user_id from the activity to become the new key</span>
+<a id="__codelineno-22-54" name="__codelineno-22-54" href="#__codelineno-22-54"></a><span class="w">            </span><span class="no">if value and &quot;user_id&quot; in value:</span>
+<a id="__codelineno-22-55" name="__codelineno-22-55" href="#__codelineno-22-55"></a><span class="w">              </span><span class="no">user_key = value[&quot;user_id&quot;]</span>
+<a id="__codelineno-22-56" name="__codelineno-22-56" href="#__codelineno-22-56"></a><span class="w">              </span><span class="no">log.info(&quot;Changing key from region &#39;{}&#39; to user_id &#39;{}&#39;&quot;, key, user_key)</span>
+<a id="__codelineno-22-57" name="__codelineno-22-57" href="#__codelineno-22-57"></a><span class="w">              </span><span class="no">result = user_key</span>
+<a id="__codelineno-22-58" name="__codelineno-22-58" href="#__codelineno-22-58"></a><span class="w">            </span><span class="no">else:</span>
+<a id="__codelineno-22-59" name="__codelineno-22-59" href="#__codelineno-22-59"></a><span class="w">              </span><span class="no">result = key</span>
+<a id="__codelineno-22-60" name="__codelineno-22-60" href="#__codelineno-22-60"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-22-61" name="__codelineno-22-61" href="#__codelineno-22-61"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-22-62" name="__codelineno-22-62" href="#__codelineno-22-62"></a>
+<a id="__codelineno-22-63" name="__codelineno-22-63" href="#__codelineno-22-63"></a><span class="w">      </span><span class="c1"># Add processing metadata</span>
+<a id="__codelineno-22-64" name="__codelineno-22-64" href="#__codelineno-22-64"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
+<a id="__codelineno-22-65" name="__codelineno-22-65" href="#__codelineno-22-65"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
+<a id="__codelineno-22-66" name="__codelineno-22-66" href="#__codelineno-22-66"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-22-67" name="__codelineno-22-67" href="#__codelineno-22-67"></a><span class="w">            </span><span class="no"># Add repartitioning info to track the transformation</span>
+<a id="__codelineno-22-68" name="__codelineno-22-68" href="#__codelineno-22-68"></a><span class="w">            </span><span class="no">if value:</span>
+<a id="__codelineno-22-69" name="__codelineno-22-69" href="#__codelineno-22-69"></a><span class="w">              </span><span class="no">value[&quot;processing_info&quot;] = f&quot;Repartitioned by user: {value.get(&#39;user_id&#39;, &#39;unknown&#39;)}&quot;</span>
+<a id="__codelineno-22-70" name="__codelineno-22-70" href="#__codelineno-22-70"></a><span class="w">              </span><span class="no">value[&quot;original_region&quot;] = key  # Keep track of original region</span>
+<a id="__codelineno-22-71" name="__codelineno-22-71" href="#__codelineno-22-71"></a><span class="w">            </span><span class="no">result = value</span>
+<a id="__codelineno-22-72" name="__codelineno-22-72" href="#__codelineno-22-72"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-22-73" name="__codelineno-22-73" href="#__codelineno-22-73"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-22-74" name="__codelineno-22-74" href="#__codelineno-22-74"></a>
+<a id="__codelineno-22-75" name="__codelineno-22-75" href="#__codelineno-22-75"></a><span class="w">      </span><span class="c1"># Repartition with custom partitioner for user-based distribution</span>
+<a id="__codelineno-22-76" name="__codelineno-22-76" href="#__codelineno-22-76"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">repartition</span>
+<a id="__codelineno-22-77" name="__codelineno-22-77" href="#__codelineno-22-77"></a><span class="w">        </span><span class="nt">numberOfPartitions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<a id="__codelineno-22-78" name="__codelineno-22-78" href="#__codelineno-22-78"></a><span class="w">        </span><span class="nt">partitioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">activity_partitioner</span>
+<a id="__codelineno-22-79" name="__codelineno-22-79" href="#__codelineno-22-79"></a>
+<a id="__codelineno-22-80" name="__codelineno-22-80" href="#__codelineno-22-80"></a><span class="w">      </span><span class="c1"># Log the repartitioned activity</span>
+<a id="__codelineno-22-81" name="__codelineno-22-81" href="#__codelineno-22-81"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-22-82" name="__codelineno-22-82" href="#__codelineno-22-82"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-22-83" name="__codelineno-22-83" href="#__codelineno-22-83"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-22-84" name="__codelineno-22-84" href="#__codelineno-22-84"></a><span class="w">            </span><span class="no">if value:</span>
+<a id="__codelineno-22-85" name="__codelineno-22-85" href="#__codelineno-22-85"></a><span class="w">              </span><span class="no">log.info(&quot;Repartitioned activity {}: {} -&gt; user-based partitioning applied&quot;, </span>
+<a id="__codelineno-22-86" name="__codelineno-22-86" href="#__codelineno-22-86"></a><span class="w">                       </span><span class="no">key, value.get(&quot;processing_info&quot;, &quot;unknown&quot;))</span>
+<a id="__codelineno-22-87" name="__codelineno-22-87" href="#__codelineno-22-87"></a>
+<a id="__codelineno-22-88" name="__codelineno-22-88" href="#__codelineno-22-88"></a><span class="w">    </span><span class="c1"># Send to output topic to observe the repartitioning results</span>
+<a id="__codelineno-22-89" name="__codelineno-22-89" href="#__codelineno-22-89"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-22-90" name="__codelineno-22-90" href="#__codelineno-22-90"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">repartitioned_activities</span>
+<a id="__codelineno-22-91" name="__codelineno-22-91" href="#__codelineno-22-91"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-22-92" name="__codelineno-22-92" href="#__codelineno-22-92"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-22-93" name="__codelineno-22-93" href="#__codelineno-22-93"></a><span class="w">      </span><span class="nt">partitioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">activity_partitioner</span>
 </code></pre></div>
 </details>
 <p>The repartition operation demonstrates data redistribution by changing keys from regions to user IDs, then using custom partitioning logic to distribute activities based on user patterns. This ensures related user activities are processed together while optimizing partition utilization.</p>
@@ -5070,8 +5072,8 @@
 <ul>
 <li>Changes partitioning strategy from region-based to user-based keys</li>
 <li>Applies custom partitioning logic based on user ID patterns</li>
-<li>Routes even user numbers (002, 004) to partitions 0-1</li>
-<li>Routes odd user numbers (001, 003, 005) to partitions 2-3</li>
+<li>Routes even user numbers (002, 004, 006, ...) to partitions 0-1 (alternating: 002→1, 004→0, 006→1)</li>
+<li>Routes odd user numbers (001, 003, 005, ...) to partitions 2-3 (alternating: 001→2, 003→3, 005→2)</li>
 <li>Producer generates activities initially keyed by region for realistic repartitioning scenario</li>
 </ul>
 <p><strong>Key Features:</strong></p>
@@ -5081,7 +5083,8 @@
 <li>Guaranteed co-location of activities for the same user</li>
 <li>Processing metadata tracking for observability</li>
 <li>Explicit partition count handling (4 partitions total)</li>
-<li>Fallback to partition 0 for edge cases</li>
+<li>Partitioner applied both in repartition operation and output topic for consistency</li>
+<li>Fallback to partition 0 for edge cases (missing user_id)</li>
 </ul>
 <p><strong>Expected Results:</strong></p>
 <p>When running this example, you'll see log messages like:</p>
@@ -5089,9 +5092,12 @@
 <li><code>"Generated activity: activity_0001 for user user_001 in region south - type: purchase"</code> - Producer creating activities</li>
 <li><code>"Changing key from region 'south' to user_id 'user_001'"</code> - Key transformation</li>
 <li><code>"Repartitioned activity user_001: Repartitioned by user: user_001 -&gt; user-based partitioning applied"</code> - Successful repartitioning</li>
-<li>User_001 and user_003 (odd numbers) go to partitions 2-3</li>
-<li>User_002 and user_004 (even numbers) go to partitions 0-1</li>
-<li>Activities for the same user are guaranteed to be processed in order</li>
+</ul>
+<p>Partition assignments follow the custom logic:</p>
+<ul>
+<li><strong>Odd users</strong>: user_001 → partition 2, user_003 → partition 3, user_005 → partition 2</li>
+<li><strong>Even users</strong>: user_002 → partition 1, user_004 → partition 0, user_006 → partition 1</li>
+<li>Activities for the same user are guaranteed to go to the same partition (ensuring order)</li>
 </ul>
 <h2 id="stateful-aggregation-operations">Stateful Aggregation Operations</h2>
 <p>Stateful aggregation operations maintain state between records to perform calculations like counting, summing, or building custom aggregates based on record keys.</p>
