@@ -50,13 +50,13 @@ Still on `main` branch:
    ```
 
 4. Test the Release:
-   - Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
-   - Start environment: `docker compose up -d`
-   - Verify data generator: `docker compose logs example-producer`
-   - Execute `./run.sh` and verify:
-      - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
-      - Wait ~2 minutes for examples to run without errors
-      - Stop the script after verification
+    - Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
+    - Start environment: `docker compose up -d`
+    - Verify data generator: `docker compose logs example-producer`
+    - Execute `./run.sh` and verify:
+        - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
+        - Wait ~2 minutes for examples to run without errors
+        - Stop the script after verification
 
 5. Commit changes:
    ```bash
@@ -84,14 +84,14 @@ After the release tag is created on main:
 2. **Update GitHub Actions on the release branch:**
 
    a. Update `.github/workflows/build-push-docker.yml`:
-   - Change Docker tags from `snapshot` to `<major>.<minor>-snapshot`
-   - Update helm-chart-release job: `app-version: <major>.<minor>-snapshot`, `version: <major>.<minor>.0-snapshot`
+    - Change Docker tags from `snapshot` to `<major>.<minor>-snapshot`
+    - Update helm-chart-release job: `app-version: <major>.<minor>-snapshot`, `version: <major>.<minor>.0-snapshot`
 
    b. Update `.github/workflows/package-push-helm.yml`:
-   - Change default `version` parameter to `<major>.<minor>.0-snapshot` in both workflow_dispatch and workflow_call
+    - Change default `version` parameter to `<major>.<minor>.0-snapshot` in both workflow_dispatch and workflow_call
 
    c. Update `.github/workflows/release-push-docker.yml`:
-   - Add `<major>.<minor>` tag to all Docker registries (axual/ksml, ghcr.io, registry.axual.io)
+    - Add `<major>.<minor>` tag to all Docker registries (axual/ksml, ghcr.io, registry.axual.io)
 
 3. **Commit and push the release branch:**
    ```bash
@@ -107,8 +107,8 @@ After the release tag is created on main:
 3. Set previous tag for comparison (e.g., `1.0.8`)
 4. Click "Generate release notes"
 5. Structure the release notes:
-   - **"What's Changed"**: Write concise summary of key changes
-   - **"Full Changelog"**: Keep auto-generated commit list
+    - **"What's Changed"**: Write concise summary of key changes
+    - **"Full Changelog"**: Keep auto-generated commit list
 6. Publish the release
 7. Upload ksml-language-spec.json
 
@@ -126,7 +126,7 @@ After the release tag is created on main:
    # Enter next patch snapshot: 1.1.1-SNAPSHOT
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
-   Update `Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1-snapshot""
+   Update `Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1.1-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin release/1.1.x`
 
@@ -137,7 +137,7 @@ After the release tag is created on main:
    # Enter next minor/major snapshot: 1.2.0-SNAPSHOT
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
-   Update `Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2-snapshot""
+   Update `Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2.0-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin main`
 
@@ -155,8 +155,8 @@ When doing a patch release (e.g., 1.0.9, 1.1.1):
    ```
 
 2. Apply fixes by either:
-   - Cherry-picking from main: `git cherry-pick <commit-hash>`
-   - Creating fixes directly in release branch
+    - Cherry-picking from main: `git cherry-pick <commit-hash>`
+    - Creating fixes directly in release branch
 
 ### Step 2: Set Release Version
 
@@ -185,9 +185,9 @@ docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f D
 - Start environment: `docker compose up -d`
 - Verify data generator: `docker compose logs example-producer`
 - Execute `./run.sh` and verify:
-   - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
-   - Wait ~2 minutes for examples to run without errors
-   - Stop the script after verification
+    - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
+    - Wait ~2 minutes for examples to run without errors
+    - Stop the script after verification
 
 ### Step 6: Commit Changes
 
@@ -210,8 +210,8 @@ git push origin 1.0.9
 3. Set previous tag for comparison (e.g., `1.0.8`)
 4. Click "Generate release notes"
 5. Structure the release notes:
-   - **"What's Changed"**: Write concise summary of key changes
-   - **"Full Changelog"**: Keep auto-generated commit list
+    - **"What's Changed"**: Write concise summary of key changes
+    - **"Full Changelog"**: Keep auto-generated commit list
 6. Publish the release
 7. Upload ksml-language-spec.json
 
@@ -230,7 +230,7 @@ mvn versions:set -DgenerateBackupPoms=false
 # Enter next patch snapshot: 1.0.10-SNAPSHOT
 mvn clean package -DskipTests # To generate NOTICE.TXT
 ```
-Update `Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0-snapshot""
+Update `Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0.10-snapshot""
 Commit: `git commit -m "Prepare for next development iteration"`
 Push: `git push origin release/1.0.x`
 
@@ -241,6 +241,21 @@ Push: `git push origin release/1.0.x`
 - **Patch**: Bug fixes
 - **Snapshot**: Development versions (`-SNAPSHOT`)
 - **RC**: Release candidates (`-RC<number>`)
+
+## Helm Chart and Docker Image Versioning
+
+**Important**: The Helm Chart `version` and `appVersion` are always aligned with the Docker image tag:
+
+- **Released versions**: Both set to the same version (e.g., `1.1.1`)
+    - Helm chart version: `1.1.1`
+    - Helm chart appVersion: `1.1.1`
+    - Docker image tag: `axual/ksml:1.1.1`
+
+- **Snapshot builds**:
+    - Main branch: `0.0.0-snapshot` for both
+    - Release branches: `<major>.<minor>.<patch>-snapshot` for both
+
+The CI/CD pipeline enforces this alignment by overriding Chart.yaml values during `helm package` execution. The Chart.yaml file in the repository serves as a template and its values are replaced during builds.
 
 ## Rollback Procedure
 
