@@ -54,7 +54,7 @@ class StreamDefinitionTest {
     void testStreamDefinition() {
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, mockNotation);
 
-        final var stringType = UserTypeParser.parse("string");
+        final var stringType = UserTypeParser.parse("string").result();
 
         // given a StreamDefinition
         final var streamDefinition = new StreamDefinition("topic", stringType, stringType, null, null, null);

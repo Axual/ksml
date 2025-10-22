@@ -62,7 +62,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class KSMLRunner {
@@ -153,8 +157,8 @@ public class KSMLRunner {
             // Ensure typical defaults are used for AVRO
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if(ksmlConfig.notations().isEmpty()){
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME,null,  new DataObjectFlattener(), config.kafkaConfig()));
+            if (ksmlConfig.notations().isEmpty()) {
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, null, new DataObjectFlattener(), config.kafkaConfig()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
             }

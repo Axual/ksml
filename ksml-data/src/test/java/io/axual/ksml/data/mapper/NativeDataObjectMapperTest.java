@@ -20,6 +20,7 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -40,7 +41,7 @@ import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.Flags;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -631,13 +632,13 @@ class NativeDataObjectMapperTest {
         final var expected = new DataStruct();
         expected.put("name", new DataString("Alice"));
         final var attributes = new DataStruct();
-        final var likesList = new DataList(DataString.DATATYPE);
+        final var likesList = new DataList(DataType.UNKNOWN);
         likesList.add(new DataString("coffee"));
         likesList.add(new DataString("chess"));
         attributes.put("likes", likesList);
         expected.put("attributes", attributes);
 
-        final var result = mapper.toDataObject(StructType.UNKNOWN, nativeInput);
+        final var result = mapper.toDataObject(expected.type(), nativeInput);
         assertThat(result)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(DataStruct.class))
@@ -678,5 +679,9 @@ class NativeDataObjectMapperTest {
             return "UNKNOWN";
         }
 
+        @Override
+        public Equal equals(Object obj, Flags flags) {
+            return Equal.notEqual("Fake error");
+        }
     }
 }

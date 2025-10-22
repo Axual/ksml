@@ -32,10 +32,6 @@ import org.jetbrains.annotations.NotNull;
 public record StreamDataType(UserType userType, boolean isKey) {
     private static final DataTypeFlattener FLATTENER = new DataTypeFlattener();
 
-    public boolean isAssignableFrom(StreamDataType other) {
-        return userType.dataType().isAssignableFrom(other.userType.dataType());
-    }
-
     public StreamDataType flatten() {
         return isKey ? FLATTENER.flatten(this) : this;
     }

@@ -33,7 +33,6 @@ import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 
@@ -86,8 +85,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case NULL -> DataSchema.NULL_SCHEMA;
             case ENUM -> {
                 final var enumDefault = schema.getEnumDefault();
-                final var defaultSymbol = enumDefault == null ? null : new Symbol(enumDefault);
-                final var symbols = schema.getEnumSymbols().stream().map(Symbol::new).toList();
+                final var defaultSymbol = enumDefault == null ? null : new EnumSchema.Symbol(enumDefault);
+                final var symbols = schema.getEnumSymbols().stream().map(EnumSchema.Symbol::new).toList();
 
                 yield new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), symbols, defaultSymbol);
             }
@@ -103,7 +102,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             }
             case UNION -> {
                 final var unionSchemas = schema.getTypes();
-                final var unionDataFields = new DataField[unionSchemas.size()];
+                final var unionMembers = new UnionSchema.Member[unionSchemas.size()];
                 for (var i = 0; i < unionSchemas.size(); i++) {
                     final var memberSchema = unionSchemas.get(i);
                     final var memberDataSchema = switch (memberSchema.getType()) {
@@ -111,9 +110,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                                 toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
                         default -> toDataSchema(memberSchema);
                     };
-                    unionDataFields[i] = new DataField(memberDataSchema);
+                    unionMembers[i] = new UnionSchema.Member(memberDataSchema);
                 }
-                yield new UnionSchema(unionDataFields);
+                yield new UnionSchema(unionMembers);
             }
             case FIXED ->
                     new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
@@ -149,7 +148,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         }
         if (schema instanceof EnumSchema enumSchema) {
             var symbols = enumSchema.symbols().stream()
-                    .map(Symbol::name)
+                    .map(EnumSchema.Symbol::name)
                     .toList();
             var enumDefault = enumSchema.defaultValue();
 
@@ -159,12 +158,12 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
         }
         if (schema instanceof UnionSchema unionSchema) {
-            var memberSchemas = unionSchema.memberSchemas();
-            var avroMemberSchemas = new Schema[memberSchemas.length];
-            for (var i = 0; i < memberSchemas.length; i++) {
-                avroMemberSchemas[i] = fromDataSchema(memberSchemas[i].schema());
+            var members = unionSchema.members();
+            var avroMembers = new Schema[members.length];
+            for (var i = 0; i < members.length; i++) {
+                avroMembers[i] = fromDataSchema(members[i].schema());
             }
-            return Schema.createUnion(avroMemberSchemas);
+            return Schema.createUnion(avroMembers);
         }
 
         return switch (schema.type()) {
@@ -215,7 +214,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case ARRAY ->
                     new SchemaAndRequired(new ListSchema(convertAvroSchemaToDataSchemaAndRequired(schema.getElementType()).schema()), true);
             case ENUM -> new SchemaAndRequired(
-                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols().stream().map(Symbol::new).toList(), schema.getEnumDefault() == null ? null : new Symbol(schema.getEnumDefault())),
+                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols().stream().map(EnumSchema.Symbol::new).toList(), schema.getEnumDefault() == null ? null : new EnumSchema.Symbol(schema.getEnumDefault())),
                     true);
             case MAP ->
                     new SchemaAndRequired(new MapSchema(convertAvroSchemaToDataSchemaAndRequired(schema.getValueType()).schema()), true);
@@ -243,13 +242,13 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         }
 
         // Create a new union schema with the potentially adjusted member list
-        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(memberSchemas).toArray(DataField[]::new)), isRequired);
+        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToUnionMembers(memberSchemas).toArray(UnionSchema.Member[]::new)), isRequired);
     }
 
-    private List<DataField> convertAvroSchemaToDataFields(List<Schema> schemas) {
-        final var result = new ArrayList<DataField>();
+    private List<UnionSchema.Member> convertAvroSchemaToUnionMembers(List<Schema> schemas) {
+        final var result = new ArrayList<UnionSchema.Member>();
         for (var schema : schemas) {
-            result.add(new DataField(convertAvroSchemaToDataSchemaAndRequired(schema).schema()));
+            result.add(new UnionSchema.Member(convertAvroSchemaToDataSchemaAndRequired(schema).schema()));
         }
         return result;
     }
@@ -289,7 +288,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
         if (schema == DataSchema.STRING_SCHEMA) return Schema.create(Schema.Type.STRING);
         if (schema instanceof EnumSchema enumSchema)
-            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), enumSchema.symbols().stream().map(Symbol::name).toList(), enumSchema.defaultValue() == null ? null : enumSchema.defaultValue().name());
+            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), enumSchema.symbols().stream().map(EnumSchema.Symbol::name).toList(), enumSchema.defaultValue() == null ? null : enumSchema.defaultValue().name());
         if (schema instanceof ListSchema listSchema)
             return Schema.createArray(convertDataSchemaToAvroSchema(listSchema.valueSchema(), true).schema());
         if (schema instanceof MapSchema mapSchema)
@@ -297,7 +296,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (schema instanceof StructSchema structSchema)
             return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, convertFieldsToAvroFields(structSchema.fields()));
         if (schema instanceof UnionSchema unionSchema)
-            return Schema.createUnion(convertUnionMemberSchemasToAvro(Arrays.stream(unionSchema.memberSchemas()).map(DataField::schema).toArray(DataSchema[]::new)));
+            return Schema.createUnion(convertUnionMemberSchemasToAvro(Arrays.stream(unionSchema.members()).map(UnionSchema.Member::schema).toArray(DataSchema[]::new)));
         throw new SchemaException("Can not convert schema to AVRO: " + schema);
     }
 

@@ -62,7 +62,7 @@ class DataFieldTest {
     @Test
     @DisplayName("UnionSchema forces field tag to NO_TAG regardless of provided tag")
     void unionSchemaForcesNoTag() {
-        final var union = new UnionSchema(new DataField("s", DataSchema.STRING_SCHEMA, null, 1));
+        final var union = new UnionSchema(new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 1));
         assertThat(new DataField("u", union, "Union field", 99))
                 .returns(NO_TAG, DataField::tag)
                 .hasToString("u: union (-1)");
@@ -101,11 +101,11 @@ class DataFieldTest {
         final var target = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 0);
         // other with long type is compatible (integer group)
         final var otherInt = new DataField("l", DataSchema.LONG_SCHEMA, null, 0);
-        assertThat(target.isAssignableFrom(otherInt)).isTrue();
+        assertThat(target.isAssignableFrom(otherInt).isAssignable()).isTrue();
         // float is not compatible with integer
         final var otherFloat = new DataField("f", DataSchema.FLOAT_SCHEMA, null, 0);
-        assertThat(target.isAssignableFrom(otherFloat)).isFalse();
+        assertThat(target.isAssignableFrom(otherFloat).isAssignable()).isFalse();
         // null is not assignable
-        assertThat(target.isAssignableFrom(null)).isFalse();
+        assertThat(target.isAssignableFrom(null).isAssignable()).isFalse();
     }
 }

@@ -20,17 +20,16 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -60,15 +59,6 @@ class StructTypeTest {
     }
 
     @Test
-    @DisplayName("constructor with explicit name sets that name when schema is null")
-    void constructorWithExplicitName() {
-        var t = new StructType("Order");
-        assertThat(t)
-                .returns("Order", StructType::toString)
-                .returns("Order", StructType::name);
-    }
-
-    @Test
     @DisplayName("fieldType returns incaseNoSchema when no schema; maps field type when schema present; incaseNoSuchField when missing")
     void fieldTypeBehavior() {
         // No schema -> returns incaseNoSchema
@@ -93,11 +83,11 @@ class StructTypeTest {
         // Without schema both are assignable due to same container and subtypes
         var a = new StructType();
         var b = new StructType();
-        assertThat(a.isAssignableFrom(b)).isTrue();
-        assertThat(b.isAssignableFrom(a)).isTrue();
+        assertThat(a.isAssignableFrom(b).isAssignable()).isTrue();
+        assertThat(b.isAssignableFrom(a).isAssignable()).isTrue();
 
         // Accept DataNull
-        assertThat(a.isAssignableFrom(DataNull.DATATYPE)).isTrue();
+        assertThat(a.isAssignableFrom(DataNull.DATATYPE).isAssignable()).isTrue();
 
         // With schema: require other schema to have at least fields without defaults
         var req = new DataField("r", DataSchema.STRING_SCHEMA, null, 0); // required, no default
@@ -106,12 +96,12 @@ class StructTypeTest {
         // Other schema missing the required field -> not assignable
         var schemaB = new StructSchema("ns", "B", null, List.of());
         var tB = new StructType(schemaB);
-        assertThat(tA.isAssignableFrom(tB)).isFalse();
+        assertThat(tA.isAssignableFrom(tB).isAssignable()).isFalse();
 
         // Other schema with the required field -> assignable
         var schemaC = new StructSchema("ns", "C", null, List.of(req));
         var tC = new StructType(schemaC);
-        assertThat(tA.isAssignableFrom(tC)).isTrue();
+        assertThat(tA.isAssignableFrom(tC).isAssignable()).isTrue();
     }
 
     @Test
@@ -119,13 +109,10 @@ class StructTypeTest {
     void equalsAndHashCode() {
         var s1 = new StructType();
         var s2 = new StructType();
-        var s3 = new StructType("Other");
         var softly = new SoftAssertions();
         softly.assertThat(s1.equals(s1)).isTrue();
         softly.assertThat(s1).isEqualTo(s2);
-        softly.assertThat(s1).isNotEqualTo(s3);
         softly.assertThat(s1.hashCode()).isEqualTo(s1.hashCode());
-        softly.assertThat(s3.hashCode()).isEqualTo(s3.hashCode());
         softly.assertAll();
     }
 }

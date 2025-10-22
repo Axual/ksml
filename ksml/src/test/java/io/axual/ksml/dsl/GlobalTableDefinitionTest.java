@@ -56,7 +56,7 @@ class GlobalTableDefinitionTest {
     void testGlobalTableDefinition() {
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, mockNotation);
 
-        final var stringType = UserTypeParser.parse("string");
+        final var stringType = UserTypeParser.parse("string").result();
 
         // given a TableDefinition
         final var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, null, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
@@ -66,7 +66,7 @@ class GlobalTableDefinitionTest {
         // when it adds itself to Builder
         final var streamWrapper = context.getStreamWrapper(tableDefinition);
 
-        // it adds a KTable to the builder with key and value dataType, and returns a KTableWrapper instance
+        // it adds a KTable to the builder with key and value dataType and returns a KTableWrapper instance
         verify(mockNotation).serde(stringType.dataType(), true);
         verify(mockNotation).serde(stringType.dataType(), false);
 

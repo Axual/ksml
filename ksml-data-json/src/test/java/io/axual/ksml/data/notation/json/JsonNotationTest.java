@@ -94,8 +94,8 @@ class JsonNotationTest {
 
         // A different union that is assignable from DEFAULT_TYPE should also be supported
         var compatibleUnion = new UnionType(
-                new UnionType.MemberType(new StructType()),
-                new UnionType.MemberType(new ListType())
+                new UnionType.Member(new StructType()),
+                new UnionType.Member(new ListType())
         );
         softly.assertThat(notation.serde(compatibleUnion, false)).isInstanceOf(JsonSerde.class);
 

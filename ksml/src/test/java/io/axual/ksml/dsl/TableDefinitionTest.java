@@ -56,7 +56,7 @@ class TableDefinitionTest {
     void testTableDefinition() {
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, mockNotation);
 
-        final var stringType = UserTypeParser.parse("string");
+        final var stringType = UserTypeParser.parse("string").result();
 
         // given a TableDefinition
         final var tableDefinition = new TableDefinition("topic", stringType, stringType, null, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));

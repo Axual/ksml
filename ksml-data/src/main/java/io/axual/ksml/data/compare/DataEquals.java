@@ -1,10 +1,10 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.data.compare;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,16 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+import io.axual.ksml.data.type.Flags;
 
-public record Symbol(String name, String doc, int tag) {
-    public Symbol(String name) {
-        this(name, null, NO_TAG);
-    }
-
-    public boolean hasDoc() {
-        return doc != null && !doc.isEmpty();
-    }
-
-    public boolean isAssignableFrom(Symbol other) {
-        if (!name.equals(other.name)) return false;
-        if (tag == NO_TAG || other.tag == NO_TAG) return true;
-        return tag == other.tag;
-    }
-
-    public static Symbol of(String symbol) {
-        return new Symbol(symbol);
-    }
+/**
+ * Represents a contract for checking equality between data objects, data types and data schemas with additional
+ * flexibility for parameterized comparisons using {@link Flags}.
+ * <p>
+ * Implementations of this interface must define the logic for comparing the current object
+ * with another object for equality based on the provided flags. This allows fine-grained
+ * control over which attributes or conditions are involved in the comparison.
+ */
+public interface DataEquals {
+    Equal equals(Object obj, Flags flags);
 }

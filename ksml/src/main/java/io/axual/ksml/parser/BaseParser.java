@@ -20,6 +20,8 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.ParseException;
+
 import javax.annotation.Nullable;
 
 public abstract class BaseParser<T> implements Parser<T> {
@@ -27,7 +29,7 @@ public abstract class BaseParser<T> implements Parser<T> {
     protected Boolean parseBoolean(ParseNode node, String childName) {
         if (node == null) return null;
         final var child = node.get(childName);
-        return child != null && child.isBoolean() ? child.asBoolean() : null;
+        return child != null && isValue(child, "boolean") && child.isBoolean() ? child.asBoolean() : null;
     }
 
     protected boolean parseBoolean(ParseNode node, String childName, boolean defaultValue) {
@@ -39,13 +41,18 @@ public abstract class BaseParser<T> implements Parser<T> {
     protected Integer parseInteger(ParseNode node, String childName) {
         if (node == null) return null;
         final var child = node.get(childName);
-        return child != null && child.isInt() ? child.asInt() : null;
+        return child != null && isValue(child, "integer") && child.isInt() ? child.asInt() : null;
     }
 
     @Nullable
     protected String parseString(ParseNode node, String childName) {
         if (node == null) return null;
         final var child = node.get(childName);
-        return child != null && !child.isNull() ? child.asString() : null;
+        return child != null && isValue(child, "string") && !child.isNull() ? child.asString() : null;
+    }
+
+    private boolean isValue(ParseNode node, String expectedType) {
+        if (node.isObject()) throw new ParseException(node, "Expected type " + expectedType + ", found object");
+        return true;
     }
 }

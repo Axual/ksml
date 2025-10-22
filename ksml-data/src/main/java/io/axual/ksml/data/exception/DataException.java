@@ -22,25 +22,50 @@ package io.axual.ksml.data.exception;
 
 import io.axual.ksml.data.type.DataType;
 
+/**
+ * Unchecked exception indicating data conversion, validation, or mapping errors.
+ *
+ * <p>Messages are prefixed consistently via {@link BaseException} to aid troubleshooting in logs.</p>
+ */
 public class DataException extends BaseException {
     private static final String ACTIVITY = "data";
 
+    /**
+     * Create a DataException with a message.
+     *
+     * @param message human-readable details of the failure
+     */
     public DataException(String message) {
         super(ACTIVITY, message);
     }
 
+    /**
+     * Create a DataException with a message and an underlying cause.
+     *
+     * @param message human-readable details of the failure
+     * @param t       underlying cause
+     */
     public DataException(String message, Throwable t) {
         super(ACTIVITY, message, t);
     }
 
+    /**
+     * Convenience constructor for a failed conversion between two DataTypes.
+     */
     public static DataException conversionFailed(DataType variableType, DataType valueType) {
         return conversionFailed(valueType.toString(), variableType.toString());
     }
 
+    /**
+     * Convenience constructor for a failed conversion with string descriptors.
+     */
     public static DataException conversionFailed(String fromType, String toType) {
         return new DataException("Can not convert object from dataType \"" + fromType + "\" to \"" + toType + "\"");
     }
 
+    /**
+     * Convenience constructor for field validation errors.
+     */
     public static DataException validationFailed(String key, Object value) {
         return new DataException("Field validation failed for key \"" + key + "\": value=" + value);
     }

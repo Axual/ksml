@@ -46,8 +46,8 @@ public class JsonSchemaNotation extends VendorNotation {
     public static final String NOTATION_NAME = "jsonschema";
     /** Default supported data type: union of Struct and List. */
     public static final DataType DEFAULT_TYPE = new UnionType(
-            new UnionType.MemberType(new StructType()),
-            new UnionType.MemberType(new ListType()));
+            new UnionType.Member(new StructType()),
+            new UnionType.Member(new ListType()));
 
     /**
      * Creates a JsonSchemaNotation with the provided vendor context.

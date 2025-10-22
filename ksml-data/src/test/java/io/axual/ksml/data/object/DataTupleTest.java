@@ -20,10 +20,9 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.TupleType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.type.TupleType;
 
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_ALL_SCHEMA;
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_NO_SCHEMA;
@@ -45,9 +44,7 @@ class DataTupleTest {
         assertThat(((TupleType) t1.type()).subType(0)).isEqualTo(DataInteger.DATATYPE);
         assertThat(((TupleType) t1.type()).subType(1)).isEqualTo(DataString.DATATYPE);
 
-        assertThat(t1).isEqualTo(t2).isNotEqualTo(t3);
-        // We do not assert equal hashCodes across instances because TupleType hashCode includes object identity.
-        assertThat(t1.hashCode()).isNotEqualTo(t2.hashCode());
+        assertThat(t1).isEqualTo(t2).isNotEqualTo(t3).hasSameHashCodeAs(t2).doesNotHaveSameHashCodeAs(t3);
     }
 
     @Test

@@ -20,6 +20,11 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.SimpleType;
+import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -30,13 +35,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.SimpleType;
-import io.axual.ksml.data.type.UnionType;
-
-import static io.axual.ksml.data.type.UnionType.MemberType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -65,8 +63,12 @@ class UnionSerdeTest {
                     }
 
                     @Override
-                    public byte[] serialize(String topic, Object data) { return null; }
-                }; }
+                    public byte[] serialize(String topic, Object data) {
+                        return null;
+                    }
+                };
+            }
+
             @Override
             public Deserializer<Object> deserializer() {
                 return new Deserializer<>() {
@@ -77,11 +79,14 @@ class UnionSerdeTest {
                     }
 
                     @Override
-                    public Object deserialize(String topic, byte[] data) { return null; }
-                }; }
+                    public Object deserialize(String topic, byte[] data) {
+                        return null;
+                    }
+                };
+            }
         };
 
-        var union = new UnionType(new MemberType(new SimpleType(String.class, "String")));
+        var union = new UnionType(new UnionType.Member(new SimpleType(String.class, "String")));
         SerdeSupplier supplier = (type, isKey) -> spyingSerde;
         var serde = new UnionSerde(union, false, supplier);
 
@@ -98,15 +103,22 @@ class UnionSerdeTest {
     @DisplayName("serializer: null and DataNull serialize to null; native values routed by first compatible type")
     void serializeNullsAndNativeValues() {
         var union = new UnionType(
-                new MemberType(STR_TYPE),
-                new MemberType(BYTE_TYPE)
+                new UnionType.Member(STR_TYPE),
+                new UnionType.Member(BYTE_TYPE)
         );
         SerdeSupplier supplier = (type, isKey) -> {
             if (type.equals(STR_TYPE)) {
                 var kafka = Serdes.String();
                 return new Serde<>() {
-                    @Override public Serializer<Object> serializer() { return (Serializer<Object>)(Serializer<?>) kafka.serializer(); }
-                    @Override public Deserializer<Object> deserializer() { return (Deserializer<Object>)(Deserializer<?>) kafka.deserializer(); }
+                    @Override
+                    public Serializer<Object> serializer() {
+                        return (Serializer<Object>) (Serializer<?>) kafka.serializer();
+                    }
+
+                    @Override
+                    public Deserializer<Object> deserializer() {
+                        return (Deserializer<Object>) (Deserializer<?>) kafka.deserializer();
+                    }
                 };
             }
             if (type.equals(BYTE_TYPE)) return new ByteSerde();
@@ -130,7 +142,7 @@ class UnionSerdeTest {
     @Test
     @DisplayName("serializer throws DataException when no member type is compatible")
     void serializeUnsupportedTypeThrows() {
-        var union = new UnionType(new MemberType(BYTE_TYPE));
+        var union = new UnionType(new UnionType.Member(BYTE_TYPE));
         SerdeSupplier supplier = (type, isKey) -> new ByteSerde();
         var serde = new UnionSerde(union, false, supplier);
 
@@ -143,15 +155,22 @@ class UnionSerdeTest {
     @DisplayName("deserializer: null/empty -> DataNull, tries in order and returns first compatible")
     void deserializeNullsAndOrdering() {
         var union = new UnionType(
-                new MemberType(STR_TYPE),
-                new MemberType(BYTE_TYPE)
+                new UnionType.Member(STR_TYPE),
+                new UnionType.Member(BYTE_TYPE)
         );
         SerdeSupplier supplier = (type, isKey) -> {
             if (type.equals(STR_TYPE)) {
                 var kafka = Serdes.String();
                 return new Serde<>() {
-                    @Override public Serializer<Object> serializer() { return (Serializer<Object>)(Serializer<?>) kafka.serializer(); }
-                    @Override public Deserializer<Object> deserializer() { return (Deserializer<Object>)(Deserializer<?>) kafka.deserializer(); }
+                    @Override
+                    public Serializer<Object> serializer() {
+                        return (Serializer<Object>) (Serializer<?>) kafka.serializer();
+                    }
+
+                    @Override
+                    public Deserializer<Object> deserializer() {
+                        return (Deserializer<Object>) (Deserializer<?>) kafka.deserializer();
+                    }
                 };
             }
             if (type.equals(BYTE_TYPE)) return new ByteSerde();
@@ -176,12 +195,27 @@ class UnionSerdeTest {
         var throwingType = new SimpleType(Integer.class, "Int");
         var throwingSerde = new Serde<>() {
             @Override
-            public Serializer<Object> serializer() { return new Serializer<>() { @Override public byte[] serialize(String topic, Object data) { return null; } }; }
+            public Serializer<Object> serializer() {
+                return new Serializer<>() {
+                    @Override
+                    public byte[] serialize(String topic, Object data) {
+                        return null;
+                    }
+                };
+            }
+
             @Override
-            public Deserializer<Object> deserializer() { return new Deserializer<>() { @Override public Object deserialize(String topic, byte[] data) { throw new RuntimeException("nope"); } }; }
+            public Deserializer<Object> deserializer() {
+                return new Deserializer<>() {
+                    @Override
+                    public Object deserialize(String topic, byte[] data) {
+                        throw new RuntimeException("nope");
+                    }
+                };
+            }
         };
 
-        var union = new UnionType(new MemberType(throwingType));
+        var union = new UnionType(new UnionType.Member(throwingType));
         SerdeSupplier supplier = (type, isKey) -> throwingSerde;
         var serde = new UnionSerde(union, false, supplier);
 
