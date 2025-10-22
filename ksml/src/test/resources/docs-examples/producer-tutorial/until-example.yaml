@@ -1,0 +1,24 @@
+functions:
+  generate_sequence:
+    type: generator
+    globalCode: |
+      counter = 0
+    code: |
+      global counter
+      counter += 1
+      return (f"key{counter}", {"count": counter})
+    resultType: (string, json)
+
+  stop_at_10:
+    type: predicate
+    expression: value.get("count", 0) >= 10
+
+producers:
+  sequence_producer:
+    generator: generate_sequence
+    until: stop_at_10  # Stop when count reaches 10
+    interval: 1s
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

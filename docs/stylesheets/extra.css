@@ -31,11 +31,15 @@
 }
 
 .md-typeset h4 {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+}
+
+.md-typeset h4 code {
+    font-size: 0.85rem; /* Make code in h4 headings closer to heading size */
 }
 
 .md-typeset code {
-  font-size: 0.55rem; /* Smaller code blocks */
+  font-size: 0.65rem; /* Smaller code blocks */
 }
 
 /* 2. Make content container wider (DESKTOP ONLY) */

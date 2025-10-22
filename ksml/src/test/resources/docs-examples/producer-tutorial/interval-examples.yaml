@@ -1,0 +1,28 @@
+functions:
+  my_generator:
+    type: generator
+    code: |
+      key = "key1"
+      value = {"message": "Hello"}
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  # Produce every 3 seconds (indefinitely)
+  slow_producer:
+    generator: my_generator
+    interval: 3s
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json
+
+  # Produce as fast as possible for 100 messages
+  rapid_producer:
+    generator: my_generator
+    interval: 1ms   # Very fast (can be 0 for no delay)
+    count: 100      # Must specify count or until to avoid infinite loop
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

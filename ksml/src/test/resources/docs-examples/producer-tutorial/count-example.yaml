@@ -1,0 +1,19 @@
+functions:
+  my_generator:
+    type: generator
+    code: |
+      key = "key1"
+      value = {"message": "Hello"}
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  # Produce exactly 10 messages
+  limited_producer:
+    generator: my_generator
+    interval: 1s
+    count: 10
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json
