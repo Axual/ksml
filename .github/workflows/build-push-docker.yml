@@ -56,5 +56,5 @@ jobs:
     uses: './.github/workflows/package-push-helm.yml'
     secrets: inherit
     with:
-      app-version: snapshot
+      app-version: 0.0.0-snapshot
       version: 0.0.0-snapshot
