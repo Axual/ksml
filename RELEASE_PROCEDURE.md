@@ -46,8 +46,10 @@ Still on `main` branch:
 3. Build Docker Image Locally:
    ```bash
    docker buildx create --name ksml
-   docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
+   docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile.local .
    ```
+
+   **Note:** Use `Dockerfile.local` for local testing. The main `Dockerfile` is optimized for CI/CD and expects pre-built artifacts from GitHub Actions.
 
 4. Test the Release:
     - Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
@@ -176,8 +178,10 @@ mvn versions:set -DgenerateBackupPoms=false
 
 ```bash
 docker buildx create --name ksml
-docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
+docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile.local .
 ```
+
+**Note:** Use `Dockerfile.local` for local testing. The main `Dockerfile` is optimized for CI/CD and expects pre-built artifacts from GitHub Actions.
 
 ### Step 5: Test the Release
 

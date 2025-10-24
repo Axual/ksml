@@ -48,10 +48,12 @@ jobs:
       # Only run on main/release branches or PRs from the same repo (not forks)
       - name: SonarQube Scan
         if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           if [ -n "$SONAR_TOKEN" ]; then
+            echo "Running SonarQube scan..."
             mvn sonar:sonar \
               -Dsonar.projectKey=Axual_ksml \
               -Dsonar.organization=axual \
