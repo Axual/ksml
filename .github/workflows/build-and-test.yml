@@ -10,8 +10,14 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  build-and-test:
-    name: CI Build and test on local repository
+  maven-build-test:
+    name: Maven Build and Test
+    uses: ./.github/workflows/maven-build.yml
+    secrets: inherit
+
+  docker-build-test:
+    name: Docker build test on local registry
+    needs: maven-build-test
     runs-on: ubuntu-latest
     services:
       registry:
@@ -21,6 +27,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.sha }}
+          path: build-output/
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -34,6 +46,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile
           push: true
           tags: localhost:5000/name/app:latest
 

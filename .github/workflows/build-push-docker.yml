@@ -9,10 +9,25 @@ on:
       - closed
 
 jobs:
+  maven-build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged }}
+    uses: ./.github/workflows/maven-build.yml
+    secrets: inherit
+
   build-push-docker:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged }}
+    needs: maven-build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.sha }}
+          path: build-output/
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -42,6 +57,7 @@ jobs:
       - name: build and push KSML Runner
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: Dockerfile
           target: ksml
           platforms: linux/amd64,linux/arm64

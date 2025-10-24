@@ -1,0 +1,78 @@
+name: Maven Build and Test
+
+on:
+  workflow_call:
+    outputs:
+      artifact-name:
+        description: "Name of the uploaded build artifact"
+        value: ${{ jobs.build.outputs.artifact-name }}
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+      - 'release/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build and test with GraalVM
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: build-artifacts-${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up GraalVM
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'graalvm'
+          java-version: '23'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests --no-transfer-progress
+
+      - name: Run tests
+        run: mvn test --no-transfer-progress
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: '**/target/surefire-reports/TEST-*.xml'
+
+      # Optional: SonarQube scan
+      # Only run on main/release branches or PRs from the same repo (not forks)
+      - name: SonarQube Scan
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            mvn sonar:sonar \
+              -Dsonar.projectKey=Axual_ksml \
+              -Dsonar.organization=axual \
+              -Dsonar.host.url=https://sonarcloud.io \
+              --no-transfer-progress
+          else
+            echo "SONAR_TOKEN not set, skipping SonarQube scan"
+          fi
+
+      - name: Prepare build artifacts
+        run: |
+          mkdir -p build-output
+          cp ksml-runner/target/ksml-runner*.jar build-output/
+          cp -r ksml-runner/target/libs build-output/
+          cp ksml-runner/NOTICE.txt build-output/
+          cp LICENSE.txt build-output/
+
+      - name: Upload build artifacts
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ github.sha }}
+          path: build-output/
+          retention-days: 7
