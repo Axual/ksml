@@ -1,0 +1,14 @@
+## Problem to solve
+The current build pipeline builds the entire project in a GraalVM container, and the GraalVM container build is rerun for every build.
+Also, because KSML images are multi architecture they are run multiple times, one per architectur.
+
+This approach results in long build times and hard to integrate QA tools like SonarQube Cloud.
+
+## Suggested improvement
+
+1. Split the Java and Container actions
+2. Java build runs the compile and test actions with GraalVM, see [Setup Java action](https://github.com/actions/setup-java)
+3. Java build actions use caching for Maven builds
+4. Dockerfile for release build uses the build artifacts, Only the Java/Maven build command are removed from the current docker file
+5. Use tools like [Docker Bake](https://docs.docker.com/build/bake/) or DevContainers for local builds with a GraalVM image
+6. (Optional) Reintroduce SonarQube scanning as a profile specific plugin in Maven, auto triggered if the sonar data is in the environment variables. Requires a new SonarQube token as a secret during build
