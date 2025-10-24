@@ -42,8 +42,17 @@ jobs:
           java-version: '23'
           cache: 'maven'
 
-      - name: Build and run unit tests
+      # Run tests based on whether integration tests are enabled
+      - name: Build and run tests (unit only)
+        if: ${{ !inputs.run-integration-tests }}
         run: mvn clean test --no-transfer-progress
+
+      - name: Build and run all tests (unit + integration)
+        if: ${{ inputs.run-integration-tests }}
+        run: mvn clean verify -DskipITs=false --no-transfer-progress
+        env:
+          # TestContainers configuration for GitHub Actions
+          TESTCONTAINERS_RYUK_DISABLED: false
 
       - name: Publish unit test results
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -52,23 +61,16 @@ jobs:
           files: '**/target/surefire-reports/TEST-*.xml'
           check_name: 'Unit Test Results'
 
-      - name: Package (skip tests - already ran)
-        run: mvn package -DskipTests --no-transfer-progress
-
-      # Integration tests with TestContainers (conditional)
-      - name: Run integration tests with TestContainers
-        if: ${{ inputs.run-integration-tests }}
-        run: mvn verify -DskipTests -DskipITs=false --no-transfer-progress
-        env:
-          # TestContainers configuration for GitHub Actions
-          TESTCONTAINERS_RYUK_DISABLED: false
-
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: ${{ always() && inputs.run-integration-tests }}
         with:
           files: '**/target/failsafe-reports/TEST-*.xml'
           check_name: 'Integration Test Results'
+
+      - name: Package (skip tests - already ran)
+        if: ${{ !inputs.run-integration-tests }}
+        run: mvn package -DskipTests --no-transfer-progress
 
       # Optional: SonarQube scan
       # Only run on main/release branches or PRs from the same repo (not forks)
