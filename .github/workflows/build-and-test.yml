@@ -11,8 +11,10 @@ on:
 
 jobs:
   maven-build-test:
-    name: Maven Build and Test
+    name: Maven Build and Test (Unit + Integration)
     uses: ./.github/workflows/maven-build.yml
+    with:
+      run-integration-tests: true
     secrets: inherit
 
   docker-build-test:

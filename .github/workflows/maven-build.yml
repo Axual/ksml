@@ -2,11 +2,21 @@ name: Maven Build and Test
 
 on:
   workflow_call:
+    inputs:
+      run-integration-tests:
+        description: 'Run integration tests (requires TestContainers/Docker)'
+        type: boolean
+        default: false
     outputs:
       artifact-name:
         description: "Name of the uploaded build artifact"
         value: ${{ jobs.build.outputs.artifact-name }}
   workflow_dispatch:
+    inputs:
+      run-integration-tests:
+        description: 'Run integration tests (requires TestContainers/Docker)'
+        type: boolean
+        default: false
   push:
     branches:
       - 'main'
@@ -32,17 +42,33 @@ jobs:
           java-version: '23'
           cache: 'maven'
 
-      - name: Build with Maven
+      - name: Build with Maven (skip tests)
         run: mvn clean package -DskipTests --no-transfer-progress
 
-      - name: Run tests
-        run: mvn test --no-transfer-progress
+      - name: Run unit tests
+        run: mvn surefire:test --no-transfer-progress
 
-      - name: Publish test results
+      - name: Publish unit test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/target/surefire-reports/TEST-*.xml'
+          check_name: 'Unit Test Results'
+
+      # Integration tests with TestContainers (conditional)
+      - name: Run integration tests with TestContainers
+        if: ${{ inputs.run-integration-tests }}
+        run: mvn failsafe:integration-test failsafe:verify -DskipITs=false --no-transfer-progress
+        env:
+          # TestContainers configuration for GitHub Actions
+          TESTCONTAINERS_RYUK_DISABLED: false
+
+      - name: Publish integration test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: ${{ always() && inputs.run-integration-tests }}
+        with:
+          files: '**/target/failsafe-reports/TEST-*.xml'
+          check_name: 'Integration Test Results'
 
       # Optional: SonarQube scan
       # Only run on main/release branches or PRs from the same repo (not forks)
