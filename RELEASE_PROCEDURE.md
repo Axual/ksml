@@ -44,17 +44,22 @@ Still on `main` branch:
    ```
 
 3. Build Docker Image Locally:
+
+   Run the automated build script:
    ```bash
-   docker buildx create --name ksml
-   docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile.local .
+   ./build-local-docker.sh
    ```
 
-   **Note:** Use `Dockerfile.local` for local testing. The main `Dockerfile` is optimized for CI/CD and expects pre-built artifacts from GitHub Actions.
+   This script will:
+   - Build the project with Maven (including all tests)
+   - Prepare build artifacts in `build-output/`
+   - Build Docker image using the main `Dockerfile`
+   - Create image tagged as `axual/ksml:local`
 
 4. Test the Release:
     - Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
     - Start environment: `docker compose up -d`
-    - Verify data generator: `docker compose logs example-producer`
+    - Verify data generator: `docker compose logs example-producer -f`
     - Execute `./run.sh` and verify:
         - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
         - Wait ~2 minutes for examples to run without errors
@@ -176,18 +181,22 @@ mvn versions:set -DgenerateBackupPoms=false
 
 ### Step 4: Build Docker Image Locally
 
+Run the automated build script:
 ```bash
-docker buildx create --name ksml
-docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile.local .
+./build-local-docker.sh
 ```
 
-**Note:** Use `Dockerfile.local` for local testing. The main `Dockerfile` is optimized for CI/CD and expects pre-built artifacts from GitHub Actions.
+This script will:
+- Build the project with Maven (including all tests)
+- Prepare build artifacts in `build-output/`
+- Build Docker image using the main `Dockerfile`
+- Create image tagged as `axual/ksml:local`
 
 ### Step 5: Test the Release
 
 - Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
 - Start environment: `docker compose up -d`
-- Verify data generator: `docker compose logs example-producer`
+- Verify data generator: `docker compose logs example-producer -f`
 - Execute `./run.sh` and verify:
     - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
     - Wait ~2 minutes for examples to run without errors

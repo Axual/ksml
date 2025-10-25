@@ -39,7 +39,7 @@ jobs:
           files: |
             **/target/surefire-reports/TEST-*.xml
             **/target/failsafe-reports/TEST-*.xml
-          check_name: 'Test Results'
+          check_name: 'Publish Test Results'
 
       # Optional: SonarQube scan
       # Only run on main/release branches or PRs from the same repo (not forks)

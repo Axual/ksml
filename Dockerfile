@@ -1,12 +1,5 @@
-# Dockerfile for CI/CD - Uses pre-built artifacts from GitHub Actions
 # This Dockerfile expects build artifacts in the build-output/ directory.
-# For local development, use Dockerfile.local instead.
-#
-# CI/CD Usage:
-#   1. Build with Maven in GitHub Actions
-#   2. Copy artifacts to build-output/
-#   3. Build Docker image: docker buildx build -t axual/ksml:tag .
-#
+
 # Targets:
 # - base            = UBI image with ksml user and build packages from microdnf
 # - graal           = base stage plus GraalVM installed
