@@ -2,27 +2,11 @@ name: Maven Build and Test
 
 on:
   workflow_call:
-    inputs:
-      run-integration-tests:
-        description: 'Run integration tests (requires TestContainers/Docker)'
-        type: boolean
-        default: false
     outputs:
       artifact-name:
         description: "Name of the uploaded build artifact"
         value: ${{ jobs.build.outputs.artifact-name }}
   workflow_dispatch:
-    inputs:
-      run-integration-tests:
-        description: 'Run integration tests (requires TestContainers/Docker)'
-        type: boolean
-        default: false
-  push:
-    branches:
-      - 'main'
-      - 'release/**'
-  pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   build:
@@ -42,13 +26,7 @@ jobs:
           java-version: '23'
           cache: 'maven'
 
-      # Run tests based on whether integration tests are enabled
-      - name: Build and run tests (unit only)
-        if: ${{ !inputs.run-integration-tests }}
-        run: mvn clean test --no-transfer-progress
-
       - name: Build and run all tests (unit + integration)
-        if: ${{ inputs.run-integration-tests }}
         run: mvn clean verify -DskipITs=false --no-transfer-progress
         env:
           # TestContainers configuration for GitHub Actions
@@ -63,14 +41,10 @@ jobs:
 
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: ${{ always() && inputs.run-integration-tests }}
+        if: always()
         with:
           files: '**/target/failsafe-reports/TEST-*.xml'
           check_name: 'Integration Test Results'
-
-      - name: Package (skip tests - already ran)
-        if: ${{ !inputs.run-integration-tests }}
-        run: mvn package -DskipTests --no-transfer-progress
 
       # Optional: SonarQube scan
       # Only run on main/release branches or PRs from the same repo (not forks)
