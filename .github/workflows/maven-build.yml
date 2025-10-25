@@ -32,19 +32,14 @@ jobs:
           # TestContainers configuration for GitHub Actions
           TESTCONTAINERS_RYUK_DISABLED: false
 
-      - name: Publish unit test results
+      - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          files: '**/target/surefire-reports/TEST-*.xml'
-          check_name: 'Unit Test Results'
-
-      - name: Publish integration test results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: '**/target/failsafe-reports/TEST-*.xml'
-          check_name: 'Integration Test Results'
+          files: |
+            **/target/surefire-reports/TEST-*.xml
+            **/target/failsafe-reports/TEST-*.xml
+          check_name: 'Test Results'
 
       # Optional: SonarQube scan
       # Only run on main/release branches or PRs from the same repo (not forks)
