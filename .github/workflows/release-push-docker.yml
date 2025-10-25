@@ -14,12 +14,26 @@ env:
   RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
 
 jobs:
+  maven-build:
+    uses: ./.github/workflows/maven-build.yml
+    secrets: inherit
+
   release-push-docker:
+    needs: maven-build
     runs-on: ubuntu-latest
     steps:
       - name: print release to be pushed
         run: |
           echo "building and tagging release: $RELEASE_TAG"
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.sha }}
+          path: build-output/
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -50,6 +64,7 @@ jobs:
       - name: build and push KSML Runner
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: Dockerfile
           target: ksml
           platforms: linux/amd64,linux/arm64
