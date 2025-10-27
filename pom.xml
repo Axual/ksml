@@ -802,4 +802,38 @@
             <url>${axual.maven.repository.url.releases}</url>
         </repository>
     </distributionManagement>
+
+    <profiles>
+        <!-- SonarQube profile - auto-activates when SONAR_TOKEN environment variable is set -->
+        <profile>
+            <id>sonarqube</id>
+            <activation>
+                <property>
+                    <name>env.SONAR_TOKEN</name>
+                </property>
+            </activation>
+            <properties>
+                <!-- Override the project key to match SonarCloud project -->
+                <sonar.projectKey>ksml</sonar.projectKey>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>5.2.0.4988</version>
+                        <executions>
+                            <execution>
+                                <id>sonar-scan</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sonar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

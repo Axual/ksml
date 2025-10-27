@@ -31,6 +31,8 @@ jobs:
         env:
           # TestContainers configuration for GitHub Actions
           TESTCONTAINERS_RYUK_DISABLED: false
+          # SonarQube token - Maven profile auto-activates when set
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -40,25 +42,6 @@ jobs:
             **/target/surefire-reports/TEST-*.xml
             **/target/failsafe-reports/TEST-*.xml
           check_name: 'Publish Test Results'
-
-      # Optional: SonarQube scan
-      # Only run on main/release branches or PRs from the same repo (not forks)
-      - name: SonarQube Scan
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-        continue-on-error: true
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          if [ -n "$SONAR_TOKEN" ]; then
-            echo "Running SonarQube scan..."
-            mvn sonar:sonar \
-              -Dsonar.projectKey=Axual_ksml \
-              -Dsonar.organization=axual \
-              -Dsonar.host.url=https://sonarcloud.io \
-              --no-transfer-progress
-          else
-            echo "SONAR_TOKEN not set, skipping SonarQube scan"
-          fi
 
       - name: Prepare build artifacts
         run: |
