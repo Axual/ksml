@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Fetch full history for SonarCloud analysis, because SonarCloud needs full git history to properly analyze changes.
 
       - name: Set up GraalVM
         uses: actions/setup-java@v4
@@ -27,12 +29,19 @@ jobs:
           cache: 'maven'
 
       - name: Build and run all tests (unit + integration)
-        run: mvn clean verify -DskipITs=false --no-transfer-progress
+        run: |
+          mvn clean verify -DskipITs=false --no-transfer-progress \
+        # Only passes PR-specific properties when running on a pull request. On regular pushes to main, these evaluate to empty strings.
+            ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.key={0}', github.event.pull_request.number) || '' }} \
+            ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.branch={0}', github.head_ref) || '' }} \
+            ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.base={0}', github.base_ref) || '' }}
         env:
           # TestContainers configuration for GitHub Actions
           TESTCONTAINERS_RYUK_DISABLED: false
           # SonarQube token - Maven profile auto-activates when set
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # GitHub token for SonarCloud PR decoration
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
