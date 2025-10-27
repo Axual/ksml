@@ -28,10 +28,9 @@ jobs:
           java-version: '23'
           cache: 'maven'
 
-      - name: Build and run all tests (unit + integration)
+      - name: Build and run all tests (unit + integration) # Only passes PR-specific properties when running on a pull request. On regular pushes to main, these evaluate to empty strings.
         run: |
           mvn clean verify -DskipITs=false --no-transfer-progress \
-        # Only passes PR-specific properties when running on a pull request. On regular pushes to main, these evaluate to empty strings.
             ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.key={0}', github.event.pull_request.number) || '' }} \
             ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.branch={0}', github.head_ref) || '' }} \
             ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.base={0}', github.base_ref) || '' }}
