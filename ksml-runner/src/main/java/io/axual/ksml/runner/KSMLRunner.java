@@ -34,6 +34,7 @@ import com.github.victools.jsonschema.module.jackson.JacksonOption;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
@@ -82,10 +83,11 @@ import io.axual.ksml.runner.exception.ConfigException;
 import io.axual.ksml.runner.notation.NotationFactories;
 import io.axual.ksml.runner.prometheus.PrometheusExport;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
+
+import static picocli.CommandLine.Option.NULL_VALUE;
 
 @Slf4j
 public class KSMLRunner {
@@ -99,13 +101,11 @@ public class KSMLRunner {
         @CommandLine.Parameters(index = "0", paramLabel = "KSML-RUNNER-CONFIG-PATH", description = "The location of the KSML Runner configuration file", defaultValue = DEFAULT_CONFIG_FILE_SHORT)
         String configFilePath;
 
-        @Getter
-        @CommandLine.Option(names = {WRITE_KSML_SCHEMA_ARGUMENT}, description = "Print the KSML Definition schema to the standard out, or to the file provided as argument", arity = "0..1")
-        String ksmlSchemaLocation;
+        @CommandLine.Option(names = {WRITE_KSML_SCHEMA_ARGUMENT}, description = "Print the KSML Definition schema to the standard out, or to the file provided as argument", arity = "0..1", defaultValue = NULL_VALUE)
+        String ksmlSchemaLocation = NULL_VALUE;
 
-        @Getter
-        @CommandLine.Option(names = {WRITE_KSML_RUNNER_SCHEMA_ARGUMENT}, description = "Print the KSML Runner configuration schema to the standard out, or to the file provided as argument", arity = "0..1")
-        String ksmlRunnerSchemaLocation;
+        @CommandLine.Option(names = {WRITE_KSML_RUNNER_SCHEMA_ARGUMENT}, description = "Print the KSML Runner configuration schema to the standard out, or to the file provided as argument", arity = "0..1", defaultValue = NULL_VALUE)
+        String ksmlRunnerSchemaLocation = NULL_VALUE;
 
         private CommandLine.ParseResult parseResult;
 
@@ -117,8 +117,18 @@ public class KSMLRunner {
             return parseResult.hasMatchedOption(WRITE_KSML_SCHEMA_ARGUMENT);
         }
 
+        public String ksmlSchemaLocation() {
+            // Needed because value can be empty string instead of null
+            return StringUtils.isNotBlank(ksmlSchemaLocation) ? ksmlSchemaLocation : null;
+        }
+
         public boolean shouldPrintKsmlRunnerSchema() {
             return parseResult.hasMatchedOption(WRITE_KSML_RUNNER_SCHEMA_ARGUMENT);
+        }
+
+        public String ksmlRunnerSchemaLocation() {
+            // Needed because value can be empty string instead of null
+            return StringUtils.isNotBlank(ksmlRunnerSchemaLocation) ? ksmlRunnerSchemaLocation : null;
         }
 
         /**
