@@ -28,7 +28,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 
-// Deserializer
+/**
+ * Jackson deserializer for {@link KsmlFileOrDefinition}.
+ *
+ * The value can either be:
+ * - a JSON string: interpreted as a file path to a KSML definition (produces {@link KsmlFilePath})
+ * - a JSON object: interpreted as an inline KSML definition (produces {@link KsmlInlineDefinition})
+ */
 public class KsmlFileOrDefinitionDeserializer extends StdDeserializer<KsmlFileOrDefinition> {
     public KsmlFileOrDefinitionDeserializer() {
         super(KsmlFileOrDefinition.class);
@@ -36,15 +42,18 @@ public class KsmlFileOrDefinitionDeserializer extends StdDeserializer<KsmlFileOr
 
     @Override
     public KsmlFileOrDefinition deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-
+        // Read the current JSON token tree to inspect its kind (string vs object)
         JsonNode node = p.getCodec().readTree(p);
 
         if (node.isTextual()) {
+            // String -> file path variant
             return new KsmlFilePath(node.asText());
         } else if (node instanceof ObjectNode objectNode) {
+            // Object -> inline JSON definition variant
             return new KsmlInlineDefinition(objectNode);
         }
 
+        // Any other JSON kind is invalid for this union type
         throw ctxt.instantiationException(KsmlFileOrDefinition.class, "Expected String or Object, got: " + node.getNodeType());
     }
 }

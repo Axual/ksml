@@ -28,10 +28,17 @@ import com.github.victools.jsonschema.generator.TypeContext;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * VicTools JSON Schema subtype resolver for the sealed union {@link KsmlFileOrDefinition}.
+ *
+ * This informs the schema generator about the two concrete implementations so that it can
+ * render a composed schema (oneOf) for the union type where applicable.
+ */
 public class KsmlFileOrDefinitionSubTypeResolver implements SubtypeResolver {
 
     @Override
     public List<ResolvedType> findSubtypes(final ResolvedType declaredType, final SchemaGenerationContext context) {
+        // Only provide subtypes for the KsmlFileOrDefinition union
         if (declaredType.getErasedType() == KsmlFileOrDefinition.class) {
             TypeContext typeContext = context.getTypeContext();
             return Arrays.asList(
@@ -39,6 +46,7 @@ public class KsmlFileOrDefinitionSubTypeResolver implements SubtypeResolver {
                     typeContext.resolveSubtype(declaredType, KsmlInlineDefinition.class)
             );
         }
+        // Returning null signals: no special subtypes for other types
         return null;
     }
 }

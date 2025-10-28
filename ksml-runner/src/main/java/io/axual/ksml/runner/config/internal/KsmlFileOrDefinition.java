@@ -24,6 +24,17 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+/**
+ * Represents a KSML definition that can be supplied in two different ways in user configuration:
+ * - as a String that points to a file on disk (see {@link KsmlFilePath})
+ * - as an inline JSON object embedded directly in the configuration (see {@link KsmlInlineDefinition}).
+ *
+ * This sealed interface is used both for Jackson (de-)serialization and for JSON Schema generation.
+ *
+ * JsonSubTypes names deliberately match JSON value kinds:
+ * - "string" maps to {@link KsmlFilePath}
+ * - "object" maps to {@link KsmlInlineDefinition}
+ */
 @JsonDeserialize(using = KsmlFileOrDefinitionDeserializer.class)
 @JsonSerialize(using = KsmlFileOrDefinitionSerializer.class)
 @JsonSubTypes({
@@ -31,6 +42,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
         @JsonSubTypes.Type(value = KsmlInlineDefinition.class, name = "object")
 })
 public sealed interface KsmlFileOrDefinition permits KsmlFilePath, KsmlInlineDefinition {
+    /**
+     * Returns the raw value represented by this instance:
+     * - a String for {@link KsmlFilePath}
+     * - an ObjectNode for {@link KsmlInlineDefinition}
+     */
     Object getValue();
 
 }

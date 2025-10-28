@@ -22,9 +22,18 @@ package io.axual.ksml.runner.config.internal;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * Concrete {@link KsmlFileOrDefinition} representing an inline KSML definition.
+ * The JSON representation is the object itself embedded directly in the configuration file.
+ */
 public final class KsmlInlineDefinition implements KsmlFileOrDefinition {
+    /** The inline JSON definition content. */
     private final ObjectNode value;
 
+    /**
+     * Create an inline-definition variant from the provided JSON object node.
+     * @param value the JSON content of the inline definition
+     */
     public KsmlInlineDefinition(ObjectNode value) {
         this.value = value;
     }

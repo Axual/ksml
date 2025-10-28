@@ -26,7 +26,11 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
-// Serializer
+/**
+ * Jackson serializer for {@link KsmlFileOrDefinition}.
+ *
+ * It writes the union as either a JSON string (for {@link KsmlFilePath}) or a JSON object (for {@link KsmlInlineDefinition}).
+ */
 public class KsmlFileOrDefinitionSerializer extends StdSerializer<KsmlFileOrDefinition> {
     public KsmlFileOrDefinitionSerializer() {
         super(KsmlFileOrDefinition.class);
@@ -34,7 +38,7 @@ public class KsmlFileOrDefinitionSerializer extends StdSerializer<KsmlFileOrDefi
 
     @Override
     public void serialize(KsmlFileOrDefinition value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-
+        // Delegate to specific output depending on the concrete implementation
         if (value instanceof KsmlFilePath sv) {
             gen.writeString(sv.getValue());
         } else if (value instanceof KsmlInlineDefinition ov) {

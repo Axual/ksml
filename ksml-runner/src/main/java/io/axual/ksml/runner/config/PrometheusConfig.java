@@ -51,13 +51,17 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PrometheusConfig {
+    /** Default bind address for the exporter (all interfaces). */
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
+    /** Default TCP port for the exporter endpoint. */
     private static final Integer DEFAULT_PORT = 9999;
+    /** Classpath resource containing the fallback exporter configuration. */
     private static final String DEFAULT_CONFIG_RESOURCE = "prometheus/default_config.yaml";
+    /** Lazily materialized temp file containing the default exporter config. */
     private static File defaultConfigFile;
 
     /**
-     * Copy constructor
+     * Copy constructor for defensive copying in composite configs.
      *
      * @param config the original configuration
      */
@@ -83,20 +87,31 @@ public class PrometheusConfig {
     @JsonPropertyDescription("Determines on which port the Prometheus metrics exporter is listening. Default is 9999")
     private Integer port = DEFAULT_PORT;
 
+    /** Optional path to an explicit Prometheus exporter configuration file. */
     @JsonProperty(value = "configFile", required = false)
     private Path configFile;
 
-
+    /**
+     * Resolve the bind host. Returns null when the exporter is disabled so callers can interpret
+     * "disabled" without extra flags.
+     */
     public String getHost() {
         if (!enabled) return null;
         return Optional.ofNullable(host).orElse(DEFAULT_HOSTNAME);
     }
 
+    /**
+     * Resolve the bind port. Returns null when the exporter is disabled.
+     */
     public Integer getPort() {
         if (!enabled) return null;
         return Optional.ofNullable(port).orElse(DEFAULT_PORT);
     }
 
+    /**
+     * Lazily create and cache a temporary file containing the default exporter configuration
+     * from the classpath resource. This ensures downstream code can work with a File API.
+     */
     private static synchronized File getDefaultConfigFile() {
         if (defaultConfigFile == null || !defaultConfigFile.exists()) {
             File tmpFile = null;
@@ -104,6 +119,7 @@ public class PrometheusConfig {
                 log.info("Loading default config file: {}", defaultConfigFile);
                 final var resourceUrl = PrometheusConfig.class.getClassLoader().getResource(DEFAULT_CONFIG_RESOURCE);
                 if (resourceUrl != null) {
+                    // Create a temp file and copy the resource into it so components expecting a File can use it
                     tmpFile = File.createTempFile("KSML-Prometheus-Default-Config", ".yaml");
                     tmpFile.deleteOnExit();
                     IOUtils.copy(resourceUrl, tmpFile);
@@ -118,6 +134,10 @@ public class PrometheusConfig {
         return defaultConfigFile;
     }
 
+    /**
+     * Provide the exporter configuration file to use. When disabled, returns null. When no explicit
+     * file is configured, falls back to a temporary file containing the default config from the classpath.
+     */
     @JsonIgnore
     public File getConfigFile() {
         if (!enabled) return null;
