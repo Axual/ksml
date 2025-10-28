@@ -38,6 +38,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -80,7 +81,7 @@ public class PrometheusConfig {
     @JsonProperty(value = "host", required = false)
     @JsonPropertyDescription("Determines on which hostname/ip address the Prometheus metrics exporter listener is created. Default is IP address for all networks '0.0.0.0'")
     private String host = DEFAULT_HOSTNAME;
-    @NotBlank
+
     @Min(1)
     @Max(65535)
     @JsonProperty(value = "port", required = false)
