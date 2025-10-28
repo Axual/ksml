@@ -91,7 +91,6 @@ public class KSMLRunnerConfig {
 
         @Nonnull
         @JsonProperty(value = "application.id", required = true)
-        @JsonAlias({"applicationId", "app.id"})
         private String applicationId;
 
         @Override
