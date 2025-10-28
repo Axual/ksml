@@ -28,12 +28,38 @@ jobs:
           java-version: '23'
           cache: 'maven'
 
-      - name: Build and run all tests (unit + integration) # Only passes PR-specific properties when running on a pull request. On regular pushes to main, these evaluate to empty strings.
+      - name: Build and run all tests (unit + integration)
         run: |
-          mvn clean verify -DskipITs=false --no-transfer-progress \
-            ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.key={0}', github.event.pull_request.number) || '' }} \
-            ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.branch={0}', github.head_ref) || '' }} \
-            ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.base={0}', github.base_ref) || '' }}
+          # Determine SonarQube arguments based on build type
+          # Reference: https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/branches/branch-analysis/
+          SONAR_ADDITION=""
+
+          # Scenario 1: Tag builds - analyze as a branch with the tag name
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            SONAR_ADDITION="-Dsonar.branch.name=${{ github.ref_name }}"
+            echo "SonarQube: Analyzing tag build '${{ github.ref_name }}'"
+
+          # Scenario 2: Pull request builds - analyze as a pull request
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            SONAR_ADDITION="-Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+              -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+              -Dsonar.pullrequest.base=${{ github.base_ref }}"
+            echo "SonarQube: Analyzing PR #${{ github.event.pull_request.number }} (${{ github.head_ref }} -> ${{ github.base_ref }})"
+
+          # Scenario 3: Branch builds - analyze as a branch
+          elif [[ "${{ github.ref_type }}" == "branch" ]]; then
+            SONAR_ADDITION="-Dsonar.branch.name=${{ github.ref_name }}"
+            echo "SonarQube: Analyzing branch '${{ github.ref_name }}'"
+
+            # If not the default branch, set target to default branch for comparison
+            if [[ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]]; then
+              SONAR_ADDITION="${SONAR_ADDITION} -Dsonar.branch.target=${{ github.event.repository.default_branch }}"
+              echo "SonarQube: Branch target set to '${{ github.event.repository.default_branch }}'"
+            fi
+          fi
+
+          # Run Maven build with SonarQube arguments
+          mvn clean verify -DskipITs=false --no-transfer-progress ${SONAR_ADDITION}
         env:
           # TestContainers configuration for GitHub Actions
           TESTCONTAINERS_RYUK_DISABLED: false
