@@ -103,7 +103,8 @@ class JsonSchemaMapperTest {
         // Use soft assertions to get feedback on multiple field issues at once
         final var softly = new SoftAssertions();
         softly.assertThat(rootNode)
-                .hasSize(5);
+                .hasSize(6);  // Updated from 5 to 6 to account for $schema field
+        softAssertJsonStringField(softly, rootNode, "/$schema", "https://json-schema.org/draft/2019-09/schema");
         softAssertJsonStringField(softly, rootNode, "/title", "ObjWithPrims");
         softAssertJsonStringField(softly, rootNode, "/description", "Example object with primitive fields");
         softAssertJsonStringField(softly, rootNode, "/type", "object");
@@ -233,7 +234,8 @@ class JsonSchemaMapperTest {
         // Use soft assertions to get feedback on multiple field issues at once
         final var softly = new SoftAssertions();
         softly.assertThat(rootNode)
-                .hasSize(6);
+                .hasSize(7);  // Updated from 6 to 7 to account for $schema field
+        softAssertJsonStringField(softly, rootNode, "/$schema", "https://json-schema.org/draft/2019-09/schema");
         softAssertJsonStringField(softly, rootNode, "/title", "AdditionalProps");
         softAssertJsonStringField(softly, rootNode, "/description", "Test object to verify that additional properties are accepted");
         softAssertJsonStringField(softly, rootNode, "/type", "object");
@@ -384,8 +386,9 @@ class JsonSchemaMapperTest {
         // Use soft assertions to get feedback on multiple field issues at once
         final var softlyJson = new SoftAssertions();
         softlyJson.assertThat(rootNode)
-                .hasSize(7);
+                .hasSize(8);  // Updated from 7 to 8 to account for $schema field
         // Assert the root object data
+        softAssertJsonStringField(softlyJson, rootNode, "/$schema", "https://json-schema.org/draft/2019-09/schema");
         softAssertJsonStringField(softlyJson, rootNode, "/title", "ComplexFeatures");
         softAssertJsonStringField(softlyJson, rootNode, "/description", "Example object with more complex fields");
         softAssertJsonStringField(softlyJson, rootNode, "/type", "object");

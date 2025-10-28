@@ -21,21 +21,23 @@ package io.axual.ksml.docs.examples;
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
@@ -56,7 +58,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class AllDefinitionsSchemaValidationTest {
 
-    private static Schema ksmlSchema;
+    private static JsonSchema ksmlSchema;
 
     /**
      * Discovers all YAML files in the resources directory from both the ksml module
@@ -101,27 +103,29 @@ public class AllDefinitionsSchemaValidationTest {
      * Generates the KSML JSON schema dynamically using TopologyDefinitionParser
      */
     @BeforeAll
-    static void generateSchema() {
+    static void generateSchema() throws Exception {
         // Generate the schema dynamically using the same approach as KSML runner
         final var parser = new TopologyDefinitionParser("dummy");
         final var schemaJson = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
-        
-        // Parse the schema to add strict validation at root level
-        JSONObject rawSchema = new JSONObject(new JSONTokener(new StringReader(schemaJson)));
-        
-        // "additionalProperties": false at root level to ensure strict validation
+
+        // Parse the schema JSON to add strict validation at root level
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode schemaNode = objectMapper.readTree(schemaJson);
+
+        // Add "additionalProperties": false at root level to ensure strict validation
         // The generated schema by default allows additional properties, but for validation
         // we want to catch typos like "functionss:" instead of "functions:"
-        rawSchema.put("additionalProperties", false);
+        ((ObjectNode) schemaNode).put("additionalProperties", false);
 
-        // Load the corrected schema for validation
-        ksmlSchema = SchemaLoader.load(rawSchema);
+        // Load the schema using networknt validator with Draft 2019-09 support
+        JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
+        ksmlSchema = schemaFactory.getSchema(schemaNode);
     }
     
     /**
      * Returns the generated KSML JSON schema
      */
-    private static Schema getKsmlSchema() {
+    private static JsonSchema getKsmlSchema() {
         assertNotNull(ksmlSchema, "Schema was not generated. Run generateSchema() first.");
         return ksmlSchema;
     }
@@ -130,26 +134,29 @@ public class AllDefinitionsSchemaValidationTest {
     @MethodSource("provideYamlFiles")
     void validateYamlFileAgainstSchema(Path yamlFile) throws Exception {
         System.out.println("Validating: " + yamlFile.getFileName());
-        
+
         // Load the KSML schema
-        Schema schema = getKsmlSchema();
-        
-        // Read and parse the YAML file
+        JsonSchema schema = getKsmlSchema();
+
+        // Read and parse the YAML file into JsonNode
         String yamlContent = Files.readString(yamlFile);
         JsonNode jsonContent = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
-        
-        // Convert Jackson JsonNode to org.json JSONObject for schema validation
-        JSONObject jsonObject = new JSONObject(jsonContent.toString());
-        
-        try {
-            // Validate against schema - throws ValidationException if invalid
-            schema.validate(jsonObject);
-            
-            // If we reach here, validation passed
+
+        // Validate the JSON content against the schema
+        Set<ValidationMessage> validationMessages = schema.validate(jsonContent);
+
+        // Check if validation passed
+        if (validationMessages.isEmpty()) {
+            // Validation passed
             assertTrue(true, "YAML file " + yamlFile.getFileName() + " is valid against KSML schema");
-            
-        } catch (Exception e) {
-            fail("Schema validation failed for " + yamlFile.getFileName() + ": " + e.getMessage());
+        } else {
+            // Validation failed - collect all error messages
+            StringBuilder errorMessages = new StringBuilder();
+            errorMessages.append("Schema validation failed for ").append(yamlFile.getFileName()).append(":\n");
+            for (ValidationMessage msg : validationMessages) {
+                errorMessages.append("  - ").append(msg.getMessage()).append("\n");
+            }
+            fail(errorMessages.toString());
         }
     }
 }

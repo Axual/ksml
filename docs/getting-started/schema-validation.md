@@ -143,7 +143,7 @@ Configure validation for KSML definition files (streams, pipelines, producers):
 2. Configure the mapping:
    - **Name**: `KSML Language Specification`
    - **Schema file or URL**: Browse to `docs/ksml-language-spec.json` in your KSML project directory
-   - **Schema version**: Select **JSON Schema version 7** (Draft 7 and Draft 2019-09 are compatible)
+   - **Schema version**: Select **JSON Schema version Draft 2019-09**
 
 3. Add file mappings by clicking **+** in the mappings section:
    - **For specific files**: `processor.yaml`, `producer.yaml`, `pipeline.yaml`
@@ -158,7 +158,7 @@ Configure validation for KSML Runner configuration files:
 2. Configure the mapping:
    - **Name**: `KSML Runner Configuration`
    - **Schema file or URL**: Browse to `docs/ksml-runner-spec.json` in your KSML project directory
-   - **Schema version**: Select **JSON Schema version 7**
+   - **Schema version**: Select **JSON Schema version Draft 2019-09**
 
 3. Add file mappings by clicking **+** in the mappings section:
    - **For specific files**: `ksml-runner.yaml`, `application.yaml`
@@ -352,6 +352,7 @@ docs/ksml-language-spec.json
 ```
 
 **Purpose:** Validates KSML definition files (streams, pipelines, functions, producers)
+**Schema Version:** JSON Schema Draft 2019-09
 
 ### KSML Runner Configuration
 ```
@@ -359,6 +360,7 @@ docs/ksml-runner-spec.json
 ```
 
 **Purpose:** Validates KSML Runner configuration files (Kafka settings, error handling, observability)
+**Schema Version:** JSON Schema Draft 2019-09
 
 ### Schema Characteristics
 
