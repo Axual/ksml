@@ -211,7 +211,7 @@
                 <executions>
                     <execution>
                         <id>generate-ksml-schema</id>
-                        <phase>post-integration-test</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
