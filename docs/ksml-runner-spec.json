@@ -136,7 +136,7 @@
       "required" : [ "application.id" ],
       "description" : "Contains the Kafka Streams configuration options, like bootstrap servers, application ids, etc",
       "additionalProperties" : {
-        "type" : "string"
+        "type" : [ "string", "number", "integer", "boolean" ]
       }
     },
     "KsmlDefinitionMap" : {
@@ -263,7 +263,7 @@
     "StringMap" : {
       "type" : "object",
       "additionalProperties" : {
-        "type" : "string"
+        "type" : [ "string", "number", "integer", "boolean" ]
       }
     }
   },

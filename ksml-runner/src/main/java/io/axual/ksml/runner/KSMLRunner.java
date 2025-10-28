@@ -79,6 +79,7 @@ import io.axual.ksml.runner.config.ErrorHandlingConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionProvider;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionSubTypeResolver;
+import io.axual.ksml.runner.config.internal.StringMapDefinitionPropertiesResolver;
 import io.axual.ksml.runner.exception.ConfigException;
 import io.axual.ksml.runner.notation.NotationFactories;
 import io.axual.ksml.runner.prometheus.PrometheusExport;
@@ -458,12 +459,18 @@ public class KSMLRunner {
                 .with(moduleJakarta)
                 .with(Option.MAP_VALUES_AS_ADDITIONAL_PROPERTIES, Option.DEFINITIONS_FOR_ALL_OBJECTS, Option.FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT);
 
-        // Add support for the KsmlFileOrDefinition
+        // Instantiate add providers/resolved to allow the KsmlFileOrDefinition and StringMap to be processed with correct Schema types
+        final var stringMapResolver = new StringMapDefinitionPropertiesResolver();
+        configBuilder.forFields()
+                .withAdditionalPropertiesResolver(stringMapResolver);
         configBuilder.forTypesInGeneral()
+                // Add support for the KsmlFileOrDefinition
+                .withCustomDefinitionProvider(stringMapResolver)
                 .withCustomDefinitionProvider(new KsmlFileOrDefinitionProvider())
                 .withSubtypeResolver(new KsmlFileOrDefinitionSubTypeResolver())
         ;
 
+        // Construct the real schema
         SchemaGeneratorConfig config = configBuilder.build();
         SchemaGenerator generator = new SchemaGenerator(config);
         JsonNode jsonSchema = generator.generateSchema(KSMLRunnerConfig.class);
