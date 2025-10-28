@@ -49,6 +49,10 @@
           "$ref" : "#/$defs/Handler",
           "description" : "Controls the behaviour of handling the error, which can be Stop KSML (stopOnFail), Continue KSML (continueOnFail) and Retry (retryOnFail)"
         },
+        "log" : {
+          "type" : "boolean",
+          "description" : "Toggle to enable logging the error. Defaults to true."
+        },
         "logPayload" : {
           "type" : "boolean",
           "description" : "Toggle to add the payload which caused the error to the logged output. Defaults to false."
