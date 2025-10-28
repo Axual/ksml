@@ -21,41 +21,80 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
+
+import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonClassDescription("Controls on which hostname and port the Prometheus metrics are accessible, and which prometheus exporter configuration file to use")
 @Data
-@Builder(toBuilder = true)
-@Jacksonized
+@AllArgsConstructor
+@NoArgsConstructor
 public class PrometheusConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
-    private static final String DEFAULT_PORT = "9999";
+    private static final Integer DEFAULT_PORT = 9999;
     private static final String DEFAULT_CONFIG_RESOURCE = "prometheus/default_config.yaml";
     private static File defaultConfigFile;
 
-    private boolean enabled;
-    private String host;
-    private String port;
+    /**
+     * Copy constructor
+     *
+     * @param config the original configuration
+     */
+    public PrometheusConfig(@Nonnull PrometheusConfig config) {
+        this.enabled = config.enabled;
+        this.host = config.host;
+        this.port = config.port;
+        this.configFile = config.configFile;
+    }
+
+    @JsonProperty(value = "enabled", required = true)
+    @JsonPropertyDescription("Toggle to activate the creation Prometheus metrics exporter. Default is false")
+    private boolean enabled = false;
+
+    @NotBlank
+    @JsonProperty(value = "host", required = false)
+    @JsonPropertyDescription("Determines on which hostname/ip address the Prometheus metrics exporter listener is created. Default is IP address for all networks '0.0.0.0'")
+    private String host = DEFAULT_HOSTNAME;
+    @NotBlank
+    @Min(1)
+    @Max(65535)
+    @JsonProperty(value = "port", required = false)
+    @JsonPropertyDescription("Determines on which port the Prometheus metrics exporter is listening. Default is 9999")
+    private Integer port = DEFAULT_PORT;
+
+    @JsonProperty(value = "configFile", required = false)
     private Path configFile;
+
 
     public String getHost() {
         if (!enabled) return null;
-        return (host != null ? host : DEFAULT_HOSTNAME);
+        return Optional.ofNullable(host).orElse(DEFAULT_HOSTNAME);
     }
 
     public Integer getPort() {
         if (!enabled) return null;
-        return (port != null ? Integer.parseInt(port) : Integer.parseInt(DEFAULT_PORT));
+        return Optional.ofNullable(port).orElse(DEFAULT_PORT);
     }
 
     private static synchronized File getDefaultConfigFile() {
@@ -79,8 +118,12 @@ public class PrometheusConfig {
         return defaultConfigFile;
     }
 
+    @JsonIgnore
     public File getConfigFile() {
         if (!enabled) return null;
-        return (configFile != null) ? configFile.toFile() : getDefaultConfigFile();
+        if (configFile == null) {
+            return getDefaultConfigFile();
+        }
+        return configFile.toFile();
     }
 }

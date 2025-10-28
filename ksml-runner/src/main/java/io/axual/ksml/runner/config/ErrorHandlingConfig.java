@@ -20,24 +20,36 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
+import lombok.NoArgsConstructor;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Builder
-@Jacksonized
+@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonClassDescription("Controls how consume, produce and processing errors are handled")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ErrorHandlingConfig {
-    private final ErrorTypeHandlingConfig consume;
-    private final ErrorTypeHandlingConfig produce;
-    private final ErrorTypeHandlingConfig process;
+    @JsonProperty(value = "consume", required = false)
+    @JsonPropertyDescription("Configures the error handling for deserialization errors. The default logger name is 'ConsumeError'.")
+    private ErrorTypeHandlingConfig consume;
+    @JsonProperty(value = "produce", required = false)
+    @JsonPropertyDescription("Configures the error handling for serialization errors. The default logger name is 'ProduceError'.")
+    private ErrorTypeHandlingConfig produce;
+    @JsonProperty(value = "process", required = false)
+    @JsonPropertyDescription("Configures the error handling for pipeline processing errors. The default logger name is 'ProcessError'.")
+    private ErrorTypeHandlingConfig process;
 
-    public ErrorTypeHandlingConfig consumerErrorHandlingConfig() {
+    public synchronized ErrorTypeHandlingConfig consumerErrorHandlingConfig() {
         if (consume == null) {
-            return defaultErrorTypeHandlingConfig("ConsumeError");
+            consume = defaultErrorTypeHandlingConfig("ConsumeError");
         }
         if (consume.loggerName() == null) {
             consume.loggerName("ConsumeError");
@@ -45,9 +57,10 @@ public class ErrorHandlingConfig {
         return consume;
     }
 
-    public ErrorTypeHandlingConfig producerErrorHandlingConfig() {
+    @JsonIgnore
+    public synchronized ErrorTypeHandlingConfig producerErrorHandlingConfig() {
         if (produce == null) {
-            return defaultErrorTypeHandlingConfig("ProduceError");
+            produce = defaultErrorTypeHandlingConfig("ProduceError");
         }
         if (produce.loggerName() == null) {
             produce.loggerName("ProduceError");
@@ -55,9 +68,10 @@ public class ErrorHandlingConfig {
         return produce;
     }
 
-    public ErrorTypeHandlingConfig processErrorHandlingConfig() {
+    @JsonIgnore
+    public synchronized ErrorTypeHandlingConfig processErrorHandlingConfig() {
         if (process == null) {
-            return defaultErrorTypeHandlingConfig("ProcessError");
+            process = defaultErrorTypeHandlingConfig("ProcessError");
         }
         if (process.loggerName() == null) {
             process.loggerName("ProcessError");
@@ -71,20 +85,28 @@ public class ErrorHandlingConfig {
         return errorHandlingConfig;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonIgnoreProperties(ignoreUnknown = false)
+    @JsonClassDescription("Contains the configuration on how to handle Errors.")
     @Data
     public static class ErrorTypeHandlingConfig {
         private boolean log = true;
-        @JsonProperty("logPayload")
+        @JsonProperty(value = "logPayload", required = false)
+        @JsonPropertyDescription("Toggle to add the payload which caused the error to the logged output. Defaults to false.")
         private boolean logPayload = false;
-        @JsonProperty("loggerName")
+        @JsonProperty(value = "loggerName", required = false)
+        @JsonPropertyDescription("Sets the logger name used for handling. Setting these combined with setting specific logger configuration allows the log entries to be filtered, or written to another location.")
         private String loggerName;
-        @JsonProperty("handler")
+        @JsonProperty(value = "handler", required = false)
+        @JsonPropertyDescription("Controls the behaviour of handling the error, which can be Stop KSML (stopOnFail), Continue KSML (continueOnFail) and Retry (retryOnFail)")
         private Handler handler = Handler.STOP;
 
+        @JsonClassDescription("Enumeration controlling error handling behaviour.")
         public enum Handler {
+            @JsonProperty("stopOnFail")
             STOP,
+            @JsonProperty("continueOnFail")
             CONTINUE,
+            @JsonProperty("retryOnFail")
             RETRY;
 
             @JsonCreator

@@ -20,8 +20,41 @@ package io.axual.ksml.runner;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.github.victools.jsonschema.generator.Option;
+import com.github.victools.jsonschema.generator.OptionPreset;
+import com.github.victools.jsonschema.generator.SchemaGenerator;
+import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
+import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
+import com.github.victools.jsonschema.generator.SchemaVersion;
+import com.github.victools.jsonschema.module.jackson.JacksonModule;
+import com.github.victools.jsonschema.module.jackson.JacksonOption;
+import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
+import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
+
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.state.HostInfo;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
@@ -43,56 +76,104 @@ import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.backend.Runner;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
+import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionProvider;
+import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionSubTypeResolver;
 import io.axual.ksml.runner.exception.ConfigException;
 import io.axual.ksml.runner.notation.NotationFactories;
 import io.axual.ksml.runner.prometheus.PrometheusExport;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsMetadata;
-import org.apache.kafka.streams.state.HostInfo;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
+import picocli.CommandLine;
 
 @Slf4j
 public class KSMLRunner {
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yaml";
     private static final String WRITE_KSML_SCHEMA_ARGUMENT = "--schema";
+    private static final String WRITE_KSML_RUNNER_SCHEMA_ARGUMENT = "--runner-schema";
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @CommandLine.Command(name = "KSML", description = "Load and run KSML streaming pipelines")
+    public static class Arguments {
+        @CommandLine.Parameters(index = "0", paramLabel = "KSML-RUNNER-CONFIG-PATH", description = "The location of the KSML Runner configuration file", defaultValue = DEFAULT_CONFIG_FILE_SHORT)
+        String configFilePath;
+
+        @Getter
+        @CommandLine.Option(names = {WRITE_KSML_SCHEMA_ARGUMENT}, description = "Print the KSML Definition schema to the standard out, or to the file provided as argument", arity = "0..1")
+        String ksmlSchemaLocation;
+
+        @Getter
+        @CommandLine.Option(names = {WRITE_KSML_RUNNER_SCHEMA_ARGUMENT}, description = "Print the KSML Runner configuration schema to the standard out, or to the file provided as argument", arity = "0..1")
+        String ksmlRunnerSchemaLocation;
+
+        private CommandLine.ParseResult parseResult;
+
+        public File configFile() {
+            return new File(configFilePath);
+        }
+
+        public boolean shouldPrintKsmlSchema() {
+            return parseResult.hasMatchedOption(WRITE_KSML_SCHEMA_ARGUMENT);
+        }
+
+        public boolean shouldPrintKsmlRunnerSchema() {
+            return parseResult.hasMatchedOption(WRITE_KSML_RUNNER_SCHEMA_ARGUMENT);
+        }
+
+        /**
+         * Populate this class using the PicoCLI command line library
+         *
+         * @param args the command line arguments to parse
+         * @return A new instance of the Arguments class, populated according to the specifications
+         */
+        public static Arguments populate(String[] args) {
+            var newArgs = new Arguments();
+            var cmd = new CommandLine(newArgs);
+            newArgs.parseResult = cmd.parseArgs(args);
+            return newArgs;
+        }
+    }
 
     public static void main(String[] args) {
+        var cmd = Arguments.populate(args);
+
         try {
             // Load name and version from manifest
             var ksmlTitle = determineTitle();
 
+            boolean shouldExit = false;
             // Check if we need to output the schema and then exit
-            if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
-                log.info("Generating schema and exiting");
-                var filename = args.length > 1 ? args[1] : null;
-                printJsonSchema(filename);
+            if (cmd.shouldPrintKsmlSchema()) {
+                log.info("Generating KSML definitions schema");
+                shouldExit = true;
+                printKsmlDefinitionSchema(cmd.ksmlSchemaLocation());
+            }
+
+            // Check if we need to output the schema and then exit
+            if (cmd.shouldPrintKsmlRunnerSchema()) {
+                log.info("Generating KSML Runner Configuration Schema");
+                shouldExit = true;
+                printRunnerSchema(cmd.ksmlRunnerSchemaLocation());
+                return;
+            }
+
+            if (shouldExit) {
+                log.info("Exiting after schema");
                 return;
             }
 
             log.info("Starting {}", ksmlTitle);
 
             // Begin loading config file
-            final var configFile = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
+            final var configFile = cmd.configFile();
             if (!configFile.exists()) {
                 log.error("Configuration file '{}' not found", configFile);
                 System.exit(1);
             }
 
             final var config = readConfiguration(configFile);
-            final var ksmlConfig = config.ksmlConfig();
+            final var ksmlConfig = config.getKsmlConfig();
             log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.configDirectory(), ksmlConfig.schemaDirectory(), ksmlConfig.storageDirectory());
 
             final var definitions = ksmlConfig.definitions();
@@ -100,7 +181,7 @@ public class KSMLRunner {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
 
-            KsmlInfo.registerKsmlAppInfo(config.applicationId());
+            KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
 
             // Start the appserver if needed
             final var appServer = ksmlConfig.applicationServerConfig();
@@ -116,7 +197,7 @@ public class KSMLRunner {
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(ksmlConfig.schemaDirectory());
 
             // Set up all default notations and register them in the NotationLibrary
-            final var notationFactories = new NotationFactories(config.kafkaConfig());
+            final var notationFactories = new NotationFactories(config.getKafkaConfigMap());
             for (final var notation : notationFactories.notations().entrySet()) {
                 ExecutionContext.INSTANCE.notationLibrary().register(notation.getKey(), notation.getValue().create(null));
             }
@@ -153,8 +234,8 @@ public class KSMLRunner {
             // Ensure typical defaults are used for AVRO
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if(ksmlConfig.notations().isEmpty()){
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME,null,  new DataObjectFlattener(), config.kafkaConfig()));
+            if(ksmlConfig.notations().isEmpty()) {
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, null, new DataObjectFlattener(), config.getKafkaConfigMap()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
             }
@@ -167,8 +248,8 @@ public class KSMLRunner {
             }
             ExecutionContext.INSTANCE.serdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
-                            new ResolvingSerializer<>(serde.serializer(), config.kafkaConfig()),
-                            new ResolvingDeserializer<>(serde.deserializer(), config.kafkaConfig())));
+                            new ResolvingSerializer<>(serde.serializer(), config.getKafkaConfigMap()),
+                            new ResolvingDeserializer<>(serde.deserializer(), config.getKafkaConfigMap())));
 
             final Map<String, TopologyDefinition> producerDefinitions = new HashMap<>();
             final Map<String, TopologyDefinition> pipelineDefinitions = new HashMap<>();
@@ -191,7 +272,7 @@ public class KSMLRunner {
             final var producer = producerDefinitions.isEmpty() ? null : new KafkaProducerRunner(
                     KafkaProducerRunner.Config.builder()
                             .definitions(producerDefinitions)
-                            .kafkaConfig(config.kafkaConfig())
+                            .kafkaConfig(config.getKafkaConfigMap())
                             .pythonContextConfig(ksmlConfig.pythonContextConfig())
                             .build()
             );
@@ -199,7 +280,7 @@ public class KSMLRunner {
                     .storageDirectory(ksmlConfig.storageDirectory())
                     .appServer(ksmlConfig.applicationServerConfig())
                     .definitions(pipelineDefinitions)
-                    .kafkaConfig(config.kafkaConfig())
+                    .kafkaConfig(config.getKafkaConfigMap())
                     .pythonContextConfig(ksmlConfig.pythonContextConfig())
                     .build());
 
@@ -216,7 +297,7 @@ public class KSMLRunner {
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-                try (var prometheusExport = new PrometheusExport(config.ksmlConfig().prometheusConfig())) {
+                try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().prometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
 
@@ -352,7 +433,54 @@ public class KSMLRunner {
         return titleBuilder.toString();
     }
 
-    private static void printJsonSchema(String filename) {
+    private static void printRunnerSchema(String filename) {
+        JacksonModule moduleJackson = new JacksonModule(
+                JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
+                JacksonOption.ALWAYS_REF_SUBTYPES,
+                JacksonOption.FLATTENED_ENUMS_FROM_JSONPROPERTY);
+        JakartaValidationModule moduleJakarta = new JakartaValidationModule(
+                JakartaValidationOption.INCLUDE_PATTERN_EXPRESSIONS
+        );
+
+        SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(
+                SchemaVersion.DRAFT_2019_09, OptionPreset.PLAIN_JSON)
+                .with(moduleJackson)
+                .with(moduleJakarta)
+                .with(Option.MAP_VALUES_AS_ADDITIONAL_PROPERTIES, Option.DEFINITIONS_FOR_ALL_OBJECTS, Option.FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT);
+
+        // Add support for the KsmlFileOrDefinition
+        configBuilder.forTypesInGeneral()
+                .withCustomDefinitionProvider(new KsmlFileOrDefinitionProvider())
+                .withSubtypeResolver(new KsmlFileOrDefinitionSubTypeResolver())
+        ;
+
+        SchemaGeneratorConfig config = configBuilder.build();
+        SchemaGenerator generator = new SchemaGenerator(config);
+        JsonNode jsonSchema = generator.generateSchema(KSMLRunnerConfig.class);
+        String schema = jsonSchema.toPrettyString();
+
+        try {
+            if (filename != null) {
+                final var writer = new PrintWriter(filename);
+                writer.println(schema);
+                writer.close();
+                log.info("KSML JSON schema written to file: {}", filename);
+            } else {
+                System.out.println(schema);
+            }
+        } catch (Exception e) {
+            log.atError()
+                    .setMessage("""
+                            Error writing KSML Runner JSON schema to file: {}
+                            Error: {}
+                            """)
+                    .addArgument(filename)
+                    .addArgument(e::getMessage)
+                    .log();
+        }
+    }
+
+    private static void printKsmlDefinitionSchema(String filename) {
         // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
         // KSML definitions with on stdout and exit
         final var parser = new TopologyDefinitionParser("dummy");
@@ -385,10 +513,10 @@ public class KSMLRunner {
         try {
             final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) {
-                if (config.ksmlConfig() == null) {
+                if (config.getKsmlConfig() == null) {
                     throw new ConfigException("Section \"ksml\" is missing in configuration");
                 }
-                if (config.kafkaConfig() == null) {
+                if (config.getKafkaConfigMap() == null) {
                     throw new ConfigException("Section \"kafka\" is missing in configuration");
                 }
                 return config;

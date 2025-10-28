@@ -20,6 +20,10 @@ package io.axual.ksml.runner.prometheus;
  * =========================LICENSE_END==================================
  */
 
+import java.io.Closeable;
+import java.net.InetAddress;
+import java.util.Optional;
+
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.runner.config.PrometheusConfig;
 import io.prometheus.jmx.BuildInfoMetrics;
@@ -30,10 +34,6 @@ import io.prometheus.metrics.instrumentation.jvm.JvmMetrics;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.Closeable;
-import java.net.InetAddress;
-import java.util.Optional;
 
 /**
  * Exposes the JMX metrics, based on the Prometheus JMX exporter agent
@@ -47,8 +47,7 @@ public class PrometheusExport implements Closeable {
 
     public PrometheusExport(PrometheusConfig config) {
         // Use a copy of the provided config
-        this.config = (config != null ? config.toBuilder() : PrometheusConfig.builder()).build();
-
+        this.config = new PrometheusConfig(config);
     }
 
     @Synchronized

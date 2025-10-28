@@ -20,14 +20,27 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
+import io.axual.ksml.runner.config.internal.StringMap;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
-import java.util.Map;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonClassDescription("Specify and configure a specific type of notation, or format on how to read/write data from a Kafka topic.")
 @Builder
 @Jacksonized
-public record NotationConfig(String type, String schemaRegistry, Map<String, String> config) {
+public record NotationConfig(
+        @JsonProperty(value = "type", required = true)
+        @JsonPropertyDescription("Serializer implementation type")
+        String type,
+        @JsonProperty(value = "schemaRegistry", required = false)
+        @JsonPropertyDescription("The name of the Schema Registry configuration to use, if applicable for the type")
+        String schemaRegistry,
+        @JsonProperty(value = "config", required = false)
+        @JsonPropertyDescription("Additional properties for the serializer, these will be added to any configuration options defined for the the schema registry")
+        StringMap config) {
 }

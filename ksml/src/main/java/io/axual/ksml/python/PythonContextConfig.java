@@ -20,7 +20,11 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -30,28 +34,36 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 @ToString
+@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonClassDescription("Control Python execution security and permissions")
 public class PythonContextConfig {
-    @JsonProperty("allowHostFileAccess")
+    @JsonProperty(value = "allowHostFileAccess", required = false)
+    @JsonPropertyDescription("Allow Python code to access host file system. Default is false.")
     @Builder.Default
     private boolean allowHostFileAccess = false;
 
-    @JsonProperty("allowHostSocketAccess")
+    @JsonProperty(value = "allowHostSocketAccess", required = false)
+    @JsonPropertyDescription("Allow Python code to open network sockets. Default is false.")
     @Builder.Default
     private boolean allowHostSocketAccess = false;
 
-    @JsonProperty("allowNativeAccess")
+    @JsonProperty(value = "allowNativeAccess", required = false)
+    @JsonPropertyDescription("Allow Graal native access / JNI. Default is false.")
     @Builder.Default
     private boolean allowNativeAccess = false;
 
-    @JsonProperty("allowCreateProcess")
+    @JsonProperty(value = "allowCreateProcess", required = false)
+    @JsonPropertyDescription("Allow Python code to execute external processes. Default is false.")
     @Builder.Default
     private boolean allowCreateProcess = false;
 
-    @JsonProperty("allowCreateThread")
+    @JsonProperty(value = "allowCreateThread", required = false)
+    @JsonPropertyDescription("Allow Python code to create new Java threads. Default is false.")
     @Builder.Default
     private boolean allowCreateThread = false;
 
-    @JsonProperty("inheritEnvironmentVariables")
+    @JsonProperty(value = "inheritEnvironmentVariables", required = false)
+    @JsonPropertyDescription("Inherit JVM process environment in Python context. Default is false.")
     @Builder.Default
     private boolean inheritEnvironmentVariables = false;
 }
