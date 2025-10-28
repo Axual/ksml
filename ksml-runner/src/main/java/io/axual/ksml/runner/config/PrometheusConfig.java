@@ -38,8 +38,6 @@ import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -117,7 +115,7 @@ public class PrometheusConfig {
         if (defaultConfigFile == null || !defaultConfigFile.exists()) {
             File tmpFile = null;
             try {
-                log.info("Loading default config file: {}", defaultConfigFile);
+                log.info("Loading default config file from internal resources: {}", DEFAULT_CONFIG_RESOURCE);
                 final var resourceUrl = PrometheusConfig.class.getClassLoader().getResource(DEFAULT_CONFIG_RESOURCE);
                 if (resourceUrl != null) {
                     // Create a temp file and copy the resource into it so components expecting a File can use it
