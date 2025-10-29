@@ -16,3 +16,4 @@ CLAUDE.md
 workspace/*
 /packaging/helm-charts/**/*.tgz
 /packaging/helm-charts/workspace/*
+build-output/
