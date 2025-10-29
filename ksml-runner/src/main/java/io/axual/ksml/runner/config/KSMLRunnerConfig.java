@@ -21,61 +21,94 @@ package io.axual.ksml.runner.config;
  */
 
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
-import lombok.extern.jackson.Jacksonized;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.runner.config.internal.StringMap;
+import jakarta.annotation.Nonnull;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Builder
-@Jacksonized
+@JsonIgnoreProperties(ignoreUnknown = false)
+@NoArgsConstructor
 public class KSMLRunnerConfig {
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
-    @JsonProperty("ksml")
+    @JsonProperty(value = "ksml", required = true)
+    @Nonnull
     private KSMLConfig ksmlConfig;
 
-    @JsonProperty("kafka")
+    public void setKsmlConfig(KSMLConfig ksmlConfig) {
+        this.ksmlConfig = ksmlConfig;
+    }
+
+    @Nonnull
+    public KSMLConfig getKsmlConfig() {
+        return ksmlConfig;
+    }
+
+    @JsonProperty(value = "kafka", required = true)
+    @Nonnull
     private KafkaConfig kafkaConfig;
 
-    public String applicationId() {
+    public String getApplicationId() {
         return kafkaConfig.applicationId();
     }
 
-    public Map<String, String> kafkaConfig() {
-        return kafkaConfig.config();
+
+    public void setKafkaConfig(KafkaConfig kafkaConfig) {
+        this.kafkaConfig = kafkaConfig;
     }
 
+    public KafkaConfig getKafkaConfig() {
+        return this.kafkaConfig;
+    }
+
+    public Map<String, String> getKafkaConfigMap() {
+        return kafkaConfig.getEffectiveConfig();
+    }
+
+    @JsonClassDescription("Contains the Kafka Streams configuration options, like bootstrap servers, application ids, etc")
     @Data
-    static class KafkaConfig {
-        private final String applicationId;
+    public static class KafkaConfig extends StringMap {
+        @JsonCreator
+        public KafkaConfig() {
+            super();
+        }
 
-        private final Map<String, String> config;
+        @Nonnull
+        @JsonProperty(value = "application.id", required = true)
+        private String applicationId;
 
-        @Builder
-        @Jacksonized
-        private KafkaConfig(@JsonProperty("app.id")
-                            @JsonAlias({"applicationId", "application.id"}) String applicationId, @JsonAnySetter @Singular() Map<String, String> kafkaConfigs) {
-            this.applicationId = applicationId;
-            final var result = new HashMap<>(kafkaConfigs);
+        @Override
+        public String put(final String property, final String value) {
+            if ("application.id".equals(property)) {
+                this.applicationId = value;
+            }
+            return super.put(property, value);
+        }
+
+        @JsonIgnore
+        public Map<String, String> getEffectiveConfig() {
+            final var result = new HashMap<>(this);
             if (ResolvingClientConfig.configRequiresResolving(result)) {
                 ResolvingClientConfig.replaceDeprecatedConfigKeys(result);
             }
-            // Add the application id back to the map
-            result.put("application.id", applicationId);
-            this.config = Collections.unmodifiableMap(result);
+            return Collections.unmodifiableMap(result);
+
         }
     }
 }

@@ -21,18 +21,16 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.google.common.collect.ImmutableMap;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.util.JsonNodeUtil;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.python.PythonContextConfig;
-import io.axual.ksml.runner.exception.ConfigException;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.extern.jackson.Jacksonized;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,51 +39,78 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.runner.config.internal.KsmlFileOrDefinition;
+import io.axual.ksml.runner.exception.ConfigException;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.jackson.Jacksonized;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Builder
+@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonClassDescription("""
+        The `ksml` section contains all configuration specific to execute a KSML application.
+        It controls where KSML looks for definitions and schemas, Notations, Kafka and schema registry settings as well as observability features.
+        """)
+@AllArgsConstructor
+@NoArgsConstructor
 @Jacksonized
+@Data
 public class KSMLConfig {
-    private static final PrometheusConfig DEFAULT_PROMETHEUS_CONFIG = PrometheusConfig.builder()
-            .enabled(false)
-            .build();
-    private static final ApplicationServerConfig DEFAULT_APPSERVER_CONFIG = ApplicationServerConfig.builder()
-            .enabled(false)
-            .build();
+    public static final String DEFAULT_LOCATION = System.getProperty("user.dir");
 
-    @JsonProperty("applicationServer")
-    @Builder.Default
-    private ApplicationServerConfig applicationServerConfig = DEFAULT_APPSERVER_CONFIG;
-    @JsonProperty("prometheus")
-    @Builder.Default
-    @Getter
-    private PrometheusConfig prometheusConfig = DEFAULT_PROMETHEUS_CONFIG;
+    @JsonProperty(value = "applicationServer", required = false)
+    @JsonPropertyDescription("Configures a REST API for state store queries and health checks")
+    private ApplicationServerConfig applicationServerConfig = new ApplicationServerConfig();
+    @JsonProperty(value = "prometheus", required = false)
+    @JsonPropertyDescription("Configures a Prometheus metrics endpoint")
+    private PrometheusConfig prometheusConfig = new PrometheusConfig();
 
-    private String configDirectory;
-    private String schemaDirectory;
-    private String storageDirectory;
+    @NotBlank
+    @JsonProperty(value = "configDirectory", required = false)
+    @JsonPropertyDescription("Directory containing KSML definition files. Defaults to the working directory")
+    private String configDirectory = DEFAULT_LOCATION;
 
-    @Builder.Default
+    @NotBlank
+    @JsonProperty(value = "schemaDirectory", required = false)
+    @JsonPropertyDescription("Directory containing schema files. Defaults to the value of configDirectory")
+    private String schemaDirectory = DEFAULT_LOCATION;
+
+    @NotBlank
+    @JsonProperty(value = "storageDirectory", required = false)
+    @JsonPropertyDescription("Directory for Kafka Streams state stores. Defaults to the System temp directory")
+    private String storageDirectory = DEFAULT_LOCATION;
+
+    @JsonProperty(value = "createStorageDirectory", required = false)
+    @JsonPropertyDescription("Create storage directory if it doesn't exist. Default value is false")
     private boolean createStorageDirectory = false;
 
-    @Getter
-    @Builder.Default
+    @JsonProperty(value = "enableProducers", required = false)
+    @JsonPropertyDescription("Toggle to enable or disable the creation of producers in the KSML definitions. Default value is true")
     private boolean enableProducers = true;
-    @Getter
-    @Builder.Default
+
+    @JsonProperty(value = "enablePipelines", required = false)
+    @JsonPropertyDescription("Toggle to enable or disable the creation of pipelines in the KSML definitions. Default value is true")
     private boolean enablePipelines = true;
 
-    @JsonProperty("errorHandling")
-    private ErrorHandlingConfig errorHandlingConfig;
-    @JsonProperty("schemaRegistries")
-    private Map<String, SchemaRegistryConfig> schemaRegistries;
-    @JsonProperty("notations")
-    private Map<String, NotationConfig> notations;
-    @JsonProperty("definitions")
-    private Map<String, Object> definitions;
-    @JsonProperty("schemas")
-    private Map<String, Object> schemas;
+    @JsonProperty(value = "errorHandling", required = false)
+    @JsonPropertyDescription("Configures how different types of errors are handled")
+    private ErrorHandlingConfig errorHandlingConfig = new ErrorHandlingConfig();
+    @JsonProperty(value = "schemaRegistries", required = false)
+    @JsonPropertyDescription("Configure named connections to schema registries. These can be referred to by notations which need access to a Schema Registry")
+    private SchemaRegistryMap schemaRegistries;
+    @JsonProperty(value = "notations", required = false)
+    @JsonPropertyDescription("Configure named data format serializers and deserializers")
+    private NotationMap notations;
+    @JsonProperty(value = "definitions", required = true)
+    @JsonPropertyDescription("Contains a map for KSML Definitions. The key is used as a namespace")
+    private KsmlDefinitionMap definitions;
     @JsonProperty("pythonContext")
+    @JsonPropertyDescription("Control Python execution security and permissions.")
     private PythonContextConfig pythonContextConfig;
 
     public PythonContextConfig pythonContextConfig() {
@@ -131,11 +156,14 @@ public class KSMLConfig {
     }
 
     public ApplicationServerConfig applicationServerConfig() {
+        if(applicationServerConfig == null) {
+            applicationServerConfig = new ApplicationServerConfig();
+        }
         return applicationServerConfig;
     }
 
     public ErrorHandlingConfig errorHandlingConfig() {
-        if (errorHandlingConfig == null) return ErrorHandlingConfig.builder().build();
+        if (errorHandlingConfig == null) return new ErrorHandlingConfig();
         return errorHandlingConfig;
     }
 
@@ -152,8 +180,12 @@ public class KSMLConfig {
     public Map<String, JsonNode> definitions() {
         final var result = new HashMap<String, JsonNode>();
         if (definitions != null) {
-            for (Map.Entry<String, Object> definition : definitions.entrySet()) {
-                if (definition.getValue() instanceof String definitionFile) {
+            for (var definition : definitions.entrySet()) {
+                var namespace = definition.getKey();
+                var valueObj = definition.getValue();
+                if (valueObj == null) continue;
+
+                if (valueObj.getValue() instanceof String definitionFile) {
                     final var definitionFilePath = Paths.get(configDirectory(), definitionFile);
                     if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
                         throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
@@ -161,17 +193,62 @@ public class KSMLConfig {
                     try {
                         log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
                         final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
-                        result.put(definition.getKey(), def);
+                        result.put(namespace, def);
                     } catch (IOException e) {
                         log.error("Could not read KSML definition from file: {}", definitionFilePath);
                     }
                 }
-                if (definition.getValue() instanceof Map<?, ?> definitionMap) {
-                    final var root = JsonNodeUtil.convertNativeToJsonNode(definitionMap);
-                    result.put(definition.getKey(), root);
+                if (valueObj.getValue() instanceof ObjectNode root) {
+                    result.put(namespace, root);
                 }
             }
         }
         return result;
+    }
+
+    /* Define Several Map Definitions to allow typed naming */
+    @JsonClassDescription("Contains a map for KSML Definitions. The key is used as a namespace")
+    @Data
+    public static class KsmlDefinitionMap extends HashMap<String, KsmlFileOrDefinition> {
+
+        @JsonCreator
+        public KsmlDefinitionMap() {
+            super();
+        }
+
+        @JsonAnySetter
+        public void add(String property, KsmlFileOrDefinition value) {
+            this.put(property, value);
+        }
+
+    }
+
+    @JsonClassDescription("Configure named connections to schema registries. These can be referred to by notations which need access to a Schema Registry")
+    @Data
+    public static class SchemaRegistryMap extends HashMap<String, SchemaRegistryConfig> {
+        @JsonCreator
+        public SchemaRegistryMap() {
+            super();
+        }
+
+        @JsonAnySetter
+        @JsonCreator
+        public void add(String property, SchemaRegistryConfig value) {
+            this.put(property, value);
+        }
+    }
+
+    @JsonClassDescription("Configure named data format serializers and deserializers")
+    @Data
+    public static class NotationMap extends HashMap<String, NotationConfig> {
+        @JsonCreator
+        public NotationMap() {
+            super();
+        }
+
+        @JsonAnySetter
+        public void add(String property, NotationConfig value) {
+            this.put(property, value);
+        }
     }
 }

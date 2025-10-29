@@ -169,11 +169,10 @@ class KafkaStreamsRunnerTest {
      * @return Stream of test arguments with different configuration scenarios
      */
     static Stream<Arguments> streamsConfigTestData() {
-        var appServer = ApplicationServerConfig.builder()
-                .enabled(true)
-                .host("localhost")
-                .port("8080")
-                .build();
+        var appServer = new ApplicationServerConfig();
+        appServer.enabled(true);
+        appServer.host("localhost");
+        appServer.port(8080);
 
         return Stream.of(
                 // Basic configuration
@@ -666,12 +665,11 @@ class KafkaStreamsRunnerTest {
 
         final var mockStreamsSupplier = new MockStreamsSupplier(mockStreams);
 
+        final ApplicationServerConfig appServerConfig = new ApplicationServerConfig();
         final KafkaStreamsRunner.Config config = KafkaStreamsRunner.Config.builder()
                 .definitions(Map.of())
                 .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
-                .appServer(ApplicationServerConfig.builder()
-                        .enabled(false)
-                        .build())
+                .appServer(appServerConfig)
                 .storageDirectory("tmp")
                 .build();
 

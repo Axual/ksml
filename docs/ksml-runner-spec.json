@@ -1,0 +1,285 @@
+{
+  "$schema" : "https://json-schema.org/draft/2019-09/schema",
+  "$defs" : {
+    "ApplicationServerConfig" : {
+      "type" : "object",
+      "properties" : {
+        "enabled" : {
+          "type" : "boolean",
+          "description" : "Toggle to activate the creation of the application server. Default is false"
+        },
+        "host" : {
+          "type" : "string",
+          "description" : "Determines on which hostname/ip address the application server listener is created. Default is IP address for all networks '0.0.0.0'"
+        },
+        "port" : {
+          "type" : "integer",
+          "description" : "Determines on which port the application server is listening. Default is 8080",
+          "minimum" : 1,
+          "maximum" : 65535
+        }
+      },
+      "required" : [ "enabled" ],
+      "description" : "Controls if a REST API for health checks and querying state stores is available, and on which host it's listening",
+      "additionalProperties" : false
+    },
+    "ErrorHandlingConfig" : {
+      "type" : "object",
+      "properties" : {
+        "consume" : {
+          "$ref" : "#/$defs/ErrorTypeHandlingConfig",
+          "description" : "Configures the error handling for deserialization errors. The default logger name is 'ConsumeError'."
+        },
+        "process" : {
+          "$ref" : "#/$defs/ErrorTypeHandlingConfig",
+          "description" : "Configures the error handling for pipeline processing errors. The default logger name is 'ProcessError'."
+        },
+        "produce" : {
+          "$ref" : "#/$defs/ErrorTypeHandlingConfig",
+          "description" : "Configures the error handling for serialization errors. The default logger name is 'ProduceError'."
+        }
+      },
+      "description" : "Controls how consume, produce and processing errors are handled",
+      "additionalProperties" : false
+    },
+    "ErrorTypeHandlingConfig" : {
+      "type" : "object",
+      "properties" : {
+        "handler" : {
+          "$ref" : "#/$defs/Handler",
+          "description" : "Controls the behaviour of handling the error, which can be Stop KSML (stopOnFail), Continue KSML (continueOnFail) and Retry (retryOnFail)"
+        },
+        "log" : {
+          "type" : "boolean",
+          "description" : "Toggle to enable logging the error. Defaults to true."
+        },
+        "logPayload" : {
+          "type" : "boolean",
+          "description" : "Toggle to add the payload which caused the error to the logged output. Defaults to false."
+        },
+        "loggerName" : {
+          "type" : "string",
+          "description" : "Sets the logger name used for handling. Setting these combined with setting specific logger configuration allows the log entries to be filtered, or written to another location."
+        }
+      },
+      "description" : "Contains the configuration on how to handle Errors.",
+      "additionalProperties" : false
+    },
+    "Handler" : {
+      "type" : "string",
+      "enum" : [ "stopOnFail", "continueOnFail", "retryOnFail" ],
+      "description" : "Enumeration controlling error handling behaviour."
+    },
+    "KSMLConfig" : {
+      "type" : "object",
+      "properties" : {
+        "applicationServer" : {
+          "$ref" : "#/$defs/ApplicationServerConfig",
+          "description" : "Configures a REST API for state store queries and health checks"
+        },
+        "configDirectory" : {
+          "type" : "string",
+          "description" : "Directory containing KSML definition files. Defaults to the working directory",
+          "minLength" : 1
+        },
+        "createStorageDirectory" : {
+          "type" : "boolean",
+          "description" : "Create storage directory if it doesn't exist. Default value is false"
+        },
+        "definitions" : {
+          "$ref" : "#/$defs/KsmlDefinitionMap"
+        },
+        "enablePipelines" : {
+          "type" : "boolean",
+          "description" : "Toggle to enable or disable the creation of pipelines in the KSML definitions. Default value is true"
+        },
+        "enableProducers" : {
+          "type" : "boolean",
+          "description" : "Toggle to enable or disable the creation of producers in the KSML definitions. Default value is true"
+        },
+        "errorHandling" : {
+          "$ref" : "#/$defs/ErrorHandlingConfig",
+          "description" : "Configures how different types of errors are handled"
+        },
+        "notations" : {
+          "$ref" : "#/$defs/NotationMap"
+        },
+        "prometheus" : {
+          "$ref" : "#/$defs/PrometheusConfig",
+          "description" : "Configures a Prometheus metrics endpoint"
+        },
+        "pythonContext" : {
+          "$ref" : "#/$defs/PythonContextConfig",
+          "description" : "Control Python execution security and permissions."
+        },
+        "schemaDirectory" : {
+          "type" : "string",
+          "description" : "Directory containing schema files. Defaults to the value of configDirectory",
+          "minLength" : 1
+        },
+        "schemaRegistries" : {
+          "$ref" : "#/$defs/SchemaRegistryMap"
+        },
+        "storageDirectory" : {
+          "type" : "string",
+          "description" : "Directory for Kafka Streams state stores. Defaults to the System temp directory",
+          "minLength" : 1
+        }
+      },
+      "required" : [ "definitions" ],
+      "description" : "The `ksml` section contains all configuration specific to execute a KSML application.\nIt controls where KSML looks for definitions and schemas, Notations, Kafka and schema registry settings as well as observability features.\n",
+      "additionalProperties" : false
+    },
+    "KafkaConfig" : {
+      "type" : "object",
+      "properties" : {
+        "application.id" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "application.id" ],
+      "description" : "Contains the Kafka Streams configuration options, like bootstrap servers, application ids, etc",
+      "additionalProperties" : {
+        "type" : [ "string", "number", "integer", "boolean" ]
+      }
+    },
+    "KsmlDefinitionMap" : {
+      "type" : "object",
+      "description" : "Contains a map for KSML Definitions. The key is used as a namespace",
+      "additionalProperties" : {
+        "$ref" : "#/$defs/KsmlFileOrDefinition"
+      }
+    },
+    "KsmlFileOrDefinition" : {
+      "anyOf" : [ {
+        "type" : "string"
+      }, {
+        "type" : "object",
+        "additionalProperties" : false
+      } ]
+    },
+    "NotationConfig" : {
+      "type" : "object",
+      "properties" : {
+        "config" : {
+          "$ref" : "#/$defs/StringMap",
+          "description" : "Additional properties for the serializer, these will be added to any configuration options defined for the the schema registry"
+        },
+        "schemaRegistry" : {
+          "type" : "string",
+          "description" : "The name of the Schema Registry configuration to use, if applicable for the type"
+        },
+        "type" : {
+          "type" : "string",
+          "description" : "Serializer implementation type"
+        }
+      },
+      "required" : [ "type" ],
+      "description" : "Specify and configure a specific type of notation, or format on how to read/write data from a Kafka topic.",
+      "additionalProperties" : false
+    },
+    "NotationMap" : {
+      "type" : "object",
+      "description" : "Configure named data format serializers and deserializers",
+      "additionalProperties" : {
+        "$ref" : "#/$defs/NotationConfig"
+      }
+    },
+    "Path" : {
+      "type" : "object",
+      "additionalProperties" : false
+    },
+    "PrometheusConfig" : {
+      "type" : "object",
+      "properties" : {
+        "configFile" : {
+          "$ref" : "#/$defs/Path"
+        },
+        "enabled" : {
+          "type" : "boolean",
+          "description" : "Toggle to activate the creation Prometheus metrics exporter. Default is false"
+        },
+        "host" : {
+          "type" : "string",
+          "description" : "Determines on which hostname/ip address the Prometheus metrics exporter listener is created. Default is IP address for all networks '0.0.0.0'",
+          "minLength" : 1
+        },
+        "port" : {
+          "type" : "integer",
+          "description" : "Determines on which port the Prometheus metrics exporter is listening. Default is 9999",
+          "minimum" : 1,
+          "maximum" : 65535
+        }
+      },
+      "required" : [ "enabled" ],
+      "description" : "Controls on which hostname and port the Prometheus metrics are accessible, and which prometheus exporter configuration file to use",
+      "additionalProperties" : false
+    },
+    "PythonContextConfig" : {
+      "type" : "object",
+      "properties" : {
+        "allowCreateProcess" : {
+          "type" : "boolean",
+          "description" : "Allow Python code to execute external processes. Default is false."
+        },
+        "allowCreateThread" : {
+          "type" : "boolean",
+          "description" : "Allow Python code to create new Java threads. Default is false."
+        },
+        "allowHostFileAccess" : {
+          "type" : "boolean",
+          "description" : "Allow Python code to access host file system. Default is false."
+        },
+        "allowHostSocketAccess" : {
+          "type" : "boolean",
+          "description" : "Allow Python code to open network sockets. Default is false."
+        },
+        "allowNativeAccess" : {
+          "type" : "boolean",
+          "description" : "Allow Graal native access / JNI. Default is false."
+        },
+        "inheritEnvironmentVariables" : {
+          "type" : "boolean",
+          "description" : "Inherit JVM process environment in Python context. Default is false."
+        }
+      },
+      "description" : "Control Python execution security and permissions",
+      "additionalProperties" : false
+    },
+    "SchemaRegistryConfig" : {
+      "type" : "object",
+      "properties" : {
+        "config" : {
+          "$ref" : "#/$defs/StringMap",
+          "description" : "Contains common configuration options for connecting to a specific schema registry. This can contain schema registry URLs, SSL/TLS settings"
+        }
+      },
+      "description" : "Configure connections to schema registries",
+      "additionalProperties" : false
+    },
+    "SchemaRegistryMap" : {
+      "type" : "object",
+      "description" : "Configure named connections to schema registries. These can be referred to by notations which need access to a Schema Registry",
+      "additionalProperties" : {
+        "$ref" : "#/$defs/SchemaRegistryConfig"
+      }
+    },
+    "StringMap" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : [ "string", "number", "integer", "boolean" ]
+      }
+    }
+  },
+  "type" : "object",
+  "properties" : {
+    "kafka" : {
+      "$ref" : "#/$defs/KafkaConfig"
+    },
+    "ksml" : {
+      "$ref" : "#/$defs/KSMLConfig"
+    }
+  },
+  "required" : [ "kafka", "ksml" ],
+  "additionalProperties" : false
+}

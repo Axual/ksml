@@ -99,6 +99,7 @@
 
         <!-- KSML schema generation -->
         <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
+        <ksml-runner.schema.output.file>docs/ksml-runner-spec.json</ksml-runner.schema.output.file>
 
         <!-- Test dependency versions -->
         <assertj.version>3.27.6</assertj.version>
@@ -379,6 +380,11 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
                 <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jsonSchema-jakarta</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>

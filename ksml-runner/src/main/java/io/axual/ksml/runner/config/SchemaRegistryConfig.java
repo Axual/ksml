@@ -20,14 +20,21 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
+import io.axual.ksml.runner.config.internal.StringMap;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
-import java.util.Map;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonClassDescription("Configure connections to schema registries")
 @Builder
 @Jacksonized
-public record SchemaRegistryConfig(Map<String, String> config) {
+public record SchemaRegistryConfig(
+        @JsonProperty(value = "config", required = false)
+        @JsonPropertyDescription("Contains common configuration options for connecting to a specific schema registry. This can contain schema registry URLs, SSL/TLS settings")
+        StringMap config) {
 }
