@@ -362,14 +362,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-the-ksml-language-specification" class="md-nav__link">
+  <a href="#understanding-ksml-schemas" class="md-nav__link">
     <span class="md-ellipsis">
-      What is the KSML Language Specification?
+      Understanding KSML Schemas
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="What is the KSML Language Specification?">
+    <nav class="md-nav" aria-label="Understanding KSML Schemas">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-ksml-language-specification-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. KSML Language Specification Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-ksml-runner-configuration-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. KSML Runner Configuration Schema
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#schema-benefits" class="md-nav__link">
@@ -386,37 +404,47 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#setting-up-schema-validation-in-intellij-idea" class="md-nav__link">
+  <a href="#setting-up-schema-validation" class="md-nav__link">
     <span class="md-ellipsis">
-      Setting Up Schema Validation in IntelliJ IDEA
+      Setting Up Schema Validation
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Setting Up Schema Validation in IntelliJ IDEA">
+    <nav class="md-nav" aria-label="Setting Up Schema Validation">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#step-1-access-json-schema-settings" class="md-nav__link">
+  <a href="#method-1-inline-schema-declaration-recommended" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 1: Access JSON Schema Settings
+      Method 1: Inline Schema Declaration (Recommended)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method 1: Inline Schema Declaration (Recommended)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-ksml-definition-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      For KSML Definition Files
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-add-ksml-schema" class="md-nav__link">
+  <a href="#for-ksml-runner-configuration-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2: Add KSML Schema
+      For KSML Runner Configuration Files
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-configure-file-mappings" class="md-nav__link">
+  <a href="#how-inline-schemas-work" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 3: Configure File Mappings
+      How Inline Schemas Work
     </span>
   </a>
   
@@ -426,16 +454,39 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#setting-up-schema-validation-in-visual-studio-code" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#method-2-ide-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Setting Up Schema Validation in Visual Studio Code
+      Method 2: IDE Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Setting Up Schema Validation in Visual Studio Code">
+    <nav class="md-nav" aria-label="Method 2: IDE Configuration">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intellij-idea-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      IntelliJ IDEA Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-studio-code-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visual Studio Code Setup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#step-1-install-yaml-extension" class="md-nav__link">
@@ -447,20 +498,35 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-configure-schema-association" class="md-nav__link">
+  <a href="#step-2-configure-schema-associations" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2: Configure Schema Association
+      Step 2: Configure Schema Associations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Configure Schema Associations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-user-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option A: User Settings
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-workspace-configuration" class="md-nav__link">
+  <a href="#option-b-workspace-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 3: Workspace Configuration
+      Option B: Workspace Configuration
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -498,9 +564,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-testing-validation" class="md-nav__link">
+  <a href="#example-1-testing-ksml-definition-validation" class="md-nav__link">
     <span class="md-ellipsis">
-      Example: Testing Validation
+      Example 1: Testing KSML Definition Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-testing-ksml-runner-configuration-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2: Testing KSML Runner Configuration Validation
     </span>
   </a>
   
@@ -512,11 +587,86 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#schema-file-location" class="md-nav__link">
+  <a href="#generating-schema-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Schema File Location
+      Generating Schema Files
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Generating Schema Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-both-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating Both Schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-individual-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating Individual Schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-file-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema File Locations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema File Locations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ksml-language-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML Language Specification
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ksml-runner-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML Runner Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-characteristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Characteristics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1626,14 +1776,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-the-ksml-language-specification" class="md-nav__link">
+  <a href="#understanding-ksml-schemas" class="md-nav__link">
     <span class="md-ellipsis">
-      What is the KSML Language Specification?
+      Understanding KSML Schemas
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="What is the KSML Language Specification?">
+    <nav class="md-nav" aria-label="Understanding KSML Schemas">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-ksml-language-specification-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. KSML Language Specification Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-ksml-runner-configuration-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. KSML Runner Configuration Schema
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#schema-benefits" class="md-nav__link">
@@ -1650,37 +1818,47 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#setting-up-schema-validation-in-intellij-idea" class="md-nav__link">
+  <a href="#setting-up-schema-validation" class="md-nav__link">
     <span class="md-ellipsis">
-      Setting Up Schema Validation in IntelliJ IDEA
+      Setting Up Schema Validation
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Setting Up Schema Validation in IntelliJ IDEA">
+    <nav class="md-nav" aria-label="Setting Up Schema Validation">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#step-1-access-json-schema-settings" class="md-nav__link">
+  <a href="#method-1-inline-schema-declaration-recommended" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 1: Access JSON Schema Settings
+      Method 1: Inline Schema Declaration (Recommended)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method 1: Inline Schema Declaration (Recommended)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-ksml-definition-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      For KSML Definition Files
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-add-ksml-schema" class="md-nav__link">
+  <a href="#for-ksml-runner-configuration-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2: Add KSML Schema
+      For KSML Runner Configuration Files
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-configure-file-mappings" class="md-nav__link">
+  <a href="#how-inline-schemas-work" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 3: Configure File Mappings
+      How Inline Schemas Work
     </span>
   </a>
   
@@ -1690,16 +1868,39 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#setting-up-schema-validation-in-visual-studio-code" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#method-2-ide-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Setting Up Schema Validation in Visual Studio Code
+      Method 2: IDE Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Setting Up Schema Validation in Visual Studio Code">
+    <nav class="md-nav" aria-label="Method 2: IDE Configuration">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intellij-idea-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      IntelliJ IDEA Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-studio-code-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visual Studio Code Setup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#step-1-install-yaml-extension" class="md-nav__link">
@@ -1711,20 +1912,35 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-configure-schema-association" class="md-nav__link">
+  <a href="#step-2-configure-schema-associations" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 2: Configure Schema Association
+      Step 2: Configure Schema Associations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Configure Schema Associations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-user-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option A: User Settings
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-workspace-configuration" class="md-nav__link">
+  <a href="#option-b-workspace-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 3: Workspace Configuration
+      Option B: Workspace Configuration
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1762,9 +1978,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-testing-validation" class="md-nav__link">
+  <a href="#example-1-testing-ksml-definition-validation" class="md-nav__link">
     <span class="md-ellipsis">
-      Example: Testing Validation
+      Example 1: Testing KSML Definition Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-testing-ksml-runner-configuration-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2: Testing KSML Runner Configuration Validation
     </span>
   </a>
   
@@ -1776,11 +2001,86 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#schema-file-location" class="md-nav__link">
+  <a href="#generating-schema-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Schema File Location
+      Generating Schema Files
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Generating Schema Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-both-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating Both Schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-individual-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating Individual Schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-file-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema File Locations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema File Locations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ksml-language-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML Language Specification
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ksml-runner-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      KSML Runner Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-characteristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Characteristics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1810,145 +2110,356 @@
 
 
 <h1 id="ksml-schema-validation">KSML Schema Validation</h1>
-<p>KSML provides a JSON Schema specification file that enables IDE validation, autocompletion, and error checking for your KSML definition files. This helps you write correct KSML syntax and catch errors early in development.</p>
+<p>KSML provides two JSON Schema specification files that enable IDE validation, autocompletion, and error checking for your KSML files. These schemas help you write correct syntax and catch errors early in development.</p>
 <p>The KSML project is available at: <a href="https://github.com/Axual/ksml">https://github.com/Axual/ksml</a></p>
-<h2 id="what-is-the-ksml-language-specification">What is the KSML Language Specification?</h2>
-<p>The KSML Language Specification is a comprehensive JSON Schema file (<code>docs/ksml-language-spec.json</code>) that defines the complete structure and syntax of KSML definition files. This schema validates:</p>
+<h2 id="understanding-ksml-schemas">Understanding KSML Schemas</h2>
+<p>KSML provides <strong>two separate JSON schemas</strong> for different types of configuration files:</p>
+<h3 id="1-ksml-language-specification-schema">1. KSML Language Specification Schema</h3>
+<p><strong>File:</strong> <code>docs/ksml-language-spec.json</code><br />
+<strong>Validates:</strong> KSML definition files (e.g., <code>processor.yaml</code>, <code>producer.yaml</code>, <code>pipeline.yaml</code>)</p>
+<p>This schema validates KSML stream processing definitions by ensuring:</p>
 <ul>
-<li><strong>YAML Structure</strong>: Correct nesting and organization of KSML components (streams, tables, globalTables, functions, pipelines, producers)</li>
-<li><strong>Field Names</strong>: Valid property names for operations (transformValue, filter, aggregate, join, etc.)</li>
-<li><strong>Field Types</strong>: Whether a field should be a string, object, array, or boolean</li>
-<li><strong>Required Fields</strong>: Which properties must be present in each component</li>
-<li><strong>Configuration Structure</strong>: Proper formatting of configuration sections</li>
+<li>Proper nesting and organization of streams, tables, functions, and pipelines</li>
+<li>Valid property names for operations like transformValue, filter, aggregate, and join</li>
+<li>Correct data types for each field (string, object, array, or boolean)</li>
+<li>Required properties are present in each component</li>
+<li>Pipeline operations and transformations follow proper formatting</li>
 </ul>
-<p><strong>Note</strong>: The schema validates YAML syntax and structure, not the semantic correctness of string values. For example, it checks that <code>resultType</code> is a string, but doesn't verify if the specified type (e.g., <code>"json"</code> or <code>"avro:MySchema"</code>) is actually valid in your KSML context.</p>
+<details class="info">
+<summary>Example KSML definition file</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">input_stream</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_input</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">output_stream</span><span class="p">:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filtered_data</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">temperature_filtered</span><span class="p">:</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&#39;sensors&#39;, {}).get(&#39;temperature&#39;) &gt; 20 and value.get(&#39;sensors&#39;, {}).get(&#39;humidity&#39;) &lt; 80 and value.get(&#39;sensors&#39;, {}).get(&#39;location&#39;) == &#39;warehouse&#39;</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">log_message</span><span class="p">:</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forEach</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="no">log.info(&quot;Processed message: key={}, value={}&quot;, key, value)</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="nt">filtering_pipeline</span><span class="p">:</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">temperature_filtered</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">            </span><span class="no">log_message(key, value)</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_stream</span>
+</code></pre></div>
+</details>
+<h3 id="2-ksml-runner-configuration-schema">2. KSML Runner Configuration Schema</h3>
+<p><strong>File:</strong> <code>docs/ksml-runner-spec.json</code><br />
+<strong>Validates:</strong> KSML Runner configuration files (e.g., <code>ksml-runner.yaml</code>)</p>
+<p>This schema validates the runner configuration that controls how KSML executes:</p>
+<ul>
+<li>Bootstrap servers, application IDs, and Kafka consumer/producer settings</li>
+<li>Definition file locations, storage directories, and feature toggles</li>
+<li>Error handling strategies for consume, produce, and process operations</li>
+<li>Prometheus metrics and REST API configuration for health checks and queries</li>
+<li>Data format serializers and deserializers (Avro, JSON, Protobuf, etc.)</li>
+<li>Connections to Confluent or Apicurio schema registry instances</li>
+<li>Security permissions and sandboxing for Python function execution</li>
+</ul>
+<details class="info">
+<summary>Example KSML Runner configuration file</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">ksml</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">definitions</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">producer-avro.yaml</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">processor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor-avro-transform.yaml</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">schemaRegistries</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">my_schema_registry</span><span class="p">:</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">config</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">        </span><span class="nt">schema.registry.url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://schema-registry:8081/apis/ccompat/v7</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">notations</span><span class="p">:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">avro</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">confluent_avro</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">schemaRegistry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my_schema_registry</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">config</span><span class="p">:</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="nt">normalize.schemas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="nt">auto.register.schemas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nt">storageDirectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/ksml/state</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="nt">createStorageDirectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nt">kafka</span><span class="p">:</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">broker:9093</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="nt">application.id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.ksml.schema.registry.test</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="nt">security.protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PLAINTEXT</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="nt">acks</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span>
+</code></pre></div>
+</details>
 <h3 id="schema-benefits">Schema Benefits</h3>
-<p>Using the KSML schema in your IDE provides:</p>
+<p>Using KSML schemas in your IDE provides:</p>
 <ol>
-<li><strong>Real-time Validation</strong>: Immediate feedback on syntax errors and invalid configurations</li>
-<li><strong>Autocompletion</strong>: IDE suggestions for properties, operations, and values</li>
-<li><strong>Documentation</strong>: Inline help text explaining each field and operation</li>
-<li><strong>Structure Validation</strong>: Ensures correct YAML structure and required fields are present</li>
-<li><strong>Error Prevention</strong>: Catch configuration mistakes before deployment</li>
+<li>Immediate feedback on syntax errors and invalid configurations</li>
+<li>Smart suggestions for properties, operations, and valid values</li>
+<li>Inline help text explaining each field and operation as you type</li>
+<li>Verification that YAML structure is correct and required fields are present</li>
+<li>Early detection of configuration mistakes before deployment</li>
+<li>Type checking for strings, numbers, booleans, objects, and arrays</li>
+<li>Valid value suggestions for enumerated fields like error handlers (<code>stopOnFail</code>, <code>continueOnFail</code>, <code>retryOnFail</code>)</li>
 </ol>
-<h2 id="setting-up-schema-validation-in-intellij-idea">Setting Up Schema Validation in IntelliJ IDEA</h2>
-<p>Follow these steps to configure KSML schema validation in IntelliJ IDEA:</p>
-<h3 id="step-1-access-json-schema-settings">Step 1: Access JSON Schema Settings</h3>
+<h2 id="setting-up-schema-validation">Setting Up Schema Validation</h2>
+<p>There are two ways to enable schema validation:</p>
+<ol>
+<li><strong>Inline schema declaration</strong> (recommended) - Add a comment at the top of each file</li>
+<li><strong>IDE configuration</strong> - Configure schema mappings in your IDE settings</li>
+</ol>
+<h3 id="method-1-inline-schema-declaration-recommended">Method 1: Inline Schema Declaration (Recommended)</h3>
+<p>Add a schema declaration comment at the <strong>top</strong> of your YAML files. This method works across IDEs without configuration.</p>
+<h4 id="for-ksml-definition-files">For KSML Definition Files</h4>
+<p>Add this line at the top of your pipeline/processor/producer files:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-language-spec.json</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">my-stream</span><span class="p">:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-topic&quot;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="c1"># ... rest of your definition</span>
+</code></pre></div>
+<h4 id="for-ksml-runner-configuration-files">For KSML Runner Configuration Files</h4>
+<p>Add this line at the top of your <code>ksml-runner.yaml</code> file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-runner-spec.json</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nt">kafka</span><span class="p">:</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost:9092</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="c1"># ... rest of your configuration</span>
+</code></pre></div>
+<h4 id="how-inline-schemas-work">How Inline Schemas Work</h4>
+<p>The special comment <code># yaml-language-server: $schema=URL</code> tells your IDE:</p>
+<ol>
+<li><strong>VS Code (YAML extension)</strong>: Automatically detects and applies the schema from the URL</li>
+<li><strong>IntelliJ IDEA</strong>: Recognizes the declaration and fetches the schema</li>
+<li><strong>Other editors</strong>: Most modern YAML-aware editors support this convention</li>
+</ol>
+<p><strong>Benefits:</strong>
+- No IDE configuration needed
+- Schema association travels with the file
+- Works for all team members immediately
+- Version-controlled alongside your code
+- Public URL means always up-to-date schemas</p>
+<p><strong>Note:</strong> The schemas are published to GitHub Pages at <code>https://axual.github.io/ksml/latest/</code>, so an internet connection is required for initial download. IDEs typically cache schemas locally after the first fetch.</p>
+<p><strong>For local development</strong> without internet access, you can use relative paths:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># yaml-language-server: $schema=../../docs/ksml-language-spec.json</span>
+</code></pre></div></p>
+<hr />
+<h3 id="method-2-ide-configuration">Method 2: IDE Configuration</h3>
+<p>If you prefer to configure schema mappings in your IDE settings, or if you're working offline with local schema files, follow these steps.</p>
+<h4 id="intellij-idea-setup">IntelliJ IDEA Setup</h4>
+<p><strong>Step 1: Access JSON Schema Settings</strong></p>
 <ol>
 <li>Open <strong>IntelliJ IDEA</strong></li>
 <li>Go to <strong>File</strong> → <strong>Preferences</strong> (on macOS) or <strong>File</strong> → <strong>Settings</strong> (on Windows/Linux)</li>
 <li>Navigate to <strong>Languages &amp; Frameworks</strong> → <strong>Schemas and DTDs</strong> → <strong>JSON Schema Mappings</strong></li>
 </ol>
-<h3 id="step-2-add-ksml-schema">Step 2: Add KSML Schema</h3>
+<p><strong>Step 2: Add KSML Language Specification Schema</strong></p>
+<p>Configure validation for KSML definition files (streams, pipelines, producers):</p>
 <ol>
 <li>Click the <strong>+</strong> (plus) button to add a new schema mapping</li>
 <li>Configure the mapping:</li>
 <li><strong>Name</strong>: <code>KSML Language Specification</code></li>
 <li><strong>Schema file or URL</strong>: Browse to <code>docs/ksml-language-spec.json</code> in your KSML project directory</li>
-<li><strong>Schema version</strong>: Select <strong>JSON Schema version 4</strong></li>
+<li>
+<p><strong>Schema version</strong>: Select <strong>JSON Schema version Draft 2019-09</strong></p>
+</li>
+<li>
+<p>Add file mappings by clicking <strong>+</strong> in the mappings section:</p>
+</li>
+<li><strong>For specific files</strong>: <code>processor.yaml</code>, <code>producer.yaml</code>, <code>pipeline.yaml</code></li>
+<li><strong>For directory patterns</strong>: <code>**/definitions/**/*.yaml</code>, <code>**/pipelines/**/*.yaml</code></li>
+<li><strong>For file patterns</strong>: <code>*-pipeline.yaml</code>, <code>*-processor.yaml</code></li>
 </ol>
-<h3 id="step-3-configure-file-mappings">Step 3: Configure File Mappings</h3>
-<p>Add mappings for your KSML definition files by clicking <strong>+</strong> in the mappings section:</p>
+<p><strong>Step 3: Add KSML Runner Configuration Schema</strong></p>
+<p>Configure validation for KSML Runner configuration files:</p>
 <ol>
+<li>Click the <strong>+</strong> (plus) button again to add another schema mapping</li>
+<li>Configure the mapping:</li>
+<li><strong>Name</strong>: <code>KSML Runner Configuration</code></li>
+<li><strong>Schema file or URL</strong>: Browse to <code>docs/ksml-runner-spec.json</code> in your KSML project directory</li>
 <li>
-<p><strong>For specific files</strong>:</p>
-<ul>
-<li>Add individual KSML definition files (e.g., <code>my-pipeline.yaml</code>)</li>
-</ul>
+<p><strong>Schema version</strong>: Select <strong>JSON Schema version Draft 2019-09</strong></p>
 </li>
 <li>
-<p><strong>For directories</strong>:</p>
-<ul>
-<li>Add a directory pattern like <code>**/definitions/**/*.yaml</code></li>
-</ul>
+<p>Add file mappings by clicking <strong>+</strong> in the mappings section:</p>
 </li>
-<li>
-<p><strong>For file patterns</strong>:</p>
-<ul>
-<li>Add patterns like <code>*-pipeline.yaml</code> or <code>ksml-*.yaml</code></li>
-</ul>
-</li>
+<li><strong>For specific files</strong>: <code>ksml-runner.yaml</code>, <code>application.yaml</code></li>
+<li><strong>For file patterns</strong>: <code>ksml-runner*.yaml</code>, <code>*-runner.yaml</code></li>
 </ol>
-<h2 id="setting-up-schema-validation-in-visual-studio-code">Setting Up Schema Validation in Visual Studio Code</h2>
-<p>For VS Code users, follow these steps:</p>
+<p><strong>Important</strong>: Make sure the file patterns for each schema don't overlap. KSML definition files should map to the Language Specification schema, while runner configuration files should map to the Runner Configuration schema.</p>
+<h4 id="visual-studio-code-setup">Visual Studio Code Setup</h4>
+<p><strong>Note:</strong> If you're using the inline schema declaration method (recommended), no configuration is needed in VS Code. The YAML extension automatically recognizes the <code># yaml-language-server: $schema=URL</code> comments.</p>
+<p>For workspace-wide configuration without inline declarations:</p>
 <h3 id="step-1-install-yaml-extension">Step 1: Install YAML Extension</h3>
 <ol>
 <li>Install the <strong>YAML</strong> extension by Red Hat from the Extensions Marketplace</li>
 </ol>
-<h3 id="step-2-configure-schema-association">Step 2: Configure Schema Association</h3>
+<h3 id="step-2-configure-schema-associations">Step 2: Configure Schema Associations</h3>
+<p>You need to map different file patterns to the appropriate schema.</p>
+<h4 id="option-a-user-settings">Option A: User Settings</h4>
 <ol>
 <li>Open <strong>Settings</strong> (Ctrl/Cmd + ,)</li>
 <li>Search for "yaml schemas"</li>
 <li>Add the following to your <code>settings.json</code>:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="s2">&quot;**/definitions/**/*.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="s2">&quot;**/pipelines/**/*.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="s2">&quot;*-pipeline.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="s2">&quot;ksml-*.yaml&quot;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">      </span><span class="s2">&quot;**/definitions/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">      </span><span class="s2">&quot;**/pipelines/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="s2">&quot;*-pipeline.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">      </span><span class="s2">&quot;*-processor.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">      </span><span class="s2">&quot;*-producer.yaml&quot;</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-runner-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="s2">&quot;**/ksml-runner.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">      </span><span class="s2">&quot;**/*-runner.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">      </span><span class="s2">&quot;**/application.yaml&quot;</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="p">}</span>
 </code></pre></div>
-<h3 id="step-3-workspace-configuration">Step 3: Workspace Configuration</h3>
-<p>Alternatively, create a <code>.vscode/settings.json</code> file in your project root:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="s2">&quot;definitions/**/*.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="s2">&quot;pipelines/**/*.yaml&quot;</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">}</span>
+<h4 id="option-b-workspace-configuration">Option B: Workspace Configuration</h4>
+<p>Create a <code>.vscode/settings.json</code> file in your project root for project-specific configuration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="s2">&quot;definitions/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">      </span><span class="s2">&quot;pipelines/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">      </span><span class="s2">&quot;examples/**/processor.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">      </span><span class="s2">&quot;examples/**/producer.yaml&quot;</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-runner-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">      </span><span class="s2">&quot;**/ksml-runner.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">      </span><span class="s2">&quot;examples/**/ksml-runner.yaml&quot;</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">}</span>
 </code></pre></div>
+<p><strong>Note</strong>: Workspace configuration (Option B) is recommended as it's portable and version-controlled with your project.</p>
 <h2 id="verifying-schema-validation">Verifying Schema Validation</h2>
 <p>Once configured, you should see:</p>
 <h3 id="valid-ksml-syntax">Valid KSML Syntax</h3>
 <ul>
-<li>Green underlines or checkmarks</li>
-<li>Autocompletion suggestions when typing</li>
-<li>Inline documentation on hover</li>
+<li>Green underlines or checkmarks indicating correct syntax</li>
+<li>Autocompletion suggestions appearing as you type</li>
+<li>Inline documentation when hovering over fields</li>
+<li>Type hints showing expected data types</li>
 </ul>
 <h3 id="invalid-syntax-detection">Invalid Syntax Detection</h3>
 <ul>
-<li>Red squiggly underlines for errors</li>
-<li>Error messages explaining what's wrong</li>
-<li>Suggestions for corrections</li>
+<li>Red squiggly underlines highlighting errors</li>
+<li>Clear error messages explaining the problem</li>
+<li>Suggested corrections for common mistakes</li>
+<li>Validation of enumerated values with all valid options</li>
 </ul>
-<h3 id="example-testing-validation">Example: Testing Validation</h3>
-<p>Create a test KSML file with an intentional error:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Test</span><span class="nv"> </span><span class="s">Pipeline&quot;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">input</span><span class="p">:</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input-topic&quot;</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input&quot;</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invalidOperation&quot;</span><span class="w">  </span><span class="c1"># This should show an error</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;output-topic&quot;</span>
+<h3 id="example-1-testing-ksml-definition-validation">Example 1: Testing KSML Definition Validation</h3>
+<p>Create a test KSML definition file (<code>test-pipeline.yaml</code>) with an intentional error:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">input</span><span class="p">:</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input-topic&quot;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input&quot;</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invalidOperation&quot;</span><span class="w">  </span><span class="c1"># This should show an error</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;output-topic&quot;</span>
 </code></pre></div>
-<p>The schema validator should highlight <code>invalidOperation</code> as an invalid operation type and suggest valid alternatives like <code>transformValue</code>, <code>filter</code>, etc.</p>
-<h2 id="schema-file-location">Schema File Location</h2>
-<p>The KSML language specification is located at:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docs/ksml-language-spec.json
-</code></pre></div></p>
-<p>This file is:</p>
+<p>The schema validator will:</p>
 <ul>
-<li><strong>Version-controlled</strong>: Updated with each KSML release</li>
-<li><strong>Comprehensive</strong>: Covers all KSML features and syntax</li>
-<li><strong>Self-documenting</strong>: Includes descriptions for all properties and operations</li>
+<li>Highlight <code>invalidOperation</code> as an invalid operation type</li>
+<li>Suggest valid alternatives like <code>transformValue</code>, <code>filter</code>, and <code>aggregate</code></li>
+<li>Display documentation for each operation when hovering</li>
+</ul>
+<h3 id="example-2-testing-ksml-runner-configuration-validation">Example 2: Testing KSML Runner Configuration Validation</h3>
+<p>Create a test runner configuration file (<code>test-runner.yaml</code>) with intentional errors:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">kafka</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost:9092</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="c1"># Missing required field: application.id</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nt">ksml</span><span class="p">:</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">applicationServer</span><span class="p">:</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">99999</span><span class="w">  </span><span class="c1"># Invalid port (exceeds maximum 65535)</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="nt">errorHandling</span><span class="p">:</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="nt">consume</span><span class="p">:</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">      </span><span class="nt">handler</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invalidHandler&quot;</span><span class="w">  </span><span class="c1"># Invalid enum value</span>
+</code></pre></div>
+<p>The schema validator will:</p>
+<ul>
+<li>Highlight the missing required field <code>application.id</code></li>
+<li>Show that port <code>99999</code> exceeds the maximum allowed value of <code>65535</code></li>
+<li>Suggest valid handler values: <code>stopOnFail</code>, <code>continueOnFail</code>, or <code>retryOnFail</code></li>
+<li>Display descriptions for each configuration option when hovering</li>
+</ul>
+<h2 id="generating-schema-files">Generating Schema Files</h2>
+<p>KSML schemas are automatically generated during the build process, but you can also generate them manually when needed.</p>
+<h3 id="generating-both-schemas">Generating Both Schemas</h3>
+<p>To generate both the KSML Language Specification and Runner Configuration schemas:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mvn<span class="w"> </span>package<span class="w"> </span>-DskipTests<span class="w"> </span>-pl<span class="w"> </span>ksml-runner<span class="w"> </span>-am
+</code></pre></div>
+<p>This builds the module with its dependencies and generates both schema files:</p>
+<ul>
+<li><code>docs/ksml-language-spec.json</code> for KSML definitions</li>
+<li><code>docs/ksml-runner-spec.json</code> for runner configuration</li>
+</ul>
+<p><strong>Note:</strong> The <code>-am</code> (also-make) flag is required to build all dependencies needed for schema generation.</p>
+<h3 id="generating-individual-schemas">Generating Individual Schemas</h3>
+<p>If you've already built the project and want to generate schemas individually, you can run the JAR directly:</p>
+<p>To generate only the KSML Language Specification schema:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>ksml-runner/target/ksml-runner-*.jar<span class="w"> </span>--schema<span class="w"> </span>docs/ksml-language-spec.json
+</code></pre></div>
+<p>To generate only the KSML Runner Configuration schema:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>ksml-runner/target/ksml-runner-*.jar<span class="w"> </span>--runner-schema<span class="w"> </span>docs/ksml-runner-spec.json
+</code></pre></div>
+<p><strong>Note:</strong> These commands require the project to be built first with <code>mvn clean package</code>.</p>
+<h3 id="build-integration">Build Integration</h3>
+<p>Schemas are automatically regenerated when running:</p>
+<ul>
+<li><code>mvn clean package</code> for a full build (recommended)</li>
+<li><code>mvn package -DskipTests -pl ksml-runner -am</code> for quick schema generation without tests</li>
+<li>Any Maven build that includes the <code>process-classes</code> phase for <code>ksml-runner</code></li>
+</ul>
+<p>The schemas are always kept in sync with the codebase, ensuring your IDE validation matches the current KSML version.</p>
+<h2 id="schema-file-locations">Schema File Locations</h2>
+<p>Both KSML schemas are located in the <code>docs/</code> directory:</p>
+<h3 id="ksml-language-specification">KSML Language Specification</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>docs/ksml-language-spec.json
+</code></pre></div>
+<p><strong>Purpose:</strong> Validates KSML definition files (streams, pipelines, functions, producers)
+<strong>Schema Version:</strong> JSON Schema Draft 2019-09</p>
+<h3 id="ksml-runner-configuration">KSML Runner Configuration</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docs/ksml-runner-spec.json
+</code></pre></div>
+<p><strong>Purpose:</strong> Validates KSML Runner configuration files (Kafka settings, error handling, observability)
+<strong>Schema Version:</strong> JSON Schema Draft 2019-09</p>
+<h3 id="schema-characteristics">Schema Characteristics</h3>
+<p>Both schema files share these characteristics:</p>
+<ul>
+<li>Updated and version-controlled with each KSML release</li>
+<li>Comprehensive coverage of all features and configuration options</li>
+<li>Built-in descriptions for every property and field</li>
+<li>Automatically generated from Java code annotations using Jackson and Jakarta Validation</li>
 </ul>
 <h2 id="next-steps">Next Steps</h2>
 <p>With schema validation configured:</p>
 <ol>
-<li><strong>Follow the <a href="../basics-tutorial/">KSML Basics Tutorial</a></strong> to build your first validated application</li>
+<li>Follow the <a href="../basics-tutorial/">KSML Basics Tutorial</a> to build your first validated application</li>
+<li>Explore the examples in the <code>docs/</code> directory with full IDE support</li>
+<li>Configure runner settings confidently using the Runner Configuration schema</li>
 </ol>
 
 
