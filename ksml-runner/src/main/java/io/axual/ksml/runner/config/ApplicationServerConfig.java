@@ -21,37 +21,54 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
+import java.util.Optional;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Builder
-@Jacksonized
+@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonClassDescription("Controls if a REST API for health checks and querying state stores is available, and on which host it's listening")
+@NoArgsConstructor
 public class ApplicationServerConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
-    private static final String DEFAULT_PORT = "8080";
+    private static final Integer DEFAULT_PORT = 8080;
 
-    private boolean enabled;
-    private String host;
-    private String port;
+    @JsonProperty(value = "enabled", required = true)
+    @JsonPropertyDescription("Toggle to activate the creation of the application server. Default is false")
+    private boolean enabled = false;
+    @JsonProperty(value = "host", required = false)
+    @JsonPropertyDescription("Determines on which hostname/ip address the application server listener is created. Default is IP address for all networks '0.0.0.0'")
+    private String host = DEFAULT_HOSTNAME;
+    @JsonProperty(value = "port", required = false)
+    @JsonPropertyDescription("Determines on which port the application server is listening. Default is 8080")
+    @Min(1)
+    @Max(65535)
+    private Integer port = DEFAULT_PORT;
 
+    @JsonIgnore
     public String getApplicationServer() {
         if (!enabled) return null;
-        return host + ":" + port;
+        return getHost() + ":" + getPort();
     }
 
     public String getHost() {
         if (!enabled) return null;
-        return (host != null ? host : DEFAULT_HOSTNAME);
+        return Optional.ofNullable(host).orElse(DEFAULT_HOSTNAME);
     }
 
     public Integer getPort() {
         if (!enabled) return null;
-        return (port != null ? Integer.parseInt(port) : Integer.parseInt(DEFAULT_PORT));
+        return Optional.ofNullable(port).orElse(DEFAULT_PORT);
     }
 }

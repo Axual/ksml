@@ -1,0 +1,16 @@
+functions:
+  simple_generator:
+    type: generator
+    code: |
+      key = "key1"
+      value = {"message": "Hello, Kafka!"}
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  my_producer:
+    generator: simple_generator
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

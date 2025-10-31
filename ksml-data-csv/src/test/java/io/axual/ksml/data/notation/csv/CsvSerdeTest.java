@@ -174,13 +174,13 @@ class CsvSerdeTest {
             var bytes = serde.serializer().serialize("topic", struct);
             var result = serde.deserializer().deserialize("topic", bytes);
 
-            // Then: special characters should be preserved
+            // Then: special characters should be preserved exactly
             assertThat(result).isInstanceOf(DataStruct.class);
             var resultStruct = (DataStruct) result;
 
-            assertThat(resultStruct.get("name").toString()).contains("sensor");
-            assertThat(resultStruct.get("name").toString()).contains("type A");
-            assertThat(resultStruct.get("description").toString()).contains("temperature");
+            // Verify exact values are preserved through round-trip with special characters
+            assertThat(resultStruct.get("name").toString()).isEqualTo("sensor, type A");
+            assertThat(resultStruct.get("description").toString()).isEqualTo("temperature \"high\"");
         }
     }
 

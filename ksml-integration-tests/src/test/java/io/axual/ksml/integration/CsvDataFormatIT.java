@@ -20,6 +20,9 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -30,6 +33,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 
+import java.io.StringReader;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -102,18 +106,30 @@ class CsvDataFormatIT {
                 log.info("CSV Sensor: key={}, value={}", record.key(), record.value());
                 assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
-                // Validate CSV structure - should contain comma-separated values
+                // Use proper CSV parsing to validate structure
                 String csvValue = record.value();
-                assertThat(csvValue).as("CSV message should contain comma separators").contains(",");
+                try {
+                    CSVRecord csvRecord = parseCsvRecord(csvValue);
 
-                // Count commas to validate CSV structure (should have 7 commas for 8 fields)
-                // Schema: name,timestamp,value,type,unit,color,city,owner
-                long commaCount = csvValue.chars().filter(ch -> ch == ',').count();
-                assertThat(commaCount).as("CSV should have exactly 7 commas for 8 fields, found: " + commaCount).isEqualTo(7);
+                    // Schema: name,timestamp,value,type,unit,color,city,owner
+                    assertThat(csvRecord.size()).as("CSV should have exactly 8 fields").isEqualTo(8);
 
-                // Validate expected CSV fields exist (basic structure check)
-                String[] fields = csvValue.split(",", -1);
-                assertThat(fields).as("CSV should have exactly 8 fields").hasSize(8);
+                    // Validate that required fields are present and non-empty
+                    assertThat(csvRecord.get(0)).as("Name field should not be empty").isNotEmpty();
+                    assertThat(csvRecord.get(1)).as("Timestamp field should not be empty").isNotEmpty();
+                    assertThat(csvRecord.get(2)).as("Value field should not be empty").isNotEmpty();
+                    assertThat(csvRecord.get(3)).as("Type field should not be empty").isNotEmpty();
+                    assertThat(csvRecord.get(4)).as("Unit field should not be empty").isNotEmpty();
+                    assertThat(csvRecord.get(5)).as("Color field should not be empty").isNotEmpty();
+                    assertThat(csvRecord.get(6)).as("City field should not be empty").isNotEmpty();
+                    assertThat(csvRecord.get(7)).as("Owner field should not be empty").isNotEmpty();
+
+                    log.info("Parsed CSV fields: name={}, timestamp={}, value={}, type={}, unit={}, color={}, city={}, owner={}",
+                        csvRecord.get(0), csvRecord.get(1), csvRecord.get(2), csvRecord.get(3),
+                        csvRecord.get(4), csvRecord.get(5), csvRecord.get(6), csvRecord.get(7));
+                } catch (Exception e) {
+                    throw new AssertionError("Failed to parse CSV: " + csvValue, e);
+                }
 
                 // Store original for comparison with processed version (preserving order)
                 originalMessages.put(record.key(), csvValue);
@@ -131,44 +147,44 @@ class CsvDataFormatIT {
             assertThat(records).as("Should have processed sensor data in ksml_sensordata_csv_processed topic").isNotEmpty();
             log.info("Found {} processed CSV messages", records.count());
 
-            // Validate processed CSV messages against originals
+            // Validate processed CSV messages against originals using proper CSV parsing
             records.forEach(record -> {
                 // Track processing order
                 processedMessageOrder.add(record.key());
                 log.info("Processed CSV: key={}, value={}", record.key(), record.value());
                 assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
-                // Validate CSV structure contains processed data
+                // Use proper CSV parsing for both original and processed records
                 String processedCsvValue = record.value();
-                assertThat(processedCsvValue).as("Processed CSV message should contain comma separators").contains(",");
-
-                // Count commas to validate CSV structure (should have 7 commas for 8 fields)
-                long commaCount = processedCsvValue.chars().filter(ch -> ch == ',').count();
-                assertThat(commaCount).as("Processed CSV should have exactly 7 commas for 8 fields, found: " + commaCount).isEqualTo(7);
-
-                // Parse processed CSV fields
-                String[] processedFields = processedCsvValue.split(",", -1);
-                assertThat(processedFields).as("Processed CSV should have exactly 8 fields").hasSize(8);
-
-                // Verify transformation: city should be uppercase
                 String originalCsvValue = originalMessages.get(record.key());
                 assertThat(originalCsvValue).as("Should have original message for key: " + record.key()).isNotNull();
 
-                String[] originalFields = originalCsvValue.split(",", -1);
+                try {
+                    CSVRecord processedRecord = parseCsvRecord(processedCsvValue);
+                    CSVRecord originalRecord = parseCsvRecord(originalCsvValue);
 
-                // Schema: name,timestamp,value,type,unit,color,city,owner (city is index 6)
-                String originalCity = originalFields[6];
-                String processedCity = processedFields[6];
+                    // Schema: name,timestamp,value,type,unit,color,city,owner
+                    assertThat(processedRecord.size()).as("Processed CSV should have exactly 8 fields").isEqualTo(8);
 
-                assertThat(processedCity).isEqualTo(originalCity.toUpperCase())
-                    .as("City should be uppercase: original='%s', processed='%s'", originalCity, processedCity);
+                    // Verify transformation: city should be uppercase (field index 6)
+                    String originalCity = originalRecord.get(6);
+                    String processedCity = processedRecord.get(6);
 
-                // Verify other fields remain unchanged
-                for (int i = 0; i < originalFields.length; i++) {
-                    if (i != 6) { // Skip city field (index 6)
-                        assertThat(processedFields[i]).isEqualTo(originalFields[i])
-                            .as("Field %d should remain unchanged: original='%s', processed='%s'", i, originalFields[i], processedFields[i]);
+                    assertThat(processedCity).isEqualTo(originalCity.toUpperCase())
+                        .as("City should be uppercase: original='%s', processed='%s'", originalCity, processedCity);
+
+                    log.info("Verified city transformation: '{}' -> '{}'", originalCity, processedCity);
+
+                    // Verify other fields remain unchanged
+                    for (int i = 0; i < 8; i++) {
+                        if (i != 6) { // Skip city field (index 6)
+                            assertThat(processedRecord.get(i)).isEqualTo(originalRecord.get(i))
+                                .as("Field %d should remain unchanged: original='%s', processed='%s'",
+                                    i, originalRecord.get(i), processedRecord.get(i));
+                        }
                     }
+                } catch (Exception e) {
+                    throw new AssertionError("Failed to parse and compare CSV records. Original: " + originalCsvValue + ", Processed: " + processedCsvValue, e);
                 }
             });
 
@@ -201,6 +217,24 @@ class CsvDataFormatIT {
         );
 
         log.info("Sensor data has been generated and verified");
+    }
+
+    /**
+     * Parse a CSV string using Apache Commons CSV library.
+     * This provides robust CSV parsing that handles all edge cases including:
+     * - Quoted fields with commas
+     * - Escaped quotes
+     * - Newlines in fields
+     *
+     * @param csvString The CSV string to parse
+     * @return CSVRecord containing parsed fields
+     */
+    private CSVRecord parseCsvRecord(String csvString) throws Exception {
+        try (CSVParser parser = CSVFormat.DEFAULT.parse(new StringReader(csvString))) {
+            List<CSVRecord> records = parser.getRecords();
+            assertThat(records).as("CSV should parse to exactly one record").hasSize(1);
+            return records.getFirst();
+        }
     }
 
 }

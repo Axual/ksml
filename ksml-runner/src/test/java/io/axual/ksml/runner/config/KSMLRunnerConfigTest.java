@@ -22,6 +22,7 @@ package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,9 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KSMLRunnerConfigTest {
 
@@ -48,7 +51,7 @@ class KSMLRunnerConfigTest {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-runner-config.yaml");
         final var ksmlRunnerConfig = objectMapper.readValue(yaml, KSMLRunnerConfig.class);
 
-        assertNotNull(ksmlRunnerConfig.ksmlConfig());
+        assertNotNull(ksmlRunnerConfig.getKsmlConfig());
         final var expectedKafkaConfig = new HashMap<String, String>();
         expectedKafkaConfig.put("bootstrap.servers","broker:9093");
         expectedKafkaConfig.put("application.id","io.ksml.example.processor");
@@ -57,7 +60,7 @@ class KSMLRunnerConfigTest {
         expectedKafkaConfig.put("axual.topic.pattern","{tenant}-{instance}-{environment}-{topic}");
         expectedKafkaConfig.put("axual.group.id.pattern","{tenant}-{instance}-{environment}-{group.id}");
         expectedKafkaConfig.put("axual.transactional.id.pattern","{tenant}-{instance}-{environment}-{transactional.id}");
-        assertThat(ksmlRunnerConfig.kafkaConfig())
+        assertThat(ksmlRunnerConfig.getKafkaConfigMap())
                 .isNotNull()
                 .containsExactlyInAnyOrderEntriesOf(expectedKafkaConfig);
     }

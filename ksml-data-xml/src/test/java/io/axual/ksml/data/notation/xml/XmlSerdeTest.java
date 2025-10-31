@@ -148,14 +148,13 @@ class XmlSerdeTest {
             var bytes = serde.serializer().serialize("topic", struct);
             var result = serde.deserializer().deserialize("topic", bytes);
 
-            // Then: special characters should be preserved
+            // Then: special characters should be preserved exactly
             assertThat(result).isInstanceOf(DataStruct.class);
             var resultStruct = (DataStruct) result;
 
+            // Verify exact values are preserved through round-trip with special XML characters
             assertThat(resultStruct.get("name").toString()).isEqualTo("test & example");
-            assertThat(resultStruct.get("description").toString()).contains("<value>");
-            assertThat(resultStruct.get("description").toString()).contains("\"quotes\"");
-            assertThat(resultStruct.get("description").toString()).contains("'apostrophes'");
+            assertThat(resultStruct.get("description").toString()).isEqualTo("<value> with \"quotes\" and 'apostrophes'");
         }
     }
 

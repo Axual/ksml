@@ -1,0 +1,26 @@
+functions:
+  batch_generator:
+    type: generator
+    globalCode: |
+      counter = 0
+    code: |
+      global counter
+      # Generate multiple messages in one call
+      messages = []
+      for i in range(10):  # Generate 10 messages
+        key = f"sensor{counter}"
+        value = {"id": counter, "reading": counter * 10}
+        messages.append((key, value))
+        counter += 1
+      return messages  # Return list of tuples
+    resultType: list(tuple(string, json))
+
+producers:
+  batch_producer:
+    generator: batch_generator
+    interval: 5s
+    batchSize: 10  # Matches the generator's batch size
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

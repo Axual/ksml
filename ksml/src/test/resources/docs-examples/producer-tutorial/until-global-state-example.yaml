@@ -1,0 +1,28 @@
+functions:
+  generate_with_stop:
+    type: generic
+    resultType: boolean
+    globalCode: |
+      counter = 0
+      done = False
+
+      def next_message():
+        global counter, done
+        counter += 1
+        if counter >= 10:
+          done = True
+        return (f"key{counter}", {"count": counter})
+
+producers:
+  smart_producer:
+    generator:
+      code: |
+        return next_message()
+      resultType: (string, json)
+    until:
+      expression: done  # Access global variable
+    interval: 1s
+    to:
+      topic: my_topic
+      keyType: string
+      valueType: json

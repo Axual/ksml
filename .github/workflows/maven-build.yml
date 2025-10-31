@@ -1,0 +1,94 @@
+name: Maven Build and Test
+
+on:
+  workflow_call:
+    outputs:
+      artifact-name:
+        description: "Name of the uploaded build artifact"
+        value: ${{ jobs.build.outputs.artifact-name }}
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and test with GraalVM
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: build-artifacts-${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Fetch full history for SonarCloud analysis, because SonarCloud needs full git history to properly analyze changes.
+
+      - name: Set up GraalVM
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'graalvm'
+          java-version: '23'
+          cache: 'maven'
+
+      - name: Build and run all tests (unit + integration)
+        run: |
+          # Determine SonarQube arguments based on build type
+          # Reference: https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/branches/branch-analysis/
+          SONAR_ADDITION=""
+
+          # Scenario 1: Tag builds - analyze as a branch with the tag name
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            SONAR_ADDITION="-Dsonar.branch.name=${{ github.ref_name }}"
+            echo "SonarQube: Analyzing tag build '${{ github.ref_name }}'"
+
+          # Scenario 2: Pull request builds - analyze as a pull request
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            SONAR_ADDITION="-Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+              -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+              -Dsonar.pullrequest.base=${{ github.base_ref }}"
+            echo "SonarQube: Analyzing PR #${{ github.event.pull_request.number }} (${{ github.head_ref }} -> ${{ github.base_ref }})"
+
+          # Scenario 3: Branch builds - analyze as a branch
+          elif [[ "${{ github.ref_type }}" == "branch" ]]; then
+            SONAR_ADDITION="-Dsonar.branch.name=${{ github.ref_name }}"
+            echo "SonarQube: Analyzing branch '${{ github.ref_name }}'"
+
+            # If not the default branch, set target to default branch for comparison
+            if [[ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]]; then
+              SONAR_ADDITION="${SONAR_ADDITION} -Dsonar.branch.target=${{ github.event.repository.default_branch }}"
+              echo "SonarQube: Branch target set to '${{ github.event.repository.default_branch }}'"
+            fi
+          fi
+
+          # Run Maven build with SonarQube arguments
+          mvn clean verify -DskipITs=false --no-transfer-progress ${SONAR_ADDITION}
+        env:
+          # TestContainers configuration for GitHub Actions
+          TESTCONTAINERS_RYUK_DISABLED: false
+          # SonarQube token - Maven profile auto-activates when set
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # GitHub token for SonarCloud PR decoration
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            **/target/surefire-reports/TEST-*.xml
+            **/target/failsafe-reports/TEST-*.xml
+          check_name: 'Publish Test Results'
+
+      - name: Prepare build artifacts
+        run: |
+          mkdir -p build-output
+          cp ksml-runner/target/ksml-runner*.jar build-output/
+          cp -r ksml-runner/target/libs build-output/
+          cp ksml-runner/NOTICE.txt build-output/
+          cp LICENSE.txt build-output/
+
+      - name: Upload build artifacts
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ github.sha }}
+          path: build-output/
+          retention-days: 7

@@ -681,24 +681,44 @@ This pattern is commonly used for:
 
 Function used in producers to generate messages. It takes no input parameters and produces key-value pairs.
 
+For a comprehensive guide on using generator functions in producer definitions, see the [Producer Tutorial](../getting-started/producer-tutorial.md).
+
 #### Parameters
 
 None
 
 #### Return Value
 
-A tuple of (key, value) representing the generated message
+- A tuple `(key, value)` for a single message, **or**
+- A list of tuples `[(key1, value1), (key2, value2), ...]` for multiple messages (batch generation)
 
-#### Example
+#### Example: Single Message
 
 ```yaml
 --8<-- "docs-examples/beginner-tutorial/filtering-transforming/producer-filtering-transforming.yaml:2:16"
 ```
 
-**Full example for `generator`**:
+This generator returns a single tuple `(key, value)` each time it's called.
 
-- [Example: Generating JSON data](../tutorials/beginner/filtering-transforming.md#creating-test-data)
-- [Example: Generating Avro data](../tutorials/beginner/data-formats.md#working-with-avro-data)
+- [Full Example: Generating JSON data](../tutorials/beginner/filtering-transforming.md#creating-test-data)
+
+#### Example: Batch Generation (List of Tuples)
+
+```yaml
+--8<-- "docs-examples/reference/functions/generator-batch-producer.yaml:6:37"
+```
+
+This generator returns a **list of tuples** - generating 10 messages in a single call. This is useful for:
+
+- **High-throughput scenarios** - Generate multiple messages efficiently
+- **Related data sets** - Produce correlated messages together
+- **Batch processing** - Reduce overhead by generating messages in bulk
+
+??? info "Full Batch Generator Example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/generator-batch-producer.yaml" %}
+    ```
 
 ### keyValueMapper
 

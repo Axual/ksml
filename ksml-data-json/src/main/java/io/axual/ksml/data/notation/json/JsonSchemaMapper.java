@@ -290,6 +290,10 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private DataStruct fromDataSchema(StructSchema structSchema) {
         final var definitions = new DataStruct();
         final var result = fromDataSchema(structSchema, definitions::putIfAbsent);
+
+        // This custom JSON Schema implementation is compatible with Draft 2019-09 JSON Schema Version.
+        result.put("$schema", new DataString("https://json-schema.org/draft/2019-09/schema"));
+
         if (definitions.size() > 0) {
             result.put(DEFINITIONS_NAME, definitions);
         }

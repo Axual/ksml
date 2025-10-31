@@ -43,7 +43,6 @@
             <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-kafka-clients</artifactId>
         </dependency>
-
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -65,6 +64,28 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-generator</artifactId>
+            <version>4.38.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-module-jackson</artifactId>
+            <version>4.38.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-module-jakarta-validation</artifactId>
+            <version>4.38.0</version>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.7.7</version>
+        </dependency>
+
+
         <dependency>
             <groupId>io.axual.utils</groupId>
             <artifactId>axual-header-cleaning</artifactId>
@@ -190,13 +211,14 @@
                 <executions>
                     <execution>
                         <id>generate-ksml-schema</id>
-                        <phase>post-integration-test</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
                         <configuration>
                             <mainClass>io.axual.ksml.runner.KSMLRunner</mainClass>
-                            <commandlineArgs>--schema ${ksml.schema.output.file}</commandlineArgs>
+                            <commandlineArgs>--schema ${ksml.schema.output.file} --runner-schema ${ksml-runner.schema.output.file}
+                            </commandlineArgs>
                             <classpathScope>compile</classpathScope>
                             <includeProjectDependencies>true</includeProjectDependencies>
                             <includePluginDependencies>false</includePluginDependencies>
