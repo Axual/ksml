@@ -134,10 +134,15 @@
       "type" : "object",
       "properties" : {
         "application.id" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "An identifier for the stream processing application. Must be unique within the Kafka cluster. It is used as 1) the default client-id prefix, 2) the group-id for membership management, 3) the changelog topic prefix."
+        },
+        "bootstrap.servers" : {
+          "type" : "string",
+          "description" : "A list of host/port pairs used to establish the initial connection to the Kafka cluster.\nClients use this list to bootstrap and discover the full set of Kafka brokers.\nWhile the order of servers in the list does not matter, we recommend including more than one server to ensure resilience if any servers are down.\nThis list does not need to contain the entire set of brokers, as Kafka clients automatically manage and update connections to the cluster efficiently.\nThis list must be in the form 'host1:port1,host2:port2,...'"
         }
       },
-      "required" : [ "application.id" ],
+      "required" : [ "application.id", "bootstrap.servers" ],
       "description" : "Contains the Kafka Streams configuration options, like bootstrap servers, application ids, etc",
       "additionalProperties" : {
         "type" : [ "string", "number", "integer", "boolean" ]
@@ -185,15 +190,12 @@
         "$ref" : "#/$defs/NotationConfig"
       }
     },
-    "Path" : {
-      "type" : "object",
-      "additionalProperties" : false
-    },
     "PrometheusConfig" : {
       "type" : "object",
       "properties" : {
         "configFile" : {
-          "$ref" : "#/$defs/Path"
+          "type" : "string",
+          "description" : "Path to a Prometheus JMX Exporter configuration file, containing metrics exposure and naming rules. If not set an internal definition is used."
         },
         "enabled" : {
           "type" : "boolean",
