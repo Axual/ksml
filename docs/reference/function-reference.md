@@ -489,7 +489,7 @@ New aggregated value
 #### Example
 
 ```yaml
---8<-- "docs-examples/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:26:45"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-aggregate-stats.yaml:26:56"
 ```
 
 **Full example for `aggregator`**:

@@ -4,7 +4,7 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 
 ## What is KSML?
 
-KSML (Kafka Streams for Machine Learning) is a declarative language that makes stream processing accessible to data analysts, data engineers, and other professionals - no Java expertise required.
+KSML is a declarative language that makes stream processing accessible to data analysts, data engineers, and other professionals - no Java expertise required.
 
 Simply define your data processing pipelines in easy-to-read YAML files and write custom logic using Python. KSML handles all the complexity of Kafka Streams behind the scenes, translating your definitions into production-ready streaming applications.
 
