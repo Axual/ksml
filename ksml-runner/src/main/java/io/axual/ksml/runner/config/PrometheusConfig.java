@@ -31,7 +31,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Optional;
 
 import jakarta.annotation.Nonnull;
@@ -88,7 +87,8 @@ public class PrometheusConfig {
 
     /** Optional path to an explicit Prometheus exporter configuration file. */
     @JsonProperty(value = "configFile", required = false)
-    private Path configFile;
+    @JsonPropertyDescription("Path to a Prometheus JMX Exporter configuration file, containing metrics exposure and naming rules. If not set an internal definition is used.")
+    private String configFile;
 
     /**
      * Resolve the bind host. Returns null when the exporter is disabled so callers can interpret
@@ -143,6 +143,6 @@ public class PrometheusConfig {
         if (configFile == null) {
             return getDefaultConfigFile();
         }
-        return configFile.toFile();
+        return new File(configFile);
     }
 }
