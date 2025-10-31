@@ -21,14 +21,16 @@ package io.axual.ksml.runner.config;
  */
 
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -90,14 +92,29 @@ public class KSMLRunnerConfig {
         }
 
         @Nonnull
-        @JsonProperty(value = "application.id", required = true)
+        @JsonProperty(value = StreamsConfig.APPLICATION_ID_CONFIG, required = true)
+        @JsonPropertyDescription("An identifier for the stream processing application. Must be unique within the Kafka cluster. It is used as 1) the default client-id prefix, 2) the group-id for membership management, 3) the changelog topic prefix.")
         private String applicationId;
+
+        @Nonnull
+        @JsonProperty(value = StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, required = true)
+        @JsonPropertyDescription("""
+                A list of host/port pairs used to establish the initial connection to the Kafka cluster. 
+                Clients use this list to bootstrap and discover the full set of Kafka brokers.
+                While the order of servers in the list does not matter, we recommend including more than one server to ensure resilience if any servers are down. 
+                This list does not need to contain the entire set of brokers, as Kafka clients automatically manage and update connections to the cluster efficiently.
+                This list must be in the form 'host1:port1,host2:port2,...' """)
+        private String bootstrapServers;
 
         @Override
         public String put(final String property, final String value) {
-            if ("application.id".equals(property)) {
+            if (StreamsConfig.APPLICATION_ID_CONFIG.equals(property)) {
                 this.applicationId = value;
             }
+            if (StreamsConfig.BOOTSTRAP_SERVERS_CONFIG.equals(property)) {
+                this.bootstrapServers = value;
+            }
+
             return super.put(property, value);
         }
 
