@@ -465,6 +465,4 @@ class AvroSchemaMapperTest {
             }
         }
     }
-
-
 }

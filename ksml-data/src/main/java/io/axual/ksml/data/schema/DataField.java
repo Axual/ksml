@@ -64,7 +64,7 @@ public class DataField implements DataEquals {
     }
 
     /**
-     * The name of the field. May be null for anonymous fields.
+     * The name of the field. Maybe null for anonymous fields.
      */
     private final String name;
     /**

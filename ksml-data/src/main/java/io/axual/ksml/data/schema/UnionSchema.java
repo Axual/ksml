@@ -89,6 +89,7 @@ public class UnionSchema extends DataSchema {
             return Equal.ok();
         }
 
+        @Override
         public String toString() {
             return "Member(name=" + name + ", schema=" + schema + ", tag=" + tag + ")";
         }

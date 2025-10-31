@@ -156,7 +156,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private Map<String, Object> convertField(DataField field) {
         final var result = new LinkedHashMap<String, Object>();
         result.put(DataSchemaDSL.DATA_FIELD_NAME_FIELD, field.name());
-        result.put(DataSchemaDSL.DATA_FIELD_DOC_FIELD, field.doc());
+        if (field.hasDoc()) result.put(DataSchemaDSL.DATA_FIELD_DOC_FIELD, field.doc());
         result.put(DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD, field.required());
         result.put(DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD, field.constant());
         result.put(DataSchemaDSL.DATA_FIELD_TAG_FIELD, field.tag());

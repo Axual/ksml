@@ -89,7 +89,7 @@ public class NotationContext {
     }
 
     /**
-     * Creates a context with full control over vendor, native mapper and serde configs.
+     * Creates a context with full control over vendor, native mapper, and serde configs.
      *
      * @param notationName the notation name
      * @param vendorName the vendor name (nullable)
