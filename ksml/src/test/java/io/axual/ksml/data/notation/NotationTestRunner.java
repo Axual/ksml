@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
@@ -29,7 +30,8 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.util.JsonNodeUtil;
+import io.axual.ksml.schema.NativeDataSchemaMapper;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -45,7 +47,9 @@ class NotationTestRunner {
     static <T> void schemaTest(String type, DataSchemaMapper<T> schemaMapper, Tester<DataSchema> tester) {
         try {
             final var inputSchema = TestData.testSchema();
-            System.out.println("INPUT SCHEMA: " + inputSchema);
+            final var nativeSchema = new NativeDataSchemaMapper().fromDataSchema(inputSchema);
+            final var jsonSchema = JsonNodeUtil.convertNativeToJsonNode(nativeSchema).toPrettyString();
+            System.out.println("INPUT SCHEMA: " + jsonSchema);
             final var typeSchema = schemaMapper.fromDataSchema(inputSchema);
             System.out.println(type.toUpperCase() + " SCHEMA: " + typeSchema);
             final var outputSchema = schemaMapper.toDataSchema(inputSchema.namespace(), inputSchema.name(), typeSchema);
@@ -57,16 +61,25 @@ class NotationTestRunner {
         }
     }
 
-    static <T> void schemaTest(String type, DataSchemaMapper<T> schemaMapper) {
+    static <T> void schemaTest(String type, DataSchemaMapper<T> schemaMapper, EqualityFlags flags) {
         schemaTest(type, schemaMapper, (input, output) -> {
+            final var inputEqualsOutput = input.equals(output, flags);
+            if (!inputEqualsOutput.isEqual()) {
+                System.out.println("INPUT NOT EQUAL TO OUTPUT: \n" + inputEqualsOutput.toString("  ", true));
+            }
+            final var outputEqualsInput = output.equals(input, flags);
+            if (!outputEqualsInput.isEqual()) {
+                System.out.println("OUTPUT NOT EQUAL TO INPUT: \n" + outputEqualsInput.toString("  ", true));
+            }
+
             assertThat(input)
                     .as("Input schema should match output schema")
-                    .returns(true, i -> i.isAssignableFrom(output).isAssignable())
-                    .returns(true, o -> o.isAssignableFrom(input).isAssignable());
+                    .returns(true, i -> i.equals(output, flags).isEqual())
+                    .returns(true, o -> o.equals(input, flags).isEqual());
         });
     }
 
-    static <T> void dataTest(String type, DataObjectMapper<T> objectMapper, Flags flags) {
+    static <T> void dataTest(String type, DataObjectMapper<T> objectMapper, EqualityFlags flags) {
         try {
             final var inputData = TestData.testStruct();
             System.out.println("INPUT DATA: " + inputData);
@@ -81,7 +94,7 @@ class NotationTestRunner {
         }
     }
 
-    static void serdeTest(Notation notation, boolean strictTypeChecking, Flags flags) {
+    static void serdeTest(Notation notation, boolean strictTypeChecking, EqualityFlags flags) {
         try {
             final var inputData = TestData.testStruct();
             System.out.println("INPUT DATA: " + inputData);

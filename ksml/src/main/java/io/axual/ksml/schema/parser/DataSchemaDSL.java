@@ -49,6 +49,7 @@ public class DataSchemaDSL {
     public static final String DATA_FIELD_ORDER_FIELD = "order";
     public static final String UNION_MEMBER_NAME_FIELD = "name";
     public static final String UNION_MEMBER_SCHEMA_FIELD = DATA_SCHEMA_TYPE_FIELD;
+    public static final String UNION_MEMBER_DOC_FIELD = "doc";
     public static final String UNION_MEMBER_TAG_FIELD = "tag";
     public static final String UNKNOWN_TYPE = "?";
     public static final String NONE_TYPE = "none";

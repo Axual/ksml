@@ -20,25 +20,41 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaMapper;
-import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_NAMESPACE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+
 class XmlTests {
+    private static final EqualityFlags XML_EQUALITY_FLAGS = new EqualityFlags(
+            IGNORE_DATA_FIELD_TAG,
+            IGNORE_ENUM_SCHEMA_NAMESPACE,
+            IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
+            IGNORE_ENUM_SCHEMA_SYMBOL_TAG,
+            IGNORE_UNION_SCHEMA_MEMBER_NAME,
+            IGNORE_UNION_SCHEMA_MEMBER_TAG
+    );
+
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest(XmlNotation.NOTATION_NAME, new XmlSchemaMapper());
+        NotationTestRunner.schemaTest(XmlNotation.NOTATION_NAME, new XmlSchemaMapper(), XML_EQUALITY_FLAGS);
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true), Flags.EMPTY);
+        NotationTestRunner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true), XML_EQUALITY_FLAGS);
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME)), false, new Flags());
+        NotationTestRunner.serdeTest(new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME)), false, XML_EQUALITY_FLAGS);
     }
 }

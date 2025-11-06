@@ -22,29 +22,36 @@ package io.axual.ksml.data.notation.protobuf;
 
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.data.schema.StructSchema;
 
 public class ProtobufSchemaMapper implements DataSchemaMapper<ProtobufSchema> {
-    private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
-    private final ProtobufDescriptorFileElementMapper descriptorElementMapper;
+    private final ProtobufFileElementDescriptorMapper elementDescriptorMapper;
+    private final ProtobufFileElementSchemaMapper elementSchemaMapper;
 
-    public ProtobufSchemaMapper(ProtobufDescriptorFileElementMapper descriptorElementMapper) {
-        this.descriptorElementMapper = descriptorElementMapper;
+    public ProtobufSchemaMapper(ProtobufFileElementDescriptorMapper elementDescriptorMapper) {
+        this(elementDescriptorMapper, new NativeDataObjectMapper(), new DataTypeDataSchemaMapper());
+    }
+
+    public ProtobufSchemaMapper(ProtobufFileElementDescriptorMapper elementDescriptorMapper, NativeDataObjectMapper nativeMapper, DataTypeDataSchemaMapper typeSchemaMapper) {
+        this.elementDescriptorMapper = elementDescriptorMapper;
+        this.elementSchemaMapper = new ProtobufFileElementSchemaMapper(nativeMapper, typeSchemaMapper);
     }
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, ProtobufSchema schema) {
-        return ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, schema.protoFileElement());
+        return elementSchemaMapper.toDataSchema(namespace, name, schema.protoFileElement());
     }
 
     @Override
     public ProtobufSchema fromDataSchema(DataSchema schema) {
         final var name = schema instanceof NamedSchema namedSchema ? " '" + namedSchema.name() + "'" : null;
         if (schema instanceof StructSchema structSchema) {
-            final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(structSchema);
-            final var descriptor = descriptorElementMapper.toDescriptor(structSchema.namespace(), structSchema.name(), fileElement);
+            final var fileElement = elementSchemaMapper.fromDataSchema(structSchema);
+            final var descriptor = elementDescriptorMapper.toDescriptor(structSchema.namespace(), structSchema.name(), fileElement);
             return new ProtobufSchema(descriptor, fileElement);
         }
         throw new SchemaException("Can not convert " + schema.type() + " into dynamic PROTOBUF schema" + name);

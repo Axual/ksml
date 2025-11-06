@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,12 +34,12 @@ class NotationContextTest {
     @Test
     @DisplayName("name() builds vendor_notation when vendor present; otherwise notation")
     void nameBuildsFromVendorAndNotation() {
-        var contextWithoutVendor = new NotationContext("json");
+        final var contextWithoutVendor = new NotationContext("json");
         assertThat(contextWithoutVendor.vendorName()).isNull();
         assertThat(contextWithoutVendor.notationName()).isEqualTo("json");
         assertThat(contextWithoutVendor.name()).isEqualTo("json");
 
-        var contextWithVendor = new NotationContext("avro", "confluent");
+        final var contextWithVendor = new NotationContext("avro", "confluent");
         assertThat(contextWithVendor.vendorName()).isEqualTo("confluent");
         assertThat(contextWithVendor.notationName()).isEqualTo("avro");
         assertThat(contextWithVendor.name()).isEqualTo("confluent_avro");
@@ -47,19 +48,20 @@ class NotationContextTest {
     @Test
     @DisplayName("constructors populate fields; serdeConfigs default to mutable empty map and can be supplied")
     void constructorsPopulateFieldsAndSerdeConfigs() {
-        var providedConfigs = new HashMap<String, String>();
+        final var providedConfigs = new HashMap<String, String>();
         providedConfigs.put("a", "1");
-        var providedMapper = new NativeDataObjectMapper();
+        final var providedDataMapper = new NativeDataObjectMapper();
+        final var providedTypeSchemaMapper = new DataTypeDataSchemaMapper();
 
-        var context1 = new NotationContext("protobuf", providedMapper);
+        final var context1 = new NotationContext("protobuf", providedDataMapper, providedTypeSchemaMapper);
         assertThat(context1.notationName()).isEqualTo("protobuf");
         assertThat(context1.vendorName()).isNull();
-        assertThat(context1.nativeDataObjectMapper()).isSameAs(providedMapper);
+        assertThat(context1.nativeDataObjectMapper()).isSameAs(providedDataMapper);
         assertThat(context1.serdeConfigs()).isEmpty();
         context1.serdeConfigs().put("x", "y");
         assertThat(context1.serdeConfigs()).containsEntry("x", "y");
 
-        var context2 = new NotationContext("jsonschema", "apicurio", providedConfigs);
+        final var context2 = new NotationContext("jsonschema", "apicurio", providedConfigs);
         assertThat(context2.notationName()).isEqualTo("jsonschema");
         assertThat(context2.vendorName()).isEqualTo("apicurio");
         assertThat(context2.nativeDataObjectMapper()).isNotNull();
@@ -67,7 +69,7 @@ class NotationContextTest {
         assertThat(context2.serdeConfigs()).isSameAs(providedConfigs);
         assertThat(context2.serdeConfigs()).containsEntry("a", "1");
 
-        var context3 = new NotationContext("csv", "", (Map<String, String>) null);
+        final var context3 = new NotationContext("csv", "", (Map<String, String>) null);
         assertThat(context3.vendorName()).isEmpty();
         assertThat(context3.name()).isEqualTo("csv");
     }

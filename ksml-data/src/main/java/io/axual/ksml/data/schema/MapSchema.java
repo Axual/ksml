@@ -21,13 +21,13 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_MAP_SCHEMA_VALUE_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_MAP_SCHEMA_VALUE_SCHEMA;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
@@ -90,7 +90,7 @@ public class MapSchema extends DataSchema {
         final var valueSchemaAssignable = valueSchema.isAssignableFrom(that.valueSchema);
         if (valueSchemaAssignable.isNotAssignable())
             return fieldNotAssignable("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaAssignable);
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     /**
@@ -100,7 +100,7 @@ public class MapSchema extends DataSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object obj, Flags flags) {
+    public Equality equals(Object obj, EqualityFlags flags) {
         final var superEqual = super.equals(obj, flags);
         if (superEqual.isNotEqual()) return superEqual;
 
@@ -113,6 +113,6 @@ public class MapSchema extends DataSchema {
                 return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

@@ -21,10 +21,11 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.DataEquals;
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -32,14 +33,14 @@ import lombok.Getter;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_CONSTANT;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_DEFAULT_VALUE;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_DOC;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_ORDER;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_REQUIRED;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_SCHEMA;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_CONSTANT;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_DEFAULT_VALUE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_ORDER;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_REQUIRED;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
@@ -96,7 +97,7 @@ public class DataField implements DataEquals {
      * The default value assigned to the field, if any. Can be null if no
      * default is defined.
      */
-    private final DataValue defaultValue;
+    private final DataObject defaultValue;
     /**
      * The sorting order for the field, which is one of the {@link Order} enum values.
      * This determines how the field should be sorted when ordering is required.
@@ -114,9 +115,8 @@ public class DataField implements DataEquals {
      * @param constant     Whether the field is constant and unmodifiable.
      * @param defaultValue The default value of the field. Can be null.
      * @param order        The sorting order of the field (ascending, descending, or ignored).
-     * @throws DataException if the field is marked as required and the default value is null.
      */
-    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataValue defaultValue, Order order) {
+    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataObject defaultValue, Order order) {
         Objects.requireNonNull(schema);
         this.name = name;
         this.schema = schema;
@@ -125,11 +125,8 @@ public class DataField implements DataEquals {
         this.tag = schema instanceof UnionSchema ? NO_TAG : tag;
         this.required = required;
         this.constant = constant;
-        this.defaultValue = defaultValue;
+        this.defaultValue = required || defaultValue != null ? defaultValue : DataNull.INSTANCE;
         this.order = order;
-        if (required && defaultValue != null && defaultValue.value() == null) {
-            throw new DataException("Default value for field \"" + name + "\" can not be null");
-        }
     }
 
     /**
@@ -184,7 +181,21 @@ public class DataField implements DataEquals {
      * @param required Whether the field is required.
      */
     public DataField(String name, DataSchema schema, String doc, int tag, boolean required) {
-        this(name, schema, doc, tag, required, false, null);
+        this(name, schema, doc, tag, required, false);
+    }
+
+    /**
+     * Constructs a new DataField with the specified properties and assigns a default ascending order.
+     *
+     * @param name     The name of the field.
+     * @param schema   The schema of the field. Cannot be null.
+     * @param doc      The documentation string for the field. Can be null.
+     * @param tag      The tag of the field.
+     * @param required Whether the field is required.
+     * @param constant Whether the field is constant and unmodifiable.
+     */
+    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant) {
+        this(name, schema, doc, tag, required, constant, null);
     }
 
     /**
@@ -198,7 +209,7 @@ public class DataField implements DataEquals {
      * @param constant     Whether the field is constant and unmodifiable.
      * @param defaultValue The default value of the field. Can be null.
      */
-    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataValue defaultValue) {
+    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataObject defaultValue) {
         this(name, schema, doc, tag, required, constant, defaultValue, Order.ASCENDING);
     }
 
@@ -241,8 +252,8 @@ public class DataField implements DataEquals {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object obj, Flags flags) {
-        if (this == obj) return Equal.ok();
+    public Equality equals(Object obj, EqualityFlags flags) {
+        if (this == obj) return Equality.equal();
         if (obj == null) return otherIsNull(this);
         if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
 
@@ -283,6 +294,6 @@ public class DataField implements DataEquals {
         if (!flags.isSet(IGNORE_DATA_FIELD_ORDER) && !Objects.equals(order, that.order))
             return fieldNotEqual("order", this, order, that, that.order);
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

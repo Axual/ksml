@@ -21,9 +21,9 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.DataEquals;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
@@ -33,11 +33,13 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_DEFAULT_VALUE;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOLS;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_DEFAULT_VALUE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_NAMESPACE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOLS;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_NAMESPACE;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
@@ -84,8 +86,8 @@ public class EnumSchema extends NamedSchema {
         }
 
         @Override
-        public Equal equals(Object other, Flags flags) {
-            if (this == other) return Equal.ok();
+        public Equality equals(Object other, EqualityFlags flags) {
+            if (this == other) return Equality.equal();
             if (other == null) return otherIsNull(this);
             if (!getClass().equals(other.getClass()))
                 return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -104,7 +106,7 @@ public class EnumSchema extends NamedSchema {
             if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_TAG) && !Objects.equals(tag, that.tag))
                 return fieldNotEqual("tag", this, tag, that, that.tag);
 
-            return Equal.ok();
+            return Equality.equal();
         }
     }
 
@@ -173,7 +175,7 @@ public class EnumSchema extends NamedSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         // Always allow assigning from a string value (assuming a valid symbol)
-        if (otherSchema == DataSchema.STRING_SCHEMA) return Assignable.ok();
+        if (otherSchema == DataSchema.STRING_SCHEMA) return Assignable.assignable();
         // Check super's compatibility
         final var superAssignable = super.isAssignableFrom(otherSchema);
         if (superAssignable.isNotAssignable()) return superAssignable;
@@ -188,7 +190,7 @@ public class EnumSchema extends NamedSchema {
             }
         }
         // All symbols from the other union are contained within this one, so return no error
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     /**
@@ -198,7 +200,14 @@ public class EnumSchema extends NamedSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object obj, Flags flags) {
+    public Equality equals(Object obj, EqualityFlags flags) {
+        if (flags.isSet(IGNORE_ENUM_SCHEMA_NAMESPACE)) {
+            // Special implementation: if an enum specific flag is set to ignore namespace, set the general flag for
+            // this before calling the superclass
+            final var flagSet = flags.getAll();
+            flagSet.add(IGNORE_NAMED_SCHEMA_NAMESPACE);
+            flags = new EqualityFlags(flagSet);
+        }
         final var superEqual = super.equals(obj, flags);
         if (superEqual.isNotEqual()) return superEqual;
 
@@ -220,6 +229,6 @@ public class EnumSchema extends NamedSchema {
         if (!flags.isSet(IGNORE_ENUM_SCHEMA_DEFAULT_VALUE) && !Objects.equals(defaultValue, that.defaultValue))
             return fieldNotEqual("defaultValue", this, defaultValue, that, that.defaultValue);
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

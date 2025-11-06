@@ -68,7 +68,7 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
                 PipelineDefinition.class,
                 parseSource ? "" : "WithoutSource",
                 "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",
-                optional(stringField(KSMLDSL.Pipelines.NAME, true, null, "The name of the pipeline. If this field is not defined, then the name is derived from the context.")),
+                optional(stringField(KSMLDSL.Pipelines.NAME, true, "The name of the pipeline. If this field is not defined, then the name is derived from the context.")),
                 parseSource ? sourceField : new IgnoreParser<>(),
                 optional(listField(KSMLDSL.Pipelines.VIA, "step", "step", "A series of operations performed on the input stream", new PipelineOperationParser(resources()))),
                 optional(asParser),

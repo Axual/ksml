@@ -21,16 +21,16 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.Objects;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_LIST_SCHEMA_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_LIST_SCHEMA_VALUE_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_LIST_SCHEMA_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_LIST_SCHEMA_VALUE_SCHEMA;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
@@ -131,7 +131,7 @@ public class ListSchema extends DataSchema {
         final var valueSchemaAssignable = valueSchema.isAssignableFrom(that.valueSchema);
         if (valueSchemaAssignable.isNotAssignable())
             return fieldNotAssignable("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaAssignable);
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     /**
@@ -141,7 +141,7 @@ public class ListSchema extends DataSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
+    public Equality equals(Object other, EqualityFlags flags) {
         final var superEqual = super.equals(other, flags);
         if (superEqual.isNotEqual()) return superEqual;
 
@@ -158,7 +158,7 @@ public class ListSchema extends DataSchema {
                 return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 
     /**
@@ -167,7 +167,7 @@ public class ListSchema extends DataSchema {
      * @return A string representing the schema type.
      */
     @Override
-    public String toString() {
-        return super.toString() + " of " + valueSchema;
+    public String type() {
+        return super.type() + " of " + valueSchema;
     }
 }

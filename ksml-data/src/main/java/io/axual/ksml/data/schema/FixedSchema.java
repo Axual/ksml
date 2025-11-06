@@ -21,14 +21,14 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Objects;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_FIXED_SCHEMA_SIZE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_FIXED_SCHEMA_SIZE;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
@@ -90,7 +90,7 @@ public class FixedSchema extends NamedSchema {
         final var superAssignable = super.isAssignableFrom(otherSchema);
         if (superAssignable.isNotAssignable()) return superAssignable;
         if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return schemaMismatch(this, otherSchema);
-        if (size >= otherFixedSchema.size) return Assignable.ok();
+        if (size >= otherFixedSchema.size) return Assignable.assignable();
         return Assignable.notAssignable("Size of fixed schema (" + size + ") is smaller than the other fixed schema's size (" + otherFixedSchema.size + ")");
     }
 
@@ -101,7 +101,7 @@ public class FixedSchema extends NamedSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object obj, Flags flags) {
+    public Equality equals(Object obj, EqualityFlags flags) {
         final var superEqual = super.equals(obj, flags);
         if (superEqual.isNotEqual()) return superEqual;
 
@@ -111,6 +111,6 @@ public class FixedSchema extends NamedSchema {
         if (!flags.isSet(IGNORE_FIXED_SCHEMA_SIZE) && !Objects.equals(size, that.size))
             return fieldNotEqual("size", this, size, that, that.size);
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

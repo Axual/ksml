@@ -33,8 +33,8 @@ class UnionTypeTest {
     void constructorProperties() {
         var intType = new SimpleType(Integer.class, "integer");
         var strType = new SimpleType(String.class, "string");
-        var m1 = new UnionType.Member("i", intType, 10);
-        var m2 = new UnionType.Member("s", strType, 20);
+        var m1 = new UnionType.Member("i", intType, "Integer", 10);
+        var m2 = new UnionType.Member("s", strType, "String", 20);
         var u = new UnionType(m1, m2);
 
         assertThat(u)
@@ -55,7 +55,7 @@ class UnionTypeTest {
     void isAssignableFromBehavior() {
         var intType = new SimpleType(Integer.class, "integer");
         var strType = new SimpleType(String.class, "string");
-        var u = new UnionType(new UnionType.Member("i", intType, 1), new UnionType.Member("s", strType, 2));
+        var u = new UnionType(new UnionType.Member("i", intType, "Integer", 1), new UnionType.Member("s", strType, "String", 2));
 
         // From member type
         assertThat(u.isAssignableFrom(intType).isAssignable()).isTrue();
@@ -64,12 +64,12 @@ class UnionTypeTest {
 
         // From other union: types match, tags may differ, order must match
         var sameOrderDifferentTags = new UnionType(
-                new UnionType.Member("i", intType, 99), new UnionType.Member("s", strType, 100));
+                new UnionType.Member("i", intType, "Integer", 99), new UnionType.Member("s", strType, "String", 100));
         assertThat(u.isAssignableFrom(sameOrderDifferentTags).isAssignable()).isTrue();
 
         // Different order should still be assignable as union-to-union
         var swapped = new UnionType(
-                new UnionType.Member("s", strType, 2), new UnionType.Member("i", intType, 1));
+                new UnionType.Member("s", strType, "String", 2), new UnionType.Member("i", intType, "Integer", 1));
         assertThat(u.isAssignableFrom(swapped).isAssignable()).isTrue();
 
         // From Object values
@@ -84,10 +84,10 @@ class UnionTypeTest {
     void equalsAndHashCode() {
         var intType = new SimpleType(Integer.class, "integer");
         var strType = new SimpleType(String.class, "string");
-        var a = new UnionType(new UnionType.Member("i", intType, 1), new UnionType.Member("s", strType, 2));
-        var aDifferentTags = new UnionType(new UnionType.Member("i", intType, 10), new UnionType.Member("s", strType, 20));
-        var bSwapped = new UnionType(new UnionType.Member("s", strType, 2), new UnionType.Member("i", intType, 1));
-        var cWider = new UnionType(new UnionType.Member("i", new SimpleType(Number.class, "number"), 1), new UnionType.Member("s", strType, 2));
+        var a = new UnionType(new UnionType.Member("i", intType, "Integer", 1), new UnionType.Member("s", strType, "String", 2));
+        var aDifferentTags = new UnionType(new UnionType.Member("i", intType, "Integer", 10), new UnionType.Member("s", strType, "String", 20));
+        var bSwapped = new UnionType(new UnionType.Member("s", strType, "String", 2), new UnionType.Member("i", intType, "Integer", 1));
+        var cWider = new UnionType(new UnionType.Member("i", new SimpleType(Number.class, "number"), "Integer", 1), new UnionType.Member("s", strType, "String", 2));
 
         var softly = new SoftAssertions();
         // Reflexivity

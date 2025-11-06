@@ -21,9 +21,9 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_LIST_CONTENTS;
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_LIST_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_LIST_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_LIST_TYPE;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
@@ -220,7 +220,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      */
     @Override
     public String toString(Printer printer) {
-        final var sb = new StringBuilder(printer.schemaString(this));
+        final var sb = new StringBuilder(printer.schemaPrefix(this));
         sb.append("[");
         for (int index = 0; index < size(); index++) {
             if (index > 0) sb.append(", ");
@@ -237,8 +237,8 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -259,10 +259,10 @@ public class DataList implements DataObject, Iterable<DataObject> {
             if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 
-    private static Equal equalContents(DataList left, DataList right, Flags flags) {
+    private static Equality equalContents(DataList left, DataList right, EqualityFlags flags) {
         if (left.size() != right.size())
             return fieldNotEqual("elementCount", left, left.size(), right, right.size());
 
@@ -278,6 +278,6 @@ public class DataList implements DataObject, Iterable<DataObject> {
             }
             index++;
         }
-        return Equal.ok();
+        return Equality.equal();
     }
 }

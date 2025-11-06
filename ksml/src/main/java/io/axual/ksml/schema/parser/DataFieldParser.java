@@ -66,7 +66,7 @@ public class DataFieldParser extends BaseParser<DataField> {
                 index != null ? index : NO_TAG,
                 property.right(),
                 constant != null && constant,
-                new DataValueParser().parse(node.get(DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD)),
+                new DataObjectParser().parse(node.get(DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD)),
                 new DataFieldOrderParser().parse(node.get(DataSchemaDSL.DATA_FIELD_ORDER_FIELD)));
     }
 

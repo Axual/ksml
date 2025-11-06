@@ -22,16 +22,15 @@ package io.axual.ksml.data.schema;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.DataEquals;
-import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 import java.util.Objects;
 import java.util.Set;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_SCHEMA_TYPE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_SCHEMA_TYPE;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
@@ -40,9 +39,8 @@ import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
  * Represents a generic internal schema definition, capable of handling various schema types.
  * Instances of this class are used to define and interact with supported data schemas.
  */
-@Getter
 @EqualsAndHashCode
-public class DataSchema implements DataEquals  {
+public class DataSchema implements DataEquals {
     private static final String NO_SCHEMA_SPECIFIED = "No schema specified, this is a bug in KSML";
 
     /**
@@ -81,7 +79,7 @@ public class DataSchema implements DataEquals  {
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             if (otherSchema == null) return Assignable.notAssignable("No other schema provided");
             // This schema is assumed to be assignable from any other schema.
-            return Assignable.ok();
+            return Assignable.assignable();
         }
     };
     /**
@@ -99,7 +97,7 @@ public class DataSchema implements DataEquals  {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
+            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -109,7 +107,7 @@ public class DataSchema implements DataEquals  {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
+            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -119,7 +117,7 @@ public class DataSchema implements DataEquals  {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
+            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -129,7 +127,7 @@ public class DataSchema implements DataEquals  {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
+            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -139,7 +137,7 @@ public class DataSchema implements DataEquals  {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
+            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -149,7 +147,7 @@ public class DataSchema implements DataEquals  {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
+            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -165,11 +163,15 @@ public class DataSchema implements DataEquals  {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
             if (otherSchema == NULL_SCHEMA || otherSchema.type.equals(DataSchemaConstants.ENUM_TYPE)) {
                 // Always allow assignment from NULL and ENUM schemas
-                return Assignable.ok();
+                return Assignable.assignable();
             }
             return super.isAssignableFrom(otherSchema);
         }
     };
+
+    public String type() {
+        return type;
+    }
 
     /**
      * Checks if this schema type is assignable from another schema type.
@@ -180,7 +182,7 @@ public class DataSchema implements DataEquals  {
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         if (otherSchema == null) return Assignable.notAssignable("No other schema provided");
         // Base scenario: check assignability of types and return error if not assignable
-        return !type.equals(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.ok();
+        return !type.equals(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
     }
 
     /**
@@ -190,8 +192,8 @@ public class DataSchema implements DataEquals  {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -202,7 +204,7 @@ public class DataSchema implements DataEquals  {
         if (!flags.isSet(IGNORE_DATA_SCHEMA_TYPE) && !Objects.equals(type, that.type))
             return fieldNotEqual("type", this, type, that, that.type);
 
-        return Equal.ok();
+        return Equality.equal();
     }
 
     /**
@@ -212,6 +214,6 @@ public class DataSchema implements DataEquals  {
      */
     @Override
     public String toString() {
-        return type;
+        return type();
     }
 }

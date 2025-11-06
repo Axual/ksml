@@ -21,7 +21,8 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,7 @@ class SimpleTypeTest {
             @Override public String name() { return "X"; }
             @Override public String spec() { return "X"; }
             @Override public Assignable isAssignableFrom(DataType type) { return Assignable.notAssignable("Fake error"); }
-            @Override public Equal equals(Object other, Flags flags) { return Equal.notEqual("Fake error"); }
+            @Override public Equality equals(Object other, EqualityFlags flags) { return Equality.notEqual("Fake error"); }
         };
         assertThat(numberType.isAssignableFrom(other).isAssignable()).isFalse();
     }

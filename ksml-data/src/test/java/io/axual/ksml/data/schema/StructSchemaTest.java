@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataString;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ class StructSchemaTest {
     }
 
     private static DataField optionalStringWithDefault(String name) {
-        return new DataField(name, DataSchema.STRING_SCHEMA, null, 0, true, false, new DataValue("n/a"));
+        return new DataField(name, DataSchema.STRING_SCHEMA, null, 0, true, false, new DataString("n/a"));
     }
 
     @Test

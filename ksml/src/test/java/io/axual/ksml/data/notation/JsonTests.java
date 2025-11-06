@@ -23,7 +23,7 @@ package io.axual.ksml.data.notation;
 import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,12 +39,12 @@ class JsonTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(JsonNotation.NOTATION_NAME, new JsonDataObjectMapper(false), Flags.EMPTY);
+        NotationTestRunner.dataTest(JsonNotation.NOTATION_NAME, new JsonDataObjectMapper(false), EqualityFlags.EMPTY);
     }
 
     @Test
     void serdeTest() {
         final var notation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
-        NotationTestRunner.serdeTest(notation, true, new Flags());
+        NotationTestRunner.serdeTest(notation, true, new EqualityFlags());
     }
 }

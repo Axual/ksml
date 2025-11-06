@@ -40,8 +40,8 @@ public class SchemaUtil {
         if (schemas.isEmpty()) {
             schemas.addAll(subSchemas);
         } else {
-            // Here we combine the schemas from the subParser with the known list of schemas. Effectively this
-            // multiplies the number of schemas. So if we had 3 schemas in our schemas variable already, and the
+            // Here we combine the schemas from the subParser with the known list of schemas. Effectively, this
+            // multiplies the number of schemas. So if we had 3 schemas in our schema list already, and the
             // parser also parses 4 schema alternatives, then we end up with 12 new schemas.
             final var newSchemas = new ArrayList<StructSchema>();
             for (final var schema : schemas) {

@@ -20,16 +20,14 @@ package io.axual.ksml.data.compare;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.Flags;
-
 /**
  * Represents a contract for checking equality between data objects, data types and data schemas with additional
- * flexibility for parameterized comparisons using {@link Flags}.
+ * flexibility for parameterized comparisons using {@link EqualityFlags}.
  * <p>
  * Implementations of this interface must define the logic for comparing the current object
  * with another object for equality based on the provided flags. This allows fine-grained
  * control over which attributes or conditions are involved in the comparison.
  */
 public interface DataEquals {
-    Equal equals(Object obj, Flags flags);
+    Equality equals(Object obj, EqualityFlags flags);
 }

@@ -42,6 +42,7 @@ public class UnionMemberParser extends BaseParser<UnionSchema.Member> {
         return new UnionSchema.Member(
                 parseString(node, DataSchemaDSL.UNION_MEMBER_NAME_FIELD),
                 new DataSchemaParser().parse(node),
+                parseString(node, DataSchemaDSL.UNION_MEMBER_DOC_FIELD),
                 tag != null ? tag : NO_TAG);
     }
 }

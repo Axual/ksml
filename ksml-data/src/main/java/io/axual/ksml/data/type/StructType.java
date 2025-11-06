@@ -21,7 +21,8 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
@@ -33,7 +34,7 @@ import lombok.Getter;
 
 import java.util.Map;
 
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_STRUCT_TYPE_SCHEMA;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_STRUCT_TYPE_SCHEMA;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
@@ -97,7 +98,7 @@ public class StructType extends ComplexType {
     @Override
     public Assignable isAssignableFrom(DataType type) {
         // Always allow Structs to be NULL (Kafka tombstones)
-        if (type == DataNull.DATATYPE) return Assignable.ok();
+        if (type == DataNull.DATATYPE) return Assignable.assignable();
 
         // Perform superclass validation first
         final var superAssignable = super.isAssignableFrom(type);
@@ -113,7 +114,7 @@ public class StructType extends ComplexType {
                 return fieldNotAssignable(SCHEMA_FIELD, this, schema, that, that.schema, schemaAssignable);
         }
 
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     /**
@@ -123,8 +124,8 @@ public class StructType extends ComplexType {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -143,6 +144,6 @@ public class StructType extends ComplexType {
                 return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema, schemaEqual);
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

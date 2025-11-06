@@ -22,12 +22,13 @@ package io.axual.ksml.data.type;
 
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_DATA_TYPE_CONTAINER_CLASS;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
@@ -69,7 +70,7 @@ public class SimpleType implements DataType {
         if (!containerClass.isAssignableFrom(that.containerClass))
             return fieldNotAssignable("containerClass", this, containerClass, that, that.containerClass);
 
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     /**
@@ -79,8 +80,8 @@ public class SimpleType implements DataType {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -91,6 +92,6 @@ public class SimpleType implements DataType {
         if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
             return EqualUtil.containerClassNotEqual(containerClass, that.containerClass);
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

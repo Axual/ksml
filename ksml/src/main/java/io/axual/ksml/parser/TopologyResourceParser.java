@@ -65,7 +65,7 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
         final var typeName = "StringOrInline" + String.join("OrInline", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));
 //        final var doc = "Reference to " + resourceType + ", or inline " + String.join(", or inline ", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));
         final var schema = structSchema(typeName, doc, List.of(new DataField(childName, new UnionSchema(schemas.stream().map(UnionSchema.Member::new).toArray(UnionSchema.Member[]::new)), doc)));
-        final var stringParser = stringField(childName, false, null, doc);
+        final var stringParser = stringField(childName, false, doc);
         return new StructsParser<>() {
             @Override
             public TopologyResource<T> parse(ParseNode node) {

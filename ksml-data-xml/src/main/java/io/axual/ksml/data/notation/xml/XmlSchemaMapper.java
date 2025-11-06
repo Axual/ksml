@@ -22,6 +22,9 @@ package io.axual.ksml.data.notation.xml;
 
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
@@ -31,6 +34,7 @@ import io.axual.ksml.data.schema.UnionSchema;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAnnotated;
 import org.apache.ws.commons.schema.XmlSchemaAnnotation;
+import org.apache.ws.commons.schema.XmlSchemaAnyAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
@@ -79,6 +83,17 @@ import static org.apache.ws.commons.schema.constants.Constants.XSD_STRING;
 
 public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private static final String NAMESPACE_NAME = "xs";
+    private final NativeDataObjectMapper nativeMapper;
+    private final DataTypeDataSchemaMapper dataSchemaMapper;
+
+    public XmlSchemaMapper() {
+        this(null, null);
+    }
+
+    public XmlSchemaMapper(NativeDataObjectMapper nativeMapper, DataTypeDataSchemaMapper dataSchemaMapper) {
+        this.nativeMapper = nativeMapper != null ? nativeMapper : new NativeDataObjectMapper();
+        this.dataSchemaMapper = dataSchemaMapper != null ? dataSchemaMapper : new DataTypeDataSchemaMapper();
+    }
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, String schemaString) {
@@ -150,7 +165,14 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             }
             final var doc = extractDoc(element.getAnnotation());
             final var required = element.getMinOccurs() > 0;
-            return new DataField(element.getName(), schema, doc, NO_TAG, required);
+
+            final var defaultValueStr = element.getDefaultValue();
+            if (defaultValueStr == null)
+                return new DataField(element.getName(), schema, doc, NO_TAG, required);
+
+            final var defaultValueType = dataSchemaMapper.fromDataSchema(schema);
+            final var defaultValue = nativeMapper.toDataObject(defaultValueType, defaultValueStr);
+            return new DataField(element.getName(), schema, doc, NO_TAG, required, false, defaultValue);
         }
         return null;
     }
@@ -188,10 +210,16 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         if (type instanceof XmlSchemaComplexType complexType) {
             if (complexType.getParticle() instanceof XmlSchemaSequence sequence) {
                 final var fields = convertToFields(context, sequence);
-                return new StructSchema(null, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
+                final var namespace = getNamespaceFromComplexType(complexType);
+                return new StructSchema(namespace, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
             }
         }
         throw new SchemaException("Could not convert XSD type to DataSchema: " + type);
+    }
+
+    private String getNamespaceFromComplexType(XmlSchemaComplexType complexType) {
+        final var anyAttribute = complexType.getAnyAttribute();
+        return anyAttribute != null ? anyAttribute.getNamespace() : null;
     }
 
     private DataSchema convertToSchemaForced(QName qname) {
@@ -227,12 +255,12 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     }
 
     private static class XMLSchemaWriteContext {
-        private final DocumentBuilder docBuilder;
         private final Document doc;
         private final XmlSchema schema;
         private final Map<String, XmlSchemaType> schemaTypes = new HashMap<>();
 
         public XMLSchemaWriteContext(String namespace) {
+            final DocumentBuilder docBuilder;
             try {
                 docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             } catch (ParserConfigurationException e) {
@@ -276,7 +304,9 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         sequence.getItems().addAll(schema.fields().stream()
                 .map(f -> convertToXml(context, f))
                 .toList());
+        setDocAnnotation(context, complexType, schema.doc());
         complexType.setParticle(sequence);
+        complexType.setAnyAttribute(convertNamespaceToAnyAttribute(schema.namespace()));
         result.setType(complexType);
         return result;
     }
@@ -325,10 +355,8 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                 result.setSchemaType(schema);
             }
         }
-        if (field.defaultValue() != null) {
-            final var defaultValue = field.defaultValue().value() != null ? field.defaultValue().value().toString() : "null";
-            result.setDefaultValue(defaultValue);
-        }
+        if (field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE)
+            result.setDefaultValue(field.defaultValue().toString());
         result.setMinOccurs(field.required() ? 1 : 0);
         result.setMaxOccurs(1);
         return result;
@@ -362,10 +390,19 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private XmlSchemaType convertToComplexType(XMLSchemaWriteContext context, StructSchema schema) {
         return context.type(schema.name(), () -> {
             final var result = new XmlSchemaComplexType(context.schema, true);
+            setDocAnnotation(context, result, schema.doc());
             result.setName(schema.name());
             result.setParticle(convertToXml(context, schema.fields()));
+            result.setAnyAttribute(convertNamespaceToAnyAttribute(schema.namespace()));
             return result;
         });
+    }
+
+    private static XmlSchemaAnyAttribute convertNamespaceToAnyAttribute(String namespace) {
+        if (namespace == null) return null;
+        final var result = new XmlSchemaAnyAttribute();
+        result.setNamespace(namespace);
+        return result;
     }
 
     private XmlSchemaSimpleType convertToXml(XMLSchemaWriteContext context, UnionSchema schema) {

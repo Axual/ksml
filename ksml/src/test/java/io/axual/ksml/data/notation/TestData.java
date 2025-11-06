@@ -28,7 +28,6 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
@@ -72,15 +71,15 @@ public class TestData {
         final var luckyNumbersSchema = new ListSchema(DataSchema.LONG_SCHEMA);
 
         final var accountNumberSchema = new UnionSchema(
-                new UnionSchema.Member("bban", DataSchema.LONG_SCHEMA, 23),
-                new UnionSchema.Member("iban", DataSchema.STRING_SCHEMA, 24));
+                new UnionSchema.Member("bban", DataSchema.LONG_SCHEMA, "BBAN", 23),
+                new UnionSchema.Member("iban", DataSchema.STRING_SCHEMA, "IBAN", 24));
 
         final var fields = List.of(
                 new DataField(NAME, DataSchema.STRING_SCHEMA, "Name", 1),
                 new DataField(AGE, DataSchema.INTEGER_SCHEMA, "Age", 2),
                 new DataField(ADDRESS, addressSchema, "Address", 3, false),
                 new DataField(SHIPPING_ADDRESS, addressSchema, "Shipping address", 4, false),
-                new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataValue("BLUE")),
+                new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataString("BLUE")),
                 new DataField(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
                 new DataField(ACCOUNT_NUMBER, accountNumberSchema, "Account number", NO_TAG, false));
         return new StructSchema(NAMESPACE, "TestSchema", "Schema used for testing", fields, false);

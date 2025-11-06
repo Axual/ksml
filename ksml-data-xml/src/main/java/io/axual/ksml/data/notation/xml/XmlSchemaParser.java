@@ -20,14 +20,20 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.DataSchema;
 
 public class XmlSchemaParser implements Notation.SchemaParser {
-    private static final XmlSchemaMapper SCHEMA_MAPPER = new XmlSchemaMapper();
+    private final XmlSchemaMapper schemaMapper;
+
+    public XmlSchemaParser(NativeDataObjectMapper nativeMapper, DataTypeDataSchemaMapper typeMapper) {
+        schemaMapper = new XmlSchemaMapper(nativeMapper, typeMapper);
+    }
 
     @Override
     public DataSchema parse(String contextName, String schemaName, String schemaString) {
-        return SCHEMA_MAPPER.toDataSchema(null, schemaName, schemaString);
+        return schemaMapper.toDataSchema(null, schemaName, schemaString);
     }
 }

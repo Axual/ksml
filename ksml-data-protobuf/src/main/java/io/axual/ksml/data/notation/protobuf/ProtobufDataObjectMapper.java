@@ -39,12 +39,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
     private static final DataTypeDataSchemaMapper DATA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
-    private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
-    private final ProtobufDescriptorFileElementMapper descriptorElementMapper;
+    private final ProtobufFileElementSchemaMapper elementSchemaMapper;
+    private final ProtobufFileElementDescriptorMapper descriptorElementMapper;
     private final ConvertUtil convertUtil;
 
-    public ProtobufDataObjectMapper(ProtobufDescriptorFileElementMapper descriptorElementMapper) {
+    public ProtobufDataObjectMapper(ProtobufFileElementDescriptorMapper descriptorElementMapper) {
+        this(descriptorElementMapper, new NativeDataObjectMapper(), new DataTypeDataSchemaMapper());
+    }
+
+    public ProtobufDataObjectMapper(ProtobufFileElementDescriptorMapper descriptorElementMapper, NativeDataObjectMapper nativeMapper, DataTypeDataSchemaMapper typeDataSchemaMapper) {
         this.descriptorElementMapper = descriptorElementMapper;
+        this.elementSchemaMapper = new ProtobufFileElementSchemaMapper(nativeMapper, typeDataSchemaMapper);
         convertUtil = new ConvertUtil(this, DATA_TYPE_MAPPER);
     }
 
@@ -62,7 +67,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         final var namespace = descriptor.getFile().getPackage();
         final var name = descriptor.getName();
         final var fileElement = descriptorElementMapper.toFileElement(descriptor);
-        final var schema = ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, fileElement);
+        final var schema = elementSchemaMapper.toDataSchema(namespace, name, fileElement);
 
         // Ensure schema compatibility
 
@@ -104,7 +109,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         if (dataSchema == null) {
             throw new DataException("Can not convert schemaless STRUCT into a PROTOBUF message");
         }
-        final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(dataSchema);
+        final var fileElement = elementSchemaMapper.fromDataSchema(dataSchema);
         final var descriptor = descriptorElementMapper.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
         final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
         final var msg = DynamicMessage.newBuilder(msgDescriptor);

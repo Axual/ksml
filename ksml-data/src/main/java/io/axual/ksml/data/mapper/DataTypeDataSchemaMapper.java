@@ -90,6 +90,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
                 members[index] = new UnionSchema.Member(
                         memberType.name(),
                         toDataSchema(memberType.type()),
+                        memberType.doc(),
                         memberType.tag());
             }
             return new UnionSchema(members);
@@ -130,6 +131,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
                 members[index] = new UnionType.Member(
                         memberSchema.name(),
                         fromDataSchema(memberSchema.schema()),
+                        memberSchema.doc(),
                         memberSchema.tag());
             }
             return new UnionType(members);

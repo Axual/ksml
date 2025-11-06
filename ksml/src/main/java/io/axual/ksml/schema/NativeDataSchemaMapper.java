@@ -21,10 +21,19 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -170,22 +179,24 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         final var result = new LinkedHashMap<String, Object>();
         result.put(DataSchemaDSL.UNION_MEMBER_NAME_FIELD, member.name());
         result.put(DataSchemaDSL.UNION_MEMBER_SCHEMA_FIELD, convertSchema(member.schema()));
+        result.put(DataSchemaDSL.UNION_MEMBER_DOC_FIELD, member.doc());
         result.put(DataSchemaDSL.UNION_MEMBER_TAG_FIELD, member.tag());
         return result;
     }
 
-    private void encodeDefaultValue(Map<String, Object> node, DataValue defaultValue) {
+    private void encodeDefaultValue(Map<String, Object> node, DataObject defaultValue) {
         final var fieldName = DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD;
-        switch (defaultValue.value()) {
+        switch (defaultValue) {
             case null -> node.put(fieldName, null);
-            case Byte value -> node.put(fieldName, value);
-            case Short value -> node.put(fieldName, value);
-            case Integer value -> node.put(fieldName, value);
-            case Long value -> node.put(fieldName, value);
-            case Double value -> node.put(fieldName, value);
-            case Float value -> node.put(fieldName, value);
-            case byte[] value -> node.put(fieldName, value);
-            case String value -> node.put(fieldName, value);
+            case DataNull unused -> node.put(fieldName, null);
+            case DataByte value -> node.put(fieldName, value.value());
+            case DataShort value -> node.put(fieldName, value.value());
+            case DataInteger value -> node.put(fieldName, value.value());
+            case DataLong value -> node.put(fieldName, value.value());
+            case DataDouble value -> node.put(fieldName, value.value());
+            case DataFloat value -> node.put(fieldName, value.value());
+            case DataBytes value -> node.put(fieldName, value.value());
+            case DataString value -> node.put(fieldName, value.value());
             default ->
                     throw new ExecutionException("Can not encode default value of type: " + defaultValue.getClass().getSimpleName());
         }

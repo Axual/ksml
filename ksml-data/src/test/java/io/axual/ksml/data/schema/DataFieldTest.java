@@ -20,14 +20,14 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.object.DataNull;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class DataFieldTest {
 
@@ -54,7 +54,7 @@ class DataFieldTest {
                 .returns(42, DataField::tag)
                 .returns(false, DataField::required)
                 .returns(false, DataField::constant)
-                .returns(null, DataField::defaultValue)
+                .returns(DataNull.INSTANCE, DataField::defaultValue)
                 .returns(DataField.Order.ASCENDING, DataField::order)
                 .hasToString("age: integer (42, optional)");
     }
@@ -62,27 +62,18 @@ class DataFieldTest {
     @Test
     @DisplayName("UnionSchema forces field tag to NO_TAG regardless of provided tag")
     void unionSchemaForcesNoTag() {
-        final var union = new UnionSchema(new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 1));
+        final var union = new UnionSchema(new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, null, 1));
         assertThat(new DataField("u", union, "Union field", 99))
                 .returns(NO_TAG, DataField::tag)
                 .hasToString("u: union (-1)");
     }
 
     @Test
-    @DisplayName("Required field with explicit DataValue(null) throws DataException")
-    void requiredFieldWithNullDefaultThrows() {
-        final var nullValue = new DataValue(null);
-        assertThatThrownBy(() -> new DataField("name", DataSchema.STRING_SCHEMA, null, 0, true, false, nullValue))
-                .isInstanceOf(DataException.class)
-                .hasMessageEndingWith("Default value for field \"name\" can not be null");
-    }
-
-    @Test
     @DisplayName("Optional field allows explicit DataValue(null) as default")
     void optionalFieldAllowsNullDefaultValue() {
-        final var field = new DataField("name", DataSchema.STRING_SCHEMA, null, 0, false, false, new DataValue(null));
+        final var field = new DataField("name", DataSchema.STRING_SCHEMA, null, 0, false, false, DataNull.INSTANCE);
         assertThat(field.defaultValue()).isNotNull();
-        assertThat(field.defaultValue().value()).isNull();
+        assertSame(DataNull.INSTANCE, field.defaultValue());
     }
 
     @Test

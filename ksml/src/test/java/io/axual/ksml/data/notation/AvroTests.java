@@ -20,24 +20,24 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.AvroSchemaMapper;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
-import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_NAME;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TAG;
 
 class AvroTests {
-    private static final Flags AVRO_FLAGS = new Flags(
+    private static final EqualityFlags AVRO_EQUALITY_FLAGS = new EqualityFlags(
             IGNORE_DATA_FIELD_TAG,
             IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
             IGNORE_ENUM_SCHEMA_SYMBOL_TAG,
@@ -49,12 +49,12 @@ class AvroTests {
 
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest(AvroNotation.NOTATION_NAME, new AvroSchemaMapper());
+        NotationTestRunner.schemaTest(AvroNotation.NOTATION_NAME, new AvroSchemaMapper(), AVRO_EQUALITY_FLAGS);
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper(), AVRO_FLAGS);
+        NotationTestRunner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper(), AVRO_EQUALITY_FLAGS);
     }
 
     @Test
@@ -72,6 +72,6 @@ class AvroTests {
         final var provider = new ConfluentAvroNotationProvider(registryClient);
         final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
         final var notation = provider.createNotation(context);
-        NotationTestRunner.serdeTest(notation, true, AVRO_FLAGS);
+        NotationTestRunner.serdeTest(notation, true, AVRO_EQUALITY_FLAGS);
     }
 }

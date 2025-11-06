@@ -21,13 +21,14 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.util.AssignableUtil;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_DATA_TYPE_CONTAINER_CLASS;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
@@ -114,12 +115,12 @@ public abstract class ComplexType implements DataType {
                 return AssignableUtil.fieldNotAssignable("subTypes[" + i + "]", this, subTypes[i], that, that.subTypes[i], subTypeAssignable);
         }
 
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     @Override
-    public Equal equals(Object obj, Flags flags) {
-        if (this == obj) return Equal.ok();
+    public Equality equals(Object obj, EqualityFlags flags) {
+        if (this == obj) return Equality.equal();
         if (obj == null) return otherIsNull(this);
         if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
         final var that = (ComplexType) obj;
@@ -128,14 +129,14 @@ public abstract class ComplexType implements DataType {
         return subTypesEqual((ComplexType) obj, flags);
     }
 
-    private Equal subTypesEqual(ComplexType other, Flags flags) {
+    private Equality subTypesEqual(ComplexType other, EqualityFlags flags) {
         if (subTypes.length != other.subTypes.length)
-            return Equal.notEqual("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
+            return Equality.notEqual("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
         for (int i = 0; i < subTypes.length; i++) {
             final var subTypeEqual = subTypes[i].equals(other.subTypes[i], flags);
             if (subTypeEqual.isNotEqual()) return subTypeEqual;
         }
-        return Equal.ok();
+        return Equality.equal();
     }
 
     @Override

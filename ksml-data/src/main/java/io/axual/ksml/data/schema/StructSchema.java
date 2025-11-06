@@ -22,8 +22,8 @@ package io.axual.ksml.data.schema;
 
 import com.google.common.collect.Lists;
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,9 +35,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_STRUCT_SCHEMA_FIELDS;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_FIELDS;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
@@ -241,7 +241,7 @@ public class StructSchema extends NamedSchema {
             }
         }
         // All fields are assignable, so return no error
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     /**
@@ -251,7 +251,7 @@ public class StructSchema extends NamedSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object obj, Flags flags) {
+    public Equality equals(Object obj, EqualityFlags flags) {
         final var superEqual = super.equals(obj, flags);
         if (superEqual.isNotEqual()) return superEqual;
 
@@ -282,6 +282,6 @@ public class StructSchema extends NamedSchema {
             }
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

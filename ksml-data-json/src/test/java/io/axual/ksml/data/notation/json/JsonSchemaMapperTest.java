@@ -24,8 +24,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
@@ -513,10 +513,10 @@ class JsonSchemaMapperTest {
         final var idUnion = new UnionSchema(new UnionSchema.Member(LONG_SCHEMA), new UnionSchema.Member(STRING_SCHEMA));
 
         // Constant string field encoded as enum single value on JSON side
-        final var constCode = new DataField("constCode", STRING_SCHEMA, "Constant Code", NO_TAG, true, true, new DataValue("X"));
+        final var constCode = new DataField("constCode", STRING_SCHEMA, "Constant Code", NO_TAG, true, true, new DataString("X"));
 
         final var colorSchema = new EnumSchema("", "Color", "", List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN"), new EnumSchema.Symbol("BLUE")), new EnumSchema.Symbol("GREEN"));
-        final var color = new DataField("color", colorSchema, "The color", NO_TAG, true, true, new DataValue("RED"));
+        final var color = new DataField("color", colorSchema, "The color", NO_TAG, true, true, new DataString("RED"));
 
         final var topStruct = StructSchema.builder().namespace("ns").name("Top").doc("top doc")
                 .field(new DataField("name", STRING_SCHEMA, "name doc", NO_TAG, true))

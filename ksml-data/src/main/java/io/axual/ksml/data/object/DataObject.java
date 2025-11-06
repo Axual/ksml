@@ -22,8 +22,8 @@ package io.axual.ksml.data.object;
 
 import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.Flags;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.compare.Equality;
 
 /**
  * Defines the common abstraction for all values that participate in the KSML data model.
@@ -41,7 +41,7 @@ public interface DataObject extends DataEquals {
     /**
      * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
      */
-    Equal equals(Object obj, Flags flags);
+    Equality equals(Object obj, EqualityFlags flags);
 
     /**
      * Printer options controlling how values are rendered to strings.
@@ -75,16 +75,16 @@ public interface DataObject extends DataEquals {
         /**
          * Returns the schema prefix that must always be shown for the given value.
          */
-        public String forceSchemaString(DataObject value) {
+        public String forceSchemaPrefix(DataObject value) {
             return value.type().name() + ": ";
         }
 
         /**
          * Returns the schema prefix according to the current printer mode.
          */
-        public String schemaString(DataObject value) {
+        public String schemaPrefix(DataObject value) {
             if (this == INTERNAL || this == EXTERNAL_NO_SCHEMA) return "";
-            return forceSchemaString(value);
+            return forceSchemaPrefix(value);
         }
     }
 

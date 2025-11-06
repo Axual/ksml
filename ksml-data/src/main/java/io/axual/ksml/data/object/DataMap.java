@@ -21,10 +21,10 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
@@ -36,8 +36,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_MAP_CONTENTS;
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_MAP_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_MAP_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_MAP_TYPE;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
@@ -256,7 +256,7 @@ public class DataMap implements DataObject {
      */
     @Override
     public String toString(Printer printer) {
-        final var schemaName = printer.schemaString(this);
+        final var schemaName = printer.schemaPrefix(this);
 
         // Return NULL as value
         if (isNull()) return schemaName + "null";
@@ -288,8 +288,8 @@ public class DataMap implements DataObject {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -310,10 +310,10 @@ public class DataMap implements DataObject {
             if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 
-    private static Equal equalContents(DataMap left, DataMap right, Flags flags) {
+    private static Equality equalContents(DataMap left, DataMap right, EqualityFlags flags) {
         if (left.size() != right.size())
             return fieldNotEqual("contentSize", left, left.size(), right, right.size());
 
@@ -328,6 +328,6 @@ public class DataMap implements DataObject {
             }
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

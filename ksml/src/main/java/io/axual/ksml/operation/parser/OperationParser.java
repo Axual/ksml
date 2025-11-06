@@ -49,7 +49,18 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
     }
 
     protected StructsParser<String> operationNameField() {
-        return optional(stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor"));
+        final var parser =  optional(stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, "The name of the operation processor"));
+        return new StructsParser<>() {
+            @Override
+            public String parse(ParseNode node) {
+                return parser.parse(node);
+            }
+
+            @Override
+            public List<StructSchema> schemas() {
+                return parser.schemas();
+            }
+        };
     }
 
     protected OperationConfig operationConfig(String name, MetricTags tags) {

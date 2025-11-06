@@ -46,12 +46,12 @@ public class DataNull extends DataPrimitive<Object> {
     public static final SimpleType DATATYPE = new SimpleType(Null.class, DataSchemaConstants.NULL_TYPE) {
         @Override
         public Assignable isAssignableFrom(DataType type) {
-            return this != type ? Assignable.notAssignable("Can only assign \"null\" types to variables of type \"null\"") : Assignable.ok();
+            return this != type ? Assignable.notAssignable("Can only assign \"null\" types to variables of type \"null\"") : Assignable.assignable();
         }
 
         @Override
         public Assignable isAssignableFrom(Object value) {
-            return value != null ? Assignable.notAssignable("Can only assign \"null\" values to variables of type \"null\"") : Assignable.ok();
+            return value != null ? Assignable.notAssignable("Can only assign \"null\" values to variables of type \"null\"") : Assignable.assignable();
         }
     };
 

@@ -21,7 +21,8 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
@@ -30,7 +31,7 @@ import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_ENUM_TYPE_SCHEMA;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_ENUM_TYPE_SCHEMA;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
@@ -52,7 +53,7 @@ public class EnumType extends SimpleType {
         final var superAssignable = super.isAssignableFrom(value);
         if (superAssignable.isNotAssignable()) return superAssignable;
         final var valueStr = value.toString();
-        if (ListUtil.find(schema.symbols(), s -> s.name().equals(valueStr)) != null) return Assignable.ok();
+        if (ListUtil.find(schema.symbols(), s -> s.name().equals(valueStr)) != null) return Assignable.assignable();
         final var symbolsStr = schema.symbols().stream().map(s -> "\"" + s.name() + "\"").toList();
         return Assignable.notAssignable("Symbol \"" + valueStr + "\" not found in enumeration with symbols " + String.join(", ", symbolsStr));
     }
@@ -64,8 +65,8 @@ public class EnumType extends SimpleType {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
@@ -83,6 +84,6 @@ public class EnumType extends SimpleType {
                 return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

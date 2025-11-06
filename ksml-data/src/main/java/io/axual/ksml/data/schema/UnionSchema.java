@@ -21,9 +21,9 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.DataEquals;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -33,10 +33,10 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBERS;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_SCHEMA;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBERS;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
@@ -57,14 +57,14 @@ import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 @EqualsAndHashCode
 public class UnionSchema extends DataSchema {
     // Definition of a union member
-    public record Member(String name, DataSchema schema, int tag) implements DataEquals {
+    public record Member(String name, DataSchema schema, String doc, int tag) implements DataEquals {
         public Member(DataSchema schema) {
-            this(null, schema, NO_TAG);
+            this(null, schema, null, NO_TAG);
         }
 
         @Override
-        public Equal equals(Object obj, Flags flags) {
-            if (this == obj) return Equal.ok();
+        public Equality equals(Object obj, EqualityFlags flags) {
+            if (this == obj) return Equality.equal();
             if (obj == null) return otherIsNull(this);
             if (!getClass().equals(obj.getClass()))
                 return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
@@ -86,12 +86,16 @@ public class UnionSchema extends DataSchema {
             if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_TAG) && !Objects.equals(tag, that.tag))
                 return fieldNotEqual("tag", this, tag, that, that.tag);
 
-            return Equal.ok();
+            return Equality.equal();
         }
 
         @Override
         public String toString() {
-            return "Member(name=" + name + ", schema=" + schema + ", tag=" + tag + ")";
+            return "Member(name=" + name + ", schema=" + schema + ", doc=" + doc + ", tag=" + tag + ")";
+        }
+
+        public boolean hasDoc() {
+            return doc != null && !doc.isEmpty();
         }
     }
 
@@ -179,13 +183,13 @@ public class UnionSchema extends DataSchema {
                 if (isAssignableFromMember(otherUnionMember).isNotAssignable())
                     return schemaMismatch(this, otherUnionMember.schema);
             }
-            return Assignable.ok();
+            return Assignable.assignable();
         }
 
         // The other schema is not a union --> we are assignable from the other schema if at least
         // one of our value schema is assignable from the other schema.
         for (final var memberSchema : members) {
-            if (memberSchema.schema().isAssignableFrom(otherSchema).isAssignable()) return Assignable.ok();
+            if (memberSchema.schema().isAssignableFrom(otherSchema).isAssignable()) return Assignable.assignable();
         }
         return schemaMismatch(this, otherSchema);
     }
@@ -196,7 +200,7 @@ public class UnionSchema extends DataSchema {
             if (member.schema().isAssignableFrom(otherMember.schema()).isAssignable()
                     // If they are, then manually check if we allow assignment from the other field to this field
                     && isAssignableByNameAndTag(member, otherMember))
-                return Assignable.ok();
+                return Assignable.assignable();
         }
         return schemaMismatch(this, otherMember.schema);
     }
@@ -218,7 +222,7 @@ public class UnionSchema extends DataSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
+    public Equality equals(Object other, EqualityFlags flags) {
         final var superEqual = super.equals(other, flags);
         if (superEqual.isNotEqual()) return superEqual;
 
@@ -236,6 +240,6 @@ public class UnionSchema extends DataSchema {
             }
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

@@ -21,8 +21,9 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
 import io.axual.ksml.data.compare.DataEquals;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;
@@ -31,10 +32,11 @@ import lombok.Getter;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBERS;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_NAME;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_TAG;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_TYPE;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBERS;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_DOC;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TAG;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TYPE;
 import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromMember;
 import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromType;
 import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromValue;
@@ -57,14 +59,14 @@ public class UnionType extends ComplexType {
     private final Member[] members;
 
     // Definition of a union member
-    public record Member(String name, DataType type, int tag) implements DataEquals {
+    public record Member(String name, DataType type, String doc, int tag) implements DataEquals {
         public Member(DataType type) {
-            this(null, type, NO_TAG);
+            this(null, type, null, NO_TAG);
         }
 
         @Override
-        public Equal equals(Object other, Flags flags) {
-            if (this == other) return Equal.ok();
+        public Equality equals(Object other, EqualityFlags flags) {
+            if (this == other) return Equality.equal();
             if (other == null) return otherIsNull(this);
             if (!getClass().equals(other.getClass()))
                 return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -82,11 +84,20 @@ public class UnionType extends ComplexType {
                     return fieldNotEqual("type", this, type, that, that.type, typeEqual);
             }
 
+            // Compare doc
+            if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_DOC) && !Objects.equals(doc, that.doc)) {
+                return fieldNotEqual("type", this, doc, that, that.doc);
+            }
+
             // Compare tag
             if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_TAG) && !Objects.equals(tag, that.tag))
                 return fieldNotEqual("tag", this, tag, that, that.tag);
 
-            return Equal.ok();
+            return Equality.equal();
+        }
+
+        public boolean hasDoc() {
+            return doc != null && !doc.isBlank();
         }
     }
 
@@ -108,7 +119,7 @@ public class UnionType extends ComplexType {
 
     @Override
     public Assignable isAssignableFrom(DataType type) {
-        if (this == type) return Assignable.ok();
+        if (this == type) return Assignable.assignable();
 
         // If the other type is a union, then compare the union with this dataType
         if (type instanceof UnionType that) {
@@ -122,12 +133,12 @@ public class UnionType extends ComplexType {
             }
 
             // All members can be assigned from other members, so return no error
-            return Assignable.ok();
+            return Assignable.assignable();
         }
 
         // Check all our members. If one of them is assignable, then return OK, else error
         for (final var member : members) {
-            if (member.type().isAssignableFrom(type).isAssignable()) return Assignable.ok();
+            if (member.type().isAssignableFrom(type).isAssignable()) return Assignable.assignable();
         }
         return unionNotAssignableFromType(this, type);
     }
@@ -143,7 +154,7 @@ public class UnionType extends ComplexType {
     @Override
     public Assignable isAssignableFrom(Object value) {
         for (final var member : members) {
-            if (member.type().isAssignableFrom(value).isAssignable()) return Assignable.ok();
+            if (member.type().isAssignableFrom(value).isAssignable()) return Assignable.assignable();
         }
         return unionNotAssignableFromValue(this, value);
     }
@@ -155,8 +166,8 @@ public class UnionType extends ComplexType {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -177,6 +188,6 @@ public class UnionType extends ComplexType {
             }
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

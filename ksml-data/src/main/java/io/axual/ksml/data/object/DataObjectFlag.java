@@ -20,36 +20,36 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.compare.EqualityFlag;
+
 /**
  * Flags used to influence deep-equality comparisons for {@code DataObject} implementations.
  *
- * <p>These constants can be provided via {@link io.axual.ksml.data.type.Flags} to relax
+ * <p>These flags can be provided via {@link EqualityFlags} to relax
  * comparisons for certain structural aspects of concrete {@code DataObject}s (lists, maps,
  * structs, tuples, and primitives). This is useful when callers want to focus equality on
  * values or on structure only.</p>
  */
-public class DataObjectFlags {
-    private DataObjectFlags() {
-    }
-
+public enum DataObjectFlag implements EqualityFlag {
     /** Ignore the contents (elements) of a {@code DataList}. */
-    public static final String IGNORE_DATA_LIST_CONTENTS = "DataStruct.contents";
+    IGNORE_DATA_LIST_CONTENTS,
     /** Ignore the type of {@code DataList}. */
-    public static final String IGNORE_DATA_LIST_TYPE = "DataStruct.type";
+    IGNORE_DATA_LIST_TYPE,
     /** Ignore the entries (key/value pairs) of a {@code DataMap}. */
-    public static final String IGNORE_DATA_MAP_CONTENTS = "DataMap.contents";
+    IGNORE_DATA_MAP_CONTENTS,
     /** Ignore the type of {@code DataMap}. */
-    public static final String IGNORE_DATA_MAP_TYPE = "DataMap.type";
+    IGNORE_DATA_MAP_TYPE,
     /** Ignore the type of {@code DataPrimitive}. */
-    public static final String IGNORE_DATA_PRIMITIVE_TYPE = "DataPrimitive.type";
+    IGNORE_DATA_PRIMITIVE_TYPE,
     /** Ignore the value of a {@code DataPrimitive}. */
-    public static final String IGNORE_DATA_PRIMITIVE_VALUE = "DataPrimitive.value";
+    IGNORE_DATA_PRIMITIVE_VALUE,
     /** Ignore the contents of a {@code DataStruct}. */
-    public static final String IGNORE_DATA_STRUCT_CONTENTS = "DataStruct.contents";
+    IGNORE_DATA_STRUCT_CONTENTS,
     /** Ignore the type of {@code DataStruct}. */
-    public static final String IGNORE_DATA_STRUCT_TYPE = "DataStruct.type";
+    IGNORE_DATA_STRUCT_TYPE,
     /** Ignore the elements of a {@code DataTuple}. */
-    public static final String IGNORE_DATA_TUPLE_CONTENTS = "DataTuple.contents";
+    IGNORE_DATA_TUPLE_CONTENTS,
     /** Ignore the type of {@code DataTuple}. */
-    public static final String IGNORE_DATA_TUPLE_TYPE = "DataTuple.type";
+    IGNORE_DATA_TUPLE_TYPE
 }

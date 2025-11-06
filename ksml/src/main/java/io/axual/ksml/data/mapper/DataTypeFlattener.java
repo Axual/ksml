@@ -72,6 +72,6 @@ public class DataTypeFlattener extends DataTypeDataSchemaMapper {
     }
 
     private UnionType.Member flatten(UnionType.Member fieldType) {
-        return new UnionType.Member(fieldType.name(), flatten(fieldType.type()), fieldType.tag());
+        return new UnionType.Member(fieldType.name(), flatten(fieldType.type()), fieldType.doc(), fieldType.tag());
     }
 }

@@ -21,9 +21,9 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -427,7 +427,7 @@ class AvroSchemaMapperTest {
                 .doc("Some Advanced record")
                 .field(new DataField("booleanRequired", DataSchema.BOOLEAN_SCHEMA))
                 .field(new DataField("booleanOptional", DataSchema.BOOLEAN_SCHEMA, null, NO_TAG, false))
-                .field(new DataField("booleanNullable", ksmlNullable(DataSchema.BOOLEAN_SCHEMA), null, NO_TAG, true, false, new DataValue(true)))
+                .field(new DataField("booleanNullable", ksmlNullable(DataSchema.BOOLEAN_SCHEMA), null, NO_TAG, true, false, new DataBoolean(true)))
                 .field(new DataField("recordSimple", ksmlRecordSimple, null, NO_TAG, true))
                 .field(new DataField("enumeration", ksmlEnum, null, NO_TAG, true))
                 .field(new DataField("mapPrimitive", ksmlMapPrimitive, null, NO_TAG, true))

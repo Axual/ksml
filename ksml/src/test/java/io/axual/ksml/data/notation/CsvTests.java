@@ -20,26 +20,25 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.csv.CsvDataObjectMapper;
 import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.csv.CsvSchemaMapper;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.Flags;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_DATA_FIELD_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_UNION_SCHEMA_MEMBER_TAG;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_NAME;
-import static io.axual.ksml.data.type.DataTypeFlags.IGNORE_UNION_TYPE_MEMBER_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TAG;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class CsvTests {
-    private static final String[] CSV_EQUALITY_FLAGS = new String[]{
+    private static final EqualityFlags CSV_EQUALITY_FLAGS = new EqualityFlags(
             IGNORE_DATA_FIELD_TAG,
             IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
             IGNORE_ENUM_SCHEMA_SYMBOL_TAG,
@@ -47,8 +46,7 @@ class CsvTests {
             IGNORE_UNION_SCHEMA_MEMBER_TAG,
             IGNORE_UNION_TYPE_MEMBER_NAME,
             IGNORE_UNION_TYPE_MEMBER_TAG
-    };
-    private static final Flags CSV_FLAGS = new Flags(CSV_EQUALITY_FLAGS);
+    );
 
     @Test
     void schemaTest() {
@@ -62,11 +60,11 @@ class CsvTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper(), CSV_FLAGS);
+        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper(), CSV_EQUALITY_FLAGS);
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME, new NativeDataObjectMapper())), true, CSV_FLAGS);
+        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME)), true, CSV_EQUALITY_FLAGS);
     }
 }

@@ -31,9 +31,9 @@ class UnionSchemaTest {
     @Test
     @DisplayName("recursively flattens nested unions and supports contains")
     void flatteningAndContains() {
-        final var intField = new UnionSchema.Member("i", DataSchema.INTEGER_SCHEMA, 1);
-        final var strField = new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2);
-        final var boolField = new UnionSchema.Member("b", DataSchema.BOOLEAN_SCHEMA, 3);
+        final var intField = new UnionSchema.Member("i", DataSchema.INTEGER_SCHEMA, "Integer", 1);
+        final var strField = new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2);
+        final var boolField = new UnionSchema.Member("b", DataSchema.BOOLEAN_SCHEMA, "Boolean", 3);
 
         final var nested = new UnionSchema(strField, boolField);
         final var union = new UnionSchema(intField, new UnionSchema.Member(nested));
@@ -48,8 +48,8 @@ class UnionSchemaTest {
     @Test
     @DisplayName("isAssignableFrom supports single schema and union with matching name/tag rules")
     void assignabilityRules() {
-        final var intField = new UnionSchema.Member("i", DataSchema.INTEGER_SCHEMA, 1);
-        final var strField = new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2);
+        final var intField = new UnionSchema.Member("i", DataSchema.INTEGER_SCHEMA, "Integer", 1);
+        final var strField = new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2);
         final var union = new UnionSchema(intField, strField);
 
         // Single schema assignability
@@ -58,22 +58,22 @@ class UnionSchemaTest {
 
         // Other union with matching names/tags
         final var other = new UnionSchema(
-                new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, 1), // compatible by integer group and tag/name match
-                new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2)
+                new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, "Long", 1), // compatible by integer group and tag/name match
+                new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2)
         );
         assertThat(union.isAssignableFrom(other).isAssignable()).isTrue();
 
         // Mismatched tag prevents assignment
         final var wrongTag = new UnionSchema(
-                new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, 99),
-                new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2)
+                new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, "Long", 99),
+                new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2)
         );
         assertThat(union.isAssignableFrom(wrongTag).isAssignable()).isFalse();
 
         // Anonymous fields or NO_TAG allow assignment regardless of mismatch
         final var anonymous = new UnionSchema(
-                new UnionSchema.Member(null, DataSchema.LONG_SCHEMA, NO_TAG),
-                new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, 2)
+                new UnionSchema.Member(null, DataSchema.LONG_SCHEMA, "Long", NO_TAG),
+                new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2)
         );
         assertThat(union.isAssignableFrom(anonymous).isAssignable()).isTrue();
     }

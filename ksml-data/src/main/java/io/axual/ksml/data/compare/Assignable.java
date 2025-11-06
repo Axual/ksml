@@ -36,7 +36,7 @@ import lombok.NonNull;
  */
 @Getter
 public class Assignable {
-    private static final Assignable OK = new Assignable(null, null);
+    private static final Assignable ASSIGNABLE = new Assignable(null, null);
     private final String message;
     private final Assignable cause;
 
@@ -56,8 +56,8 @@ public class Assignable {
      *
      * @return the OK Assignable instance
      */
-    public static Assignable ok() {
-        return OK;
+    public static Assignable assignable() {
+        return ASSIGNABLE;
     }
 
     /**
@@ -129,7 +129,7 @@ public class Assignable {
      */
     public String toString(String linePrefix, boolean prefixFirstLine) {
         if (isAssignable()) {
-            return "OK";
+            return "ASSIGNABLE";
         }
 
         final var builder = new StringBuilder();

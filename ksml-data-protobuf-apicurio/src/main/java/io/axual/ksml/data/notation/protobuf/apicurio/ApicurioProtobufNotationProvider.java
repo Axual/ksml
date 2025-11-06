@@ -49,7 +49,7 @@ public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
                 new VendorNotationContext(
                         context,
                         new ApicurioProtobufSerdeSupplier(registryClient),
-                        new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper())),
-                new ApicurioProtobufSchemaParser());
+                        new ProtobufDataObjectMapper(new ApicurioProtobufFileElementDescriptorMapper(), context.nativeDataObjectMapper(), context.typeSchemaMapper())),
+                new ApicurioProtobufSchemaParser(context.nativeDataObjectMapper(), context.typeSchemaMapper()));
     }
 }

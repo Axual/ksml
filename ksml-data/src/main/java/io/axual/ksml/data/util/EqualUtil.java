@@ -20,13 +20,13 @@ package io.axual.ksml.data.util;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
 /**
- * Helper utilities to construct uniform {@link io.axual.ksml.data.compare.Equal} results.
+ * Helper utilities to construct uniform {@link Equality} results.
  *
  * <p>These methods standardize human-readable difference messages for deep-equality checks
  * across the KSML data model. They produce consistent messages and allow chaining causes to
@@ -47,10 +47,10 @@ public class EqualUtil {
      * @return a non-equal result explaining the null mismatch
      * @throws io.axual.ksml.data.exception.DataException if thisObject is null (logic error)
      */
-    public static Equal otherIsNull(Object thisObject) {
+    public static Equality otherIsNull(Object thisObject) {
         if (thisObject == null)
             throw new DataException("Can not handle NULL object, this is a bug in KSML");
-        return Equal.notEqual("Cannot compare " + strOf(thisObject) + " to null");
+        return Equality.notEqual("Cannot compare " + strOf(thisObject) + " to null");
     }
 
     /**
@@ -60,7 +60,7 @@ public class EqualUtil {
      * @param thatClass the container class of the right-hand side
      * @return an Equal indicating inequality with a standardized message
      */
-    public static Equal containerClassNotEqual(Class<?> thisClass, Class<?> thatClass) {
+    public static Equality containerClassNotEqual(Class<?> thisClass, Class<?> thatClass) {
         return notEqual(CONTAINER_CLASS_STRING, thisClass, thatClass, null);
     }
 
@@ -71,7 +71,7 @@ public class EqualUtil {
      * @param thatObject the right-hand side object
      * @return a non-equal result describing the difference
      */
-    public static Equal objectNotEqual(DataObject thisObject, DataObject thatObject) {
+    public static Equality objectNotEqual(DataObject thisObject, DataObject thatObject) {
         return objectNotEqual(thisObject, thatObject, null);
     }
 
@@ -83,7 +83,7 @@ public class EqualUtil {
      * @param cause      an underlying reason providing more context; may be null
      * @return a non-equal result describing the difference and including the cause
      */
-    public static Equal objectNotEqual(DataObject thisObject, DataObject thatObject, Equal cause) {
+    public static Equality objectNotEqual(DataObject thisObject, DataObject thatObject, Equality cause) {
         return notEqual(OBJECT_STRING, thisObject, thatObject, cause);
     }
 
@@ -95,7 +95,7 @@ public class EqualUtil {
      * @param cause    an underlying reason providing more context; may be null
      * @return a non-equal result describing the type mismatch
      */
-    public static Equal typeNotEqual(DataType thisType, Object thatType, Equal cause) {
+    public static Equality typeNotEqual(DataType thisType, Object thatType, Equality cause) {
         return notEqual(TYPE_STRING, thisType, thatType, cause);
     }
 
@@ -109,7 +109,7 @@ public class EqualUtil {
      * @param thatValue the right-hand field value
      * @return a non-equal result describing the field mismatch
      */
-    public static Equal fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue) {
+    public static Equality fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue) {
         return fieldNotEqual(fieldName, thisType, thisValue, thatType, thatValue, null);
     }
 
@@ -124,12 +124,12 @@ public class EqualUtil {
      * @param cause     an underlying reason providing more context; may be null
      * @return a non-equal result describing the field mismatch with cause
      */
-    public static Equal fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue, Equal cause) {
-        return Equal.notEqual(strOf(thisType) + " differs from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
+    public static Equality fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue, Equality cause) {
+        return Equality.notEqual(strOf(thisType) + " differs from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
     }
 
-    private static Equal notEqual(String type, Object thisType, Object thatType, Equal cause) {
-        return Equal.notEqual(type + " \"" + strOf(thisType) + "\" is not equal to \"" + strOf(thatType) + "\"", cause);
+    private static Equality notEqual(String type, Object thisType, Object thatType, Equality cause) {
+        return Equality.notEqual(type + " \"" + strOf(thisType) + "\" is not equal to \"" + strOf(thatType) + "\"", cause);
     }
 
     private static String strOf(Object obj) {

@@ -20,17 +20,17 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_PRIMITIVE_TYPE;
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_PRIMITIVE_VALUE;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_PRIMITIVE_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_PRIMITIVE_VALUE;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
@@ -83,12 +83,12 @@ public class DataPrimitive<T> implements DataObject {
     public String toString(Printer printer) {
         return value != null
                 ? ValuePrinter.print(value, printer != Printer.INTERNAL)
-                : printer.forceSchemaString(this) + ValuePrinter.print(null, printer != Printer.INTERNAL);
+                : printer.forceSchemaPrefix(this) + ValuePrinter.print(null, printer != Printer.INTERNAL);
     }
 
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
@@ -113,6 +113,6 @@ public class DataPrimitive<T> implements DataObject {
             }
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 }

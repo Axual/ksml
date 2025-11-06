@@ -213,8 +213,8 @@ class DataTypeDataSchemaMapperTest {
     @Test
     @DisplayName("UnionType round-trip preserves member order, names and tags")
     void unionTypeRoundTripPreservesMemberMetadata() {
-        final var memberInt = new UnionType.Member("intField", DataInteger.DATATYPE, 1);
-        final var memberString = new UnionType.Member("stringField", DataString.DATATYPE, 2);
+        final var memberInt = new UnionType.Member("intField", DataInteger.DATATYPE, "Integer", 1);
+        final var memberString = new UnionType.Member("stringField", DataString.DATATYPE, "String", 2);
         final var unionType = new UnionType(memberInt, memberString);
 
         final var unionSchema = mapper.toDataSchema(unionType);

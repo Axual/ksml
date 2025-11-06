@@ -20,15 +20,6 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.HashMap;
-
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
@@ -38,6 +29,14 @@ import io.axual.ksml.data.serde.DataObjectSerde;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.type.StructType;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,12 +44,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class AvroNotationTest {
 
     private static VendorNotationContext createContext(String vendorName) {
-        var base = new NotationContext(AvroNotation.NOTATION_NAME, vendorName, new NativeDataObjectMapper(), new HashMap<>());
+        var base = new NotationContext(AvroNotation.NOTATION_NAME, vendorName, new HashMap<>());
         // We don't exercise (de)serialization in these tests, so any DataObjectMapper will do.
         var serdeMapper = new NativeDataObjectMapper();
         var supplier = new VendorSerdeSupplier() {
             @Override
-            public String vendorName() { return vendorName; }
+            public String vendorName() {
+                return vendorName;
+            }
+
             @Override
             @SuppressWarnings("unchecked")
             public Serde<Object> get(DataType type, boolean isKey) {

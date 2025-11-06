@@ -21,16 +21,16 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Objects;
 
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_NAMED_SCHEMA_DOC;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_NAMED_SCHEMA_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlags.IGNORE_NAMED_SCHEMA_NAMESPACE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_NAMESPACE;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
@@ -85,6 +85,19 @@ public abstract class NamedSchema extends DataSchema {
         this.namespace = namespace;
         this.name = name;
         this.doc = doc;
+    }
+
+    /**
+     * Returns the string representation of the schema type.
+     * <p>
+     * By default, this is the schema's fully qualified name.
+     * </p>
+     *
+     * @return A string representation of the schema.
+     */
+    @Override
+    public String type() {
+        return fullName();
     }
 
     /**
@@ -149,7 +162,7 @@ public abstract class NamedSchema extends DataSchema {
 
         // Return no error when the other schema is also a named schema. Namespace, name and documentation do not matter
         // when checking for assignability (this is not an equality check).
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     /**
@@ -159,7 +172,7 @@ public abstract class NamedSchema extends DataSchema {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object obj, Flags flags) {
+    public Equality equals(Object obj, EqualityFlags flags) {
         final var superEqual = super.equals(obj, flags);
         if (superEqual.isNotEqual()) return superEqual;
 
@@ -177,19 +190,6 @@ public abstract class NamedSchema extends DataSchema {
         if (!flags.isSet(IGNORE_NAMED_SCHEMA_DOC) && !Objects.equals(doc, that.doc))
             return fieldNotEqual("doc", this, doc, that, that.doc);
 
-        return Equal.ok();
-    }
-
-    /**
-     * Returns the string representation of the schema.
-     * <p>
-     * By default, this is the schema's fully qualified name.
-     * </p>
-     *
-     * @return A string representation of the schema.
-     */
-    @Override
-    public String toString() {
-        return fullName();
+        return Equality.equal();
     }
 }

@@ -24,11 +24,11 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
@@ -349,7 +349,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
-    private void convertType(DataSchema schema, boolean constant, DataValue defaultValue, DataStruct target, DefinitionLibrary definitions) {
+    private void convertType(DataSchema schema, boolean constant, DataObject defaultValue, DataStruct target, DefinitionLibrary definitions) {
         if (schema == DataSchema.NULL_SCHEMA) target.put(TYPE_NAME, new DataString(NULL_TYPE));
         if (schema == DataSchema.BOOLEAN_SCHEMA) target.put(TYPE_NAME, new DataString(BOOLEAN_TYPE));
         if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA || schema == DataSchema.LONG_SCHEMA)
@@ -357,9 +357,9 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         if (schema == DataSchema.FLOAT_SCHEMA || schema == DataSchema.DOUBLE_SCHEMA)
             target.put(TYPE_NAME, new DataString(NUMBER_TYPE));
         if (schema == DataSchema.STRING_SCHEMA) {
-            if (constant && defaultValue != null && defaultValue.value() != null) {
+            if (constant && defaultValue != null) {
                 var enumList = new DataList();
-                enumList.add(new DataString(defaultValue.value().toString()));
+                enumList.add(new DataString(defaultValue.toString()));
                 target.put(ENUM_NAME, enumList);
             } else {
                 target.put(TYPE_NAME, new DataString(STRING_TYPE));

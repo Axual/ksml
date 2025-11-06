@@ -22,8 +22,9 @@ package io.axual.ksml.data.type;
 
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.compare.DataEquals;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 
@@ -51,7 +52,7 @@ public interface DataType extends DataEquals {
 
     default Assignable isAssignableFrom(DataObject value) {
         // Always allow a null value to be assigned
-        if (value == DataNull.INSTANCE) return Assignable.ok();
+        if (value == DataNull.INSTANCE) return Assignable.assignable();
         // If not NULL, check the value type for assignability
         return isAssignableFrom(value.type());
     }
@@ -59,19 +60,19 @@ public interface DataType extends DataEquals {
     default Assignable isAssignableFrom(Class<?> otherClass) {
         if (!containerClass().isAssignableFrom(otherClass))
             return typeMismatch(this, otherClass);
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     default Assignable isAssignableFrom(Object value) {
         // Always allow a null value to be assigned
-        if (value == null) return Assignable.ok();
+        if (value == null) return Assignable.assignable();
 
         // Check containerClass
         final var containerClassAssignable = isAssignableFrom(value.getClass());
         if (containerClassAssignable.isNotAssignable())
             return fieldNotAssignable("containerClass", this, containerClass(), value, value.getClass(), containerClassAssignable);
 
-        return Assignable.ok();
+        return Assignable.assignable();
     }
 
     DataType UNKNOWN = new DataType() {
@@ -91,19 +92,19 @@ public interface DataType extends DataEquals {
         @Override
         public Assignable isAssignableFrom(DataType type) {
             // Do nothing to indicate any data type is assignable
-            return Assignable.ok();
+            return Assignable.assignable();
         }
 
         @Override
         public Assignable isAssignableFrom(Object value) {
             // Do nothing to indicate any value class is assignable
-            return Assignable.ok();
+            return Assignable.assignable();
         }
 
         @Override
-        public Equal equals(Object obj, Flags flags) {
-            if (this == obj) return Equal.ok();
-            return Equal.notEqual("Type \"" + this + "\" is not type \"" + (obj != null ? obj : "null") + "\"");
+        public Equality equals(Object obj, EqualityFlags flags) {
+            if (this == obj) return Equality.equal();
+            return Equality.notEqual("Type \"" + this + "\" is not type \"" + (obj != null ? obj : "null") + "\"");
         }
 
         @Override

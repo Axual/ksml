@@ -20,9 +20,9 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.value.Tuple;
@@ -31,8 +31,8 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_TUPLE_CONTENTS;
-import static io.axual.ksml.data.object.DataObjectFlags.IGNORE_DATA_TUPLE_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_TUPLE_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_TUPLE_TYPE;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
@@ -93,7 +93,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
      */
     @Override
     public String toString(Printer printer) {
-        final var sb = new StringBuilder(printer.schemaString(this));
+        final var sb = new StringBuilder(printer.schemaPrefix(this));
         sb.append("(");
         for (int index = 0; index < elements().size(); index++) {
             if (index > 0) sb.append(", ");
@@ -110,8 +110,8 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
      * @param flags The flags that indicate what to compare.
      */
     @Override
-    public Equal equals(Object other, Flags flags) {
-        if (this == other) return Equal.ok();
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
@@ -133,10 +133,10 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
             }
         }
 
-        return Equal.ok();
+        return Equality.equal();
     }
 
-    private static Equal equalContents(DataTuple left, DataTuple right, Flags flags) {
+    private static Equality equalContents(DataTuple left, DataTuple right, EqualityFlags flags) {
         if (left.elements().size() != right.elements().size())
             return fieldNotEqual("elementCount", left, left.elements().size(), right, right.elements().size());
 
@@ -152,6 +152,6 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
             }
             index++;
         }
-        return Equal.ok();
+        return Equality.equal();
     }
 }

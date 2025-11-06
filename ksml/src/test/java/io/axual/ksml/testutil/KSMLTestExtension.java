@@ -23,6 +23,7 @@ package io.axual.ksml.testutil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
@@ -39,17 +40,33 @@ import io.axual.ksml.type.UserType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.*;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.IntegerDeserializer;
+import org.apache.kafka.common.serialization.IntegerSerializer;
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.apache.kafka.common.serialization.LongSerializer;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.graalvm.home.Version;
-import org.junit.jupiter.api.extension.*;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ConditionEvaluationResult;
+import org.junit.jupiter.api.extension.ExecutionCondition;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback, BeforeEachCallback, AfterEachCallback {
@@ -100,9 +117,10 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     @Override
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("Registering test notations");
-        final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, mapper));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, mapper), jsonNotation::serde));
+        final var dataMapper = new NativeDataObjectMapper();
+        final var typeMapper = new DataTypeFlattener();
+        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, dataMapper, typeMapper));
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, dataMapper, typeMapper), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");

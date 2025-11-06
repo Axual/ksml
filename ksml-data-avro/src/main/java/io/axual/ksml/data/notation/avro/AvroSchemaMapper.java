@@ -22,11 +22,12 @@ package io.axual.ksml.data.notation.avro;
 
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -34,10 +35,12 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
@@ -55,7 +58,7 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
-    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private static final DataTypeDataSchemaMapper TYPE_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
 
     /**
      * Convert an Avro record Schema into a KSML StructSchema.
@@ -186,7 +189,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private record SchemaAndRequired(DataSchema schema, boolean required) {
     }
 
-    private record AvroSchemaAndDefaultValue(Schema schema, DataValue defaultValue) {
+    private record AvroSchemaAndDefaultValue(Schema schema, DataObject defaultValue) {
     }
 
     private SchemaAndRequired convertAvroSchemaToDataSchemaAndRequired(Schema schema) {
@@ -258,8 +261,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         final var result = new ArrayList<DataField>(fields.size());
         for (var field : fields) {
             final var schemaAndRequired = convertAvroSchemaToDataSchemaAndRequired(field.schema());
-            final var convertedDefault = convertAvroDefaultValueToDataValue(field);
-            final var defaultValue = schemaAndRequired.required() || (convertedDefault != null && convertedDefault.value() != null) ? convertedDefault : null;
+            final var convertedDefault = field.hasDefaultValue() ? convertAvroDefaultValueToDataObject(schemaAndRequired.schema(), field.defaultVal()) : null;
+            final var defaultValue = schemaAndRequired.required() || convertedDefault != null ? convertedDefault : null;
             // TODO: think about how to model fixed values in AVRO and replace the "false" with logic
             result.add(new DataField(field.name(), schemaAndRequired.schema(), field.doc(), NO_TAG, schemaAndRequired.required(), false, defaultValue, convertAvroOrderToDataFieldOrder(field.order())));
         }
@@ -307,14 +310,14 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (required) return new AvroSchemaAndDefaultValue(result, null);
 
         // The field is not required, so we convert the schema to a UNION, with NULL as first possible type
-        final var defaultValue = new DataValue(null);
+        final var defaultValue = DataNull.INSTANCE;
 
         // If the schema is already of type UNION, then inject a NULL type at the start of array of types
         if (result.getType() == Schema.Type.UNION) {
             final var types = result.getTypes();
             // If NULL is already part of the UNION types, then return the UNION as is
             if (types.contains(AVRO_NULL_TYPE)) return new AvroSchemaAndDefaultValue(result, defaultValue);
-            // Add NULL as possible value type at the start of the array
+            // Add NULL as a possible value type at the start of the array
             types.addFirst(AVRO_NULL_TYPE);
             return new AvroSchemaAndDefaultValue(Schema.createUnion(types), defaultValue);
         }
@@ -335,7 +338,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     }
 
     private List<Schema.Field> convertFieldsToAvroFields(List<DataField> fields) {
-        if (fields == null) return new ArrayList<>();
+        if (fields == null) return Collections.emptyList();
         final var result = new ArrayList<Schema.Field>(fields.size());
         for (var field : fields) {
             result.add(convertDataFieldToAvroField(field));
@@ -345,21 +348,25 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private Schema.Field convertDataFieldToAvroField(DataField field) {
         final var schemaAndDefault = convertDataSchemaToAvroSchema(field.schema(), field.required());
-        final var defaultValue = field.defaultValue() != null ? field.defaultValue() : schemaAndDefault.defaultValue();
-        final var defaultAvroValue = convertDataValueToAvroDefaultValue(defaultValue);
+        final var defaultAvroValue =
+                field.defaultValue() != null
+                        ? convertDataObjectToAvroDefaultValue(field.defaultValue())
+                        : schemaAndDefault.defaultValue != null
+                        ? convertDataObjectToAvroDefaultValue(schemaAndDefault.defaultValue())
+                        : null;
         return new Schema.Field(field.name(), schemaAndDefault.schema(), field.doc(), defaultAvroValue, convertDataFieldOrderToAvroFieldOrder(field.order()));
     }
 
-    private DataValue convertAvroDefaultValueToDataValue(Schema.Field field) {
-        if (!field.hasDefaultValue()) return null;
-        final var value = NATIVE_MAPPER.fromDataObject(avroMapper.toDataObject(field.defaultVal()));
-        return new DataValue(value);
+    private DataObject convertAvroDefaultValueToDataObject(DataSchema fieldSchema, Object defaultValue) {
+        if (defaultValue == null || defaultValue == JsonProperties.NULL_VALUE) return DataNull.INSTANCE;
+        final var expectedType = TYPE_SCHEMA_MAPPER.fromDataSchema(fieldSchema);
+        return avroMapper.toDataObject(expectedType, defaultValue);
     }
 
-    private Object convertDataValueToAvroDefaultValue(DataValue value) {
-        if (value == null) return null;
-        if (value.value() == null) return Schema.Field.NULL_DEFAULT_VALUE;
-        return value.value();
+    private Object convertDataObjectToAvroDefaultValue(DataObject defaultValue) {
+        if (defaultValue == null) return null;
+        if (defaultValue == DataNull.INSTANCE) return Schema.Field.NULL_DEFAULT_VALUE;
+        return avroMapper.fromDataObject(defaultValue);
     }
 
     private Schema.Field.Order convertDataFieldOrderToAvroFieldOrder(DataField.Order order) {

@@ -20,7 +20,7 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.Equal;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -41,7 +41,7 @@ import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.Flags;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -680,8 +680,8 @@ class NativeDataObjectMapperTest {
         }
 
         @Override
-        public Equal equals(Object obj, Flags flags) {
-            return Equal.notEqual("Fake error");
+        public Equality equals(Object obj, EqualityFlags flags) {
+            return Equality.notEqual("Fake error");
         }
     }
 }
