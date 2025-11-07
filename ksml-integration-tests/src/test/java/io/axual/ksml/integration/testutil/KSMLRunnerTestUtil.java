@@ -21,7 +21,8 @@ package io.axual.ksml.integration.testutil;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.axual.ksml.runner.KSMLRunner;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartitionInfo;
@@ -40,9 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import io.axual.ksml.runner.KSMLRunner;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class for running KSMLRunner directly in tests instead of using Docker containers.

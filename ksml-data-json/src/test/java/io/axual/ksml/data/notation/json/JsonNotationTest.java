@@ -20,11 +20,6 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
@@ -33,6 +28,10 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

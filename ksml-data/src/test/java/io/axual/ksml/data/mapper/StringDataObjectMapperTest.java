@@ -20,7 +20,9 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -24,7 +24,6 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema.Field;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import org.apache.commons.csv.CSVFormat;

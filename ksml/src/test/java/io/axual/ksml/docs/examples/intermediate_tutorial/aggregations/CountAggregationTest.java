@@ -21,7 +21,10 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.aggregations;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.axual.ksml.testutil.KSMLTest;
+import io.axual.ksml.testutil.KSMLTestExtension;
+import io.axual.ksml.testutil.KSMLTopic;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -30,11 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import io.axual.ksml.testutil.KSMLTest;
-import io.axual.ksml.testutil.KSMLTestExtension;
-import io.axual.ksml.testutil.KSMLTopic;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

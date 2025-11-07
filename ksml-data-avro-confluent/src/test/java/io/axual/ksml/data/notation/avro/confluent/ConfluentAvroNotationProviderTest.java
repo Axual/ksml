@@ -20,14 +20,13 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotation;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

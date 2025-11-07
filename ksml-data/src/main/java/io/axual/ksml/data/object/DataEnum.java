@@ -21,8 +21,8 @@ package io.axual.ksml.data.object;
  */
 
 import io.axual.ksml.data.compare.Equality;
-import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.type.EnumType;
 
 /**
  * {@link DataObject} wrapper for enum-like string values with an associated {@link EnumType}.

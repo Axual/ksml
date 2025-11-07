@@ -22,8 +22,8 @@ package io.axual.ksml.data.object;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.axual.ksml.data.compare.Equality;
-import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.EqualsAndHashCode;

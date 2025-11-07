@@ -20,11 +20,10 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.value.Tuple;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.value.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

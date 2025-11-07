@@ -23,7 +23,11 @@ package io.axual.ksml.runner;
 import io.axual.ksml.metric.Metrics;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.management.*;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;

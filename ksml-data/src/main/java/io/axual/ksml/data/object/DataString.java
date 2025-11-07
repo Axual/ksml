@@ -21,8 +21,8 @@ package io.axual.ksml.data.object;
  */
 
 import io.axual.ksml.data.compare.Equality;
-import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.SimpleType;
 
 /**

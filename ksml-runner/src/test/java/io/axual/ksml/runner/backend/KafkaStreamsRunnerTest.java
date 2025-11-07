@@ -20,6 +20,12 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.execution.ExecutionErrorHandler;
+import io.axual.ksml.metric.KsmlTagEnricher;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.runner.exception.RunnerException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
@@ -51,16 +57,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
-import io.axual.ksml.execution.ExecutionErrorHandler;
-import io.axual.ksml.metric.KsmlTagEnricher;
-import io.axual.ksml.runner.config.ApplicationServerConfig;
-import io.axual.ksml.runner.exception.RunnerException;
-import lombok.extern.slf4j.Slf4j;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test class for {@link KafkaStreamsRunner}.

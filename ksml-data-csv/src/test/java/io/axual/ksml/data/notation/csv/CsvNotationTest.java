@@ -20,16 +20,15 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.type.StructType;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

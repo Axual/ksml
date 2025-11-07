@@ -20,10 +20,9 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.StructSchema;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.schema.StructSchema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

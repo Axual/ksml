@@ -20,7 +20,10 @@ package io.axual.ksml.data.notation.soap;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
 

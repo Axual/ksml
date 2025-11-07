@@ -26,7 +26,11 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.StringDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
-import org.apache.kafka.common.serialization.*;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 /**
  * Serde that converts between KSML DataString (or compatible types) and Kafka's String serialization.

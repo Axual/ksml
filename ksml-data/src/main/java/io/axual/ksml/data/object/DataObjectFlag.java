@@ -20,8 +20,8 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.compare.EqualityFlag;
+import io.axual.ksml.data.compare.EqualityFlags;
 
 /**
  * Flags used to influence deep-equality comparisons for {@code DataObject} implementations.

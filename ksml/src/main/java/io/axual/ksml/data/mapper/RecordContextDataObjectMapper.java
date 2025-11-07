@@ -20,13 +20,22 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.internals.ProcessorRecordContext;
 
-import static io.axual.ksml.dsl.RecordContextSchema.*;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_HEADERS_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_OFFSET_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_PARTITION_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_TOPIC_FIELD;
 
 public class RecordContextDataObjectMapper implements DataObjectMapper<RecordContext> {
     public static final long NO_OFFSET = -1;

@@ -22,8 +22,8 @@ package io.axual.ksml.data.type;
 
 
 import io.axual.ksml.data.compare.Assignable;
-import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.compare.DataEquals;
+import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;

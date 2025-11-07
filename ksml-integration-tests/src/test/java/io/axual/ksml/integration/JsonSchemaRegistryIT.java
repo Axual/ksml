@@ -21,7 +21,11 @@ package io.axual.ksml.integration;
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
-
+import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
+import io.axual.ksml.integration.testutil.KSMLContainer;
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.axual.ksml.integration.testutil.SensorDataTestUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -38,12 +42,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
-
-import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
-import io.axual.ksml.integration.testutil.KSMLContainer;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
-import io.axual.ksml.integration.testutil.SensorDataTestUtil;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

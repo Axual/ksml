@@ -21,8 +21,8 @@ package io.axual.ksml.data.object;
  */
 
 import io.axual.ksml.data.compare.Equality;
-import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.value.Tuple;
@@ -35,8 +35,8 @@ import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_TUPLE_CONTENT
 import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_TUPLE_TYPE;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
-import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * Represents a tuple of {@link DataObject} values within the {@link DataObject} framework.

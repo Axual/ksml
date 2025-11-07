@@ -20,9 +20,9 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.vendor.VendorNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonSchemaLoader;
+import io.axual.ksml.data.notation.vendor.VendorNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;

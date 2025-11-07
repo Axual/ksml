@@ -31,7 +31,11 @@ import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.DualStoreOperationConfig;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.StoreOperationConfig;
-import io.axual.ksml.parser.*;
+import io.axual.ksml.parser.NamedObjectParser;
+import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.parser.StructsParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 import lombok.Getter;
 

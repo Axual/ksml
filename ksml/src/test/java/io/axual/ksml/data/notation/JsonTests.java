@@ -20,10 +20,10 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
-import io.axual.ksml.data.compare.EqualityFlags;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;

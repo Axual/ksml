@@ -20,6 +20,9 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
+import io.axual.ksml.data.schema.DataSchema;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaFormatter;
 import org.junit.jupiter.api.DisplayName;
@@ -29,10 +32,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
-
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
-import io.axual.ksml.data.schema.DataSchema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

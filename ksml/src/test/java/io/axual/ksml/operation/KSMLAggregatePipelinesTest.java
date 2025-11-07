@@ -20,7 +20,9 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.testutil.*;
+import io.axual.ksml.testutil.KSMLDriver;
+import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
