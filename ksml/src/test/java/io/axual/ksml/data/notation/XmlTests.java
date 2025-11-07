@@ -30,6 +30,7 @@ import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_NAMESPACE;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
 
@@ -39,6 +40,7 @@ class XmlTests {
             IGNORE_ENUM_SCHEMA_NAMESPACE,
             IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
             IGNORE_ENUM_SCHEMA_SYMBOL_TAG,
+            IGNORE_UNION_SCHEMA_MEMBER_DOC,
             IGNORE_UNION_SCHEMA_MEMBER_NAME,
             IGNORE_UNION_SCHEMA_MEMBER_TAG
     );

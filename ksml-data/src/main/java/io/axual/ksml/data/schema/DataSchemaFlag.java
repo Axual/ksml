@@ -78,10 +78,14 @@ public enum DataSchemaFlag implements EqualityFlag {
     IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED,
     // Ignore StructSchema's additional fields schema
     IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA,
+    // Ignore StructSchema's doc
+    IGNORE_STRUCT_SCHEMA_DOC,
     // Ignore StructSchema's defined fields
     IGNORE_STRUCT_SCHEMA_FIELDS,
     // Ignore UnionSchema's members
     IGNORE_UNION_SCHEMA_MEMBERS,
+    // Ignore a UnionSchema member's doc
+    IGNORE_UNION_SCHEMA_MEMBER_DOC,
     // Ignore a UnionSchema member's name
     IGNORE_UNION_SCHEMA_MEMBER_NAME,
     // Ignore a UnionSchema member's schema

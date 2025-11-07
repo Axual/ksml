@@ -70,16 +70,35 @@ public class EqualityFlags {
      * @param flags flag values to enable
      */
     public EqualityFlags(EqualityFlag... flags) {
-        for (EqualityFlag flag : flags) addFlag(flag);
+        addAll(flags);
     }
 
     /**
      * Create an instance with flags initialized from the provided set.
      *
-     * @param flagSet initial set of flags to enable
+     * @param flags initial set of flags to enable
      */
-    public EqualityFlags(Set<EqualityFlag> flagSet) {
-        flagSet.forEach(this::addFlag);
+    public EqualityFlags(Set<EqualityFlag> flags) {
+        flags.forEach(this::addFlag);
+    }
+
+    /**
+     * Create an instance with flags initialized from the provided set.
+     *
+     * @param flags initial set of flags to enable
+     */
+    public EqualityFlags(EqualityFlags flags, EqualityFlag... addedFlags) {
+        this(flags.getAll());
+        addAll(addedFlags);
+    }
+
+    /**
+     * Internal helper to add a set of flags to the appropriate EnumSet.
+     *
+     * @param flags the flag to add
+     */
+    private void addAll(EqualityFlag... flags) {
+        for (EqualityFlag f : flags) addFlag(f);
     }
 
     /**
@@ -114,6 +133,18 @@ public class EqualityFlags {
             case DataTypeFlag dtf -> dataTypeFlags.contains(dtf);
             default -> throw new IllegalStateException("Unexpected flag type: " + flag.getClass());
         };
+    }
+
+    /**
+     * Check whether a given flag is enabled. If so, then create a new EqualityFlags instance with the extra flag set.
+     *
+     * @param flag       the flag to query
+     * @param addedFlags the flags to add if the flag is set
+     * @return EqualityFlags object with the added flags if the flag was set, this otherwise
+     */
+    public EqualityFlags ifSetThenAdd(EqualityFlag flag, EqualityFlag... addedFlags) {
+        if (!isSet(flag)) return this;
+        return new EqualityFlags(this, addedFlags);
     }
 
     /**

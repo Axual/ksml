@@ -181,7 +181,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             }
             if (reference != null && reference.type() instanceof MessageElement msgElement) {
                 final var fields = convertMessageFieldsToDataFields(context, msgElement);
-                return new StructSchema(reference.namespace(), msgElement.getName(), "", fields, false);
+                return new StructSchema(reference.namespace(), msgElement.getName(), NO_DOCUMENTATION, fields, false);
             }
         }
 
@@ -267,7 +267,9 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
     private FieldElement convertUnionMemberToFieldElement(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, List<OneOfElement> parentOneOfs, String parentName, UnionSchema.Member member) {
         final var proto = convertUnionMemberToProtoType(context, parentNestedTypes, parentOneOfs, parentName, member);
-        return new FieldElement(DEFAULT_LOCATION, null, proto, member.name(), null, null, member.tag(), "", Collections.emptyList());
+        if (proto == null)
+            throw new SchemaException("Could not convert union member schema '" + member.name() + "' to PROTOBUF type");
+        return new FieldElement(DEFAULT_LOCATION, null, proto, member.name(), null, null, member.tag(), member.doc(), Collections.emptyList());
     }
 
     private String convertDataSchemaToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String parentName, DataSchema schema) {
@@ -281,7 +283,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         if (schema == DataSchema.STRING_SCHEMA) return "string";
         if (schema instanceof EnumSchema enumSchema) {
             final var enm = convertEnumSchemaToEnumElement(enumSchema);
-            // Find out if the enum is nested, or defined at top level
+            // Find out if the enum is nested or defined at the top level
             if (enumSchema.namespace() != null && enumSchema.namespace().equals(context.namespace + "." + parentName)) {
                 if (context.notDuplicate(enumSchema.fullName())) {
                     parentNestedTypes.add(enm);
@@ -295,10 +297,11 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             // The repeated label is caught above, so only convert the value schema to a type
             return convertDataSchemaToProtoType(context, parentNestedTypes, parentName, listSchema.valueSchema());
         }
-        if (schema instanceof MapSchema) return null;
+        if (schema instanceof MapSchema)
+            return null;
         if (schema instanceof StructSchema structSchema) {
             final var message = convertStructSchemaToMessageElement(context, structSchema);
-            // Find out if the message is nested, or defined at top level
+            // Find out if the message is nested or defined at the top level
             if (structSchema.namespace() != null && structSchema.namespace().equals(context.namespace + "." + parentName)) {
                 if (context.notDuplicate(structSchema.fullName()))
                     parentNestedTypes.add(message);
@@ -307,7 +310,8 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             }
             return structSchema.name();
         }
-        if (schema instanceof UnionSchema) return null;
+        if (schema instanceof UnionSchema)
+            return null;
         throw new SchemaException("Can not convert schema type " + schema.type() + " to PROTOBUF type");
     }
 

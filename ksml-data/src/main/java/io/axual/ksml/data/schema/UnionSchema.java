@@ -34,6 +34,7 @@ import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBERS;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_SCHEMA;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
@@ -81,6 +82,10 @@ public class UnionSchema extends DataSchema {
                 if (schemaEqual.isNotEqual())
                     return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
             }
+
+            // Compare doc
+            if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_DOC) && !Objects.equals(doc, that.doc))
+                return fieldNotEqual("doc", this, doc, that, that.doc);
 
             // Compare tag
             if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_TAG) && !Objects.equals(tag, that.tag))

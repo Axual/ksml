@@ -30,15 +30,13 @@ import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufNotationPro
 import io.axual.ksml.data.notation.protobuf.confluent.ConfluentProtobufFileElementDescriptorMapper;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_DEFAULT_VALUE;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_DOC;
 
 class ProtobufTests {
     private static final EqualityFlags PROTOBUF_EQUALITY_FLAGS = new EqualityFlags(
-            IGNORE_DATA_FIELD_DOC,
             IGNORE_ENUM_SCHEMA_DEFAULT_VALUE,
-            IGNORE_NAMED_SCHEMA_DOC
+            IGNORE_STRUCT_SCHEMA_DOC
     );
 
     @Test

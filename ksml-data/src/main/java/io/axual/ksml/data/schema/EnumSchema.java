@@ -201,14 +201,8 @@ public class EnumSchema extends NamedSchema {
      */
     @Override
     public Equality equals(Object obj, EqualityFlags flags) {
-        if (flags.isSet(IGNORE_ENUM_SCHEMA_NAMESPACE)) {
-            // Special implementation: if an enum specific flag is set to ignore namespace, set the general flag for
-            // this before calling the superclass
-            final var flagSet = flags.getAll();
-            flagSet.add(IGNORE_NAMED_SCHEMA_NAMESPACE);
-            flags = new EqualityFlags(flagSet);
-        }
-        final var superEqual = super.equals(obj, flags);
+        // If an enum-specific flag is set to ignore namespace, set the general flag for the superclass before calling it
+        final var superEqual = super.equals(obj, flags.ifSetThenAdd(IGNORE_ENUM_SCHEMA_NAMESPACE, IGNORE_NAMED_SCHEMA_NAMESPACE));
         if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (EnumSchema) obj;

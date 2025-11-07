@@ -35,8 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_FIELDS;
 import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
 import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
@@ -252,7 +254,8 @@ public class StructSchema extends NamedSchema {
      */
     @Override
     public Equality equals(Object obj, EqualityFlags flags) {
-        final var superEqual = super.equals(obj, flags);
+        // If a struct-specific flag is set to ignore doc, set the general flag for the superclass before calling it
+        final var superEqual = super.equals(obj, flags.ifSetThenAdd(IGNORE_STRUCT_SCHEMA_DOC, IGNORE_NAMED_SCHEMA_DOC));
         if (superEqual.isNotEqual()) return superEqual;
 
         final var that = (StructSchema) obj;

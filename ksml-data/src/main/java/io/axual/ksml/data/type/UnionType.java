@@ -85,9 +85,8 @@ public class UnionType extends ComplexType {
             }
 
             // Compare doc
-            if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_DOC) && !Objects.equals(doc, that.doc)) {
+            if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_DOC) && !Objects.equals(doc, that.doc))
                 return fieldNotEqual("type", this, doc, that, that.doc);
-            }
 
             // Compare tag
             if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_TAG) && !Objects.equals(tag, that.tag))
