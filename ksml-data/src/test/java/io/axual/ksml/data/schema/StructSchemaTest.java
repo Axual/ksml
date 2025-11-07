@@ -31,13 +31,13 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 class StructSchemaTest {
 
-    private static StructField requiredInt(String name) {
-        return new StructField(name, DataSchema.INTEGER_SCHEMA, null, 0);
+    private static StructSchema.Field requiredInt(String name) {
+        return new StructSchema.Field(name, DataSchema.INTEGER_SCHEMA, null, 0);
         // required=true; defaultValue=null
     }
 
-    private static StructField optionalStringWithDefault(String name) {
-        return new StructField(name, DataSchema.STRING_SCHEMA, null, 0, true, false, new DataString("n/a"));
+    private static StructSchema.Field optionalStringWithDefault(String name) {
+        return new StructSchema.Field(name, DataSchema.STRING_SCHEMA, null, 0, true, false, new DataString("n/a"));
     }
 
     @Test
@@ -64,7 +64,7 @@ class StructSchemaTest {
 
         // Other has id as long (compatible) and omits name (allowed due to default)
         final var other1 = new StructSchema("ns", "PersonOther", null, List.of(
-                new StructField("id", DataSchema.LONG_SCHEMA, null, 0)
+                new StructSchema.Field("id", DataSchema.LONG_SCHEMA, null, 0)
         ));
         assertThat(target.isAssignableFrom(other1).isAssignable()).isTrue();
 
@@ -77,7 +77,7 @@ class StructSchemaTest {
         // Present name with incompatible type -> not assignable
         final var other3 = new StructSchema("ns", "PersonOther", null, List.of(
                 requiredInt("id"),
-                new StructField("name", DataSchema.FLOAT_SCHEMA, null, 0)
+                new StructSchema.Field("name", DataSchema.FLOAT_SCHEMA, null, 0)
         ));
         assertThat(target.isAssignableFrom(other3).isAssignable()).isFalse();
 
@@ -85,7 +85,7 @@ class StructSchemaTest {
         final var other4 = new StructSchema("ns", "PersonOther", null, List.of(
                 requiredInt("id"),
                 optionalStringWithDefault("name"),
-                new StructField("extra", DataSchema.STRING_SCHEMA, null, 0)
+                new StructSchema.Field("extra", DataSchema.STRING_SCHEMA, null, 0)
         ));
         assertThat(target.isAssignableFrom(other4).isAssignable()).isTrue();
     }
@@ -104,10 +104,10 @@ class StructSchemaTest {
         assertThat(a).isNotEqualTo(b);
         assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
 
-        // c has incompatible type for name -> not equal
+        // c has an incompatible type for name -> not equal
         final var c = new StructSchema("ns", "C", null, List.of(
                 requiredInt("id"),
-                new StructField("name", DataSchema.FLOAT_SCHEMA, null, 0)
+                new StructSchema.Field("name", DataSchema.FLOAT_SCHEMA, null, 0)
         ));
         assertThat(a).isNotEqualTo(c);
     }

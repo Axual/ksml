@@ -47,13 +47,13 @@ public class TupleSchema extends StructSchema {
     /**
      * Helper to create Struct fields for each tuple element.
      */
-    private static List<StructField> convertTupleTypeToFields(TupleType type, DataTypeDataSchemaMapper mapper) {
+    private static List<Field> convertTupleTypeToFields(TupleType type, DataTypeDataSchemaMapper mapper) {
         if (type.subTypeCount() == 0) {
             throw new SchemaException("TupleSchema requires at least one field: type=" + type);
         }
-        final var result = new ArrayList<StructField>();
+        final var result = new ArrayList<Field>();
         for (int index = 0; index < type.subTypeCount(); index++) {
-            final var field = new StructField("elem" + index, mapper.toDataSchema(type.subType(index)));
+            final var field = new Field("elem" + index, mapper.toDataSchema(type.subType(index)));
             result.add(field);
         }
         return result;

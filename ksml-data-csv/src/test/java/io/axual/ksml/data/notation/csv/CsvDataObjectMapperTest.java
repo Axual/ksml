@@ -24,7 +24,7 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructField;
+import io.axual.ksml.data.schema.StructSchema.Field;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import org.apache.commons.csv.CSVFormat;
@@ -295,22 +295,22 @@ class CsvDataObjectMapperTest {
 
     private StructSchema createSensorDataSchema() {
         var fields = java.util.List.of(
-                new StructField("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
-                new StructField("timestamp", DataSchema.STRING_SCHEMA, "Timestamp", NO_TAG, true, false, null),
-                new StructField("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
-                new StructField("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
-                new StructField("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
-                new StructField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, true, false, null),
-                new StructField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, true, false, null),
-                new StructField("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, true, false, null)
+                new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
+                new StructSchema.Field("timestamp", DataSchema.STRING_SCHEMA, "Timestamp", NO_TAG, true, false, null),
+                new StructSchema.Field("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
+                new StructSchema.Field("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
+                new StructSchema.Field("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
+                new StructSchema.Field("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, true, false, null),
+                new StructSchema.Field("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, true, false, null),
+                new StructSchema.Field("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, true, false, null)
         );
         return new StructSchema("io.axual.test", "SensorData", "Sensor data schema", fields, false);
     }
 
     private StructSchema createSimpleSchema(String... fieldNames) {
-        var fields = new java.util.ArrayList<StructField>();
+        var fields = new java.util.ArrayList<StructSchema.Field>();
         for (var fieldName : fieldNames) {
-            fields.add(new StructField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
+            fields.add(new StructSchema.Field(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }
         return new StructSchema("io.axual.test", "Simple", "Simple schema", fields, false);
     }

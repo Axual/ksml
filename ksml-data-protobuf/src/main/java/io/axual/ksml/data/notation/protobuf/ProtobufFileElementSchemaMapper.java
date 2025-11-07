@@ -37,7 +37,6 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
@@ -91,7 +90,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         throw new SchemaException("Could not find message of type '" + name + "' in PROTOBUF schema");
     }
 
-    private List<StructField> convertMessageFieldsToStructFields(ProtobufReadContext context, MessageElement message) {
+    private List<StructSchema.Field> convertMessageFieldsToStructFields(ProtobufReadContext context, MessageElement message) {
         // Get the list of oneOfs
         final var oneOfs = message.getOneOfs();
         // Map all oneOfs to their respective list of fields
@@ -103,7 +102,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         oneOfMap.forEach((key, value) -> messageFields.removeAll(value));
 
         // Convert the list of message fields and oneOfs
-        final var result = new ArrayList<StructField>(messageFields.size());
+        final var result = new ArrayList<StructSchema.Field>(messageFields.size());
 
         // Add all converted message fields to the result list
         for (final var field : messageFields) {
@@ -117,20 +116,20 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                     .map(field -> convertFieldElementToUnionMember(context, field))
                     .toList();
             final var unionSchema = new UnionSchema(unionMembers.toArray(UnionSchema.Member[]::new));
-            result.add(new StructField(oneOf.getKey().getName(), unionSchema, oneOf.getKey().getDocumentation(), NO_TAG, false));
+            result.add(new StructSchema.Field(oneOf.getKey().getName(), unionSchema, oneOf.getKey().getDocumentation(), NO_TAG, false));
         }
 
         // Return the list of converted fields
         return result;
     }
 
-    private StructField convertFieldElementToStructField(ProtobufReadContext context, FieldElement field) {
+    private StructSchema.Field convertFieldElementToStructField(ProtobufReadContext context, FieldElement field) {
         final var name = field.getName();
         final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
         final var type = convertFieldElementToDataSchema(context, field);
         if (type == null) throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
         final var defaultValue = convertDefaultValueToDataObject(type, field.getDefaultValue());
-        return new StructField(name, type, field.getDocumentation(), field.getTag(), required, false, defaultValue);
+        return new StructSchema.Field(name, type, field.getDocumentation(), field.getTag(), required, false, defaultValue);
     }
 
     private DataObject convertDefaultValueToDataObject(DataSchema expectedType, String defaultValue) {
@@ -225,7 +224,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 Collections.emptyList());
     }
 
-    private static FieldElement convertStructFieldToFieldElement(StructField field, String type) {
+    private static FieldElement convertStructFieldToFieldElement(StructSchema.Field field, String type) {
         final var required = field.required();
         final var list = field.schema() instanceof ListSchema;
         final var defaultValue = field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE ? field.defaultValue().toString() : null;
@@ -241,7 +240,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 Collections.emptyList());
     }
 
-    private String convertStructFieldToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, List<OneOfElement> parentOneOfs, String parentName, StructField field) {
+    private String convertStructFieldToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, List<OneOfElement> parentOneOfs, String parentName, StructSchema.Field field) {
         if (field.schema() instanceof UnionSchema unionSchema) {
             final var memberTypes = convertUnionMembersToOneOfMemberTypes(context, parentNestedTypes, parentOneOfs, parentName, unionSchema);
             final var oneOf = new OneOfElement(field.name(), field.doc() != null ? field.doc() : "", memberTypes, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION);

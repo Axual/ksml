@@ -20,6 +20,12 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.StructType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -28,14 +34,6 @@ import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
-
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.schema.StructField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.StructType;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -270,8 +268,8 @@ class XmlDataObjectMapperTest {
     void numericTypeHandling() {
         // Given: schema with long type
         var fields = java.util.List.of(
-                new StructField("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
-                new StructField("count", DataSchema.LONG_SCHEMA, "Count", NO_TAG, true, false, null)
+                new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
+                new StructSchema.Field("count", DataSchema.LONG_SCHEMA, "Count", NO_TAG, true, false, null)
         );
         var schema = new StructSchema("io.axual.test", "NumericData", "Numeric data", fields, false);
 
@@ -298,22 +296,22 @@ class XmlDataObjectMapperTest {
 
     private StructSchema createSensorDataSchema() {
         var fields = java.util.List.of(
-                new StructField("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
-                new StructField("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
-                new StructField("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
-                new StructField("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
-                new StructField("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
-                new StructField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, false, false, null),
-                new StructField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, false, false, null),
-                new StructField("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, false, false, null)
+                new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
+                new StructSchema.Field("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
+                new StructSchema.Field("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
+                new StructSchema.Field("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
+                new StructSchema.Field("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
+                new StructSchema.Field("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, false, false, null),
+                new StructSchema.Field("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, false, false, null),
+                new StructSchema.Field("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, false, false, null)
         );
         return new StructSchema("io.axual.test", "SensorData", "Sensor data schema", fields, false);
     }
 
     private StructSchema createSimpleSchema(String... fieldNames) {
-        var fields = new java.util.ArrayList<StructField>();
+        var fields = new java.util.ArrayList<StructSchema.Field>();
         for (var fieldName : fieldNames) {
-            fields.add(new StructField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
+            fields.add(new StructSchema.Field(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }
         return new StructSchema("io.axual.test", "SimpleData", "Simple schema", fields, false);
     }
@@ -334,7 +332,7 @@ class XmlDataObjectMapperTest {
     /**
      * Extract the text content of an XML element by tag name.
      *
-     * @param doc The XML document
+     * @param doc     The XML document
      * @param tagName The tag name to extract
      * @return The text content of the element
      */

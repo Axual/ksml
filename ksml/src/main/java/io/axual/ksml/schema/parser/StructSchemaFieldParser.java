@@ -20,8 +20,8 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
@@ -33,41 +33,41 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 /**
  * The {@code StructFieldParser} class is responsible for parsing a {@link ParseNode}
- * and constructing a {@link StructField} object. This includes determining the field's
+ * and constructing a {@link StructSchema.Field} object. This includes determining the field's
  * schema, required status, default value, and other metadata associated with the field.
  * <p>
  * This class ensures that fields adhere to their schema definitions and provides
  * flexibility for handling fields with optional values by evaluating union schemas
  * containing a NULL type.
  */
-public class StructFieldParser extends BaseParser<StructField> {
+public class StructSchemaFieldParser extends BaseParser<StructSchema.Field> {
     private static final DataSchemaParser dataSchemaParser = new DataSchemaParser();
 
     /**
-     * Parses a {@link ParseNode} to create a {@link StructField} object.
+     * Parses a {@link ParseNode} to create a {@link StructSchema.Field} object.
      * <p>
      * This method extracts various components of a `ParseNode` to construct a `StructField`,
      * including its schema, required status, default value, and other properties.
      *
      * @param node The {@link ParseNode} representation of the field to be parsed.
-     * @return A fully constructed {@link StructField} instance based on the input node.
+     * @return A fully constructed {@link StructSchema.Field} instance based on the input node.
      */
     @Override
-    public StructField parse(ParseNode node) {
+    public StructSchema.Field parse(ParseNode node) {
         final var schema = dataSchemaParser.parse(node);
-        final var required = parseBoolean(node, DataSchemaDSL.STRUCT_FIELD_REQUIRED_FIELD);
+        final var required = parseBoolean(node, DataSchemaDSL.STRUCT_SCHEMA_FIELD_REQUIRED_FIELD);
         final var property = deduceSchemaAndRequired(schema, required);
-        final var constant = parseBoolean(node, DataSchemaDSL.STRUCT_FIELD_CONSTANT_FIELD);
-        final var index = parseInteger(node, DataSchemaDSL.STRUCT_FIELD_TAG_FIELD);
-        return new StructField(
-                parseString(node, DataSchemaDSL.STRUCT_FIELD_NAME_FIELD),
+        final var constant = parseBoolean(node, DataSchemaDSL.STRUCT_SCHEMA_FIELD_CONSTANT_FIELD);
+        final var index = parseInteger(node, DataSchemaDSL.STRUCT_SCHEMA_FIELD_TAG_FIELD);
+        return new StructSchema.Field(
+                parseString(node, DataSchemaDSL.STRUCT_SCHEMA_FIELD_NAME_FIELD),
                 property.left(),
-                parseString(node, DataSchemaDSL.STRUCT_FIELD_DOC_FIELD),
+                parseString(node, DataSchemaDSL.STRUCT_SCHEMA_FIELD_DOC_FIELD),
                 index != null ? index : NO_TAG,
                 property.right(),
                 constant != null && constant,
-                new DataObjectParser().parse(node.get(DataSchemaDSL.STRUCT_FIELD_DEFAULT_VALUE_FIELD)),
-                new StructFieldOrderParser().parse(node.get(DataSchemaDSL.STRUCT_FIELD_ORDER_FIELD)));
+                new DataObjectParser().parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELD_DEFAULT_VALUE_FIELD)),
+                new StructSchemaFieldOrderParser().parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELD_ORDER_FIELD)));
     }
 
     /**

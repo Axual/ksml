@@ -20,20 +20,20 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.StructField;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
 
-public class StructFieldOrderParser extends BaseParser<StructField.Order> {
+public class StructSchemaFieldOrderParser extends BaseParser<StructSchema.Field.Order> {
     @Override
-    public StructField.Order parse(ParseNode node) {
-        if (node == null) return StructField.Order.ASCENDING;
+    public StructSchema.Field.Order parse(ParseNode node) {
+        if (node == null) return StructSchema.Field.Order.ASCENDING;
         var order = node.asString();
         if (order != null) order = order.toUpperCase();
         try {
-            return StructField.Order.valueOf(order);
+            return StructSchema.Field.Order.valueOf(order);
         } catch (IllegalArgumentException e) {
-            return StructField.Order.ASCENDING;
+            return StructSchema.Field.Order.ASCENDING;
         }
     }
 }

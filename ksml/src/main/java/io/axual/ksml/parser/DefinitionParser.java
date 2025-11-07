@@ -20,7 +20,6 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.StructSchema;
@@ -96,7 +95,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         for (final var schema : parser.schemas()) {
             if (!schema.fields().isEmpty()) {
                 final var newFields = schema.fields().stream()
-                        .map(field -> field.required() ? new StructField(field.name(), field.schema(), "*(optional)* " + field.doc(), field.tag(), false, field.constant(), field.defaultValue()) : field)
+                        .map(field -> field.required() ? new StructSchema.Field(field.name(), field.schema(), "*(optional)* " + field.doc(), field.tag(), false, field.constant(), field.defaultValue()) : field)
                         .toList();
                 newSchemas.add(new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields, false));
             } else {
@@ -106,16 +105,16 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return StructsParser.of(node -> node != null ? parser.parse(node) : valueIfMissing, newSchemas);
     }
 
-    protected static StructSchema structSchema(Class<?> clazz, String doc, List<StructField> fields) {
+    protected static StructSchema structSchema(Class<?> clazz, String doc, List<StructSchema.Field> fields) {
         return structSchema(clazz.getSimpleName(), doc, fields);
     }
 
-    protected static StructSchema structSchema(String name, String doc, List<StructField> fields) {
+    protected static StructSchema structSchema(String name, String doc, List<StructSchema.Field> fields) {
         return new StructSchema(SCHEMA_NAMESPACE, name, doc, fields, false);
     }
 
     private static class FieldParser<V> implements StructsParser<V> {
-        private final StructField field;
+        private final StructSchema.Field field;
         @Getter
         private final List<StructSchema> schemas;
         private final ParserWithSchemas<V> valueParser;
@@ -129,7 +128,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
             final var fieldSchema = parsedSchemas.size() == 1
                     ? parsedSchemas.getFirst()
                     : new UnionSchema(parsedSchemas.stream().map(UnionSchema.Member::new).toArray(UnionSchema.Member[]::new));
-            field = new StructField(childName, fieldSchema, doc, NO_TAG, true, constant, null);
+            field = new StructSchema.Field(childName, fieldSchema, doc, NO_TAG, true, constant, null);
             schemas = List.of(structSchema((String) null, null, List.of(field)));
             this.valueParser = valueParser;
         }
@@ -221,7 +220,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     protected StructsParser<UserType> userTypeField(String childName, String doc, UserType defaultValue) {
         final var stringParser = stringField(childName, doc);
-        final var field = new StructField(childName, DataSchema.STRING_SCHEMA, doc, NO_TAG, true, false, null);
+        final var field = new StructSchema.Field(childName, DataSchema.STRING_SCHEMA, doc, NO_TAG, true, false, null);
         final var schemas = structSchema((String) null, null, List.of(field));
         return StructsParser.of(node -> {
                     final var content = stringParser.parse(node);

@@ -31,7 +31,6 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
@@ -156,8 +155,8 @@ class DataTypeDataSchemaMapperTest {
         final var schemalessSchema = mapper.toDataSchema(schemalessStructType);
         assertThat(schemalessSchema).isSameAs(StructSchema.SCHEMALESS);
 
-        final var nameField = new StructField("name", DataSchema.STRING_SCHEMA);
-        final var ageOptionalField = new StructField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
+        final var nameField = new StructSchema.Field("name", DataSchema.STRING_SCHEMA);
+        final var ageOptionalField = new StructSchema.Field("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
         final var personStructSchema = new StructSchema("example", "Person", "A person", List.of(nameField, ageOptionalField));
         final var structTypeWithSchema = new StructType(personStructSchema);
 

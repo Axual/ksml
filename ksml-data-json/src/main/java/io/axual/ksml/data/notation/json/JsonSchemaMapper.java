@@ -31,7 +31,6 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 
@@ -142,7 +141,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         final var doc = schema.getAsString(DESCRIPTION_NAME);
 
         final var requiredProperties = new TreeSet<String>();
-        List<StructField> fields = null;
+        List<StructSchema.Field> fields = null;
         final var reqProps = schema.get(REQUIRED_NAME);
         if (reqProps instanceof DataList reqPropList) {
             for (var reqProp : reqPropList) {
@@ -184,14 +183,14 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
      * @param referenceResolver  resolver for local $ref targets
      * @return list of StructField instances in no particular order
      */
-    private List<StructField> convertFields(DataStruct properties, Set<String> requiredProperties, ReferenceResolver<DataStruct> referenceResolver) {
-        var result = new ArrayList<StructField>();
+    private List<StructSchema.Field> convertFields(DataStruct properties, Set<String> requiredProperties, ReferenceResolver<DataStruct> referenceResolver) {
+        var result = new ArrayList<StructSchema.Field>();
         for (var entry : properties.entrySet()) {
             var name = entry.getKey();
             var spec = entry.getValue();
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
-                var field = new StructField(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, requiredProperties.contains(name));
+                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, requiredProperties.contains(name));
                 result.add(field);
             }
         }
@@ -335,7 +334,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
-    private DataStruct fromDataSchema(StructField field, DefinitionLibrary definitions) {
+    private DataStruct fromDataSchema(StructSchema.Field field, DefinitionLibrary definitions) {
         final var result = new DataStruct();
         final var doc = field.doc();
         if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));

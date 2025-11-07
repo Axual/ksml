@@ -24,13 +24,12 @@ import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.csv.CsvDataObjectMapper;
 import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.csv.CsvSchemaMapper;
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.StructSchema;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_TAG;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_TAG;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
 import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_NAME;
@@ -52,8 +51,8 @@ class CsvTests {
     void schemaTest() {
         NotationTestRunner.schemaTest(CsvNotation.NOTATION_NAME, new CsvSchemaMapper(), (input, output) -> {
             // Check the conversion
-            final var inputFieldNames = ((StructSchema) input).fields().stream().map(StructField::name).toArray(String[]::new);
-            final var outputFieldNames = ((StructSchema) output).fields().stream().map(StructField::name).toArray(String[]::new);
+            final var inputFieldNames = ((StructSchema) input).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
+            final var outputFieldNames = ((StructSchema) output).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
             assertArrayEquals(inputFieldNames, outputFieldNames, "Input schema field names should match output schema field names");
         });
     }

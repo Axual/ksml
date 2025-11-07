@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.exception.ParseException;
@@ -71,7 +70,7 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             final var required = schemaToChildValues.size() > 1 && !isDefault;
             // Add the "type" field to the list of fields for the converted schema
             final var enumSchema = new EnumSchema(schema.namespace(), enumType, doc, entry.getValue().stream().map(EnumSchema.Symbol::new).toList(), null);
-            final var field = new StructField(childName, enumSchema, doc, NO_TAG, required, defaultValue != null, defaultValue != null ? new DataString(defaultValue) : null);
+            final var field = new StructSchema.Field(childName, enumSchema, doc, NO_TAG, required, defaultValue != null, defaultValue != null ? new DataString(defaultValue) : null);
             newFields.add(field);
             // Create a converted schema, which includes the "type" field
             final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields, false);

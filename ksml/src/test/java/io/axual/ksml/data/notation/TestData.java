@@ -26,7 +26,6 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -54,10 +53,10 @@ public class TestData {
 
     public static StructSchema testSchema() {
         final var addressFields = List.of(
-                new StructField(STREET, DataSchema.STRING_SCHEMA, "Street field", 11),
-                new StructField(POSTAL_CODE, DataSchema.STRING_SCHEMA, "Postal code field", 12),
-                new StructField(CITY, DataSchema.STRING_SCHEMA, "City field", 13),
-                new StructField(COUNTRY, DataSchema.STRING_SCHEMA, "Country field", 14));
+                new StructSchema.Field(STREET, DataSchema.STRING_SCHEMA, "Street field", 11),
+                new StructSchema.Field(POSTAL_CODE, DataSchema.STRING_SCHEMA, "Postal code field", 12),
+                new StructSchema.Field(CITY, DataSchema.STRING_SCHEMA, "City field", 13),
+                new StructSchema.Field(COUNTRY, DataSchema.STRING_SCHEMA, "Country field", 14));
         final var addressSchema = new StructSchema(NAMESPACE, "AddressSchema", "Address schema used for testing", addressFields, false);
 
         final var eyeColorSymbols = List.of(
@@ -75,13 +74,13 @@ public class TestData {
                 new UnionSchema.Member("iban", DataSchema.STRING_SCHEMA, "IBAN", 24));
 
         final var fields = List.of(
-                new StructField(NAME, DataSchema.STRING_SCHEMA, "Name", 1),
-                new StructField(AGE, DataSchema.INTEGER_SCHEMA, "Age", 2),
-                new StructField(ADDRESS, addressSchema, "Address", 3, false),
-                new StructField(SHIPPING_ADDRESS, addressSchema, "Shipping address", 4, false),
-                new StructField(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataString("BLUE")),
-                new StructField(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
-                new StructField(ACCOUNT_NUMBER, accountNumberSchema, "Account number", NO_TAG, false));
+                new StructSchema.Field(NAME, DataSchema.STRING_SCHEMA, "Name", 1),
+                new StructSchema.Field(AGE, DataSchema.INTEGER_SCHEMA, "Age", 2),
+                new StructSchema.Field(ADDRESS, addressSchema, "Address", 3, false),
+                new StructSchema.Field(SHIPPING_ADDRESS, addressSchema, "Shipping address", 4, false),
+                new StructSchema.Field(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataString("BLUE")),
+                new StructSchema.Field(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
+                new StructSchema.Field(ACCOUNT_NUMBER, accountNumberSchema, "Account number", NO_TAG, false));
         return new StructSchema(NAMESPACE, "TestSchema", "Schema used for testing", fields, false);
     }
 
