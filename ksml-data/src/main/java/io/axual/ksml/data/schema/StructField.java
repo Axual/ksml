@@ -33,14 +33,14 @@ import lombok.Getter;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_CONSTANT;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_DEFAULT_VALUE;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_DOC;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_NAME;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_ORDER;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_REQUIRED;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_SCHEMA;
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_CONSTANT;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_DEFAULT_VALUE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_ORDER;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_REQUIRED;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_SCHEMA;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_TAG;
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
@@ -51,7 +51,7 @@ import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
  */
 @Getter
 @EqualsAndHashCode
-public class DataField implements DataEquals {
+public class StructField implements DataEquals {
     /**
      * Enum representing the sorting order of the field.
      * <ul>
@@ -105,7 +105,7 @@ public class DataField implements DataEquals {
     private final Order order;
 
     /**
-     * Constructs a new DataField with specified properties.
+     * Constructs a new StructField with specified properties.
      *
      * @param name         The name of the field. Can be null for an anonymous field.
      * @param schema       The schema of the field. Cannot be null.
@@ -116,7 +116,7 @@ public class DataField implements DataEquals {
      * @param defaultValue The default value of the field. Can be null.
      * @param order        The sorting order of the field (ascending, descending, or ignored).
      */
-    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataObject defaultValue, Order order) {
+    public StructField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataObject defaultValue, Order order) {
         Objects.requireNonNull(schema);
         this.name = name;
         this.schema = schema;
@@ -130,49 +130,49 @@ public class DataField implements DataEquals {
     }
 
     /**
-     * Constructs a new anonymous required DataField with no default value.
+     * Constructs a new anonymous required StructField with no default value.
      *
      * @param schema The schema of the field. Cannot be null.
      */
-    public DataField(DataSchema schema) {
+    public StructField(DataSchema schema) {
         this(null, schema);
     }
 
     /**
-     * Constructs a new optional DataField with the specified name and schema.
+     * Constructs a new optional StructField with the specified name and schema.
      *
      * @param name   The name of the field.
      * @param schema The schema of the field. Cannot be null.
      */
-    public DataField(String name, DataSchema schema) {
+    public StructField(String name, DataSchema schema) {
         this(name, schema, null);
     }
 
     /**
-     * Constructs a new optional DataField with the specified name, schema, and documentation.
+     * Constructs a new optional StructField with the specified name, schema, and documentation.
      *
      * @param name   The name of the field.
      * @param schema The schema of the field. Cannot be null.
      * @param doc    The documentation string for the field. Can be null.
      */
-    public DataField(String name, DataSchema schema, String doc) {
+    public StructField(String name, DataSchema schema, String doc) {
         this(name, schema, doc, NO_TAG);
     }
 
     /**
-     * Constructs a new optional DataField with the specified name, schema, documentation, and tag.
+     * Constructs a new optional StructField with the specified name, schema, documentation, and tag.
      *
      * @param name   The name of the field.
      * @param schema The schema of the field. Cannot be null.
      * @param doc    The documentation string for the field. Can be null.
      * @param tag    The tag of the field in the schema.
      */
-    public DataField(String name, DataSchema schema, String doc, int tag) {
+    public StructField(String name, DataSchema schema, String doc, int tag) {
         this(name, schema, doc, tag, true, false, null);
     }
 
     /**
-     * Constructs a new DataField with the specified name, schema, documentation, tag, and required status.
+     * Constructs a new StructField with the specified name, schema, documentation, tag, and required status.
      *
      * @param name     The name of the field.
      * @param schema   The schema of the field. Cannot be null.
@@ -180,12 +180,12 @@ public class DataField implements DataEquals {
      * @param tag      The tag of the field.
      * @param required Whether the field is required.
      */
-    public DataField(String name, DataSchema schema, String doc, int tag, boolean required) {
+    public StructField(String name, DataSchema schema, String doc, int tag, boolean required) {
         this(name, schema, doc, tag, required, false);
     }
 
     /**
-     * Constructs a new DataField with the specified properties and assigns a default ascending order.
+     * Constructs a new StructField with the specified properties and assigns a default ascending order.
      *
      * @param name     The name of the field.
      * @param schema   The schema of the field. Cannot be null.
@@ -194,12 +194,12 @@ public class DataField implements DataEquals {
      * @param required Whether the field is required.
      * @param constant Whether the field is constant and unmodifiable.
      */
-    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant) {
+    public StructField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant) {
         this(name, schema, doc, tag, required, constant, null);
     }
 
     /**
-     * Constructs a new DataField with the specified properties and assigns a default ascending order.
+     * Constructs a new StructField with the specified properties and assigns a default ascending order.
      *
      * @param name         The name of the field.
      * @param schema       The schema of the field. Cannot be null.
@@ -209,7 +209,7 @@ public class DataField implements DataEquals {
      * @param constant     Whether the field is constant and unmodifiable.
      * @param defaultValue The default value of the field. Can be null.
      */
-    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataObject defaultValue) {
+    public StructField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataObject defaultValue) {
         this(name, schema, doc, tag, required, constant, defaultValue, Order.ASCENDING);
     }
 
@@ -227,7 +227,7 @@ public class DataField implements DataEquals {
      *
      * @param otherField The other field to compare against.
      */
-    public Assignable isAssignableFrom(DataField otherField) {
+    public Assignable isAssignableFrom(StructField otherField) {
         if (otherField == null) {
             return Assignable.notAssignable("Field \"" + name + "\" not found");
         } else {
@@ -236,7 +236,7 @@ public class DataField implements DataEquals {
     }
 
     /**
-     * Returns a string representation of the DataField, including its name, schema, tag, and required status.
+     * Returns a string representation of the StructField, including its name, schema, tag, and required status.
      *
      * @return A string summarizing the field's details.
      */
@@ -257,41 +257,41 @@ public class DataField implements DataEquals {
         if (obj == null) return otherIsNull(this);
         if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
 
-        final var that = (DataField) obj;
+        final var that = (StructField) obj;
 
         // Compare name
-        if (!flags.isSet(IGNORE_DATA_FIELD_NAME) && !Objects.equals(name, that.name))
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_NAME) && !Objects.equals(name, that.name))
             return fieldNotEqual("name", this, name, that, that.name);
 
         // Compare schema
-        if (!flags.isSet(IGNORE_DATA_FIELD_SCHEMA)) {
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_SCHEMA)) {
             final var schemaEqual = schema.equals(that.schema, flags);
             if (schemaEqual.isNotEqual())
                 return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
         }
 
         // Compare doc
-        if (!flags.isSet(IGNORE_DATA_FIELD_DOC) && !Objects.equals(doc, that.doc))
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_DOC) && !Objects.equals(doc, that.doc))
             return fieldNotEqual("doc", this, doc, that, that.doc);
 
         // Compare required
-        if (!flags.isSet(IGNORE_DATA_FIELD_REQUIRED) && !Objects.equals(required, that.required))
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_REQUIRED) && !Objects.equals(required, that.required))
             return fieldNotEqual("required", this, required, that, that.required);
 
         // Compare constant
-        if (!flags.isSet(IGNORE_DATA_FIELD_CONSTANT) && !Objects.equals(constant, that.constant))
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_CONSTANT) && !Objects.equals(constant, that.constant))
             return fieldNotEqual("constant", this, constant, that, that.constant);
 
         // Compare tag
-        if (!flags.isSet(IGNORE_DATA_FIELD_TAG) && !Objects.equals(tag, that.tag))
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_TAG) && !Objects.equals(tag, that.tag))
             return fieldNotEqual("tag", this, tag, that, that.tag);
 
         // Compare defaultValue
-        if (!flags.isSet(IGNORE_DATA_FIELD_DEFAULT_VALUE) && !Objects.equals(defaultValue, that.defaultValue))
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_DEFAULT_VALUE) && !Objects.equals(defaultValue, that.defaultValue))
             return fieldNotEqual("defaultValue", this, defaultValue, that, that.defaultValue);
 
         // Compare order
-        if (!flags.isSet(IGNORE_DATA_FIELD_ORDER) && !Objects.equals(order, that.order))
+        if (!flags.isSet(IGNORE_STRUCT_FIELD_ORDER) && !Objects.equals(order, that.order))
             return fieldNotEqual("order", this, order, that, that.order);
 
         return Equality.equal();

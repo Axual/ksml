@@ -31,7 +31,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
@@ -162,16 +162,16 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         return null;
     }
 
-    private Map<String, Object> convertField(DataField field) {
+    private Map<String, Object> convertField(StructField field) {
         final var result = new LinkedHashMap<String, Object>();
-        result.put(DataSchemaDSL.DATA_FIELD_NAME_FIELD, field.name());
-        if (field.hasDoc()) result.put(DataSchemaDSL.DATA_FIELD_DOC_FIELD, field.doc());
-        result.put(DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD, field.required());
-        result.put(DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD, field.constant());
-        result.put(DataSchemaDSL.DATA_FIELD_TAG_FIELD, field.tag());
-        result.put(DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
+        result.put(DataSchemaDSL.STRUCT_FIELD_NAME_FIELD, field.name());
+        if (field.hasDoc()) result.put(DataSchemaDSL.STRUCT_FIELD_DOC_FIELD, field.doc());
+        result.put(DataSchemaDSL.STRUCT_FIELD_REQUIRED_FIELD, field.required());
+        result.put(DataSchemaDSL.STRUCT_FIELD_CONSTANT_FIELD, field.constant());
+        result.put(DataSchemaDSL.STRUCT_FIELD_TAG_FIELD, field.tag());
+        result.put(DataSchemaDSL.STRUCT_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null) encodeDefaultValue(result, field.defaultValue());
-        result.put(DataSchemaDSL.DATA_FIELD_ORDER_FIELD, field.order().toString());
+        result.put(DataSchemaDSL.STRUCT_FIELD_ORDER_FIELD, field.order().toString());
         return result;
     }
 
@@ -185,7 +185,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     }
 
     private void encodeDefaultValue(Map<String, Object> node, DataObject defaultValue) {
-        final var fieldName = DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD;
+        final var fieldName = DataSchemaDSL.STRUCT_FIELD_DEFAULT_VALUE_FIELD;
         switch (defaultValue) {
             case null -> node.put(fieldName, null);
             case DataNull unused -> node.put(fieldName, null);

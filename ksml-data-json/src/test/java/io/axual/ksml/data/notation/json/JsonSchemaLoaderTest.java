@@ -21,7 +21,7 @@ package io.axual.ksml.data.notation.json;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -78,11 +78,11 @@ class JsonSchemaLoaderTest {
         softly.assertThat(struct.fields())
                 .hasSize(5)
                 .containsExactlyInAnyOrder(
-                        new DataField("aString", STRING_SCHEMA, null, NO_TAG, false),
-                        new DataField("aBoolean", BOOLEAN_SCHEMA, null, NO_TAG, false),
-                        new DataField("anInteger", LONG_SCHEMA, null, NO_TAG, false),
-                        new DataField("aNumber", DOUBLE_SCHEMA, null, NO_TAG, false),
-                        new DataField("aNull", NULL_SCHEMA, null, NO_TAG, false)
+                        new StructField("aString", STRING_SCHEMA, null, NO_TAG, false),
+                        new StructField("aBoolean", BOOLEAN_SCHEMA, null, NO_TAG, false),
+                        new StructField("anInteger", LONG_SCHEMA, null, NO_TAG, false),
+                        new StructField("aNumber", DOUBLE_SCHEMA, null, NO_TAG, false),
+                        new StructField("aNull", NULL_SCHEMA, null, NO_TAG, false)
                 );
         softly.assertAll();
     }

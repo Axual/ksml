@@ -31,7 +31,7 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -140,7 +140,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         throw new SchemaException("Can not convert schema " + schema + " to a dataType");
     }
 
-    private DataType[] convertFieldsToSubTypes(List<DataField> fields) {
+    private DataType[] convertFieldsToSubTypes(List<StructField> fields) {
         var result = new DataType[fields.size()];
         for (int index = 0; index < fields.size(); index++) {
             result[index] = fromDataSchema(fields.get(index).schema());

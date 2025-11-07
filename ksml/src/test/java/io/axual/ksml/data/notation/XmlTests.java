@@ -26,7 +26,7 @@ import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaMapper;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_TAG;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_NAMESPACE;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
@@ -36,7 +36,7 @@ import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBE
 
 class XmlTests {
     private static final EqualityFlags XML_EQUALITY_FLAGS = new EqualityFlags(
-            IGNORE_DATA_FIELD_TAG,
+            IGNORE_STRUCT_FIELD_TAG,
             IGNORE_ENUM_SCHEMA_NAMESPACE,
             IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
             IGNORE_ENUM_SCHEMA_SYMBOL_TAG,

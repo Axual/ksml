@@ -65,18 +65,18 @@ public class StructSchema extends NamedSchema {
     /**
      * A list of fields that make up the structured schema.
      * <p>
-     * Each field is defined by a {@link DataField} object, which includes its name and schema definition.
+     * Each field is defined by a {@link StructField} object, which includes its name and schema definition.
      * The order of fields in this list is preserved.
      * </p>
      */
-    private final List<DataField> fields = new ArrayList<>();
+    private final List<StructField> fields = new ArrayList<>();
     /**
-     * A map of field names to their corresponding {@link DataField} objects.
+     * A map of field names to their corresponding {@link StructField} objects.
      * <p>
      * This map provides efficient access to fields by their names.
      * </p>
      */
-    private final Map<String, DataField> fieldsByName = new HashMap<>();
+    private final Map<String, StructField> fieldsByName = new HashMap<>();
 
     /**
      * Indicates if the data structure is allowed to have additional fields.
@@ -115,7 +115,7 @@ public class StructSchema extends NamedSchema {
      * @param fields The list of fields that make up the schema. May be empty but not null.
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
-    public StructSchema(@Singular List<DataField> fields) {
+    public StructSchema(@Singular List<StructField> fields) {
         this(null, null, null, fields, true);
     }
 
@@ -128,7 +128,7 @@ public class StructSchema extends NamedSchema {
      * @param fields    The list of fields that make up the schema. May be empty but not null.
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
-    public StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields) {
+    public StructSchema(String namespace, String name, String doc, @Singular List<StructField> fields) {
         this(namespace, name, doc, fields, true);
     }
 
@@ -142,7 +142,7 @@ public class StructSchema extends NamedSchema {
      * @param additionalFieldsAllowed set to true or null to allow additional fields to be used in this struct
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
-    public StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields, boolean additionalFieldsAllowed) {
+    public StructSchema(String namespace, String name, String doc, @Singular List<StructField> fields, boolean additionalFieldsAllowed) {
         this(namespace, name, doc, fields, additionalFieldsAllowed, null);
     }
 
@@ -158,7 +158,7 @@ public class StructSchema extends NamedSchema {
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
     @Builder(builderMethodName = "builder")
-    public StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields, Boolean additionalFieldsAllowed, DataSchema additionalFieldsSchema) {
+    public StructSchema(String namespace, String name, String doc, @Singular List<StructField> fields, Boolean additionalFieldsAllowed, DataSchema additionalFieldsSchema) {
         super(DataSchemaConstants.STRUCT_TYPE, namespace, name, doc);
         if (fields != null) {
             this.fields.addAll(fields);
@@ -178,10 +178,10 @@ public class StructSchema extends NamedSchema {
      * Retrieves a field by its index in the schema.
      *
      * @param index The index of the field to retrieve.
-     * @return The {@link DataField} at the specified index.
+     * @return The {@link StructField} at the specified index.
      * @throws IndexOutOfBoundsException if the index is out of range.
      */
-    public DataField field(int index) {
+    public StructField field(int index) {
         return fields.get(index);
     }
 
@@ -193,9 +193,9 @@ public class StructSchema extends NamedSchema {
      * </p>
      *
      * @param name The name of the field to retrieve.
-     * @return The {@link DataField} with the specified name, or {@code null} if it doesn't exist.
+     * @return The {@link StructField} with the specified name, or {@code null} if it doesn't exist.
      */
-    public DataField field(String name) {
+    public StructField field(String name) {
         return fieldsByName.get(name);
     }
 
@@ -205,9 +205,9 @@ public class StructSchema extends NamedSchema {
      * The order of fields in the list is the same as the order specified during schema creation.
      * </p>
      *
-     * @return A {@link List} of {@link DataField} objects representing the schema's fields.
+     * @return A {@link List} of {@link StructField} objects representing the schema's fields.
      */
-    public List<DataField> fields() {
+    public List<StructField> fields() {
         return Lists.newCopyOnWriteArrayList(fields);
     }
 

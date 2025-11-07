@@ -20,7 +20,7 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
@@ -53,14 +53,14 @@ public class ConsumerRecordSchema {
     private static final String KAFKA_PREFIX = "Kafka ";
 
     private static StructSchema generateConsumerRecordSchema() {
-        final var fields = new ArrayList<DataField>();
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TIMESTAMP_FIELD, DataSchema.LONG_SCHEMA, CONSUMER_RECORD_SCHEMA_TIMESTAMP_DOC, 1));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_FIELD, DataSchema.STRING_SCHEMA, CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_DOC, 2));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_KEY_FIELD, DataSchema.ANY_SCHEMA, CONSUMER_RECORD_SCHEMA_KEY_DOC, 3));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_VALUE_FIELD, DataSchema.ANY_SCHEMA, CONSUMER_RECORD_SCHEMA_VALUE_DOC, 4));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TOPIC_FIELD, DataSchema.STRING_SCHEMA, CONSUMER_RECORD_SCHEMA_TOPIC_DOC, 5));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_PARTITION_FIELD, DataSchema.INTEGER_SCHEMA, CONSUMER_RECORD_SCHEMA_PARTITION_DOC, 6));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_OFFSET_FIELD, DataSchema.LONG_SCHEMA, CONSUMER_RECORD_SCHEMA_OFFSET_DOC, 7));
+        final var fields = new ArrayList<StructField>();
+        fields.add(new StructField(CONSUMER_RECORD_SCHEMA_TIMESTAMP_FIELD, DataSchema.LONG_SCHEMA, CONSUMER_RECORD_SCHEMA_TIMESTAMP_DOC, 1));
+        fields.add(new StructField(CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_FIELD, DataSchema.STRING_SCHEMA, CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_DOC, 2));
+        fields.add(new StructField(CONSUMER_RECORD_SCHEMA_KEY_FIELD, DataSchema.ANY_SCHEMA, CONSUMER_RECORD_SCHEMA_KEY_DOC, 3));
+        fields.add(new StructField(CONSUMER_RECORD_SCHEMA_VALUE_FIELD, DataSchema.ANY_SCHEMA, CONSUMER_RECORD_SCHEMA_VALUE_DOC, 4));
+        fields.add(new StructField(CONSUMER_RECORD_SCHEMA_TOPIC_FIELD, DataSchema.STRING_SCHEMA, CONSUMER_RECORD_SCHEMA_TOPIC_DOC, 5));
+        fields.add(new StructField(CONSUMER_RECORD_SCHEMA_PARTITION_FIELD, DataSchema.INTEGER_SCHEMA, CONSUMER_RECORD_SCHEMA_PARTITION_DOC, 6));
+        fields.add(new StructField(CONSUMER_RECORD_SCHEMA_OFFSET_FIELD, DataSchema.LONG_SCHEMA, CONSUMER_RECORD_SCHEMA_OFFSET_DOC, 7));
         return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, CONSUMER_RECORD_SCHEMA_NAME, KAFKA_PREFIX + CONSUMER_RECORD_SCHEMA_NAME, fields, false);
     }
 }

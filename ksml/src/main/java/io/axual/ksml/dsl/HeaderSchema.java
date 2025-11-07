@@ -21,7 +21,7 @@ package io.axual.ksml.dsl;
  */
 
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
@@ -44,9 +44,9 @@ public class HeaderSchema {
     private static final String KAFKA_PREFIX = "Kafka ";
 
     private static StructSchema generateHeaderSchema() {
-        final var headerFields = new ArrayList<DataField>();
-        headerFields.add(new DataField(HEADER_SCHEMA_KEY_FIELD, DataSchema.STRING_SCHEMA, HEADER_SCHEMA_KEY_DOC, 1));
-        headerFields.add(new DataField(HEADER_SCHEMA_VALUE_FIELD, DataSchema.ANY_SCHEMA, HEADER_SCHEMA_VALUE_DOC, 2));
+        final var headerFields = new ArrayList<StructField>();
+        headerFields.add(new StructField(HEADER_SCHEMA_KEY_FIELD, DataSchema.STRING_SCHEMA, HEADER_SCHEMA_KEY_DOC, 1));
+        headerFields.add(new StructField(HEADER_SCHEMA_VALUE_FIELD, DataSchema.ANY_SCHEMA, HEADER_SCHEMA_VALUE_DOC, 2));
         return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, HEADER_SCHEMA_NAME, KAFKA_PREFIX + HEADER_SCHEMA_NAME, headerFields, false);
     }
 }

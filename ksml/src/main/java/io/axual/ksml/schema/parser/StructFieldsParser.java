@@ -20,18 +20,18 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.ParseNode;
 
 import java.util.List;
 
-public class DataFieldsParser extends BaseParser<List<DataField>> {
+public class StructFieldsParser extends BaseParser<List<StructField>> {
     private static final String FIELD = "field";
 
     @Override
-    public List<DataField> parse(ParseNode node) {
-        return new ListParser<>(FIELD, FIELD, new DataFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, FIELD));
+    public List<StructField> parse(ParseNode node) {
+        return new ListParser<>(FIELD, FIELD, new StructFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, FIELD));
     }
 }

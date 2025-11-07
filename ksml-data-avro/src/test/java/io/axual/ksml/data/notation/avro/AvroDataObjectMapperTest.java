@@ -39,7 +39,7 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
@@ -139,7 +139,7 @@ class AvroDataObjectMapperTest {
         final var recordAvroSchema = schemaBuilder.record("Simple").doc("Really").fields().requiredString("value").endRecord();
         final var recordAvroData = new GenericData.Record(recordAvroSchema);
         recordAvroData.put("value", "testing");
-        final var recordKsmlSchema = new StructSchema("io.axual.test", "Simple", "Really", List.of(new DataField("value", DataSchema.STRING_SCHEMA)), false);
+        final var recordKsmlSchema = new StructSchema("io.axual.test", "Simple", "Really", List.of(new StructField("value", DataSchema.STRING_SCHEMA)), false);
         final var recordKsmlData = new DataStruct(recordKsmlSchema);
         recordKsmlData.put("value", new DataString("testing"));
 
@@ -691,12 +691,12 @@ class AvroDataObjectMapperTest {
                 .namespace("io.axual.test")
                 .name("Arrays")
                 .doc("Record covering specific arrays")
-                .field(new DataField("stringList", new ListSchema(DataSchema.STRING_SCHEMA)))
-                .field(new DataField("intList", new ListSchema(DataSchema.INTEGER_SCHEMA)))
-                .field(new DataField("longList", new ListSchema(DataSchema.LONG_SCHEMA)))
-                .field(new DataField("floatList", new ListSchema(DataSchema.FLOAT_SCHEMA)))
-                .field(new DataField("doubleList", new ListSchema(DataSchema.DOUBLE_SCHEMA)))
-                .field(new DataField("booleanList", new ListSchema(DataSchema.BOOLEAN_SCHEMA)))
+                .field(new StructField("stringList", new ListSchema(DataSchema.STRING_SCHEMA)))
+                .field(new StructField("intList", new ListSchema(DataSchema.INTEGER_SCHEMA)))
+                .field(new StructField("longList", new ListSchema(DataSchema.LONG_SCHEMA)))
+                .field(new StructField("floatList", new ListSchema(DataSchema.FLOAT_SCHEMA)))
+                .field(new StructField("doubleList", new ListSchema(DataSchema.DOUBLE_SCHEMA)))
+                .field(new StructField("booleanList", new ListSchema(DataSchema.BOOLEAN_SCHEMA)))
                 .additionalFieldsAllowed(false)
                 .build();
         final var expectedKsmlStruct = new DataStruct(expectedKsmlStructSchema);

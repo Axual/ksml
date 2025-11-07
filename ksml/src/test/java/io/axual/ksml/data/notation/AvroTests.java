@@ -28,7 +28,7 @@ import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_DATA_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_TAG;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_DOC;
@@ -37,7 +37,7 @@ import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBE
 
 class AvroTests {
     private static final EqualityFlags AVRO_EQUALITY_FLAGS = new EqualityFlags(
-            IGNORE_DATA_FIELD_TAG,
+            IGNORE_STRUCT_FIELD_TAG,
             IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
             IGNORE_ENUM_SCHEMA_SYMBOL_TAG,
             IGNORE_UNION_SCHEMA_MEMBER_DOC,

@@ -37,7 +37,7 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
@@ -109,8 +109,8 @@ class NativeDataObjectMapperTest {
     @DisplayName("convertDataStructToMap: typed struct preserves required (as null if absent) and present optional fields only")
     void convertDataStructToMapTypedRequiredVsOptional() {
         log.info("start: convertDataStructToMapTypedRequiredVsOptional");
-        final var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
-        final var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
+        final var requiredName = new StructField("name", DataSchema.STRING_SCHEMA); // required by default
+        final var optionalAge = new StructField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
         final var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
 
         final var struct = new DataStruct(personSchema);
@@ -207,8 +207,8 @@ class NativeDataObjectMapperTest {
 
     private static Stream<Arguments> fromDataObjectArguments() {
         // Prepare a typed struct schema with one required and one optional field
-        final var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
-        final var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
+        final var requiredName = new StructField("name", DataSchema.STRING_SCHEMA); // required by default
+        final var optionalAge = new StructField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
         final var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
 
         // Build data objects to be mapped

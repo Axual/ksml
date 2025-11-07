@@ -24,7 +24,7 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 
@@ -46,9 +46,9 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     }
 
     private DataSchema toDataSchema(String namespace, String name, DataList fieldNames) {
-        final var fields = new ArrayList<DataField>();
+        final var fields = new ArrayList<StructField>();
         for (final var fieldName : fieldNames) {
-            fields.add(new DataField(
+            fields.add(new StructField(
                     fieldName.toString(DataObject.Printer.INTERNAL),
                     DataSchema.STRING_SCHEMA,
                     fieldName.toString(DataObject.Printer.INTERNAL),

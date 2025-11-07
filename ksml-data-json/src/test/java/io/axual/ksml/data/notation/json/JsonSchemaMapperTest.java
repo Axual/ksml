@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
@@ -84,11 +84,11 @@ class JsonSchemaMapperTest {
                 .hasSize(5)
                 .containsExactlyInAnyOrder(
 
-                        new DataField("aString", STRING_SCHEMA, null, NO_TAG, false),
-                        new DataField("aBoolean", BOOLEAN_SCHEMA, null, NO_TAG, false),
-                        new DataField("anInteger", LONG_SCHEMA, null, NO_TAG, false),
-                        new DataField("aNumber", DOUBLE_SCHEMA, null, NO_TAG, false),
-                        new DataField("aNull", NULL_SCHEMA, null, NO_TAG, false));
+                        new StructField("aString", STRING_SCHEMA, null, NO_TAG, false),
+                        new StructField("aBoolean", BOOLEAN_SCHEMA, null, NO_TAG, false),
+                        new StructField("anInteger", LONG_SCHEMA, null, NO_TAG, false),
+                        new StructField("aNumber", DOUBLE_SCHEMA, null, NO_TAG, false),
+                        new StructField("aNull", NULL_SCHEMA, null, NO_TAG, false));
 
         // Verify conversion back to JsonSchema
         final var jsonString = assertThat(mapper.fromDataSchema(struct))
@@ -146,10 +146,10 @@ class JsonSchemaMapperTest {
                 .as("The first field must be the anyAdditional field, not required and have a struct schema")
                 .first()
                 .isNotNull()
-                .returns("anyAdditional", DataField::name)
-                .returns(false, DataField::required)
-                .returns(false, DataField::constant)
-                .extracting(DataField::schema)
+                .returns("anyAdditional", StructField::name)
+                .returns(false, StructField::required)
+                .returns(false, StructField::constant)
+                .extracting(StructField::schema)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .actual();
@@ -165,10 +165,10 @@ class JsonSchemaMapperTest {
         var noAdditionalFieldSchema = assertThat(fields.get(1))
                 .as("The second field must be the noAdditional field, not required and have a struct schema")
                 .isNotNull()
-                .returns("noAdditional", DataField::name)
-                .returns(false, DataField::required)
-                .returns(false, DataField::constant)
-                .extracting(DataField::schema)
+                .returns("noAdditional", StructField::name)
+                .returns(false, StructField::required)
+                .returns(false, StructField::constant)
+                .extracting(StructField::schema)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .actual();
@@ -184,10 +184,10 @@ class JsonSchemaMapperTest {
         var objectAdditionalFieldSchema = assertThat(fields.get(2))
                 .as("The third field must be the objectAdditional field, not required and have a struct schema")
                 .isNotNull()
-                .returns("objectAdditional", DataField::name)
-                .returns(false, DataField::required)
-                .returns(false, DataField::constant)
-                .extracting(DataField::schema)
+                .returns("objectAdditional", StructField::name)
+                .returns(false, StructField::required)
+                .returns(false, StructField::constant)
+                .extracting(StructField::schema)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .actual();
@@ -206,10 +206,10 @@ class JsonSchemaMapperTest {
         var stringAdditionalFieldSchema = assertThat(fields.get(3))
                 .as("The third field must be the stringAdditional field, not required and have a struct schema")
                 .isNotNull()
-                .returns("stringAdditional", DataField::name)
-                .returns(false, DataField::required)
-                .returns(false, DataField::constant)
-                .extracting(DataField::schema)
+                .returns("stringAdditional", StructField::name)
+                .returns(false, StructField::required)
+                .returns(false, StructField::constant)
+                .extracting(StructField::schema)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
                 .actual();
@@ -321,29 +321,29 @@ class JsonSchemaMapperTest {
 
         // Required String field
         softlyDataSchema.assertThat(struct.field("reqStr"))
-                .isEqualTo(new DataField("reqStr", STRING_SCHEMA, null, NO_TAG, true));
+                .isEqualTo(new StructField("reqStr", STRING_SCHEMA, null, NO_TAG, true));
 
         // Primitive checks
         softlyDataSchema.assertThat(struct.field("str"))
-                .isEqualTo(new DataField("str", STRING_SCHEMA, null, NO_TAG, false));
+                .isEqualTo(new StructField("str", STRING_SCHEMA, null, NO_TAG, false));
         softlyDataSchema.assertThat(struct.field("bool"))
-                .isEqualTo(new DataField("bool", BOOLEAN_SCHEMA, null, NO_TAG, false));
+                .isEqualTo(new StructField("bool", BOOLEAN_SCHEMA, null, NO_TAG, false));
         softlyDataSchema.assertThat(struct.field("int"))
-                .isEqualTo(new DataField("int", LONG_SCHEMA, null, NO_TAG, false));
+                .isEqualTo(new StructField("int", LONG_SCHEMA, null, NO_TAG, false));
         softlyDataSchema.assertThat(struct.field("num"))
-                .isEqualTo(new DataField("num", DOUBLE_SCHEMA, null, NO_TAG, false));
+                .isEqualTo(new StructField("num", DOUBLE_SCHEMA, null, NO_TAG, false));
         softlyDataSchema.assertThat(struct.field("nullField"))
-                .isEqualTo(new DataField("nullField", NULL_SCHEMA, null, NO_TAG, false));
+                .isEqualTo(new StructField("nullField", NULL_SCHEMA, null, NO_TAG, false));
 
         // Arrays
         softlyDataSchema.assertThat(struct.field("arrayAny"))
-                .isEqualTo(new DataField("arrayAny", new ListSchema(ANY_SCHEMA), null, NO_TAG, false));
+                .isEqualTo(new StructField("arrayAny", new ListSchema(ANY_SCHEMA), null, NO_TAG, false));
         softlyDataSchema.assertThat(struct.field("arrayString"))
-                .isEqualTo(new DataField("arrayString", new ListSchema(STRING_SCHEMA), null, NO_TAG, false));
+                .isEqualTo(new StructField("arrayString", new ListSchema(STRING_SCHEMA), null, NO_TAG, false));
 
         // Enum
         assertThat(struct.field("color"))
-                .isEqualTo(new DataField("color",
+                .isEqualTo(new StructField("color",
                         new EnumSchema(List.of(
                                 EnumSchema.Symbol.of("RED"),
                                 EnumSchema.Symbol.of("GREEN"),
@@ -352,25 +352,25 @@ class JsonSchemaMapperTest {
 
         // Union anyOf
         softlyDataSchema.assertThat(struct.field("idUnion"))
-                .isEqualTo(new DataField("idUnion", new UnionSchema(
+                .isEqualTo(new StructField("idUnion", new UnionSchema(
                         new UnionSchema.Member(LONG_SCHEMA),
                         new UnionSchema.Member(STRING_SCHEMA)
                 ), null, NO_TAG, false));
 
         // $ref to internal definition
         softlyDataSchema.assertThat(struct.field("innerRef"))
-                .isEqualTo(new DataField("innerRef", new StructSchema(List.of(
-                        new DataField("x", STRING_SCHEMA, null, NO_TAG, true),
-                        new DataField("y", LONG_SCHEMA, null, NO_TAG, false)
+                .isEqualTo(new StructField("innerRef", new StructSchema(List.of(
+                        new StructField("x", STRING_SCHEMA, null, NO_TAG, true),
+                        new StructField("y", LONG_SCHEMA, null, NO_TAG, false)
                 )), null, NO_TAG, false));
 
         // Complex array items: union of enum and object
         softlyDataSchema.assertThat(struct.field("arrComplex"))
-                .isEqualTo(new DataField("arrComplex", new ListSchema(
+                .isEqualTo(new StructField("arrComplex", new ListSchema(
                         new UnionSchema(
                                 new UnionSchema.Member(new EnumSchema(List.of(EnumSchema.Symbol.of("A"), EnumSchema.Symbol.of("B")))),
                                 new UnionSchema.Member(new StructSchema(List.of(
-                                        new DataField("v", DOUBLE_SCHEMA, null, NO_TAG, false)
+                                        new StructField("v", DOUBLE_SCHEMA, null, NO_TAG, false)
                                 )))
                         )
                 ), null, NO_TAG, false));
@@ -497,14 +497,14 @@ class JsonSchemaMapperTest {
     void convertCustomDataStructToJson() throws Exception {
         // Create a child struct to be referenced
         final var childStruct = StructSchema.builder().namespace("ns").name("Child").doc("child doc")
-                .field(new DataField("innerString", STRING_SCHEMA, "string doc", NO_TAG, true))
-                .field(new DataField("innerBoolean", BOOLEAN_SCHEMA, "boolean doc", NO_TAG, true))
-                .field(new DataField("innerInteger", INTEGER_SCHEMA, "integer doc", NO_TAG, true))
-                .field(new DataField("innerLong", LONG_SCHEMA, "long doc", NO_TAG, true))
-                .field(new DataField("innerShort", SHORT_SCHEMA, "short doc", NO_TAG, true))
-                .field(new DataField("innerFloat", FLOAT_SCHEMA, "float doc", NO_TAG, true))
-                .field(new DataField("innerDouble", DOUBLE_SCHEMA, "double doc", NO_TAG, true))
-                .field(new DataField("innerByte", BYTE_SCHEMA, "byte doc", NO_TAG, true))
+                .field(new StructField("innerString", STRING_SCHEMA, "string doc", NO_TAG, true))
+                .field(new StructField("innerBoolean", BOOLEAN_SCHEMA, "boolean doc", NO_TAG, true))
+                .field(new StructField("innerInteger", INTEGER_SCHEMA, "integer doc", NO_TAG, true))
+                .field(new StructField("innerLong", LONG_SCHEMA, "long doc", NO_TAG, true))
+                .field(new StructField("innerShort", SHORT_SCHEMA, "short doc", NO_TAG, true))
+                .field(new StructField("innerFloat", FLOAT_SCHEMA, "float doc", NO_TAG, true))
+                .field(new StructField("innerDouble", DOUBLE_SCHEMA, "double doc", NO_TAG, true))
+                .field(new StructField("innerByte", BYTE_SCHEMA, "byte doc", NO_TAG, true))
                 .build();
 
         final var mapOfStrings = new MapSchema(STRING_SCHEMA);
@@ -513,17 +513,17 @@ class JsonSchemaMapperTest {
         final var idUnion = new UnionSchema(new UnionSchema.Member(LONG_SCHEMA), new UnionSchema.Member(STRING_SCHEMA));
 
         // Constant string field encoded as enum single value on JSON side
-        final var constCode = new DataField("constCode", STRING_SCHEMA, "Constant Code", NO_TAG, true, true, new DataString("X"));
+        final var constCode = new StructField("constCode", STRING_SCHEMA, "Constant Code", NO_TAG, true, true, new DataString("X"));
 
         final var colorSchema = new EnumSchema("", "Color", "", List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN"), new EnumSchema.Symbol("BLUE")), new EnumSchema.Symbol("GREEN"));
-        final var color = new DataField("color", colorSchema, "The color", NO_TAG, true, true, new DataString("RED"));
+        final var color = new StructField("color", colorSchema, "The color", NO_TAG, true, true, new DataString("RED"));
 
         final var topStruct = StructSchema.builder().namespace("ns").name("Top").doc("top doc")
-                .field(new DataField("name", STRING_SCHEMA, "name doc", NO_TAG, true))
-                .field(new DataField("id", idUnion, "id union", NO_TAG, true))
-                .field(new DataField("tags", new ListSchema(STRING_SCHEMA), "tags", NO_TAG, false))
-                .field(new DataField("child", childStruct, "child ref", NO_TAG, false))
-                .field(new DataField("mapped", mapOfStrings, "map of string", NO_TAG, true))
+                .field(new StructField("name", STRING_SCHEMA, "name doc", NO_TAG, true))
+                .field(new StructField("id", idUnion, "id union", NO_TAG, true))
+                .field(new StructField("tags", new ListSchema(STRING_SCHEMA), "tags", NO_TAG, false))
+                .field(new StructField("child", childStruct, "child ref", NO_TAG, false))
+                .field(new StructField("mapped", mapOfStrings, "map of string", NO_TAG, true))
                 .field(color)
                 .field(constCode)
                 .additionalFieldsAllowed(false)
@@ -688,7 +688,7 @@ class JsonSchemaMapperTest {
                 .as("Schema %s must have required string field named 'x'", structSchema.name())
                 .first()
                 .isNotNull()
-                .isEqualTo(new DataField("x", STRING_SCHEMA, null, NO_TAG, true));
+                .isEqualTo(new StructField("x", STRING_SCHEMA, null, NO_TAG, true));
 
     }
 
@@ -807,9 +807,9 @@ class JsonSchemaMapperTest {
         assertThat(additionalSchema.fields()).hasSize(1);
         assertThat(additionalSchema.field("value"))
                 .isNotNull()
-                .returns("value", DataField::name)
-                .returns(true, DataField::required)
-                .returns(STRING_SCHEMA, DataField::schema);
+                .returns("value", StructField::name)
+                .returns(true, StructField::required)
+                .returns(STRING_SCHEMA, StructField::schema);
     }
 
     private static String readResource(String path) throws Exception {

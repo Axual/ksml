@@ -22,7 +22,7 @@ package io.axual.ksml.data.notation.avro;
 
 import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
 import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
@@ -201,43 +201,43 @@ class AvroSchemaMapperTest {
 
         // Type assertions
         assertThat(ksml.field("optStr"))
-                .returns(false, DataField::required)
-                .returns(DataSchema.STRING_SCHEMA, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(DataSchema.STRING_SCHEMA, StructField::schema);
         assertThat(ksml.field("optInt"))
-                .returns(false, DataField::required)
-                .returns(DataSchema.INTEGER_SCHEMA, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(DataSchema.INTEGER_SCHEMA, StructField::schema);
         assertThat(ksml.field("optLong"))
-                .returns(false, DataField::required)
-                .returns(DataSchema.LONG_SCHEMA, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(DataSchema.LONG_SCHEMA, StructField::schema);
         assertThat(ksml.field("optFloat"))
-                .returns(false, DataField::required)
-                .returns(DataSchema.FLOAT_SCHEMA, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(DataSchema.FLOAT_SCHEMA, StructField::schema);
         assertThat(ksml.field("optDouble"))
-                .returns(false, DataField::required)
-                .returns(DataSchema.DOUBLE_SCHEMA, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(DataSchema.DOUBLE_SCHEMA, StructField::schema);
         assertThat(ksml.field("optBool"))
-                .returns(false, DataField::required)
-                .returns(DataSchema.BOOLEAN_SCHEMA, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(DataSchema.BOOLEAN_SCHEMA, StructField::schema);
         assertThat(ksml.field("optBytes"))
-                .returns(false, DataField::required)
-                .returns(DataSchema.BYTES_SCHEMA, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(DataSchema.BYTES_SCHEMA, StructField::schema);
 
         assertThat(ksml.field("optStrList"))
-                .returns(false, DataField::required)
-                .returns(new ListSchema(DataSchema.STRING_SCHEMA), DataField::schema);
+                .returns(false, StructField::required)
+                .returns(new ListSchema(DataSchema.STRING_SCHEMA), StructField::schema);
         assertThat(ksml.field("optIntMap"))
-                .returns(false, DataField::required)
-                .returns(new MapSchema(DataSchema.INTEGER_SCHEMA), DataField::schema);
+                .returns(false, StructField::required)
+                .returns(new MapSchema(DataSchema.INTEGER_SCHEMA), StructField::schema);
 
-        final var expectedOptRec = new StructSchema("io.axual.test", "OptInner", null, List.of(new DataField("id", DataSchema.INTEGER_SCHEMA)), false);
+        final var expectedOptRec = new StructSchema("io.axual.test", "OptInner", null, List.of(new StructField("id", DataSchema.INTEGER_SCHEMA)), false);
         assertThat(ksml.field("optRec"))
-                .returns(false, DataField::required)
-                .returns(expectedOptRec, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(expectedOptRec, StructField::schema);
 
         final var expectedOptEnum = new EnumSchema("io.axual.test", "OptColor", null, List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN"), new EnumSchema.Symbol("BLUE")));
         assertThat(ksml.field("optEnum"))
-                .returns(false, DataField::required)
-                .returns(expectedOptEnum, DataField::schema);
+                .returns(false, StructField::required)
+                .returns(expectedOptEnum, StructField::schema);
 
         // Round-trip back to Avro and check defaults & union w/ null
         var back = schemaMapper.fromDataSchema(ksml);
@@ -396,7 +396,7 @@ class AvroSchemaMapperTest {
                 .namespace(testNamespace)
                 .name("TestingSimpleRecord")
                 .doc("Some simple record")
-                .field(new DataField("simple", DataSchema.STRING_SCHEMA))
+                .field(new StructField("simple", DataSchema.STRING_SCHEMA))
                 .additionalFieldsAllowed(false)
                 .build();
         testData.add(new SchemaPairAndDescription("Record Schema - Simple", avroRecordSimple, ksmlRecordSimple));
@@ -425,13 +425,13 @@ class AvroSchemaMapperTest {
                 .namespace(testNamespace)
                 .name("TestingAdvancedRecord")
                 .doc("Some Advanced record")
-                .field(new DataField("booleanRequired", DataSchema.BOOLEAN_SCHEMA))
-                .field(new DataField("booleanOptional", DataSchema.BOOLEAN_SCHEMA, null, NO_TAG, false))
-                .field(new DataField("booleanNullable", ksmlNullable(DataSchema.BOOLEAN_SCHEMA), null, NO_TAG, true, false, new DataBoolean(true)))
-                .field(new DataField("recordSimple", ksmlRecordSimple, null, NO_TAG, true))
-                .field(new DataField("enumeration", ksmlEnum, null, NO_TAG, true))
-                .field(new DataField("mapPrimitive", ksmlMapPrimitive, null, NO_TAG, true))
-                .field(new DataField("arrayPrimitive", ksmlArrayPrimitive, null, NO_TAG, true))
+                .field(new StructField("booleanRequired", DataSchema.BOOLEAN_SCHEMA))
+                .field(new StructField("booleanOptional", DataSchema.BOOLEAN_SCHEMA, null, NO_TAG, false))
+                .field(new StructField("booleanNullable", ksmlNullable(DataSchema.BOOLEAN_SCHEMA), null, NO_TAG, true, false, new DataBoolean(true)))
+                .field(new StructField("recordSimple", ksmlRecordSimple, null, NO_TAG, true))
+                .field(new StructField("enumeration", ksmlEnum, null, NO_TAG, true))
+                .field(new StructField("mapPrimitive", ksmlMapPrimitive, null, NO_TAG, true))
+                .field(new StructField("arrayPrimitive", ksmlArrayPrimitive, null, NO_TAG, true))
                 .additionalFieldsAllowed(false)
                 .build();
         testData.add(new SchemaPairAndDescription("Record Schema - Advanced", avroRecordAdvanced, ksmlRecordAdvanced));

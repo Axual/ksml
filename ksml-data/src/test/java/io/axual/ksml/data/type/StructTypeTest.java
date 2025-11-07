@@ -21,7 +21,7 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
@@ -51,7 +51,7 @@ class StructTypeTest {
     @DisplayName("Constructor with schema sets name from schema; name() returns schema name; toString equals stored name")
     void constructorWithSchema() {
         var schema = new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, "MyStruct", "doc",
-                List.of(new DataField("a", DataSchema.STRING_SCHEMA, null, 0)));
+                List.of(new StructField("a", DataSchema.STRING_SCHEMA, null, 0)));
         var t = new StructType(schema);
         assertThat(t)
                 .returns("MyStruct", StructType::toString)
@@ -66,8 +66,8 @@ class StructTypeTest {
         assertThat(noSchema.fieldType("x", DataType.UNKNOWN, DataType.UNKNOWN)).isEqualTo(DataType.UNKNOWN);
 
         // With schema
-        var f1 = new DataField("s", DataSchema.STRING_SCHEMA, null, 0);
-        var f2 = new DataField("i", DataSchema.INTEGER_SCHEMA, null, 1);
+        var f1 = new StructField("s", DataSchema.STRING_SCHEMA, null, 0);
+        var f2 = new StructField("i", DataSchema.INTEGER_SCHEMA, null, 1);
         var schema = new StructSchema("ns", "S", null, List.of(f1, f2));
         var typed = new StructType(schema);
         // Existing field maps to correct DataType
@@ -90,7 +90,7 @@ class StructTypeTest {
         assertThat(a.isAssignableFrom(DataNull.DATATYPE).isAssignable()).isTrue();
 
         // With schema: require other schema to have at least fields without defaults
-        var req = new DataField("r", DataSchema.STRING_SCHEMA, null, 0); // required, no default
+        var req = new StructField("r", DataSchema.STRING_SCHEMA, null, 0); // required, no default
         var schemaA = new StructSchema("ns", "A", null, List.of(req));
         var tA = new StructType(schemaA);
         // Other schema missing the required field -> not assignable

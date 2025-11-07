@@ -25,7 +25,7 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -145,15 +145,15 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         return result.toString();
     }
 
-    private List<DataField> convertToFields(XMLSchemaParseContext context, XmlSchemaSequence sequence) {
-        final var fields = new ArrayList<DataField>();
+    private List<StructField> convertToFields(XMLSchemaParseContext context, XmlSchemaSequence sequence) {
+        final var fields = new ArrayList<StructField>();
         for (final var field : sequence.getItems()) {
-            fields.add(convertSequenceMemberToDataField(context, field));
+            fields.add(convertSequenceMemberToStructField(context, field));
         }
         return fields;
     }
 
-    private DataField convertSequenceMemberToDataField(XMLSchemaParseContext context, XmlSchemaSequenceMember member) {
+    private StructField convertSequenceMemberToStructField(XMLSchemaParseContext context, XmlSchemaSequenceMember member) {
         if (member instanceof XmlSchemaElement element) {
             DataSchema schema = null;
             if (element.getSchemaTypeName() != null) {
@@ -168,11 +168,11 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
 
             final var defaultValueStr = element.getDefaultValue();
             if (defaultValueStr == null)
-                return new DataField(element.getName(), schema, doc, NO_TAG, required);
+                return new StructField(element.getName(), schema, doc, NO_TAG, required);
 
             final var defaultValueType = dataSchemaMapper.fromDataSchema(schema);
             final var defaultValue = nativeMapper.toDataObject(defaultValueType, defaultValueStr);
-            return new DataField(element.getName(), schema, doc, NO_TAG, required, false, defaultValue);
+            return new StructField(element.getName(), schema, doc, NO_TAG, required, false, defaultValue);
         }
         return null;
     }
@@ -332,7 +332,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         }
     }
 
-    private XmlSchemaSequence convertToXml(XMLSchemaWriteContext context, List<DataField> fields) {
+    private XmlSchemaSequence convertToXml(XMLSchemaWriteContext context, List<StructField> fields) {
         final var result = new XmlSchemaSequence();
         result.getItems().addAll(fields.stream()
                 .map(field -> convertToXml(context, field))
@@ -340,7 +340,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
-    private XmlSchemaElement convertToXml(XMLSchemaWriteContext context, DataField field) {
+    private XmlSchemaElement convertToXml(XMLSchemaWriteContext context, StructField field) {
         final var result = new XmlSchemaElement(context.schema, false);
         result.setName(field.name());
         setDocAnnotation(context, result, field.doc());

@@ -20,6 +20,13 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructField;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.StructType;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -27,14 +34,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
-
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.StructType;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -262,11 +261,11 @@ class CsvDataObjectMapperTest {
     @Test
     @DisplayName("DataStruct to CSV preserves field order from schema")
     void dataStructToCsvPreservesFieldOrder() {
-        // Given: schema with specific field order
+        // Given: schema with a specific field order
         var schema = createSensorDataSchema();
         var struct = new DataStruct(schema);
 
-        // Populate in different order than schema
+        // Populate in a different order than schema
         struct.put("owner", DataString.from("alice"));
         struct.put("name", DataString.from("sensor001"));
         struct.put("city", DataString.from("Amsterdam"));
@@ -288,30 +287,30 @@ class CsvDataObjectMapperTest {
         var resultStruct = (DataStruct) result;
 
         // Values should match
-        assertThat(resultStruct.get("name").toString()).isEqualTo("sensor001");
-        assertThat(resultStruct.get("owner").toString()).isEqualTo("alice");
+        assertThat(resultStruct.get("name")).hasToString("sensor001");
+        assertThat(resultStruct.get("owner")).hasToString("alice");
     }
 
     // Helper methods
 
     private StructSchema createSensorDataSchema() {
         var fields = java.util.List.of(
-            new DataField("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
-            new DataField("timestamp", DataSchema.STRING_SCHEMA, "Timestamp", NO_TAG, true, false, null),
-            new DataField("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
-            new DataField("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
-            new DataField("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
-            new DataField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, true, false, null),
-            new DataField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, true, false, null),
-            new DataField("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, true, false, null)
+                new StructField("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
+                new StructField("timestamp", DataSchema.STRING_SCHEMA, "Timestamp", NO_TAG, true, false, null),
+                new StructField("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
+                new StructField("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
+                new StructField("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
+                new StructField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, true, false, null),
+                new StructField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, true, false, null),
+                new StructField("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, true, false, null)
         );
         return new StructSchema("io.axual.test", "SensorData", "Sensor data schema", fields, false);
     }
 
     private StructSchema createSimpleSchema(String... fieldNames) {
-        var fields = new java.util.ArrayList<DataField>();
+        var fields = new java.util.ArrayList<StructField>();
         for (var fieldName : fieldNames) {
-            fields.add(new DataField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
+            fields.add(new StructField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }
         return new StructSchema("io.axual.test", "Simple", "Simple schema", fields, false);
     }

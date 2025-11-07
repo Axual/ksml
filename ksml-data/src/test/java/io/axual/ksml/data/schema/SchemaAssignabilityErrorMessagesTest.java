@@ -41,16 +41,16 @@ class SchemaAssignabilityErrorMessagesTest {
         // Create source schema: Person { name: string, age: int }
         var personSchema = StructSchema.builder()
             .name("Person")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("age", DataSchema.INTEGER_SCHEMA))
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("age", DataSchema.INTEGER_SCHEMA))
             .additionalFieldsAllowed(false)
             .build();
 
         // Create target schema: User { name: string, age: string } - age has wrong type!
         var userSchema = StructSchema.builder()
             .name("User")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("age", DataSchema.STRING_SCHEMA))  // Wrong type!
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("age", DataSchema.STRING_SCHEMA))  // Wrong type!
             .additionalFieldsAllowed(false)
             .build();
 
@@ -78,17 +78,17 @@ class SchemaAssignabilityErrorMessagesTest {
         // Create source schema: Person { name: string, age: int, email: string }
         var personSchema = StructSchema.builder()
             .name("Person")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("age", DataSchema.INTEGER_SCHEMA))
-            .field(new DataField("email", DataSchema.STRING_SCHEMA))  // Required field
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("age", DataSchema.INTEGER_SCHEMA))
+            .field(new StructField("email", DataSchema.STRING_SCHEMA))  // Required field
             .additionalFieldsAllowed(false)
             .build();
 
         // Create target schema: User { name: string, age: int } - missing email!
         var userSchema = StructSchema.builder()
             .name("User")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("age", DataSchema.INTEGER_SCHEMA))
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("age", DataSchema.INTEGER_SCHEMA))
             // email field is missing!
             .additionalFieldsAllowed(false)
             .build();
@@ -140,32 +140,32 @@ class SchemaAssignabilityErrorMessagesTest {
         // Create Address { street: string, city: string }
         var addressSchema = StructSchema.builder()
             .name("Address")
-            .field(new DataField("street", DataSchema.STRING_SCHEMA))
-            .field(new DataField("city", DataSchema.STRING_SCHEMA))
+            .field(new StructField("street", DataSchema.STRING_SCHEMA))
+            .field(new StructField("city", DataSchema.STRING_SCHEMA))
             .additionalFieldsAllowed(false)
             .build();
 
         // Create Person { name: string, address: Address }
         var personSchema = StructSchema.builder()
             .name("Person")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("address", addressSchema))
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("address", addressSchema))
             .additionalFieldsAllowed(false)
             .build();
 
         // Create wrong Address { street: string, city: int } - city has wrong type!
         var wrongAddressSchema = StructSchema.builder()
             .name("Address")
-            .field(new DataField("street", DataSchema.STRING_SCHEMA))
-            .field(new DataField("city", DataSchema.INTEGER_SCHEMA))  // Wrong!
+            .field(new StructField("street", DataSchema.STRING_SCHEMA))
+            .field(new StructField("city", DataSchema.INTEGER_SCHEMA))  // Wrong!
             .additionalFieldsAllowed(false)
             .build();
 
         // Create User { name: string, address: WrongAddress }
         var userSchema = StructSchema.builder()
             .name("User")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("address", wrongAddressSchema))
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("address", wrongAddressSchema))
             .additionalFieldsAllowed(false)
             .build();
 
@@ -256,48 +256,48 @@ class SchemaAssignabilityErrorMessagesTest {
         // Create a complex structure with nested types
         var addressSchema = StructSchema.builder()
             .name("Address")
-            .field(new DataField("street", DataSchema.STRING_SCHEMA))
-            .field(new DataField("zipCode", DataSchema.INTEGER_SCHEMA))
+            .field(new StructField("street", DataSchema.STRING_SCHEMA))
+            .field(new StructField("zipCode", DataSchema.INTEGER_SCHEMA))
             .additionalFieldsAllowed(false)
             .build();
 
         var phoneSchema = StructSchema.builder()
             .name("Phone")
-            .field(new DataField("countryCode", DataSchema.STRING_SCHEMA))
-            .field(new DataField("number", DataSchema.STRING_SCHEMA))
+            .field(new StructField("countryCode", DataSchema.STRING_SCHEMA))
+            .field(new StructField("number", DataSchema.STRING_SCHEMA))
             .additionalFieldsAllowed(false)
             .build();
 
         var personSchema = StructSchema.builder()
             .name("Person")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("age", DataSchema.INTEGER_SCHEMA))
-            .field(new DataField("address", addressSchema))
-            .field(new DataField("phone", phoneSchema))
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("age", DataSchema.INTEGER_SCHEMA))
+            .field(new StructField("address", addressSchema))
+            .field(new StructField("phone", phoneSchema))
             .additionalFieldsAllowed(false)
             .build();
 
         // Create wrong schemas
         var wrongAddressSchema = StructSchema.builder()
             .name("Address")
-            .field(new DataField("street", DataSchema.STRING_SCHEMA))
-            .field(new DataField("zipCode", DataSchema.STRING_SCHEMA))  // Wrong type!
+            .field(new StructField("street", DataSchema.STRING_SCHEMA))
+            .field(new StructField("zipCode", DataSchema.STRING_SCHEMA))  // Wrong type!
             .additionalFieldsAllowed(false)
             .build();
 
         var wrongPhoneSchema = StructSchema.builder()
             .name("Phone")
-            .field(new DataField("countryCode", DataSchema.INTEGER_SCHEMA))  // Wrong type!
-            .field(new DataField("number", DataSchema.STRING_SCHEMA))
+            .field(new StructField("countryCode", DataSchema.INTEGER_SCHEMA))  // Wrong type!
+            .field(new StructField("number", DataSchema.STRING_SCHEMA))
             .additionalFieldsAllowed(false)
             .build();
 
         var wrongPersonSchema = StructSchema.builder()
             .name("Person")
-            .field(new DataField("name", DataSchema.STRING_SCHEMA))
-            .field(new DataField("age", DataSchema.STRING_SCHEMA))  // Wrong type!
-            .field(new DataField("address", wrongAddressSchema))
-            .field(new DataField("phone", wrongPhoneSchema))
+            .field(new StructField("name", DataSchema.STRING_SCHEMA))
+            .field(new StructField("age", DataSchema.STRING_SCHEMA))  // Wrong type!
+            .field(new StructField("address", wrongAddressSchema))
+            .field(new StructField("phone", wrongPhoneSchema))
             .additionalFieldsAllowed(false)
             .build();
 

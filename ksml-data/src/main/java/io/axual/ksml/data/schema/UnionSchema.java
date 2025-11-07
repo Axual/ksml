@@ -106,11 +106,11 @@ public class UnionSchema extends DataSchema {
 
     /**
      * The list of possible schemas (types) that this union schema can represent. The
-     * types are stored as DataFields to accommodate for schema types like Protobuf,
-     * where we need to keep track of field indices.
+     * types are stored as Members to accommodate for schema types like Protobuf,
+     * where we need to keep track of field tags.
      * <p>
      * The schemas are stored in the order they are specified, and each schema represents
-     * one possible type for the data.
+     * one possible type for the data value.
      * </p>
      */
     private final Member[] members;

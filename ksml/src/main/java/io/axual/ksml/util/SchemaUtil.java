@@ -20,7 +20,7 @@ package io.axual.ksml.util;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -47,7 +47,7 @@ public class SchemaUtil {
             for (final var schema : schemas) {
                 final var usePostfix = subSchemas.size() > 1;
                 for (final var subSchema : subParser.schemas()) {
-                    final var fields = new ArrayList<DataField>();
+                    final var fields = new ArrayList<StructField>();
                     fields.addAll(schema.fields());
                     fields.addAll(subSchema.fields());
                     final var newName = usePostfix ? name + KSMLDSL.Types.WITH_PREFIX + subSchema.name() : name;

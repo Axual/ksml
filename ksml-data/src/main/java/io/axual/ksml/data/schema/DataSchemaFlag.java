@@ -30,22 +30,6 @@ import io.axual.ksml.data.compare.EqualityFlags;
  * ignore parts of schemas when comparing for structural equivalence.</p>
  */
 public enum DataSchemaFlag implements EqualityFlag {
-    // Ignore whether a DataField is constant
-    IGNORE_DATA_FIELD_CONSTANT,
-    // Ignore a DataField's default value
-    IGNORE_DATA_FIELD_DEFAULT_VALUE,
-    // Ignore a DataField's documentation
-    IGNORE_DATA_FIELD_DOC,
-    // Ignore a DataField's name
-    IGNORE_DATA_FIELD_NAME,
-    // Ignore a DataField's order
-    IGNORE_DATA_FIELD_ORDER,
-    // Ignore whether a DataField is required
-    IGNORE_DATA_FIELD_REQUIRED,
-    // Ignore a DataField's nested schema
-    IGNORE_DATA_FIELD_SCHEMA,
-    // Ignore a DataField's tag
-    IGNORE_DATA_FIELD_TAG,
     // Ignore the top-level DataSchema type
     IGNORE_DATA_SCHEMA_TYPE,
     // Ignore an EnumSchema's default value
@@ -74,6 +58,22 @@ public enum DataSchemaFlag implements EqualityFlag {
     IGNORE_NAMED_SCHEMA_NAME,
     // Ignore a NamedSchema's namespace
     IGNORE_NAMED_SCHEMA_NAMESPACE,
+    // Ignore whether a StructField is constant
+    IGNORE_STRUCT_FIELD_CONSTANT,
+    // Ignore a StructField's default value
+    IGNORE_STRUCT_FIELD_DEFAULT_VALUE,
+    // Ignore a StructField's documentation
+    IGNORE_STRUCT_FIELD_DOC,
+    // Ignore a StructField's name
+    IGNORE_STRUCT_FIELD_NAME,
+    // Ignore a StructField's order
+    IGNORE_STRUCT_FIELD_ORDER,
+    // Ignore whether a StructField is required
+    IGNORE_STRUCT_FIELD_REQUIRED,
+    // Ignore a StructField's nested schema
+    IGNORE_STRUCT_FIELD_SCHEMA,
+    // Ignore a StructField's tag
+    IGNORE_STRUCT_FIELD_TAG,
     // Ignore whether StructSchema allows additional fields
     IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED,
     // Ignore StructSchema's additional fields schema

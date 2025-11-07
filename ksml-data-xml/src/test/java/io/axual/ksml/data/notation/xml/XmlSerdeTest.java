@@ -28,7 +28,7 @@ import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
@@ -235,9 +235,9 @@ class XmlSerdeTest {
     void numericTypeRoundTrip() {
         // Given: schema with long timestamp (like tutorial SensorData)
         var fields = java.util.List.of(
-                new DataField("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
-                new DataField("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
-                new DataField("value", DataSchema.STRING_SCHEMA, "Value", NO_TAG, true, false, null)
+                new StructField("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
+                new StructField("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
+                new StructField("value", DataSchema.STRING_SCHEMA, "Value", NO_TAG, true, false, null)
         );
         var schema = new StructSchema("io.axual.test", "TimestampData", "Data with timestamp", fields, false);
         var structType = new StructType(schema);
@@ -360,33 +360,33 @@ class XmlSerdeTest {
     private StructSchema createSensorDataSchema() {
         // Schema matching the tutorial SensorData.xsd
         var fields = java.util.List.of(
-                new DataField("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
-                new DataField("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
-                new DataField("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
-                new DataField("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
-                new DataField("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
-                new DataField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, false, false, null),
-                new DataField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, false, false, null),
-                new DataField("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, false, false, null)
+                new StructField("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
+                new StructField("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
+                new StructField("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
+                new StructField("type", DataSchema.STRING_SCHEMA, "Sensor type", NO_TAG, true, false, null),
+                new StructField("unit", DataSchema.STRING_SCHEMA, "Unit", NO_TAG, true, false, null),
+                new StructField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, false, false, null),
+                new StructField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, false, false, null),
+                new StructField("owner", DataSchema.STRING_SCHEMA, "Owner", NO_TAG, false, false, null)
         );
         return new StructSchema("io.axual.test", "SensorData", "Sensor data schema", fields, false);
     }
 
     private StructSchema createSimpleSchema(String... fieldNames) {
-        var fields = new java.util.ArrayList<DataField>();
+        var fields = new java.util.ArrayList<StructField>();
         for (var fieldName : fieldNames) {
-            fields.add(new DataField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
+            fields.add(new StructField(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }
         return new StructSchema("io.axual.test", "SimpleData", "Simple schema", fields, false);
     }
 
     private StructSchema createSchemaWithOptionalFields() {
         var fields = java.util.List.of(
-                new DataField("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
-                new DataField("value", DataSchema.STRING_SCHEMA, "Value", NO_TAG, true, false, null),
+                new StructField("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
+                new StructField("value", DataSchema.STRING_SCHEMA, "Value", NO_TAG, true, false, null),
                 // Optional fields like in SensorData.xsd
-                new DataField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, false, false, null),
-                new DataField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, false, false, null)
+                new StructField("color", DataSchema.STRING_SCHEMA, "Color", NO_TAG, false, false, null),
+                new StructField("city", DataSchema.STRING_SCHEMA, "City", NO_TAG, false, false, null)
         );
         return new StructSchema("io.axual.test", "OptionalData", "Data with optional fields", fields, false);
     }

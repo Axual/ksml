@@ -25,7 +25,7 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
@@ -120,7 +120,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case FIXED ->
                     new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
             case RECORD ->
-                    new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()), false);
+                    new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToStructFields(schema.getFields()), false);
         };
     }
 
@@ -256,24 +256,24 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         return result;
     }
 
-    private List<DataField> convertAvroFieldsToDataFields(List<Schema.Field> fields) {
+    private List<StructField> convertAvroFieldsToStructFields(List<Schema.Field> fields) {
         if (fields == null) return new ArrayList<>();
-        final var result = new ArrayList<DataField>(fields.size());
+        final var result = new ArrayList<StructField>(fields.size());
         for (var field : fields) {
             final var schemaAndRequired = convertAvroSchemaToDataSchemaAndRequired(field.schema());
             final var convertedDefault = field.hasDefaultValue() ? convertAvroDefaultValueToDataObject(schemaAndRequired.schema(), field.defaultVal()) : null;
             final var defaultValue = schemaAndRequired.required() || convertedDefault != null ? convertedDefault : null;
             // TODO: think about how to model fixed values in AVRO and replace the "false" with logic
-            result.add(new DataField(field.name(), schemaAndRequired.schema(), field.doc(), NO_TAG, schemaAndRequired.required(), false, defaultValue, convertAvroOrderToDataFieldOrder(field.order())));
+            result.add(new StructField(field.name(), schemaAndRequired.schema(), field.doc(), NO_TAG, schemaAndRequired.required(), false, defaultValue, convertAvroOrderToStructFieldOrder(field.order())));
         }
         return result;
     }
 
-    private static DataField.Order convertAvroOrderToDataFieldOrder(Schema.Field.Order order) {
+    private static StructField.Order convertAvroOrderToStructFieldOrder(Schema.Field.Order order) {
         return switch (order) {
-            case ASCENDING -> DataField.Order.ASCENDING;
-            case DESCENDING -> DataField.Order.DESCENDING;
-            default -> DataField.Order.IGNORE;
+            case ASCENDING -> StructField.Order.ASCENDING;
+            case DESCENDING -> StructField.Order.DESCENDING;
+            default -> StructField.Order.IGNORE;
         };
     }
 
@@ -337,16 +337,16 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         return result;
     }
 
-    private List<Schema.Field> convertFieldsToAvroFields(List<DataField> fields) {
+    private List<Schema.Field> convertFieldsToAvroFields(List<StructField> fields) {
         if (fields == null) return Collections.emptyList();
         final var result = new ArrayList<Schema.Field>(fields.size());
         for (var field : fields) {
-            result.add(convertDataFieldToAvroField(field));
+            result.add(convertStructFieldToAvroField(field));
         }
         return result;
     }
 
-    private Schema.Field convertDataFieldToAvroField(DataField field) {
+    private Schema.Field convertStructFieldToAvroField(StructField field) {
         final var schemaAndDefault = convertDataSchemaToAvroSchema(field.schema(), field.required());
         final var defaultAvroValue =
                 field.defaultValue() != null
@@ -354,7 +354,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                         : schemaAndDefault.defaultValue != null
                         ? convertDataObjectToAvroDefaultValue(schemaAndDefault.defaultValue())
                         : null;
-        return new Schema.Field(field.name(), schemaAndDefault.schema(), field.doc(), defaultAvroValue, convertDataFieldOrderToAvroFieldOrder(field.order()));
+        return new Schema.Field(field.name(), schemaAndDefault.schema(), field.doc(), defaultAvroValue, convertStructFieldOrderToAvroFieldOrder(field.order()));
     }
 
     private DataObject convertAvroDefaultValueToDataObject(DataSchema fieldSchema, Object defaultValue) {
@@ -369,7 +369,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         return avroMapper.fromDataObject(defaultValue);
     }
 
-    private Schema.Field.Order convertDataFieldOrderToAvroFieldOrder(DataField.Order order) {
+    private Schema.Field.Order convertStructFieldOrderToAvroFieldOrder(StructField.Order order) {
         return switch (order) {
             case ASCENDING -> Schema.Field.Order.ASCENDING;
             case DESCENDING -> Schema.Field.Order.DESCENDING;
