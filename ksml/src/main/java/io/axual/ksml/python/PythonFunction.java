@@ -35,7 +35,11 @@ import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,6 +55,7 @@ public class PythonFunction extends UserFunction {
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Value function;
+    private final PythonContext context;
 
     public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
         return new PythonFunction(context, namespace, "function", name, definition);
@@ -66,6 +71,7 @@ public class PythonFunction extends UserFunction {
 
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
+        this.context = context;
         converter = context.converter();
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
@@ -146,7 +152,7 @@ public class PythonFunction extends UserFunction {
 
     private String generatePythonCode(String namespace, String type, String name, FunctionDefinition definition) {
         // Prepend two spaces of indentation before the function code
-        String[] functionCode = Arrays.stream(definition.code()).map(line -> "  " + line).toArray(String[]::new);
+        String[] functionCode = getFunctionCode(definition.code(), "  ", context.baseDirectory());
         String[] expressionCode = Arrays.stream(definition.expression()).map(line -> "    " + line).toArray(String[]::new);
 
         // Prepare a list of parameters for the function definition
@@ -250,6 +256,32 @@ public class PythonFunction extends UserFunction {
                         """;
 
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
+    }
+
+    private static String[] getFunctionCode(String[] code, String spaces, Path baseDirectory) {
+        if (code.length == 1 && code[0].startsWith("file:")) {
+            var location = code[0].substring("file:".length());
+            log.debug("Reading external Python code at {}", location);
+
+            // Resolve path: if absolute, use as-is; if relative, resolve against baseDirectory
+            Path filePath = java.nio.file.Paths.get(location);
+            if (!filePath.isAbsolute() && baseDirectory != null) {
+                filePath = baseDirectory.resolve(location);
+                log.debug("Resolved relative path to {}", filePath);
+            }
+
+            try {
+                // Read the file and add the required indentation to each line
+                return Files.readAllLines(filePath).stream()
+                        .map(line -> spaces + line)
+                        .toArray(String[]::new);
+            } catch (IOException e) {
+                throw new TopologyException("Error while reading external Python code at " + location +
+                    " (resolved to: " + filePath.toAbsolutePath() + ")", e);
+            }
+        } else{
+            return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
+        }
     }
 
     private String loggerName(String namespace, String type, String name) {

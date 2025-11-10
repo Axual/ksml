@@ -29,6 +29,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.python.PythonContextConfig;
@@ -198,6 +207,30 @@ public class KSMLConfig {
                 }
                 if (valueObj.getValue() instanceof ObjectNode root) {
                     result.put(namespace, root);
+                }
+            }
+        }
+        return result;
+    }
+
+    public Map<String, Path> definitionFilePaths() {
+        final var result = new HashMap<String, Path>();
+        if (definitions != null) {
+            for (var definition : definitions.entrySet()) {
+                var namespace = definition.getKey();
+                var valueObj = definition.getValue();
+                if (valueObj == null) continue;
+
+                if (valueObj.getValue() instanceof String definitionFile) {
+                    final var definitionFilePath = Paths.get(configDirectory(), definitionFile);
+                    if (Files.exists(definitionFilePath) && Files.isRegularFile(definitionFilePath)) {
+                        // Store the parent directory of the definition file
+                        result.put(namespace, definitionFilePath.getParent());
+                    }
+                }
+                // For inline definitions, use configDirectory as the base
+                if (valueObj.getValue() instanceof ObjectNode) {
+                    result.put(namespace, Paths.get(configDirectory()));
                 }
             }
         }
