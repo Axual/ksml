@@ -27,7 +27,12 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.WindowedType;
 import org.apache.kafka.streams.kstream.Windowed;
 
-import static io.axual.ksml.dsl.WindowedSchema.*;
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_END_FIELD;
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_END_TIME_FIELD;
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_KEY_FIELD;
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_START_FIELD;
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_START_TIME_FIELD;
+import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
 // KSML uses a generic policy that ALL data in streams is internally represented as DataObjects.
 // However, Kafka Streams also dictates some types of its own, namely classes like Windowed and

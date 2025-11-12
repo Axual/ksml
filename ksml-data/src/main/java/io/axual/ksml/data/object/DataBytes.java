@@ -51,7 +51,7 @@ public class DataBytes extends DataPrimitive<byte[]> {
 
     @Override
     public String toString(Printer printer) {
-        final var sb = new StringBuilder(printer.schemaString(this));
+        final var sb = new StringBuilder(printer.schemaPrefix(this));
         if (value() == null) return sb.append("null").toString();
         sb.append("[");
         for (int index = 0; index < value().length; index++) {

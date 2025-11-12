@@ -44,7 +44,7 @@ public class ProducerDefinitionParser extends TopologyResourceAwareParser<Produc
                 optional(functionField(Producers.UNTIL, "A predicate that returns true to indicate producing should stop.", new PredicateDefinitionParser(false))),
                 topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(resources(), false)),
                 optional(longField(Producers.COUNT, "The number of messages to produce.")),
-                optional(longField(Producers.BATCH_SIZE, 1L, "The size of batches")),
+                withDefault(optional(longField(Producers.BATCH_SIZE, "The size of batches")), 1L),
                 optional(durationField(Producers.INTERVAL, "The interval with which the generator is called")),
                 (generator, condition, until, target, count, batchSize, interval, tags) -> new ProducerDefinition(generator, condition, until, target, count, batchSize, interval));
     }

@@ -20,6 +20,8 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -36,11 +38,9 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -108,8 +108,8 @@ class NativeDataObjectMapperTest {
     @DisplayName("convertDataStructToMap: typed struct preserves required (as null if absent) and present optional fields only")
     void convertDataStructToMapTypedRequiredVsOptional() {
         log.info("start: convertDataStructToMapTypedRequiredVsOptional");
-        final var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
-        final var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
+        final var requiredName = new StructSchema.Field("name", DataSchema.STRING_SCHEMA); // required by default
+        final var optionalAge = new StructSchema.Field("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
         final var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
 
         final var struct = new DataStruct(personSchema);
@@ -206,8 +206,8 @@ class NativeDataObjectMapperTest {
 
     private static Stream<Arguments> fromDataObjectArguments() {
         // Prepare a typed struct schema with one required and one optional field
-        final var requiredName = new DataField("name", DataSchema.STRING_SCHEMA); // required by default
-        final var optionalAge = new DataField("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
+        final var requiredName = new StructSchema.Field("name", DataSchema.STRING_SCHEMA); // required by default
+        final var optionalAge = new StructSchema.Field("age", DataSchema.INTEGER_SCHEMA, null, NO_TAG, false);
         final var personSchema = new StructSchema("example", "Person", "doc", List.of(requiredName, optionalAge));
 
         // Build data objects to be mapped
@@ -631,13 +631,13 @@ class NativeDataObjectMapperTest {
         final var expected = new DataStruct();
         expected.put("name", new DataString("Alice"));
         final var attributes = new DataStruct();
-        final var likesList = new DataList(DataString.DATATYPE);
+        final var likesList = new DataList(DataType.UNKNOWN);
         likesList.add(new DataString("coffee"));
         likesList.add(new DataString("chess"));
         attributes.put("likes", likesList);
         expected.put("attributes", attributes);
 
-        final var result = mapper.toDataObject(StructType.UNKNOWN, nativeInput);
+        final var result = mapper.toDataObject(expected.type(), nativeInput);
         assertThat(result)
                 .isNotNull()
                 .asInstanceOf(InstanceOfAssertFactories.type(DataStruct.class))
@@ -678,5 +678,9 @@ class NativeDataObjectMapperTest {
             return "UNKNOWN";
         }
 
+        @Override
+        public Equality equals(Object obj, EqualityFlags flags) {
+            return Equality.notEqual("Fake error");
+        }
     }
 }

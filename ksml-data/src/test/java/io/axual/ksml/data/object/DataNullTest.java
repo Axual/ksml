@@ -20,10 +20,9 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.SimpleType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.type.SimpleType;
 
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_ALL_SCHEMA;
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_NO_SCHEMA;
@@ -48,14 +47,14 @@ class DataNullTest {
     @DisplayName("DataNull datatype assignability: only itself as DataType; only null as value; and DataObject singleton")
     void datatypeAssignability() {
         var dt = DataNull.DATATYPE;
-        assertThat(dt.isAssignableFrom(DataNull.DATATYPE)).isTrue();
-        // Different SimpleType instance with same container/name is NOT considered assignable per override
-        assertThat(dt.isAssignableFrom(new SimpleType(io.axual.ksml.data.value.Null.class, "null"))).isFalse();
+        assertThat(dt.isAssignableFrom(DataNull.DATATYPE).isAssignable()).isTrue();
+        // Different SimpleType instance with the same container/name is NOT considered assignable per override
+        assertThat(dt.isAssignableFrom(new SimpleType(io.axual.ksml.data.value.Null.class, "null")).isAssignable()).isFalse();
 
-        assertThat(dt.isAssignableFrom((Object) null)).isTrue();
-        assertThat(dt.isAssignableFrom("not null")).isFalse();
+        assertThat(dt.isAssignableFrom((Object) null).isAssignable()).isTrue();
+        assertThat(dt.isAssignableFrom("not null").isAssignable()).isFalse();
 
-        assertThat(dt.isAssignableFrom(DataNull.INSTANCE)).isTrue();
-        assertThat(dt.isAssignableFrom(new DataString())).isFalse();
+        assertThat(dt.isAssignableFrom(DataNull.INSTANCE).isAssignable()).isTrue();
+        assertThat(dt.isAssignableFrom(new DataString()).isAssignable()).isFalse();
     }
 }

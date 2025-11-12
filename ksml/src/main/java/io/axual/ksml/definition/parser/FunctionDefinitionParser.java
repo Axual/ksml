@@ -25,7 +25,11 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.*;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.IgnoreParser;
+import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.parser.StringValueParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.type.UserType;
 
 import java.util.List;

@@ -21,14 +21,27 @@ package io.axual.ksml.generator;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.definition.*;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.store.StoreUtil;
-import io.axual.ksml.stream.*;
+import io.axual.ksml.stream.BaseStreamWrapper;
+import io.axual.ksml.stream.GlobalKTableWrapper;
+import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserTimestampExtractor;
 import lombok.Getter;
@@ -243,12 +256,12 @@ public class TopologyBuildContext {
             final var topic = definition.topic() != null ? definition.topic() : "unknown topic";
             final var defKeyType = definition.keyType();
             final var wrapperKeyType = wrapper.keyType().userType();
-            if (defKeyType != null && !defKeyType.dataType().isAssignableFrom(wrapperKeyType.dataType())) {
+            if (defKeyType != null && defKeyType.dataType().isAssignableFrom(wrapperKeyType.dataType()).isNotAssignable()) {
                 throw new TopologyException("Expected keyType " + defKeyType + " for topic " + definition.topic() + " differs from real keyType " + wrapperKeyType);
             }
             final var defValueType = definition.valueType();
             final var wrapperValueType = wrapper.valueType().userType();
-            if (defValueType != null && !defValueType.dataType().isAssignableFrom(wrapperValueType.dataType())) {
+            if (defValueType != null && defValueType.dataType().isAssignableFrom(wrapperValueType.dataType()).isNotAssignable()) {
                 throw new TopologyException("Expected valueType " + defValueType + " for topic '" + topic + "' differs from real valueType " + wrapperValueType);
             }
         }

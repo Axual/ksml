@@ -20,13 +20,12 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.schema.DataSchema;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.schema.DataSchema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

@@ -20,13 +20,12 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.base.BaseNotation;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.base.BaseNotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -121,7 +121,7 @@ public class SchemaValidator {
 //        }
 //
 //        // Then check if all non-existing fields in the record are allowed to be null
-//        for (DataField field : schema.fields()) {
+//        for (StructField field : schema.fields()) {
 //            if (!dataRecord.containsKey(field.name())) {
 //                typeCheck = validate(field.schema(), null);
 //                if (!typeCheck.valid) return typeCheck;

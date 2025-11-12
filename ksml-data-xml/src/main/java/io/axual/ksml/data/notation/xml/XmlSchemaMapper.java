@@ -22,9 +22,32 @@ package io.axual.ksml.data.notation.xml;
 
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.Symbol;
-import org.apache.ws.commons.schema.*;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAnnotated;
+import org.apache.ws.commons.schema.XmlSchemaAnnotation;
+import org.apache.ws.commons.schema.XmlSchemaAnyAttribute;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaDocumentation;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaEnumerationFacet;
+import org.apache.ws.commons.schema.XmlSchemaForm;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSequenceMember;
+import org.apache.ws.commons.schema.XmlSchemaSimpleType;
+import org.apache.ws.commons.schema.XmlSchemaSimpleTypeContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleTypeList;
+import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
+import org.apache.ws.commons.schema.XmlSchemaSimpleTypeUnion;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -37,14 +60,39 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
-import static org.apache.ws.commons.schema.constants.Constants.*;
+import static org.apache.ws.commons.schema.constants.Constants.URI_2001_SCHEMA_XSD;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_ANY;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_BASE64;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_BOOLEAN;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_BYTE;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_DOUBLE;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_FLOAT;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_INTEGER;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_LONG;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_SHORT;
+import static org.apache.ws.commons.schema.constants.Constants.XSD_STRING;
 
 public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private static final String NAMESPACE_NAME = "xs";
+    private final NativeDataObjectMapper nativeMapper;
+    private final DataTypeDataSchemaMapper dataSchemaMapper;
+
+    public XmlSchemaMapper() {
+        this(null, null);
+    }
+
+    public XmlSchemaMapper(NativeDataObjectMapper nativeMapper, DataTypeDataSchemaMapper dataSchemaMapper) {
+        this.nativeMapper = nativeMapper != null ? nativeMapper : new NativeDataObjectMapper();
+        this.dataSchemaMapper = dataSchemaMapper != null ? dataSchemaMapper : new DataTypeDataSchemaMapper();
+    }
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, String schemaString) {
@@ -96,15 +144,15 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         return result.toString();
     }
 
-    private List<DataField> convertToFields(XMLSchemaParseContext context, XmlSchemaSequence sequence) {
-        final var fields = new ArrayList<DataField>();
+    private List<StructSchema.Field> convertToFields(XMLSchemaParseContext context, XmlSchemaSequence sequence) {
+        final var fields = new ArrayList<StructSchema.Field>();
         for (final var field : sequence.getItems()) {
-            fields.add(convertSequenceMemberToDataField(context, field));
+            fields.add(convertSequenceMemberToStructField(context, field));
         }
         return fields;
     }
 
-    private DataField convertSequenceMemberToDataField(XMLSchemaParseContext context, XmlSchemaSequenceMember member) {
+    private StructSchema.Field convertSequenceMemberToStructField(XMLSchemaParseContext context, XmlSchemaSequenceMember member) {
         if (member instanceof XmlSchemaElement element) {
             DataSchema schema = null;
             if (element.getSchemaTypeName() != null) {
@@ -116,7 +164,14 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             }
             final var doc = extractDoc(element.getAnnotation());
             final var required = element.getMinOccurs() > 0;
-            return new DataField(element.getName(), schema, doc, NO_TAG, required);
+
+            final var defaultValueStr = element.getDefaultValue();
+            if (defaultValueStr == null)
+                return new StructSchema.Field(element.getName(), schema, doc, NO_TAG, required);
+
+            final var defaultValueType = dataSchemaMapper.fromDataSchema(schema);
+            final var defaultValue = nativeMapper.toDataObject(defaultValueType, defaultValueStr);
+            return new StructSchema.Field(element.getName(), schema, doc, NO_TAG, required, false, defaultValue);
         }
         return null;
     }
@@ -133,31 +188,37 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                 return new ListSchema(itemType);
             }
             if (content instanceof XmlSchemaSimpleTypeRestriction restriction) {
-                final var symbols = new ArrayList<Symbol>();
+                final var symbols = new ArrayList<EnumSchema.Symbol>();
                 for (final var facet : restriction.getFacets()) {
                     if (facet instanceof XmlSchemaEnumerationFacet enumFacet) {
                         final var value = enumFacet.getValue().toString();
-                        symbols.add(new Symbol(value));
+                        symbols.add(new EnumSchema.Symbol(value));
                     }
                 }
                 return new EnumSchema(null, type.getName(), extractDoc(type.getAnnotation()), symbols);
             }
             if (content instanceof XmlSchemaSimpleTypeUnion union) {
-                final var memberTypes = new ArrayList<DataField>();
+                final var members = new ArrayList<UnionSchema.Member>();
                 for (final var member : union.getMemberTypesQNames()) {
                     final var schema = convertToSchemaForced(member);
-                    memberTypes.add(new DataField(null, schema, null));
+                    members.add(new UnionSchema.Member(schema));
                 }
-                return new UnionSchema(memberTypes.toArray(DataField[]::new));
+                return new UnionSchema(members.toArray(UnionSchema.Member[]::new));
             }
         }
         if (type instanceof XmlSchemaComplexType complexType) {
             if (complexType.getParticle() instanceof XmlSchemaSequence sequence) {
                 final var fields = convertToFields(context, sequence);
-                return new StructSchema(null, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
+                final var namespace = getNamespaceFromComplexType(complexType);
+                return new StructSchema(namespace, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
             }
         }
         throw new SchemaException("Could not convert XSD type to DataSchema: " + type);
+    }
+
+    private String getNamespaceFromComplexType(XmlSchemaComplexType complexType) {
+        final var anyAttribute = complexType.getAnyAttribute();
+        return anyAttribute != null ? anyAttribute.getNamespace() : null;
     }
 
     private DataSchema convertToSchemaForced(QName qname) {
@@ -193,12 +254,12 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     }
 
     private static class XMLSchemaWriteContext {
-        private final DocumentBuilder docBuilder;
         private final Document doc;
         private final XmlSchema schema;
         private final Map<String, XmlSchemaType> schemaTypes = new HashMap<>();
 
         public XMLSchemaWriteContext(String namespace) {
+            final DocumentBuilder docBuilder;
             try {
                 docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             } catch (ParserConfigurationException e) {
@@ -242,7 +303,9 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         sequence.getItems().addAll(schema.fields().stream()
                 .map(f -> convertToXml(context, f))
                 .toList());
+        setDocAnnotation(context, complexType, schema.doc());
         complexType.setParticle(sequence);
+        complexType.setAnyAttribute(convertNamespaceToAnyAttribute(schema.namespace()));
         result.setType(complexType);
         return result;
     }
@@ -268,7 +331,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         }
     }
 
-    private XmlSchemaSequence convertToXml(XMLSchemaWriteContext context, List<DataField> fields) {
+    private XmlSchemaSequence convertToXml(XMLSchemaWriteContext context, List<StructSchema.Field> fields) {
         final var result = new XmlSchemaSequence();
         result.getItems().addAll(fields.stream()
                 .map(field -> convertToXml(context, field))
@@ -276,7 +339,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
-    private XmlSchemaElement convertToXml(XMLSchemaWriteContext context, DataField field) {
+    private XmlSchemaElement convertToXml(XMLSchemaWriteContext context, StructSchema.Field field) {
         final var result = new XmlSchemaElement(context.schema, false);
         result.setName(field.name());
         setDocAnnotation(context, result, field.doc());
@@ -291,10 +354,8 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                 result.setSchemaType(schema);
             }
         }
-        if (field.defaultValue() != null) {
-            final var defaultValue = field.defaultValue().value() != null ? field.defaultValue().value().toString() : "null";
-            result.setDefaultValue(defaultValue);
-        }
+        if (field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE)
+            result.setDefaultValue(field.defaultValue().toString());
         result.setMinOccurs(field.required() ? 1 : 0);
         result.setMaxOccurs(1);
         return result;
@@ -328,15 +389,24 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private XmlSchemaType convertToComplexType(XMLSchemaWriteContext context, StructSchema schema) {
         return context.type(schema.name(), () -> {
             final var result = new XmlSchemaComplexType(context.schema, true);
+            setDocAnnotation(context, result, schema.doc());
             result.setName(schema.name());
             result.setParticle(convertToXml(context, schema.fields()));
+            result.setAnyAttribute(convertNamespaceToAnyAttribute(schema.namespace()));
             return result;
         });
     }
 
+    private static XmlSchemaAnyAttribute convertNamespaceToAnyAttribute(String namespace) {
+        if (namespace == null) return null;
+        final var result = new XmlSchemaAnyAttribute();
+        result.setNamespace(namespace);
+        return result;
+    }
+
     private XmlSchemaSimpleType convertToXml(XMLSchemaWriteContext context, UnionSchema schema) {
         final var union = new XmlSchemaSimpleTypeUnion();
-        union.setMemberTypesQNames(Arrays.stream(schema.memberSchemas())
+        union.setMemberTypesQNames(Arrays.stream(schema.members())
                 .map(m -> convertToQName(m.schema()))
                 .toArray(QName[]::new));
         return context.simpleType(null, null, union);

@@ -21,8 +21,15 @@ package io.axual.ksml.data.type;
  */
 
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.DataEquals;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
 
 /**
  * Describes a KSML logical data type.
@@ -34,23 +41,38 @@ import io.axual.ksml.data.object.DataObject;
  * The {@link #UNKNOWN} constant acts as a wildcard type that is assignable from any other type
  * or value.
  */
-public interface DataType {
+public interface DataType extends DataEquals {
     Class<?> containerClass();
 
     String name();
 
     String spec();
 
-    boolean isAssignableFrom(DataType type);
+    Assignable isAssignableFrom(final DataType type);
 
-    default boolean isAssignableFrom(DataObject value) {
-        return (value == DataNull.INSTANCE || isAssignableFrom(value.type()));
+    default Assignable isAssignableFrom(DataObject value) {
+        // Always allow a null value to be assigned
+        if (value == DataNull.INSTANCE) return Assignable.assignable();
+        // If not NULL, check the value type for assignability
+        return isAssignableFrom(value.type());
     }
 
-    boolean isAssignableFrom(Class<?> type);
+    default Assignable isAssignableFrom(Class<?> otherClass) {
+        if (!containerClass().isAssignableFrom(otherClass))
+            return typeMismatch(this, otherClass);
+        return Assignable.assignable();
+    }
 
-    default boolean isAssignableFrom(Object value) {
-        return value == null || isAssignableFrom(value.getClass());
+    default Assignable isAssignableFrom(Object value) {
+        // Always allow a null value to be assigned
+        if (value == null) return Assignable.assignable();
+
+        // Check containerClass
+        final var containerClassAssignable = isAssignableFrom(value.getClass());
+        if (containerClassAssignable.isNotAssignable())
+            return fieldNotAssignable("containerClass", this, containerClass(), value, value.getClass(), containerClassAssignable);
+
+        return Assignable.assignable();
     }
 
     DataType UNKNOWN = new DataType() {
@@ -68,18 +90,21 @@ public interface DataType {
         }
 
         @Override
-        public boolean isAssignableFrom(DataType type) {
-            return true;
+        public Assignable isAssignableFrom(DataType type) {
+            // Do nothing to indicate any data type is assignable
+            return Assignable.assignable();
         }
 
         @Override
-        public boolean isAssignableFrom(Class<?> type) {
-            return true;
+        public Assignable isAssignableFrom(Object value) {
+            // Do nothing to indicate any value class is assignable
+            return Assignable.assignable();
         }
 
         @Override
-        public boolean isAssignableFrom(Object value) {
-            return true;
+        public Equality equals(Object obj, EqualityFlags flags) {
+            if (this == obj) return Equality.equal();
+            return Equality.notEqual("Type \"" + this + "\" is not type \"" + (obj != null ? obj : "null") + "\"");
         }
 
         @Override

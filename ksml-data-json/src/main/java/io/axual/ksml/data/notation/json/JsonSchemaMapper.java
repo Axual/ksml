@@ -24,17 +24,15 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,7 +141,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         final var doc = schema.getAsString(DESCRIPTION_NAME);
 
         final var requiredProperties = new TreeSet<String>();
-        List<DataField> fields = null;
+        List<StructSchema.Field> fields = null;
         final var reqProps = schema.get(REQUIRED_NAME);
         if (reqProps instanceof DataList reqPropList) {
             for (var reqProp : reqPropList) {
@@ -178,21 +176,21 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     /**
-     * Converts JSON Schema 'properties' into a list of KSML DataFields.
+     * Converts JSON Schema 'properties' into a list of StructFields.
      *
      * @param properties         a DataStruct mapping property names to their JSON Schema specs
      * @param requiredProperties set of required property names
      * @param referenceResolver  resolver for local $ref targets
-     * @return list of DataField instances in no particular order
+     * @return list of StructField instances in no particular order
      */
-    private List<DataField> convertFields(DataStruct properties, Set<String> requiredProperties, ReferenceResolver<DataStruct> referenceResolver) {
-        var result = new ArrayList<DataField>();
+    private List<StructSchema.Field> convertFields(DataStruct properties, Set<String> requiredProperties, ReferenceResolver<DataStruct> referenceResolver) {
+        var result = new ArrayList<StructSchema.Field>();
         for (var entry : properties.entrySet()) {
             var name = entry.getKey();
             var spec = entry.getValue();
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
-                var field = new DataField(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, requiredProperties.contains(name));
+                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, requiredProperties.contains(name));
                 result.add(field);
             }
         }
@@ -206,22 +204,23 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private DataSchema convertType(DataStruct specStruct, ReferenceResolver<DataStruct> referenceResolver) {
         final var anyOf = specStruct.get(ANY_OF_NAME);
         if (anyOf instanceof DataList anyOfList) {
-            final var memberSchemas = new DataField[anyOfList.size()];
+            final var members = new UnionSchema.Member[anyOfList.size()];
             for (var index = 0; index < anyOfList.size(); index++) {
                 final var anyOfMember = anyOfList.get(index);
                 if (anyOfMember instanceof DataStruct anyOfMemberStruct)
-                    memberSchemas[index] = new DataField(null, convertType(anyOfMemberStruct, referenceResolver));
+                    members[index] = new UnionSchema.Member(convertType(anyOfMemberStruct, referenceResolver));
             }
-            return new UnionSchema(memberSchemas);
+            return new UnionSchema(members);
         }
 
         final var enumSymbols = specStruct.get(ENUM_NAME);
         if (enumSymbols instanceof DataList enumList) {
-            final var symbols = new ArrayList<Symbol>();
+            final var symbols = new ArrayList<EnumSchema.Symbol>();
             enumList.forEach(enumSymbol -> {
-                if (enumSymbol instanceof DataString enumSymbolStr) symbols.add(new Symbol(enumSymbolStr.value()));
+                if (enumSymbol instanceof DataString enumSymbolStr)
+                    symbols.add(new EnumSchema.Symbol(enumSymbolStr.value()));
             });
-            return new EnumSchema(null, null, null, symbols);
+            return new EnumSchema(symbols);
         }
 
         final var type = specStruct.getAsString(TYPE_NAME);
@@ -335,7 +334,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
-    private DataStruct fromDataSchema(DataField field, DefinitionLibrary definitions) {
+    private DataStruct fromDataSchema(StructSchema.Field field, DefinitionLibrary definitions) {
         final var result = new DataStruct();
         final var doc = field.doc();
         if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
@@ -349,7 +348,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
-    private void convertType(DataSchema schema, boolean constant, DataValue defaultValue, DataStruct target, DefinitionLibrary definitions) {
+    private void convertType(DataSchema schema, boolean constant, DataObject defaultValue, DataStruct target, DefinitionLibrary definitions) {
         if (schema == DataSchema.NULL_SCHEMA) target.put(TYPE_NAME, new DataString(NULL_TYPE));
         if (schema == DataSchema.BOOLEAN_SCHEMA) target.put(TYPE_NAME, new DataString(BOOLEAN_TYPE));
         if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA || schema == DataSchema.LONG_SCHEMA)
@@ -357,9 +356,9 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         if (schema == DataSchema.FLOAT_SCHEMA || schema == DataSchema.DOUBLE_SCHEMA)
             target.put(TYPE_NAME, new DataString(NUMBER_TYPE));
         if (schema == DataSchema.STRING_SCHEMA) {
-            if (constant && defaultValue != null && defaultValue.value() != null) {
+            if (constant && defaultValue != null) {
                 var enumList = new DataList();
-                enumList.add(new DataString(defaultValue.value().toString()));
+                enumList.add(new DataString(defaultValue.toString()));
                 target.put(ENUM_NAME, enumList);
             } else {
                 target.put(TYPE_NAME, new DataString(STRING_TYPE));
@@ -397,13 +396,13 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         }
         if (schema instanceof UnionSchema unionSchema) {
             // Convert to an array of value types
-            final var memberSchemas = new DataList();
-            for (var memberSchema : unionSchema.memberSchemas()) {
+            final var members = new DataList();
+            for (var member : unionSchema.members()) {
                 final var typeStruct = new DataStruct();
-                convertType(memberSchema.schema(), false, null, typeStruct, definitions);
-                memberSchemas.add(typeStruct);
+                convertType(member.schema(), false, null, typeStruct, definitions);
+                members.add(typeStruct);
             }
-            target.put(ANY_OF_NAME, memberSchemas);
+            target.put(ANY_OF_NAME, members);
         }
     }
 }

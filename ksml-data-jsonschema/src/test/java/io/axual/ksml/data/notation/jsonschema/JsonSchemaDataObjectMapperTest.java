@@ -24,18 +24,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
@@ -50,6 +38,16 @@ import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.StructType;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

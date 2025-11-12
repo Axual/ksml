@@ -20,13 +20,12 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.TestOutputTopic;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

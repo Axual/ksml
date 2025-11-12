@@ -29,42 +29,67 @@ import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
     private static final DataTypeDataSchemaMapper DATA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
-    private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
-    private final ProtobufDescriptorFileElementMapper descriptorElementMapper;
+    private final ProtobufFileElementSchemaMapper elementSchemaMapper;
+    private final ProtobufFileElementDescriptorMapper descriptorElementMapper;
     private final ConvertUtil convertUtil;
 
-    public ProtobufDataObjectMapper(ProtobufDescriptorFileElementMapper descriptorElementMapper) {
+    public ProtobufDataObjectMapper(ProtobufFileElementDescriptorMapper descriptorElementMapper) {
+        this(descriptorElementMapper, new NativeDataObjectMapper(), new DataTypeDataSchemaMapper());
+    }
+
+    public ProtobufDataObjectMapper(ProtobufFileElementDescriptorMapper descriptorElementMapper, NativeDataObjectMapper nativeMapper, DataTypeDataSchemaMapper typeDataSchemaMapper) {
         this.descriptorElementMapper = descriptorElementMapper;
+        this.elementSchemaMapper = new ProtobufFileElementSchemaMapper(nativeMapper, typeDataSchemaMapper);
         convertUtil = new ConvertUtil(this, DATA_TYPE_MAPPER);
     }
 
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value instanceof Message message) return convertMessageToDataObject(message);
+        if (value instanceof Message message) {
+            final var expectedSchema = expected instanceof StructType expectedStructType ? expectedStructType.schema() : null;
+            return convertMessageToDataObject(expectedSchema, message);
+        }
         return super.toDataObject(expected, value);
     }
 
-    private DataObject convertMessageToDataObject(Message message) {
+    private DataObject convertMessageToDataObject(StructSchema expected, Message message) {
         final var descriptor = message.getDescriptorForType();
         final var namespace = descriptor.getFile().getPackage();
         final var name = descriptor.getName();
         final var fileElement = descriptorElementMapper.toFileElement(descriptor);
-        final var schema = ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, fileElement);
-        final var result = new DataStruct(schema);
+        final var schema = elementSchemaMapper.toDataSchema(namespace, name, fileElement);
+
+        // Ensure schema compatibility
+
+        final StructSchema resultSchema;
+        if (expected != null) {
+            final var assignable = expected.isAssignableFrom(schema);
+            if (assignable.isNotAssignable()) {
+                throw new SchemaException("PROTOBUF schema incompatibility: schema=" + schema + ", expected=" + expected);
+            }
+            resultSchema = expected;
+        } else {
+            resultSchema = schema;
+        }
+
+        final var result = new DataStruct(resultSchema);
+
         for (final var field : message.getAllFields().entrySet()) {
             var val = field.getValue();
             if (val instanceof Descriptors.EnumValueDescriptor enumValue) val = enumValue.getName();
             final var parentOneOf = field.getKey().getContainingOneof();
             final var fieldName = parentOneOf != null ? parentOneOf.getName() : field.getKey().getName();
-            final var expectedType = DATA_TYPE_MAPPER.fromDataSchema(schema.field(fieldName).schema());
+            final var expectedType = DATA_TYPE_MAPPER.fromDataSchema(resultSchema.field(fieldName).schema());
             final var dataObject = convertUtil.convert(null, null, expectedType, toDataObject(val), false);
             result.put(fieldName, dataObject);
         }
@@ -84,7 +109,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         if (dataSchema == null) {
             throw new DataException("Can not convert schemaless STRUCT into a PROTOBUF message");
         }
-        final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(dataSchema);
+        final var fileElement = elementSchemaMapper.fromDataSchema(dataSchema);
         final var descriptor = descriptorElementMapper.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
         final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
         final var msg = DynamicMessage.newBuilder(msgDescriptor);
@@ -113,10 +138,10 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
                 if (fieldSchema instanceof UnionSchema unionSchema) {
                     var assigned = false;
                     var index = 0;
-                    while (!assigned && index < unionSchema.memberSchemas().length) {
-                        final var memberSchema = unionSchema.memberSchemas()[index];
+                    while (!assigned && index < unionSchema.members().length) {
+                        final var memberSchema = unionSchema.members()[index];
                         final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
-                        if (memberType.isAssignableFrom(fieldValue)) {
+                        if (memberType.isAssignableFrom(fieldValue).isAssignable()) {
                             setMessageFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
                             assigned = true;
                         }

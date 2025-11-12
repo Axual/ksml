@@ -20,13 +20,22 @@ package io.axual.ksml.data.exception;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Unchecked exception for schema-related failures (lookup, resolution, incompatibilities).
+ */
 public class SchemaException extends BaseException {
     private static final String ACTIVITY = "schema";
 
+    /**
+     * Create a SchemaException with a message.
+     */
     public SchemaException(String message) {
         super(ACTIVITY, message);
     }
 
+    /**
+     * Create a SchemaException with a message and cause.
+     */
     public SchemaException(String message, Throwable cause) {
         super(ACTIVITY, message, cause);
     }

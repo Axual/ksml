@@ -1,10 +1,10 @@
-package io.axual.ksml.data.notation.protobuf.apicurio;
+package io.axual.ksml.data.notation.protobuf.confluent;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML Data Library - PROTOBUF
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,14 @@ import com.squareup.wire.schema.internal.parser.MessageElement;
 import com.squareup.wire.schema.internal.parser.OneOfElement;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
-import io.apicurio.registry.utils.protobuf.schema.DynamicSchema;
-import io.apicurio.registry.utils.protobuf.schema.EnumDefinition;
-import io.apicurio.registry.utils.protobuf.schema.MessageDefinition;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.protobuf.ProtobufConstants;
-import io.axual.ksml.data.notation.protobuf.ProtobufDescriptorFileElementMapper;
+import io.axual.ksml.data.notation.protobuf.ProtobufFileElementDescriptorMapper;
+import io.confluent.kafka.schemaregistry.protobuf.diff.Context;
+import io.confluent.kafka.schemaregistry.protobuf.dynamic.DynamicSchema;
+import io.confluent.kafka.schemaregistry.protobuf.dynamic.EnumDefinition;
+import io.confluent.kafka.schemaregistry.protobuf.dynamic.FieldDefinition;
+import io.confluent.kafka.schemaregistry.protobuf.dynamic.MessageDefinition;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +47,7 @@ import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.DEFAULT_LOC
 import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.DEFAULT_SYNTAX;
 import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.NO_DOCUMENTATION;
 
-public class ApicurioProtobufDescriptorFileElementMapper implements ProtobufDescriptorFileElementMapper {
+public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFileElementDescriptorMapper {
     public Descriptors.FileDescriptor toDescriptor(String namespace, String name, ProtoFileElement fileElement) {
         return new ElementToDescriptorConverter().convert(namespace, name, fileElement);
     }
@@ -68,7 +70,7 @@ public class ApicurioProtobufDescriptorFileElementMapper implements ProtobufDesc
             final var result = DynamicSchema.newBuilder();
             result.setSyntax(fileElement.getSyntax() != null
                     ? fileElement.getSyntax().toString()
-                    : DEFAULT_SYNTAX.toString());
+                    : ProtobufConstants.DEFAULT_SYNTAX.toString());
             result.setPackage(namespace);
             result.setName(name);
 
@@ -116,7 +118,8 @@ public class ApicurioProtobufDescriptorFileElementMapper implements ProtobufDesc
             for (final var oneOf : messageElement.getOneOfs()) {
                 final var oneOfBuilder = msgBuilder.addOneof(oneOf.getName());
                 for (final var oneOfField : oneOf.getFields()) {
-                    oneOfBuilder.addField(oneOfField.getType(), oneOfField.getName(), oneOfField.getTag(), null);
+                    final var fld = FieldDefinition.newBuilder(new Context(), oneOfField.getName(), oneOfField.getTag(), oneOfField.getType()).build();
+                    oneOfBuilder.addField(fld);
                 }
             }
 
@@ -125,7 +128,8 @@ public class ApicurioProtobufDescriptorFileElementMapper implements ProtobufDesc
                 final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
                 final var repeated = field.getLabel() == Field.Label.REPEATED;
                 final var label = required ? null : repeated ? "repeated" : "optional";
-                msgBuilder.addField(label, field.getType(), field.getName(), field.getTag(), null);
+                final var fldBuilder = FieldDefinition.newBuilder(new Context(), field.getName(), field.getTag(), field.getType());
+                msgBuilder.addField(label != null ? fldBuilder.setLabel(label).build() : fldBuilder.build());
             }
 
             // Return definition

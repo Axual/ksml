@@ -33,32 +33,10 @@ import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsMetadata;
-import org.apache.kafka.streams.state.HostInfo;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
@@ -86,7 +64,28 @@ import io.axual.ksml.runner.prometheus.PrometheusExport;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.state.HostInfo;
 import picocli.CommandLine;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static picocli.CommandLine.Option.NULL_VALUE;
 
@@ -245,8 +244,10 @@ public class KSMLRunner {
             // Ensure typical defaults are used for AVRO
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if(ksmlConfig.notations().isEmpty()) {
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, null, new DataObjectFlattener(), config.getKafkaConfigMap()));
+            if (ksmlConfig.notations().isEmpty()) {
+                final var dataMapper = new DataObjectFlattener();
+                final var dataTypeMapper = new DataTypeFlattener();
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, null, dataMapper, dataTypeMapper, config.getKafkaConfigMap()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
             }
@@ -529,15 +530,7 @@ public class KSMLRunner {
         final var mapper = new ObjectMapper(new YAMLFactory());
         try {
             final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
-            if (config != null) {
-                if (config.getKsmlConfig() == null) {
-                    throw new ConfigException("Section \"ksml\" is missing in configuration");
-                }
-                if (config.getKafkaConfigMap() == null) {
-                    throw new ConfigException("Section \"kafka\" is missing in configuration");
-                }
-                return config;
-            }
+            if (config != null) return config;
         } catch (IOException e) {
             log.error("Configuration exception", e);
         }

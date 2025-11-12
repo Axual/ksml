@@ -30,10 +30,6 @@ public class ParseException extends BaseException {
         this(node, message, null);
     }
 
-    public ParseException(String message) {
-        super(ACTIVITY, message);
-    }
-
     public ParseException(ParseNode node, String message, Throwable cause) {
         super(ACTIVITY, "Error in input node " + (node != null ? node.toString() : "<root>") + ": " + message, cause);
     }

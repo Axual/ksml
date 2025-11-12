@@ -20,14 +20,12 @@ package io.axual.ksml.data.notation.vendor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.notation.NotationContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-
-import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,13 +35,15 @@ class VendorNotationContextTest {
     void vendorContextWrapsBaseContext() {
         var baseConfigs = new HashMap<String, String>();
         baseConfigs.put("x", "1");
-        var baseContext = new NotationContext("avro", "confluent", new NativeDataObjectMapper(), baseConfigs);
+        var baseContext = new NotationContext("avro", "confluent", baseConfigs);
 
         @SuppressWarnings("unchecked")
         var serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new io.axual.ksml.data.mapper.StringDataObjectMapper();
         var serdeSupplier = new VendorSerdeSupplier() {
             @Override
-            public String vendorName() { return "confluent"; }
+            public String vendorName() {
+                return "confluent";
+            }
 
             @Override
             public org.apache.kafka.common.serialization.Serde<Object> get(io.axual.ksml.data.type.DataType type, boolean isKey) {

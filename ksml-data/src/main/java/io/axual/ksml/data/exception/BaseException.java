@@ -20,14 +20,35 @@ package io.axual.ksml.data.exception;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Base runtime exception for KSML with standardized, readable messages.
+ *
+ * <p>Subclasses supply an activity label (for example, "data", "schema", or "validation")
+ * which is combined with the message into the format:
+ * <pre>KSML {activity} error: {message}</pre>
+ * This keeps diagnostics consistent across the module.</p>
+ */
 public abstract class BaseException extends RuntimeException {
     private static final String PREFIX = "KSML ";
     private static final String POSTFIX = " error: ";
 
+    /**
+     * Create an exception with a standardized prefix based on the activity.
+     *
+     * @param activity logical subsystem where the error occurred (used in the prefix)
+     * @param message  human-readable details of the failure
+     */
     protected BaseException(String activity, String message) {
         super(PREFIX + activity + POSTFIX + message);
     }
 
+    /**
+     * Create an exception with a standardized prefix and a cause.
+     *
+     * @param activity logical subsystem where the error occurred (used in the prefix)
+     * @param message  human-readable details of the failure
+     * @param t        underlying cause
+     */
     protected BaseException(String activity, String message, Throwable t) {
         super(PREFIX + activity + POSTFIX + message, t);
     }

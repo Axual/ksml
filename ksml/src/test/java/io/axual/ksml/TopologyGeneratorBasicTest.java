@@ -22,7 +22,6 @@ package io.axual.ksml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
@@ -57,9 +56,8 @@ class TopologyGeneratorBasicTest {
     @BeforeAll
     static void beforeAll() {
         log.debug("Registering test notations");
-        final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, mapper));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, mapper), jsonNotation::serde));
+        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
     }
 
@@ -67,9 +65,8 @@ class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
-        final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, mapper));
-        ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, mapper), jsonNotation::serde));
+        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
+        ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
@@ -77,7 +74,7 @@ class TopologyGeneratorBasicTest {
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
-        var topologyGenerator = new TopologyGenerator("some.app.id");
+        final var topologyGenerator = new TopologyGenerator("some.app.id");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final TopologyDescription description = topology.describe();
         System.out.println(description);

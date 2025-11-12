@@ -20,7 +20,6 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
@@ -50,14 +49,14 @@ public class WindowedSchema {
     private static final String WINDOWED_SCHEMA_KEY_FIELD_DOC = "Window key";
 
     public static StructSchema generateWindowedSchema(WindowedType windowedType, Function<DataType, DataSchema> dataTypeToSchema) {
-        var fields = new ArrayList<DataField>();
-        fields.add(new DataField(WINDOWED_SCHEMA_START_FIELD, DataSchema.LONG_SCHEMA, WINDOWED_SCHEMA_START_FIELD_DOC));
-        fields.add(new DataField(WINDOWED_SCHEMA_END_FIELD, DataSchema.LONG_SCHEMA, WINDOWED_SCHEMA_END_FIELD_DOC));
-        fields.add(new DataField(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.STRING_SCHEMA, WINDOWED_SCHEMA_START_TIME_FIELD_DOC));
-        fields.add(new DataField(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.STRING_SCHEMA, WINDOWED_SCHEMA_END_TIME_FIELD_DOC));
+        var fields = new ArrayList<StructSchema.Field>();
+        fields.add(new StructSchema.Field(WINDOWED_SCHEMA_START_FIELD, DataSchema.LONG_SCHEMA, WINDOWED_SCHEMA_START_FIELD_DOC));
+        fields.add(new StructSchema.Field(WINDOWED_SCHEMA_END_FIELD, DataSchema.LONG_SCHEMA, WINDOWED_SCHEMA_END_FIELD_DOC));
+        fields.add(new StructSchema.Field(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.STRING_SCHEMA, WINDOWED_SCHEMA_START_TIME_FIELD_DOC));
+        fields.add(new StructSchema.Field(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.STRING_SCHEMA, WINDOWED_SCHEMA_END_TIME_FIELD_DOC));
 
         var keySchema = dataTypeToSchema.apply(windowedType.keyType());
-        fields.add(new DataField(WINDOWED_SCHEMA_KEY_FIELD, keySchema, WINDOWED_SCHEMA_KEY_FIELD_DOC));
+        fields.add(new StructSchema.Field(WINDOWED_SCHEMA_KEY_FIELD, keySchema, WINDOWED_SCHEMA_KEY_FIELD_DOC));
 
         return new StructSchema(
                 DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE,

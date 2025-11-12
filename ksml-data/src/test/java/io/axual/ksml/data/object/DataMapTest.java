@@ -20,13 +20,12 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.DataType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import io.axual.ksml.data.type.DataType;
 
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_ALL_SCHEMA;
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_NO_SCHEMA;

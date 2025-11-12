@@ -1,10 +1,10 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.schema.parser;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library
+ * KSML
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,18 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.parser.ListParser;
+import io.axual.ksml.parser.ParseNode;
 
-public record Symbol(String name, String doc, int tag) {
-    public Symbol(String name) {
-        this(name, null, NO_TAG);
-    }
+import java.util.List;
 
-    public boolean hasDoc() {
-        return doc != null && !doc.isEmpty();
-    }
+public class StructSchemaFieldsParser extends BaseParser<List<StructSchema.Field>> {
+    private static final String FIELD = "field";
 
-    public boolean isAssignableFrom(Symbol other) {
-        if (!name.equals(other.name)) return false;
-        if (tag == NO_TAG || other.tag == NO_TAG) return true;
-        return tag == other.tag;
-    }
-
-    public static Symbol of(String symbol) {
-        return new Symbol(symbol);
+    @Override
+    public List<StructSchema.Field> parse(ParseNode node) {
+        return new ListParser<>(FIELD, FIELD, new StructSchemaFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, FIELD));
     }
 }

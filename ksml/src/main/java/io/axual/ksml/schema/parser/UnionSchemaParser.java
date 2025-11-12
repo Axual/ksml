@@ -20,7 +20,6 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ListParser;
@@ -29,7 +28,7 @@ import io.axual.ksml.parser.ParseNode;
 public class UnionSchemaParser extends BaseParser<UnionSchema> {
     @Override
     public UnionSchema parse(ParseNode node) {
-        var memberTypes = new ListParser<>("union-type", "type", new DataFieldParser()).parse(node);
-        return new UnionSchema(memberTypes.toArray(DataField[]::new));
+        var memberTypes = new ListParser<>("union-type", "type", new UnionMemberParser()).parse(node);
+        return new UnionSchema(memberTypes.toArray(UnionSchema.Member[]::new));
     }
 }

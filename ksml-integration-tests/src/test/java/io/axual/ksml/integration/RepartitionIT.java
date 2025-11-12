@@ -22,6 +22,9 @@ package io.axual.ksml.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.axual.ksml.integration.testutil.KSMLContainer;
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -40,10 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import io.axual.ksml.integration.testutil.KSMLContainer;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

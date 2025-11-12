@@ -20,13 +20,12 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -35,12 +35,12 @@ public class VendorNotationContext extends NotationContext {
     /**
      * Creates a vendor notation context from an existing base context together with vendor serde components.
      *
-     * @param context the base notation context
+     * @param context       the base notation context
      * @param serdeSupplier the vendor-specific serde supplier
-     * @param serdeMapper the DataObject mapper used with the vendor serdes
+     * @param serdeMapper   the DataObject mapper used with the vendor serdes
      */
     public VendorNotationContext(NotationContext context, VendorSerdeSupplier serdeSupplier, DataObjectMapper<Object> serdeMapper) {
-        super(context.notationName(), context.vendorName(), context.nativeDataObjectMapper(), context.serdeConfigs());
+        super(context.notationName(), context.vendorName(), context.nativeDataObjectMapper(), context.typeSchemaMapper(), context.serdeConfigs());
         this.serdeSupplier = serdeSupplier;
         this.serdeMapper = serdeMapper;
     }

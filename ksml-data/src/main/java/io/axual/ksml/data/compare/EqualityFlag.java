@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.protobuf;
+package io.axual.ksml.data.compare;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - PROTOBUF
+ * KSML Data Library
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,11 +20,18 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import com.google.protobuf.Descriptors;
-import com.squareup.wire.schema.internal.parser.ProtoFileElement;
-
-public interface ProtobufDescriptorFileElementMapper {
-    Descriptors.FileDescriptor toDescriptor(String namespace, String name, ProtoFileElement fileElement);
-
-    ProtoFileElement toFileElement(Descriptors.Descriptor descriptor);
+/**
+ * Marker interface for all comparison flag enums used throughout KSML data layer.
+ *
+ * <p>This interface is implemented by three specific enum types:
+ * <ul>
+ *   <li>{@link io.axual.ksml.data.type.DataTypeFlag} - flags for DataType comparisons</li>
+ *   <li>{@link io.axual.ksml.data.schema.DataSchemaFlag} - flags for DataSchema comparisons</li>
+ *   <li>{@link io.axual.ksml.data.object.DataObjectFlag} - flags for DataObject comparisons</li>
+ * </ul>
+ *
+ * <p>Note: This interface cannot be sealed because the implementing enums are in different packages,
+ * and sealed types can only permit subtypes in the same package.</p>
+ */
+public interface EqualityFlag {
 }

@@ -20,11 +20,9 @@ package io.axual.ksml.data.notation.jsonschema.confluent;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Serde;
+import io.axual.ksml.data.type.StructType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.type.StructType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

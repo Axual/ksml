@@ -21,8 +21,16 @@ package io.axual.ksml.data.notation.json;
  */
 
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UnionType;
 
 /**
  * Converter between KSML DataObjects and JSON text using the {@link JsonDataObjectMapper}.

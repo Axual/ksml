@@ -21,6 +21,8 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import com.google.common.collect.Maps;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
 import io.axual.ksml.data.object.DataBoolean;
@@ -38,7 +40,6 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
@@ -137,7 +138,7 @@ class AvroDataObjectMapperTest {
         final var recordAvroSchema = schemaBuilder.record("Simple").doc("Really").fields().requiredString("value").endRecord();
         final var recordAvroData = new GenericData.Record(recordAvroSchema);
         recordAvroData.put("value", "testing");
-        final var recordKsmlSchema = new StructSchema("io.axual.test", "Simple", "Really", List.of(new DataField("value", DataSchema.STRING_SCHEMA)), false);
+        final var recordKsmlSchema = new StructSchema("io.axual.test", "Simple", "Really", List.of(new StructSchema.Field("value", DataSchema.STRING_SCHEMA)), false);
         final var recordKsmlData = new DataStruct(recordKsmlSchema);
         recordKsmlData.put("value", new DataString("testing"));
 
@@ -673,6 +674,11 @@ class AvroDataObjectMapperTest {
         public String toString(final Printer printer) {
             return getClass().getSimpleName();
         }
+
+        @Override
+        public Equality equals(Object obj, EqualityFlags flags) {
+            return Equality.notEqual("Fake error");
+        }
     }
 
     @Test
@@ -684,12 +690,12 @@ class AvroDataObjectMapperTest {
                 .namespace("io.axual.test")
                 .name("Arrays")
                 .doc("Record covering specific arrays")
-                .field(new DataField("stringList", new ListSchema(DataSchema.STRING_SCHEMA)))
-                .field(new DataField("intList", new ListSchema(DataSchema.INTEGER_SCHEMA)))
-                .field(new DataField("longList", new ListSchema(DataSchema.LONG_SCHEMA)))
-                .field(new DataField("floatList", new ListSchema(DataSchema.FLOAT_SCHEMA)))
-                .field(new DataField("doubleList", new ListSchema(DataSchema.DOUBLE_SCHEMA)))
-                .field(new DataField("booleanList", new ListSchema(DataSchema.BOOLEAN_SCHEMA)))
+                .field(new StructSchema.Field("stringList", new ListSchema(DataSchema.STRING_SCHEMA)))
+                .field(new StructSchema.Field("intList", new ListSchema(DataSchema.INTEGER_SCHEMA)))
+                .field(new StructSchema.Field("longList", new ListSchema(DataSchema.LONG_SCHEMA)))
+                .field(new StructSchema.Field("floatList", new ListSchema(DataSchema.FLOAT_SCHEMA)))
+                .field(new StructSchema.Field("doubleList", new ListSchema(DataSchema.DOUBLE_SCHEMA)))
+                .field(new StructSchema.Field("booleanList", new ListSchema(DataSchema.BOOLEAN_SCHEMA)))
                 .additionalFieldsAllowed(false)
                 .build();
         final var expectedKsmlStruct = new DataStruct(expectedKsmlStructSchema);

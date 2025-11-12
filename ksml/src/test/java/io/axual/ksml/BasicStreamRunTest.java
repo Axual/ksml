@@ -23,6 +23,7 @@ package io.axual.ksml;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
@@ -65,9 +66,10 @@ class BasicStreamRunTest {
 
     @BeforeAll
     static void setup() {
-        final var mapper = new DataObjectFlattener();
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, mapper));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, mapper), jsonNotation::serde));
+        final var dataMapper = new DataObjectFlattener();
+        final var typeMapper = new DataTypeFlattener();
+        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, dataMapper, typeMapper));
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, dataMapper, typeMapper), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         try {
@@ -120,9 +122,8 @@ class BasicStreamRunTest {
         final TopologyDescription description = topology.describe();
         System.out.println(description);
 
-        try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
-            final var serde = avroNotation.serde(new StructType(), false);
-
+        try (final var driver = new TopologyTestDriver(topology);
+             final var serde = avroNotation.serde(new StructType(), false)) {
             TestInputTopic<String, Object> avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), serde.serializer());
             var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), serde.deserializer());
 

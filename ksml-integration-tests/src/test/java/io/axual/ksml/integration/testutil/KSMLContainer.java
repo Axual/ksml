@@ -20,6 +20,9 @@ package io.axual.ksml.integration.testutil;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.SchemaRegistryConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -35,10 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.SchemaRegistryConfig;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * TestContainers-compatible wrapper for KSML that provides a fluent API for configuring

@@ -27,7 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Set;
 
-import static io.axual.ksml.rest.server.ComponentState.*;
+import static io.axual.ksml.rest.server.ComponentState.NOT_APPLICABLE;
+import static io.axual.ksml.rest.server.ComponentState.STARTED;
+import static io.axual.ksml.rest.server.ComponentState.STOPPED;
+import static io.axual.ksml.rest.server.ComponentState.STOPPING;
 
 @Slf4j(topic = "ksml.rest.service.ready")
 @Path("ready")

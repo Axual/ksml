@@ -33,7 +33,11 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class MockConfluentSchemaRegistryClient implements SchemaRegistryClient {
     private final MockSchemaRegistryClient wrappedClient = new MockSchemaRegistryClient();

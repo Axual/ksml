@@ -21,10 +21,18 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -32,7 +40,6 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.util.JsonNodeUtil;
 import io.axual.ksml.data.util.ListUtil;
 import io.axual.ksml.exception.ExecutionException;
@@ -60,8 +67,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     public Object fromDataSchema(DataSchema schema) {
         if (schema instanceof UnionSchema unionSchema) {
             final var result = new ArrayList<>();
-            for (final var memberSchema : unionSchema.memberSchemas())
-                result.add(convertField(memberSchema));
+            for (final var memberSchema : unionSchema.members())
+                result.add(convertMember(memberSchema));
             return result;
         }
 
@@ -120,11 +127,11 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         }
     }
 
-    private List<Object> convertSymbols(List<Symbol> symbols) {
+    private List<Object> convertSymbols(List<EnumSchema.Symbol> symbols) {
         return ListUtil.map(symbols, this::convertSymbol);
     }
 
-    private Map<String, Object> convertSymbol(Symbol symbol) {
+    private Map<String, Object> convertSymbol(EnumSchema.Symbol symbol) {
         final var result = new LinkedHashMap<String, Object>();
         result.put(DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD, symbol.name());
         if (symbol.hasDoc()) result.put(DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD, symbol.doc());
@@ -154,31 +161,41 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         return null;
     }
 
-    private Map<String, Object> convertField(DataField field) {
+    private Map<String, Object> convertField(StructSchema.Field field) {
         final var result = new LinkedHashMap<String, Object>();
-        result.put(DataSchemaDSL.DATA_FIELD_NAME_FIELD, field.name());
-        result.put(DataSchemaDSL.DATA_FIELD_DOC_FIELD, field.doc());
-        result.put(DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD, field.required());
-        result.put(DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD, field.constant());
-        result.put(DataSchemaDSL.DATA_FIELD_TAG_FIELD, field.tag());
-        result.put(DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
+        result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_NAME_FIELD, field.name());
+        if (field.hasDoc()) result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_DOC_FIELD, field.doc());
+        result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_REQUIRED_FIELD, field.required());
+        result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_CONSTANT_FIELD, field.constant());
+        result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_TAG_FIELD, field.tag());
+        result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null) encodeDefaultValue(result, field.defaultValue());
-        result.put(DataSchemaDSL.DATA_FIELD_ORDER_FIELD, field.order().toString());
+        result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_ORDER_FIELD, field.order().toString());
         return result;
     }
 
-    private void encodeDefaultValue(Map<String, Object> node, DataValue defaultValue) {
-        final var fieldName = DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD;
-        switch (defaultValue.value()) {
+    private Map<String, Object> convertMember(UnionSchema.Member member) {
+        final var result = new LinkedHashMap<String, Object>();
+        result.put(DataSchemaDSL.UNION_MEMBER_NAME_FIELD, member.name());
+        result.put(DataSchemaDSL.UNION_MEMBER_SCHEMA_FIELD, convertSchema(member.schema()));
+        result.put(DataSchemaDSL.UNION_MEMBER_DOC_FIELD, member.doc());
+        result.put(DataSchemaDSL.UNION_MEMBER_TAG_FIELD, member.tag());
+        return result;
+    }
+
+    private void encodeDefaultValue(Map<String, Object> node, DataObject defaultValue) {
+        final var fieldName = DataSchemaDSL.STRUCT_SCHEMA_FIELD_DEFAULT_VALUE_FIELD;
+        switch (defaultValue) {
             case null -> node.put(fieldName, null);
-            case Byte value -> node.put(fieldName, value);
-            case Short value -> node.put(fieldName, value);
-            case Integer value -> node.put(fieldName, value);
-            case Long value -> node.put(fieldName, value);
-            case Double value -> node.put(fieldName, value);
-            case Float value -> node.put(fieldName, value);
-            case byte[] value -> node.put(fieldName, value);
-            case String value -> node.put(fieldName, value);
+            case DataNull unused -> node.put(fieldName, null);
+            case DataByte value -> node.put(fieldName, value.value());
+            case DataShort value -> node.put(fieldName, value.value());
+            case DataInteger value -> node.put(fieldName, value.value());
+            case DataLong value -> node.put(fieldName, value.value());
+            case DataDouble value -> node.put(fieldName, value.value());
+            case DataFloat value -> node.put(fieldName, value.value());
+            case DataBytes value -> node.put(fieldName, value.value());
+            case DataString value -> node.put(fieldName, value.value());
             default ->
                     throw new ExecutionException("Can not encode default value of type: " + defaultValue.getClass().getSimpleName());
         }

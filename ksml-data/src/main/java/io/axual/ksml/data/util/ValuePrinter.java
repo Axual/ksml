@@ -20,6 +20,12 @@ package io.axual.ksml.data.util;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Small utility to render objects as strings with optional quoting for Strings.
+ *
+ * <p>Used by diagnostic and equality-reporting code to produce consistent, human-readable
+ * representations of values while preserving null vs. non-null distinctions.</p>
+ */
 public class ValuePrinter {
     private static final String QUOTE = "\"";
 

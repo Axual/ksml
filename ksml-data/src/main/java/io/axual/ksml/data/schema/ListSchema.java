@@ -20,9 +20,20 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+
+import java.util.Objects;
+
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_LIST_SCHEMA_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_LIST_SCHEMA_VALUE_SCHEMA;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * A schema representation for lists in the KSML framework.
@@ -106,19 +117,48 @@ public class ListSchema extends DataSchema {
      * with this schema's {@code valueSchema}.
      * </p>
      *
-     * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
+     * @param other The other {@link DataSchema} to be checked for compatibility.
      * @return {@code true} if the other schema is assignable from this schema;
      * {@code false} otherwise.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof ListSchema otherListSchema)) return false;
-        // If the value schema is null, then any schema can be assigned.
-        if (valueSchema == null) return true;
+    public Assignable isAssignableFrom(DataSchema other) {
+        final var superAssignable = super.isAssignableFrom(other);
+        if (superAssignable.isNotAssignable()) return superAssignable;
+        if (!(other instanceof ListSchema that)) return schemaMismatch(this, other);
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
-        return valueSchema.isAssignableFrom(otherListSchema.valueSchema);
+        final var valueSchemaAssignable = valueSchema.isAssignableFrom(that.valueSchema);
+        if (valueSchemaAssignable.isNotAssignable())
+            return fieldNotAssignable("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaAssignable);
+        return Assignable.assignable();
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Equality equals(Object other, EqualityFlags flags) {
+        final var superEqual = super.equals(other, flags);
+        if (superEqual.isNotEqual()) return superEqual;
+
+        final var that = (ListSchema) other;
+
+        // Compare name
+        if (!flags.isSet(IGNORE_LIST_SCHEMA_NAME) && !Objects.equals(name, that.name))
+            return fieldNotEqual("name", this, name, that, that.name);
+
+        // Compare valueSchema
+        if (!flags.isSet(IGNORE_LIST_SCHEMA_VALUE_SCHEMA)) {
+            final var valueSchemaEqual = valueSchema.equals(that.valueSchema, flags);
+            if (valueSchemaEqual.isNotEqual())
+                return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
+        }
+
+        return Equality.equal();
     }
 
     /**
@@ -127,7 +167,7 @@ public class ListSchema extends DataSchema {
      * @return A string representing the schema type.
      */
     @Override
-    public String toString() {
-        return super.toString() + " of " + valueSchema;
+    public String type() {
+        return super.type() + " of " + valueSchema;
     }
 }

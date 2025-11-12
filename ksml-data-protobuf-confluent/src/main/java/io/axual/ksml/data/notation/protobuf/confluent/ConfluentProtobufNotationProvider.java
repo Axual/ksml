@@ -46,7 +46,7 @@ public class ConfluentProtobufNotationProvider extends VendorNotationProvider {
                 new VendorNotationContext(
                         context,
                         new ConfluentProtobufSerdeSupplier(registryClient),
-                        new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper())),
+                        new ProtobufDataObjectMapper(new ConfluentProtobufFileElementDescriptorMapper(), context.nativeDataObjectMapper(), context.typeSchemaMapper())),
                 new ConfluentProtobufSchemaParser());
     }
 }

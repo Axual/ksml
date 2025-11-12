@@ -20,13 +20,26 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
-import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.type.*;
-import io.axual.ksml.exception.ParseException;
-import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.schema.parser.DataSchemaDSL;
 import io.axual.ksml.type.UserTupleType;
@@ -58,42 +71,48 @@ public class UserTypeParser {
     private UserTypeParser() {
     }
 
-    public static UserType parse(String type) {
-        final var types = parseListOfTypesAndNotation(type, DEFAULT_NOTATION);
-        if (types.length == 1) {
-            return types[0];
-        }
-        throw new ParseException("Could not parse data type: " + type);
+    public static Parsed<UserType> parse(String type) {
+        final var parsedTypes = parseListOfTypesAndNotation(type, DEFAULT_NOTATION);
+        if (parsedTypes.isError()) return Parsed.error(parsedTypes.errorMessage());
+        if (parsedTypes.result().length == 1) return Parsed.ok(parsedTypes.result()[0]);
+        return Parsed.error("Could not parse data type: " + type);
     }
 
     // Parses a list of comma-separated user data types. If no comma is found, then the returned
     // list only contains one dataType.
-    private static UserType[] parseListOfTypesAndNotation(String type, String defaultNotation) {
+    private static Parsed<UserType[]> parseListOfTypesAndNotation(String type, String defaultNotation) {
         if (type == null || type.isEmpty()) {
-            return new UserType[]{UserType.UNKNOWN};
+            return Parsed.ok(new UserType[]{UserType.UNKNOWN});
         }
         type = type.trim();
 
         final var leftTerm = parseLeftMostTerm(type);
-        final var remainder = type.substring(leftTerm.length()).trim();
-        final var leftTermType = parseTypeAndNotation(leftTerm, defaultNotation);
-        var remainderTypes = new UserType[0];
+        if (leftTerm.isError()) return Parsed.error(leftTerm.errorMessage());
+        final var parsedLeftTerm = parseTypeAndNotation(leftTerm.result(), defaultNotation);
+        if (parsedLeftTerm.isError()) return Parsed.error(parsedLeftTerm.errorMessage());
+
+        final UserType[] remainderTypes;
+        final var remainder = type.substring(leftTerm.result().length()).trim();
         if (remainder.startsWith(TYPE_SEPARATOR)) {
-            remainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation);
-        } else if (!remainder.isEmpty()) {
-            throw new ParseException("Could not parse data type: " + type);
+            final var parsedRemainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation);
+            if (parsedRemainderTypes.isError()) return Parsed.error(parsedRemainderTypes.errorMessage());
+            remainderTypes = parsedRemainderTypes.result();
+        } else if (remainder.isEmpty()) {
+            remainderTypes = new UserType[0];
+        } else {
+            return Parsed.error("Could not parse data type: " + type);
         }
 
         final var result = new UserType[remainderTypes.length + 1];
-        result[0] = leftTermType;
+        result[0] = parsedLeftTerm.result();
         System.arraycopy(remainderTypes, 0, result, 1, remainderTypes.length);
-        return result;
+        return Parsed.ok(result);
     }
 
     private record DecomposedType(String notation, String dataType) {
     }
 
-    private static UserType parseTypeAndNotation(String composedType, String defaultNotation) {
+    private static Parsed<UserType> parseTypeAndNotation(String composedType, String defaultNotation) {
         final var decomposedType = decompose(composedType, defaultNotation);
         final var notation = decomposedType.notation();
         final var dataType = decomposedType.dataType();
@@ -102,106 +121,114 @@ public class UserTypeParser {
         final var internalType = parseType(dataType);
         if (internalType != null) {
             final var n = ExecutionContext.INSTANCE.notationLibrary().get(notation);
-            if (n.defaultType() != null && !n.defaultType().isAssignableFrom(internalType)) {
-                throw new DataException("Notation " + n.name() + " does not allow for data type " + dataType);
+            if (n.defaultType() != null && n.defaultType().isAssignableFrom(internalType).isNotAssignable()) {
+                return Parsed.error("Notation " + n.name() + " does not allow for data type " + dataType);
             }
-            return new UserType(notation, internalType);
+            return Parsed.ok(new UserType(notation, internalType));
         }
 
         // [type]
         if (dataType.startsWith(SQUARE_BRACKET_OPEN)) {
             if (!dataType.endsWith(SQUARE_BRACKET_CLOSE)) {
-                throw new ParseException("List type not properly closed: " + dataType);
+                return Parsed.error("List type not properly closed: " + dataType);
             }
             // Parse the type in brackets separately as the type of list elements
             final var valueTypeStr = dataType.substring(1, dataType.length() - 1);
-            final var valueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION).dataType();
+            final var parsedValueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION);
+            if (parsedValueType.isError()) return Parsed.error(parsedValueType.errorMessage());
             // Return a typed list
-            return new UserType(notation, new ListType(valueType));
+            return Parsed.ok(new UserType(notation, new ListType(parsedValueType.result().dataType())));
         }
 
         // list(type)
         if (dataType.startsWith(LIST_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("List type not properly closed: " + dataType);
+                return Parsed.error("List type not properly closed: " + dataType);
             }
             // Parse the type in brackets separately as the type of list elements
             final var valueTypeStr = dataType.substring(LIST_TYPE.length() + 1, dataType.length() - 1);
-            final var valueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION).dataType();
+            final var parsedValueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION);
+            if (parsedValueType.isError()) return Parsed.error(parsedValueType.errorMessage());
             // Return a typed list
-            return new UserType(notation, new ListType(valueType));
+            return Parsed.ok(new UserType(notation, new ListType(parsedValueType.result().dataType())));
         }
 
         // enum(literal1, literal2,...)
         if (dataType.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Enum type not properly closed: " + dataType);
+                return Parsed.error("Enum type not properly closed: " + dataType);
             }
             // Parse the literals in brackets separately as possible enum values
             final var literalsStr = dataType.substring(ENUM_TYPE.length() + 1, dataType.length() - 1);
-            final var literals = parseListOfLiterals(literalsStr).stream().map(Symbol::new).toList();
+            final var literals = parseListOfLiterals(literalsStr).stream().map(EnumSchema.Symbol::new).toList();
             // Return a new enum type with those literals
-            return new UserType(notation, new EnumType(literals));
+            return Parsed.ok(new UserType(notation, new EnumType(new EnumSchema(literals))));
         }
 
         // map(type)
         if (dataType.startsWith(MAP_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Map type not properly closed: " + dataType);
+                return Parsed.error("Map type not properly closed: " + dataType);
             }
             // Parse the type in brackets separately as the type of map elements
             final var valueTypeStr = dataType.substring(MAP_TYPE.length() + 1, dataType.length() - 1);
-            final var valueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION).dataType();
+            final var parsedValueType = parseTypeAndNotation(valueTypeStr, DEFAULT_NOTATION);
+            if (parsedValueType.isError()) return Parsed.error(parsedValueType.errorMessage());
             // Return a typed map
-            return new UserType(notation, new MapType(valueType));
+            return Parsed.ok(new UserType(notation, new MapType(parsedValueType.result().dataType())));
         }
 
         // union(type1, type2,...)
         if (dataType.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Union type not properly closed: " + dataType);
+                return Parsed.error("Union type not properly closed: " + dataType);
             }
             // Parse the types in brackets separately as the union's member types
             final var memberTypesStr = dataType.substring(UNION_TYPE.length() + 1, dataType.length() - 1);
-            final var memberTypes = parseListOfTypesAndNotation(memberTypesStr, DEFAULT_NOTATION);
+            final var parsedMemberTypes = parseListOfTypesAndNotation(memberTypesStr, DEFAULT_NOTATION);
+            if (parsedMemberTypes.isError()) return Parsed.error(parsedMemberTypes.errorMessage());
             // Return a new union type with parsed member types
-            return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(memberTypes)).map(UnionType.MemberType::new).toArray(UnionType.MemberType[]::new)));
+            final var memberTypes = Arrays.stream(UserType.userTypesToDataTypes(parsedMemberTypes.result())).map(UnionType.Member::new).toArray(UnionType.Member[]::new);
+            return Parsed.ok(new UserType(notation, new UnionType(memberTypes)));
         }
 
         // windowed(type)
         if (dataType.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Windowed type not properly closed: " + dataType);
+                return Parsed.error("Windowed type not properly closed: " + dataType);
             }
             // Parse the type in brackets separately as the type of the windowed key
             final var windowedTypeStr = dataType.substring(WINDOWED_TYPE.length() + 1, dataType.length() - 1);
-            final var windowedType = parseTypeAndNotation(windowedTypeStr, DEFAULT_NOTATION).dataType();
+            final var parsedWindowType = parseTypeAndNotation(windowedTypeStr, DEFAULT_NOTATION);
+            if (parsedWindowType.isError()) return Parsed.error(parsedWindowType.errorMessage());
             // Return a typed windowed object
-            return new UserType(notation, new WindowedType(windowedType));
+            return Parsed.ok(new UserType(notation, new WindowedType(parsedWindowType.result().dataType())));
         }
 
         // (type1, type2, ...)
         if (dataType.startsWith(ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Tuple type not properly closed: " + dataType);
+                return Parsed.error("Tuple type not properly closed: " + dataType);
             }
             // Parse the type in brackets separately as the tuple's element types
             final var elementTypesStr = dataType.substring(1, dataType.length() - 1);
-            final var elementTypes = parseListOfTypesAndNotation(elementTypesStr, DEFAULT_NOTATION);
+            final var parsedElementTypes = parseListOfTypesAndNotation(elementTypesStr, DEFAULT_NOTATION);
+            if (parsedElementTypes.isError()) return Parsed.error(parsedElementTypes.errorMessage());
             // Return a new tuple type with parsed element types
-            return new UserType(notation, new UserTupleType(elementTypes));
+            return Parsed.ok(new UserType(notation, new UserTupleType(parsedElementTypes.result())));
         }
 
         // tuple(type1, type2, ...)
         if (dataType.startsWith(TUPLE_TYPE + ROUND_BRACKET_OPEN)) {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Tuple type not properly closed: " + dataType);
+                return Parsed.error("Tuple type not properly closed: " + dataType);
             }
             // Parse the type in brackets separately as the tuple's element types
             final var elementTypesStr = dataType.substring(TUPLE_TYPE.length() + 1, dataType.length() - 1);
-            final var elementTypes = parseListOfTypesAndNotation(elementTypesStr, DEFAULT_NOTATION);
+            final var parsedElementTypes = parseListOfTypesAndNotation(elementTypesStr, DEFAULT_NOTATION);
+            if (parsedElementTypes.isError()) return Parsed.error(parsedElementTypes.errorMessage());
             // Return a new tuple type with parsed element types
-            return new UserType(notation, new UserTupleType(elementTypes));
+            return Parsed.ok(new UserType(notation, new UserTupleType(parsedElementTypes.result())));
         }
 
         // Notation type with or without a specific schema
@@ -209,18 +236,18 @@ public class UserTypeParser {
             final var not = ExecutionContext.INSTANCE.notationLibrary().get(notation);
             if (not != null) {
                 // If the dataType (ie. schema) is empty, then return the notation with a default type
-                if (dataType.isEmpty()) return new UserType(notation, not.defaultType());
+                if (dataType.isEmpty()) return Parsed.ok(new UserType(notation, not.defaultType()));
                 // Load the schema
                 final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, dataType, false);
                 final var schemaType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
-                if (!not.defaultType().isAssignableFrom(schemaType)) {
-                    throw new DataException("Notation does not allow for type: notation=" + not.name() + ", type=" + dataType);
+                if (not.defaultType().isAssignableFrom(schemaType).isNotAssignable()) {
+                    return Parsed.error("Notation does not allow for type: notation=" + not.name() + ", type=" + dataType);
                 }
-                return new UserType(notation, schemaType);
+                return Parsed.ok(new UserType(notation, schemaType));
             }
         }
 
-        throw new TopologyException("Unknown user type: notation=" + (notation != null ? notation : "null") + ", type=" + dataType);
+        return Parsed.error("Unknown user type: notation=" + (notation != null ? notation : "null") + ", type=" + dataType);
     }
 
     // This method decomposes a user type into its components. User types are always of the form "notation:datatype".
@@ -282,7 +309,7 @@ public class UserTypeParser {
         };
     }
 
-    private static String parseLeftMostTerm(String type) {
+    private static Parsed<String> parseLeftMostTerm(String type) {
         // Check for bracketed expression
         if (type.startsWith(ROUND_BRACKET_OPEN))
             return parseBracketedExpression(type, ROUND_BRACKET_OPEN, ROUND_BRACKET_CLOSE);
@@ -296,18 +323,18 @@ public class UserTypeParser {
 
             if (ch.equals(ROUND_BRACKET_OPEN) || ch.equals(SQUARE_BRACKET_OPEN)) {
                 final var bracketedTerm = parseLeftMostTerm(type.substring(index));
+                if (bracketedTerm.isError()) return Parsed.error(bracketedTerm.errorMessage());
                 // Skip past the bracketed expression
-                index += bracketedTerm.length() - 1;
+                index += bracketedTerm.result().length() - 1;
             } else if (!ALLOWED_TYPE_CHARACTERS.contains(ch)) {
-                return type.substring(0, index);
+                return Parsed.ok(type.substring(0, index));
             }
             index++;
         }
-        return type;
+        return Parsed.ok(type);
     }
 
-    private static String parseBracketedExpression(String type, String openBracket, String
-            closeBracket) {
+    private static Parsed<String> parseBracketedExpression(String type, String openBracket, String closeBracket) {
         var openCount = 1;
         for (var index = 1; index < type.length(); index++) {
             final var ch = type.substring(index, index + 1);
@@ -315,9 +342,9 @@ public class UserTypeParser {
             if (ch.equals(closeBracket)) openCount--;
             if (openCount == 0) {
                 // Return string including both brackets
-                return type.substring(0, index + 1);
+                return Parsed.ok(type.substring(0, index + 1));
             }
         }
-        throw new ParseException("Error in expression: no closing bracket found: " + type);
+        return Parsed.error("Error in expression: no closing bracket found: " + type);
     }
 }

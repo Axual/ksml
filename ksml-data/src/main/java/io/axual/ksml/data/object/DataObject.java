@@ -20,6 +20,9 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.DataEquals;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.type.DataType;
 
 /**
@@ -29,23 +32,36 @@ import io.axual.ksml.data.type.DataType;
  * their {@link DataType} metadata so values can be validated, printed and processed in a
  * schema-aware way across the framework.</p>
  */
-public interface DataObject {
+public interface DataObject extends DataEquals {
     /**
      * Returns the {@link DataType} that describes this value.
      */
     DataType type();
 
     /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     */
+    Equality equals(Object obj, EqualityFlags flags);
+
+    /**
      * Printer options controlling how values are rendered to strings.
      */
     enum Printer {
-        /** Internal formatting for logs and debug output. */
+        /**
+         * Internal formatting for logs and debug output.
+         */
         INTERNAL,
-        /** External formatting without schema names. */
+        /**
+         * External formatting without schema names.
+         */
         EXTERNAL_NO_SCHEMA,
-        /** External formatting with schema on the top-level value only. */
+        /**
+         * External formatting with schema on the top-level value only.
+         */
         EXTERNAL_TOP_SCHEMA,
-        /** External formatting with schema for all nested values. */
+        /**
+         * External formatting with schema for all nested values.
+         */
         EXTERNAL_ALL_SCHEMA;
 
         /**
@@ -59,16 +75,16 @@ public interface DataObject {
         /**
          * Returns the schema prefix that must always be shown for the given value.
          */
-        public String forceSchemaString(DataObject value) {
+        public String forceSchemaPrefix(DataObject value) {
             return value.type().name() + ": ";
         }
 
         /**
          * Returns the schema prefix according to the current printer mode.
          */
-        public String schemaString(DataObject value) {
+        public String schemaPrefix(DataObject value) {
             if (this == INTERNAL || this == EXTERNAL_NO_SCHEMA) return "";
-            return forceSchemaString(value);
+            return forceSchemaPrefix(value);
         }
     }
 

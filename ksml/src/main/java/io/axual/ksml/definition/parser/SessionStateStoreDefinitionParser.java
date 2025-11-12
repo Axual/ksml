@@ -38,7 +38,7 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
 
     @Override
     protected StructsParser<SessionStateStoreDefinition> parser() {
-        final var nameField = optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the session store. If this field is not defined, then the name is derived from the context."));
+        final var nameField = optional(stringField(KSMLDSL.Stores.NAME, false, "The name of the session store. If this field is not defined, then the name is derived from the context."));
         final var persistentField = optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise"));
         final var timestampedField = optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
         final var retentionField = optional(durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the session store are retained"));

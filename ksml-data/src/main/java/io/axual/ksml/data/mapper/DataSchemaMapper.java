@@ -33,8 +33,8 @@ public interface DataSchemaMapper<T> {
     /**
      * Converts a native value to a DataSchema, with optional namespace and name.
      *
-     * @param namespace optional schema namespace, may be null
-     * @param name      optional schema name, may be null
+     * @param namespace optional schema namespace or null
+     * @param name      optional schema name or null
      * @param value     the native value whose schema should be derived
      * @return the corresponding DataSchema
      */
@@ -43,7 +43,7 @@ public interface DataSchemaMapper<T> {
     /**
      * Converts a native value to a DataSchema using only a name.
      *
-     * @param name  the schema name, may be null
+     * @param name  the schema name or null
      * @param value the native value whose schema should be derived
      * @return the corresponding DataSchema
      */

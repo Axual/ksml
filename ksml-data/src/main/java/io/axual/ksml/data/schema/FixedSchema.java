@@ -20,8 +20,17 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import java.util.Objects;
+
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_FIXED_SCHEMA_SIZE;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * A schema representation for fixed-size binary data in the KSML framework.
@@ -75,15 +84,33 @@ public class FixedSchema extends NamedSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
-     * @return {@code true} if the other schema is assignable from this schema;
-     * {@code false} otherwise.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return false;
-        // This schema is assignable from the other schema when the maximum size is greater or
-        // equal than the other schema's maximum size.
-        return size >= otherFixedSchema.size;
+    public Assignable isAssignableFrom(DataSchema otherSchema) {
+        final var superAssignable = super.isAssignableFrom(otherSchema);
+        if (superAssignable.isNotAssignable()) return superAssignable;
+        if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return schemaMismatch(this, otherSchema);
+        if (size >= otherFixedSchema.size) return Assignable.assignable();
+        return Assignable.notAssignable("Size of fixed schema (" + size + ") is smaller than the other fixed schema's size (" + otherFixedSchema.size + ")");
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Equality equals(Object obj, EqualityFlags flags) {
+        final var superEqual = super.equals(obj, flags);
+        if (superEqual.isNotEqual()) return superEqual;
+
+        final var that = (FixedSchema) obj;
+
+        // Compare size
+        if (!flags.isSet(IGNORE_FIXED_SCHEMA_SIZE) && !Objects.equals(size, that.size))
+            return fieldNotEqual("size", this, size, that, that.size);
+
+        return Equality.equal();
     }
 }

@@ -1,10 +1,10 @@
-package io.axual.ksml.schema.parser;
+package io.axual.ksml.data.compare;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,14 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ParseNode;
-
-public class DataFieldOrderParser extends BaseParser<DataField.Order> {
-    @Override
-    public DataField.Order parse(ParseNode node) {
-        if (node == null) return DataField.Order.ASCENDING;
-        var order = node.asString();
-        if (order != null) order = order.toUpperCase();
-        try {
-            return DataField.Order.valueOf(order);
-        } catch (IllegalArgumentException e) {
-            return DataField.Order.ASCENDING;
-        }
-    }
+/**
+ * Represents a contract for checking equality between data objects, data types and data schemas with additional
+ * flexibility for parameterized comparisons using {@link EqualityFlags}.
+ * <p>
+ * Implementations of this interface must define the logic for comparing the current object
+ * with another object for equality based on the provided flags. This allows fine-grained
+ * control over which attributes or conditions are involved in the comparison.
+ */
+public interface DataEquals {
+    Equality equals(Object obj, EqualityFlags flags);
 }

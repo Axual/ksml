@@ -20,9 +20,9 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.vendor.VendorNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonSchemaLoader;
+import io.axual.ksml.data.notation.vendor.VendorNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -46,8 +46,8 @@ public class JsonSchemaNotation extends VendorNotation {
     public static final String NOTATION_NAME = "jsonschema";
     /** Default supported data type: union of Struct and List. */
     public static final DataType DEFAULT_TYPE = new UnionType(
-            new UnionType.MemberType(new StructType()),
-            new UnionType.MemberType(new ListType()));
+            new UnionType.Member(new StructType()),
+            new UnionType.Member(new ListType()));
 
     /**
      * Creates a JsonSchemaNotation with the provided vendor context.

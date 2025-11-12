@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.string;
  */
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.StringDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
@@ -48,11 +47,10 @@ class StringNotationTest {
     @Test
     @DisplayName("serde() returns a StringSerde that roundtrips DataString via configured mappers and configs are applied")
     void serdeRoundTripsDataString() {
-        var nativeMapper = new NativeDataObjectMapper();
-        var context = new NotationContext("string", nativeMapper);
+        final var context = new NotationContext("string");
         context.serdeConfigs().put("dummy", "config");
 
-        var notation = new ConcreteStringNotation(
+        final var notation = new ConcreteStringNotation(
                 context,
                 ".txt",
                 DataString.DATATYPE,
@@ -61,14 +59,14 @@ class StringNotationTest {
                 new StringDataObjectMapper()
         );
 
-        var serde = notation.serde(DataString.DATATYPE, true);
+        try (final var serde = notation.serde(DataString.DATATYPE, true)) {
+            final var serialized = serde.serializer().serialize("topic", new DataString("hello"));
+            final var deserialized = serde.deserializer().deserialize("topic", new RecordHeaders(), serialized);
 
-        var serialized = serde.serializer().serialize("topic", new DataString("hello"));
-        var deserialized = serde.deserializer().deserialize("topic", new RecordHeaders(), serialized);
-
-        assertThat(deserialized).isInstanceOf(DataString.class);
-        assertThat(((DataString) deserialized).value()).isEqualTo("hello");
-        assertThat(notation.filenameExtension()).isEqualTo(".txt");
-        assertThat(notation.name()).isEqualTo("string");
+            assertThat(deserialized).isInstanceOf(DataString.class);
+            assertThat(((DataString) deserialized).value()).isEqualTo("hello");
+            assertThat(notation.filenameExtension()).isEqualTo(".txt");
+            assertThat(notation.name()).isEqualTo("string");
+        }
     }
 }

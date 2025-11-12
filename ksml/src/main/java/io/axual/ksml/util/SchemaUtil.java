@@ -20,7 +20,6 @@ package io.axual.ksml.util;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -40,14 +39,14 @@ public class SchemaUtil {
         if (schemas.isEmpty()) {
             schemas.addAll(subSchemas);
         } else {
-            // Here we combine the schemas from the subParser with the known list of schemas. Effectively this
-            // multiplies the number of schemas. So if we had 3 schemas in our schemas variable already, and the
+            // Here we combine the schemas from the subParser with the known list of schemas. Effectively, this
+            // multiplies the number of schemas. So if we had 3 schemas in our schema list already, and the
             // parser also parses 4 schema alternatives, then we end up with 12 new schemas.
             final var newSchemas = new ArrayList<StructSchema>();
             for (final var schema : schemas) {
                 final var usePostfix = subSchemas.size() > 1;
                 for (final var subSchema : subParser.schemas()) {
-                    final var fields = new ArrayList<DataField>();
+                    final var fields = new ArrayList<StructSchema.Field>();
                     fields.addAll(schema.fields());
                     fields.addAll(subSchema.fields());
                     final var newName = usePostfix ? name + KSMLDSL.Types.WITH_PREFIX + subSchema.name() : name;
@@ -65,11 +64,11 @@ public class SchemaUtil {
     private static List<StructSchema> getSubSchemas(DataSchema schema) {
         final var result = new ArrayList<StructSchema>();
         if (schema instanceof UnionSchema unionSchema) {
-            for (final var memberSchema : unionSchema.memberSchemas()) {
-                if (memberSchema.schema() instanceof StructSchema structSchema) {
+            for (final var member : unionSchema.members()) {
+                if (member.schema() instanceof StructSchema structSchema) {
                     result.add(structSchema);
                 } else {
-                    log.warn("Could not convert union subtype: {}", memberSchema.schema().type());
+                    log.warn("Could not convert union subtype: {}", member.schema().type());
                 }
             }
         } else {

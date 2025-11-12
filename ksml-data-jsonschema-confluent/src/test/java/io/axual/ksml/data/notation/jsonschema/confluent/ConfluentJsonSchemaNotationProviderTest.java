@@ -20,13 +20,12 @@ package io.axual.ksml.data.notation.jsonschema.confluent;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotation;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

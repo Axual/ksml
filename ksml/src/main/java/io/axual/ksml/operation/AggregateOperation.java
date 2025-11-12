@@ -23,7 +23,15 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.stream.*;
+import io.axual.ksml.stream.CogroupedKStreamWrapper;
+import io.axual.ksml.stream.KGroupedStreamWrapper;
+import io.axual.ksml.stream.KGroupedTableWrapper;
+import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.SessionWindowedCogroupedKStreamWrapper;
+import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
+import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
+import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import io.axual.ksml.user.UserAggregator;
 import io.axual.ksml.user.UserInitializer;
 import io.axual.ksml.user.UserMerger;

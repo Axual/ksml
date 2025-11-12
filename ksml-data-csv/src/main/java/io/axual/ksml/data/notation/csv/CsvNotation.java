@@ -33,8 +33,8 @@ import org.apache.kafka.common.serialization.Serde;
 public class CsvNotation extends StringNotation {
     public static final String NOTATION_NAME = "csv";
     public static final DataType DEFAULT_TYPE = new UnionType(
-            new UnionType.MemberType(new StructType()),
-            new UnionType.MemberType(new ListType()));
+            new UnionType.Member(new StructType()),
+            new UnionType.Member(new ListType()));
 
     public CsvNotation(NotationContext context) {
         super(context, ".csv", DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), new CsvDataObjectMapper());
