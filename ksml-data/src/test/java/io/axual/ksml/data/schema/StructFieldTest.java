@@ -54,7 +54,7 @@ class StructSchemaFieldTest {
                 .returns(42, StructSchema.Field::tag)
                 .returns(false, StructSchema.Field::required)
                 .returns(false, StructSchema.Field::constant)
-                .returns(DataNull.INSTANCE, StructSchema.Field::defaultValue)
+                .returns(null, StructSchema.Field::defaultValue)
                 .returns(StructSchema.Field.Order.ASCENDING, StructSchema.Field::order)
                 .hasToString("age: integer (42, optional)");
     }
