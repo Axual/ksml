@@ -260,10 +260,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         final var result = new ArrayList<StructSchema.Field>(fields.size());
         for (var field : fields) {
             final var schemaAndRequired = convertAvroSchemaToDataSchemaAndRequired(field.schema());
-            final var convertedDefault = field.hasDefaultValue() ? convertAvroDefaultValueToDataObject(schemaAndRequired.schema(), field.defaultVal()) : null;
-            final var defaultValue = schemaAndRequired.required() || convertedDefault != null ? convertedDefault : null;
+            final var convertedDefault = convertAvroDefaultValueToDataObject(schemaAndRequired.schema(), field.defaultVal());
             // TODO: think about how to model fixed values in AVRO and replace the "false" with logic
-            result.add(new StructSchema.Field(field.name(), schemaAndRequired.schema(), field.doc(), NO_TAG, schemaAndRequired.required(), false, defaultValue, convertAvroOrderToStructFieldOrder(field.order())));
+            result.add(new StructSchema.Field(field.name(), schemaAndRequired.schema(), field.doc(), NO_TAG, schemaAndRequired.required(), false, convertedDefault, convertAvroOrderToStructFieldOrder(field.order())));
         }
         return result;
     }
@@ -347,17 +346,13 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private Schema.Field convertStructFieldToAvroField(StructSchema.Field field) {
         final var schemaAndDefault = convertDataSchemaToAvroSchema(field.schema(), field.required());
-        final var defaultAvroValue =
-                field.defaultValue() != null
-                        ? convertDataObjectToAvroDefaultValue(field.defaultValue())
-                        : schemaAndDefault.defaultValue != null
-                        ? convertDataObjectToAvroDefaultValue(schemaAndDefault.defaultValue())
-                        : null;
+        final var defaultAvroValue = convertDataObjectToAvroDefaultValue(field.defaultValue());
         return new Schema.Field(field.name(), schemaAndDefault.schema(), field.doc(), defaultAvroValue, convertStructFieldOrderToAvroFieldOrder(field.order()));
     }
 
     private DataObject convertAvroDefaultValueToDataObject(DataSchema fieldSchema, Object defaultValue) {
-        if (defaultValue == null || defaultValue == JsonProperties.NULL_VALUE) return DataNull.INSTANCE;
+        if (defaultValue == null) return null;
+        if (defaultValue == JsonProperties.NULL_VALUE) return DataNull.INSTANCE;
         final var expectedType = TYPE_SCHEMA_MAPPER.fromDataSchema(fieldSchema);
         return avroMapper.toDataObject(expectedType, defaultValue);
     }
