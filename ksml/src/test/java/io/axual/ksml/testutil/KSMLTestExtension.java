@@ -187,7 +187,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         final var topologyGenerator = new TopologyGenerator(
                 methodName + ".app",
                 null,
-                PythonContextConfig.builder().build(),
+                PythonContextConfig.builder().pythonModulePath("/Users/tonvanbart/projects/tonvanbart/ksml/ksml/src/test/resources/pipelines") .build(),
                 definitionFilePaths
         );
 

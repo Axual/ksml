@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -52,6 +53,33 @@ class KSMLFilterTest {
     @DisplayName("Records can be filtered by KSML")
     void testFilterAvroRecords() {
         log.debug("testFilterAvroRecords()");
+
+        // the KSML pipeline filters on color "blue": generate some records with varying colors
+        List<SensorData> sensorDatas = new ArrayList<>();
+        sensorDatas.add(SensorData.builder().color("blue").build());
+        sensorDatas.add(SensorData.builder().color("red").build());
+        sensorDatas.add(SensorData.builder().color("green").build());
+        sensorDatas.add(SensorData.builder().color("blue").build());
+        sensorDatas.add(SensorData.builder().color("red").build());
+
+        for (SensorData sensorData : sensorDatas) {
+            inputTopic.pipeInput("key", sensorData.toRecord());
+        }
+
+        // only the two records with "blue" should be kept
+        assertFalse(outputTopic.isEmpty());
+        List<GenericRecord> outputValues = outputTopic.readValuesToList();
+        assertEquals(2, outputValues.size());
+        assertTrue(outputValues.stream()
+                .map(rec -> rec.get("color").toString())
+                .allMatch(color -> color.equals("blue")));
+    }
+
+    @KSMLTest(topology = "pipelines/test-filter-module-import.yaml", schemaDirectory = "schemas")
+    @Disabled("Module import is WIP")
+    @DisplayName("Records can be filtered by KSML using imported functions")
+    void testFilterAvroRecordsImportedFunctions() {
+        log.debug("testFilterAvroRecordsImportedFunctions()");
 
         // the KSML pipeline filters on color "blue": generate some records with varying colors
         List<SensorData> sensorDatas = new ArrayList<>();

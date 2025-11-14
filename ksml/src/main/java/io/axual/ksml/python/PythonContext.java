@@ -25,6 +25,8 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.graalvm.polyglot.*;
+import org.graalvm.polyglot.io.FileSystem;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.EnvironmentAccess;
 import org.graalvm.polyglot.HostAccess;
@@ -61,12 +63,11 @@ public class PythonContext {
 
         log.debug("Setting up new Python context: {}", config);
         try {
-            context = Context.newBuilder(PYTHON)
+            var contextBuilder = Context.newBuilder(PYTHON)
                     .allowIO(IOAccess.newBuilder()
                             .allowHostFileAccess(config.allowHostFileAccess())
                             .allowHostSocketAccess(config.allowHostSocketAccess())
                             .build())
-//                    .allowIO(IOAccess.ALL)
                     .allowNativeAccess(config.allowNativeAccess())
                     .allowCreateProcess(config.allowCreateProcess())
                     .allowCreateThread(config.allowCreateThread())
@@ -78,7 +79,6 @@ public class PythonContext {
                             PolyglotAccess.newBuilder()
                                     .allowBindingsAccess(PYTHON)
                                     .build())
-//                    .allowPolyglotAccess(PolyglotAccess.ALL)
                     .allowHostAccess(
                             HostAccess.newBuilder()
                                     .allowPublicAccess(true)
@@ -92,14 +92,64 @@ public class PythonContext {
                                     .allowMapAccess(true)
                                     .allowAccessInheritance(false)
                                     .build())
-//                    .allowHostAccess(HostAccess.ALL)
-                    .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains)
+                    .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains);
+
+            // set up configured I/O access
+            IOAccess ioAccess = createIOAccess(config.allowHostFileAccess(), config.allowHostSocketAccess(), config.pythonModulePath());
+
+            context = contextBuilder
+                    .allowIO(ioAccess)
                     .build();
+
             registerGlobalCode();
         } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
             throw new ExecutionException("Could not setup a new Python context", e);
         }
+    }
+
+    /**
+     * Create an IOAccess object based on the settings in the configuration.
+     * @param allowHostFileAccess
+     * @param allowHostSocketAccess
+     * @param modulePath
+     * @return
+     */
+    private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
+        if (allowHostFileAccess && modulePath != null) {
+            log.warn("Configuration error? Setting pythonModulePath is superfluous when allowHostFileAccess is set to true");
+        }
+
+        if (modulePath == null) {
+            return IOAccess.newBuilder()
+                    .allowHostFileAccess(allowHostFileAccess)
+                    .allowHostSocketAccess(allowHostSocketAccess)
+                    .build();
+        } else {
+            FileSystem modulesReadOnly = createReadOnlyFileSystem(modulePath);
+            return IOAccess.newBuilder()
+                    .fileSystem(modulesReadOnly)
+                    .allowHostSocketAccess(allowHostSocketAccess)
+                    .build();
+        }
+    }
+
+    /**
+     * Create an IOAccess object that allows read-only access to the given path.
+     * @param modulePath the path where customer Python modules are located.
+     * @return an IOAccess object that allows read-only access to the given path.
+     */
+    private FileSystem createReadOnlyFileSystem(String modulePath) {
+        FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
+        FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
+        FileSystem restricted = FileSystem.newCompositeFileSystem(
+                // the defaul/fallback file system is: deny access
+                denyAllAccess,
+                // add a selector that returns the modulesFileSystem only if the path matches
+                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath))
+        );
+
+        return FileSystem.newReadOnlyFileSystem(restricted);
     }
 
     public Value registerFunction(String pyCode, String callerName) {

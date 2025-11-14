@@ -1,0 +1,32 @@
+# This example shows how to filter messages from a simple stream. Here we only let "blue sensors" pass and discard
+# other messages after logging.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_filtered:
+    topic: ksml_sensordata_filtered
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  sensor_is_blue:
+    type: predicate
+    globalCode: |
+      from test_filter_nodule import is_blue
+    code: |
+      return is_blue(value)
+    expression: True
+
+pipelines:
+  filter_pipeline:
+    from: sensor_source
+    via:
+      - type: filter
+        if: sensor_is_blue
+      - type: peek
+        forEach:
+          code: log.info("MESSAGE ACCEPTED - key={}, value={}", key, value)
+    to: sensor_filtered

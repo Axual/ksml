@@ -65,4 +65,9 @@ public class PythonContextConfig {
     @JsonPropertyDescription("Inherit JVM process environment in Python context. Default is false.")
     @Builder.Default
     private boolean inheritEnvironmentVariables = false;
+
+    @JsonProperty(value = "pythonModulePath", required = false)
+    @JsonPropertyDescription("Path to additional Python modules to be loaded. Default is empty, meaning 'no user modules'.")
+    @Builder.Default
+    private String pythonModulePath = null;
 }
