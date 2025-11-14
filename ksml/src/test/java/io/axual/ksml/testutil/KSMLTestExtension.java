@@ -146,6 +146,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
     @Override
     public void beforeEach(final ExtensionContext extensionContext) throws Exception {
+        var modulesDirectory = "";
         final var streamsBuilder = new StreamsBuilder();
         if (extensionContext.getTestMethod().isEmpty()) {
             return;
@@ -168,6 +169,12 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(KSMLTest.NO_SCHEMAS);
         }
 
+        if (!KSMLTest.NO_MODULES.equals(ksmlTest.modulesDirectory())) {
+            log.debug("Configured modules directory: `{}`", ksmlTest.modulesDirectory());
+            final var modulesDirectoryURI = ClassLoader.getSystemResource(ksmlTest.modulesDirectory()).toURI();
+            modulesDirectory = modulesDirectoryURI.getPath();
+        }
+
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider = new ConfluentAvroNotationProvider(registryClient);
         final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
@@ -187,7 +194,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         final var topologyGenerator = new TopologyGenerator(
                 methodName + ".app",
                 null,
-                PythonContextConfig.builder().pythonModulePath("/Users/tonvanbart/projects/tonvanbart/ksml/ksml/src/test/resources/pipelines") .build(),
+                PythonContextConfig.builder().pythonModulePath(modulesDirectory).build(),
                 definitionFilePaths
         );
 

@@ -36,11 +36,14 @@ import java.lang.annotation.Target;
 public @interface KSMLTest {
 
     String NO_SCHEMAS = "";
+    String NO_MODULES = "";
 
     /** Classpath relative reference to the pipeline definition under test. */
     String topology();
 
     /** Optional classpath relative reference to a directory with AVRO schema definitions. */
     String schemaDirectory() default NO_SCHEMAS;
+
+    String modulesDirectory() default NO_MODULES;
 
 }

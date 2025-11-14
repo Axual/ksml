@@ -25,6 +25,8 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.*;
 import org.graalvm.polyglot.io.FileSystem;
 import org.graalvm.polyglot.Context;
@@ -101,6 +103,10 @@ public class PythonContext {
                     .allowIO(ioAccess)
                     .build();
 
+            if (!StringUtils.isEmpty( config.pythonModulePath() )) {
+                addModulePathToSysPath(Path.of(config.pythonModulePath()));
+            }
+
             registerGlobalCode();
         } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
@@ -109,49 +115,11 @@ public class PythonContext {
     }
 
     /**
-     * Create an IOAccess object based on the settings in the configuration.
-     * @param allowHostFileAccess
-     * @param allowHostSocketAccess
-     * @param modulePath
+     * Register a function in the Python context.
+     * @param pyCode the function source code.
+     * @param callerName the name of the function to be registered.
      * @return
      */
-    private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
-        if (allowHostFileAccess && modulePath != null) {
-            log.warn("Configuration error? Setting pythonModulePath is superfluous when allowHostFileAccess is set to true");
-        }
-
-        if (modulePath == null) {
-            return IOAccess.newBuilder()
-                    .allowHostFileAccess(allowHostFileAccess)
-                    .allowHostSocketAccess(allowHostSocketAccess)
-                    .build();
-        } else {
-            FileSystem modulesReadOnly = createReadOnlyFileSystem(modulePath);
-            return IOAccess.newBuilder()
-                    .fileSystem(modulesReadOnly)
-                    .allowHostSocketAccess(allowHostSocketAccess)
-                    .build();
-        }
-    }
-
-    /**
-     * Create an IOAccess object that allows read-only access to the given path.
-     * @param modulePath the path where customer Python modules are located.
-     * @return an IOAccess object that allows read-only access to the given path.
-     */
-    private FileSystem createReadOnlyFileSystem(String modulePath) {
-        FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
-        FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
-        FileSystem restricted = FileSystem.newCompositeFileSystem(
-                // the defaul/fallback file system is: deny access
-                denyAllAccess,
-                // add a selector that returns the modulesFileSystem only if the path matches
-                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath))
-        );
-
-        return FileSystem.newReadOnlyFileSystem(restricted);
-    }
-
     public Value registerFunction(String pyCode, String callerName) {
         Source script = Source.create(PYTHON, pyCode);
         try {
@@ -162,6 +130,9 @@ public class PythonContext {
         return context.getPolyglotBindings().getMember(callerName);
     }
 
+    /**
+     * Register global code that is used to initialize the loggerBridge and metricsBridge variables.
+     */
     public void registerGlobalCode() {
         // The following code registers a global variables "loggerBridge" and "metricsBridge" inside the Python
         // context and initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used
@@ -185,4 +156,84 @@ public class PythonContext {
         // Pass the global LOGGER_BRIDGE and METRICS_BRIDGE variables into global variables of the Python context
         register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
     }
+
+    /**
+     * Create an GraalVM IOAccess object based on the settings in the configuration.
+     * @param allowHostFileAccess
+     * @param allowHostSocketAccess
+     * @param modulePath
+     * @return
+     */
+    private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
+        if (allowHostFileAccess && modulePath != null) {
+            log.warn("Configuration error? Setting pythonModulePath is superfluous when allowHostFileAccess is set to true");
+        }
+
+        if (StringUtils.isEmpty( modulePath)) {
+            return IOAccess.newBuilder()
+                    .allowHostFileAccess(allowHostFileAccess)
+                    .allowHostSocketAccess(allowHostSocketAccess)
+                    .build();
+        } else {
+            FileSystem modulesReadOnly = createReadOnlyFileSystem(modulePath);
+            return IOAccess.newBuilder()
+                    .fileSystem(modulesReadOnly)
+                    .allowHostSocketAccess(allowHostSocketAccess)
+                    .build();
+        }
+    }
+
+    /**
+     * Create an FileSystem object that allows read-only access to the given path and everything below it.
+     * @param modulePath the path where customer Python modules are located.
+     * @return an FileSystem that allows read-only access to the given path and everything below it.
+     */
+    private FileSystem createReadOnlyFileSystem(String modulePath) {
+        FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
+        FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
+        FileSystem restricted = FileSystem.newCompositeFileSystem(
+                // the defaul/fallback file system is: deny access
+                denyAllAccess,
+                // add a selector that returns the modulesFileSystem only if the path matches
+                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath))
+        );
+
+        return FileSystem.newReadOnlyFileSystem(restricted);
+    }
+
+    /**
+     * Add a directory to Python's sys.path for module imports
+     */
+    private void addModulePathToSysPath(Path modulePath) {
+        log.debug("addModulePathToSysPath({})", modulePath.toAbsolutePath().toString().replace("\\", "\\\\").replace("'", "\\"));
+        try {
+            String absolutePath = modulePath.toAbsolutePath().toString();
+            String pythonCode = String.format(
+                    "import sys\n" +
+                            "if '%s' not in sys.path:\n" +
+                            "    sys.path.insert(0, '%s')\n",
+                    absolutePath.replace("\\", "\\\\").replace("'", "\\'"),
+                    absolutePath.replace("\\", "\\\\").replace("'", "\\'")
+            );
+
+            context.eval(PYTHON, pythonCode);
+            log.info("Added Python module path to sys.path: {}", absolutePath);
+        } catch (Exception e) {
+            log.error("Failed to add module path to sys.path: {}", modulePath, e);
+            throw new ExecutionException("Could not configure Python module path", e);
+        }
+    }
+
+    /**
+     * Show the configured Python sys.path for debugging.
+     */
+    public void debugPythonPath() {
+        try {
+            var result = context.eval("python", "import sys; sys.path");
+            log.debug("Python sys.path: {}", result);
+        } catch (Exception e) {
+            log.warn("Could not read Python sys.path", e);
+        }
+    }
+
 }

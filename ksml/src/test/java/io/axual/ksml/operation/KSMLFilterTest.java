@@ -75,8 +75,7 @@ class KSMLFilterTest {
                 .allMatch(color -> color.equals("blue")));
     }
 
-    @KSMLTest(topology = "pipelines/test-filter-module-import.yaml", schemaDirectory = "schemas")
-    @Disabled("Module import is WIP")
+    @KSMLTest(topology = "pipelines/test-filter-module-import.yaml", schemaDirectory = "schemas", modulesDirectory = "pipelines")
     @DisplayName("Records can be filtered by KSML using imported functions")
     void testFilterAvroRecordsImportedFunctions() {
         log.debug("testFilterAvroRecordsImportedFunctions()");

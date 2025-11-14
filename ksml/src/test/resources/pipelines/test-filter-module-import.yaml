@@ -15,7 +15,7 @@ functions:
   sensor_is_blue:
     type: predicate
     globalCode: |
-      from test_filter_nodule import is_blue
+      from test_filter_module import is_blue
     code: |
       return is_blue(value)
     expression: True
