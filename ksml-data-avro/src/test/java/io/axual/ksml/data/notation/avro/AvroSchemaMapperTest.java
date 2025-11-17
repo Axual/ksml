@@ -465,4 +465,69 @@ class AvroSchemaMapperTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("Optional AVRO field without explicit null default")
+    void testOptionalFieldWithoutNullDefault() {
+        // Test optional field with no default value, using JSON to create a union type without specifying a default
+        String schemaJson = """
+                {
+                  "type": "record",
+                  "name": "Test",
+                  "fields": [
+                    {
+                      "name": "optionalField",
+                      "type": ["null", "string"]
+                    }
+                  ]
+                }
+                """;
+        Schema avroSchema = new Schema.Parser().parse(schemaJson);
+
+        DataSchema ksmlSchema = schemaMapper.toDataSchema(avroSchema);
+        StructSchema structSchema = (StructSchema) ksmlSchema;
+        StructSchema.Field field = structSchema.field("optionalField");
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(field.required())
+                    .as("Field should not be required")
+                    .isFalse();
+            softly.assertThat(field.defaultValue())
+                    .as("Default value should be null (no default specified)")
+                    .isNull();
+        });
+    }
+
+    @Test
+    @DisplayName("Optional AVRO field with explicit null default")
+    void testOptionalFieldWithExplicitNullDefault() {
+        // Create a schema with an explicit null default using JSON
+        String schemaJson = """
+                {
+                  "type": "record",
+                  "name": "Test",
+                  "fields": [
+                    {
+                      "name": "optionalField",
+                      "type": ["null", "string"],
+                      "default": null
+                    }
+                  ]
+                }
+                """;
+        Schema avroSchema = new Schema.Parser().parse(schemaJson);
+
+        DataSchema ksmlSchema = schemaMapper.toDataSchema(avroSchema);
+        StructSchema structSchema = (StructSchema) ksmlSchema;
+        StructSchema.Field field = structSchema.field("optionalField");
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(field.required())
+                    .as("Field should not be required")
+                    .isFalse();
+            softly.assertThat(field.defaultValue())
+                    .as("Default value should be DataNull.INSTANCE for explicit null")
+                    .isEqualTo(DataNull.INSTANCE);
+        });
+    }
 }
