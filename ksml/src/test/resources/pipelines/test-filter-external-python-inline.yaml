@@ -14,7 +14,7 @@ streams:
 functions:
   sensor_is_blue:
     type: predicate
-    code: file:test-filter-external-python.py
+    code: file:test-filter-external-python-inline.py
     expression: True
 
 pipelines:

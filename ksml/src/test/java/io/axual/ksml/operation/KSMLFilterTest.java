@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -101,7 +100,7 @@ class KSMLFilterTest {
                 .allMatch(color -> color.equals("blue")));
     }
 
-    @KSMLTopologyTest(topologies = {"pipelines/test-filter.yaml", "pipelines/test-filter-external-python.yaml"}, schemaDirectory = "schemas")
+    @KSMLTopologyTest(topologies = {"pipelines/test-filter.yaml", "pipelines/test-filter-external-python-inline.yaml", "pipelines/test-filter-external-python-function.yaml"}, schemaDirectory = "schemas")
     @DisplayName("Records can be filtered by KSML using inline or externalized Python")
     void testFilterAvroRecordsExternalPython() {
         log.debug("testFilterAvroRecordsExternalPython()");
