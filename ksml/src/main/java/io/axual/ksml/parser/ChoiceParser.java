@@ -20,15 +20,17 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.exception.ParseException;
 import lombok.Getter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
@@ -57,7 +59,7 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             }
         });
 
-        // Now generate new schema by adding the parsed child attribute (ie. "type") as a parsed field
+        // Now generate a new schema by adding the parsed child attribute (i.e. "type") as a parsed field
         Map<String, StructSchema> convertedSchema = new TreeMap<>();
         for (final var entry : schemaToChildValues.entrySet()) {
             final var schema = entry.getKey();
@@ -67,8 +69,8 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             final var isDefault = entry.getValue().size() == 1 && entry.getValue().getFirst().equals(defaultValue);
             final var required = schemaToChildValues.size() > 1 && !isDefault;
             // Add the "type" field to the list of fields for the converted schema
-            final var enumSchema = new EnumSchema(schema.namespace(), enumType, doc, entry.getValue().stream().map(Symbol::new).toList(), null);
-            final var field = new DataField(childName, enumSchema, doc, NO_TAG, required, defaultValue != null, defaultValue != null ? new DataValue(defaultValue) : null);
+            final var enumSchema = new EnumSchema(schema.namespace(), enumType, doc, entry.getValue().stream().map(EnumSchema.Symbol::new).toList(), null);
+            final var field = new StructSchema.Field(childName, enumSchema, doc, NO_TAG, required, defaultValue != null, defaultValue != null ? new DataString(defaultValue) : null);
             newFields.add(field);
             // Create a converted schema, which includes the "type" field
             final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields, false);
@@ -76,7 +78,7 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             convertedSchema.put(schema.name(), newSchema);
         }
 
-        // Finally, copy all converted schema into a list of schemas that this parser handles
+        // Finally, copy all converted schemas into a list of schemas that this parser handles
         schemas.addAll(convertedSchema.values());
     }
 

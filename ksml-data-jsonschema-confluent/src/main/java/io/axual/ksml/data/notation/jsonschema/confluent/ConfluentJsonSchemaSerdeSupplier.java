@@ -20,15 +20,14 @@ package io.axual.ksml.data.notation.jsonschema.confluent;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
-
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import lombok.Getter;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 
 /**
  * JsonSchema Serde supplier for the Confluent Schema Registry vendor implementation.

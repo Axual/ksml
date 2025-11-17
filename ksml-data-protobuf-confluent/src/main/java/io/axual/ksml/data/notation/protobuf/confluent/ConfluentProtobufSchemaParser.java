@@ -21,14 +21,13 @@ package io.axual.ksml.data.notation.protobuf.confluent;
  */
 
 
-import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchemaParser;
 import io.axual.ksml.data.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConfluentProtobufSchemaParser implements ProtobufSchemaParser {
-    private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper(new ConfluentProtobufDescriptorFileElementMapper());
+//    private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper(new ConfluentProtobufDescriptorFileElementMapper());
 
     @Override
     public DataSchema parse(String contextName, String schemaName, String schemaString) {

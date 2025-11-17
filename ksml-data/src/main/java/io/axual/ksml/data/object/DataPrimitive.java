@@ -20,12 +20,19 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Objects;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_PRIMITIVE_TYPE;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_PRIMITIVE_VALUE;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a wrapper for a primitive value as part of the {@link DataObject} framework.
@@ -37,6 +44,7 @@ import java.util.Objects;
  *
  * @see DataObject
  */
+@EqualsAndHashCode
 @Getter
 public class DataPrimitive<T> implements DataObject {
     private final DataType type;
@@ -49,10 +57,11 @@ public class DataPrimitive<T> implements DataObject {
     }
 
     private void checkValue() {
-        final var valid = value instanceof DataObject dataObject
+        final var assignable = value instanceof DataObject dataObject
                 ? type.isAssignableFrom(dataObject)
                 : type.isAssignableFrom(value);
-        if (!valid) throw new DataException("Value assigned to " + type + " can not be \"" + this + "\"");
+        if (assignable.isNotAssignable())
+            throw new DataException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable.message());
     }
 
     /**
@@ -74,20 +83,36 @@ public class DataPrimitive<T> implements DataObject {
     public String toString(Printer printer) {
         return value != null
                 ? ValuePrinter.print(value, printer != Printer.INTERNAL)
-                : printer.forceSchemaString(this) + ValuePrinter.print(null, printer != Printer.INTERNAL);
+                : printer.forceSchemaPrefix(this) + ValuePrinter.print(null, printer != Printer.INTERNAL);
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        DataPrimitive<?> that = (DataPrimitive<?>) other;
-        if (value == null) return that.value == null;
-        return value.equals(that.value);
-    }
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(value);
+        final var that = (DataPrimitive<?>) other;
+
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_PRIMITIVE_TYPE)) {
+            final var typeEqual = type.equals(that.type, flags);
+            if (typeEqual.isNotEqual())
+                return fieldNotEqual("type", this, type, that, that.type, typeEqual);
+        }
+
+        // Compare value
+        if (!flags.isSet(IGNORE_DATA_PRIMITIVE_VALUE) && (value != null || that.value != null)) {
+            if (value == null || that.value == null) return EqualUtil.objectNotEqual(this, that);
+            if (value instanceof DataObject dataValue) {
+                final var valueEqual = dataValue.equals(that.value, flags);
+                if (valueEqual.isNotEqual())
+                    return fieldNotEqual("value", this, dataValue, that, that.value, valueEqual);
+            } else {
+                if (!value.equals(that.value)) return fieldNotEqual("value", this, value, that, that.value);
+            }
+        }
+
+        return Equality.equal();
     }
 }

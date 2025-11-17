@@ -20,14 +20,14 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.EnumSchema;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataString;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,39 +36,39 @@ class EnumTypeTest {
     @Test
     @DisplayName("Constructor sets container class to String and name/spec to 'enum'; symbols are retained")
     void constructorAndProperties() {
-        var type = new EnumType(List.of(new Symbol("A"), new Symbol("B", "desc", 1)));
+        var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B", "desc", 1))));
         assertThat(type)
                 .returns(String.class, EnumType::containerClass)
                 .returns("enum", EnumType::name)
                 .returns("enum", EnumType::spec)
                 .hasToString("enum");
-        assertThat(type.symbols()).extracting(Symbol::name).containsExactly("A", "B");
+        assertThat(type.schema().symbols()).extracting(EnumSchema.Symbol::name).containsExactly("A", "B");
     }
 
     @Test
     @DisplayName("isAssignableFrom(DataObject) accepts only DataString values matching one of the symbols; null is rejected")
     void isAssignableFromDataObject() {
-        var type = new EnumType(List.of(new Symbol("A"), new Symbol("B")));
+        var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"), new EnumSchema.Symbol("B"))));
 
         // Matching symbols
-        assertThat(type.isAssignableFrom(new DataString("A"))).isTrue();
-        assertThat(type.isAssignableFrom(new DataString("B"))).isTrue();
+        assertThat(type.isAssignableFrom(new DataString("A")).isAssignable()).isTrue();
+        assertThat(type.isAssignableFrom(new DataString("B")).isAssignable()).isTrue();
 
         // Non-matching string
-        assertThat(type.isAssignableFrom(new DataString("C"))).isFalse();
+        assertThat(type.isAssignableFrom(new DataString("C")).isAssignable()).isFalse();
 
         // Null is not considered assignable for EnumType
-        assertThat(type.isAssignableFrom(DataNull.INSTANCE)).isFalse();
+        assertThat(type.isAssignableFrom(DataNull.INSTANCE).isAssignable()).isFalse();
     }
 
     @Test
     @DisplayName("isAssignableFrom(DataObject) uses DataObject.toString for comparison (no quotes for internal printing)")
     void comparisonUsesToStringValue() {
-        var type = new EnumType(List.of(new Symbol("hello")));
+        var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("hello"))));
         var ds = new DataString("hello");
         var softly = new SoftAssertions();
         softly.assertThat(ds.toString()).isEqualTo("hello");
-        softly.assertThat(type.isAssignableFrom(ds)).isTrue();
+        softly.assertThat(type.isAssignableFrom(ds).isAssignable()).isTrue();
         softly.assertAll();
     }
 }

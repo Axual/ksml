@@ -20,24 +20,33 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.util.AssignableUtil;
+import io.axual.ksml.data.util.EqualUtil;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.Objects;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
- * Base class for composite {@link DataType} implementations that have one or more sub-types.
+ * Base class for composite {@link DataType} implementations that have one or more subtypes.
  * <p>
  * Examples include lists, maps, tuples, unions and structs. ComplexType provides helpers to
  * build readable names/specs and implements assignability rules that compare the container
- * class and all sub-types.
+ * class and all subtypes.
  */
+@EqualsAndHashCode(exclude = {"name", "spec"})
 @Getter
 public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;
+    private final DataType[] subTypes;
     private final String name;
     private final String spec;
-    private final DataType[] subTypes;
 
     protected ComplexType(Class<?> containerClass, String name, String spec, DataType... subTypes) {
         this.containerClass = containerClass;
@@ -89,37 +98,49 @@ public abstract class ComplexType implements DataType {
     }
 
     @Override
-    public final boolean isAssignableFrom(Class<?> type) {
-        return this.containerClass.isAssignableFrom(type);
+    public Assignable isAssignableFrom(DataType type) {
+        if (!(type instanceof ComplexType that))
+            return typeMismatch(this, type);
+
+        // Check containerClass
+        if (!containerClass.isAssignableFrom(that.containerClass))
+            return fieldNotAssignable("containerClass", this, containerClass, that, that.containerClass);
+
+        // Check subTypes
+        if (subTypes.length != that.subTypes.length)
+            return AssignableUtil.fieldNotAssignable("subTypeCount", this, subTypes.length, that, that.subTypes.length);
+        for (int i = 0; i < subTypes.length; i++) {
+            final var subTypeAssignable = subTypes[i].isAssignableFrom(that.subTypes[i]);
+            if (subTypeAssignable.isNotAssignable())
+                return AssignableUtil.fieldNotAssignable("subTypes[" + i + "]", this, subTypes[i], that, that.subTypes[i], subTypeAssignable);
+        }
+
+        return Assignable.assignable();
     }
 
     @Override
-    public boolean isAssignableFrom(DataType type) {
-        return type instanceof ComplexType otherType && isAssignableFrom(otherType);
+    public Equality equals(Object obj, EqualityFlags flags) {
+        if (this == obj) return Equality.equal();
+        if (obj == null) return otherIsNull(this);
+        if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
+        final var that = (ComplexType) obj;
+        if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
+            return EqualUtil.containerClassNotEqual(containerClass, that.containerClass);
+        return subTypesEqual((ComplexType) obj, flags);
     }
 
-    private boolean isAssignableFrom(ComplexType type) {
-        if (!this.containerClass.isAssignableFrom(type.containerClass)) return false;
-        if (subTypes.length != type.subTypes.length) return false;
+    private Equality subTypesEqual(ComplexType other, EqualityFlags flags) {
+        if (subTypes.length != other.subTypes.length)
+            return Equality.notEqual("Type \"" + this + "\" has a different number of subtypes than \"" + other + "\"");
         for (int i = 0; i < subTypes.length; i++) {
-            if (!subTypes[i].isAssignableFrom(type.subTypes[i])) return false;
+            final var subTypeEqual = subTypes[i].equals(other.subTypes[i], flags);
+            if (subTypeEqual.isNotEqual()) return subTypeEqual;
         }
-        return true;
+        return Equality.equal();
     }
 
     @Override
     public String toString() {
         return name;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        ComplexType other = (ComplexType) obj;
-        return isAssignableFrom(other) && other.isAssignableFrom(this);
-    }
-
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), containerClass.hashCode(), Arrays.hashCode(subTypes));
     }
 }

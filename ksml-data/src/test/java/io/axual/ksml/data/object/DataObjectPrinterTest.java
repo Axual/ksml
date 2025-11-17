@@ -41,22 +41,22 @@ class DataObjectPrinterTest {
     }
 
     @Test
-    @DisplayName("forceSchemaString always returns '<type>: '")
-    void forceSchemaStringAlwaysShowsType() {
+    @DisplayName("forceSchemaPrefix always returns '<type>: '")
+    void forceSchemaPrefixAlwaysShowsType() {
         var ds = new DataString("x");
-        assertThat(INTERNAL.forceSchemaString(ds)).isEqualTo("string: ");
-        assertThat(EXTERNAL_NO_SCHEMA.forceSchemaString(ds)).isEqualTo("string: ");
-        assertThat(EXTERNAL_TOP_SCHEMA.forceSchemaString(ds)).isEqualTo("string: ");
-        assertThat(EXTERNAL_ALL_SCHEMA.forceSchemaString(ds)).isEqualTo("string: ");
+        assertThat(INTERNAL.forceSchemaPrefix(ds)).isEqualTo("string: ");
+        assertThat(EXTERNAL_NO_SCHEMA.forceSchemaPrefix(ds)).isEqualTo("string: ");
+        assertThat(EXTERNAL_TOP_SCHEMA.forceSchemaPrefix(ds)).isEqualTo("string: ");
+        assertThat(EXTERNAL_ALL_SCHEMA.forceSchemaPrefix(ds)).isEqualTo("string: ");
     }
 
     @Test
-    @DisplayName("schemaString honors printer mode: INTERNAL/EXTERNAL_NO_SCHEMA empty; TOP/ALL show type")
-    void schemaStringFollowsMode() {
+    @DisplayName("schemaPrefix honors printer mode: INTERNAL/EXTERNAL_NO_SCHEMA empty; TOP/ALL show type")
+    void schemaPrefixFollowsMode() {
         var ds = new DataString("y");
-        assertThat(INTERNAL.schemaString(ds)).isEmpty();
-        assertThat(EXTERNAL_NO_SCHEMA.schemaString(ds)).isEmpty();
-        assertThat(EXTERNAL_TOP_SCHEMA.schemaString(ds)).isEqualTo("string: ");
-        assertThat(EXTERNAL_ALL_SCHEMA.schemaString(ds)).isEqualTo("string: ");
+        assertThat(INTERNAL.schemaPrefix(ds)).isEmpty();
+        assertThat(EXTERNAL_NO_SCHEMA.schemaPrefix(ds)).isEmpty();
+        assertThat(EXTERNAL_TOP_SCHEMA.schemaPrefix(ds)).isEqualTo("string: ");
+        assertThat(EXTERNAL_ALL_SCHEMA.schemaPrefix(ds)).isEqualTo("string: ");
     }
 }

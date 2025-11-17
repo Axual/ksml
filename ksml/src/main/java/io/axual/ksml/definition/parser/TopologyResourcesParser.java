@@ -29,7 +29,9 @@ import io.axual.ksml.parser.StructsParser;
 
 import java.util.List;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.GLOBAL_TABLES;
+import static io.axual.ksml.dsl.KSMLDSL.STREAMS;
+import static io.axual.ksml.dsl.KSMLDSL.TABLES;
 
 public class TopologyResourcesParser extends DefinitionParser<TopologyResources> {
     private final TopologyBaseResourcesParser baseResourcesParser;

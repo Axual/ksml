@@ -20,11 +20,6 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
@@ -41,6 +36,10 @@ import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -53,12 +52,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JsonSchemaNotationTest {
 
     private static VendorNotationContext createContext(String vendor) {
-        var base = new NotationContext(JsonSchemaNotation.NOTATION_NAME, vendor, new NativeDataObjectMapper(), new java.util.HashMap<>());
-        @SuppressWarnings("unchecked")
-        var serdeMapper = (DataObjectMapper<Object>) new JsonSchemaDataObjectMapper(new NativeDataObjectMapper());
-        var supplier = new VendorSerdeSupplier() {
+        final var base = new NotationContext(JsonSchemaNotation.NOTATION_NAME, vendor, new java.util.HashMap<>());
+        @SuppressWarnings("unchecked") final var serdeMapper = (DataObjectMapper<Object>) new JsonSchemaDataObjectMapper(new NativeDataObjectMapper());
+        final var supplier = new VendorSerdeSupplier() {
             @Override
-            public String vendorName() { return vendor == null ? "" : vendor; }
+            public String vendorName() {
+                return vendor == null ? "" : vendor;
+            }
+
             @Override
             public Serde<Object> get(DataType type, boolean isKey) {
                 // Return a simple String serde; we won't actually serialize in this test
@@ -73,8 +74,8 @@ class JsonSchemaNotationTest {
     @Test
     @DisplayName("Default properties and wiring: name, extension, default type, converter, parser")
     void basicPropertiesAndWiring() {
-        var context = createContext(null);
-        var notation = new JsonSchemaNotation(context);
+        final var context = createContext(null);
+        final var notation = new JsonSchemaNotation(context);
 
         assertThat(notation)
                 .returns(JsonSchemaNotation.NOTATION_NAME, BaseNotation::name)
@@ -89,17 +90,17 @@ class JsonSchemaNotationTest {
     @Test
     @DisplayName("Name includes vendor prefix when provided by context")
     void nameWithVendor() {
-        var context = createContext("vendorZ");
-        var notation = new JsonSchemaNotation(context);
+        final var context = createContext("vendorZ");
+        final var notation = new JsonSchemaNotation(context);
         assertThat(notation.name()).isEqualTo("vendorZ_" + JsonSchemaNotation.NOTATION_NAME);
     }
 
     @Test
     @DisplayName("Serde is provided for StructType and ListType; rejects unsupported MapType")
     void serdeSelection() {
-        var notation = new JsonSchemaNotation(createContext("vendorY"));
+        final var notation = new JsonSchemaNotation(createContext("vendorY"));
 
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
         softly.assertThat(notation.serde(new StructType(), false)).isInstanceOf(DataObjectSerde.class);
         softly.assertThat(notation.serde(new ListType(), true)).isInstanceOf(DataObjectSerde.class);
         softly.assertAll();

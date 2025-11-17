@@ -27,7 +27,9 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-
+import io.axual.ksml.data.notation.json.JsonSchemaMapper;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.generator.YAMLObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -39,10 +41,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import io.axual.ksml.data.notation.json.JsonSchemaMapper;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.generator.YAMLObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,7 +62,7 @@ public class AllDefinitionsSchemaValidationTest {
      * Discovers all YAML files in the resources directory from both the ksml module
      * and the ksml-integration-tests module.
      * Note: The Stream returned by this method is automatically closed by JUnit 5
-     * after all parameterized tests complete. See JUnit 5 documentation:
+     * after all parameterized tests are complete. See JUnit 5 documentation:
      * <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests-argument-sources">...</a>
      */
     static Stream<Path> provideYamlFiles() throws URISyntaxException, IOException {

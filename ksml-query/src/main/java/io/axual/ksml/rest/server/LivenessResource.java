@@ -25,7 +25,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.axual.ksml.rest.server.ComponentState.*;
+import static io.axual.ksml.rest.server.ComponentState.FAILED;
+import static io.axual.ksml.rest.server.ComponentState.NOT_APPLICABLE;
+import static io.axual.ksml.rest.server.ComponentState.STOPPED;
 
 @Slf4j(topic = "ksml.rest.service.live")
 @Path("live")

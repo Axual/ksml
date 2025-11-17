@@ -20,29 +20,38 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.jsonschema.apicurio.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
-import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufDescriptorFileElementMapper;
+import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufFileElementDescriptorMapper;
 import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufNotationProvider;
-import io.axual.ksml.data.notation.protobuf.confluent.ConfluentProtobufDescriptorFileElementMapper;
+import io.axual.ksml.data.notation.protobuf.confluent.ConfluentProtobufFileElementDescriptorMapper;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_DEFAULT_VALUE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_SCHEMA_DOC;
+
 class ProtobufTests {
+    private static final EqualityFlags PROTOBUF_EQUALITY_FLAGS = new EqualityFlags(
+            IGNORE_ENUM_SCHEMA_DEFAULT_VALUE,
+            IGNORE_STRUCT_SCHEMA_DOC
+    );
+
     @Test
     void apicurioSchemaTest() {
-        NotationTestRunner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ApicurioProtobufDescriptorFileElementMapper()));
+        NotationTestRunner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ApicurioProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test
     void confluentSchemaTest() {
-        NotationTestRunner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ConfluentProtobufDescriptorFileElementMapper()));
+        NotationTestRunner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ConfluentProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test
     void apicurioDataTest() {
-        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper()));
+        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ApicurioProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test
@@ -56,7 +65,7 @@ class ProtobufTests {
         final var provider = new ApicurioProtobufNotationProvider(registryClient);
         final var notationContext = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
         final var notation = provider.createNotation(notationContext);
-        NotationTestRunner.serdeTest(notation, true);
+        NotationTestRunner.serdeTest(notation, true, PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test

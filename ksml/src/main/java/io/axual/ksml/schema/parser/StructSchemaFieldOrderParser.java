@@ -20,21 +20,20 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataValue;
-import io.axual.ksml.exception.ParseException;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
 
-public class DataValueParser extends BaseParser<DataValue> {
+public class StructSchemaFieldOrderParser extends BaseParser<StructSchema.Field.Order> {
     @Override
-    public DataValue parse(ParseNode node) {
-        if (node == null) return null;
-        if (node.isNull()) return new DataValue(null);
-        if (node.isBoolean()) return new DataValue(node.asBoolean());
-        if (node.isInt()) return new DataValue(node.asInt());
-        if (node.isLong()) return new DataValue(node.asLong());
-        if (node.isDouble()) return new DataValue(node.asDouble());
-        if (node.isString()) return new DataValue(node.asString());
-        throw new ParseException(node, "Can not parse value type: " + node.asString());
+    public StructSchema.Field.Order parse(ParseNode node) {
+        if (node == null) return StructSchema.Field.Order.ASCENDING;
+        var order = node.asString();
+        if (order != null) order = order.toUpperCase();
+        try {
+            return StructSchema.Field.Order.valueOf(order);
+        } catch (IllegalArgumentException e) {
+            return StructSchema.Field.Order.ASCENDING;
+        }
     }
 }

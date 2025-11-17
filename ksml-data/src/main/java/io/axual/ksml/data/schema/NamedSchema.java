@@ -20,8 +20,19 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import java.util.Objects;
+
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_NAMESPACE;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 
 /**
  * An abstract base class for schemas with a name and namespace in the KSML framework.
@@ -77,6 +88,19 @@ public abstract class NamedSchema extends DataSchema {
     }
 
     /**
+     * Returns the string representation of the schema type.
+     * <p>
+     * By default, this is the schema's fully qualified name.
+     * </p>
+     *
+     * @return A string representation of the schema.
+     */
+    @Override
+    public String type() {
+        return fullName();
+    }
+
+    /**
      * Checks whether this schema has a name.
      *
      * @return {@code true} if the {@code name} field is not {@code null} and not empty;
@@ -127,26 +151,45 @@ public abstract class NamedSchema extends DataSchema {
      * </p>
      *
      * @param otherSchema The other {@link DataSchema} to check for assignability.
-     * @return {@code true} if the other schema is assignable to this schema, {@code false} otherwise.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
-        if (!super.isAssignableFrom(otherSchema)) return false;
-        // Return true if the other schema is also a named schema. We purposefully ignore namespace, name and doc
-        // fields to make JSON, Protobuf, XML etc comparable schema.
-        return otherSchema instanceof NamedSchema;
+    public Assignable isAssignableFrom(DataSchema otherSchema) {
+        final var superAssignable = super.isAssignableFrom(otherSchema);
+        if (superAssignable.isNotAssignable()) return superAssignable;
+
+        if (!(otherSchema instanceof NamedSchema))
+            return schemaMismatch(this, otherSchema);
+
+        // Return no error when the other schema is also a named schema. Namespace, name and documentation do not matter
+        // when checking for assignability (this is not an equality check).
+        return Assignable.assignable();
     }
 
     /**
-     * Returns the string representation of the schema.
-     * <p>
-     * By default, this is the schema's fully qualified name.
-     * </p>
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
      *
-     * @return A string representation of the schema.
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
      */
     @Override
-    public String toString() {
-        return fullName();
+    public Equality equals(Object obj, EqualityFlags flags) {
+        final var superEqual = super.equals(obj, flags);
+        if (superEqual.isNotEqual()) return superEqual;
+
+        final var that = (NamedSchema) obj;
+
+        // Compare namespace
+        if (!flags.isSet(IGNORE_NAMED_SCHEMA_NAMESPACE) && !Objects.equals(namespace, that.namespace))
+            return fieldNotEqual("namespace", this, namespace, that, that.namespace);
+
+        // Compare name
+        if (!flags.isSet(IGNORE_NAMED_SCHEMA_NAME) && !Objects.equals(name, that.name))
+            return fieldNotEqual("name", this, namespace, that, that.namespace);
+
+        // Compare doc
+        if (!flags.isSet(IGNORE_NAMED_SCHEMA_DOC) && !Objects.equals(doc, that.doc))
+            return fieldNotEqual("doc", this, doc, that, that.doc);
+
+        return Equality.equal();
     }
 }

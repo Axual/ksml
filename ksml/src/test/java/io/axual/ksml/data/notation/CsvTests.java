@@ -20,35 +20,50 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.csv.CsvDataObjectMapper;
 import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.csv.CsvSchemaMapper;
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.StructSchema;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_STRUCT_FIELD_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TAG;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class CsvTests {
+    private static final EqualityFlags CSV_EQUALITY_FLAGS = new EqualityFlags(
+            IGNORE_STRUCT_FIELD_TAG,
+            IGNORE_ENUM_SCHEMA_SYMBOL_DOC,
+            IGNORE_ENUM_SCHEMA_SYMBOL_TAG,
+            IGNORE_UNION_SCHEMA_MEMBER_NAME,
+            IGNORE_UNION_SCHEMA_MEMBER_TAG,
+            IGNORE_UNION_TYPE_MEMBER_NAME,
+            IGNORE_UNION_TYPE_MEMBER_TAG
+    );
 
     @Test
     void schemaTest() {
         NotationTestRunner.schemaTest(CsvNotation.NOTATION_NAME, new CsvSchemaMapper(), (input, output) -> {
             // Check the conversion
-            final var inputFieldNames = ((StructSchema) input).fields().stream().map(DataField::name).toArray(String[]::new);
-            final var outputFieldNames = ((StructSchema) output).fields().stream().map(DataField::name).toArray(String[]::new);
+            final var inputFieldNames = ((StructSchema) input).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
+            final var outputFieldNames = ((StructSchema) output).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
             assertArrayEquals(inputFieldNames, outputFieldNames, "Input schema field names should match output schema field names");
         });
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper());
+        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper(), CSV_EQUALITY_FLAGS);
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME, new NativeDataObjectMapper())), true);
+        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME)), true, CSV_EQUALITY_FLAGS);
     }
 }

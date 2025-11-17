@@ -31,7 +31,11 @@ import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.DualStoreOperationConfig;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.StoreOperationConfig;
-import io.axual.ksml.parser.*;
+import io.axual.ksml.parser.NamedObjectParser;
+import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.parser.StructsParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 import lombok.Getter;
 
@@ -49,7 +53,18 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
     }
 
     protected StructsParser<String> operationNameField() {
-        return optional(stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor"));
+        final var parser =  optional(stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, "The name of the operation processor"));
+        return new StructsParser<>() {
+            @Override
+            public String parse(ParseNode node) {
+                return parser.parse(node);
+            }
+
+            @Override
+            public List<StructSchema> schemas() {
+                return parser.schemas();
+            }
+        };
     }
 
     protected OperationConfig operationConfig(String name, MetricTags tags) {

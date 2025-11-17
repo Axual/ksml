@@ -23,7 +23,11 @@ package io.axual.ksml.data.notation.json;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
@@ -42,7 +46,9 @@ import org.apache.kafka.common.serialization.Serde;
  * When constructing a JSON notation for generic use, set the context name to {@link #NOTATION_NAME}.</p>
  */
 public class JsonNotation extends BaseNotation {
-    /** The canonical notation name for JSON. */
+    /**
+     * The canonical notation name for JSON.
+     */
     public static final String NOTATION_NAME = "json";
 
     /**
@@ -50,8 +56,8 @@ public class JsonNotation extends BaseNotation {
      * This makes it possible to represent both JSON objects and arrays without prior knowledge.
      */
     public static final DataType DEFAULT_TYPE = new UnionType(
-            new UnionType.MemberType(new StructType()),
-            new UnionType.MemberType(new ListType()));
+            new UnionType.Member(new StructType()),
+            new UnionType.Member(new ListType()));
 
     /**
      * Creates a JsonNotation with a given {@link NotationContext}.
@@ -82,7 +88,7 @@ public class JsonNotation extends BaseNotation {
     public Serde<Object> serde(DataType type, boolean isKey) {
         // JSON types can be Map (or Struct), List, or the union type of both Struct and List.
         // The union coverage is checked via assignability to DEFAULT_TYPE.
-        if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type))
+        if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type).isAssignable())
             return new JsonSerde(context().nativeDataObjectMapper(), type);
         // Other types cannot be serialized as JSON.
         throw new DataException("JSON serde not found for data type: " + type);

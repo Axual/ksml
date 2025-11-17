@@ -20,13 +20,29 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.DataEquals;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.util.EqualUtil;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBERS;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_DOC;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_NAME;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TAG;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TYPE;
+import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromMember;
+import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromType;
+import static io.axual.ksml.data.util.AssignableUtil.unionNotAssignableFromValue;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * A {@link ComplexType} representing a tagged union (sum type) composed of multiple member types.
@@ -35,28 +51,64 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
  * - the other type is an equivalent union (member-wise assignable in both directions), or
  * - the value/type is assignable to at least one of the union's member types.
  * <p>
- * The nested {@link MemberType} record describes an individual member of the union.
+ * The nested {@link Member} record describes an individual member of the union.
  */
+@EqualsAndHashCode
 @Getter
 public class UnionType extends ComplexType {
-    private final MemberType[] memberTypes;
+    private final Member[] members;
 
-    // A field type
-    public record MemberType(String name, DataType type, int tag) {
-        public MemberType(DataType type) {
-            this(null, type, NO_TAG);
+    // Definition of a union member
+    public record Member(String name, DataType type, String doc, int tag) implements DataEquals {
+        public Member(DataType type) {
+            this(null, type, null, NO_TAG);
+        }
+
+        @Override
+        public Equality equals(Object other, EqualityFlags flags) {
+            if (this == other) return Equality.equal();
+            if (other == null) return otherIsNull(this);
+            if (!getClass().equals(other.getClass()))
+                return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
+
+            final var that = (Member) other;
+
+            // Compare name
+            if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_NAME) && !Objects.equals(name, that.name))
+                return fieldNotEqual("name", this, name, that, that.name);
+
+            // Compare type
+            if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_TYPE)) {
+                final var typeEqual = type.equals(that.type, flags);
+                if (typeEqual.isNotEqual())
+                    return fieldNotEqual("type", this, type, that, that.type, typeEqual);
+            }
+
+            // Compare doc
+            if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_DOC) && !Objects.equals(doc, that.doc))
+                return fieldNotEqual("type", this, doc, that, that.doc);
+
+            // Compare tag
+            if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_TAG) && !Objects.equals(tag, that.tag))
+                return fieldNotEqual("tag", this, tag, that, that.tag);
+
+            return Equality.equal();
+        }
+
+        public boolean hasDoc() {
+            return doc != null && !doc.isBlank();
         }
     }
 
-    public UnionType(MemberType... memberTypes) {
+    public UnionType(Member... members) {
         super(Object.class,
-                buildName("Union", "Of", "Or", memberTypesToDataTypes(memberTypes)),
-                DataSchemaConstants.UNION_TYPE + "(" + buildSpec(memberTypesToDataTypes(memberTypes)) + ")",
-                memberTypesToDataTypes(memberTypes));
-        this.memberTypes = memberTypes;
+                buildName("Union", "Of", "Or", memberTypesToDataTypes(members)),
+                DataSchemaConstants.UNION_TYPE + "(" + buildSpec(memberTypesToDataTypes(members)) + ")",
+                memberTypesToDataTypes(members));
+        this.members = members;
     }
 
-    private static DataType[] memberTypesToDataTypes(MemberType... memberTypes) {
+    private static DataType[] memberTypesToDataTypes(Member... memberTypes) {
         var result = new DataType[memberTypes.length];
         for (int index = 0; index < memberTypes.length; index++) {
             result[index] = memberTypes[index].type();
@@ -65,47 +117,76 @@ public class UnionType extends ComplexType {
     }
 
     @Override
-    public boolean isAssignableFrom(DataType type) {
-        if (this == type) return true;
+    public Assignable isAssignableFrom(DataType type) {
+        if (this == type) return Assignable.assignable();
 
-        // If the other dataType is a union, then compare the union with this dataType
-        if (type instanceof UnionType otherUnion && isAssignableFromOtherUnion(otherUnion)) return true;
+        // If the other type is a union, then compare the union with this dataType
+        if (type instanceof UnionType that) {
+            // Check that all this union's member types are assignable from the other union. That is the case if and
+            // only if this union's member types are equal or a superset of the other union's member types. We can
+            // check this by making sure that all member types of the other union are assignable from this union.
+            for (final var thatMember : that.members) {
+                if (!isAssignableFromMember(thatMember)) {
+                    return unionNotAssignableFromMember(this, thatMember);
+                }
+            }
 
-        // If the union did not match in its entirety, then check for assignable subtypes
-        for (var memberType : memberTypes) {
-            if (memberType.type().isAssignableFrom(type)) return true;
+            // All members can be assigned from other members, so return no error
+            return Assignable.assignable();
+        }
+
+        // Check all our members. If one of them is assignable, then return OK, else error
+        for (final var member : members) {
+            if (member.type().isAssignableFrom(type).isAssignable()) return Assignable.assignable();
+        }
+        return unionNotAssignableFromType(this, type);
+    }
+
+    private boolean isAssignableFromMember(Member otherMember) {
+        // Check if the type is assignable from this union
+        for (final var member : members) {
+            if (member.type.isAssignableFrom(otherMember.type).isAssignable()) return true;
         }
         return false;
     }
 
-    private boolean isAssignableFromOtherUnion(UnionType other) {
-        var otherMemberTypes = other.memberTypes();
-        if (memberTypes.length != otherMemberTypes.length) return false;
-        for (int index = 0; index < memberTypes.length; index++) {
-            if (!memberTypes[index].type().isAssignableFrom(otherMemberTypes[index].type()))
-                return false;
-            if (!otherMemberTypes[index].type().isAssignableFrom(memberTypes[index].type()))
-                return false;
+    @Override
+    public Assignable isAssignableFrom(Object value) {
+        for (final var member : members) {
+            if (member.type().isAssignableFrom(value).isAssignable()) return Assignable.assignable();
         }
-        return true;
+        return unionNotAssignableFromValue(this, value);
     }
 
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
     @Override
-    public boolean isAssignableFrom(Object value) {
-        for (final var memberType : memberTypes) {
-            if (memberType.type().isAssignableFrom(value)) return true;
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
+
+        final var superEqual = super.equals(other, flags);
+        if (superEqual.isNotEqual()) return superEqual;
+
+        final var that = (UnionType) other;
+
+        // Compare members
+        if (!flags.isSet(IGNORE_UNION_TYPE_MEMBERS)) {
+            // Two unions are equal if their members are all equal
+            if (members.length != that.members.length)
+                return fieldNotEqual("memberCount", this, members, that, that.members);
+            for (int index = 0; index < members.length; index++) {
+                final var memberEqual = members[index].equals(that.members[index], flags);
+                if (memberEqual.isNotEqual()) return typeNotEqual(this, that, memberEqual);
+            }
         }
-        return false;
-    }
 
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        return isAssignableFromOtherUnion((UnionType) other);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(memberTypes));
+        return Equality.equal();
     }
 }

@@ -24,8 +24,29 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataEnum;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.UnionType;
 
 import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
@@ -45,8 +66,8 @@ public class ConvertUtil {
     /**
      * Create a new ConvertUtil.
      *
-     * @param dataObjectMapper  mapper to convert between native values and KSML DataObject values
-     * @param dataSchemaMapper  mapper to convert between KSML DataType and notation-specific schemas
+     * @param dataObjectMapper mapper to convert between native values and KSML DataObject values
+     * @param dataSchemaMapper mapper to convert between KSML DataType and notation-specific schemas
      */
     public ConvertUtil(NativeDataObjectMapper dataObjectMapper, DataTypeDataSchemaMapper dataSchemaMapper) {
         this.dataObjectMapper = dataObjectMapper;
@@ -106,8 +127,8 @@ public class ConvertUtil {
 
         // If a union type is expected, then recurse into it before checking compatibility below
         if (targetType instanceof UnionType targetUnionType) {
-            for (int index = 0; index < targetUnionType.memberTypes().length; index++) {
-                var convertedValue = convert(sourceNotation, targetNotation, targetUnionType.memberTypes()[index].type(), value, true);
+            for (int index = 0; index < targetUnionType.members().length; index++) {
+                var convertedValue = convert(sourceNotation, targetNotation, targetUnionType.members()[index].type(), value, true);
                 if (convertedValue != null) return convertedValue;
             }
         }
@@ -140,7 +161,7 @@ public class ConvertUtil {
         var convertedValue = applyNotationConverters(sourceNotation, targetNotation, targetType, value);
 
         // If the notation conversion was good enough, then return that result
-        if (targetType.isAssignableFrom(convertedValue)) return convertedValue;
+        if (targetType.isAssignableFrom(convertedValue).isAssignable()) return convertedValue;
 
         // As a final attempt to convert to the right type, run it through the compatibility converter
         convertedValue = convertDataObject(targetType, convertedValue, allowFail);
@@ -157,13 +178,13 @@ public class ConvertUtil {
         // First we see if the target notation is able to interpret the source value
         if (targetNotation != null && targetNotation.converter() != null) {
             final var target = targetNotation.converter().convert(value, targetType);
-            if (target != null && targetType.isAssignableFrom(target.type())) return target;
+            if (target != null && targetType.isAssignableFrom(target.type()).isAssignable()) return target;
         }
 
         // If the target notation was not able to convert, then try the source notation
         if (sourceNotation != null && sourceNotation.converter() != null) {
             final var target = sourceNotation.converter().convert(value, targetType);
-            if (target != null && targetType.isAssignableFrom(target.type())) return target;
+            if (target != null && targetType.isAssignableFrom(target.type()).isAssignable()) return target;
         }
 
         return value;
@@ -172,7 +193,7 @@ public class ConvertUtil {
     private DataObject convertDataObject(DataType targetType, DataObject value, boolean allowFail) {
         // If we're already compatible with the target type, then return the value itself. This line is here mainly
         // for recursive calls from lists and maps.
-        if (targetType.isAssignableFrom(value)) return value;
+        if (targetType.isAssignableFrom(value).isAssignable()) return value;
 
         // Convert from anything to string
         if (targetType == DataString.DATATYPE) return new DataString(value.toString());
@@ -254,7 +275,7 @@ public class ConvertUtil {
         if (expected == DataDouble.DATATYPE) return parseOrNull(() -> new DataDouble(Double.parseDouble(value)));
         if (expected == DataString.DATATYPE) return new DataString(value);
         return switch (expected) {
-            case EnumType ignored -> new DataString(value);
+            case EnumType enumType -> new DataEnum(enumType, value);
             case ListType listType -> convertStringToDataList(listType, value, allowFail);
             case MapType mapType -> convertStringToDataMap(mapType, value, allowFail);
             case StructType structType -> convertStringToDataStruct(structType, value, allowFail);
@@ -282,7 +303,7 @@ public class ConvertUtil {
         final var result = new DataList(listType.valueType());
         for (final var element : elements) {
             final var dataObject = dataObjectMapper.toDataObject(listType.valueType(), element);
-            if (!listType.valueType().isAssignableFrom(dataObject))
+            if (listType.valueType().isAssignableFrom(dataObject).isNotAssignable())
                 throw convertError(dataObject != null ? dataObject.type() : null, listType.valueType(), dataObject);
             result.add(dataObject);
         }
@@ -333,7 +354,7 @@ public class ConvertUtil {
         for (final var element : elements) {
             final var targetType = tupleType.subType(index);
             final var targetValue = dataObjectMapper.toDataObject(targetType, element);
-            if (!targetType.isAssignableFrom(targetValue))
+            if (targetType.isAssignableFrom(targetValue).isNotAssignable())
                 throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
             tupleElements[index++] = targetValue;
         }
@@ -342,9 +363,9 @@ public class ConvertUtil {
 
     public DataObject convertStringToUnionMemberType(UnionType unionType, String value, boolean allowFail) {
         final var valueString = new DataString(value);
-        for (final var memberType : unionType.memberTypes()) {
-            final var dataObject = convert(memberType.type(), valueString, true);
-            if (dataObject != null && memberType.type().isAssignableFrom(dataObject))
+        for (final var member : unionType.members()) {
+            final var dataObject = convert(member.type(), valueString, true);
+            if (dataObject != null && member.type().isAssignableFrom(dataObject).isAssignable())
                 return dataObject;
         }
         if (!allowFail)
@@ -364,11 +385,12 @@ public class ConvertUtil {
         if (expected == DataBytes.DATATYPE) return new DataBytes();
         if (expected == DataString.DATATYPE) return new DataString();
         return switch (expected) {
-            case ListType listType -> new DataList(listType.valueType(), true);
-            case StructType structType -> new DataStruct(structType.schema(), true);
-            case UnionType ignored -> DataNull.INSTANCE;
-            case MapType mapType -> new DataMap(mapType.valueType(), true);
             case EnumType ignored -> DataNull.INSTANCE;
+            case ListType listType -> new DataList(listType.valueType(), true);
+            case MapType mapType -> new DataMap(mapType.valueType(), true);
+            case StructType structType -> new DataStruct(structType.schema(), true);
+            case TupleType ignored -> DataNull.INSTANCE;
+            case UnionType ignored -> DataNull.INSTANCE;
             default -> throw new DataException("Can not convert NULL to " + expected);
         };
     }

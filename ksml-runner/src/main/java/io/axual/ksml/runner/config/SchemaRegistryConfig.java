@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-
 import io.axual.ksml.runner.config.internal.StringMap;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;

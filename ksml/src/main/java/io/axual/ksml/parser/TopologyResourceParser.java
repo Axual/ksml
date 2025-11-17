@@ -21,7 +21,10 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.NamedSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.metric.MetricTags;
@@ -60,8 +63,8 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
         schemas.addAll(inlineParser.schemas());
         final var typeName = "StringOrInline" + String.join("OrInline", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));
 //        final var doc = "Reference to " + resourceType + ", or inline " + String.join(", or inline ", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));
-        final var schema = structSchema(typeName, doc, List.of(new DataField(childName, new UnionSchema(schemas.stream().map(DataField::new).toArray(DataField[]::new)), doc)));
-        final var stringParser = stringField(childName, false, null, doc);
+        final var schema = structSchema(typeName, doc, List.of(new StructSchema.Field(childName, new UnionSchema(schemas.stream().map(UnionSchema.Member::new).toArray(UnionSchema.Member[]::new)), doc)));
+        final var stringParser = stringField(childName, false, doc);
         return new StructsParser<>() {
             @Override
             public TopologyResource<T> parse(ParseNode node) {

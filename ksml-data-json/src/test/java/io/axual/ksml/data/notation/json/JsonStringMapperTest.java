@@ -21,7 +21,7 @@ package io.axual.ksml.data.notation.json;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.axual.ksml.data.exception.DataException;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
@@ -30,8 +30,6 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import io.axual.ksml.data.exception.DataException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

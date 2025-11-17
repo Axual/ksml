@@ -21,9 +21,30 @@ package io.axual.ksml.data.mapper;
  */
 
 import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.TupleSchema;
+import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.UnionType;
 
 import java.util.List;
 
@@ -55,27 +76,23 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (type == DataBytes.DATATYPE) return DataSchema.BYTES_SCHEMA;
         if (type == DataString.DATATYPE) return DataSchema.STRING_SCHEMA;
 
-        if (type instanceof EnumType enumType)
-            return new EnumSchema(null, enumType.name(), "", enumType.symbols());
-        if (type instanceof ListType listType)
-            return new ListSchema(toDataSchema(listType.valueType()));
-        if (type instanceof MapType mapType)
-            return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
+        if (type instanceof EnumType enumType) return enumType.schema();
+        if (type instanceof ListType listType) return new ListSchema(toDataSchema(listType.valueType()));
+        if (type instanceof MapType mapType) return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
         if (type instanceof StructType structType)
             return structType.schema() != null ? new StructSchema(structType.schema()) : StructSchema.SCHEMALESS;
-        if (type instanceof TupleType tupleType)
-            return new TupleSchema(tupleType, this);
+        if (type instanceof TupleType tupleType) return new TupleSchema(tupleType, this);
         if (type instanceof UnionType unionType) {
-            var fields = new DataField[unionType.memberTypes().length];
-            for (int index = 0; index < unionType.memberTypes().length; index++) {
-                final var memberType = unionType.memberTypes()[index];
-                fields[index] = new DataField(
+            var members = new UnionSchema.Member[unionType.members().length];
+            for (int index = 0; index < unionType.members().length; index++) {
+                final var memberType = unionType.members()[index];
+                members[index] = new UnionSchema.Member(
                         memberType.name(),
                         toDataSchema(memberType.type()),
-                        null,
+                        memberType.doc(),
                         memberType.tag());
             }
-            return new UnionSchema(fields);
+            return new UnionSchema(members);
         }
         throw new SchemaException("Can not convert dataType " + type + " to a schema");
     }
@@ -99,29 +116,30 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (schema == DataSchema.DOUBLE_SCHEMA) return DataDouble.DATATYPE;
         if (schema == DataSchema.BYTES_SCHEMA) return DataBytes.DATATYPE;
         if (schema == DataSchema.STRING_SCHEMA) return DataString.DATATYPE;
-        if (schema instanceof EnumSchema enumSchema) return new EnumType(enumSchema.symbols());
-        if (schema instanceof ListSchema listSchema) return new ListType(fromDataSchema(listSchema.valueSchema()));
-        if (schema instanceof MapSchema mapSchema) return new MapType(fromDataSchema(mapSchema.valueSchema()));
-        // Process TupleSchema first, since it inherits from StructSchema
-        if (schema instanceof TupleSchema tupleSchema)
-            return new TupleType(convertFieldsToSubTypes(tupleSchema.fields()));
-        if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
-        if (schema instanceof UnionSchema unionSchema) {
-            var types = new UnionType.MemberType[unionSchema.memberSchemas().length];
-            for (int index = 0; index < unionSchema.memberSchemas().length; index++) {
-                final var memberSchema = unionSchema.memberSchemas()[index];
-                types[index] = new UnionType.MemberType(
-                        memberSchema.name(),
-                        fromDataSchema(memberSchema.schema()),
-                        memberSchema.tag());
+        return switch (schema) {
+            case EnumSchema enumSchema -> new EnumType(enumSchema);
+            case ListSchema listSchema -> new ListType(fromDataSchema(listSchema.valueSchema()));
+            case MapSchema mapSchema -> new MapType(fromDataSchema(mapSchema.valueSchema()));
+            // Process TupleSchema first, since it inherits from StructSchema
+            case TupleSchema tupleSchema -> new TupleType(convertFieldsToSubTypes(tupleSchema.fields()));
+            case StructSchema structSchema -> new StructType(structSchema);
+            case UnionSchema unionSchema -> {
+                var members = new UnionType.Member[unionSchema.members().length];
+                for (int index = 0; index < unionSchema.members().length; index++) {
+                    final var memberSchema = unionSchema.members()[index];
+                    members[index] = new UnionType.Member(
+                            memberSchema.name(),
+                            fromDataSchema(memberSchema.schema()),
+                            memberSchema.doc(),
+                            memberSchema.tag());
+                }
+                yield new UnionType(members);
             }
-            return new UnionType(types);
-        }
-
-        throw new SchemaException("Can not convert schema " + schema + " to a dataType");
+            default -> throw new SchemaException("Can not convert schema " + schema + " to a dataType");
+        };
     }
 
-    private DataType[] convertFieldsToSubTypes(List<DataField> fields) {
+    private DataType[] convertFieldsToSubTypes(List<StructSchema.Field> fields) {
         var result = new DataType[fields.size()];
         for (int index = 0; index < fields.size(); index++) {
             result[index] = fromDataSchema(fields.get(index).schema());

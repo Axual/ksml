@@ -29,19 +29,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import org.apache.kafka.streams.StreamsConfig;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.runner.config.internal.StringMap;
 import jakarta.annotation.Nonnull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.StreamsConfig;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = false)

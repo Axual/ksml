@@ -21,6 +21,8 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  */
 
 
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchema;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchemaParser;
@@ -31,11 +33,15 @@ import java.util.Collections;
 
 @Slf4j
 public class ApicurioProtobufSchemaParser implements ProtobufSchemaParser {
-    private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper(new ApicurioProtobufDescriptorFileElementMapper());
+    private final ProtobufSchemaMapper schemaMapper;
+
+    public ApicurioProtobufSchemaParser(NativeDataObjectMapper nativeMapper, DataTypeDataSchemaMapper typeSchemaMapper) {
+        this.schemaMapper = new ProtobufSchemaMapper(new ApicurioProtobufFileElementDescriptorMapper(), nativeMapper, typeSchemaMapper);
+    }
 
     @Override
     public DataSchema parse(String contextName, String schemaName, String schemaString) {
         final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaString.getBytes(), Collections.emptyMap());
-        return MAPPER.toDataSchema(schemaName, new ProtobufSchema(proto.getFileDescriptor(), proto.getProtoFileElement()));
+        return schemaMapper.toDataSchema(schemaName, new ProtobufSchema(proto.getFileDescriptor(), proto.getProtoFileElement()));
     }
 }

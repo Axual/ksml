@@ -20,10 +20,17 @@ package io.axual.ksml.data.value;
  * =========================LICENSE_END==================================
  */
 
-// This class represents a Null for processing in KSML data objects and Serdes
+/**
+ * Marker type used to represent a null value in the KSML value model and Serdes.
+ *
+ * <p>The constant {@link #NULL} is intentionally set to Java {@code null}; it exists solely
+ * to have an "empty value" in places where a value of a certain type is expected.</p>
+ */
 public class Null {
     private Null() {
+        // Prevent instantiation
     }
 
+    /** Readable alias for DataObject null in places where a value of another type is expected. */
     public static final Null NULL = null;
 }

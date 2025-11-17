@@ -20,11 +20,10 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.value.Tuple;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import io.axual.ksml.data.value.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,16 +48,16 @@ class TupleTypeTest {
     void assignabilityBetweenTuples() {
         var numberString = new TupleType(new SimpleType(Number.class, "number"), new SimpleType(String.class, "string"));
         var integerString = new TupleType(new SimpleType(Integer.class, "integer"), new SimpleType(String.class, "string"));
-        assertThat(numberString.isAssignableFrom(integerString)).isTrue();
-        assertThat(integerString.isAssignableFrom(numberString)).isFalse();
+        assertThat(numberString.isAssignableFrom(integerString).isAssignable()).isTrue();
+        assertThat(integerString.isAssignableFrom(numberString).isAssignable()).isFalse();
     }
 
     @Test
     @DisplayName("Assignability from Class checks Tuple.class")
     void assignabilityFromClass() {
         var anyTuple = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
-        assertThat(anyTuple.isAssignableFrom(Tuple.class)).isTrue();
-        assertThat(anyTuple.isAssignableFrom(Object.class)).isFalse();
+        assertThat(anyTuple.isAssignableFrom(Tuple.class).isAssignable()).isTrue();
+        assertThat(anyTuple.isAssignableFrom(Object.class).isAssignable()).isFalse();
     }
 
     @Test

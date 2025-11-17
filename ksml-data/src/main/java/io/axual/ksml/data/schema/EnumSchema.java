@@ -20,12 +20,29 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.DataEquals;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Objects;
+
+import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_DEFAULT_VALUE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_NAMESPACE;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOLS;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_DOC;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_NAME;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_ENUM_SCHEMA_SYMBOL_TAG;
+import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_NAMED_SCHEMA_NAMESPACE;
+import static io.axual.ksml.data.util.AssignableUtil.schemaMismatch;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * Represents a named schema for enumerations in the KSML framework.
@@ -37,10 +54,62 @@ import java.util.List;
  * <p>
  * This schema is used in cases where a predefined set of acceptable values is required.
  * </p>
+ * <p>
+ * Values are considered assignable only when they are strings that match one of the configured
+ * {@link Symbol} entries.
+ * </p>
  */
 @Getter
 @EqualsAndHashCode
 public class EnumSchema extends NamedSchema {
+    public record Symbol(String name, String doc, int tag) implements DataEquals {
+        public Symbol(String name, String doc, Integer tag) {
+            this(name, doc, tag != null ? tag : NO_TAG);
+        }
+
+        public Symbol(String name) {
+            this(name, null, NO_TAG);
+        }
+
+        public boolean hasDoc() {
+            return doc != null && !doc.isEmpty();
+        }
+
+        public boolean isAssignableFrom(Symbol other) {
+            if (!name.equals(other.name)) return false;
+            if (tag == NO_TAG || other.tag == NO_TAG) return true;
+            return tag == other.tag;
+        }
+
+        public static Symbol of(String symbol) {
+            return new Symbol(symbol);
+        }
+
+        @Override
+        public Equality equals(Object other, EqualityFlags flags) {
+            if (this == other) return Equality.equal();
+            if (other == null) return otherIsNull(this);
+            if (!getClass().equals(other.getClass()))
+                return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
+
+            final var that = (Symbol) other;
+
+            // Compare name
+            if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_NAME) && !Objects.equals(name, that.name))
+                return fieldNotEqual("name", this, name, that, that.name);
+
+            // Compare schema
+            if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_DOC) && !Objects.equals(doc, that.doc))
+                return fieldNotEqual("doc", this, doc, that, that.doc);
+
+            // Compare tag
+            if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_TAG) && !Objects.equals(tag, that.tag))
+                return fieldNotEqual("tag", this, tag, that, that.tag);
+
+            return Equality.equal();
+        }
+    }
+
     /**
      * The list of symbols that define the valid values for this enumeration schema.
      */
@@ -52,6 +121,18 @@ public class EnumSchema extends NamedSchema {
      * </p>
      */
     private final Symbol defaultValue;
+
+    /**
+     * Constructs a new {@code EnumSchema} with the given namespace, name, documentation, and symbols.
+     * <p>
+     * This constructor creates an enumeration schema without a default value.
+     * </p>
+     *
+     * @param symbols The list of symbols (values) allowed in this enumeration schema.
+     */
+    public EnumSchema(List<Symbol> symbols) {
+        this(null, DataSchemaConstants.ENUM_TYPE, null, symbols, null);
+    }
 
     /**
      * Constructs a new {@code EnumSchema} with the given namespace, name, documentation, and symbols.
@@ -90,29 +171,58 @@ public class EnumSchema extends NamedSchema {
      * </p>
      *
      * @param otherSchema The schema to be checked for compatibility.
-     * @return {@code true} if the given schema is compatible; otherwise, {@code false}.
      */
     @Override
-    public boolean isAssignableFrom(DataSchema otherSchema) {
+    public Assignable isAssignableFrom(DataSchema otherSchema) {
         // Always allow assigning from a string value (assuming a valid symbol)
-        if (otherSchema == DataSchema.STRING_SCHEMA) return true; // Strings are convertable to ENUM
-
+        if (otherSchema == DataSchema.STRING_SCHEMA) return Assignable.assignable();
         // Check super's compatibility
-        if (!super.isAssignableFrom(otherSchema)) return false;
-
-        // If okay then check class compatibility
-        if (!(otherSchema instanceof EnumSchema otherEnum)) return false;
-
-        // This schema is assignable from the other enum when the map of symbols is a superset
-        // of the otherEnum's set of symbols.
+        final var superAssignable = super.isAssignableFrom(otherSchema);
+        if (superAssignable.isNotAssignable()) return superAssignable;
+        // Check class compatibility
+        if (!(otherSchema instanceof EnumSchema otherEnum)) return schemaMismatch(this, otherSchema);
+        // This schema is assignable from the other enum when the map of symbols is equal or a superset of the
+        // otherEnum's set of symbols.
         for (final var otherSymbol : otherEnum.symbols) {
             // Validate that the other symbol is present and equal in our own symbol list
-            if (ListUtil.find(symbols, thisSymbol -> thisSymbol.isAssignableFrom(otherSymbol)) == null)
-                return false;
+            if (ListUtil.find(symbols, thisSymbol -> thisSymbol.isAssignableFrom(otherSymbol)) == null) {
+                return Assignable.notAssignable("Symbol \"" + otherSymbol.name() + "\" not found in enumeration");
+            }
+        }
+        // All symbols from the other union are contained within this one, so return no error
+        return Assignable.assignable();
+    }
+
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param obj   The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
+    @Override
+    public Equality equals(Object obj, EqualityFlags flags) {
+        // If an enum-specific flag is set to ignore namespace, set the general flag for the superclass before calling it
+        final var superEqual = super.equals(obj, flags.ifSetThenAdd(IGNORE_ENUM_SCHEMA_NAMESPACE, IGNORE_NAMED_SCHEMA_NAMESPACE));
+        if (superEqual.isNotEqual()) return superEqual;
+
+        final var that = (EnumSchema) obj;
+
+        // Compare symbols
+        if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOLS)) {
+            // Two unions are equal if their members are all equal
+            if (symbols.size() != that.symbols.size())
+                return fieldNotEqual("symbolCount", this, symbols.size(), that, that.symbols.size());
+            for (int index = 0; index < symbols.size(); index++) {
+                final var symbolEqual = symbols.get(index).equals(that.symbols.get(index), flags);
+                if (symbolEqual.isNotEqual())
+                    return fieldNotEqual("symbol[" + index + "]", this, symbols.get(index), that, that.symbols.get(index), symbolEqual);
+            }
         }
 
-        // When we reach this point, it means that we can be assigned any
-        // value from the otherEnum.
-        return true;
+        // Compare defaultValue
+        if (!flags.isSet(IGNORE_ENUM_SCHEMA_DEFAULT_VALUE) && !Objects.equals(defaultValue, that.defaultValue))
+            return fieldNotEqual("defaultValue", this, defaultValue, that, that.defaultValue);
+
+        return Equality.equal();
     }
 }

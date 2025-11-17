@@ -21,9 +21,17 @@ package io.axual.ksml.data.type;
  */
 
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.util.EqualUtil;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Objects;
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_DATA_TYPE_CONTAINER_CLASS;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * A concrete {@link DataType} backed by a single Java container class.
@@ -31,6 +39,7 @@ import java.util.Objects;
  * SimpleType represents scalar/primitive-like types where assignability is based on the
  * assignability of the configured {@code containerClass}.
  */
+@EqualsAndHashCode(exclude = {"name", "spec"})
 @Getter
 public class SimpleType implements DataType {
     private final Class<?> containerClass;
@@ -53,26 +62,36 @@ public class SimpleType implements DataType {
     }
 
     @Override
-    public boolean isAssignableFrom(DataType other) {
-        if (other instanceof SimpleType simpleType) {
-            return isAssignableFrom(simpleType.containerClass);
-        }
-        return false;
+    public Assignable isAssignableFrom(final DataType type) {
+        if (!(type instanceof SimpleType that))
+            return typeMismatch(this, type);
+
+        // Check containerClass
+        if (!containerClass.isAssignableFrom(that.containerClass))
+            return fieldNotAssignable("containerClass", this, containerClass, that, that.containerClass);
+
+        return Assignable.assignable();
     }
 
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
     @Override
-    public boolean isAssignableFrom(Class<?> type) {
-        return containerClass.isAssignableFrom(type);
-    }
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        SimpleType other = (SimpleType) obj;
-        return isAssignableFrom(other) && other.isAssignableFrom(this);
-    }
+        final var that = (SimpleType) other;
 
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), containerClass.hashCode());
+        // Compare containerClass
+        if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
+            return EqualUtil.containerClassNotEqual(containerClass, that.containerClass);
+
+        return Equality.equal();
     }
 }

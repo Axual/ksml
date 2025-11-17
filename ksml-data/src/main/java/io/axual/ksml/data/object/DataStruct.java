@@ -21,20 +21,29 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.util.EqualUtil;
+import io.axual.ksml.data.util.ValuePrinter;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.util.ValuePrinter;
-import lombok.Getter;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_STRUCT_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_STRUCT_TYPE;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * Represents a data structure that emulates a schema-based, key-value map with automatic sorting capabilities.
@@ -51,6 +60,7 @@ import lombok.Getter;
  *
  * <p>This implementation ensures consistent ordering of keys and maintains safety through its encapsulated operations.</p>
  */
+@EqualsAndHashCode
 @Getter
 public class DataStruct implements DataObject {
     /**
@@ -289,10 +299,9 @@ public class DataStruct implements DataObject {
      *
      * @param key   The key to insert.
      * @param value The value to associate with the key.
-     * @return The value associated with the key.
      */
-    public DataObject putIfNotNull(String key, DataObject value) {
-        return value != null ? put(key, value) : get(key);
+    public void putIfNotNull(String key, DataObject value) {
+        if (value != null) put(key, value);
     }
 
     /**
@@ -322,7 +331,7 @@ public class DataStruct implements DataObject {
      */
     @Override
     public String toString(Printer printer) {
-        final var schemaName = printer.schemaString(this);
+        final var schemaName = printer.schemaPrefix(this);
 
         // Return NULL as value
         if (isNull()) return schemaName + "null";
@@ -347,17 +356,52 @@ public class DataStruct implements DataObject {
         }
     }
 
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        DataStruct that = (DataStruct) other;
-        if (!type.isAssignableFrom(that.type) || !that.type.isAssignableFrom(type)) return false;
-        return Objects.equals(contents, that.contents);
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
+
+        final var that = (DataStruct) other;
+
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_STRUCT_TYPE)) {
+            final var typeEqual = type.equals(that.type, flags);
+            if (typeEqual.isNotEqual())
+                return typeNotEqual(type, that.type, typeEqual);
+        }
+
+        // Compare contents
+        if (!flags.isSet(IGNORE_DATA_STRUCT_CONTENTS) && (contents != null || that.contents != null)) {
+            if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
+            final var contentsEqual = equalContents(that, that, flags);
+            if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
+        }
+
+        return Equality.equal();
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), contents, type);
+    private static Equality equalContents(DataStruct left, DataStruct right, EqualityFlags flags) {
+        if (left.size() != right.size())
+            return fieldNotEqual("contentSize", left, left.size(), right, right.size());
+
+        for (var entry : left.entrySet()) {
+            final var thatValue = right.get(entry.getKey());
+            if (entry.getValue() != null || thatValue != null) {
+                if (entry.getValue() == null || thatValue == null)
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue);
+                final var entryEqual = entry.getValue().equals(thatValue, flags);
+                if (entryEqual.isNotEqual())
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue, entryEqual);
+            }
+        }
+
+        return Equality.equal();
     }
 }

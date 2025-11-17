@@ -26,7 +26,11 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.StringDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
-import org.apache.kafka.common.serialization.*;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 /**
  * Serde that converts between KSML DataString (or compatible types) and Kafka's String serialization.
@@ -75,7 +79,7 @@ public class StringSerde implements Serde<Object> {
         return (topic, data) -> {
             final var dataObject = nativeMapper.toDataObject(expectedType, data);
             // TODO No longer needed as this check is done in the nativeMapper toDataObject
-            if (!expectedType.isAssignableFrom(dataObject)) {
+            if (!expectedType.isAssignableFrom(dataObject).isAssignable()) {
                 throw new DataException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
             }
             var str = stringMapper.fromDataObject(dataObject);
@@ -92,7 +96,7 @@ public class StringSerde implements Serde<Object> {
         return (topic, data) -> {
             final var str = deserializer.deserialize(topic, data);
             final var dataObject = stringMapper.toDataObject(expectedType, str);
-            if (dataObject != null && !expectedType.isAssignableFrom(dataObject)) {
+            if (dataObject != null && !expectedType.isAssignableFrom(dataObject).isAssignable()) {
                 throw new DataException("Wrong type retrieved from state store: expected " + expectedType + ", got " + dataObject.type());
             }
             return dataObject;

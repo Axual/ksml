@@ -20,7 +20,6 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.List;
@@ -30,7 +29,7 @@ import java.util.function.Supplier;
 public interface StructParser<T> extends ParserWithSchema<T> {
     StructSchema schema();
 
-    default List<DataField> fields() {
+    default List<StructSchema.Field> fields() {
         return schema().fields();
     }
 

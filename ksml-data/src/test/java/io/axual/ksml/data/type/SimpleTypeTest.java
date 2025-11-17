@@ -20,6 +20,9 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,18 +58,18 @@ class SimpleTypeTest {
     void isAssignableFromDataType() {
         var numberType = new SimpleType(Number.class, "number");
         var integerType = new SimpleType(Integer.class, "integer");
-        assertThat(numberType.isAssignableFrom(integerType)).isTrue();
-        assertThat(integerType.isAssignableFrom(numberType)).isFalse();
+        assertThat(numberType.isAssignableFrom(integerType).isAssignable()).isTrue();
+        assertThat(integerType.isAssignableFrom(numberType).isAssignable()).isFalse();
 
         // Non-SimpleType should be rejected: using anonymous DataType not a SimpleType
         var other = new DataType() {
             @Override public Class<?> containerClass() { return Object.class; }
             @Override public String name() { return "X"; }
             @Override public String spec() { return "X"; }
-            @Override public boolean isAssignableFrom(DataType type) { return false; }
-            @Override public boolean isAssignableFrom(Class<?> type) { return false; }
+            @Override public Assignable isAssignableFrom(DataType type) { return Assignable.notAssignable("Fake error"); }
+            @Override public Equality equals(Object other, EqualityFlags flags) { return Equality.notEqual("Fake error"); }
         };
-        assertThat(numberType.isAssignableFrom(other)).isFalse();
+        assertThat(numberType.isAssignableFrom(other).isAssignable()).isFalse();
     }
 
     @Test
@@ -74,8 +77,8 @@ class SimpleTypeTest {
     void isAssignableFromClass() {
         var numberType = new SimpleType(Number.class, "number");
         var integerType = new SimpleType(Integer.class, "integer");
-        assertThat(numberType.isAssignableFrom(Integer.class)).isTrue();
-        assertThat(integerType.isAssignableFrom(Number.class)).isFalse();
+        assertThat(numberType.isAssignableFrom(Integer.class).isAssignable()).isTrue();
+        assertThat(integerType.isAssignableFrom(Number.class).isAssignable()).isFalse();
     }
 
     @Test
@@ -83,9 +86,9 @@ class SimpleTypeTest {
     void isAssignableFromObject() {
         var numberType = new SimpleType(Number.class, "number");
         var integerType = new SimpleType(Integer.class, "integer");
-        assertThat(numberType.isAssignableFrom(Integer.valueOf(123))).isTrue();
-        assertThat(integerType.isAssignableFrom(new Object())).isFalse();
-        assertThat(integerType.isAssignableFrom((Object) null)).isTrue(); // DataType default allows null
+        assertThat(numberType.isAssignableFrom(Integer.valueOf(123)).isAssignable()).isTrue();
+        assertThat(integerType.isAssignableFrom(new Object()).isAssignable()).isFalse();
+        assertThat(integerType.isAssignableFrom((Object) null).isAssignable()).isTrue(); // DataType default allows null
     }
 
     @Test

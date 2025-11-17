@@ -20,12 +20,18 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.definition.*;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
@@ -37,7 +43,19 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueJoiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.Joined;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Printed;
+import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.Repartitioned;
+import org.apache.kafka.streams.kstream.StreamJoined;
+import org.apache.kafka.streams.kstream.TableJoined;
+import org.apache.kafka.streams.kstream.ValueJoiner;
+import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
@@ -106,7 +124,7 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected interface TypeCompatibilityChecker {
-        boolean compare(DataType type);
+        Assignable isAssignableFrom(DataType type);
     }
 
     protected record TypeComparator(DataType type, TypeCompatibilityChecker checker, String faultDescription) {
@@ -191,7 +209,11 @@ public abstract class BaseOperation implements StreamOperation {
     protected TypeComparator equalTo(DataType compareType) {
         return new TypeComparator(
                 compareType,
-                myDataType -> compareType.isAssignableFrom(myDataType) && myDataType.isAssignableFrom(compareType),
+                myDataType -> {
+                    final var assignable = compareType.isAssignableFrom(myDataType);
+                    if (assignable.isNotAssignable()) return assignable;
+                    return myDataType.isAssignableFrom(compareType);
+                },
                 "of type " + compareType);
     }
 
@@ -242,8 +264,9 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected void checkType(String subject, DataType type, TypeComparator comparator) {
-        if (!comparator.checker.compare(type)) {
-            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name());
+        final var assignable = comparator.checker.isAssignableFrom(type);
+        if (assignable.isNotAssignable()) {
+            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + assignable.message() + ")");
         }
     }
 
@@ -303,7 +326,7 @@ public abstract class BaseOperation implements StreamOperation {
             throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple with " + elements.length + " elements");
         }
         for (int index = 0; index < elements.length; index++) {
-            if (!elements[index].isAssignableFrom(tupleType.subType(index))) {
+            if (elements[index].isAssignableFrom(tupleType.subType(index)).isNotAssignable()) {
                 throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " tuple element " + index + " is expected to be (subclass) of type " + elements[index]);
             }
         }
@@ -539,7 +562,7 @@ public abstract class BaseOperation implements StreamOperation {
             return;
         }
 
-        if (storeKeyOrValueType != null && !storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType())) {
+        if (storeKeyOrValueType != null && storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType()).isNotAssignable()) {
             throw new ExecutionException("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
         }
     }

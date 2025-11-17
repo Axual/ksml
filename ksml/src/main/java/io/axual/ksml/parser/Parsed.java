@@ -1,10 +1,10 @@
-package io.axual.ksml.schema.parser;
+package io.axual.ksml.parser;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,31 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.ParseNode;
+import lombok.Getter;
 
-import java.util.List;
+@Getter
+public class Parsed<T> {
+    private final T result;
+    private final String errorMessage;
 
-public class DataFieldsParser extends BaseParser<List<DataField>> {
-    private static final String FIELD = "field";
+    private Parsed(T result, String errorMessage) {
+        this.result = result;
+        this.errorMessage = errorMessage;
+    }
 
-    @Override
-    public List<DataField> parse(ParseNode node) {
-        return new ListParser<>(FIELD, FIELD, new DataFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, FIELD));
+    public static <T> Parsed<T> ok(T result) {
+        return new Parsed<>(result, null);
+    }
+
+    public static <T> Parsed<T> error(String errorMessage) {
+        return new Parsed<>(null, errorMessage);
+    }
+
+    public boolean isOk() {
+        return errorMessage == null;
+    }
+
+    public boolean isError() {
+        return errorMessage != null;
     }
 }

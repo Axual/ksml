@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.serde.HeaderFilterSerde;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -28,8 +29,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import io.axual.ksml.data.serde.HeaderFilterSerde;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

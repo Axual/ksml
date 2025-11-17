@@ -57,9 +57,9 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
         return new StructsParser<>() {
             @Override
             public TopologyDefinition parse(ParseNode node) {
-                final var name = optional(stringField(KSMLDSL.NAME, true, "<anonymous topology>", "The name of the topology")).parse(node);
-                final var version = optional(stringField(KSMLDSL.VERSION, true, "<no version>", "The version of the topology")).parse(node);
-                final var description = optional(stringField(KSMLDSL.DESCRIPTION, true, "", "The description of the topology")).parse(node);
+                final var name = withDefault(optional(stringField(KSMLDSL.NAME, true, "The name of the topology")), "<anonymous topology>").parse(node);
+                final var version = withDefault(optional(stringField(KSMLDSL.VERSION, true, "The version of the topology")), "<no version>").parse(node);
+                final var description = withDefault(optional(stringField(KSMLDSL.DESCRIPTION, true, "The description of the topology")), "").parse(node);
 
                 final var resources = resourcesParser.parse(node);
                 final var result = new TopologyDefinition(resources.namespace(), name, version, description);

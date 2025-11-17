@@ -20,15 +20,25 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.base.Objects;
+import io.axual.ksml.data.compare.Assignable;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.util.EqualUtil;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Map;
+
+import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_STRUCT_TYPE_SCHEMA;
+import static io.axual.ksml.data.util.AssignableUtil.fieldNotAssignable;
+import static io.axual.ksml.data.util.AssignableUtil.typeMismatch;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
 /**
  * A {@link ComplexType} representing a structured map-like type that may be backed by a
@@ -37,39 +47,31 @@ import java.util.Map;
  * When a schema is provided, field types and assignability are validated against it. StructType
  * allows {@code null} values to support Kafka tombstones.
  */
+@EqualsAndHashCode
 @Getter
 public class StructType extends ComplexType {
     private static final String DEFAULT_NAME = "Struct";
+    private static final String SCHEMA_FIELD = "schema";
     private static final DataTypeDataSchemaMapper MAPPER = new DataTypeDataSchemaMapper();
-    private final String name;
     private final StructSchema schema;
 
+    public interface CompareFilter {
+        default boolean ignoreTags() {
+            return false;
+        }
+    }
+
     public StructType() {
-        this(null, null);
+        this(null);
     }
 
     public StructType(StructSchema schema) {
-        this(null, schema);
-    }
-
-    public StructType(String name) {
-        this(name, null);
-    }
-
-    private StructType(String name, StructSchema schema) {
         super(Map.class,
-                buildName("Map", DataType.UNKNOWN),
-                DataSchemaConstants.MAP_TYPE + "(" + buildSpec(DataType.UNKNOWN) + ")",
+                schema != null ? schema.name() : DEFAULT_NAME,
+                DataSchemaConstants.STRUCT_TYPE,
                 DataString.DATATYPE,
                 DataType.UNKNOWN);
         if (schema == StructSchema.SCHEMALESS) schema = null; // If we're SCHEMALESS, then nullify the schema here
-        if( name != null && !name.isEmpty() ){
-            this.name = name;
-        }else if( schema != null ){
-            this.name = schema.name();
-        }else {
-            this.name = DEFAULT_NAME;
-        }
         this.schema = schema;
     }
 
@@ -83,12 +85,7 @@ public class StructType extends ComplexType {
 
     @Override
     public String toString() {
-        return name;
-    }
-
-    @Override
-    public String name() {
-        return schema != null ? schema.name() : name;
+        return name();
     }
 
     public DataType fieldType(String fieldName, DataType incaseNoSchema, DataType incaseNoSuchField) {
@@ -99,26 +96,54 @@ public class StructType extends ComplexType {
     }
 
     @Override
-    public boolean isAssignableFrom(DataType type) {
-        if (type == DataNull.DATATYPE) return true; // Always allow Structs to be NULL (Kafka tombstones)
-        if (!super.isAssignableFrom(type)) return false;
-        if (!(type instanceof StructType structType)) return false;
-        if (schema == null) return true;
-        return schema.isAssignableFrom(structType.schema);
+    public Assignable isAssignableFrom(DataType type) {
+        // Always allow Structs to be NULL (Kafka tombstones)
+        if (type == DataNull.DATATYPE) return Assignable.assignable();
+
+        // Perform superclass validation first
+        final var superAssignable = super.isAssignableFrom(type);
+        if (superAssignable.isNotAssignable()) return superAssignable;
+
+        if (!(type instanceof StructType that))
+            return typeMismatch(this, type);
+
+        // Check the schema if we have one
+        if (schema != null) {
+            final var schemaAssignable = schema.isAssignableFrom(that.schema);
+            if (schemaAssignable.isNotAssignable())
+                return fieldNotAssignable(SCHEMA_FIELD, this, schema, that, that.schema, schemaAssignable);
+        }
+
+        return Assignable.assignable();
     }
 
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        if (!super.equals(other)) return false;
-        StructType that = (StructType) other;
-        if(!Objects.equal(this.name, that.name)) return false;
-        return this.isAssignableFrom(that) && that.isAssignableFrom(this);
-    }
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), name, schema);
+        final var superEqual = super.equals(other, flags);
+        if (superEqual.isNotEqual()) return superEqual;
+
+        final var that = (StructType) other;
+
+        // Compare schema
+        if (!flags.isSet(IGNORE_STRUCT_TYPE_SCHEMA) && (schema != null || that.schema != null)) {
+            if (schema == null || that.schema == null)
+                return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema);
+            final var schemaEqual = schema.equals(that.schema, flags);
+            if (schemaEqual.isNotEqual())
+                return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema, schemaEqual);
+        }
+
+        return Equality.equal();
     }
 }

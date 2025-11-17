@@ -38,7 +38,7 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
 
     @Override
     protected StructsParser<KeyValueStateStoreDefinition> parser() {
-        final var nameField = optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the keyValue store. If this field is not defined, then the name is derived from the context."));
+        final var nameField = optional(stringField(KSMLDSL.Stores.NAME, false, "The name of the keyValue store. If this field is not defined, then the name is derived from the context."));
         final var persistentField = optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise"));
         final var timestampField = optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
         final var versionedField = optional(booleanField(KSMLDSL.Stores.VERSIONED, "\"true\" if elements in the store are versioned, \"false\" otherwise"));
@@ -50,8 +50,9 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
         final var loggingField = optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise"));
 
         // Determine this parser's name by the two input booleans
-        final var parserPostfix = (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX)
-                + (requireKeyValueType ? "" : KSMLDSL.Types.WITH_IMPLICIT_KEY_AND_VALUE_TYPE);
+        final var parserPostfix =
+                (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX) +
+                (requireKeyValueType ? "" : KSMLDSL.Types.WITH_IMPLICIT_KEY_AND_VALUE_TYPE);
 
         if (requireKeyValueType) return structsParser(
                 // Parse the state store including name, keyType and valueType
@@ -73,7 +74,7 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging);
                 });
 
-        // Parse the state store without name, keyType and valueType
+        // Parse the state store without a name, keyType and valueType
         return structsParser(
                 KeyValueStateStoreDefinition.class,
                 parserPostfix,

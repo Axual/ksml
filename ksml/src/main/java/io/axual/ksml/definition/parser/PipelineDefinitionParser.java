@@ -26,7 +26,13 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
 import io.axual.ksml.operation.OperationConfig;
-import io.axual.ksml.operation.parser.*;
+import io.axual.ksml.operation.parser.AsOperationParser;
+import io.axual.ksml.operation.parser.BranchOperationParser;
+import io.axual.ksml.operation.parser.ForEachOperationParser;
+import io.axual.ksml.operation.parser.PipelineOperationParser;
+import io.axual.ksml.operation.parser.PrintOperationParser;
+import io.axual.ksml.operation.parser.ToOperationParser;
+import io.axual.ksml.operation.parser.ToTopicNameExtractorOperationParser;
 import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
@@ -68,7 +74,7 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
                 PipelineDefinition.class,
                 parseSource ? "" : "WithoutSource",
                 "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",
-                optional(stringField(KSMLDSL.Pipelines.NAME, true, null, "The name of the pipeline. If this field is not defined, then the name is derived from the context.")),
+                optional(stringField(KSMLDSL.Pipelines.NAME, true, "The name of the pipeline. If this field is not defined, then the name is derived from the context.")),
                 parseSource ? sourceField : new IgnoreParser<>(),
                 optional(listField(KSMLDSL.Pipelines.VIA, "step", "step", "A series of operations performed on the input stream", new PipelineOperationParser(resources()))),
                 optional(asParser),

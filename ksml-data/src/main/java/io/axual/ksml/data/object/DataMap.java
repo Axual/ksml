@@ -21,13 +21,27 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
+import lombok.EqualsAndHashCode;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
+
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_MAP_CONTENTS;
+import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_MAP_TYPE;
+import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.objectNotEqual;
+import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
+import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 
 /**
  * Represents a map with {@code String} keys and {@link DataObject} values within the
@@ -41,6 +55,7 @@ import java.util.function.BiConsumer;
  * @see DataObject
  * @see MapType
  */
+@EqualsAndHashCode
 public class DataMap implements DataObject {
     /**
      * Represents the static map type for maps of unknown element types.
@@ -166,8 +181,9 @@ public class DataMap implements DataObject {
      * @return The same {@link DataObject} if the type is valid.
      * @throws IllegalArgumentException if the value type is invalid.
      */
-    private DataObject verifiedValue(DataObject value) {
-        if (!type.valueType().isAssignableFrom(value.type())) {
+    private DataObject assignableValue(DataObject value) {
+        final var assignable = type.valueType().isAssignableFrom(value.type());
+        if (assignable.isNotAssignable()) {
             throw new IllegalArgumentException("Can not cast value of dataType " + value.type() + " to " + type.valueType());
         }
         return value;
@@ -184,7 +200,7 @@ public class DataMap implements DataObject {
     public DataObject put(String key, DataObject value) {
         if (contents == null)
             throw new DataException("Can not add item to a NULL Map: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
-        contents.put(key, verifiedValue(value));
+        contents.put(key, assignableValue(value));
         return value;
     }
 
@@ -199,7 +215,7 @@ public class DataMap implements DataObject {
     public DataObject putIfAbsent(String key, DataObject value) {
         if (contents == null)
             throw new DataException("Can not add item to a NULL Map: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
-        return contents.computeIfAbsent(key, k -> verifiedValue(value));
+        return contents.computeIfAbsent(key, k -> assignableValue(value));
     }
 
     /**
@@ -240,7 +256,7 @@ public class DataMap implements DataObject {
      */
     @Override
     public String toString(Printer printer) {
-        final var schemaName = printer.schemaString(this);
+        final var schemaName = printer.schemaPrefix(this);
 
         // Return NULL as value
         if (isNull()) return schemaName + "null";
@@ -265,17 +281,53 @@ public class DataMap implements DataObject {
         }
     }
 
+    /**
+     * Checks if this schema type is equal to another schema. Equality checks are parameterized by flags passed in.
+     *
+     * @param other The other schema to compare.
+     * @param flags The flags that indicate what to compare.
+     */
     @Override
-    public boolean equals(final Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
+    public Equality equals(Object other, EqualityFlags flags) {
+        if (this == other) return Equality.equal();
+        if (other == null) return otherIsNull(this);
+        if (!getClass().equals(other.getClass()))
+            return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
-        final DataMap dataMap = (DataMap) other;
-        return Objects.equals(type, dataMap.type) && Objects.equals(contents, dataMap.contents);
+        final var that = (DataMap) other;
+
+        // Compare type
+        if (!flags.isSet(IGNORE_DATA_MAP_TYPE)) {
+            final var typeEquals = type.equals(that.type, flags);
+            if (typeEquals.isNotEqual())
+                return typeNotEqual(type, that.type, typeEquals);
+        }
+
+        // Compare contents
+        if (!flags.isSet(IGNORE_DATA_MAP_CONTENTS) && (contents != null || that.contents != null)) {
+            if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
+            final var contentsEqual = equalContents(this, that, flags);
+            if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
+        }
+
+        return Equality.equal();
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), contents, type);
+    private static Equality equalContents(DataMap left, DataMap right, EqualityFlags flags) {
+        if (left.size() != right.size())
+            return fieldNotEqual("contentSize", left, left.size(), right, right.size());
+
+        for (var entry : left.entrySet()) {
+            final var thatValue = right.get(entry.getKey());
+            if (entry.getValue() != null || thatValue != null) {
+                if (entry.getValue() == null || thatValue == null)
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue);
+                final var entryEqual = entry.getValue().equals(thatValue, flags);
+                if (entryEqual.isNotEqual())
+                    return fieldNotEqual(entry.getKey(), left, entry.getValue(), right, thatValue, entryEqual);
+            }
+        }
+
+        return Equality.equal();
     }
 }

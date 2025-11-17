@@ -1,10 +1,10 @@
-package io.axual.ksml.data.schema;
+package io.axual.ksml.data.notation.protobuf;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library - PROTOBUF
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,11 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-/**
- * Represents a container for a single value.
- * <p>
- * The {@code DataValue} class is designed as a record to hold a single data value
- * of any type. It acts as a lightweight wrapper for objects, primarily used in the
- * context of schema-related operations within the KSML framework.
- * </p>
- *
- * @param value The encapsulated value. This is a generic object and can represent any type of data.
- */
-public record DataValue(Object value) {
+import com.google.protobuf.Descriptors;
+import com.squareup.wire.schema.internal.parser.ProtoFileElement;
+
+public interface ProtobufFileElementDescriptorMapper {
+    Descriptors.FileDescriptor toDescriptor(String namespace, String name, ProtoFileElement fileElement);
+
+    ProtoFileElement toFileElement(Descriptors.Descriptor descriptor);
 }

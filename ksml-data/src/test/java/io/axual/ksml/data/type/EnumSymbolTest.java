@@ -20,6 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.EnumSchema;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,16 +28,16 @@ import org.junit.jupiter.api.Test;
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class SymbolTest {
+class EnumSymbolTest {
 
     @Test
     @DisplayName("Default constructor sets doc=null and tag=NO_TAG")
     void defaultConstructor() {
-        var s = new Symbol("A");
+        var s = new EnumSchema.Symbol("A");
         assertThat(s)
-                .returns("A", Symbol::name)
-                .returns(null, Symbol::doc)
-                .returns(NO_TAG, Symbol::tag);
+                .returns("A", EnumSchema.Symbol::name)
+                .returns(null, EnumSchema.Symbol::doc)
+                .returns(NO_TAG, EnumSchema.Symbol::tag);
         assertThat(s.hasDoc()).isFalse();
     }
 
@@ -44,20 +45,20 @@ class SymbolTest {
     @DisplayName("hasDoc is true only for non-empty doc")
     void hasDocBehavior() {
         var softly = new SoftAssertions();
-        softly.assertThat(new Symbol("A", null, NO_TAG).hasDoc()).isFalse();
-        softly.assertThat(new Symbol("A", "", NO_TAG).hasDoc()).isFalse();
-        softly.assertThat(new Symbol("A", "desc", NO_TAG).hasDoc()).isTrue();
+        softly.assertThat(new EnumSchema.Symbol("A", null, NO_TAG).hasDoc()).isFalse();
+        softly.assertThat(new EnumSchema.Symbol("A", "", NO_TAG).hasDoc()).isFalse();
+        softly.assertThat(new EnumSchema.Symbol("A", "desc", NO_TAG).hasDoc()).isTrue();
         softly.assertAll();
     }
 
     @Test
     @DisplayName("isAssignableFrom requires same name and compatible tags (NO_TAG is wildcard)")
     void isAssignableFromBehavior() {
-        var aNoTag = new Symbol("A", null, NO_TAG);
-        var aNoTag2 = new Symbol("A", null, NO_TAG);
-        var a7 = new Symbol("A", null, 7);
-        var a8 = new Symbol("A", null, 8);
-        var bNoTag = new Symbol("B", null, NO_TAG);
+        var aNoTag = new EnumSchema.Symbol("A", null, NO_TAG);
+        var aNoTag2 = new EnumSchema.Symbol("A", null, NO_TAG);
+        var a7 = new EnumSchema.Symbol("A", null, 7);
+        var a8 = new EnumSchema.Symbol("A", null, 8);
+        var bNoTag = new EnumSchema.Symbol("B", null, NO_TAG);
 
         // Same name, any NO_TAG acts as wildcard
         assertThat(aNoTag.isAssignableFrom(aNoTag2)).isTrue();
@@ -65,11 +66,11 @@ class SymbolTest {
         assertThat(a7.isAssignableFrom(aNoTag)).isTrue();
 
         // Same name, equal non-NO_TAG -> true; different tags -> false
-        assertThat(a7.isAssignableFrom(new Symbol("A", null, 7))).isTrue();
+        assertThat(a7.isAssignableFrom(new EnumSchema.Symbol("A", null, 7))).isTrue();
         assertThat(a7.isAssignableFrom(a8)).isFalse();
 
         // Different names -> false regardless of tags
         assertThat(aNoTag.isAssignableFrom(bNoTag)).isFalse();
-        assertThat(a7.isAssignableFrom(new Symbol("B", null, 7))).isFalse();
+        assertThat(a7.isAssignableFrom(new EnumSchema.Symbol("B", null, 7))).isFalse();
     }
 }

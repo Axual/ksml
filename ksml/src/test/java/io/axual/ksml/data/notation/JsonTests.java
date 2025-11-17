@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
@@ -31,19 +32,19 @@ class JsonTests {
     @Test
     void schemaTest() {
         NotationTestRunner.schemaTest(JsonNotation.NOTATION_NAME, new JsonSchemaMapper(false), (input, output) -> {
-            assertTrue(input.isAssignableFrom(output), "Input is not assignable from the output");
-            assertTrue(output.isAssignableFrom(input), "Output is not assignable from the input");
+            assertTrue(input.isAssignableFrom(output).isAssignable(), "Input is not assignable from the output");
+            assertTrue(output.isAssignableFrom(input).isAssignable(), "Output is not assignable from the input");
         });
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(JsonNotation.NOTATION_NAME, new JsonDataObjectMapper(false));
+        NotationTestRunner.dataTest(JsonNotation.NOTATION_NAME, new JsonDataObjectMapper(false), EqualityFlags.EMPTY);
     }
 
     @Test
     void serdeTest() {
         final var notation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
-        NotationTestRunner.serdeTest(notation, true);
+        NotationTestRunner.serdeTest(notation, true, new EqualityFlags());
     }
 }
