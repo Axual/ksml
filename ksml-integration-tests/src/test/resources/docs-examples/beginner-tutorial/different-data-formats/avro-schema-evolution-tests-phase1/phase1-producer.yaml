@@ -1,0 +1,39 @@
+functions:
+  generate_sensordata_v1:
+    type: generator
+    globalCode: |
+      import time
+      import random
+      messageCount = 0
+    code: |
+      global messageCount
+
+      # Stop after 10 messages
+      if messageCount >= 10:
+        return None
+
+      key = "sensor" + str(messageCount)
+      messageCount += 1
+
+      # Generate sensor data with v1 schema (8 fields only - no location, no accuracy)
+      value = {
+        "name": key,
+        "timestamp": round(time.time()*1000),
+        "value": str(random.randrange(0, 100)),
+        "type": random.choice(["AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE"]),
+        "unit": random.choice(["C", "F", "%", "Pa", "m2", "m", "boolean"]),
+        "color": random.choice(["black", "blue", "red", "yellow", "white"]),
+        "city": random.choice(["Amsterdam", "Utrecht", "Rotterdam", "The Hague", "Eindhoven"]),
+        "owner": random.choice(["Alice", "Bob", "Charlie", "Dave", "Evan"])
+      }
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  phase1_producer:
+    generator: generate_sensordata_v1
+    interval: 1s
+    to:
+      topic: sensor_data_evolution_test
+      keyType: string
+      valueType: avro:SensorData

@@ -1,0 +1,27 @@
+ksml:
+  definitions:
+    producer: phase1-producer.yaml
+  schemaRegistries:
+    my_schema_registry:
+      config:
+        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
+        apicurio.registry.dereference-schema: true
+        apicurio.registry.serializer.dereference-schema: true
+        apicurio.registry.deserializer.dereference-schema: true
+        apicurio.registry.auto-register: true
+        apicurio.registry.auto-register.if-exists: RETURN
+  notations:
+    avro:
+      type: apicurio_avro
+      schemaRegistry: my_schema_registry
+      config:
+        normalize.schemas: true
+        auto.register.schemas: true
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.schema.evolution.test
+  security.protocol: PLAINTEXT
+  acks: all
