@@ -78,7 +78,8 @@ functions:
       card_id = value.get("card_id")
       current_country = value.get("merchant", {}).get("location", {}).get("country")
       current_state = value.get("merchant", {}).get("location", {}).get("state")
-      
+      time_since_last = 0  # Initialize to ensure it's always defined
+
       # Get location history for this card
       location_history = card_location_history.get(card_id)
       unusual_location = False
