@@ -35,7 +35,6 @@ import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -161,7 +160,8 @@ public class PythonFunction extends UserFunction {
         String[] callParams = Arrays.stream(definition.parameters()).map(ParameterDefinition::name).toArray(String[]::new);
 
         // prepare globalCode from the function definition
-        final var globalCode = String.join("\n", injectFunctionLocalVariables(namespace, type, definition.globalCode())) + "\n";
+        String[] globalCodeLines = getFunctionCode(definition.globalCode(), "", context.baseDirectory());
+        final var globalCode = String.join("\n", injectFunctionLocalVariables(namespace, type, globalCodeLines)) + "\n";
 
         // Code to include all global variables
         final var assignStores = definition.storeNames().stream()

@@ -25,6 +25,7 @@ import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import io.axual.ksml.testutil.KSMLTopologyTest;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -70,8 +71,8 @@ class KSMLFilterTest {
         List<GenericRecord> outputValues = outputTopic.readValuesToList();
         assertEquals(2, outputValues.size());
         assertTrue(outputValues.stream()
-                .map(rec -> rec.get("color").toString())
-                .allMatch(color -> color.equals("blue")));
+            .map(rec -> rec.get("color").toString())
+            .allMatch(color -> color.equals("blue")));
     }
 
     @KSMLTest(topology = "pipelines/test-filter-module-import.yaml", schemaDirectory = "schemas", modulesDirectory = "pipelines")
@@ -96,11 +97,15 @@ class KSMLFilterTest {
         List<GenericRecord> outputValues = outputTopic.readValuesToList();
         assertEquals(2, outputValues.size());
         assertTrue(outputValues.stream()
-                .map(rec -> rec.get("color").toString())
-                .allMatch(color -> color.equals("blue")));
+            .map(rec -> rec.get("color").toString())
+            .allMatch(color -> color.equals("blue")));
     }
 
-    @KSMLTopologyTest(topologies = {"pipelines/test-filter.yaml", "pipelines/test-filter-external-python-inline.yaml", "pipelines/test-filter-external-python-function.yaml"}, schemaDirectory = "schemas")
+    @KSMLTopologyTest(topologies = {"pipelines/test-filter.yaml",
+        "pipelines/test-filter-external-python-inline.yaml",
+        "pipelines/test-filter-external-python-function.yaml",
+        "pipelines/test-filter-globalcode.yaml",
+        "pipelines/test-filter-globalcode-external.yaml"}, schemaDirectory = "schemas")
     @DisplayName("Records can be filtered by KSML using inline or externalized Python")
     void testFilterAvroRecordsExternalPython() {
         log.debug("testFilterAvroRecordsExternalPython()");
@@ -122,7 +127,7 @@ class KSMLFilterTest {
         List<GenericRecord> outputValues = outputTopic.readValuesToList();
         assertEquals(2, outputValues.size());
         assertTrue(outputValues.stream()
-                .map(rec -> rec.get("color").toString())
-                .allMatch(color -> color.equals("blue")));
+            .map(rec -> rec.get("color").toString())
+            .allMatch(color -> color.equals("blue")));
     }
 }
