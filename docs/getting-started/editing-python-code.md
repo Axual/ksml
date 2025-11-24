@@ -42,7 +42,7 @@ Define reusable functions in a `globalCode` block that can be referenced by mult
 
     **YAML definition:**
     ```yaml
-    {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode.yaml" %}
+    {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode-external.yaml" %}
     ```
 
     **Python file (`test-filter-globalcode-external.py`):**
