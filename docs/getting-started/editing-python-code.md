@@ -8,47 +8,29 @@ KSML allows you to write custom logic in Python within your pipeline definitions
 
 The simplest approach is to write Python code directly in your YAML file:
 
-```yaml
-functions:
-  sensor_is_blue:
-    type: predicate
-    code: |
-      if value == None:
-        log.warn("No value in message with key={}", key)
-        return False
-      if value["color"] != "blue":
-        log.warn("Unknown color: {}", value["color"])
-        return False
-    expression: True
-```
+??? example "Inline code example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/pipelines/test-filter.yaml" %}
+    ```
 
 **Use when:** Logic is short and specific to one function.
 
 ### 2. External Python Files
 
-Reference an external Python file using the `file:` prefix:
+Reference an external Python file using the `file:` prefix in your YAML, and define the function in a separate `.py` file.
 
-```yaml
-functions:
-  sensor_is_blue:
-    type: predicate
-    code: file:filter_logic.py
-    expression: values_is_blue(key, value)
-```
+??? example "External Python file example (click to expand)"
 
-The external file contains a function definition:
+    **YAML definition:**
+    ```yaml
+    {% include "../../ksml/src/test/resources/pipelines/test-filter-external-python-function.yaml" %}
+    ```
 
-```python
-# filter_logic.py
-def values_is_blue(somekey, someval):
-  if someval == None:
-    log.warn("No value in message with key={}", somekey)
-    return False
-  if someval["color"] != "blue":
-    log.warn("Unknown color: {}", someval["color"])
-    return False
-  return True
-```
+    **Python file (`test-filter-external-python-function.py`):**
+    ```python
+    {% include "../../ksml/src/test/resources/pipelines/test-filter-external-python-function.py" %}
+    ```
 
 **Use when:** Function logic is reusable or complex enough to warrant separate files.
 
@@ -56,27 +38,17 @@ def values_is_blue(somekey, someval):
 
 Define reusable functions in a `globalCode` block that can be referenced by multiple functions:
 
-```yaml
-functions:
-  sensor_is_blue:
-    type: predicate
-    globalCode: file:shared_filters.py
-    expression: check_sensor_is_blue(value, key)
-```
+??? example "Global code with external file (click to expand)"
 
-The external file:
+    **YAML definition:**
+    ```yaml
+    {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode.yaml" %}
+    ```
 
-```python
-# shared_filters.py
-def check_sensor_is_blue(value, key):
-  if value == None:
-    log.warn("No value in message with key={}", key)
-    return False
-  if value["color"] != "blue":
-    log.warn("Unknown color: {}", value["color"])
-    return False
-  return True
-```
+    **Python file (`test-filter-globalcode-external.py`):**
+    ```python
+    {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode-external.py" %}
+    ```
 
 **Use when:** Multiple functions share common logic or utilities.
 
@@ -84,36 +56,17 @@ def check_sensor_is_blue(value, key):
 
 For advanced scenarios, import Python modules using `globalCode`:
 
-```yaml
-functions:
-  sensor_is_blue:
-    type: predicate
-    globalCode: |
-      from test_filter_module import is_blue
-    code: |
-      return is_blue(value)
-    expression: True
-```
+??? example "Python module import example (click to expand)"
 
-The module file (`test_filter_module.py`):
+    **YAML definition:**
+    ```yaml
+    {% include "../../ksml/src/test/resources/pipelines/test-filter-module-import.yaml" %}
+    ```
 
-```python
-def is_blue(val):
-    """Filter values with color attribute 'blue'"""
-    if val == None:
-        return False
-    if val["color"] != "blue":
-        return False
-    return True
-
-def is_red(val):
-    """Filter values with color attribute 'red'"""
-    if val == None:
-        return False
-    if val["color"] != "red":
-        return False
-    return True
-```
+    **Python module (`test_filter_module.py`):**
+    ```python
+    {% include "../../ksml/src/test/resources/pipelines/test_filter_module.py" %}
+    ```
 
 **Use when:** You have a library of reusable functions or need to organize complex logic into modules.
 
@@ -132,23 +85,23 @@ KSML provides a Python stub file (`ksml_runtime.pyi`) that enables code completi
 
 ### Setting Up Code Completion
 
-Place the stub file in your Python path and use TYPE_CHECKING to enable editor support:
+Place the stub file in your Python path and use `TYPE_CHECKING` to enable editor support without runtime overhead.
+
+See the example in the [External Python Files](#2-external-python-files) section above for the pattern:
 
 ```python
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-  # Import only happens during development for IDE support
-  from ksml_runtime import log, metrics, stores
-
-def check_sensor_is_blue(value, key):
-  if value == None:
-    log.warn("No value in message with key={}", key)  # ← IDE provides completion
-    return False
-  if value["color"] != "blue":
-    return False
-  return True
+  # This import only happens during development, enables code completion
+  from ksml_runtime import log
 ```
+
+??? info "Complete ksml_runtime.pyi stub file (click to expand)"
+
+    ```python
+    {% include "../../ksml/src/test/resources/ksml_runtime.pyi" %}
+    ```
 
 The stub file defines the KSML runtime environment:
 
@@ -158,31 +111,20 @@ The stub file defines the KSML runtime environment:
 
 ### Available Runtime Objects
 
-#### Logger
+The stub file provides type hints for:
 
-```python
-log.info("Processing message with key={}", key)
-log.warn("Invalid value: {}", value)
-log.error("Failed to process: {}", error)
-```
+#### Logger
+- `log.trace()`, `log.debug()`, `log.info()`, `log.warn()`, `log.error()`
+- Level checks: `isTraceEnabled()`, `isDebugEnabled()`, etc.
 
 #### Metrics
-
-```python
-counter = metrics.counter("messages_processed")
-counter.increment()
-
-timer = metrics.timer("processing_time")
-timer.updateMillis(elapsed_ms)
-```
+- `metrics.counter(name)` - Create/get a counter metric
+- `metrics.meter(name)` - Create/get a meter metric
+- `metrics.timer(name)` - Create/get a timer metric
 
 #### State Stores
-
-```python
-# Access configured state stores
-history = stores["transaction_history"].get(customer_id)
-stores["transaction_history"].put(customer_id, updated_history)
-```
+- Access via `stores[store_name]`
+- Key-value operations: `get()`, `put()`, `delete()`, `range()`, `all()`
 
 ## Best Practices
 
@@ -193,67 +135,29 @@ stores["transaction_history"].put(customer_id, updated_history)
 5. **Keep functions pure** - avoid side effects outside of logging and metrics
 6. **Handle None values** explicitly to prevent runtime errors
 
-## File Organization
+## Example File Organization
 
+Place the `ksml_runtime.pyi` stub at the root of your definitions, or somewhere on your editor import path:
 ```
 my-project/
 ├── pipelines/
-│   ├── my-pipeline.yaml
-│   ├── filter_helpers.py        # Shared functions
+│   ├── my-pipeline.yaml         # Main pipeline definition
+│   ├── filter_helpers.py        # Shared function files
+│   ├── transform_logic.py       # External Python code
 │   └── modules/
-│       └── data_validation.py   # Importable modules
-└── ksml_runtime.pyi             # Type stubs for IDE
+│       └── data_validation.py   # Importable Python modules
+└── ksml_runtime.pyi             # Type stub for IDE support
 ```
 
-## Example: Complete Filter Pipeline
+## Summary
 
-```yaml
-streams:
-  sensor_source:
-    topic: sensors
-    keyType: string
-    valueType: avro:SensorData
+This guide covered four approaches to organizing Python code in KSML:
 
-functions:
-  sensor_is_valid:
-    type: predicate
-    globalCode: file:sensor_validation.py
-    expression: validate_sensor(value, key)
+1. **Inline code** - Quick and simple for short logic
+2. **External files** - Better for reusable or complex functions
+3. **Global code** - Share utilities across multiple functions
+4. **Module imports** - Full Python module system for libraries
 
-pipelines:
-  validation_pipeline:
-    from: sensor_source
-    via:
-      - type: filter
-        if: sensor_is_valid
-    to: validated_sensors
-```
-
-With external file:
-
-```python
-# sensor_validation.py
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-  # this import happens in the editor only
-  from ksml_runtime import log
-
-def validate_sensor(value, key):
-  """Validate sensor data"""
-  if value is None:
-    log.warn("Null value for key={}", key)
-    return False
-
-  if "temperature" not in value:
-    log.warn("Missing temperature field")
-    return False
-
-  if value["temperature"] < -273.15:  # Below absolute zero
-    log.error("Invalid temperature: {}", value["temperature"])
-    return False
-
-  return True
-```
+All examples shown are working code from the KSML test suite. Use the `ksml_runtime.pyi` stub file for full IDE support including code completion, type checking, and inline documentation.
 
 This approach keeps your YAML clean, enables code reuse, and provides full IDE support for Python development.
