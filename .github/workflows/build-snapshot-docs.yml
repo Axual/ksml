@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - external-python
   workflow_dispatch:
 permissions:
   contents: write
