@@ -100,7 +100,7 @@ if TYPE_CHECKING:
 ??? info "Complete ksml_runtime.pyi stub file (click to expand)"
 
     ```python
-    {% include "../../ksml/src/test/resources/ksml_runtime.pyi" %}
+    {% include "../../ksml/src/test/resources/ksml_runtime_stub.pyi" %}
     ```
 
 The stub file defines the KSML runtime environment:
