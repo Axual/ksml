@@ -32,6 +32,7 @@ import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.python.PythonContextConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
@@ -154,7 +155,11 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, methodName)));
-        final var topologyGenerator = new TopologyGenerator(methodName + ".app");
+
+        // Pass the directory of the definition file for resolving relative Python paths
+        final var definitionFilePaths = ImmutableMap.of("definition", path.getParent());
+        final var topologyGenerator = new TopologyGenerator(methodName + ".app", null,
+                PythonContextConfig.builder().build(), definitionFilePaths);
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final var description = topology.describe();
         log.info("{}", description);

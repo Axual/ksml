@@ -52,6 +52,7 @@ nav:
   - Getting Started:
       - Quick Start: getting-started/quick-start.md
       - Understanding KSML: getting-started/introduction.md
+      - Editing Python Code: getting-started/editing-python-code.md
       - Schema Validation: getting-started/schema-validation.md
   - Tutorials:
       - Overview: tutorials/index.md

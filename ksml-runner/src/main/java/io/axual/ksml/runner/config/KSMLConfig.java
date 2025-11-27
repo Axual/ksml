@@ -21,6 +21,8 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.google.common.collect.ImmutableMap;
+
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -29,7 +31,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinition;
@@ -40,13 +50,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = false)
@@ -198,6 +201,30 @@ public class KSMLConfig {
                 }
                 if (valueObj.getValue() instanceof ObjectNode root) {
                     result.put(namespace, root);
+                }
+            }
+        }
+        return result;
+    }
+
+    public Map<String, Path> definitionFilePaths() {
+        final var result = new HashMap<String, Path>();
+        if (definitions != null) {
+            for (var definition : definitions.entrySet()) {
+                var namespace = definition.getKey();
+                var valueObj = definition.getValue();
+                if (valueObj == null) continue;
+
+                if (valueObj.getValue() instanceof String definitionFile) {
+                    final var definitionFilePath = Paths.get(configDirectory(), definitionFile);
+                    if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
+                        throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exist");
+                    }
+                    result.put(namespace, definitionFilePath.getParent());
+                }
+                // For inline definitions, use configDirectory as the base
+                if (valueObj.getValue() instanceof ObjectNode) {
+                    result.put(namespace, Paths.get(configDirectory()));
                 }
             }
         }

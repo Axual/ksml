@@ -25,6 +25,10 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.*;
+import org.graalvm.polyglot.io.FileSystem;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.EnvironmentAccess;
 import org.graalvm.polyglot.HostAccess;
@@ -33,6 +37,7 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.io.IOAccess;
 
+import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
@@ -47,18 +52,24 @@ public class PythonContext {
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
+    @Getter
+    private final Path baseDirectory;
 
     public PythonContext(PythonContextConfig config) {
+        this(config, null);
+    }
+
+    public PythonContext(PythonContextConfig config, Path baseDirectory) {
         this.converter = new DataObjectConverter();
+        this.baseDirectory = baseDirectory;
 
         log.debug("Setting up new Python context: {}", config);
         try {
-            context = Context.newBuilder(PYTHON)
+            var contextBuilder = Context.newBuilder(PYTHON)
                     .allowIO(IOAccess.newBuilder()
                             .allowHostFileAccess(config.allowHostFileAccess())
                             .allowHostSocketAccess(config.allowHostSocketAccess())
                             .build())
-//                    .allowIO(IOAccess.ALL)
                     .allowNativeAccess(config.allowNativeAccess())
                     .allowCreateProcess(config.allowCreateProcess())
                     .allowCreateThread(config.allowCreateThread())
@@ -70,7 +81,6 @@ public class PythonContext {
                             PolyglotAccess.newBuilder()
                                     .allowBindingsAccess(PYTHON)
                                     .build())
-//                    .allowPolyglotAccess(PolyglotAccess.ALL)
                     .allowHostAccess(
                             HostAccess.newBuilder()
                                     .allowPublicAccess(true)
@@ -84,9 +94,19 @@ public class PythonContext {
                                     .allowMapAccess(true)
                                     .allowAccessInheritance(false)
                                     .build())
-//                    .allowHostAccess(HostAccess.ALL)
-                    .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains)
+                    .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains);
+
+            // set up configured I/O access
+            IOAccess ioAccess = createIOAccess(config.allowHostFileAccess(), config.allowHostSocketAccess(), config.pythonModulePath());
+
+            context = contextBuilder
+                    .allowIO(ioAccess)
                     .build();
+
+            if (!StringUtils.isEmpty( config.pythonModulePath() )) {
+                addModulePathToSysPath(Path.of(config.pythonModulePath()));
+            }
+
             registerGlobalCode();
         } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
@@ -94,6 +114,12 @@ public class PythonContext {
         }
     }
 
+    /**
+     * Register a function in the Python context.
+     * @param pyCode the function source code.
+     * @param callerName the name of the function to be registered.
+     * @return
+     */
     public Value registerFunction(String pyCode, String callerName) {
         Source script = Source.create(PYTHON, pyCode);
         try {
@@ -104,6 +130,9 @@ public class PythonContext {
         return context.getPolyglotBindings().getMember(callerName);
     }
 
+    /**
+     * Register global code that is used to initialize the loggerBridge and metricsBridge variables.
+     */
     public void registerGlobalCode() {
         // The following code registers a global variables "loggerBridge" and "metricsBridge" inside the Python
         // context and initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used
@@ -127,4 +156,101 @@ public class PythonContext {
         // Pass the global LOGGER_BRIDGE and METRICS_BRIDGE variables into global variables of the Python context
         register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
     }
+
+    /**
+     * Create an GraalVM IOAccess object based on the settings in the configuration.
+     * @param allowHostFileAccess indicate if host file access should be allowed.
+     * @param allowHostSocketAccess indicate if host socket access should be allowed.
+     * @param modulePath the path where customer Python modules are located.
+     * @return an IOAccess object based on the settings in the configuration.
+     */
+    private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
+        log.debug("createIOAccess({}, {}, {})", allowHostFileAccess, allowHostSocketAccess, modulePath);
+
+        if (allowHostFileAccess || StringUtils.isEmpty( modulePath)) {
+            // if host file access is allowed, then we don't need to set up a restricted file system for module access
+            return IOAccess.newBuilder()
+                    .allowHostFileAccess(allowHostFileAccess)
+                    .allowHostSocketAccess(allowHostSocketAccess)
+                    .build();
+        } else {
+            // host file access is false, but modulePath is not empty: set up restricted file system for module access
+            FileSystem modulesReadOnly = createReadOnlyFileSystem(modulePath);
+            return IOAccess.newBuilder()
+                    .fileSystem(modulesReadOnly)
+                    .allowHostSocketAccess(allowHostSocketAccess)
+                    .build();
+        }
+    }
+
+    /**
+     * Create an FileSystem object that allows read-only access to Python's home, and the given path and everything below it.
+     * @param modulePath the path where customer Python modules are located.
+     * @return an FileSystem for Python module access that allows read-only access to the given path and everything below it.
+     */
+    private FileSystem createReadOnlyFileSystem(String modulePath) {
+        log.debug("createReadOnlyFileSystem({})", modulePath);
+        FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
+        FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
+        String sysPrefix = getPythonSysPrefix();
+        FileSystem restricted = FileSystem.newCompositeFileSystem(
+                // the default/fallback file system is: deny access
+                denyAllAccess,
+                // add a selector that returns the modulesFileSystem only if the path matches modulePath or sys.prefix
+                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath) || path.startsWith(sysPrefix))
+        );
+
+        return FileSystem.newReadOnlyFileSystem(restricted);
+    }
+
+    /**
+     * Get sys.prefix from GraalVM Python.
+     * @return the value of sys.prefix.
+     */
+    private String getPythonSysPrefix() {
+        log.debug("getPythonSysPrefix()");
+        var tempContext = Context.newBuilder(PYTHON).build();
+        var result = tempContext.eval(PYTHON, "import sys; sys.prefix").asString();
+        log.debug("getPythonSysPrefix() ---> {}", result);
+        tempContext.close();
+        return result;
+    }
+
+    /**
+     * Add a directory to Python's sys.path for module imports
+     */
+    private void addModulePathToSysPath(Path modulePath) {
+        log.debug("addModulePathToSysPath({})", modulePath.toAbsolutePath().toString().replace("\\", "\\\\").replace("'", "\\'"));
+        try {
+            String absolutePath = modulePath.toAbsolutePath().toString();
+            String pythonCode = String.format(
+                """
+                    import sys
+                    if '%s' not in sys.path:
+                        sys.path.insert(0, '%s')
+                    """,
+                    absolutePath.replace("\\", "\\\\").replace("'", "\\'"),
+                    absolutePath.replace("\\", "\\\\").replace("'", "\\'")
+            );
+
+            context.eval(PYTHON, pythonCode);
+            log.info("Added Python module path to sys.path: {}", absolutePath);
+        } catch (Exception e) {
+            log.error("Failed to add module path to sys.path: {}", modulePath, e);
+            throw new ExecutionException("Could not configure Python module path", e);
+        }
+    }
+
+    /**
+     * Show the configured Python sys.path for debugging.
+     */
+    public void debugPythonPath() {
+        try {
+            var result = context.eval("python", "import sys; sys.path");
+            log.debug("Python sys.path: {}", result);
+        } catch (Exception e) {
+            log.warn("Could not read Python sys.path", e);
+        }
+    }
+
 }
