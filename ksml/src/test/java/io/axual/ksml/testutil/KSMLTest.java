@@ -44,6 +44,10 @@ public @interface KSMLTest {
     /** Optional classpath relative reference to a directory with AVRO schema definitions. */
     String schemaDirectory() default NO_SCHEMAS;
 
+    /** Optional classpath relative reference to a directory with KSML modules. */
     String modulesDirectory() default NO_MODULES;
+
+    /** Optional boolean to allow KSML host file access; default false. */
+    boolean allowHostFileAccess() default false;
 
 }

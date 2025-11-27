@@ -159,22 +159,22 @@ public class PythonContext {
 
     /**
      * Create an GraalVM IOAccess object based on the settings in the configuration.
-     * @param allowHostFileAccess
-     * @param allowHostSocketAccess
-     * @param modulePath
-     * @return
+     * @param allowHostFileAccess indicate if host file access should be allowed.
+     * @param allowHostSocketAccess indicate if host socket access should be allowed.
+     * @param modulePath the path where customer Python modules are located.
+     * @return an IOAccess object based on the settings in the configuration.
      */
     private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
-        if (allowHostFileAccess && modulePath != null) {
-            log.warn("Configuration error? Setting pythonModulePath is superfluous when allowHostFileAccess is set to true");
-        }
+        log.debug("createIOAccess({}, {}, {})", allowHostFileAccess, allowHostSocketAccess, modulePath);
 
-        if (StringUtils.isEmpty( modulePath)) {
+        if (allowHostFileAccess || StringUtils.isEmpty( modulePath)) {
+            // if host file access is allowed, then we don't need to set up a restricted file system for module access
             return IOAccess.newBuilder()
                     .allowHostFileAccess(allowHostFileAccess)
                     .allowHostSocketAccess(allowHostSocketAccess)
                     .build();
         } else {
+            // host file access is false, but modulePath is not empty: set up restricted file system for module access
             FileSystem modulesReadOnly = createReadOnlyFileSystem(modulePath);
             return IOAccess.newBuilder()
                     .fileSystem(modulesReadOnly)
@@ -184,34 +184,51 @@ public class PythonContext {
     }
 
     /**
-     * Create an FileSystem object that allows read-only access to the given path and everything below it.
+     * Create an FileSystem object that allows read-only access to Python's home, and the given path and everything below it.
      * @param modulePath the path where customer Python modules are located.
-     * @return an FileSystem that allows read-only access to the given path and everything below it.
+     * @return an FileSystem for Python module access that allows read-only access to the given path and everything below it.
      */
     private FileSystem createReadOnlyFileSystem(String modulePath) {
+        log.debug("createReadOnlyFileSystem({})", modulePath);
         FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
         FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
+        String sysPrefix = getPythonSysPrefix();
         FileSystem restricted = FileSystem.newCompositeFileSystem(
-                // the defaul/fallback file system is: deny access
+                // the default/fallback file system is: deny access
                 denyAllAccess,
-                // add a selector that returns the modulesFileSystem only if the path matches
-                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath))
+                // add a selector that returns the modulesFileSystem only if the path matches modulePath or sys.prefix
+                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath) || path.startsWith(sysPrefix))
         );
 
         return FileSystem.newReadOnlyFileSystem(restricted);
     }
 
     /**
+     * Get sys.prefix from GraalVM Python.
+     * @return the value of sys.prefix.
+     */
+    private String getPythonSysPrefix() {
+        log.debug("getPythonSysPrefix()");
+        var tempContext = Context.newBuilder(PYTHON).build();
+        var result = tempContext.eval(PYTHON, "import sys; sys.prefix").asString();
+        log.debug("getPythonSysPrefix() ---> {}", result);
+        tempContext.close();
+        return result;
+    }
+
+    /**
      * Add a directory to Python's sys.path for module imports
      */
     private void addModulePathToSysPath(Path modulePath) {
-        log.debug("addModulePathToSysPath({})", modulePath.toAbsolutePath().toString().replace("\\", "\\\\").replace("'", "\\"));
+        log.debug("addModulePathToSysPath({})", modulePath.toAbsolutePath().toString().replace("\\", "\\\\").replace("'", "\\'"));
         try {
             String absolutePath = modulePath.toAbsolutePath().toString();
             String pythonCode = String.format(
-                    "import sys\n" +
-                            "if '%s' not in sys.path:\n" +
-                            "    sys.path.insert(0, '%s')\n",
+                """
+                    import sys
+                    if '%s' not in sys.path:
+                        sys.path.insert(0, '%s')
+                    """,
                     absolutePath.replace("\\", "\\\\").replace("'", "\\'"),
                     absolutePath.replace("\\", "\\\\").replace("'", "\\'")
             );
