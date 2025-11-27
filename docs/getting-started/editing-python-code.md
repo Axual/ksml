@@ -70,13 +70,13 @@ For advanced scenarios, import Python modules using `globalCode`:
 
 **Use when:** You have a library of reusable functions or need to organize complex logic into modules.
 
-**Note:** When using module imports, configure the `modulesDirectory` parameter in your test or runner:
+**Note:** When using module imports, configure the `pythonModulePath` parameter in  runner configuration:
 
-```java
-@KSMLTest(
-    topology = "pipelines/my-pipeline.yaml",
-    modulesDirectory = "pipelines"
-)
+```yaml
+  # Python context configuration for module imports
+  ksml:
+    pythonContext:
+      pythonModulePath: /ksml  # Directory where Python modules are located (mounted volume)
 ```
 
 ## Editor Support with Type Stubs

@@ -186,14 +186,15 @@ ksml:
 
 Control Python execution security and permissions:
 
-| Property                     | Type    | Default | Description                                           |
-|------------------------------|---------|---------|-------------------------------------------------------|
-| `allowHostFileAccess`        | Boolean | false   | Allow Python code to access host file system         |
-| `allowHostSocketAccess`      | Boolean | false   | Allow Python code to open network sockets            |
-| `allowNativeAccess`          | Boolean | false   | Allow Graal native access / JNI                      |
-| `allowCreateProcess`         | Boolean | false   | Allow Python code to execute external processes      |
-| `allowCreateThread`          | Boolean | false   | Allow Python code to create new Java threads         |
-| `inheritEnvironmentVariables`| Boolean | false   | Inherit JVM process environment in Python context    |
+| Property                      | Type    | Default | Description                                       |
+|-------------------------------|---------|---------|---------------------------------------------------|
+| `allowHostFileAccess`         | Boolean | false   | Allow Python code to access host file system      |
+| `allowHostSocketAccess`       | Boolean | false   | Allow Python code to open network sockets         |
+| `allowNativeAccess`           | Boolean | false   | Allow Graal native access / JNI                   |
+| `allowCreateProcess`          | Boolean | false   | Allow Python code to execute external processes   |
+| `allowCreateThread`           | Boolean | false   | Allow Python code to create new Java threads      |
+| `inheritEnvironmentVariables` | Boolean | false   | Inherit JVM process environment in Python context |
+| `pythonModulePath`            | String  | empty   | Path to customer defined Python modules           |
 
 ```yaml
 ksml:
@@ -204,6 +205,7 @@ ksml:
     allowCreateProcess: false
     allowCreateThread: false
     inheritEnvironmentVariables: false
+    pythonModulePath: /ksml
 ```
 
 ### Schema Registry Configuration

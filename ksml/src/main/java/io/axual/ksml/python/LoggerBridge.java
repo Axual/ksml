@@ -36,7 +36,7 @@ public class LoggerBridge {
      * The PythonLogger has less ambiguity by removing the multiple object and exception arguments
      */
     public static class PythonLogger {
-        /** The instances wrapped Slf4J {@link org.slf4j.Logger}. */
+        /** The instance's wrapped Slf4J {@link org.slf4j.Logger}. */
         private final Logger logger;
 
         /**
