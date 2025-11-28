@@ -23,8 +23,10 @@ package io.axual.ksml.docs.examples.usecases;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashMap;
@@ -69,6 +71,7 @@ public class FraudDetectionTest {
     TestOutputTopic<String, String> fraudAlertsOutput;
 
     @KSMLTest(topology = "docs-examples/use-cases/fraud-detection/fraud-detection.yaml")
+    @DisplayName("Reference test using existing fraud detection pipeline")
     void testHighValueTransactionAlert() throws Exception {
         // Create a high-value electronics transaction (threshold: 1000)
         String transactionJson = createTransactionJson(
@@ -108,7 +111,10 @@ public class FraudDetectionTest {
         assertThat(scoredAlert.has("is_likely_fraud")).isTrue();
     }
 
-    @KSMLTest(topology = "docs-examples/use-cases/fraud-detection/fraud-detection.yaml")
+    @KSMLTopologyTest(topologies = {
+            "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
+            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
+    })
     void testBelowThresholdTransaction() throws Exception {
         // Create a low-value transaction (below electronics threshold of 1000)
         String transactionJson = createTransactionJson(
@@ -132,7 +138,10 @@ public class FraudDetectionTest {
         assertThat(unusualLocationOutput.isEmpty()).isTrue();
     }
 
-    @KSMLTest(topology = "docs-examples/use-cases/fraud-detection/fraud-detection.yaml")
+    @KSMLTopologyTest(topologies = {
+            "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
+            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
+    })
     void testUnusualLocationAlert() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_789";
@@ -192,7 +201,10 @@ public class FraudDetectionTest {
         assertThat(fraudAlertsOutput.isEmpty()).isFalse();
     }
 
-    @KSMLTest(topology = "docs-examples/use-cases/fraud-detection/fraud-detection.yaml")
+    @KSMLTopologyTest(topologies = {
+            "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
+            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
+    })
     void testSameLocationNoAlert() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_999";
@@ -228,7 +240,10 @@ public class FraudDetectionTest {
         assertThat(unusualLocationOutput.isEmpty()).isTrue();
     }
 
-    @KSMLTest(topology = "docs-examples/use-cases/fraud-detection/fraud-detection.yaml")
+    @KSMLTopologyTest(topologies = {
+            "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
+            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
+    })
     void testDifferentStateWithinTwoHours() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_888";

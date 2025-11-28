@@ -1,0 +1,129 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+streams:
+  transactions:
+    topic: credit_card_transactions
+    keyType: string  # transaction_id
+    valueType: json  # transaction data
+
+  high_value_transactions:
+    topic: high_value_transactions
+    keyType: string  # transaction_id
+    valueType: json  # transaction data
+
+  unusual_location_alerts:
+    topic: unusual_location_alerts
+    keyType: string  # card_id
+    valueType: json  # alert data
+
+  velocity_alerts:
+    topic: transaction_velocity_alerts
+    keyType: string  # card_id
+    valueType: json  # alert data
+
+  fraud_alerts:
+    topic: fraud_alerts
+    keyType: string  # transaction_id
+    valueType: json  # consolidated alert data
+
+stores:
+  customer_transaction_history:
+    type: keyValue
+    persistent: true
+    keyType: string
+    valueType: string
+
+  card_location_history:
+    type: keyValue
+    persistent: true
+    keyType: string
+    valueType: string
+
+functions:
+  check_high_value:
+    type: predicate
+    globalCode: file:fraud_detection_functions.py
+    expression: is_high_value(value)
+
+  create_high_value_alert:
+    type: valueTransformer
+    globalCode: file:fraud_detection_functions.py
+    expression: high_value_alert(value)
+    resultType: struct
+
+  check_unusual_location:
+    type: valueTransformer
+    globalCode: file:fraud_detection_functions.py
+    resultType: json
+    expression: check_unusual_loc(value)
+    stores:
+      - card_location_history
+
+  check_transaction_velocity:
+    type: valueTransformer
+    globalCode: file:fraud_detection_functions.py
+    resultType: json
+    expression: transaction_velocity_check(value)
+    stores:
+      - customer_transaction_history
+
+  calculate_fraud_score:
+    type: valueTransformer
+    globalCode: file:fraud_detection_functions.py
+    expression: fraud_score(value)
+    resultType: json
+
+pipelines:
+  # Pipeline for high-value transaction detection
+  high_value_detection:
+    from: transactions
+    via:
+      - type: filter
+        if: check_high_value
+      - type: transformValue
+        mapper: create_high_value_alert
+    to: high_value_transactions
+
+  # Pipeline for unusual location detection
+  unusual_location_detection:
+    from: transactions
+    via:
+      - type: transformValue
+        mapper: check_unusual_location
+      - type: filter
+        if:
+          expression: value is not None
+    to: unusual_location_alerts
+
+  # Pipeline for transaction velocity monitoring
+  velocity_monitoring:
+    from: transactions
+    via:
+      - type: transformValue
+        mapper: check_transaction_velocity
+      - type: filter
+        if:
+          expression: value is not None
+    to: velocity_alerts
+
+  # Pipeline for consolidating alerts and calculating final fraud score
+  fraud_scoring_high_value:
+    from: high_value_transactions
+    via:
+      - type: transformValue
+        mapper: calculate_fraud_score
+    to: fraud_alerts
+
+  fraud_scoring_location:
+    from: unusual_location_alerts
+    via:
+      - type: transformValue
+        mapper: calculate_fraud_score
+    to: fraud_alerts
+
+  fraud_scoring_velocity:
+    from: velocity_alerts
+    via:
+      - type: transformValue
+        mapper: calculate_fraud_score
+    to: fraud_alerts
