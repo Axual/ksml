@@ -114,7 +114,8 @@ public class FraudDetectionTest {
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
-    })
+            "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
+    }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     void testBelowThresholdTransaction() throws Exception {
         // Create a low-value transaction (below electronics threshold of 1000)
         String transactionJson = createTransactionJson(
@@ -141,7 +142,8 @@ public class FraudDetectionTest {
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
-    })
+            "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
+    }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     void testUnusualLocationAlert() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_789";
@@ -204,7 +206,8 @@ public class FraudDetectionTest {
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
-    })
+            "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
+    }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     void testSameLocationNoAlert() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_999";
@@ -243,7 +246,8 @@ public class FraudDetectionTest {
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
-    })
+            "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
+    }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     void testDifferentStateWithinTwoHours() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_888";

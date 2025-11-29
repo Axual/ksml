@@ -42,7 +42,7 @@ stores:
 functions:
   check_high_value:
     type: predicate
-    globalCode: file:fraud_detection_functions.py
+    globalCode: from fraud_detection_module import *
     expression: is_high_value(value)
 
   create_high_value_alert:
@@ -53,14 +53,18 @@ functions:
   check_unusual_location:
     type: valueTransformer
     resultType: json
-    expression: check_unusual_loc(value)
+    code: |
+      result = check_unusual_loc(value,card_location_history)
+    expression: result
     stores:
       - card_location_history
 
   check_transaction_velocity:
     type: valueTransformer
     resultType: json
-    expression: transaction_velocity_check(value)
+    code: |
+      result = transaction_velocity_check(value,customer_transaction_history)
+    expression: result
     stores:
       - customer_transaction_history
 
