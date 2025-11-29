@@ -92,6 +92,7 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         final var testMethod = context.getRequiredTestMethod();
         final var ksmlTopologyTest = testMethod.getAnnotation(KSMLTopologyTest.class);
         final var schemaDirectory = ksmlTopologyTest.schemaDirectory();
+        final var modulesDirectory = ksmlTopologyTest.modulesDirectory();
 
         // one-time preparation for the test runs: register notations
         log.debug("Registering notations in notationLibrary");
@@ -100,7 +101,7 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         return Arrays.stream(ksmlTopologyTest.topologies())
-                .map(topologyName -> new KSMLTopologyTestInvocationContext(topologyName, schemaDirectory, inputTopics, outputTopics, testDriverRef.get())
+                .map(topologyName -> new KSMLTopologyTestInvocationContext(topologyName, schemaDirectory, modulesDirectory, inputTopics, outputTopics, testDriverRef.get())
                 );
     }
 }
