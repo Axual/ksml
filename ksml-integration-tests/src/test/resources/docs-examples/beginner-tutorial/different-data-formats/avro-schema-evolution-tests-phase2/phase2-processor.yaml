@@ -1,0 +1,29 @@
+streams:
+  sensor_input:
+    topic: sensor_data_evolution_test
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: earliest
+
+  sensor_output:
+    topic: sensor_data_evolution_processed
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  uppercase_name:
+    type: valueTransformer
+    code: |
+      result = dict(value) if value else None
+      if result and result.get("name"):
+        result["name"] = result["name"].upper()
+    expression: result
+    resultType: avro:SensorData
+
+pipelines:
+  evolution_test_pipeline:
+    from: sensor_input
+    via:
+      - type: transformValue
+        mapper: uppercase_name
+    to: sensor_output
