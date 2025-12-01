@@ -20,10 +20,16 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.ListOffsetsResult;
+import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
@@ -32,6 +38,8 @@ import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
@@ -69,7 +77,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
             .withLegacyIdMode();
 
     @Test
-    void testBackwardCompatibility_AddOptionalFields() throws Exception {
+    void testBackwardCompatibility_AddOptionalFields() {
         log.info("=".repeat(80));
         log.info("AVRO SCHEMA EVOLUTION BACKWARD COMPATIBILITY TEST");
         log.info("=".repeat(80));
@@ -90,7 +98,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
     /**
      * Phase 1: Produce 10 messages with schema v1 (8 fields)
      */
-    private void runPhase1_ProduceWithSchemaV1() throws Exception {
+    private void runPhase1_ProduceWithSchemaV1() {
         // Create KSML container with v1 schema
         final KSMLContainer ksmlPhase1 = new KSMLContainer()
                 .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-tests-phase1",
@@ -104,14 +112,16 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
             ksmlPhase1.start();
             log.info("Phase 1 KSML started successfully");
 
-            // Wait for 10 messages to be produced
+            // Wait for 10 messages to be produced using Awaitility
             log.info("Waiting for 10 messages to be produced with schema v1...");
-            KSMLRunnerTestUtil.waitForTopicMessages(
-                    kafka.getBootstrapServers(),
-                    "sensor_data_evolution_test",
-                    10,
-                    Duration.ofSeconds(30)
-            );
+            Awaitility.await("Wait for 10 messages in sensor_data_evolution_test")
+                    .atMost(Duration.ofSeconds(30))
+                    .pollInterval(Duration.ofSeconds(1))
+                    .until(() -> {
+                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_evolution_test");
+                        log.debug("Found {} messages in topic sensor_data_evolution_test", count);
+                        return count >= 10;
+                    });
 
             // Verify we have exactly 10 messages
             final Properties consumerProps = new Properties();
@@ -141,7 +151,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
      * Phase 2: Process v1 messages (8 fields) with schema v2 (10 fields)
      * This tests backward compatibility: new consumer reading old data
      */
-    private void runPhase2_ProcessWithSchemaV2() throws Exception {
+    private void runPhase2_ProcessWithSchemaV2() {
         // Create KSML container with v2 schema
         // Topics were already created in Phase 1, so we don't call withTopics() here
         final KSMLContainer ksmlPhase2 = new KSMLContainer()
@@ -155,14 +165,16 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
             ksmlPhase2.start();
             log.info("Phase 2 KSML started successfully");
 
-            // Wait for messages to be processed
+            // Wait for messages to be processed using Awaitility
             log.info("Waiting for v1 messages to be processed with v2 schema...");
-            KSMLRunnerTestUtil.waitForTopicMessages(
-                    kafka.getBootstrapServers(),
-                    "sensor_data_evolution_processed",
-                    10,
-                    Duration.ofSeconds(30)
-            );
+            Awaitility.await("Wait for 10 messages in sensor_data_evolution_processed")
+                    .atMost(Duration.ofSeconds(30))
+                    .pollInterval(Duration.ofSeconds(1))
+                    .until(() -> {
+                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_evolution_processed");
+                        log.debug("Found {} messages in topic sensor_data_evolution_processed", count);
+                        return count >= 10;
+                    });
 
             // Verify all 10 messages were processed
             final Properties consumerProps = new Properties();
@@ -192,6 +204,42 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         } finally {
             ksmlPhase2.stop();
             log.info("Phase 2 KSML stopped");
+        }
+    }
+
+    /**
+     * Gets the total message count in a topic by summing up the end offsets of all partitions.
+     *
+     * @param bootstrapServers Kafka bootstrap servers
+     * @param topicName        the topic to check
+     * @return total message count across all partitions
+     */
+    private long getTopicMessageCount(String bootstrapServers, String topicName) {
+        Properties adminProps = new Properties();
+        adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+
+        try (AdminClient adminClient = AdminClient.create(adminProps)) {
+            var topicDescription = adminClient.describeTopics(Collections.singletonList(topicName))
+                    .topicNameValues().get(topicName).get();
+
+            Map<TopicPartition, OffsetSpec> partitionOffsetSpecs = new HashMap<>();
+            for (var partition : topicDescription.partitions()) {
+                partitionOffsetSpecs.put(
+                        new TopicPartition(topicName, partition.partition()),
+                        OffsetSpec.latest()
+                );
+            }
+
+            ListOffsetsResult offsetsResult = adminClient.listOffsets(partitionOffsetSpecs);
+
+            long totalMessages = 0;
+            for (var entry : offsetsResult.all().get().entrySet()) {
+                totalMessages += entry.getValue().offset();
+            }
+            return totalMessages;
+        } catch (Exception e) {
+            log.debug("Error checking topic messages: {}", e.getMessage());
+            return 0;
         }
     }
 }
