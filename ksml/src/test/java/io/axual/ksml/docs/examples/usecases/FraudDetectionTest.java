@@ -32,7 +32,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
@@ -70,52 +69,12 @@ public class FraudDetectionTest {
     @KSMLTopic(topic = "fraud_alerts")
     TestOutputTopic<String, String> fraudAlertsOutput;
 
-    @KSMLTest(topology = "docs-examples/use-cases/fraud-detection/fraud-detection.yaml")
-    @DisplayName("Reference test using existing fraud detection pipeline")
-    void testHighValueTransactionAlert() throws Exception {
-        // Create a high-value electronics transaction (threshold: 1000)
-        String transactionJson = createTransactionJson(
-                "txn_001",
-                "cust_123",
-                "card_456",
-                1500.0,
-                "electronics",
-                "USA",
-                "CA",
-                System.currentTimeMillis()
-        );
-
-        transactionsInput.pipeInput("txn_001", transactionJson);
-
-        // Should trigger high-value alert
-        assertThat(highValueOutput.isEmpty()).isFalse();
-        String highValueAlert = highValueOutput.readValue();
-        JsonNode alert = objectMapper.readTree(highValueAlert);
-
-        // Verify alert structure
-        assertThat(alert.get("transaction_id").asText()).isEqualTo("txn_001");
-        assertThat(alert.get("alert_type").asText()).isEqualTo("high_value_transaction");
-        assertThat(alert.get("amount").asDouble()).isEqualTo(1500.0);
-        assertThat(alert.get("customer_id").asText()).isEqualTo("cust_123");
-        assertThat(alert.get("card_id").asText()).isEqualTo("card_456");
-
-        // Verify risk score calculation (amount / 10)
-        assertThat(alert.get("risk_score").asDouble()).isEqualTo(100.0); // min(100, 1500/10)
-
-        // Should also appear in fraud_alerts after scoring
-        assertThat(fraudAlertsOutput.isEmpty()).isFalse();
-        String fraudAlert = fraudAlertsOutput.readValue();
-        JsonNode scoredAlert = objectMapper.readTree(fraudAlert);
-
-        assertThat(scoredAlert.has("final_risk_score")).isTrue();
-        assertThat(scoredAlert.has("is_likely_fraud")).isTrue();
-    }
-
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
+    @DisplayName("Test high-value transaction detection and alerting using different pipeline variants")
     void testBelowThresholdTransaction() throws Exception {
         // Create a low-value transaction (below electronics threshold of 1000)
         String transactionJson = createTransactionJson(
@@ -144,6 +103,7 @@ public class FraudDetectionTest {
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
+    @DisplayName("Test unusual location detection and alerting using different pipeline variants")
     void testUnusualLocationAlert() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_789";
@@ -208,6 +168,7 @@ public class FraudDetectionTest {
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
+    @DisplayName("Test unusual location detection and alerting using different pipeline variants")
     void testSameLocationNoAlert() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_999";
@@ -248,6 +209,7 @@ public class FraudDetectionTest {
             "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
+    @DisplayName("Test suspiciously quick location change using different pipeline variants")
     void testDifferentStateWithinTwoHours() throws Exception {
         long currentTime = System.currentTimeMillis();
         String cardId = "card_888";

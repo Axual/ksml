@@ -1,7 +1,12 @@
-from typing import TYPE_CHECKING
+# from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ksml_runtime_stub import KSMLKeyValueStore
+# if TYPE_CHECKING:
+#     from ksml_runtime_stub import KeyValueStore
+# else:
+#     import java
+#     KeyValueStore = java.type('org.apache.kafka.streams.state.KeyValueStore')
+
+from ksml_runtime_stub_2 import KeyValueStore
 
 def is_high_value(value):
     " determine if the message in the pipeline holds a high value transaction."
@@ -31,7 +36,8 @@ def high_value_alert(value):
         "risk_score": min(100, value.get("amount") / 10)  # Simple scoring based on amount
     }
 
-def check_unusual_loc(value, card_location_history):
+def check_unusual_loc(value, card_location_history: KeyValueStore):
+# def check_unusual_loc(value, card_location_history):
     "  check if the message contains a transaction in an unusual location. "
     import json
 
@@ -109,7 +115,7 @@ def check_unusual_loc(value, card_location_history):
         return None
 
 # def transaction_velocity_check(value, customer_transaction_history: KSMLKeyValueStore):
-def transaction_velocity_check(value, customer_transaction_history):
+def transaction_velocity_check(value, customer_transaction_history: KeyValueStore):
     " return message if transaction are high velocity"
     import json
 

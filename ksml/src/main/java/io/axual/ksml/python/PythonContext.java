@@ -48,7 +48,8 @@ public class PythonContext {
     private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
             "java.util.ArrayList",
             "java.util.HashMap",
-            "java.util.TreeMap");
+            "java.util.TreeMap",
+            "org.apache.kafka.streams.state.KeyValueStore");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
