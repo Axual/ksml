@@ -1,12 +1,5 @@
-# from typing import TYPE_CHECKING
 
-# if TYPE_CHECKING:
-#     from ksml_runtime_stub import KeyValueStore
-# else:
-#     import java
-#     KeyValueStore = java.type('org.apache.kafka.streams.state.KeyValueStore')
-
-from ksml_runtime_stub_2 import KeyValueStore
+from ksml import KeyValueStore,PythonLogger
 
 def is_high_value(value):
     " determine if the message in the pipeline holds a high value transaction."
@@ -186,9 +179,8 @@ def transaction_velocity_check(value, customer_transaction_history: KeyValueStor
 
     return result
 
-def fraud_score(value):
-
-    " calculate the fraud score for the given message. "
+def fraud_score(value, log: PythonLogger):
+    " calculate the fraud score for the given message. This example uses the logger passed in from KSML."
     # Base risk score from the alert
     risk_score = value.get("risk_score", 0)
 
@@ -207,6 +199,8 @@ def fraud_score(value):
     # Add the calculated score to the alert
     value["final_risk_score"] = risk_score
     value["is_likely_fraud"] = risk_score > 70
+
+    log.info("calculated risk score: {}", risk_score)
 
     return value
 

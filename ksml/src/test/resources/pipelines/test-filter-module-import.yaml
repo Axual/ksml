@@ -12,10 +12,11 @@ streams:
     valueType: avro:SensorData
 
 functions:
+  module_import:
+    globalCode: from test_filter_module import is_blue
+
   sensor_is_blue:
     type: predicate
-    globalCode: |
-      from test_filter_module import is_blue
     code: |
       return is_blue(value)
     expression: True

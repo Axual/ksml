@@ -49,7 +49,11 @@ public class PythonContext {
             "java.util.ArrayList",
             "java.util.HashMap",
             "java.util.TreeMap",
-            "org.apache.kafka.streams.state.KeyValueStore");
+            "io.axual.ksml.python.LoggerBridge$PythonLogger",
+            "io.axual.ksml.python.MetricsBridge",
+            "org.apache.kafka.streams.state.KeyValueStore",
+            "org.apache.kafka.streams.state.SessionStore",
+            "org.apache.kafka.streams.state.WindowStore");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;

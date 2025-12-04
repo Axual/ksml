@@ -40,9 +40,12 @@ stores:
     valueType: string
 
 functions:
+  # import the module containing the functions we want to use
+  module_imports:
+    globalCode: from fraud_detection_module import *
+
   check_high_value:
     type: predicate
-    globalCode: from fraud_detection_module import *
     expression: is_high_value(value)
 
   create_high_value_alert:
@@ -70,7 +73,8 @@ functions:
 
   calculate_fraud_score:
     type: valueTransformer
-    expression: fraud_score(value)
+    # example: passing in the KSML provided logger object as an argument
+    expression: fraud_score(value,log)
     resultType: json
 
 pipelines:
