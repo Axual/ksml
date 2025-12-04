@@ -23,17 +23,15 @@ package io.axual.ksml.docs.examples.usecases;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.KSMLTopologyTest;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,7 +50,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 2. testUnusualLocationAlert: Location-based anomaly detection with state stores
  */
 @Slf4j
-@ExtendWith(KSMLTestExtension.class)
 public class FraudDetectionTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
