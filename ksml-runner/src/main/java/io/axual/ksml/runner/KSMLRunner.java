@@ -292,7 +292,6 @@ public class KSMLRunner {
                     .storageDirectory(ksmlConfig.storageDirectory())
                     .appServer(ksmlConfig.applicationServerConfig())
                     .definitions(pipelineDefinitions)
-                    .definitionFilePaths(ksmlConfig.definitionFilePaths())
                     .kafkaConfig(config.getKafkaConfigMap())
                     .pythonContextConfig(ksmlConfig.pythonContextConfig())
                     .build());

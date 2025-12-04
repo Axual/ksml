@@ -53,16 +53,9 @@ public class PythonContext {
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
-    @Getter
-    private final Path baseDirectory;
 
     public PythonContext(PythonContextConfig config) {
-        this(config, null);
-    }
-
-    public PythonContext(PythonContextConfig config, Path baseDirectory) {
         this.converter = new DataObjectConverter();
-        this.baseDirectory = baseDirectory;
 
         log.debug("Setting up new Python context: {}", config);
         try {
@@ -119,7 +112,7 @@ public class PythonContext {
      * Register a function in the Python context.
      * @param pyCode the function source code.
      * @param callerName the name of the function to be registered.
-     * @return
+     * @return a GraalVM {@link Value} object that can be used to call the registered function.
      */
     public Value registerFunction(String pyCode, String callerName) {
         Source script = Source.create(PYTHON, pyCode);

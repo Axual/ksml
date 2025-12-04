@@ -190,15 +190,13 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         final var definitions = ImmutableMap.of("definition",
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, methodName)));
 
-        final var definitionFilePaths = ImmutableMap.of("definition", path.getParent());
         final var topologyGenerator = new TopologyGenerator(
                 methodName + ".app",
                 null,
                 PythonContextConfig.builder()
                     .pythonModulePath(modulesDirectory)
                     .allowHostFileAccess(ksmlTest.allowHostFileAccess())
-                    .build(),
-                definitionFilePaths
+                    .build()
         );
 
         final var topology = topologyGenerator.create(streamsBuilder, definitions);

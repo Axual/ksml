@@ -71,7 +71,6 @@ public class FraudDetectionTest {
 
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
-            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     @DisplayName("Test high-value transaction detection and alerting using different pipeline variants")
@@ -100,7 +99,6 @@ public class FraudDetectionTest {
 
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
-            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     @DisplayName("Test unusual location detection and alerting using different pipeline variants")
@@ -165,7 +163,6 @@ public class FraudDetectionTest {
 
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
-            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     @DisplayName("Test unusual location detection and alerting using different pipeline variants")
@@ -206,7 +203,6 @@ public class FraudDetectionTest {
 
     @KSMLTopologyTest(topologies = {
             "docs-examples/use-cases/fraud-detection/fraud-detection.yaml",
-            "docs-examples/use-cases/fraud-detection/fraud-detection-external-functions.yaml",
             "docs-examples/use-cases/fraud-detection/fraud-detection-python-module.yaml",
     }, modulesDirectory = "docs-examples/use-cases/fraud-detection")
     @DisplayName("Test suspiciously quick location change using different pipeline variants")

@@ -166,15 +166,12 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         final var definitions = ImmutableMap.of("definition",
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, methodName)));
 
-        // Pass the directory of the definition file for resolving relative Python paths
-        final var definitionFilePaths = ImmutableMap.of("definition", path.getParent());
-
         // create a PythonContext, pass in the configured module path (PythonContextConfig handles empty string gracefully)
         PythonContextConfig pythonContextConfig = PythonContextConfig.builder()
                 .pythonModulePath(modulesDirectoryAbsolute)
                 .build();
         final var topologyGenerator = new TopologyGenerator(methodName + ".app", null,
-                pythonContextConfig, definitionFilePaths);
+                pythonContextConfig);
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final var description = topology.describe();
         log.info("{}", description);
