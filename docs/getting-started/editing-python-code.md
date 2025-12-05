@@ -190,7 +190,7 @@ Three store types are available:
 
 ## Complete Example: Fraud Detection
 
-For a comprehensive example showing all these patterns together, see the **Fraud Detection use case** in `docs-examples/use-cases/fraud-detection/`:
+For a comprehensive example showing all these patterns together, see the [Fraud Detection use case](../use-cases/fraud-detection.md):
 
 - `fraud-detection-python-module.yaml` - YAML pipeline definition
 - `fraud_detection_module.py` - Python module with type-hinted functions
@@ -240,4 +240,4 @@ Key points for module imports:
 - Use the `ksml.py` module for IDE support and runtime type imports
 - Configure `pythonModulePath` in runner configuration
 
-See the Fraud Detection use case for a complete working example with all patterns demonstrated.
+See the [Fraud Detection use case](../use-cases/fraud-detection.md) for a complete working example with all patterns demonstrated.
