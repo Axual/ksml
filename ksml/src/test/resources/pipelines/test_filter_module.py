@@ -9,7 +9,7 @@ def is_blue(val):
     return True
 
 def is_red(val):
-    """ Filter values in the stream with attribute 'color' having value 'blue'"""
+    """ Filter values in the stream with attribute 'color' having value 'red'"""
     if val == None:
         # log.warn("No value in message with key={}", key)  <==== NEED TO FIX THIS, NOT PRESENT IN IMPORT MODULE!
         return False
