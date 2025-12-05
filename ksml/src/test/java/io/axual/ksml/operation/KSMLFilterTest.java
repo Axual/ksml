@@ -102,13 +102,10 @@ class KSMLFilterTest {
     }
 
     @KSMLTopologyTest(topologies = {"pipelines/test-filter.yaml",
-        "pipelines/test-filter-external-python-inline.yaml",
-        "pipelines/test-filter-external-python-function.yaml",
-        "pipelines/test-filter-globalcode.yaml",
-        "pipelines/test-filter-globalcode-external.yaml"}, schemaDirectory = "schemas")
-    @DisplayName("Records can be filtered by KSML using inline or externalized Python")
-    void testFilterAvroRecordsExternalPython() {
-        log.debug("testFilterAvroRecordsExternalPython()");
+        "pipelines/test-filter-globalcode.yaml"}, schemaDirectory = "schemas")
+    @DisplayName("Records can be filtered by KSML using inline Python and globalCode")
+    void testFilterAvroRecordsWithGlobalCode() {
+        log.debug("testFilterAvroRecordsWithGlobalCode()");
 
         // the KSML pipeline filters on color "blue": generate some records with varying colors
         List<SensorData> sensorDatas = new ArrayList<>();

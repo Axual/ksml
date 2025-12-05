@@ -246,7 +246,7 @@ class PythonContextTest {
                 .pythonModulePath(tempDir.toString())
                 .build();
 
-        var pythonContext = new PythonContext(config, null);
+        var pythonContext = new PythonContext(config);
 
         pythonContext.debugPythonPath();
 

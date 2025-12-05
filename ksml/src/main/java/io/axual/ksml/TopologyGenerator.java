@@ -38,8 +38,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 
-import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -52,17 +50,12 @@ public class TopologyGenerator {
     private final String applicationId;
     private final Properties optimization;
     private final PythonContextConfig pythonContextConfig;
-    private final Map<String, Path> definitionFilePaths;
 
     public TopologyGenerator(String applicationId) {
-        this(applicationId, null, PythonContextConfig.builder().build(), new HashMap<>());
+        this(applicationId, null, PythonContextConfig.builder().build());
     }
 
     public TopologyGenerator(String applicationId, String optimization, PythonContextConfig pythonContextConfig) {
-        this(applicationId, optimization, pythonContextConfig, new HashMap<>());
-    }
-
-    public TopologyGenerator(String applicationId, String optimization, PythonContextConfig pythonContextConfig, Map<String, Path> definitionFilePaths) {
         // Parse configuration
         this.applicationId = applicationId;
         this.optimization = new Properties();
@@ -72,9 +65,6 @@ public class TopologyGenerator {
         this.pythonContextConfig = pythonContextConfig != null
                 ? pythonContextConfig
                 : PythonContextConfig.builder().build();
-        this.definitionFilePaths = definitionFilePaths != null
-                ? definitionFilePaths
-                : new HashMap<>();
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
@@ -89,9 +79,7 @@ public class TopologyGenerator {
                     definition.version() != null ? definition.version() : UNDEFINED,
                     definition.namespace() != null ? definition.namespace() : UNDEFINED);
 
-            // Get the directory of the definition file for resolving relative Python file paths
-            final var definitionFileDir = definitionFilePaths.get(name);
-            final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig, definitionFileDir);
+            final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig);
             generate(definition, context);
             stores.putAll(definition.stateStores());
         });

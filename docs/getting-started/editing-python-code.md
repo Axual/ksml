@@ -16,43 +16,19 @@ The simplest approach is to write Python code directly in your YAML file:
 
 **Use when:** Logic is short and specific to one function.
 
-### 2. External Python Files
-
-Reference an external Python file using the `file:` prefix in your YAML, and define the function in a separate `.py` file.
-
-??? info "External Python file example (click to expand)"
-
-    **YAML definition:**
-    ```yaml
-    {% include "../../ksml/src/test/resources/pipelines/test-filter-external-python-function.yaml" %}
-    ```
-
-    **Python file (`test-filter-external-python-function.py`):**
-    ```python
-    {% include "../../ksml/src/test/resources/pipelines/test-filter-external-python-function.py" %}
-    ```
-
-**Use when:** Function logic is reusable or complex enough to warrant separate files.
-
-### 3. Global Code with External Files
+### 2. Global Code
 
 Define reusable functions in a `globalCode` block that can be referenced by multiple functions:
 
-??? info "Global code with external file (click to expand)"
+??? info "Global code example (click to expand)"
 
-    **YAML definition:**
     ```yaml
-    {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode-external.yaml" %}
-    ```
-
-    **Python file (`test-filter-globalcode-external.py`):**
-    ```python
-    {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode-external.py" %}
+    {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode.yaml" %}
     ```
 
 **Use when:** Multiple functions share common logic or utilities.
 
-### 4. Python Module Imports
+### 3. Python Module Imports
 
 For advanced scenarios, import Python modules using `globalCode`:
 
@@ -70,7 +46,7 @@ For advanced scenarios, import Python modules using `globalCode`:
 
 **Use when:** You have a library of reusable functions or need to organize complex logic into modules.
 
-**Note:** When using module imports, configure the `pythonModulePath` parameter in  runner configuration:
+**Note:** When using module imports, configure the `pythonModulePath` parameter in runner configuration:
 
 ```yaml
   # Python context configuration for module imports
@@ -79,85 +55,189 @@ For advanced scenarios, import Python modules using `globalCode`:
       pythonModulePath: /ksml  # Directory where Python modules are located (mounted volume)
 ```
 
-## Editor Support with Type Stubs
+## Passing KSML Runtime Objects to Modules
 
-KSML provides a Python stub file (`ksml_runtime.pyi`) that enables code completion and type checking in your IDE for KSML runtime variables.
+When using Python modules, you cannot directly access KSML runtime variables (`log`, `metrics`, `stores`) inside the module because they are injected into the function's local scope, not the module's global scope.
+
+To use these objects in your module functions, **pass them as arguments** from the YAML function definition.
+
+### Passing the Logger
+
+In your YAML, pass the `log` object to your module function:
+
+```yaml
+functions:
+  module_imports:
+    globalCode: from my_module import calculate_score
+
+  calculate_fraud_score:
+    type: valueTransformer
+    # Pass the KSML-provided 'log' object as an argument
+    expression: calculate_score(value, log)
+    resultType: json
+```
+
+In your Python module, accept the logger as a parameter:
+
+```python
+from ksml import PythonLogger
+
+def calculate_score(value, log: PythonLogger):
+    """Calculate score using the KSML logger."""
+    risk_score = value.get("risk_score", 0)
+    log.info("Calculated risk score: {}", risk_score)
+    return {"score": risk_score}
+```
+
+### Passing State Stores
+
+For functions that use state stores, pass the store as an argument:
+
+```yaml
+functions:
+  check_location:
+    type: valueTransformer
+    resultType: json
+    code: |
+      result = check_unusual_location(value, card_location_history)
+    expression: result
+    stores:
+      - card_location_history
+```
+
+In your Python module:
+
+```python
+from ksml import KeyValueStore
+
+def check_unusual_location(value, store: KeyValueStore):
+    """Check location using the state store."""
+    card_id = value.get("card_id")
+    history = store.get(card_id)
+    # ... process and update store
+    store.put(card_id, updated_history)
+    return result
+```
+
+### Passing Metrics
+
+Similarly, pass the `metrics` object when you need custom metrics:
+
+```yaml
+functions:
+  process_with_metrics:
+    type: valueTransformer
+    expression: process_value(value, metrics)
+    resultType: json
+```
+
+```python
+from ksml import MetricsBridge
+
+def process_value(value, metrics: MetricsBridge):
+    """Process value and record metrics."""
+    counter = metrics.counter("processed_records")
+    counter.increment()
+    return value
+```
+
+## Editor Support with the `ksml` Module
+
+KSML provides a `ksml.py` module that enables code completion and type checking in your IDE while also providing the actual Java types at runtime.
 
 ### Setting Up Code Completion
 
-Place the stub file in your Python path and use `TYPE_CHECKING` to enable editor support without runtime overhead.
+Place the `ksml.py` module in your Python module directory (the same directory configured as `pythonModulePath`). The module works in two modes:
 
-See the example in the [External Python Files](#2-external-python-files) section above for the pattern:
+- **At edit time:** Provides Protocol classes for IDE code completion and type checking
+- **At runtime:** Imports the actual Java types via GraalVM
+
+Simply import the types you need in your module:
 
 ```python
-from typing import TYPE_CHECKING
+from ksml import PythonLogger, KeyValueStore, MetricsBridge
 
-if TYPE_CHECKING:
-  # This import only happens during development, enables code completion
-  from ksml_runtime import log
+def my_function(value, log: PythonLogger, store: KeyValueStore):
+    log.info("Processing value: {}", value)
+    # Your IDE will provide full code completion for log and store
 ```
-
-??? info "Complete ksml_runtime.pyi stub file (click to expand)"
-
-    ```python
-    {% include "../../ksml/src/test/resources/ksml_runtime_stub.pyi" %}
-    ```
-
-The stub file defines the KSML runtime environment:
-
-- **`log`**: SLF4J-style logger with trace, debug, info, warn, error methods
-- **`metrics`**: Access to counters, meters, and timers for custom metrics
-- **`stores`**: Dictionary of state stores available to your function
 
 ### Available Runtime Objects
 
-The stub file provides type hints for:
+The `ksml.py` module provides type definitions for:
 
-#### Logger
+#### Logger (`PythonLogger`)
 - `log.trace()`, `log.debug()`, `log.info()`, `log.warn()`, `log.error()`
 - Level checks: `isTraceEnabled()`, `isDebugEnabled()`, etc.
 
-#### Metrics
+#### Metrics (`MetricsBridge`)
 - `metrics.counter(name)` - Create/get a counter metric
 - `metrics.meter(name)` - Create/get a meter metric
 - `metrics.timer(name)` - Create/get a timer metric
 
 #### State Stores
-- Access via `stores[store_name]`
-- Key-value operations: `get()`, `put()`, `delete()`, `range()`, `all()`
+Three store types are available:
+
+- **`KeyValueStore`** - Simple key-value operations: `get()`, `put()`, `delete()`, `range()`, `all()`
+- **`SessionStore`** - Session-windowed store: `fetch()`, `findSessions()`, `put()`, `remove()`
+- **`WindowStore`** - Time-windowed store: `fetch()`, `fetchAll()`, `put()`, `all()`
+
+??? info "Complete ksml.py module (click to expand)"
+
+    ```python
+    {% include "../../ksml/src/test/resources/ksml.py" %}
+    ```
+
+## Complete Example: Fraud Detection
+
+For a comprehensive example showing all these patterns together, see the **Fraud Detection use case** in `docs-examples/use-cases/fraud-detection/`:
+
+- `fraud-detection-python-module.yaml` - YAML pipeline definition
+- `fraud_detection_module.py` - Python module with type-hinted functions
+- `ksml.py` - Type module for IDE support and runtime Java type imports
+
+This example demonstrates:
+
+- Importing functions from a Python module
+- Passing the `log` object to module functions
+- Passing `KeyValueStore` state stores to module functions
+- Using type hints for full IDE support
 
 ## Best Practices
 
-1. **Start inline**, move to external files as complexity grows
+1. **Start inline**, move to modules as complexity grows
 2. **Use `globalCode`** for shared utilities and helper functions
-3. **Import modules** when you need a full library of functions
-4. **Enable type stubs** for better IDE support and fewer runtime errors
-5. **Keep functions pure** - avoid side effects outside of logging and metrics
-6. **Handle None values** explicitly to prevent runtime errors
+3. **Import modules** when you need a library of reusable functions
+4. **Pass runtime objects as arguments** to module functions (`log`, `metrics`, stores)
+5. **Use the `ksml.py` module** for better IDE support and fewer runtime errors
+6. **Keep functions pure** - avoid side effects outside of logging and metrics
+7. **Handle None values** explicitly to prevent runtime errors
 
 ## Example File Organization
 
-Place the `ksml_runtime.pyi` stub at the root of your definitions, or somewhere on your editor import path:
 ```
 my-project/
 ├── pipelines/
-│   ├── my-pipeline.yaml         # Main pipeline definition
-│   ├── filter_helpers.py        # Shared function files
-│   ├── transform_logic.py       # External Python code
+│   ├── my-pipeline.yaml           # Main pipeline definition
 │   └── modules/
-│       └── data_validation.py   # Importable Python modules
-└── ksml_runtime.pyi             # Type stub for IDE support
+│       ├── data_validation.py     # Importable Python modules
+│       └── ksml.py                # Type module for IDE support and runtime
+└── config/
+    └── ksml-runner.yaml           # Runner config with pythonModulePath
 ```
 
 ## Summary
 
-This guide covered four approaches to organizing Python code in KSML:
+This guide covered approaches to organizing Python code in KSML:
 
 1. **Inline code** - Quick and simple for short logic
-2. **External files** - Better for reusable or complex functions
-3. **Global code** - Share utilities across multiple functions
-4. **Module imports** - Full Python module system for libraries
+2. **Global code** - Share utilities across multiple functions
+3. **Module imports** - Full Python module system for libraries
 
-All examples shown are working code from the KSML test suite. Use the `ksml_runtime.pyi` stub file for full IDE support including code completion, type checking, and inline documentation.
+Key points for module imports:
 
-This approach keeps your YAML clean, enables code reuse, and provides full IDE support for Python development.
+- Pass `log`, `metrics`, and state stores as function arguments
+- Use the `ksml.py` module for IDE support and runtime type imports
+- Configure `pythonModulePath` in runner configuration
+
+See the Fraud Detection use case for a complete working example with all patterns demonstrated.

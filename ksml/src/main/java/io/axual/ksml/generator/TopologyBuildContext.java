@@ -75,22 +75,15 @@ public class TopologyBuildContext {
     private final Map<String, StreamWrapper> streamWrappersByTopic = new HashMap<>();
 
     public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources) {
-        this(builder, resources, PythonContextConfig.builder().build(), null);
+        this(builder, resources, PythonContextConfig.builder().build());
     }
 
     public TopologyBuildContext(StreamsBuilder builder,
                                 TopologyResources resources,
                                 PythonContextConfig pcConfig) {
-        this(builder, resources, pcConfig, null);
-    }
-
-    public TopologyBuildContext(StreamsBuilder builder,
-                                TopologyResources resources,
-                                PythonContextConfig pcConfig,
-                                java.nio.file.Path definitionFileDirectory) {
         this.builder = builder;
         this.resources = resources;
-        this.pythonContext = new PythonContext(pcConfig, definitionFileDirectory);
+        this.pythonContext = new PythonContext(pcConfig);
     }
 
     public String namespace() {

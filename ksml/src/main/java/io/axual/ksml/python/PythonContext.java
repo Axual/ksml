@@ -48,20 +48,18 @@ public class PythonContext {
     private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
             "java.util.ArrayList",
             "java.util.HashMap",
-            "java.util.TreeMap");
+            "java.util.TreeMap",
+            "io.axual.ksml.python.LoggerBridge$PythonLogger",
+            "io.axual.ksml.python.MetricsBridge",
+            "org.apache.kafka.streams.state.KeyValueStore",
+            "org.apache.kafka.streams.state.SessionStore",
+            "org.apache.kafka.streams.state.WindowStore");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
-    @Getter
-    private final Path baseDirectory;
 
     public PythonContext(PythonContextConfig config) {
-        this(config, null);
-    }
-
-    public PythonContext(PythonContextConfig config, Path baseDirectory) {
         this.converter = new DataObjectConverter();
-        this.baseDirectory = baseDirectory;
 
         log.debug("Setting up new Python context: {}", config);
         try {
@@ -118,7 +116,7 @@ public class PythonContext {
      * Register a function in the Python context.
      * @param pyCode the function source code.
      * @param callerName the name of the function to be registered.
-     * @return
+     * @return a GraalVM {@link Value} object that can be used to call the registered function.
      */
     public Value registerFunction(String pyCode, String callerName) {
         Source script = Source.create(PYTHON, pyCode);

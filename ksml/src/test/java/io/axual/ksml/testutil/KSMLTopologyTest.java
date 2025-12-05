@@ -38,6 +38,7 @@ import java.lang.annotation.Target;
 public @interface KSMLTopologyTest {
 
     String NO_SCHEMAS = "";
+    String NO_MODULES = "";
 
     /**
      * The topologies to test with the annotated method.
@@ -50,4 +51,8 @@ public @interface KSMLTopologyTest {
      * @return
      */
     String schemaDirectory() default NO_SCHEMAS;
+
+    /** Optional classpath relative reference to a directory with KSML modules. */
+    String modulesDirectory() default NO_MODULES;
+
 }

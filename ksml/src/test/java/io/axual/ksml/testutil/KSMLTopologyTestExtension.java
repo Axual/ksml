@@ -91,12 +91,15 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
 
     private final String topologyName;
 
-    public KSMLTopologyTestExtension(final String schemaDirectory, final String topologyName, final Map<String, KSMLTopic> inputTopics, final Map<String, KSMLTopic> outputTopics, final String testDriverRef) {
+    private final String modulesDirectory;
+
+    public KSMLTopologyTestExtension(final String schemaDirectory, final String modulesDirectory, final String topologyName, final Map<String, KSMLTopic> inputTopics, final Map<String, KSMLTopic> outputTopics, final String testDriverRef) {
         this.inputTopics = inputTopics;
         this.outputTopics = outputTopics;
         this.schemaDirectory = schemaDirectory;
         this.topologyName = topologyName;
         this.testDriverRef = testDriverRef;
+        this.modulesDirectory = modulesDirectory;
     }
 
     /**
@@ -122,6 +125,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
 
     @Override
     public void beforeEach(final ExtensionContext extensionContext) throws Exception {
+        String modulesDirectoryAbsolute = "";
         final var streamsBuilder = new StreamsBuilder();
         if (extensionContext.getTestMethod().isEmpty()) {
             return;
@@ -142,6 +146,12 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(KSMLTest.NO_SCHEMAS);
         }
 
+        if (!KSMLTopologyTestInvocationContext.NO_MODULES.equals(modulesDirectory)) {
+            log.debug("annotated modules directory variable: `{}`", modulesDirectory);
+            final var modulesDirectoryURI = ClassLoader.getSystemResource(modulesDirectory).toURI();
+            modulesDirectoryAbsolute = modulesDirectoryURI.getPath();
+        }
+
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider =  new ConfluentAvroNotationProvider(registryClient);
         final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
@@ -156,10 +166,12 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         final var definitions = ImmutableMap.of("definition",
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, methodName)));
 
-        // Pass the directory of the definition file for resolving relative Python paths
-        final var definitionFilePaths = ImmutableMap.of("definition", path.getParent());
+        // create a PythonContext, pass in the configured module path (PythonContextConfig handles empty string gracefully)
+        PythonContextConfig pythonContextConfig = PythonContextConfig.builder()
+                .pythonModulePath(modulesDirectoryAbsolute)
+                .build();
         final var topologyGenerator = new TopologyGenerator(methodName + ".app", null,
-                PythonContextConfig.builder().build(), definitionFilePaths);
+                pythonContextConfig);
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final var description = topology.describe();
         log.info("{}", description);
