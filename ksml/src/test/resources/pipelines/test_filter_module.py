@@ -3,7 +3,6 @@ def is_blue(val):
     if val == None:
         return False
     if val["color"] != "blue":
-        # log.warn("Unknown color: {}", val["color"])
         return False
     return True
 
@@ -12,6 +11,5 @@ def is_red(val):
     if val == None:
         return False
     if val["color"] != "red":
-        # log.warn("Unknown color: {}", val["color"])
         return False
     return True
