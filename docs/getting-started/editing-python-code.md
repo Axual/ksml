@@ -8,7 +8,7 @@ KSML allows you to write custom logic in Python within your pipeline definitions
 
 The simplest approach is to write Python code directly in your YAML file:
 
-??? example "Inline code example (click to expand)"
+??? info "Inline code example (click to expand)"
 
     ```yaml
     {% include "../../ksml/src/test/resources/pipelines/test-filter.yaml" %}
@@ -20,7 +20,7 @@ The simplest approach is to write Python code directly in your YAML file:
 
 Define reusable functions in a `globalCode` block that can be referenced by multiple functions:
 
-??? example "Global code example (click to expand)"
+??? info "Global code example (click to expand)"
 
     ```yaml
     {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode.yaml" %}
@@ -32,7 +32,7 @@ Define reusable functions in a `globalCode` block that can be referenced by mult
 
 For advanced scenarios, import Python modules using `globalCode`:
 
-??? example "Python module import example (click to expand)"
+??? info "Python module import example (click to expand)"
 
     **YAML definition:**
     ```yaml
