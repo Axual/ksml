@@ -26,12 +26,12 @@ Define reusable functions in a `globalCode` block that can be referenced by mult
     {% include "../../ksml/src/test/resources/pipelines/test-filter-globalcode.yaml" %}
     ```
 
+**Use when:** Multiple functions share common logic or utilities.
+
 #### A note on `globalCode` vs `code`
-Be aware that code in a `globalCode` block will be executed once, whereas code in a `code` block will be executed for every message.
+Be aware that code in a `globalCode` block will be evaluated once, whereas code in a `code` block will be executed for every message.
 This means that for example `import` statements _should not_ be in the `code` block, as doing so will carry a significant runtime overhead.<br>
 _One time initializations and `import` statements should always be in `globalCode`._
-
-**Use when:** Multiple functions share common logic or utilities.
 
 ### 3. Python Module Imports
 
