@@ -51,6 +51,7 @@ public class PythonFunction extends UserFunction {
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Value function;
+    private final PythonContext context;
 
     public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
         return new PythonFunction(context, namespace, "function", name, definition);
@@ -66,6 +67,7 @@ public class PythonFunction extends UserFunction {
 
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
+        this.context = context;
         converter = context.converter();
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
@@ -146,7 +148,7 @@ public class PythonFunction extends UserFunction {
 
     private String generatePythonCode(String namespace, String type, String name, FunctionDefinition definition) {
         // Prepend two spaces of indentation before the function code
-        String[] functionCode = Arrays.stream(definition.code()).map(line -> "  " + line).toArray(String[]::new);
+        String[] functionCode = getFunctionCode(definition.code(), "  ");
         String[] expressionCode = Arrays.stream(definition.expression()).map(line -> "    " + line).toArray(String[]::new);
 
         // Prepare a list of parameters for the function definition
@@ -155,7 +157,8 @@ public class PythonFunction extends UserFunction {
         String[] callParams = Arrays.stream(definition.parameters()).map(ParameterDefinition::name).toArray(String[]::new);
 
         // prepare globalCode from the function definition
-        final var globalCode = String.join("\n", injectFunctionLocalVariables(namespace, type, definition.globalCode())) + "\n";
+        String[] globalCodeLines = getFunctionCode(definition.globalCode(), "");
+        final var globalCode = String.join("\n", injectFunctionLocalVariables(namespace, type, globalCodeLines)) + "\n";
 
         // Code to include all global variables
         final var assignStores = definition.storeNames().stream()
@@ -250,6 +253,10 @@ public class PythonFunction extends UserFunction {
                         """;
 
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
+    }
+
+    private static String[] getFunctionCode(String[] code, String spaces) {
+        return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
     }
 
     private String loggerName(String namespace, String type, String name) {

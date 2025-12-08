@@ -28,11 +28,13 @@ import java.util.Map;
 
 public record KSMLTopologyTestInvocationContext(String topologyName,
                                                 String schemaDirectory,
+                                                String modulesDirectory,
                                                 Map<String, KSMLTopic> inputTopics,
                                                 Map<String, KSMLTopic> outputTopics,
                                                 String testDriverRef) implements TestTemplateInvocationContext {
 
     public static final String NO_SCHEMAS = "";
+    public static final String NO_MODULES = "";
 
     @Override
     public String getDisplayName(final int invocationIndex) {
@@ -41,6 +43,6 @@ public record KSMLTopologyTestInvocationContext(String topologyName,
 
     @Override
     public List<Extension> getAdditionalExtensions() {
-        return List.of(new KSMLTopologyTestExtension(schemaDirectory, topologyName, inputTopics, outputTopics, testDriverRef));
+        return List.of(new KSMLTopologyTestExtension(schemaDirectory, modulesDirectory, topologyName, inputTopics, outputTopics, testDriverRef));
     }
 }

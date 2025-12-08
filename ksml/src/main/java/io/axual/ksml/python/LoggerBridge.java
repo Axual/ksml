@@ -36,6 +36,17 @@ public class LoggerBridge {
      * The PythonLogger has less ambiguity by removing the multiple object and exception arguments
      */
     public static class PythonLogger {
+        /** The instance's wrapped Slf4J {@link org.slf4j.Logger}. */
+        private final Logger logger;
+
+        /**
+         * Hidden constructor, construction only happens via {@link #getLogger(String)} in the outer class.
+         * @param logger
+         */
+        private PythonLogger(Logger logger) {
+            this.logger = logger;
+        }
+
         public String getName() {
             return logger.getName();
         }
@@ -152,12 +163,6 @@ public class LoggerBridge {
         @CheckReturnValue
         public LoggingEventBuilder atError() {
             return logger.atError();
-        }
-
-        private final Logger logger;
-
-        private PythonLogger(Logger logger) {
-            this.logger = logger;
         }
 
     }

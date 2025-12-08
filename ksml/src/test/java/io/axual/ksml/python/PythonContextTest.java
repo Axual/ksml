@@ -22,6 +22,7 @@ package io.axual.ksml.python;
 
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,9 +31,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import lombok.extern.slf4j.Slf4j;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Slf4j
 class PythonContextTest {
 
     /**
@@ -226,4 +232,42 @@ class PythonContextTest {
                 .isInstanceOf(PolyglotException.class)
                 .hasMessageContaining("Operation not permitted");
     }
+
+    @Test
+    @DisplayName("Python module import should work with configured pythonModulePath")
+    void testPythonModuleImport() throws Exception {
+        // Create a temporary module directory
+        Path tempDir = Files.createTempDirectory("python-modules");
+        Path moduleFile = tempDir.resolve("test_module.py");
+        Files.writeString(moduleFile, "def greet(name):\n    return f'Hello, {name}!'");
+
+        // Create context with module path
+        var config = PythonContextConfig.builder()
+                .modulePath(tempDir.toString())
+                .build();
+
+        var pythonContext = new PythonContext(config);
+
+        pythonContext.debugPythonPath();
+
+        // Test that we can import the module
+        String testCode = """
+          import polyglot
+          import test_module
+          
+          def test_import():
+             return test_module.greet('World')
+             
+          polyglot.export_value(test_import)
+          """;
+
+        var value = pythonContext.registerFunction(testCode, "test_import");
+        assertNotNull(value, "Function should be registered");
+        assertTrue(value.canExecute(), "Registered value should be executable");
+
+        var result = value.execute();
+        assertThat(result).isNotNull();
+        assertThat(result.asString()).isEqualTo("Hello, World!");
+    }
+
 }

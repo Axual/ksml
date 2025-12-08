@@ -73,7 +73,7 @@ public class TopologyGenerator {
         final var stores = new TreeMap<String, StateStoreDefinition>();
 
         definitions.forEach((name, definition) -> {
-            // Log the start of the producer
+            // Log the start of the processor
             log.info("Starting processor definition: name={}, version={}, namespace={}",
                     definition.name() != null ? definition.name() : UNDEFINED,
                     definition.version() != null ? definition.version() : UNDEFINED,

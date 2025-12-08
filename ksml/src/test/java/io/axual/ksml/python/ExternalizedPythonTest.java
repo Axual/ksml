@@ -1,4 +1,4 @@
-package io.axual.ksml.operation;
+package io.axual.ksml.python;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,12 +20,6 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.testutil.KSMLTest;
-import io.axual.ksml.testutil.KSMLTestExtension;
-import io.axual.ksml.testutil.KSMLTopic;
-import io.axual.ksml.testutil.KSMLTopologyTest;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -35,45 +29,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.axual.ksml.operation.SensorData;
+import io.axual.ksml.testutil.KSMLTest;
+import io.axual.ksml.testutil.KSMLTestExtension;
+import io.axual.ksml.testutil.KSMLTopic;
+import lombok.extern.slf4j.Slf4j;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
-class KSMLFilterTest {
+class ExternalizedPythonTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     protected TestInputTopic<String, GenericRecord> inputTopic;
 
     @KSMLTopic(topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)
     protected TestOutputTopic<String, GenericRecord> outputTopic;
-
-    @KSMLTest(topology = "pipelines/test-filter.yaml", schemaDirectory = "schemas")
-    @DisplayName("Records can be filtered by KSML")
-    void testFilterAvroRecords() {
-        log.debug("testFilterAvroRecords()");
-
-        // the KSML pipeline filters on color "blue": generate some records with varying colors
-        List<SensorData> sensorDatas = new ArrayList<>();
-        sensorDatas.add(SensorData.builder().color("blue").build());
-        sensorDatas.add(SensorData.builder().color("red").build());
-        sensorDatas.add(SensorData.builder().color("green").build());
-        sensorDatas.add(SensorData.builder().color("blue").build());
-        sensorDatas.add(SensorData.builder().color("red").build());
-
-        for (SensorData sensorData : sensorDatas) {
-            inputTopic.pipeInput("key", sensorData.toRecord());
-        }
-
-        // only the two records with "blue" should be kept
-        assertFalse(outputTopic.isEmpty());
-        List<GenericRecord> outputValues = outputTopic.readValuesToList();
-        assertEquals(2, outputValues.size());
-        assertTrue(outputValues.stream()
-            .map(rec -> rec.get("color").toString())
-            .allMatch(color -> color.equals("blue")));
-    }
 
     @KSMLTest(topology = "pipelines/test-filter-module-import.yaml", schemaDirectory = "schemas", modulesDirectory = "pipelines")
     @DisplayName("Records can be filtered by KSML using imported functions")
@@ -101,30 +75,4 @@ class KSMLFilterTest {
             .allMatch(color -> color.equals("blue")));
     }
 
-    @KSMLTopologyTest(topologies = {"pipelines/test-filter.yaml",
-        "pipelines/test-filter-globalcode.yaml"}, schemaDirectory = "schemas")
-    @DisplayName("Records can be filtered by KSML using inline Python and globalCode")
-    void testFilterAvroRecordsWithGlobalCode() {
-        log.debug("testFilterAvroRecordsWithGlobalCode()");
-
-        // the KSML pipeline filters on color "blue": generate some records with varying colors
-        List<SensorData> sensorDatas = new ArrayList<>();
-        sensorDatas.add(SensorData.builder().color("blue").build());
-        sensorDatas.add(SensorData.builder().color("red").build());
-        sensorDatas.add(SensorData.builder().color("green").build());
-        sensorDatas.add(SensorData.builder().color("blue").build());
-        sensorDatas.add(SensorData.builder().color("red").build());
-
-        for (SensorData sensorData : sensorDatas) {
-            inputTopic.pipeInput("key", sensorData.toRecord());
-        }
-
-        // only the two records with "blue" should be kept
-        assertFalse(outputTopic.isEmpty());
-        List<GenericRecord> outputValues = outputTopic.readValuesToList();
-        assertEquals(2, outputValues.size());
-        assertTrue(outputValues.stream()
-            .map(rec -> rec.get("color").toString())
-            .allMatch(color -> color.equals("blue")));
-    }
 }
