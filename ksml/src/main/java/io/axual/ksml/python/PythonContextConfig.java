@@ -66,8 +66,8 @@ public class PythonContextConfig {
     @Builder.Default
     private boolean inheritEnvironmentVariables = false;
 
-    @JsonProperty(value = "pythonModulePath", required = false)
+    @JsonProperty(value = "modulePath", required = false)
     @JsonPropertyDescription("Path to additional Python modules to be loaded. Default is empty, meaning 'no user modules'.")
     @Builder.Default
-    private String pythonModulePath = null;
+    private String modulePath = null;
 }

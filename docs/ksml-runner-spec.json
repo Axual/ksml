@@ -244,7 +244,7 @@
           "type" : "boolean",
           "description" : "Inherit JVM process environment in Python context. Default is false."
         },
-        "pythonModulePath" : {
+        "modulePath" : {
           "type" : "string",
           "description" : "Path to additional Python modules to be loaded. Default is empty, meaning 'no user modules'."
         }

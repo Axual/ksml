@@ -243,7 +243,7 @@ class PythonContextTest {
 
         // Create context with module path
         var config = PythonContextConfig.builder()
-                .pythonModulePath(tempDir.toString())
+                .modulePath(tempDir.toString())
                 .build();
 
         var pythonContext = new PythonContext(config);

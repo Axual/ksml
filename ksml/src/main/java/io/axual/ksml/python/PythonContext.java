@@ -94,14 +94,18 @@ public class PythonContext {
                     .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains);
 
             // set up configured I/O access
-            IOAccess ioAccess = createIOAccess(config.allowHostFileAccess(), config.allowHostSocketAccess(), config.pythonModulePath());
+            IOAccess ioAccess = createIOAccess(config.allowHostFileAccess(), config.allowHostSocketAccess(), config.modulePath());
 
             context = contextBuilder
                     .allowIO(ioAccess)
                     .build();
 
-            if (!StringUtils.isEmpty( config.pythonModulePath() )) {
-                addModulePathToSysPath(Path.of(config.pythonModulePath()));
+            if (!StringUtils.isEmpty( config.modulePath() )) {
+//                if (!Files.isDirectory( Path.of(config.pythonModulePath()))) {
+//                    log.error("Configured Python module path {} does not exist or is not a directory", config.pythonModulePath());
+//                    throw new ExecutionException("Configured Python module path does not exist or is not a directory");
+//                }
+                addModulePathToSysPath(Path.of(config.modulePath()));
             }
 
             registerGlobalCode();

@@ -194,7 +194,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
                 methodName + ".app",
                 null,
                 PythonContextConfig.builder()
-                    .pythonModulePath(modulesDirectory)
+                    .modulePath(modulesDirectory)
                     .allowHostFileAccess(ksmlTest.allowHostFileAccess())
                     .build()
         );
