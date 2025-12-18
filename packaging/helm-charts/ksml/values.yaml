@@ -169,11 +169,11 @@ startupProbe:
     port: http
   # -- Minimum consecutive failures for the probe to be considered failed.
   # A failed startupProbe will mark the container as unhealthy and trigger a restart for that specific container.
-  failureThreshold: 30
+  failureThreshold: 60
   # -- Number of seconds after the container has started before startup probes are initiated.
-  initialDelaySeconds: 2
+  initialDelaySeconds: 5
   # -- How often (in seconds) to perform the probe.
-  periodSeconds: 1
+  periodSeconds: 2
   # -- Minimum consecutive successes for the probe to be considered successful after having failed.
   successThreshold: 1
   # -- Number of seconds after which the probe times out.
