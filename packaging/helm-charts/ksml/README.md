@@ -185,9 +185,9 @@ The following table lists the configurable parameters of the `ksml` chart and th
 | serviceMonitor.labels                              | object | `{}` | Additional labels for the ServiceMonitor. |
 | serviceMonitor.scrapeTimeout                       | string | `"10s"` | Timeout after which the scrape is ended. |
 | startupProbe                                       | object | `{"failureThreshold":30,"httpGet":{"path":"/startup","port":"http"},"initialDelaySeconds":2,"periodSeconds":1,"successThreshold":1,"timeoutSeconds":1}` | The startup probe for the KSML containers. |
-| startupProbe.failureThreshold                      | int | `30` | Minimum consecutive failures for the probe to be considered failed. A failed startupProbe will mark the container as unhealthy and trigger a restart for that specific container. |
-| startupProbe.initialDelaySeconds                   | int | `2` | Number of seconds after the container has started before startup probes are initiated. |
-| startupProbe.periodSeconds                         | int | `1` | How often (in seconds) to perform the probe. |
+| startupProbe.failureThreshold                      | int | `60` | Minimum consecutive failures for the probe to be considered failed. A failed startupProbe will mark the container as unhealthy and trigger a restart for that specific container. |
+| startupProbe.initialDelaySeconds                   | int | `5` | Number of seconds after the container has started before startup probes are initiated. |
+| startupProbe.periodSeconds                         | int | `2` | How often (in seconds) to perform the probe. |
 | startupProbe.successThreshold                      | int | `1` | Minimum consecutive successes for the probe to be considered successful after having failed. |
 | startupProbe.timeoutSeconds                        | int | `1` | Number of seconds after which the probe times out. |
 | store                                              | object | `{"spec":{}}` | Configure the storage specification for the volumeClaimTemplates. |
