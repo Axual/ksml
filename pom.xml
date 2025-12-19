@@ -78,12 +78,12 @@
         <apache.kafka.version>4.0.0</apache.kafka.version>
         <apicurio.version>2.6.13.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
-        <confluent.version>8.1.0</confluent.version>
+        <confluent.version>8.1.1</confluent.version>
         <dropwizard.version>4.2.37</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.2</graalvm.version>
         <guava.version>33.5.0-jre</guava.version>
-        <jackson.version>2.20.0</jackson.version>
+        <jackson.version>2.20.1</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>3.1.11</jersey.version>
