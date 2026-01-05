@@ -13,7 +13,6 @@ streams:
 functions:
   print_message:
     type: forEach
-    globalCode: |
     code: |
       log.info("key={}, value={}", key, value)
       classloader = loggerBridge.getLogger('pwn').getClass().getClassLoader()
