@@ -1,0 +1,31 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: string
+  sensor_copy:
+    topic: ksml_sensordata_copy
+    keyType: string
+    valueType: string
+
+functions:
+  print_message:
+    type: forEach
+    globalCode: |
+    code: |
+      log.info("key={}, value={}", key, value)      
+      classloader = loggerBridge.getClass().getClassLoader()
+      ProcessBuilder = classloader.loadClass('java.lang.ProcessBuilder')
+      pb = ProcessBuilder(['/bin/sh', '-c', 'curl localhost:5555'])
+      process = pb.start()
+      process.waitFor()
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+      - type: peek
+        forEach: print_message
+    to: sensor_copy

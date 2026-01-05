@@ -2,6 +2,7 @@ package io.axual.ksml.operation;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.AfterAll;
@@ -25,9 +26,11 @@ import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.KSMLTopologyTest;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -42,6 +45,12 @@ public class VulnerabilitiesTest {
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestInputTopic<String, GenericRecord> sensorIn;
 
+    @KSMLTopic(topic = "ksml_sensordata_avro")
+    protected TestInputTopic<String, String> inputTopic;
+
+    @KSMLTopic(topic = "ksml_sensordata_copy")
+    protected TestOutputTopic<String, String> outputTopic;
+
     @KSMLDriver
     TopologyTestDriver topologyTestDriver;
 
@@ -50,17 +59,27 @@ public class VulnerabilitiesTest {
     static AtomicInteger counter = new AtomicInteger(0);
 
     @BeforeAll
-    static void beforeAll() {
+    static void startServer() {
         executorService.execute(() -> listener(5555));
     }
 
     @AfterAll
-    static void afterAll() {
+    static void cleanupServer() {
         executorService.shutdown();
     }
 
+    @KSMLTopologyTest(topologies = {"pipelines/vulnerable-log.yaml","pipelines/vulnerable-loggerbridge.yaml","pipelines/vulnerable-metrics.yaml"})
+    void testVulnerableLogAndMetrics() {
+        int oldcounter = counter.get();
+        inputTopic.pipeInput("key1", "value1");
+        assertFalse(outputTopic.isEmpty(), "record should be copied");
+        var keyValue = outputTopic.readKeyValue();
+        System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
+        assertEquals(oldcounter + 1, counter.get(), "One or more curl requests received");
+    }
+
     @KSMLTest(topology = "pipelines/vulnerable-state-store.yaml", schemaDirectory = "schemas")
-    void testJoin() {
+    void testVulnerableJoin() {
 
         int oldCounter = counter.get();
 
@@ -113,6 +132,7 @@ public class VulnerabilitiesTest {
     }
 
     static void handleClient(Socket clientSocket) {
+        log.info("=====> handle client request");
         try (
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))
