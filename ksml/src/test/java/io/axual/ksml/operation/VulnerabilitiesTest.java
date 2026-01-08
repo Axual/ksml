@@ -115,6 +115,10 @@ public class VulnerabilitiesTest {
         assertTrue(counter.get() > oldCounter, "One or more curl requests received");
     }
 
+    /**
+     * Try to set up a port listener that flags when it gets a connection, so we don't need an external terminal and netcat.
+     * @param portNumber the port number to listen on.
+     */
     static void listener(int portNumber) {
         log.info("set up test server on port {}", portNumber);
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
@@ -131,6 +135,10 @@ public class VulnerabilitiesTest {
         }
     }
 
+    /**
+     * Handle an incoming curl request by sending an empty response.
+     * @param clientSocket the client socket.
+     */
     static void handleClient(Socket clientSocket) {
         log.info("=====> handle client request");
         try (
