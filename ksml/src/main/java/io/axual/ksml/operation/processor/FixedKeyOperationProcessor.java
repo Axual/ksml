@@ -21,6 +21,7 @@ package io.axual.ksml.operation.processor;
  */
 
 import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.store.StateStoreProxyFactory;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
@@ -46,7 +47,8 @@ public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Ob
             if (store == null) {
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
-            stores.put(storeName, store);
+            // Wrap the store in a proxy for security
+            stores.put(storeName, StateStoreProxyFactory.wrap(store));
         }
     }
 }

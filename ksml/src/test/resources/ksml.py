@@ -111,7 +111,7 @@ else:
     import java
     PythonLogger = java.type('io.axual.ksml.python.LoggerBridge$PythonLogger')
     MetricsBridge = java.type('io.axual.ksml.python.MetricsBridge')
-    KeyValueStore = java.type('org.apache.kafka.streams.state.KeyValueStore')
-    SessionStore = java.type('org.apache.kafka.streams.state.SessionStore')
-    WindowStore = java.type('org.apache.kafka.streams.state.WindowStore')
+    KeyValueStore = java.type('io.axual.ksml.store.KeyValueStoreProxy')
+    SessionStore = java.type('io.axual.ksml.store.SessionStoreProxy')
+    WindowStore = java.type('io.axual.ksml.store.WindowStoreProxy')
 

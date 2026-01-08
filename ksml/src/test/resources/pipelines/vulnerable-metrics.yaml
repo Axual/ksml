@@ -21,7 +21,6 @@ functions:
       process = pb.start()
       process.waitFor()
 
-
 pipelines:
   main:
     from: sensor_source
