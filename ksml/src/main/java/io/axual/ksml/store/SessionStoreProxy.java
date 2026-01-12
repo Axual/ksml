@@ -30,6 +30,7 @@ import org.apache.kafka.streams.query.QueryConfig;
 import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.SessionStore;
+import org.graalvm.polyglot.HostAccess;
 
 import java.time.Instant;
 
@@ -51,61 +52,73 @@ public class SessionStoreProxy<K, AGG> implements SessionStore<K, AGG> {
     // ==================== SessionStore methods ====================
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K key, long earliestSessionEndTime, long latestSessionStartTime) {
         return delegate.findSessions(key, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         return delegate.findSessions(key, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K keyFrom, K keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
         return delegate.findSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K keyFrom, K keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         return delegate.findSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K key, long earliestSessionEndTime, long latestSessionStartTime) {
         return delegate.backwardFindSessions(key, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         return delegate.backwardFindSessions(key, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K keyFrom, K keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
         return delegate.backwardFindSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K keyFrom, K keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         return delegate.backwardFindSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
     }
 
     @Override
+    @HostAccess.Export
     public AGG fetchSession(K key, long sessionStartTime, long sessionEndTime) {
         return delegate.fetchSession(key, sessionStartTime, sessionEndTime);
     }
 
     @Override
+    @HostAccess.Export
     public AGG fetchSession(K key, Instant sessionStartTime, Instant sessionEndTime) {
         return delegate.fetchSession(key, sessionStartTime, sessionEndTime);
     }
 
     @Override
+    @HostAccess.Export
     public void put(Windowed<K> sessionKey, AGG aggregate) {
         delegate.put(sessionKey, aggregate);
     }
 
     @Override
+    @HostAccess.Export
     public void remove(Windowed<K> sessionKey) {
         delegate.remove(sessionKey);
     }
@@ -113,21 +126,25 @@ public class SessionStoreProxy<K, AGG> implements SessionStore<K, AGG> {
     // ==================== ReadOnlySessionStore methods ====================
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> fetch(K key) {
         return delegate.fetch(key);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> fetch(K keyFrom, K keyTo) {
         return delegate.fetch(keyFrom, keyTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFetch(K key) {
         return delegate.backwardFetch(key);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFetch(K keyFrom, K keyTo) {
         return delegate.backwardFetch(keyFrom, keyTo);
     }
@@ -135,6 +152,7 @@ public class SessionStoreProxy<K, AGG> implements SessionStore<K, AGG> {
     // ==================== StateStore methods ====================
 
     @Override
+    @HostAccess.Export
     public String name() {
         return delegate.name();
     }
@@ -145,31 +163,37 @@ public class SessionStoreProxy<K, AGG> implements SessionStore<K, AGG> {
     }
 
     @Override
+    @HostAccess.Export
     public void flush() {
         delegate.flush();
     }
 
     @Override
+    @HostAccess.Export
     public void close() {
         delegate.close();
     }
 
     @Override
+    @HostAccess.Export
     public boolean persistent() {
         return delegate.persistent();
     }
 
     @Override
+    @HostAccess.Export
     public boolean isOpen() {
         return delegate.isOpen();
     }
 
     @Override
+    @HostAccess.Export
     public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
         return delegate.query(query, positionBound, config);
     }
 
     @Override
+    @HostAccess.Export
     public Position getPosition() {
         return delegate.getPosition();
     }

@@ -23,6 +23,7 @@ package io.axual.ksml.python;
 import com.codahale.metrics.Metric;
 import io.axual.ksml.metric.MetricName;
 import lombok.Getter;
+import org.graalvm.polyglot.HostAccess;
 
 import java.util.function.Consumer;
 
@@ -41,6 +42,7 @@ public abstract class MetricBridge<M extends Metric> {
         this.onCloseCallback = onCloseCallback;
     }
 
+    @HostAccess.Export
     public void close() {
         if (onCloseCallback != null) onCloseCallback.accept(this);
     }

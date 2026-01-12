@@ -31,6 +31,7 @@ import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
+import org.graalvm.polyglot.HostAccess;
 
 import java.time.Instant;
 
@@ -52,66 +53,79 @@ public class WindowStoreProxy<K, V> implements WindowStore<K, V> {
     // ==================== WindowStore methods ====================
 
     @Override
+    @HostAccess.Export
     public void put(K key, V value, long windowStartTimestamp) {
         delegate.put(key, value, windowStartTimestamp);
     }
 
     @Override
+    @HostAccess.Export
     public WindowStoreIterator<V> fetch(K key, long timeFrom, long timeTo) {
         return delegate.fetch(key, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public WindowStoreIterator<V> fetch(K key, Instant timeFrom, Instant timeTo) {
         return delegate.fetch(key, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public WindowStoreIterator<V> backwardFetch(K key, long timeFrom, long timeTo) {
         return delegate.backwardFetch(key, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public WindowStoreIterator<V> backwardFetch(K key, Instant timeFrom, Instant timeTo) {
         return delegate.backwardFetch(key, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
         return delegate.fetch(keyFrom, keyTo, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
         return delegate.fetch(keyFrom, keyTo, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
         return delegate.backwardFetch(keyFrom, keyTo, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
         return delegate.backwardFetch(keyFrom, keyTo, timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetchAll(long timeFrom, long timeTo) {
         return delegate.fetchAll(timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetchAll(Instant timeFrom, Instant timeTo) {
         return delegate.fetchAll(timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetchAll(long timeFrom, long timeTo) {
         return delegate.backwardFetchAll(timeFrom, timeTo);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetchAll(Instant timeFrom, Instant timeTo) {
         return delegate.backwardFetchAll(timeFrom, timeTo);
     }
@@ -119,16 +133,19 @@ public class WindowStoreProxy<K, V> implements WindowStore<K, V> {
     // ==================== ReadOnlyWindowStore methods ====================
 
     @Override
+    @HostAccess.Export
     public V fetch(K key, long time) {
         return delegate.fetch(key, time);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> all() {
         return delegate.all();
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardAll() {
         return delegate.backwardAll();
     }
@@ -136,6 +153,7 @@ public class WindowStoreProxy<K, V> implements WindowStore<K, V> {
     // ==================== StateStore methods ====================
 
     @Override
+    @HostAccess.Export
     public String name() {
         return delegate.name();
     }
@@ -146,31 +164,37 @@ public class WindowStoreProxy<K, V> implements WindowStore<K, V> {
     }
 
     @Override
+    @HostAccess.Export
     public void flush() {
         delegate.flush();
     }
 
     @Override
+    @HostAccess.Export
     public void close() {
         delegate.close();
     }
 
     @Override
+    @HostAccess.Export
     public boolean persistent() {
         return delegate.persistent();
     }
 
     @Override
+    @HostAccess.Export
     public boolean isOpen() {
         return delegate.isOpen();
     }
 
     @Override
+    @HostAccess.Export
     public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
         return delegate.query(query, positionBound, config);
     }
 
     @Override
+    @HostAccess.Export
     public Position getPosition() {
         return delegate.getPosition();
     }

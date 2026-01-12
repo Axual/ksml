@@ -22,6 +22,7 @@ package io.axual.ksml.python;
 
 import com.codahale.metrics.Counter;
 import io.axual.ksml.metric.MetricName;
+import org.graalvm.polyglot.HostAccess;
 
 import java.util.function.Consumer;
 
@@ -36,6 +37,7 @@ public class CounterBridge extends MetricBridge<Counter> {
     /**
      * Update the metric that the count needs to be incremented with 1
      */
+    @HostAccess.Export
     public void increment() {
         increment(1);
     }
@@ -45,6 +47,7 @@ public class CounterBridge extends MetricBridge<Counter> {
      *
      * @param delta the value with which to increment the counter
      */
+    @HostAccess.Export
     public void increment(long delta) {
         metric.inc(delta);
     }

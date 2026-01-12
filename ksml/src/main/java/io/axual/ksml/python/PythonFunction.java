@@ -138,10 +138,13 @@ public class PythonFunction extends UserFunction {
 
     private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
         Object[] result = new Object[parameters.length + 1];
-        result[0] = globalVariables;
+        // Convert globalVariables (which contains stores map) to Python-compatible ProxyHashMap
+        result[0] = PythonTypeConverter.toPython(globalVariables);
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            result[index + 1] = MAPPER.fromDataObject(parameters[index]);
+            // Convert DataObject to native Java, then to Python-compatible proxy
+            Object nativeValue = MAPPER.fromDataObject(parameters[index]);
+            result[index + 1] = PythonTypeConverter.toPython(nativeValue);
         }
         return result;
     }
@@ -168,8 +171,9 @@ public class PythonFunction extends UserFunction {
         final var includeGlobals = """
                   global stores
                 """;
+        // globalVars is now pre-converted to Python dict by PythonTypeConverter in Java
         final var initializeGlobals = """
-                  stores = convert_to_python(globalVars["stores"])
+                  stores = globalVars["stores"]
                 """;
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
@@ -195,58 +199,27 @@ public class PythonFunction extends UserFunction {
                 "  " + returnStatement + "\n";
 
         // Prepare the actual caller for the code
-        final var convertedParams = Arrays.stream(callParams).map(p -> "convert_to_python(" + p + ")").toList();
+        // Parameters are now pre-converted to Python types by PythonTypeConverter in Java
+        // Return value is passed as-is; PythonDataObjectMapper handles GraalVM Value conversion
         final var pyCallerCode = "def " + name + "_caller(globalVars," + String.join(",", defParams) + "):\n" +
                 includeGlobals +
                 initializeGlobals +
-                "  return convert_from_python(" + name + "(" + String.join(",", convertedParams) + "))\n";
+                "  return " + name + "(" + String.join(",", callParams) + ")\n";
 
+        // Python code template - no longer needs convert_to_python/convert_from_python
+        // as Java-side PythonTypeConverter handles all collection conversion
         final var pythonCodeTemplate =
                 """
                         import polyglot
-                        import java
-                        
-                        ArrayList = java.type('java.util.ArrayList')
-                        HashMap = java.type('java.util.HashMap')
-                        TreeMap = java.type('java.util.TreeMap')
+
                         stores = None
-                        
+
                         # global Python code goes here (first argument)
                         %1$s
-                        
+
                         # function definition and expression go here (second argument)
                         %2$s
-                        
-                        def convert_to_python(value):
-                          if value == None: # don't modify to "is" operator, since Java's null is not exactly the same as None
-                            return None
-                          if isinstance(value, (HashMap, TreeMap)):
-                            result = dict()
-                            for k, v in value.entrySet():
-                              result[convert_to_python(k)] = convert_to_python(v)
-                            return result
-                          if isinstance(value, ArrayList):
-                            result = []
-                            for e in value:
-                              result.append(convert_to_python(e))
-                            return result
-                          return value
-                        
-                        def convert_from_python(value):
-                          if value == None: # don't modify to "is" operator, since Java's null is not exactly the same as None
-                            return None
-                          if isinstance(value, (list, tuple)):
-                            result = ArrayList()
-                            for e in value:
-                              result.add(convert_from_python(e))
-                            return result
-                          if type(value) is dict:
-                            result = HashMap()
-                            for k, v in value.items():
-                              result.put(convert_from_python(k), convert_from_python(v))
-                            return result
-                          return value
-                        
+
                         # caller definition goes here (third argument)
                         @polyglot.export_value
                         %3$s

@@ -31,6 +31,7 @@ import org.apache.kafka.streams.query.QueryConfig;
 import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.graalvm.polyglot.HostAccess;
 
 import java.util.List;
 
@@ -52,21 +53,25 @@ public class KeyValueStoreProxy<K, V> implements KeyValueStore<K, V> {
     // ==================== KeyValueStore methods ====================
 
     @Override
+    @HostAccess.Export
     public void put(K key, V value) {
         delegate.put(key, value);
     }
 
     @Override
+    @HostAccess.Export
     public V putIfAbsent(K key, V value) {
         return delegate.putIfAbsent(key, value);
     }
 
     @Override
+    @HostAccess.Export
     public void putAll(List<KeyValue<K, V>> entries) {
         delegate.putAll(entries);
     }
 
     @Override
+    @HostAccess.Export
     public V delete(K key) {
         return delegate.delete(key);
     }
@@ -74,36 +79,43 @@ public class KeyValueStoreProxy<K, V> implements KeyValueStore<K, V> {
     // ==================== ReadOnlyKeyValueStore methods ====================
 
     @Override
+    @HostAccess.Export
     public V get(K key) {
         return delegate.get(key);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<K, V> range(K from, K to) {
         return delegate.range(from, to);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<K, V> reverseRange(K from, K to) {
         return delegate.reverseRange(from, to);
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<K, V> all() {
         return delegate.all();
     }
 
     @Override
+    @HostAccess.Export
     public KeyValueIterator<K, V> reverseAll() {
         return delegate.reverseAll();
     }
 
     @Override
+    @HostAccess.Export
     public <PS extends Serializer<P>, P> KeyValueIterator<K, V> prefixScan(P prefix, PS prefixKeySerializer) {
         return delegate.prefixScan(prefix, prefixKeySerializer);
     }
 
     @Override
+    @HostAccess.Export
     public long approximateNumEntries() {
         return delegate.approximateNumEntries();
     }
@@ -111,6 +123,7 @@ public class KeyValueStoreProxy<K, V> implements KeyValueStore<K, V> {
     // ==================== StateStore methods ====================
 
     @Override
+    @HostAccess.Export
     public String name() {
         return delegate.name();
     }
@@ -121,31 +134,37 @@ public class KeyValueStoreProxy<K, V> implements KeyValueStore<K, V> {
     }
 
     @Override
+    @HostAccess.Export
     public void flush() {
         delegate.flush();
     }
 
     @Override
+    @HostAccess.Export
     public void close() {
         delegate.close();
     }
 
     @Override
+    @HostAccess.Export
     public boolean persistent() {
         return delegate.persistent();
     }
 
     @Override
+    @HostAccess.Export
     public boolean isOpen() {
         return delegate.isOpen();
     }
 
     @Override
+    @HostAccess.Export
     public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
         return delegate.query(query, positionBound, config);
     }
 
     @Override
+    @HostAccess.Export
     public Position getPosition() {
         return delegate.getPosition();
     }

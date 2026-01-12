@@ -27,6 +27,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.SandboxPolicy;
 import org.graalvm.polyglot.io.FileSystem;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.EnvironmentAccess;
@@ -44,12 +45,15 @@ public class PythonContext {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
     private static final String PYTHON = "python";
+    // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
+    // Java collections (ArrayList, HashMap, TreeMap) are no longer needed since PythonTypeConverter
+    // converts them to Python-native types before passing to Python code
     private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
-            "java.util.ArrayList",
-            "java.util.HashMap",
-            "java.util.TreeMap",
             "io.axual.ksml.python.LoggerBridge$PythonLogger",
             "io.axual.ksml.python.MetricsBridge",
+            "io.axual.ksml.python.CounterBridge",
+            "io.axual.ksml.python.MeterBridge",
+            "io.axual.ksml.python.TimerBridge",
             "io.axual.ksml.store.KeyValueStoreProxy",
             "io.axual.ksml.store.SessionStoreProxy",
             "io.axual.ksml.store.WindowStoreProxy");
@@ -78,19 +82,7 @@ public class PythonContext {
                             PolyglotAccess.newBuilder()
                                     .allowBindingsAccess(PYTHON)
                                     .build())
-                    .allowHostAccess(
-                            HostAccess.newBuilder()
-                                    .allowPublicAccess(true)
-                                    .allowAllImplementations(false)
-                                    .allowAllClassImplementations(false)
-                                    .allowArrayAccess(false)
-                                    .allowListAccess(true)
-                                    .allowBufferAccess(false)
-                                    .allowIterableAccess(true)
-                                    .allowIteratorAccess(true)
-                                    .allowMapAccess(true)
-                                    .allowAccessInheritance(false)
-                                    .build())
+                    .allowHostAccess(HostAccess.EXPLICIT)
                     .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains);
 
             // set up configured I/O access

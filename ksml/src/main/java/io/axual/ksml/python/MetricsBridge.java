@@ -23,6 +23,7 @@ package io.axual.ksml.python;
 import io.axual.ksml.metric.MetricName;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.MetricsRegistry;
+import org.graalvm.polyglot.HostAccess;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +52,7 @@ public class MetricsBridge {
      * @param tags Additional key value pairs to used to identify the metric
      * @return The {@link CounterBridge} instance that is to be used to update the timer metric
      */
+    @HostAccess.Export
     public CounterBridge counter(String name, Map<?, ?> tags) {
         final var metricName = createMetricName("counter", name, tags);
         if (counters.containsKey(metricName)) {
@@ -70,6 +72,7 @@ public class MetricsBridge {
      * @param name the name of the new metric, this will be used as the tag <i>custom-name</i>
      * @return The {@link CounterBridge} instance that is to be used to update the timer metric
      */
+    @HostAccess.Export
     public CounterBridge counter(String name) {
         return counter(name, null);
     }
@@ -81,6 +84,7 @@ public class MetricsBridge {
      * @param tags Additional key value pairs to used to identify the metric
      * @return The {@link MeterBridge} instance that is to be used to update the timer metric
      */
+    @HostAccess.Export
     public MeterBridge meter(String name, Map<?, ?> tags) {
         final var metricName = createMetricName("meter", name, tags);
         if (meters.containsKey(metricName)) {
@@ -100,6 +104,7 @@ public class MetricsBridge {
      * @param name the name of the new metric, this will be used as the tag <i>custom-name</i>
      * @return The {@link MeterBridge} instance that is to be used to update the timer metric
      */
+    @HostAccess.Export
     public MeterBridge meter(String name) {
         return meter(name, null);
     }
@@ -111,6 +116,7 @@ public class MetricsBridge {
      * @param tags Additional key value pairs to used to identify the metric
      * @return The {@link TimerBridge} instance that is to be used to update the timer metric
      */
+    @HostAccess.Export
     public TimerBridge timer(String name, Map<?, ?> tags) {
         final var metricName = createMetricName("timer", name, tags);
         if (timers.containsKey(metricName)) {
@@ -130,6 +136,7 @@ public class MetricsBridge {
      * @param name the name of the new metric, this will be used as the tag <i>custom-name</i>
      * @return The {@link TimerBridge} instance that is to be used to update the timer metric
      */
+    @HostAccess.Export
     public TimerBridge timer(String name) {
         return timer(name, null);
     }
