@@ -1,5 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
+# This is a test pipeline that tries to exploit a possible vulnerability in the KSML engine.
 streams:
   sensor_source:
     topic: ksml_sensordata_avro

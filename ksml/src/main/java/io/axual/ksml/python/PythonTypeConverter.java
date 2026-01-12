@@ -4,7 +4,7 @@ package io.axual.ksml.python;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,41 +65,6 @@ public final class PythonTypeConverter {
                 // Primitives, strings, and other types pass through unchanged
                 value;
         };
-    }
-
-    /**
-     * Convert a Python Value back to a Java object.
-     * Python dicts become HashMap, Python lists become ArrayList.
-     *
-     * @param value the GraalVM Value to convert
-     * @return a Java object (HashMap, ArrayList, or the original value)
-     */
-    public static Object fromPython(Value value) {
-        if (value == null || value.isNull()) {
-            return null;
-        }
-        if (value.hasHashEntries()) {
-            return hashEntriesToJava(value);
-        }
-        if (value.hasArrayElements()) {
-            return arrayToJava(value);
-        }
-        if (value.isBoolean()) {
-            return value.asBoolean();
-        }
-        if (value.isNumber()) {
-            if (value.fitsInLong()) {
-                return value.asLong();
-            }
-            if (value.fitsInDouble()) {
-                return value.asDouble();
-            }
-        }
-        if (value.isString()) {
-            return value.asString();
-        }
-        // Return as-is for other types
-        return value;
     }
 
     /**
@@ -181,35 +146,6 @@ public final class PythonTypeConverter {
         for (long i = 0; i < size; i++) {
             // Store Values as-is; toPython() in listToPython() will handle conversion
             result.add(value.getArrayElement(i));
-        }
-        return result;
-    }
-
-
-    /**
-     * Convert a Value with hash entries to a Java HashMap.
-     * Recursively converts nested structures.
-     */
-    private static Map<Object, Object> hashEntriesToJava(Value value) {
-        Map<Object, Object> result = new HashMap<>();
-        Value keysIterator = value.getHashKeysIterator();
-        while (keysIterator.hasIteratorNextElement()) {
-            Value key = keysIterator.getIteratorNextElement();
-            Value val = value.getHashValue(key);
-            result.put(fromPython(key), fromPython(val));
-        }
-        return result;
-    }
-
-    /**
-     * Convert a Value with array elements to a Java ArrayList.
-     * Recursively converts nested structures.
-     */
-    private static List<Object> arrayToJava(Value value) {
-        List<Object> result = new ArrayList<>();
-        long size = value.getArraySize();
-        for (long i = 0; i < size; i++) {
-            result.add(fromPython(value.getArrayElement(i)));
         }
         return result;
     }
