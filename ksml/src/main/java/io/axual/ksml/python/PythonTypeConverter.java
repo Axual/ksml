@@ -33,6 +33,11 @@ import java.util.Map;
  * Utility class for converting Java objects to Python-compatible proxy objects
  * and vice versa. This enables proper interop with GraalVM's HostAccess.EXPLICIT
  * mode where direct access to Java collection methods is restricted.
+ * <p>
+ * With HostAccess.EXPLICIT, Python cannot access methods on Java collections like
+ * HashMap or ArrayList. This converter transforms them into GraalVM Proxy objects
+ * (ProxyHashMap, ProxyArray) which use the polyglot proxy protocol that bypasses
+ * HostAccess restrictions.
  */
 public final class PythonTypeConverter {
 
@@ -49,83 +54,17 @@ public final class PythonTypeConverter {
      * @return a Python-compatible object (ProxyHashMap, ProxyArray, or the original value)
      */
     public static Object toPython(Object value) {
-        if (value == null) {
-            return null;
-        }
-        // Handle GraalVM Value objects by unwrapping them first
-        if (value instanceof Value v) {
-            return valueToPython(v);
-        }
-        if (value instanceof Map<?, ?> map) {
-            return mapToPython(map);
-        }
-        if (value instanceof List<?> list) {
-            return listToPython(list);
-        }
-        // Primitives, strings, and other types pass through unchanged
-        return value;
-    }
+        return switch (value) {
+            case null -> null;
 
-    /**
-     * Convert a GraalVM Value to a Python-compatible object.
-     * This handles Values that wrap Java Maps/Lists (e.g., from PythonDataObjectMapper).
-     */
-    private static Object valueToPython(Value value) {
-        if (value.isNull()) {
-            return null;
-        }
-        // Check if the Value wraps a host object (Java object)
-        if (value.isHostObject()) {
-            Object hostObject = value.asHostObject();
-            // Recursively convert the unwrapped host object
-            return toPython(hostObject);
-        }
-        // Handle Value with hash entries (dict-like)
-        if (value.hasHashEntries()) {
-            Map<Object, Object> converted = new HashMap<>();
-            Value keysIterator = value.getHashKeysIterator();
-            while (keysIterator.hasIteratorNextElement()) {
-                Value key = keysIterator.getIteratorNextElement();
-                Value val = value.getHashValue(key);
-                converted.put(toPython(key), toPython(val));
-            }
-            return ProxyHashMap.from(converted);
-        }
-        // Handle Value with array elements (list-like)
-        if (value.hasArrayElements()) {
-            long size = value.getArraySize();
-            Object[] converted = new Object[(int) size];
-            for (int i = 0; i < size; i++) {
-                converted[i] = toPython(value.getArrayElement(i));
-            }
-            return ProxyArray.fromArray(converted);
-        }
-        // For primitive values, return as-is (GraalVM handles these)
-        return value;
-    }
-
-    /**
-     * Convert a Map to a ProxyHashMap for Python interop.
-     * Recursively converts nested Maps and Lists.
-     */
-    private static ProxyHashMap mapToPython(Map<?, ?> map) {
-        Map<Object, Object> converted = new HashMap<>();
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            converted.put(toPython(entry.getKey()), toPython(entry.getValue()));
-        }
-        return ProxyHashMap.from(converted);
-    }
-
-    /**
-     * Convert a List to a ProxyArray for Python interop.
-     * Recursively converts nested Maps and Lists.
-     */
-    private static ProxyArray listToPython(List<?> list) {
-        Object[] converted = new Object[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            converted[i] = toPython(list.get(i));
-        }
-        return ProxyArray.fromArray(converted);
+            // Handle GraalVM Value objects by unwrapping them first
+            case Value v -> valueToPython(v);
+            case Map<?, ?> map -> mapToPython(map);
+            case List<?> list -> listToPython(list);
+            default ->
+                // Primitives, strings, and other types pass through unchanged
+                value;
+        };
     }
 
     /**
@@ -164,7 +103,92 @@ public final class PythonTypeConverter {
     }
 
     /**
-     * Convert a Python dict (or any Value with hash entries) to a Java HashMap.
+     * Convert a GraalVM Value to a Python-compatible object.
+     * Host objects (Java objects wrapped in Value) are unwrapped and converted.
+     * Native polyglot Values with hash/array entries are converted to Java collections first,
+     * then to proxy objects.
+     */
+    private static Object valueToPython(Value value) {
+        if (value.isNull()) {
+            return null;
+        }
+        // Check if the Value wraps a host object (Java object) - most common case
+        if (value.isHostObject()) {
+            // Unwrap and recursively convert (will route to mapToPython/listToPython)
+            return toPython(value.asHostObject());
+        }
+        // Handle native polyglot Value with hash entries (e.g., Python dict)
+        if (value.hasHashEntries()) {
+            // Extract to Java Map, then convert to ProxyHashMap
+            return mapToPython(valueToMap(value));
+        }
+        // Handle native polyglot Value with array elements (e.g., Python list)
+        if (value.hasArrayElements()) {
+            // Extract to Java List, then convert to ProxyArray
+            return listToPython(valueToList(value));
+        }
+        // For primitive values, return as-is (GraalVM handles these)
+        return value;
+    }
+
+    /**
+     * Convert a Map to a ProxyHashMap for Python interop.
+     * Recursively converts nested Maps, Lists, and Values.
+     */
+    private static ProxyHashMap mapToPython(Map<?, ?> map) {
+        Map<Object, Object> converted = new HashMap<>();
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            converted.put(toPython(entry.getKey()), toPython(entry.getValue()));
+        }
+        return ProxyHashMap.from(converted);
+    }
+
+    /**
+     * Convert a List to a ProxyArray for Python interop.
+     * Recursively converts nested Maps, Lists, and Values.
+     */
+    private static ProxyArray listToPython(List<?> list) {
+        Object[] converted = new Object[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            converted[i] = toPython(list.get(i));
+        }
+        return ProxyArray.fromArray(converted);
+    }
+
+    /**
+     * Extract a Value with hash entries to a Java Map (without recursive conversion).
+     * The actual conversion to Python types happens in mapToPython().
+     */
+    private static Map<Object, Object> valueToMap(Value value) {
+        Map<Object, Object> result = new HashMap<>();
+        Value keysIterator = value.getHashKeysIterator();
+        while (keysIterator.hasIteratorNextElement()) {
+            Value key = keysIterator.getIteratorNextElement();
+            Value val = value.getHashValue(key);
+            // Store Values as-is; toPython() in mapToPython() will handle conversion
+            result.put(key, val);
+        }
+        return result;
+    }
+
+    /**
+     * Extract a Value with array elements to a Java List (without recursive conversion).
+     * The actual conversion to Python types happens in listToPython().
+     */
+    private static List<Object> valueToList(Value value) {
+        List<Object> result = new ArrayList<>();
+        long size = value.getArraySize();
+        for (long i = 0; i < size; i++) {
+            // Store Values as-is; toPython() in listToPython() will handle conversion
+            result.add(value.getArrayElement(i));
+        }
+        return result;
+    }
+
+
+    /**
+     * Convert a Value with hash entries to a Java HashMap.
+     * Recursively converts nested structures.
      */
     private static Map<Object, Object> hashEntriesToJava(Value value) {
         Map<Object, Object> result = new HashMap<>();
@@ -178,7 +202,8 @@ public final class PythonTypeConverter {
     }
 
     /**
-     * Convert a Python list (or any Value with array elements) to a Java ArrayList.
+     * Convert a Value with array elements to a Java ArrayList.
+     * Recursively converts nested structures.
      */
     private static List<Object> arrayToJava(Value value) {
         List<Object> result = new ArrayList<>();
