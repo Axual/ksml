@@ -41,20 +41,35 @@ import org.apache.kafka.streams.state.WindowStore;
 import java.util.HashMap;
 
 public class StoreUtil {
+
     private StoreUtil() {
     }
 
-    public static KeyValueBytesStoreSupplier getStoreSupplier(KeyValueStateStoreDefinition store) {
-        return store.persistent()
-                ? (store.versioned()
-                ? Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval())
-                : (store.timestamped()
-                ? Stores.persistentTimestampedKeyValueStore(store.name())
-                : Stores.persistentKeyValueStore(store.name())))
-                : Stores.inMemoryKeyValueStore(store.name());
+    private static KeyValueBytesStoreSupplier getStoreSupplier(KeyValueStateStoreDefinition store) {
+        if (!store.persistent()) {
+            return Stores.inMemoryKeyValueStore(store.name());
+        }
+        if (store.versioned()) {
+            return Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval());
+        }
+        if (store.timestamped()) {
+            return Stores.persistentTimestampedKeyValueStore(store.name());
+        }
+        return Stores.persistentKeyValueStore(store.name());
     }
 
-    public static StoreBuilder<?> getStoreBuilder(KeyValueStateStoreDefinition store) {
+    public static StoreBuilder<?> getStoreBuilder(StateStoreDefinition store) {
+        if (store instanceof KeyValueStateStoreDefinition kvStore) {
+            return getKeyValueStateStoreBuilder(kvStore);
+        } else if (store instanceof SessionStateStoreDefinition sessionStore) {
+            return getSessionStateStoreBuilder(sessionStore);
+        } else if (store instanceof WindowStateStoreDefinition windowStore) {
+            return getWindowStateStoreBuilder(windowStore);
+        }
+        throw new IllegalArgumentException("Unknown store type: " + store.getClass().getSimpleName());
+    }
+
+    private static StoreBuilder<?> getKeyValueStateStoreBuilder(KeyValueStateStoreDefinition store) {
         final var keyType = new StreamDataType(store.keyType(), true);
         final var valueType = new StreamDataType(store.valueType(), false);
         StoreBuilder<?> storeBuilder;
@@ -77,18 +92,16 @@ public class StoreUtil {
         return storeBuilder;
     }
 
-    public static SessionBytesStoreSupplier getStoreSupplier(SessionStateStoreDefinition store) {
+    private static SessionBytesStoreSupplier getStoreSupplier(SessionStateStoreDefinition store) {
         return store.persistent()
                 ? Stores.persistentSessionStore(store.name(), store.retention())
                 : Stores.inMemorySessionStore(store.name(), store.retention());
     }
 
-    public static StoreBuilder<?> getStoreBuilder(SessionStateStoreDefinition store) {
+    private static StoreBuilder<?> getSessionStateStoreBuilder(SessionStateStoreDefinition store) {
         final var keyType = new StreamDataType(store.keyType(), true);
         final var valueType = new StreamDataType(store.valueType(), false);
-        final var supplier = store.persistent()
-                ? Stores.persistentSessionStore(store.name(), store.retention())
-                : Stores.inMemorySessionStore(store.name(), store.retention());
+        final var supplier = getStoreSupplier(store);
         var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.serde(), valueType.serde());
         storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
@@ -96,21 +109,19 @@ public class StoreUtil {
     }
 
     public static WindowBytesStoreSupplier getStoreSupplier(WindowStateStoreDefinition store) {
-        return store.persistent()
-                ? (store.timestamped()
-                ? Stores.persistentTimestampedWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates())
-                : Stores.persistentWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates()))
-                : Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
+        if (!store.persistent()) {
+            return Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
+        }
+        if (store.timestamped()) {
+            return Stores.persistentTimestampedWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
+        }
+        return Stores.persistentWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
     }
 
-    public static StoreBuilder<?> getStoreBuilder(WindowStateStoreDefinition store) {
+    private static StoreBuilder<?> getWindowStateStoreBuilder(WindowStateStoreDefinition store) {
         final var keyType = new StreamDataType(store.keyType(), true);
         final var valueType = new StreamDataType(store.valueType(), false);
-        var supplier = store.persistent()
-                ? (store.timestamped()
-                ? Stores.persistentTimestampedWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates())
-                : Stores.persistentWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates()))
-                : Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
+        final var supplier = getStoreSupplier(store);
         var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.serde(), valueType.serde());
         storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();

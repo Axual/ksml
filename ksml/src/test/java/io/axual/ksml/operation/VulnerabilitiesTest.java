@@ -28,6 +28,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.BufferedReader;
@@ -53,11 +54,13 @@ import lombok.extern.slf4j.Slf4j;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * THIS IS NOT A STANDARD UNIT TEST.
- * For verification, open netcat in a separate terminal and set it to listen on port 5555. If the vulnerability exists, you will
- * see an incoming GET request from KSML.
+ * Test for various found KSML shell escapes.
+ * This test tries to use the exploit to create a shell with a curl to localhost:5555 and starts a separate thread listening on port 5555,
+ * which will increase a counter every time a request is received.
+ * Verification is a check to see if an exception is thrown when the pipeline is run.
  */
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
@@ -93,13 +96,11 @@ public class VulnerabilitiesTest {
     /**
      * Test that attacks via HashMap.getClass() are blocked by the sandbox.
      * This attack is blocked because getClass() is not accessible on the polyglot type object.
-     *
      * NOTE: This test is disabled because the error handling in PythonFunction calls
      * FatalError.reportAndExit() which invokes System.exit(1), making it impossible
      * to catch the exception in a unit test. The attack IS blocked by the sandbox -
      * this can be verified manually by running the pipeline and observing that no
      * curl request is made to localhost:5555.
-     *
      * To re-enable this test, the error handling would need to be changed to throw
      * an exception instead of calling System.exit().
      */
@@ -118,50 +119,100 @@ public class VulnerabilitiesTest {
      * These attacks fail silently (globalCode runs before objects are initialized).
      */
     @KSMLTopologyTest(topologies = {"pipelines/vulnerable-log.yaml","pipelines/vulnerable-loggerbridge.yaml","pipelines/vulnerable-metrics.yaml"})
+    @DisplayName("check vulnerabilities in log and metrics")
     void testVulnerableLogAndMetrics() {
-        int oldcounter = counter.get();
-        inputTopic.pipeInput("key1", "value1");
-        assertFalse(outputTopic.isEmpty(), "record should be copied");
-        var keyValue = outputTopic.readKeyValue();
-        System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
-        assertEquals(oldcounter, counter.get(), "No curl request should be received");
+        var rte = assertThrows(RuntimeException.class, () -> {
+            int oldcounter = counter.get();
+            inputTopic.pipeInput("key1", "value1");
+            assertFalse(outputTopic.isEmpty(), "record should be copied");
+            var keyValue = outputTopic.readKeyValue();
+            System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
+            assertEquals(oldcounter, counter.get(), "No curl request should be received");
+        }, "trying to exploit log and metrics should result in RuntimeException");
+
+        assertTrue(rte.getCause().getMessage().contains("foreign object has no attribute 'getClass'"), "`getClass' should be blocked by the sandbox.");
     }
 
     @KSMLTest(topology = "pipelines/vulnerable-state-store.yaml", schemaDirectory = "schemas")
-    void testVulnerableJoin() {
+    @DisplayName("check vulnerabilities in state stores")
+    void testVulnerableStateStore() {
+        var rte = assertThrows(RuntimeException.class, () -> {
+            int oldCounter = counter.get();
 
-        int oldCounter = counter.get();
+                // given that we get events with a higher reading in matching cities
+                sensorIn.pipeInput("sensor1", SensorData.builder()
+                    .city("Amsterdam")
+                    .type(SensorData.SensorType.HUMIDITY)
+                    .unit("%")
+                    .value("80")
+                    .build().toRecord());
+                sensorIn.pipeInput("sensor2", SensorData.builder()
+                    .city("Utrecht")
+                    .type(SensorData.SensorType.TEMPERATURE)
+                    .unit("C")
+                    .value("26")
+                    .build().toRecord());
 
-        // given that we get events with a higher reading in matching cities
-        sensorIn.pipeInput("sensor1", SensorData.builder()
-            .city("Amsterdam")
-            .type(SensorData.SensorType.HUMIDITY)
-            .unit("%")
-            .value("80")
-            .build().toRecord());
-        sensorIn.pipeInput("sensor2", SensorData.builder()
-            .city("Utrecht")
-            .type(SensorData.SensorType.TEMPERATURE)
-            .unit("C")
-            .value("26")
-            .build().toRecord());
+                // and a new value for sensor1
+                sensorIn.pipeInput("sensor1", SensorData.builder()
+                    .city("Amsterdam")
+                    .type(SensorData.SensorType.HUMIDITY)
+                    .unit("%")
+                    .value("70")
+                    .build().toRecord());
 
-        // and a new value for sensor1
-        sensorIn.pipeInput("sensor1", SensorData.builder()
-            .city("Amsterdam")
-            .type(SensorData.SensorType.HUMIDITY)
-            .unit("%")
-            .value("70")
-            .build().toRecord());
+                // the last value for sensor1 is present in the store named "last_sensor_data_store"
+                KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+                DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+                assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+                assertEquals(new DataString("70"), sensor1Data.get("value"));
 
-        // the last value for sensor1 is present in the store named "last_sensor_data_store"
-        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
-        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
-        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-        assertEquals(new DataString("70"), sensor1Data.get("value"));
+                // and the counter should have been incremented
+                assertEquals(oldCounter, counter.get(), "No curl request should be received");
+        }, "Trying to exploit state stores should result on RuntimeException");
 
-        // and the counter should have been incremented
-        assertEquals(oldCounter, counter.get(), "No curl request should be received");
+        assertTrue(rte.getCause().getMessage().contains("foreign object has no attribute 'getClass'"), "`getClass' should be blocked by the sandbox.");
+    }
+
+    @KSMLTest(topology = "pipelines/vulnerable-versioned-state-store.yaml", schemaDirectory = "schemas")
+    @DisplayName("check vulnerabilities in versioned state stores")
+    void testVulnerableVersionedStateStore() {
+        var rte = assertThrows(RuntimeException.class, () -> {
+            int oldCounter = counter.get();
+
+                // given that we get events with a higher reading in matching cities
+                sensorIn.pipeInput("sensor1", SensorData.builder()
+                    .city("Amsterdam")
+                    .type(SensorData.SensorType.HUMIDITY)
+                    .unit("%")
+                    .value("80")
+                    .build().toRecord());
+                sensorIn.pipeInput("sensor2", SensorData.builder()
+                    .city("Utrecht")
+                    .type(SensorData.SensorType.TEMPERATURE)
+                    .unit("C")
+                    .value("26")
+                    .build().toRecord());
+
+                // and a new value for sensor1
+                sensorIn.pipeInput("sensor1", SensorData.builder()
+                    .city("Amsterdam")
+                    .type(SensorData.SensorType.HUMIDITY)
+                    .unit("%")
+                    .value("70")
+                    .build().toRecord());
+
+                // the last value for sensor1 is present in the store named "last_sensor_data_store"
+                KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+                DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+                assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+                assertEquals(new DataString("70"), sensor1Data.get("value"));
+
+                // and the counter should have been incremented
+                assertEquals(oldCounter, counter.get(), "No curl request should be received");
+        }, "Trying to exploit state stores should result on RuntimeException");
+
+        assertTrue(rte.getCause().getMessage().contains("foreign object has no attribute 'getClass'"), "`getClass' should be blocked by the sandbox.");
     }
 
     /**

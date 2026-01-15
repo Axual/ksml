@@ -23,6 +23,7 @@ package io.axual.ksml.store;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.WindowStore;
 
 /**
@@ -44,7 +45,9 @@ public class StateStoreProxyFactory {
      */
     @SuppressWarnings("unchecked")
     public static StateStore wrap(StateStore store) {
-        if (store instanceof KeyValueStore<?, ?> kvStore) {
+        if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
+            return new VersionedKeyValueStoreProxy<>((VersionedKeyValueStore<Object, Object>) versionedStore);
+        } else if (store instanceof KeyValueStore<?, ?> kvStore) {
             return new KeyValueStoreProxy<>((KeyValueStore<Object, Object>) kvStore);
         } else if (store instanceof SessionStore<?, ?> sessionStore) {
             return new SessionStoreProxy<>((SessionStore<Object, Object>) sessionStore);

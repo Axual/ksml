@@ -106,20 +106,8 @@ public class TopologyBuildContext {
     }
 
     public void createUserStateStore(StateStoreDefinition store) {
-        if (store instanceof KeyValueStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef);
-            builder.addStateStore(storeBuilder);
-        }
-
-        if (store instanceof SessionStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef);
-            builder.addStateStore(storeBuilder);
-        }
-
-        if (store instanceof WindowStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef);
-            builder.addStateStore(storeBuilder);
-        }
+        final var storeBuilder = StoreUtil.getStoreBuilder(store);
+        builder.addStateStore(storeBuilder);
     }
 
     public StreamWrapper getStreamWrapper(TopologyResource<TopicDefinition> resource) {

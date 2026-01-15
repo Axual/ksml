@@ -51,7 +51,6 @@ public class PythonFunction extends UserFunction {
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Value function;
-    private final PythonContext context;
 
     public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
         return new PythonFunction(context, namespace, "function", name, definition);
@@ -67,7 +66,6 @@ public class PythonFunction extends UserFunction {
 
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
-        this.context = context;
         converter = context.converter();
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
@@ -132,7 +130,7 @@ public class PythonFunction extends UserFunction {
             }
         } catch (Exception e) {
             logCall(parameters, null);
-            throw FatalError.reportAndExit(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage()), e));
+            throw FatalError.report(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage()), e));
         }
     }
 
