@@ -4,7 +4,12 @@
   skinparam titleBorderThickness 2
   skinparam titleBorderColor red
   skinparam titleBackgroundColor Aqua
-  title KSML state stores
+
+  title Kafka Streams store types
+
+  legend top center
+  Overview of all store types in Kafka Streams
+  endlegend
 
   skinparam linetype ortho
   skinparam classAttributeIconSize 0
@@ -21,12 +26,8 @@
     +getPosition(): Position
   }
 
-  interface KeyValueStore<K,V> {
+  interface ReadOnlyKeyValueStore<K,V> {
     +get(K): V
-    +put(K, V): void
-    +putIfAbsent(K, V): V
-    +putAll(List<KeyValue<K,V>>): void
-    +delete(K): V
     +range(K, K): KeyValueIterator<K,V>
     +reverseRange(K, K): KeyValueIterator<K,V>
     +all(): KeyValueIterator<K,V>
@@ -35,20 +36,36 @@
     +approximateNumEntries(): long
   }
 
+  interface KeyValueStore<K,V> {
+    +put(K, V): void
+    +putIfAbsent(K, V): V
+    +putAll(List<KeyValue<K,V>>): void
+    +delete(K): V
+  }
+
   interface TimestampedKeyValueStore<K,V> {
     .. inherits all methods ..
     .. value type: ValueAndTimestamp<V> ..
   }
 
-  interface VersionedKeyValueStore<K,V> {
-    +put(K, V, long): long
-    +delete(K, long): VersionedRecord<V>
-    +get(K): VersionedRecord<V>
-    +get(K, long): VersionedRecord<V>
+  interface ReadOnlySessionStore<K,AGG> {
+    +fetch(K): KeyValueIterator<Windowed<K>,AGG>
+    +fetch(K, K): KeyValueIterator<Windowed<K>,AGG>
+    +backwardFetch(K): KeyValueIterator<Windowed<K>,AGG>
+    +backwardFetch(K, K): KeyValueIterator<Windowed<K>,AGG>
+    +findSessions(K, long, long): KeyValueIterator<Windowed<K>,AGG>
+    +findSessions(K, K, long, long): KeyValueIterator<Windowed<K>,AGG>
+    +backwardFindSessions(K, long, long): KeyValueIterator<Windowed<K>,AGG>
+    +backwardFindSessions(K, K, long, long): KeyValueIterator<Windowed<K>,AGG>
+    +fetchSession(K, long, long): AGG
   }
 
-  interface WindowStore<K,V> {
-    +put(K, V, long): void
+  interface SessionStore<K,AGG> {
+    +put(Windowed<K>, AGG): void
+    +remove(Windowed<K>): void
+  }
+
+  interface ReadOnlyWindowStore<K,V> {
     +fetch(K, long): V
     +fetch(K, Instant, Instant): WindowStoreIterator<V>
     +fetch(K, K, Instant, Instant): KeyValueIterator<Windowed<K>,V>
@@ -60,37 +77,34 @@
     +backwardFetchAll(Instant, Instant): KeyValueIterator<Windowed<K>,V>
   }
 
+  interface WindowStore<K,V> {
+    +put(K, V, long): void
+  }
+
   interface TimestampedWindowStore<K,V> {
     .. inherits all methods ..
     .. value type: ValueAndTimestamp<V> ..
   }
 
-  interface SessionStore<K,AGG> {
-    +put(Windowed<K>, AGG): void
-    +remove(Windowed<K>): void
-    +fetch(K): KeyValueIterator<Windowed<K>,AGG>
-    +fetch(K, K): KeyValueIterator<Windowed<K>,AGG>
-    +backwardFetch(K): KeyValueIterator<Windowed<K>,AGG>
-    +backwardFetch(K, K): KeyValueIterator<Windowed<K>,AGG>
-    +findSessions(K, long, long): KeyValueIterator<Windowed<K>,AGG>
-    +backwardFindSessions(K, long, long): KeyValueIterator<Windowed<K>,AGG>
-    +fetchSession(K, long, long): AGG
+  interface VersionedKeyValueStore<K,V> {
+    +put(K, V, long): long
+    +delete(K, long): VersionedRecord<V>
+    +get(K): VersionedRecord<V>
+    +get(K, long): VersionedRecord<V>
   }
 
   ' Inheritance relationships
   StateStore <|-- KeyValueStore
-  StateStore <|-- VersionedKeyValueStore
-  StateStore <|-- WindowStore
-  StateStore <|-- SessionStore
-
+  ReadOnlyKeyValueStore <|-- KeyValueStore
   KeyValueStore <|-- TimestampedKeyValueStore
+
+  StateStore <|-- SessionStore
+  ReadOnlySessionStore <|-- SessionStore
+
+  StateStore <|-- WindowStore
+  ReadOnlyWindowStore <|-- WindowStore
   WindowStore <|-- TimestampedWindowStore
 
-  note bottom of KeyValueStore : KSML: type: keyValue
-  note bottom of TimestampedKeyValueStore : KSML: type: keyValue\ntimestamped: true
-  note bottom of VersionedKeyValueStore : KSML: type: keyValue\nversioned: true
-  note bottom of WindowStore : KSML: type: window
-  note bottom of TimestampedWindowStore : KSML: type: window\ntimestamped: true
-  note bottom of SessionStore : KSML: type: session
+  StateStore <|-- VersionedKeyValueStore
 
   @enduml
