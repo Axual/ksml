@@ -66,7 +66,7 @@ public class KeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<KeyValueSt
     @Override
     @HostAccess.Export
     public void putAll(List<KeyValue<K, V>> entries) {
-        delegate.putAll(entries);
+        throw new UnsupportedOperationException("putAll(List<KeyValue<K, V>>) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
