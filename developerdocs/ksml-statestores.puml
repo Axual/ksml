@@ -1,15 +1,4 @@
-
-  @startuml
-  skinparam titleBorderRoundCorner 15
-  skinparam titleBorderThickness 2
-  skinparam titleBorderColor red
-  skinparam titleBackgroundColor Aqua
-  title KSML state stores
-
-  legend top center
-  Overview of Kafka state store types which can be configured in KSML.
-  endlegend
-
+@startuml
   skinparam linetype ortho
   skinparam classAttributeIconSize 0
   hide circle
@@ -25,18 +14,21 @@
     +getPosition(): Position
   }
 
-  interface KeyValueStore<K,V> {
+  interface ReadOnlyKeyValueStore<K,V> {
     +get(K): V
-    +put(K, V): void
-    +putIfAbsent(K, V): V
-    +putAll(List<KeyValue<K,V>>): void
-    +delete(K): V
     +range(K, K): KeyValueIterator<K,V>
     +reverseRange(K, K): KeyValueIterator<K,V>
     +all(): KeyValueIterator<K,V>
     +reverseAll(): KeyValueIterator<K,V>
     +prefixScan(P, PS): KeyValueIterator<K,V>
     +approximateNumEntries(): long
+  }
+
+  interface KeyValueStore<K,V> {
+    +put(K, V): void
+    +putIfAbsent(K, V): V
+    +putAll(List<KeyValue<K,V>>): void
+    +delete(K): V
   }
 
   interface TimestampedKeyValueStore<K,V> {
@@ -51,8 +43,7 @@
     +get(K, long): VersionedRecord<V>
   }
 
-  interface WindowStore<K,V> {
-    +put(K, V, long): void
+  interface ReadOnlyWindowStore<K,V> {
     +fetch(K, long): V
     +fetch(K, Instant, Instant): WindowStoreIterator<V>
     +fetch(K, K, Instant, Instant): KeyValueIterator<Windowed<K>,V>
@@ -64,14 +55,16 @@
     +backwardFetchAll(Instant, Instant): KeyValueIterator<Windowed<K>,V>
   }
 
+  interface WindowStore<K,V> {
+    +put(K, V, long): void
+  }
+
   interface TimestampedWindowStore<K,V> {
     .. inherits all methods ..
     .. value type: ValueAndTimestamp<V> ..
   }
 
-  interface SessionStore<K,AGG> {
-    +put(Windowed<K>, AGG): void
-    +remove(Windowed<K>): void
+  interface ReadOnlySessionStore<K,AGG> {
     +fetch(K): KeyValueIterator<Windowed<K>,AGG>
     +fetch(K, K): KeyValueIterator<Windowed<K>,AGG>
     +backwardFetch(K): KeyValueIterator<Windowed<K>,AGG>
@@ -81,19 +74,28 @@
     +fetchSession(K, long, long): AGG
   }
 
-  ' Inheritance relationships
-  StateStore <|-- KeyValueStore
-  StateStore <|-- VersionedKeyValueStore
-  StateStore <|-- WindowStore
-  StateStore <|-- SessionStore
+  interface SessionStore<K,AGG> {
+    +put(Windowed<K>, AGG): void
+    +remove(Windowed<K>): void
+  }
 
+  ' Inheritance relationships
+  StateStore <|--- KeyValueStore
+  ReadOnlyKeyValueStore <|-- KeyValueStore
+  StateStore <|-- VersionedKeyValueStore
   KeyValueStore <|-- TimestampedKeyValueStore
+
+  StateStore <|---- WindowStore
+  ReadOnlyWindowStore <|-- WindowStore
   WindowStore <|-- TimestampedWindowStore
+
+  StateStore <|--- SessionStore
+  ReadOnlySessionStore <|-- SessionStore
 
   note bottom of KeyValueStore : KSML: type: keyValue
   note bottom of TimestampedKeyValueStore : KSML: type: keyValue\ntimestamped: true
   note bottom of VersionedKeyValueStore : KSML: type: keyValue\nversioned: true
-  note bottom of WindowStore : KSML: type: window
+  note right of WindowStore : KSML: type: window
   note bottom of TimestampedWindowStore : KSML: type: window\ntimestamped: true
   note bottom of SessionStore : KSML: type: session
 
