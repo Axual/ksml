@@ -43,11 +43,10 @@ import java.time.Instant;
  * @param <K> the type of keys
  * @param <V> the type of values
  */
-public class WindowStoreProxy<K, V> implements WindowStore<K, V> {
-    private final WindowStore<K, V> delegate;
+public class WindowStoreProxy<K, V> extends AbstractStateStoreProxy<WindowStore<K,V>> implements WindowStore<K, V> {
 
     public WindowStoreProxy(WindowStore<K, V> delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     // ==================== WindowStore methods ====================
@@ -61,73 +60,73 @@ public class WindowStoreProxy<K, V> implements WindowStore<K, V> {
     @Override
     @HostAccess.Export
     public WindowStoreIterator<V> fetch(K key, long timeFrom, long timeTo) {
-        return delegate.fetch(key, timeFrom, timeTo);
+        throw new UnsupportedOperationException("fetch(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public WindowStoreIterator<V> fetch(K key, Instant timeFrom, Instant timeTo) {
-        return delegate.fetch(key, timeFrom, timeTo);
+        throw new UnsupportedOperationException("fetch(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public WindowStoreIterator<V> backwardFetch(K key, long timeFrom, long timeTo) {
-        return delegate.backwardFetch(key, timeFrom, timeTo);
+        throw new UnsupportedOperationException("backwardFetch(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public WindowStoreIterator<V> backwardFetch(K key, Instant timeFrom, Instant timeTo) {
-        return delegate.backwardFetch(key, timeFrom, timeTo);
+        throw new UnsupportedOperationException("backwardFetch(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
-        return delegate.fetch(keyFrom, keyTo, timeFrom, timeTo);
+        throw new UnsupportedOperationException("fetch(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
-        return delegate.fetch(keyFrom, keyTo, timeFrom, timeTo);
+        throw new UnsupportedOperationException("fetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
-        return delegate.backwardFetch(keyFrom, keyTo, timeFrom, timeTo);
+        throw new UnsupportedOperationException("backwardFetch(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
-        return delegate.backwardFetch(keyFrom, keyTo, timeFrom, timeTo);
+        throw new UnsupportedOperationException("backwardFetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetchAll(long timeFrom, long timeTo) {
-        return delegate.fetchAll(timeFrom, timeTo);
+        throw new UnsupportedOperationException("fetchAll(long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetchAll(Instant timeFrom, Instant timeTo) {
-        return delegate.fetchAll(timeFrom, timeTo);
+        throw new UnsupportedOperationException("fetchAll(Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetchAll(long timeFrom, long timeTo) {
-        return delegate.backwardFetchAll(timeFrom, timeTo);
+        throw new UnsupportedOperationException("backwardFetchAll(long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetchAll(Instant timeFrom, Instant timeTo) {
-        return delegate.backwardFetchAll(timeFrom, timeTo);
+        throw new UnsupportedOperationException("backwardFetchAll(Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     // ==================== ReadOnlyWindowStore methods ====================
@@ -141,61 +140,12 @@ public class WindowStoreProxy<K, V> implements WindowStore<K, V> {
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> all() {
-        return delegate.all();
+        throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardAll() {
-        return delegate.backwardAll();
-    }
-
-    // ==================== StateStore methods ====================
-
-    @Override
-    @HostAccess.Export
-    public String name() {
-        return delegate.name();
-    }
-
-    @Override
-    public void init(StateStoreContext context, StateStore root) {
-        delegate.init(context, root);
-    }
-
-    @Override
-    @HostAccess.Export
-    public void flush() {
-        delegate.flush();
-    }
-
-    @Override
-    @HostAccess.Export
-    public void close() {
-        delegate.close();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean persistent() {
-        return delegate.persistent();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean isOpen() {
-        return delegate.isOpen();
-    }
-
-    @Override
-    @HostAccess.Export
-    public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
-        return delegate.query(query, positionBound, config);
-    }
-
-    @Override
-    @HostAccess.Export
-    public Position getPosition() {
-        return delegate.getPosition();
+        throw new UnsupportedOperationException("backwardAll() is not supported by this proxy (" + getClass() + ")");
     }
 }

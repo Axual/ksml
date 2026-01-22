@@ -33,91 +33,44 @@ import org.graalvm.polyglot.HostAccess;
 
 /**
  * A proxy wrapper around a Kafka Streams VersionedKeyValueStore that delegates all operations
- * to the underlying store. This proxy can be used to intercept store operations
- * for security, logging, or other cross-cutting concerns.
+ * to the underlying store. This proxy exposes store methods to Python code via @HostAccess.Export.
+ * <p>
+ * Note: This class implements StateStore rather than VersionedKeyValueStore because
+ * VersionedRecord is a final class that cannot be extended, and we need to return
+ * VersionedRecordProxy to expose its methods to Python.
  *
  * @param <K> the type of keys
  * @param <V> the type of values
  */
-public class VersionedKeyValueStoreProxy<K, V> implements VersionedKeyValueStore<K, V> {
-    private final VersionedKeyValueStore<K, V> delegate;
+public class VersionedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<VersionedKeyValueStore<K,V>> implements StateStore {
 
     public VersionedKeyValueStoreProxy(VersionedKeyValueStore<K, V> delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     // ==================== VersionedKeyValueStore methods ====================
 
-    @Override
     @HostAccess.Export
     public long put(K key, V value, long timestamp) {
         return delegate.put(key, value, timestamp);
     }
 
-    @Override
     @HostAccess.Export
-    public VersionedRecord<V> delete(K key, long timestamp) {
-        return delegate.delete(key, timestamp);
+    public VersionedRecordProxy<V> delete(K key, long timestamp) {
+        return wrapRecord(delegate.delete(key, timestamp));
     }
 
-    @Override
     @HostAccess.Export
-    public VersionedRecord<V> get(K key) {
-        return delegate.get(key);
+    public VersionedRecordProxy<V> get(K key) {
+        return wrapRecord(delegate.get(key));
     }
 
-    @Override
     @HostAccess.Export
-    public VersionedRecord<V> get(K key, long asOfTimestamp) {
-        return delegate.get(key, asOfTimestamp);
+    public VersionedRecordProxy<V> get(K key, long asOfTimestamp) {
+        return wrapRecord(delegate.get(key, asOfTimestamp));
     }
 
-    // ==================== StateStore methods ====================
-
-    @Override
-    @HostAccess.Export
-    public String name() {
-        return delegate.name();
-    }
-
-    @Override
-    public void init(StateStoreContext context, StateStore root) {
-        delegate.init(context, root);
-    }
-
-    @Override
-    @HostAccess.Export
-    public void flush() {
-        delegate.flush();
-    }
-
-    @Override
-    @HostAccess.Export
-    public void close() {
-        delegate.close();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean persistent() {
-        return delegate.persistent();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean isOpen() {
-        return delegate.isOpen();
-    }
-
-    @Override
-    @HostAccess.Export
-    public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
-        return delegate.query(query, positionBound, config);
-    }
-
-    @Override
-    @HostAccess.Export
-    public Position getPosition() {
-        return delegate.getPosition();
+    private VersionedRecordProxy<V> wrapRecord(VersionedRecord<V> record) {
+        return record == null ? null : new VersionedRecordProxy<>(record);
     }
 }

@@ -102,10 +102,24 @@ if TYPE_CHECKING:
         def all(self) -> Iterator[Any]: ...
         def backwardAll(self) -> Iterator[Any]: ...
 
+    class VersionedRecord(Protocol):
+        """Versioned record returned by VersionedKeyValueStore"""
+
+        def value(self) -> Any: ...
+        def timestamp(self) -> int: ...
+
+    class VersionedKeyValueStore(StateStore, Protocol):
+        """Versioned Key-Value store interface"""
+
+        def get(self, key: Any) -> Optional[VersionedRecord]: ...
+        def get(self, key: Any, asOfTimestamp: int) -> Optional[VersionedRecord]: ...
+        def put(self, key: Any, value: Any, timestamp: int) -> int: ...
+        def delete(self, key: Any, timestamp: int) -> Optional[VersionedRecord]: ...
+
     # KSML runtime injected variables
     log: PythonLogger
     metrics: MetricsBridge
-    stores: Dict[str, Union[StateStore, KeyValueStore, SessionStore, WindowStore, Any]]
+    stores: Dict[str, Union[StateStore, KeyValueStore, SessionStore, WindowStore, VersionedKeyValueStore, Any]]
 else:
     # at runtime, make sure that the type hints do not cause any issues
     import java
@@ -114,4 +128,6 @@ else:
     KeyValueStore = java.type('io.axual.ksml.store.KeyValueStoreProxy')
     SessionStore = java.type('io.axual.ksml.store.SessionStoreProxy')
     WindowStore = java.type('io.axual.ksml.store.WindowStoreProxy')
+    VersionedKeyValueStore = java.type('io.axual.ksml.store.VersionedKeyValueStoreProxy')
+    VersionedRecord = java.type('io.axual.ksml.store.VersionedRecordProxy')
 

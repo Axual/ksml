@@ -43,11 +43,10 @@ import java.util.List;
  * @param <K> the type of keys
  * @param <V> the type of values
  */
-public class KeyValueStoreProxy<K, V> implements KeyValueStore<K, V> {
-    private final KeyValueStore<K, V> delegate;
+public class KeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<KeyValueStore<K,V>> implements KeyValueStore<K, V> {
 
     public KeyValueStoreProxy(KeyValueStore<K, V> delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     // ==================== KeyValueStore methods ====================
@@ -87,31 +86,31 @@ public class KeyValueStoreProxy<K, V> implements KeyValueStore<K, V> {
     @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> range(K from, K to) {
-        return delegate.range(from, to);
+        throw new UnsupportedOperationException("range(K, K) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> reverseRange(K from, K to) {
-        return delegate.reverseRange(from, to);
+        throw new UnsupportedOperationException("reverseRange(K, K) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> all() {
-        return delegate.all();
+        throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> reverseAll() {
-        return delegate.reverseAll();
+        throw new UnsupportedOperationException("reverseAll() is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public <PS extends Serializer<P>, P> KeyValueIterator<K, V> prefixScan(P prefix, PS prefixKeySerializer) {
-        return delegate.prefixScan(prefix, prefixKeySerializer);
+        throw new UnsupportedOperationException("prefixScan(P, PS) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
@@ -120,52 +119,4 @@ public class KeyValueStoreProxy<K, V> implements KeyValueStore<K, V> {
         return delegate.approximateNumEntries();
     }
 
-    // ==================== StateStore methods ====================
-
-    @Override
-    @HostAccess.Export
-    public String name() {
-        return delegate.name();
-    }
-
-    @Override
-    public void init(StateStoreContext context, StateStore root) {
-        delegate.init(context, root);
-    }
-
-    @Override
-    @HostAccess.Export
-    public void flush() {
-        delegate.flush();
-    }
-
-    @Override
-    @HostAccess.Export
-    public void close() {
-        delegate.close();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean persistent() {
-        return delegate.persistent();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean isOpen() {
-        return delegate.isOpen();
-    }
-
-    @Override
-    @HostAccess.Export
-    public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
-        return delegate.query(query, positionBound, config);
-    }
-
-    @Override
-    @HostAccess.Export
-    public Position getPosition() {
-        return delegate.getPosition();
-    }
 }

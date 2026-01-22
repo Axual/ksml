@@ -55,7 +55,9 @@ public class PythonContext {
             "io.axual.ksml.python.TimerBridge",
             "io.axual.ksml.store.KeyValueStoreProxy",
             "io.axual.ksml.store.SessionStoreProxy",
-            "io.axual.ksml.store.WindowStoreProxy");
+            "io.axual.ksml.store.WindowStoreProxy",
+            "io.axual.ksml.store.VersionedKeyValueStoreProxy",
+            "io.axual.ksml.store.VersionedRecordProxy");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;

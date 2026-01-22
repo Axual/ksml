@@ -42,11 +42,10 @@ import java.time.Instant;
  * @param <K> the type of keys
  * @param <AGG> the type of aggregated values
  */
-public class SessionStoreProxy<K, AGG> implements SessionStore<K, AGG> {
-    private final SessionStore<K, AGG> delegate;
+public class SessionStoreProxy<K, AGG> extends AbstractStateStoreProxy<SessionStore<K,AGG>> implements SessionStore<K, AGG> {
 
     public SessionStoreProxy(SessionStore<K, AGG> delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     // ==================== SessionStore methods ====================
@@ -54,49 +53,49 @@ public class SessionStoreProxy<K, AGG> implements SessionStore<K, AGG> {
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K key, long earliestSessionEndTime, long latestSessionStartTime) {
-        return delegate.findSessions(key, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("findSessions(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
-        return delegate.findSessions(key, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("findSessions(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K keyFrom, K keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
-        return delegate.findSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("findSessions(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K keyFrom, K keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
-        return delegate.findSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("findSessions(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K key, long earliestSessionEndTime, long latestSessionStartTime) {
-        return delegate.backwardFindSessions(key, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("backwardFindSessions(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
-        return delegate.backwardFindSessions(key, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("backwardFindSessions(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K keyFrom, K keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
-        return delegate.backwardFindSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("backwardFindSessions(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K keyFrom, K keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
-        return delegate.backwardFindSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime);
+        throw new UnsupportedOperationException("backwardFindSessions(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
@@ -128,73 +127,25 @@ public class SessionStoreProxy<K, AGG> implements SessionStore<K, AGG> {
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> fetch(K key) {
-        return delegate.fetch(key);
+        throw new UnsupportedOperationException("fetch(K) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> fetch(K keyFrom, K keyTo) {
-        return delegate.fetch(keyFrom, keyTo);
+        throw new UnsupportedOperationException("fetch(K, K) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFetch(K key) {
-        return delegate.backwardFetch(key);
+        throw new UnsupportedOperationException("backwardFetch(K) is not supported by this proxy (" + getClass() + ")");
     }
 
     @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFetch(K keyFrom, K keyTo) {
-        return delegate.backwardFetch(keyFrom, keyTo);
+        throw new UnsupportedOperationException("backwardFetch(K, K) is not supported by this proxy (" + getClass() + ")");
     }
 
-    // ==================== StateStore methods ====================
-
-    @Override
-    @HostAccess.Export
-    public String name() {
-        return delegate.name();
-    }
-
-    @Override
-    public void init(StateStoreContext context, StateStore root) {
-        delegate.init(context, root);
-    }
-
-    @Override
-    @HostAccess.Export
-    public void flush() {
-        delegate.flush();
-    }
-
-    @Override
-    @HostAccess.Export
-    public void close() {
-        delegate.close();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean persistent() {
-        return delegate.persistent();
-    }
-
-    @Override
-    @HostAccess.Export
-    public boolean isOpen() {
-        return delegate.isOpen();
-    }
-
-    @Override
-    @HostAccess.Export
-    public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
-        return delegate.query(query, positionBound, config);
-    }
-
-    @Override
-    @HostAccess.Export
-    public Position getPosition() {
-        return delegate.getPosition();
-    }
 }

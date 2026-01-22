@@ -1,0 +1,103 @@
+streams:
+  sensor_source:
+    topic: sensor_ownership_data
+    keyType: string
+    valueType: string
+    offsetResetPolicy: latest
+
+stores:
+  window_store:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  test_window_iterator:
+    type: forEach
+    code: |
+      import time
+
+      log.info("=== TEST: Window Store Iterator Functionality")
+      log.info("Processing: key={}, value={}", key, value)
+
+      # Store the value with current timestamp (milliseconds)
+      if key is not None and value is not None:
+        now_ms = int(time.time() * 1000)
+        window_store.put(key, value, now_ms)
+        log.info("Stored value for key: {} at timestamp: {}", key, now_ms)
+
+      # Test WindowStoreIterator from fetch(key, timeFrom, timeTo) using long timestamps
+      log.info("Attempting to call window_store.fetch(key, timeFrom, timeTo)...")
+      try:
+        now_ms = int(time.time() * 1000)
+        five_minutes_ms = 5 * 60 * 1000
+        time_from = now_ms - five_minutes_ms
+        time_to = now_ms + five_minutes_ms
+        iterator = window_store.fetch(key, time_from, time_to)
+        log.info("SUCCESS: Got WindowStoreIterator from fetch()")
+
+        log.info("Attempting to call iterator.hasNext()...")
+        try:
+          has_next = iterator.hasNext()
+          log.info("SUCCESS: hasNext() returned: {}", has_next)
+
+          if has_next:
+            log.info("Attempting to call iterator.next()...")
+            try:
+              entry = iterator.next()
+              log.info("SUCCESS: next() returned an entry")
+              log.info("Entry type: {}", type(entry))
+            except Exception as e:
+              log.error("FAIL: iterator.next() failed: {}", str(e))
+        except Exception as e:
+          log.error("FAIL: iterator.hasNext() failed: {}", str(e))
+
+        try:
+          iterator.close()
+        except Exception as e:
+          log.warn("Could not close iterator: {}", str(e))
+
+      except Exception as e:
+        log.error("FAIL: window_store.fetch() failed: {}", str(e))
+
+      # Test KeyValueIterator from all()
+      log.info("Attempting to call window_store.all()...")
+      try:
+        all_iterator = window_store.all()
+        log.info("SUCCESS: Got KeyValueIterator from all()")
+
+        log.info("Attempting to call all_iterator.hasNext()...")
+        try:
+          has_next = all_iterator.hasNext()
+          log.info("SUCCESS: hasNext() returned: {}", has_next)
+
+          if has_next:
+            log.info("Attempting to call all_iterator.next()...")
+            try:
+              entry = all_iterator.next()
+              log.info("SUCCESS: next() returned an entry")
+              log.info("Entry type: {}", type(entry))
+            except Exception as e:
+              log.error("FAIL: all_iterator.next() failed: {}", str(e))
+        except Exception as e:
+          log.error("FAIL: all_iterator.hasNext() failed: {}", str(e))
+
+        try:
+          all_iterator.close()
+        except Exception as e:
+          log.warn("Could not close iterator: {}", str(e))
+
+      except Exception as e:
+        log.error("FAIL: window_store.all() failed: {}", str(e))
+    stores:
+      - window_store
+
+pipelines:
+  test_window_iterator_pipeline:
+    from: sensor_source
+    forEach: test_window_iterator

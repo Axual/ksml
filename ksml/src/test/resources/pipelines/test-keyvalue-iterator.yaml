@@ -1,0 +1,70 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# pipeline which accesses iterator methods on return type from keyvalue store
+streams:
+  sensor_source:
+    topic: sensor_ownership_data
+    keyType: string
+    valueType: string
+    offsetResetPolicy: latest
+
+stores:
+  regular_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  test_iterator:
+    type: forEach
+    code: |
+      log.info("=== TEST: Iterator Functionality")
+      log.info("Processing: key={}, value={}", key, value)
+
+      # Store the value first
+      if key is not None and value is not None:
+        regular_store.put(key, value)
+        log.info("Stored value for key: {}", key)
+
+      # Now try to iterate over all entries
+      log.info("Attempting to call store.all()...")
+      try:
+        iterator = regular_store.all()
+        log.info("SUCCESS: Got iterator from all()")
+
+        # Try to use the iterator - this is what fails in PR code
+        log.info("Attempting to call iterator.hasNext()...")
+        try:
+          has_next = iterator.hasNext()
+          log.info("SUCCESS: hasNext() returned: {}", has_next)
+
+          if has_next:
+            log.info("Attempting to call iterator.next()...")
+            try:
+              entry = iterator.next()
+              log.info("SUCCESS: next() returned an entry")
+              log.info("Entry type: {}", type(entry))
+            except Exception as e:
+              log.error("FAIL: iterator.next() failed: {}", str(e))
+        except Exception as e:
+          log.error("FAIL: iterator.hasNext() failed: {}", str(e))
+          log.error(" KeyValueIterator methods not exported")
+
+        # Clean up
+        try:
+          iterator.close()
+        except Exception as e:
+          log.warn("Could not close iterator: {}", str(e))
+
+      except Exception as e:
+        log.error("FAIL: store.all() failed: {}", str(e))
+    stores:
+      - regular_store
+
+pipelines:
+  test_iterator_pipeline:
+    from: sensor_source
+    forEach: test_iterator
