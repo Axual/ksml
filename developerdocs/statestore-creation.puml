@@ -1,0 +1,103 @@
+
+  @startuml
+  title Store Creation Flow in StoreUtil
+
+  participant "StoreUtil" as SU
+  participant "StoreBuilder" as SB
+  participant "StreamDataType" as SDT
+  box "Kafka" #lightblue
+  participant "Stores" as KS
+  participant "Materialized" as MAT
+  end box
+
+  == getStoreBuilder(StateStoreDefinition) ==
+
+  alt KeyValueStateStoreDefinition
+      SU -> SDT ++ : new StreamDataType(keyType, true)
+      SDT --> SU -- : keyType with serde
+      SU -> SDT ++ : new StreamDataType(valueType, false)
+      SDT --> SU -- : valueType with serde
+
+      alt persistent && versioned
+          SU -> KS ++ : persistentVersionedKeyValueStore(name, historyRetention, segmentInterval)
+          KS --> SU -- : VersionedBytesStoreSupplier
+          SU -> KS ++ : versionedKeyValueStoreBuilder(supplier, keySerde, valueSerde)
+          KS --> SU -- : StoreBuilder<VersionedKeyValueStore>
+      else persistent && timestamped
+          SU -> KS ++ : persistentTimestampedKeyValueStore(name)
+          KS --> SU -- : KeyValueBytesStoreSupplier
+          SU -> KS ++ : keyValueStoreBuilder(supplier, keySerde, valueSerde)
+          KS --> SU -- : StoreBuilder<TimestampedKeyValueStore>
+      else persistent (regular)
+          SU -> KS ++ : persistentKeyValueStore(name)
+          KS --> SU -- : KeyValueBytesStoreSupplier
+          SU -> KS ++ : keyValueStoreBuilder(supplier, keySerde, valueSerde)
+          KS --> SU -- : StoreBuilder<KeyValueStore>
+      else in-memory
+          SU -> KS ++ : inMemoryKeyValueStore(name)
+          KS --> SU -- : KeyValueBytesStoreSupplier
+          SU -> KS ++ : keyValueStoreBuilder(supplier, keySerde, valueSerde)
+          KS --> SU -- : StoreBuilder<KeyValueStore>
+      end
+
+  else SessionStateStoreDefinition
+      SU -> SDT ++ : new StreamDataType(keyType, true)
+      SDT --> SU -- : keyType with serde
+      SU -> SDT ++ : new StreamDataType(valueType, false)
+      SDT --> SU -- : valueType with serde
+
+      alt persistent
+          SU -> KS ++ : persistentSessionStore(name, retention)
+          KS --> SU -- : SessionBytesStoreSupplier
+      else in-memory
+          SU -> KS ++ : inMemorySessionStore(name, retention)
+          KS --> SU -- : SessionBytesStoreSupplier
+      end
+      SU -> KS ++ : sessionStoreBuilder(supplier, keySerde, valueSerde)
+      KS --> SU -- : StoreBuilder<SessionStore>
+
+  else WindowStateStoreDefinition
+      SU -> SDT ++ : new StreamDataType(keyType, true)
+      SDT --> SU -- : keyType with serde
+      SU -> SDT ++ : new StreamDataType(valueType, false)
+      SDT --> SU -- : valueType with serde
+
+      alt persistent && timestamped
+          SU -> KS ++ : persistentTimestampedWindowStore(name, retention, windowSize, retainDuplicates)
+          KS --> SU -- : WindowBytesStoreSupplier
+      else persistent (regular)
+          SU -> KS ++ : persistentWindowStore(name, retention, windowSize, retainDuplicates)
+          KS --> SU -- : WindowBytesStoreSupplier
+      else in-memory
+          SU -> KS ++ : inMemoryWindowStore(name, retention, windowSize, retainDuplicates)
+          KS --> SU -- : WindowBytesStoreSupplier
+      end
+      SU -> KS ++ : windowStoreBuilder(supplier, keySerde, valueSerde)
+      KS --> SU -- : StoreBuilder<WindowStore>
+  end
+
+  SU -> SB ++ : withCachingEnabled() or withCachingDisabled()
+  SB --> SU -- : StoreBuilder
+  SU -> SB ++ : withLoggingEnabled() or withLoggingDisabled()
+  SB --> SU -- : StoreBuilder
+
+  == materialize(StateStoreDefinition) ==
+
+  SU -> SU ++ : getStoreSupplier(store)
+  SU --> SU -- : supplier
+  SU -> MAT ++ : Materialized.as(supplier)
+  MAT --> SU -- : Materialized
+  SU -> SDT ++ : new StreamDataType(keyType, true).serde()
+  SDT --> SU -- : keySerde
+  SU -> SDT ++ : new StreamDataType(valueType, false).serde()
+  SDT --> SU -- : valueSerde
+  SU -> MAT ++ : withKeySerde(keySerde)
+  MAT --> SU -- : Materialized
+  SU -> MAT ++ : withValueSerde(valueSerde)
+  MAT --> SU -- : Materialized
+  SU -> MAT ++ : withCachingEnabled/Disabled()
+  MAT --> SU -- : Materialized
+  SU -> MAT ++ : withLoggingEnabled/Disabled()
+  MAT --> SU -- : Materialized
+
+  @enduml
