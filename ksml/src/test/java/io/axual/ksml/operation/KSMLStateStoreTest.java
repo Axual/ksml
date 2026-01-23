@@ -74,4 +74,36 @@ public class KSMLStateStoreTest {
         assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
         assertEquals(new DataString("70"), sensor1Data.get("value"));
     }
+
+    @KSMLTest(topology = "pipelines/test-state-store-timestamped.yaml", schemaDirectory = "schemas")
+    void testJoinTimestamped() {
+
+        // given that we get events with a higher reading in matching cities
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+        sensorIn.pipeInput("sensor2", SensorData.builder()
+                .city("Utrecht")
+                .type(SensorData.SensorType.TEMPERATURE)
+                .unit("C")
+                .value("26")
+                .build().toRecord());
+
+        // and a new value for sensor1
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("70")
+                .build().toRecord());
+
+        // the last value for sensor1 is present in the store named "last_sensor_data_store"
+        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+        assertEquals(new DataString("70"), sensor1Data.get("value"));
+    }
 }

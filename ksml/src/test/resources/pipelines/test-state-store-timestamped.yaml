@@ -1,0 +1,38 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+stores:
+  last_sensor_data_store:
+    timestamped: true
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+    historyRetention: 1h
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: forEach
+    code: |
+      last_value = last_sensor_data_store.get(key)
+      if last_value != None:
+        # log.warn("Found last value: {} = {}", key, last_value)
+        log.warn("Found last value: {}", last_value)
+        log.warn(last_value.timestamp())
+      last_sensor_data_store.put(key, value)
+      if value != None:
+        log.warn("Stored new value: {} = {}", key, value)
+    stores:
+      - last_sensor_data_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    forEach: process_message

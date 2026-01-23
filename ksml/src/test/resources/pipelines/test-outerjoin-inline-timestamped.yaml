@@ -19,6 +19,7 @@ stores:
     type: window
     keyType: string
     valueType: string
+    timestamped: true
     retainDuplicates: true
     windowSize: 2s
     retention: 3s
@@ -26,6 +27,7 @@ stores:
     type: window
     keyType: string
     valueType: string
+    timestamped: true
     retainDuplicates: true
     windowSize: 2s
     retention: 3s
@@ -39,6 +41,7 @@ pipelines:
         valueJoiner:
           resultType: string
           code: |
+            log.info(left_store.approximate
             if value1 == None:
               joined = "?," + value2
             elif value2 == None:
