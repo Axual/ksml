@@ -41,7 +41,6 @@ pipelines:
         valueJoiner:
           resultType: string
           code: |
-            log.info(left_store.approximate
             if value1 == None:
               joined = "?," + value2
             elif value2 == None:
