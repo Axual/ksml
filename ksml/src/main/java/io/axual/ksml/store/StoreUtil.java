@@ -81,11 +81,15 @@ public class StoreUtil {
                 final var supplier = store.timestamped()
                         ? Stores.persistentTimestampedKeyValueStore(store.name())
                         : Stores.persistentKeyValueStore(store.name());
-                storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
+                storeBuilder = store.timestamped()
+                        ? Stores.timestampedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde())
+                        : Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
             }
         } else {
             final var supplier = Stores.inMemoryKeyValueStore(store.name());
-            storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
+            storeBuilder = store.timestamped()
+                    ? Stores.timestampedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde())
+                    : Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
         }
         storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();

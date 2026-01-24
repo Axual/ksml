@@ -20,13 +20,15 @@ stores:
 functions:
   process_message:
     type: forEach
+    globalCode: |
+      import time
+
     code: |
       last_value = last_sensor_data_store.get(key)
       if last_value != None:
-        # log.warn("Found last value: {} = {}", key, last_value)
-        log.warn("Found last value: {}", last_value)
-        log.warn(last_value.timestamp())
-      last_sensor_data_store.put(key, value)
+        log.warn("Found last value: {}", last_value.value())
+        log.warn("Timestamp: {}", last_value.timestamp())
+      last_sensor_data_store.put(key, value, int(time.time()*1000))
       if value != None:
         log.warn("Stored new value: {} = {}", key, value)
     stores:

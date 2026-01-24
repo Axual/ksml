@@ -21,12 +21,9 @@ package io.axual.ksml.store;
  */
 
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
-import org.apache.kafka.streams.state.VersionedKeyValueStore;
-import org.apache.kafka.streams.state.VersionedRecord;
 import org.graalvm.polyglot.HostAccess;
 
 import java.util.List;
@@ -52,6 +49,11 @@ public class TimestampedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy
     @HostAccess.Export
     public void put(K key, ValueAndTimestamp<V> value) {
         delegate.put(key, value);
+    }
+
+    @HostAccess.Export
+    public void put(K key, V value, long timestamp) {
+        put(key, ValueAndTimestamp.make(value, timestamp));
     }
 
     @HostAccess.Export
