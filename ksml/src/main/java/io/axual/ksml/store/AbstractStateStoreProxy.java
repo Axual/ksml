@@ -48,7 +48,6 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         return delegate.name();
     }
 
-    @HostAccess.Export
     @Override
     public void init(StateStoreContext stateStoreContext, StateStore root) {
         delegate.init(stateStoreContext, root);
