@@ -23,6 +23,7 @@ package io.axual.ksml.python;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
+import io.axual.ksml.store.ValueAndTimestampFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +44,9 @@ import java.util.List;
 public class PythonContext {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
+    private static final ValueAndTimestampFactory VALUE_AND_TIMESTAMP_FACTORY = new ValueAndTimestampFactory();
     private static final String PYTHON = "python";
+
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
     // Java collections (ArrayList, HashMap, TreeMap) are no longer needed since PythonTypeConverter
     // converts them to Python-native types before passing to Python code
@@ -60,7 +63,8 @@ public class PythonContext {
             "io.axual.ksml.store.TimestampedKeyValueStoreProxy",
             "io.axual.ksml.store.VersionedKeyValueStoreProxy",
             "io.axual.ksml.store.VersionedRecordProxy",
-            "io.axual.ksml.store.ValueAndTimestampProxy");
+            "io.axual.ksml.store.ValueAndTimestampProxy",
+            "io.axual.ksml.store.ValueAndTimestampFactory");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
@@ -137,21 +141,24 @@ public class PythonContext {
         final var pyCode = """
                 loggerBridge = None
                 metrics = None
+                valueAndTimestamp = None
                 import polyglot
 
                 @polyglot.export_value
-                def register_ksml_bridges(lb, mb):
+                def register_ksml_bridges(lb, mb, vatf):
                   global loggerBridge
                   loggerBridge = lb
                   global metrics
                   metrics = mb
+                  global valueAndTimestamp
+                  valueAndTimestamp = vatf
                 """;
         final var register = registerFunction(pyCode, "register_ksml_bridges");
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
         }
         // Pass the global LOGGER_BRIDGE and METRICS_BRIDGE variables into global variables of the Python context
-        register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
+        register.execute(LOGGER_BRIDGE, METRICS_BRIDGE, VALUE_AND_TIMESTAMP_FACTORY);
     }
 
     /**

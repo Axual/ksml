@@ -53,6 +53,11 @@ public class TimestampedWindowStoreProxy<K, V> extends AbstractStateStoreProxy<T
     }
 
     @HostAccess.Export
+    public void put(K key, V value, long windowStartTimestamp, long timestamp) {
+        delegate.put(key, ValueAndTimestamp.make(value, timestamp), windowStartTimestamp);
+    }
+
+    @HostAccess.Export
     public WindowStoreIterator<ValueAndTimestampProxy<V>> fetch(K key, long timeFrom, long timeTo) {
         throw new UnsupportedOperationException("fetch(K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
     }

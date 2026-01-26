@@ -62,6 +62,11 @@ public class TimestampedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy
     }
 
     @HostAccess.Export
+    public ValueAndTimestampProxy<V> putIfAbsent(K key, V value, long timestamp) {
+        return wrap(delegate.putIfAbsent(key, ValueAndTimestamp.make(value, timestamp)));
+    }
+
+    @HostAccess.Export
     public void putAll(List<KeyValue<K, ValueAndTimestamp<V>>> entries) {
         throw new UnsupportedOperationException("putAll(List<KeyValue<K, ValueAndTimestamp<V>>>) not supported by this proxy (" + getClass().getName() + ")");
     }
