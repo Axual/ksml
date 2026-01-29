@@ -47,18 +47,18 @@ public class TimestampedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy
     }
 
     @HostAccess.Export
-    public void put(K key, ValueAndTimestamp<V> value) {
-        delegate.put(key, value);
+    public void put(K key, ValueAndTimestampProxy<V> value) {
+        delegate.put(key, value.delegate());
     }
 
     @HostAccess.Export
     public void put(K key, V value, long timestamp) {
-        put(key, ValueAndTimestamp.make(value, timestamp));
+        delegate.put(key, ValueAndTimestamp.make(value, timestamp));
     }
 
     @HostAccess.Export
-    public ValueAndTimestampProxy<V> putIfAbsent(K key, ValueAndTimestamp<V> value) {
-        return wrap(delegate.putIfAbsent(key, value));
+    public ValueAndTimestampProxy<V> putIfAbsent(K key, ValueAndTimestampProxy<V> value) {
+        return wrap(delegate.putIfAbsent(key, value.delegate()));
     }
 
     @HostAccess.Export

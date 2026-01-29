@@ -60,6 +60,15 @@ public class ValueAndTimestampProxy<V> {
         return delegate.timestamp();
     }
 
+    /**
+     * Return the underlying ValueAndTimestamp instance.
+     * This method is not exposed to Python code.
+     * @return the delegate.
+     */
+    public ValueAndTimestamp<V> delegate() {
+        return delegate;
+    }
+
     @Override
     @HostAccess.Export
     public String toString() {

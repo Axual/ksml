@@ -30,7 +30,7 @@ import org.graalvm.polyglot.HostAccess;
 public class ValueAndTimestampFactory {
 
     @HostAccess.Export
-    public <V> ValueAndTimestamp<V> make(V value, long timestamp) {
-        return ValueAndTimestamp.make(value, timestamp);
+    public <V> ValueAndTimestampProxy<V> make(V value, long timestamp) {
+        return new ValueAndTimestampProxy<>(ValueAndTimestamp.make(value, timestamp));
     }
 }
