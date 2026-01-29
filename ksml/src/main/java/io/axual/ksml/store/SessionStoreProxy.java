@@ -21,13 +21,6 @@ package io.axual.ksml.store;
  */
 
 import org.apache.kafka.streams.kstream.Windowed;
-import org.apache.kafka.streams.processor.StateStore;
-import org.apache.kafka.streams.processor.StateStoreContext;
-import org.apache.kafka.streams.query.Position;
-import org.apache.kafka.streams.query.PositionBound;
-import org.apache.kafka.streams.query.Query;
-import org.apache.kafka.streams.query.QueryConfig;
-import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.SessionStore;
 import org.graalvm.polyglot.HostAccess;
@@ -42,7 +35,7 @@ import java.time.Instant;
  * @param <K> the type of keys
  * @param <AGG> the type of aggregated values
  */
-public class SessionStoreProxy<K, AGG> extends AbstractStateStoreProxy<SessionStore<K,AGG>> implements SessionStore<K, AGG> {
+public class SessionStoreProxy<K, AGG> extends AbstractStateStoreProxy<SessionStore<K,AGG>> {
 
     public SessionStoreProxy(SessionStore<K, AGG> delegate) {
         super(delegate);
@@ -50,73 +43,61 @@ public class SessionStoreProxy<K, AGG> extends AbstractStateStoreProxy<SessionSt
 
     // ==================== SessionStore methods ====================
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K key, long earliestSessionEndTime, long latestSessionStartTime) {
         throw new UnsupportedOperationException("findSessions(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         throw new UnsupportedOperationException("findSessions(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K keyFrom, K keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
         throw new UnsupportedOperationException("findSessions(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> findSessions(K keyFrom, K keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         throw new UnsupportedOperationException("findSessions(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K key, long earliestSessionEndTime, long latestSessionStartTime) {
         throw new UnsupportedOperationException("backwardFindSessions(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         throw new UnsupportedOperationException("backwardFindSessions(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K keyFrom, K keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
         throw new UnsupportedOperationException("backwardFindSessions(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFindSessions(K keyFrom, K keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
         throw new UnsupportedOperationException("backwardFindSessions(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
-    public AGG fetchSession(K key, long sessionStartTime, long sessionEndTime) {
-        return delegate.fetchSession(key, sessionStartTime, sessionEndTime);
+    public Object fetchSession(K key, long sessionStartTime, long sessionEndTime) {
+        return toPython(delegate.fetchSession(key, sessionStartTime, sessionEndTime));
     }
 
-    @Override
     @HostAccess.Export
-    public AGG fetchSession(K key, Instant sessionStartTime, Instant sessionEndTime) {
-        return delegate.fetchSession(key, sessionStartTime, sessionEndTime);
+    public Object fetchSession(K key, Instant sessionStartTime, Instant sessionEndTime) {
+        return toPython(delegate.fetchSession(key, sessionStartTime, sessionEndTime));
     }
 
-    @Override
     @HostAccess.Export
     public void put(Windowed<K> sessionKey, AGG aggregate) {
         delegate.put(sessionKey, aggregate);
     }
 
-    @Override
     @HostAccess.Export
     public void remove(Windowed<K> sessionKey) {
         delegate.remove(sessionKey);
@@ -124,25 +105,21 @@ public class SessionStoreProxy<K, AGG> extends AbstractStateStoreProxy<SessionSt
 
     // ==================== ReadOnlySessionStore methods ====================
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> fetch(K key) {
         throw new UnsupportedOperationException("fetch(K) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> fetch(K keyFrom, K keyTo) {
         throw new UnsupportedOperationException("fetch(K, K) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFetch(K key) {
         throw new UnsupportedOperationException("backwardFetch(K) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, AGG> backwardFetch(K keyFrom, K keyTo) {
         throw new UnsupportedOperationException("backwardFetch(K, K) is not supported by this proxy (" + getClass() + ")");

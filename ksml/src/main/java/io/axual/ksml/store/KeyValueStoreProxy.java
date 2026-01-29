@@ -22,13 +22,6 @@ package io.axual.ksml.store;
 
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.StateStore;
-import org.apache.kafka.streams.processor.StateStoreContext;
-import org.apache.kafka.streams.query.Position;
-import org.apache.kafka.streams.query.PositionBound;
-import org.apache.kafka.streams.query.Query;
-import org.apache.kafka.streams.query.QueryConfig;
-import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.graalvm.polyglot.HostAccess;
@@ -43,7 +36,7 @@ import java.util.List;
  * @param <K> the type of keys
  * @param <V> the type of values
  */
-public class KeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<KeyValueStore<K,V>> implements KeyValueStore<K, V> {
+public class KeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<KeyValueStore<K,V>> {
 
     public KeyValueStoreProxy(KeyValueStore<K, V> delegate) {
         super(delegate);
@@ -51,69 +44,58 @@ public class KeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<KeyValueSt
 
     // ==================== KeyValueStore methods ====================
 
-    @Override
     @HostAccess.Export
     public void put(K key, V value) {
         delegate.put(key, value);
     }
 
-    @Override
     @HostAccess.Export
-    public V putIfAbsent(K key, V value) {
-        return delegate.putIfAbsent(key, value);
+    public Object putIfAbsent(K key, V value) {
+        return toPython(delegate.putIfAbsent(key, value));
     }
 
-    @Override
     @HostAccess.Export
     public void putAll(List<KeyValue<K, V>> entries) {
         throw new UnsupportedOperationException("putAll(List<KeyValue<K, V>>) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
-    public V delete(K key) {
-        return delegate.delete(key);
+    public Object delete(K key) {
+        return toPython(delegate.delete(key));
     }
 
     // ==================== ReadOnlyKeyValueStore methods ====================
 
-    @Override
     @HostAccess.Export
-    public V get(K key) {
-        return delegate.get(key);
+    public Object get(K key) {
+        return toPython(delegate.get(key));
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> range(K from, K to) {
         throw new UnsupportedOperationException("range(K, K) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> reverseRange(K from, K to) {
         throw new UnsupportedOperationException("reverseRange(K, K) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> all() {
         throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<K, V> reverseAll() {
         throw new UnsupportedOperationException("reverseAll() is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public <PS extends Serializer<P>, P> KeyValueIterator<K, V> prefixScan(P prefix, PS prefixKeySerializer) {
         throw new UnsupportedOperationException("prefixScan(P, PS) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public long approximateNumEntries() {
         return delegate.approximateNumEntries();

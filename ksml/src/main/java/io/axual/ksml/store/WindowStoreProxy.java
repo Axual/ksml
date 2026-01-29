@@ -21,13 +21,6 @@ package io.axual.ksml.store;
  */
 
 import org.apache.kafka.streams.kstream.Windowed;
-import org.apache.kafka.streams.processor.StateStore;
-import org.apache.kafka.streams.processor.StateStoreContext;
-import org.apache.kafka.streams.query.Position;
-import org.apache.kafka.streams.query.PositionBound;
-import org.apache.kafka.streams.query.Query;
-import org.apache.kafka.streams.query.QueryConfig;
-import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
@@ -43,7 +36,7 @@ import java.time.Instant;
  * @param <K> the type of keys
  * @param <V> the type of values
  */
-public class WindowStoreProxy<K, V> extends AbstractStateStoreProxy<WindowStore<K,V>> implements WindowStore<K, V> {
+public class WindowStoreProxy<K, V> extends AbstractStateStoreProxy<WindowStore<K,V>> {
 
     public WindowStoreProxy(WindowStore<K, V> delegate) {
         super(delegate);
@@ -51,79 +44,66 @@ public class WindowStoreProxy<K, V> extends AbstractStateStoreProxy<WindowStore<
 
     // ==================== WindowStore methods ====================
 
-    @Override
     @HostAccess.Export
     public void put(K key, V value, long windowStartTimestamp) {
         delegate.put(key, value, windowStartTimestamp);
     }
 
-    @Override
     @HostAccess.Export
     public WindowStoreIterator<V> fetch(K key, long timeFrom, long timeTo) {
         throw new UnsupportedOperationException("fetch(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public WindowStoreIterator<V> fetch(K key, Instant timeFrom, Instant timeTo) {
         throw new UnsupportedOperationException("fetch(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public WindowStoreIterator<V> backwardFetch(K key, long timeFrom, long timeTo) {
         throw new UnsupportedOperationException("backwardFetch(K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public WindowStoreIterator<V> backwardFetch(K key, Instant timeFrom, Instant timeTo) {
         throw new UnsupportedOperationException("backwardFetch(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
         throw new UnsupportedOperationException("fetch(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
         throw new UnsupportedOperationException("fetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
         throw new UnsupportedOperationException("backwardFetch(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
         throw new UnsupportedOperationException("backwardFetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetchAll(long timeFrom, long timeTo) {
         throw new UnsupportedOperationException("fetchAll(long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> fetchAll(Instant timeFrom, Instant timeTo) {
         throw new UnsupportedOperationException("fetchAll(Instant, Instant) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetchAll(long timeFrom, long timeTo) {
         throw new UnsupportedOperationException("backwardFetchAll(long, long) is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardFetchAll(Instant timeFrom, Instant timeTo) {
         throw new UnsupportedOperationException("backwardFetchAll(Instant, Instant) is not supported by this proxy (" + getClass() + ")");
@@ -131,19 +111,16 @@ public class WindowStoreProxy<K, V> extends AbstractStateStoreProxy<WindowStore<
 
     // ==================== ReadOnlyWindowStore methods ====================
 
-    @Override
     @HostAccess.Export
-    public V fetch(K key, long time) {
-        return delegate.fetch(key, time);
+    public Object fetch(K key, long time) {
+        return toPython(delegate.fetch(key, time));
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> all() {
         throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass() + ")");
     }
 
-    @Override
     @HostAccess.Export
     public KeyValueIterator<Windowed<K>, V> backwardAll() {
         throw new UnsupportedOperationException("backwardAll() is not supported by this proxy (" + getClass() + ")");

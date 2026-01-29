@@ -27,6 +27,7 @@ functions:
       last_value = last_sensor_data_store.get(key)
       if last_value != None:
         log.warn("Found last value: {}", last_value.value())
+        log.info("last value color was {}", last_value.value()["color"])
         log.warn("Timestamp: {}", last_value.timestamp())
       last_sensor_data_store.put(key, value, int(time.time()*1000))
       if value != None:

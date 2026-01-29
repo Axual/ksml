@@ -20,6 +20,7 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.python.PythonTypeConverter;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.query.Position;
@@ -40,6 +41,17 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
 
     public AbstractStateStoreProxy(T delegate1) {
         this.delegate = delegate1;
+    }
+
+    /**
+     * Convert a value to a Python-compatible type.
+     * Maps and Lists are converted to ProxyHashMap/ProxyArray for Python interop.
+     *
+     * @param value the value to convert
+     * @return the Python-compatible value
+     */
+    protected Object toPython(Object value) {
+        return PythonTypeConverter.toPython(value);
     }
 
     @HostAccess.Export

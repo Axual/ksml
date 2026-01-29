@@ -20,6 +20,11 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataPrimitive;
+import io.axual.ksml.data.object.DataStruct;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyHashMap;
@@ -56,6 +61,13 @@ public final class PythonTypeConverter {
     public static Object toPython(Object value) {
         return switch (value) {
             case null -> null;
+
+            // Handle KSML DataObject types
+            case DataNull ignored -> null;
+            case DataPrimitive<?> primitive -> primitive.value();
+            case DataStruct struct -> dataStructToPython(struct);
+            case DataMap dataMap -> dataMapToPython(dataMap);
+            case DataList dataList -> dataListToPython(dataList);
 
             // Handle GraalVM Value objects by unwrapping them first
             case Value v -> valueToPython(v);
@@ -116,6 +128,45 @@ public final class PythonTypeConverter {
         Object[] converted = new Object[list.size()];
         for (int i = 0; i < list.size(); i++) {
             converted[i] = toPython(list.get(i));
+        }
+        return ProxyArray.fromArray(converted);
+    }
+
+    /**
+     * Convert a DataStruct to a ProxyHashMap for Python interop.
+     * Recursively converts nested DataObject values.
+     */
+    private static Object dataStructToPython(DataStruct struct) {
+        if (struct.isNull()) {
+            return null;
+        }
+        Map<Object, Object> converted = new HashMap<>();
+        for (var entry : struct.entrySet()) {
+            converted.put(entry.getKey(), toPython(entry.getValue()));
+        }
+        return ProxyHashMap.from(converted);
+    }
+
+    /**
+     * Convert a DataMap to a ProxyHashMap for Python interop.
+     * Recursively converts nested DataObject values.
+     */
+    private static ProxyHashMap dataMapToPython(DataMap dataMap) {
+        Map<Object, Object> converted = new HashMap<>();
+        for (var entry : dataMap.entrySet()) {
+            converted.put(entry.getKey(), toPython(entry.getValue()));
+        }
+        return ProxyHashMap.from(converted);
+    }
+
+    /**
+     * Convert a DataList to a ProxyArray for Python interop.
+     * Recursively converts nested DataObject values.
+     */
+    private static ProxyArray dataListToPython(DataList dataList) {
+        Object[] converted = new Object[dataList.size()];
+        for (int i = 0; i < dataList.size(); i++) {
+            converted[i] = toPython(dataList.get(i));
         }
         return ProxyArray.fromArray(converted);
     }

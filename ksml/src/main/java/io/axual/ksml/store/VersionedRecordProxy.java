@@ -20,6 +20,7 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.python.PythonTypeConverter;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.graalvm.polyglot.HostAccess;
 
@@ -41,13 +42,13 @@ public class VersionedRecordProxy<V> {
     }
 
     /**
-     * Returns the value of this record.
+     * Returns the value of this record, converted to a Python-compatible type.
      *
      * @return the value
      */
     @HostAccess.Export
-    public V value() {
-        return delegate.value();
+    public Object value() {
+        return PythonTypeConverter.toPython(delegate.value());
     }
 
     /**
