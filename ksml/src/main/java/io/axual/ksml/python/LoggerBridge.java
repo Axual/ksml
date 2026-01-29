@@ -23,9 +23,6 @@ package io.axual.ksml.python;
 import org.graalvm.polyglot.HostAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
-import org.slf4j.helpers.CheckReturnValue;
-import org.slf4j.spi.LoggingEventBuilder;
 
 public class LoggerBridge {
     // The below method is called from the Python context, so appears unused in the IDE
@@ -54,17 +51,6 @@ public class LoggerBridge {
             return logger.getName();
         }
 
-        @CheckReturnValue
-        @HostAccess.Export
-        public LoggingEventBuilder atLevel(Level level) {
-            return logger.atLevel(level);
-        }
-
-        @HostAccess.Export
-        public boolean isEnabledForLevel(Level level) {
-            return logger.isEnabledForLevel(level);
-        }
-
         @HostAccess.Export
         public boolean isTraceEnabled() {
             return logger.isTraceEnabled();
@@ -83,12 +69,6 @@ public class LoggerBridge {
         @HostAccess.Export
         public void trace(String s, Object... objects) {
             logger.trace(s, objects);
-        }
-
-        @CheckReturnValue
-        @HostAccess.Export
-        public LoggingEventBuilder atTrace() {
-            return logger.atTrace();
         }
 
         @HostAccess.Export
@@ -111,12 +91,6 @@ public class LoggerBridge {
             logger.debug(s, objects);
         }
 
-        @CheckReturnValue
-        @HostAccess.Export
-        public LoggingEventBuilder atDebug() {
-            return logger.atDebug();
-        }
-
         @HostAccess.Export
         public boolean isInfoEnabled() {
             return logger.isInfoEnabled();
@@ -135,12 +109,6 @@ public class LoggerBridge {
         @HostAccess.Export
         public void info(String s, Object... objects) {
             logger.info(s, objects);
-        }
-
-        @CheckReturnValue
-        @HostAccess.Export
-        public LoggingEventBuilder atInfo() {
-            return logger.atInfo();
         }
 
         @HostAccess.Export
@@ -163,12 +131,6 @@ public class LoggerBridge {
             logger.warn(s, objects);
         }
 
-        @CheckReturnValue
-        @HostAccess.Export
-        public LoggingEventBuilder atWarn() {
-            return logger.atWarn();
-        }
-
         @HostAccess.Export
         public boolean isErrorEnabled() {
             return logger.isErrorEnabled();
@@ -187,12 +149,6 @@ public class LoggerBridge {
         @HostAccess.Export
         public void error(String s, Object... objects) {
             logger.error(s, objects);
-        }
-
-        @CheckReturnValue
-        @HostAccess.Export
-        public LoggingEventBuilder atError() {
-            return logger.atError();
         }
 
     }
