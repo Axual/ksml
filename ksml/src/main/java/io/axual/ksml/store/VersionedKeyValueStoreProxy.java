@@ -21,14 +21,7 @@ package io.axual.ksml.store;
  */
 
 import org.apache.kafka.streams.processor.StateStore;
-import org.apache.kafka.streams.processor.StateStoreContext;
-import org.apache.kafka.streams.query.Position;
-import org.apache.kafka.streams.query.PositionBound;
-import org.apache.kafka.streams.query.Query;
-import org.apache.kafka.streams.query.QueryConfig;
-import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
-import org.apache.kafka.streams.state.VersionedRecord;
 import org.graalvm.polyglot.HostAccess;
 
 /**
@@ -56,21 +49,17 @@ public class VersionedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<V
     }
 
     @HostAccess.Export
-    public VersionedRecordProxy<V> delete(K key, long timestamp) {
-        return wrapRecord(delegate.delete(key, timestamp));
+    public Object delete(K key, long timestamp) {
+        return toPython(delegate.delete(key, timestamp));
     }
 
     @HostAccess.Export
-    public VersionedRecordProxy<V> get(K key) {
-        return wrapRecord(delegate.get(key));
+    public Object get(K key) {
+        return toPython(delegate.get(key));
     }
 
     @HostAccess.Export
-    public VersionedRecordProxy<V> get(K key, long asOfTimestamp) {
-        return wrapRecord(delegate.get(key, asOfTimestamp));
-    }
-
-    private VersionedRecordProxy<V> wrapRecord(VersionedRecord<V> record) {
-        return record == null ? null : new VersionedRecordProxy<>(record);
+    public Object get(K key, long asOfTimestamp) {
+        return toPython(delegate.get(key, asOfTimestamp));
     }
 }

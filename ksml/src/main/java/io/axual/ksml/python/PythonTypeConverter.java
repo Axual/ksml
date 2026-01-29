@@ -25,6 +25,8 @@ import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.object.DataStruct;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
+import org.apache.kafka.streams.state.VersionedRecord;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyHashMap;
@@ -68,6 +70,10 @@ public final class PythonTypeConverter {
             case DataStruct struct -> dataStructToPython(struct);
             case DataMap dataMap -> dataMapToPython(dataMap);
             case DataList dataList -> dataListToPython(dataList);
+
+            // Handle Kafka Streams timestamped/versioned record types
+            case ValueAndTimestamp<?> vat -> valueAndTimestampToPython(vat);
+            case VersionedRecord<?> vr -> versionedRecordToPython(vr);
 
             // Handle GraalVM Value objects by unwrapping them first
             case Value v -> valueToPython(v);
@@ -169,6 +175,28 @@ public final class PythonTypeConverter {
             converted[i] = toPython(dataList.get(i));
         }
         return ProxyArray.fromArray(converted);
+    }
+
+    /**
+     * Convert a Kafka ValueAndTimestamp to a ProxyHashMap for Python interop.
+     * Creates a dict with "value" and "timestamp" keys.
+     */
+    private static ProxyHashMap valueAndTimestampToPython(ValueAndTimestamp<?> vat) {
+        Map<Object, Object> converted = new HashMap<>();
+        converted.put("value", toPython(vat.value()));
+        converted.put("timestamp", vat.timestamp());
+        return ProxyHashMap.from(converted);
+    }
+
+    /**
+     * Convert a Kafka VersionedRecord to a ProxyHashMap for Python interop.
+     * Creates a dict with "value" and "timestamp" keys.
+     */
+    private static ProxyHashMap versionedRecordToPython(VersionedRecord<?> vr) {
+        Map<Object, Object> converted = new HashMap<>();
+        converted.put("value", toPython(vr.value()));
+        converted.put("timestamp", vr.timestamp());
+        return ProxyHashMap.from(converted);
     }
 
     /**

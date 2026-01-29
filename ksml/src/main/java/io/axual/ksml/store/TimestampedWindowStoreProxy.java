@@ -120,27 +120,17 @@ public class TimestampedWindowStoreProxy<K, V> extends AbstractStateStoreProxy<T
     // ==================== ReadOnlyWindowStore methods ====================
 
     @HostAccess.Export
-    public ValueAndTimestampProxy<V> fetch(K key, long time) {
-        return wrap(delegate.fetch(key, time));
+    public Object fetch(K key, long time) {
+        return toPython(delegate.fetch(key, time));
     }
 
     @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> all() {
+    public KeyValueIterator<Windowed<K>, ValueAndTimestamp<V>> all() {
         throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass().getName() + ")");
     }
 
     @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> backwardAll() {
+    public KeyValueIterator<Windowed<K>, ValueAndTimestamp<V>> backwardAll() {
         throw new UnsupportedOperationException("backwardAll() is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    /**
-     * Wrap the returned value in a proxy which is accessible from Python.
-     *
-     * @param valueAndTimestamp the value to wrap
-     * @return the wrapped value, or null if the input is null
-     */
-    private ValueAndTimestampProxy<V> wrap(ValueAndTimestamp<V> valueAndTimestamp) {
-        return valueAndTimestamp == null ? null : new ValueAndTimestampProxy<>(valueAndTimestamp);
     }
 }

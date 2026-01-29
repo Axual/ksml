@@ -28,8 +28,8 @@ functions:
     code: |
       last_value = last_sensor_data_store.get(key)
       if last_value != None:
-        log.warn("Found last value: {}", last_value.value())
-        log.warn("Timestamp: {}", last_value.timestamp())
+        log.warn("Found last value: {}", last_value["value"])
+        log.warn("Timestamp: {}", last_value["timestamp"])
       last_sensor_data_store.put(key, valueAndTimestamp.make(value, current_time()))
       if value != None:
         log.warn("Stored new value: {} = {}", key, value)

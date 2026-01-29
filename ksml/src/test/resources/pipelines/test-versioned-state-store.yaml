@@ -29,7 +29,7 @@ functions:
       last_value = last_sensor_data_store.get(key)
       
       if last_value != None:
-        log.info("Found last value: {} = {}", key, last_value.value)
+        log.info("Found last value: {} = {}", key, last_value["value"])
       last_sensor_data_store.put(key, value, current_milli_time())
       if value != None:
         log.info("Stored new value: {} = {}", key, value)

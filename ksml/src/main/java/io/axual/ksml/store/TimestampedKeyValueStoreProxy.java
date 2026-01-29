@@ -57,13 +57,13 @@ public class TimestampedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy
     }
 
     @HostAccess.Export
-    public ValueAndTimestampProxy<V> putIfAbsent(K key, ValueAndTimestampProxy<V> value) {
-        return wrap(delegate.putIfAbsent(key, value.delegate()));
+    public Object putIfAbsent(K key, ValueAndTimestampProxy<V> value) {
+        return toPython(delegate.putIfAbsent(key, value.delegate()));
     }
 
     @HostAccess.Export
-    public ValueAndTimestampProxy<V> putIfAbsent(K key, V value, long timestamp) {
-        return wrap(delegate.putIfAbsent(key, ValueAndTimestamp.make(value, timestamp)));
+    public Object putIfAbsent(K key, V value, long timestamp) {
+        return toPython(delegate.putIfAbsent(key, ValueAndTimestamp.make(value, timestamp)));
     }
 
     @HostAccess.Export
@@ -72,36 +72,27 @@ public class TimestampedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy
     }
 
     @HostAccess.Export
-    public ValueAndTimestampProxy<V> delete(K key) {
-        return wrap(delegate.delete(key));
+    public Object delete(K key) {
+        return toPython(delegate.delete(key));
     }
 
     @HostAccess.Export
-    public ValueAndTimestampProxy<V> get(K key) {
-        return wrap(delegate.get(key));
+    public Object get(K key) {
+        return toPython(delegate.get(key));
     }
 
     @HostAccess.Export
-    public KeyValueIterator<K, ValueAndTimestampProxy<V>> range(K from, K to) {
+    public KeyValueIterator<K, ValueAndTimestamp<V>> range(K from, K to) {
         throw new UnsupportedOperationException("range(from, to) not supported by this proxy (" + getClass().getName() + ")");
     }
 
     @HostAccess.Export
-    public KeyValueIterator<K, ValueAndTimestampProxy<V>> all() {
+    public KeyValueIterator<K, ValueAndTimestamp<V>> all() {
         throw new UnsupportedOperationException("all() not supported by this proxy (" + getClass().getName() + ")");
     }
 
     @HostAccess.Export
     public long approximateNumEntries() {
         return delegate.approximateNumEntries();
-    }
-
-    /**
-     * Wrap the returned value in a proxy which is accessible from Python.
-     * @param valueAndTimestamp
-     * @return
-     */
-    private ValueAndTimestampProxy<V> wrap(ValueAndTimestamp<V> valueAndTimestamp) {
-        return valueAndTimestamp == null ? null : new ValueAndTimestampProxy<>(valueAndTimestamp);
     }
 }
