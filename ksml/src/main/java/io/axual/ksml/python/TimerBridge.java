@@ -22,6 +22,7 @@ package io.axual.ksml.python;
 
 import com.codahale.metrics.Timer;
 import io.axual.ksml.metric.MetricName;
+import org.graalvm.polyglot.HostAccess;
 
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -39,6 +40,7 @@ public class TimerBridge extends MetricBridge<Timer> {
      *
      * @param valueSeconds the amount of time that the metric needs to be updated with
      */
+    @HostAccess.Export
     public void updateSeconds(long valueSeconds) {
         update(Duration.ofSeconds(valueSeconds));
     }
@@ -48,6 +50,7 @@ public class TimerBridge extends MetricBridge<Timer> {
      *
      * @param valueMilliseconds the amount of time that the metric needs to be updated with
      */
+    @HostAccess.Export
     public void updateMillis(long valueMilliseconds) {
         update(Duration.ofMillis(valueMilliseconds));
     }
@@ -57,6 +60,7 @@ public class TimerBridge extends MetricBridge<Timer> {
      *
      * @param valueNanoseconds the amount of time that the metric needs to be updated with
      */
+    @HostAccess.Export
     public void updateNanos(long valueNanoseconds) {
         update(Duration.ofNanos(valueNanoseconds));
     }

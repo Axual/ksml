@@ -22,6 +22,7 @@ package io.axual.ksml.python;
 
 import com.codahale.metrics.Meter;
 import io.axual.ksml.metric.MetricName;
+import org.graalvm.polyglot.HostAccess;
 
 import java.util.function.Consumer;
 
@@ -36,6 +37,7 @@ public class MeterBridge extends MetricBridge<Meter> {
     /**
      * Update the metric that a single event occurred
      */
+    @HostAccess.Export
     public void mark() {
         mark(1);
     }
@@ -45,6 +47,7 @@ public class MeterBridge extends MetricBridge<Meter> {
      *
      * @param nrOfEvents the number of events that have occurred
      */
+    @HostAccess.Export
     public void mark(long nrOfEvents) {
         metric.mark(nrOfEvents);
     }

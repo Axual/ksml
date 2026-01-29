@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
 streams:
   sensor_source_avro:
     topic: ksml_sensordata_avro
@@ -6,10 +8,12 @@ streams:
 
 stores:
   last_sensor_data_store:
+    versioned: true
     type: keyValue
     keyType: string
     valueType: json
-    persistent: false
+    persistent: true
+    segmentInterval: 60s
     historyRetention: 1h
     caching: false
     logging: false
@@ -17,13 +21,16 @@ stores:
 functions:
   process_message:
     type: forEach
+    globalCode: |
+      import time
+      def current_milli_time():
+        return round(time.time() * 1000)
     code: |
       last_value = last_sensor_data_store.get(key)
+      
       if last_value != None:
-        log.info("Found last value: {} = {}", key, last_value)
-        # log.info("last value color was {}", last_value["color"])
-        log.info("last value color was {}", last_value.get("color"))
-      last_sensor_data_store.put(key, value)
+        log.info("Found last value: {} = {}", key, last_value["value"])
+      last_sensor_data_store.put(key, value, current_milli_time())
       if value != None:
         log.info("Stored new value: {} = {}", key, value)
     stores:

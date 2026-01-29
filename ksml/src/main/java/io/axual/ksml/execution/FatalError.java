@@ -39,12 +39,6 @@ public class FatalError {
         return new RuntimeException(t.getMessage());
     }
 
-    public static RuntimeException reportAndExit(Throwable t) {
-        final var result = report(t);
-        System.exit(1);
-        return result;
-    }
-
     private static void printExceptionDetails(StringBuilder messageBuilder, Throwable t) {
         if (t.getCause() != null) {
             printExceptionDetails(messageBuilder, t.getCause());

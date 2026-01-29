@@ -96,6 +96,31 @@ public class KSMLOuterJoinTest {
                 .containsEntry("4", "?,vier");
     }
 
+    @KSMLTest(topology = "pipelines/test-outerjoin-inline-timestamped.yaml")
+    @DisplayName("Two topics can be outer joined with inline value joiner with a timestamped store")
+    void testJoinInlineTimestamped() {
+        // given that both topics contain some timestamped records
+        inputTopic1.pipeInput("1", "one", 100);
+        inputTopic1.pipeInput("2", "two", 100);
+        inputTopic1.pipeInput("3", "three", 100);
+
+        inputTopic2.pipeInput("1", "eins",120);
+        inputTopic2.pipeInput("2", "zwei",120);
+        inputTopic2.pipeInput("4", "vier",120);
+
+        // and the join window has passed (by sending a message into the next window)
+        inputTopic1.pipeInput("5", "trois", 6000);
+
+        // the result should contain all keys
+        Map<String, String> keyValues = mergedTopic.readKeyValuesToMap();
+
+        assertThat(keyValues).hasSize(4)
+                .containsEntry("1", "one,eins")
+                .containsEntry("2", "two,zwei")
+                .containsEntry("3", "three,?")
+                .containsEntry("4", "?,vier");
+    }
+
 }
 
 

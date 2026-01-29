@@ -20,14 +20,13 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import org.graalvm.polyglot.HostAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
-import org.slf4j.helpers.CheckReturnValue;
-import org.slf4j.spi.LoggingEventBuilder;
 
 public class LoggerBridge {
     // The below method is called from the Python context, so appears unused in the IDE
+    @HostAccess.Export
     public PythonLogger getLogger(String loggerName) {
         return new PythonLogger(LoggerFactory.getLogger(loggerName));
     }
@@ -47,122 +46,109 @@ public class LoggerBridge {
             this.logger = logger;
         }
 
+        @HostAccess.Export
         public String getName() {
             return logger.getName();
         }
 
-        @CheckReturnValue
-        public LoggingEventBuilder atLevel(Level level) {
-            return logger.atLevel(level);
-        }
-
-        public boolean isEnabledForLevel(Level level) {
-            return logger.isEnabledForLevel(level);
-        }
-
+        @HostAccess.Export
         public boolean isTraceEnabled() {
             return logger.isTraceEnabled();
         }
 
+        @HostAccess.Export
         public void trace(String s) {
             logger.trace(s);
         }
 
+        @HostAccess.Export
         public void trace(String s, Object o) {
             logger.trace(s, o);
         }
 
+        @HostAccess.Export
         public void trace(String s, Object... objects) {
             logger.trace(s, objects);
         }
 
-        @CheckReturnValue
-        public LoggingEventBuilder atTrace() {
-            return logger.atTrace();
-        }
-
+        @HostAccess.Export
         public boolean isDebugEnabled() {
             return logger.isDebugEnabled();
         }
 
+        @HostAccess.Export
         public void debug(String s) {
             logger.debug(s);
         }
 
+        @HostAccess.Export
         public void debug(String s, Object o) {
             logger.debug(s, o);
         }
 
+        @HostAccess.Export
         public void debug(String s, Object... objects) {
             logger.debug(s, objects);
         }
 
-        @CheckReturnValue
-        public LoggingEventBuilder atDebug() {
-            return logger.atDebug();
-        }
-
+        @HostAccess.Export
         public boolean isInfoEnabled() {
             return logger.isInfoEnabled();
         }
 
+        @HostAccess.Export
         public void info(String s) {
             logger.info(s);
         }
 
+        @HostAccess.Export
         public void info(String s, Object o) {
             logger.info(s, o);
         }
 
+        @HostAccess.Export
         public void info(String s, Object... objects) {
             logger.info(s, objects);
         }
 
-        @CheckReturnValue
-        public LoggingEventBuilder atInfo() {
-            return logger.atInfo();
-        }
-
+        @HostAccess.Export
         public boolean isWarnEnabled() {
             return logger.isWarnEnabled();
         }
 
+        @HostAccess.Export
         public void warn(String s) {
             logger.warn(s);
         }
 
+        @HostAccess.Export
         public void warn(String s, Object o) {
             logger.warn(s, o);
         }
 
+        @HostAccess.Export
         public void warn(String s, Object... objects) {
             logger.warn(s, objects);
         }
 
-        @CheckReturnValue
-        public LoggingEventBuilder atWarn() {
-            return logger.atWarn();
-        }
-
+        @HostAccess.Export
         public boolean isErrorEnabled() {
             return logger.isErrorEnabled();
         }
 
+        @HostAccess.Export
         public void error(String s) {
             logger.error(s);
         }
 
+        @HostAccess.Export
         public void error(String s, Object o) {
             logger.error(s, o);
         }
 
+        @HostAccess.Export
         public void error(String s, Object... objects) {
             logger.error(s, objects);
-        }
-
-        @CheckReturnValue
-        public LoggingEventBuilder atError() {
-            return logger.atError();
         }
 
     }

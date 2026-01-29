@@ -1,10 +1,10 @@
-package io.axual.ksml.python;
+package io.axual.ksml.store;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,30 +20,17 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import com.codahale.metrics.Metric;
-import io.axual.ksml.metric.MetricName;
-import lombok.Getter;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
 
-import java.util.function.Consumer;
-
 /**
- * Base class for the metric proxy
+ * A factory for {@link ValueAndTimestamp} instances.
+ * This works around the fact that the static {@link ValueAndTimestamp#make(Object, long)} method cannot be proxied.
  */
-public abstract class MetricBridge<M extends Metric> {
-    @Getter
-    private final MetricName name;
-    protected final M metric;
-    private final Consumer<MetricBridge<M>> onCloseCallback;
-
-    protected MetricBridge(MetricName name, M metric, Consumer<MetricBridge<M>> onCloseCallback) {
-        this.name = name;
-        this.metric = metric;
-        this.onCloseCallback = onCloseCallback;
-    }
+public class ValueAndTimestampFactory {
 
     @HostAccess.Export
-    public void close() {
-        if (onCloseCallback != null) onCloseCallback.accept(this);
+    public <V> ValueAndTimestampProxy<V> make(V value, long timestamp) {
+        return new ValueAndTimestampProxy<>(ValueAndTimestamp.make(value, timestamp));
     }
 }

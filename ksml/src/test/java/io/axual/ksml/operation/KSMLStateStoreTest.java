@@ -30,6 +30,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +45,74 @@ public class KSMLStateStoreTest {
     TopologyTestDriver topologyTestDriver;
 
     @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "schemas")
+    @DisplayName("Test messages are stored in a key/value store")
     void testJoin() {
+
+        // given that we get events with a higher reading in matching cities
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+        sensorIn.pipeInput("sensor2", SensorData.builder()
+                .city("Utrecht")
+                .type(SensorData.SensorType.TEMPERATURE)
+                .unit("C")
+                .value("26")
+                .build().toRecord());
+
+        // and a new value for sensor1
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("70")
+                .build().toRecord());
+
+        // the last value for sensor1 is present in the store named "last_sensor_data_store"
+        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+        assertEquals(new DataString("70"), sensor1Data.get("value"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-state-store-timestamped.yaml", schemaDirectory = "schemas")
+    @DisplayName("A timestamped key/value store works")
+    void testJoinTimestamped() {
+
+        // given that we get events with a higher reading in matching cities
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+        sensorIn.pipeInput("sensor2", SensorData.builder()
+                .city("Utrecht")
+                .type(SensorData.SensorType.TEMPERATURE)
+                .unit("C")
+                .value("26")
+                .build().toRecord());
+
+        // and a new value for sensor1
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("70")
+                .build().toRecord());
+
+        // the last value for sensor1 is present in the store named "last_sensor_data_store"
+        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+        assertEquals(new DataString("70"), sensor1Data.get("value"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-state-store-timestamped-factory.yaml", schemaDirectory = "schemas")
+    @DisplayName("ValueAndTimestamp can be made with a factory method")
+    void testJoinTimestampedFactory() {
 
         // given that we get events with a higher reading in matching cities
         sensorIn.pipeInput("sensor1", SensorData.builder()

@@ -153,19 +153,18 @@ public class KSMLRunner {
             var ksmlTitle = determineTitle();
 
             boolean shouldExit = false;
-            // Check if we need to output the schema and then exit
+            // Check if we need to output the KSML schema and then exit
             if (cmd.shouldPrintKsmlSchema()) {
                 log.info("Generating KSML definitions schema");
                 shouldExit = true;
                 printKsmlDefinitionSchema(cmd.ksmlSchemaLocation());
             }
 
-            // Check if we need to output the schema and then exit
+            // Check if we need to output the runner schema and then exit
             if (cmd.shouldPrintKsmlRunnerSchema()) {
                 log.info("Generating KSML Runner Configuration Schema");
                 shouldExit = true;
                 printRunnerSchema(cmd.ksmlRunnerSchemaLocation());
-                return;
             }
 
             if (shouldExit) {
@@ -232,7 +231,7 @@ public class KSMLRunner {
                 if (notationConfig != null && factoryName != null) {
                     final var factory = notationFactories.notations().get(factoryName);
                     if (factory == null) {
-                        throw FatalError.reportAndExit(new ConfigException("Unknown notation type: " + factoryName));
+                        throw FatalError.report(new ConfigException("Unknown notation type: " + factoryName));
                     }
                     if (notationConfig.config() != null) notationConfigs.putAll(notationConfig.config());
                     ExecutionContext.INSTANCE.notationLibrary().register(notationStr, factory.create(notationConfigs));
@@ -358,7 +357,7 @@ public class KSMLRunner {
             }
         } catch (Throwable t) {
             log.error("KSML Stopping because of unhandled exception");
-            throw FatalError.reportAndExit(t);
+            throw FatalError.report(t);
         }
         // Explicit exit, need to find out which threads are actually stopping us
         System.exit(0);

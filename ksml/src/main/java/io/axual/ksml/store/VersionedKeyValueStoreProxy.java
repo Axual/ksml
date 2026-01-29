@@ -1,0 +1,65 @@
+package io.axual.ksml.store;
+
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2026 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
+import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.VersionedKeyValueStore;
+import org.graalvm.polyglot.HostAccess;
+
+/**
+ * A proxy wrapper around a Kafka Streams VersionedKeyValueStore that delegates all operations
+ * to the underlying store. This proxy exposes store methods to Python code via @HostAccess.Export.
+ * <p>
+ * Note: This class implements StateStore rather than VersionedKeyValueStore because
+ * VersionedRecord is a final class that cannot be extended, and we need to return
+ * VersionedRecordProxy to expose its methods to Python.
+ *
+ * @param <K> the type of keys
+ * @param <V> the type of values
+ */
+public class VersionedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<VersionedKeyValueStore<K,V>> implements StateStore {
+
+    public VersionedKeyValueStoreProxy(VersionedKeyValueStore<K, V> delegate) {
+        super(delegate);
+    }
+
+    // ==================== VersionedKeyValueStore methods ====================
+
+    @HostAccess.Export
+    public long put(K key, V value, long timestamp) {
+        return delegate.put(key, value, timestamp);
+    }
+
+    @HostAccess.Export
+    public Object delete(K key, long timestamp) {
+        return toPython(delegate.delete(key, timestamp));
+    }
+
+    @HostAccess.Export
+    public Object get(K key) {
+        return toPython(delegate.get(key));
+    }
+
+    @HostAccess.Export
+    public Object get(K key, long asOfTimestamp) {
+        return toPython(delegate.get(key, asOfTimestamp));
+    }
+}
