@@ -96,15 +96,7 @@ public class VulnerabilitiesTest {
     /**
      * Test that attacks via HashMap.getClass() are blocked by the sandbox.
      * This attack is blocked because getClass() is not accessible on the polyglot type object.
-     * NOTE: This test is disabled because the error handling in PythonFunction calls
-     * FatalError.reportAndExit() which invokes System.exit(1), making it impossible
-     * to catch the exception in a unit test. The attack IS blocked by the sandbox -
-     * this can be verified manually by running the pipeline and observing that no
-     * curl request is made to localhost:5555.
-     * To re-enable this test, the error handling would need to be changed to throw
-     * an exception instead of calling System.exit().
      */
-     @Disabled("Not run in normal test execution because KSML error handling calls System.exit(1)")
      @KSMLTest(topology = "pipelines/vulnerable-hashmap.yaml")
      void testVulnerableHashMap() {
          int oldcounter = counter.get();
