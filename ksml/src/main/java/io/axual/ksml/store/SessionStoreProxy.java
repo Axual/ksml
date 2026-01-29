@@ -95,12 +95,12 @@ public class SessionStoreProxy<K, AGG> extends AbstractStateStoreProxy<SessionSt
 
     @HostAccess.Export
     public void put(Windowed<K> sessionKey, AGG aggregate) {
-        delegate.put(sessionKey, aggregate);
+        throw new UnsupportedOperationException("put(Windowed<K>, AGG) is not supported by this proxy (" + getClass() + ")");
     }
 
     @HostAccess.Export
     public void remove(Windowed<K> sessionKey) {
-        delegate.remove(sessionKey);
+        throw new UnsupportedOperationException("remove(Windowed<K>) is not supported by this proxy (" + getClass() + ")");
     }
 
     // ==================== ReadOnlySessionStore methods ====================
