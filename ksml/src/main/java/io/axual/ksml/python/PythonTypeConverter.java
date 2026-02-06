@@ -129,13 +129,14 @@ public final class PythonTypeConverter {
     /**
      * Convert a List to a ProxyArray for Python interop.
      * Recursively converts nested Maps, Lists, and Values.
+     * Uses fromList() with ArrayList to support mutable operations like element removal.
      */
     private static ProxyArray listToPython(List<?> list) {
-        Object[] converted = new Object[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            converted[i] = toPython(list.get(i));
+        List<Object> converted = new ArrayList<>();
+        for (Object item : list) {
+            converted.add(toPython(item));
         }
-        return ProxyArray.fromArray(converted);
+        return ProxyArray.fromList(converted);
     }
 
     /**
@@ -168,13 +169,14 @@ public final class PythonTypeConverter {
     /**
      * Convert a DataList to a ProxyArray for Python interop.
      * Recursively converts nested DataObject values.
+     * Uses fromList() with ArrayList to support mutable operations like element removal.
      */
     private static ProxyArray dataListToPython(DataList dataList) {
-        Object[] converted = new Object[dataList.size()];
+        List<Object> converted = new ArrayList<>();
         for (int i = 0; i < dataList.size(); i++) {
-            converted[i] = toPython(dataList.get(i));
+            converted.add(toPython(dataList.get(i)));
         }
-        return ProxyArray.fromArray(converted);
+        return ProxyArray.fromList(converted);
     }
 
     /**
