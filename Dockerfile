@@ -6,7 +6,7 @@
 # - ksml            = base plus GraalVM and pre-built artifacts from build-output/
 
 # Step 1: Create the common base image with the ksml user and group and the required packages
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7 AS base
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6-1755695350 AS base
 ENV LANG=en_US.UTF-8
 
 # Environment variable for Connect Build and Runtime
