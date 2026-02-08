@@ -68,6 +68,7 @@
         <module>ksml-runner</module>
         <module>ksml-reporting</module>
         <module>ksml-integration-tests</module>
+        <module>ksml-examples-test</module>
     </modules>
 
     <properties>
@@ -231,6 +232,13 @@
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>io.axual.ksml</groupId>
