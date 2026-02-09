@@ -6,7 +6,7 @@
 # - ksml            = base plus GraalVM and pre-built artifacts from build-output/
 
 # Step 1: Create the common base image with the ksml user and group and the required packages
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6 AS base
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6-1760515502 AS base
 ENV LANG=en_US.UTF-8
 
 # Environment variable for Connect Build and Runtime
@@ -25,24 +25,10 @@ RUN set -eux \
 # Step 2: Download and install GraalVM on top of the base image of step 1
 FROM base AS graal
 ARG TARGETARCH
-ARG GRAALVM_JDK_VERSION=23.0.2
+ADD graalvm-${TARGETARCH}.tar.gz /opt
 RUN set -eux \
-    && JAVA_ARCH= \
-    && case "$TARGETARCH" in \
-    amd64) \
-    	JAVA_ARCH="x64" \
-    ;; \
-    arm64) \
-    	JAVA_ARCH="aarch64" \
-    ;; \
-    *) \
-    	echo "Unsupported target architecture $TARGETARCH" \
-    	exit 1 \
-    ;; \
-    esac  \
-    && export GRAALVM_PKG=https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_JDK_VERSION}/graalvm-community-jdk-${GRAALVM_JDK_VERSION}_linux-${JAVA_ARCH}_bin.tar.gz \
-    && mkdir -p /opt/graal \
-    && curl --fail --silent --location --retry 3 ${GRAALVM_PKG} | gunzip | tar x -C /opt/graal --strip-components=1
+    && ls -hal /opt \
+    && mv /opt/graal* /opt/graal
 
 # Step 3: Use the base image and copy GraalVM from Step 2 and pre-built artifacts from build-output/
 FROM base AS ksml
