@@ -22,7 +22,9 @@ package io.axual.ksml.testutil;
 
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +101,10 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
+        final var xmlNotation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        ExecutionContext.INSTANCE.notationLibrary().register(XmlNotation.NOTATION_NAME, xmlNotation);
+        final var csvNotation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        ExecutionContext.INSTANCE.notationLibrary().register(CsvNotation.NOTATION_NAME, csvNotation);
 
         return Arrays.stream(ksmlTopologyTest.topologies())
                 .map(topologyName -> new KSMLTopologyTestInvocationContext(topologyName, schemaDirectory, modulesDirectory, inputTopics, outputTopics, testDriverRef.get())

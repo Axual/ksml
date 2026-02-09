@@ -38,9 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * Excluded examples:
  * <ul>
  *   <li>{@code 01-example-inspect.yaml} — requires csv, jsonschema and protobuf notations</li>
- *   <li>{@code 07-example-convert.yaml} — requires xml notation</li>
- *   <li>{@code 09-example-aggregate2.yaml} — has a known parse error</li>
- *   <li>{@code 17-example-inspect-with-metrics.yaml} — requires csv and xml notations</li>
  * </ul>
  */
 class ExampleTopologyTest {
@@ -58,6 +55,7 @@ class ExampleTopologyTest {
             "examples/04-example-branch.yaml",
             "examples/05-example-route.yaml",
             "examples/06-example-duplicate.yaml",
+            "examples/07-example-convert.yaml",
             "examples/08-example-count.yaml",
             "examples/09-example-aggregate.yaml",
             "examples/10-example-queryable-table.yaml",
@@ -66,6 +64,7 @@ class ExampleTopologyTest {
             "examples/14-example-manual-state-store.yaml",
             "examples/15-example-pipeline-linking.yaml",
             "examples/16-example-transform-metadata.yaml",
+            "examples/17-example-inspect-with-metrics.yaml",
             "examples/18-example-timestamp-extractor.yaml",
             "examples/19-example-performance-measurement.yaml"
     }, schemaDirectory = "examples")
@@ -94,13 +93,4 @@ class ExampleTopologyTest {
     void byteManipulationTopologyIsValid() {
         assertNotNull(topologyTestDriver, "TopologyTestDriver should have been created by the test extension");
     }
-
-    @KSMLTopologyTest(topologies = {
-        "examples/09-example-aggregate2.yaml"
-    }, schemaDirectory = "examples")
-    @DisplayName("09-example-aggregate2 parses and generates a valid topology")
-    void exampleAggregate2ParsesAndGeneratesTopology() {
-        assertNotNull(topologyTestDriver, "TopologyTestDriver should have been created by the test extension");
-    }
-
 }
