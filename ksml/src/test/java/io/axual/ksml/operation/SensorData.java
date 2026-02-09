@@ -59,6 +59,7 @@ public class SensorData {
     String unit;
     String color;
     String city;
+    String owner;
 
     public enum SensorType {
         AREA, HUMIDITY, LENGTH, STATE, TEMPERATURE
@@ -73,6 +74,7 @@ public class SensorData {
         data.put("unit", unit == null ? "NOT SET" : unit);
         data.put("color", color == null ? "NOT SET" : color);
         data.put("city", city == null ? "NOT SET" : city);
+        data.put("owner", owner);
         return data;
     }
 }
