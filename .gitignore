@@ -16,4 +16,7 @@ CLAUDE.md
 workspace/*
 /packaging/helm-charts/**/*.tgz
 /packaging/helm-charts/workspace/*
-build-output/
+
+/build-output/
+/graalvm-amd64.tar.gz
+/graalvm-arm64.tar.gz
