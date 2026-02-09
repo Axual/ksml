@@ -94,4 +94,13 @@ class ExampleTopologyTest {
     void byteManipulationTopologyIsValid() {
         assertNotNull(topologyTestDriver, "TopologyTestDriver should have been created by the test extension");
     }
+
+    @KSMLTopologyTest(topologies = {
+        "examples/09-example-aggregate2.yaml"
+    }, schemaDirectory = "examples")
+    @DisplayName("09-example-aggregate2 parses and generates a valid topology")
+    void exampleAggregate2ParsesAndGeneratesTopology() {
+        assertNotNull(topologyTestDriver, "TopologyTestDriver should have been created by the test extension");
+    }
+
 }
