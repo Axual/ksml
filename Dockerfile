@@ -25,7 +25,6 @@ RUN set -eux \
 # Step 2: Download and install GraalVM on top of the base image of step 1
 FROM base AS graal
 ARG TARGETARCH
-ARG GRAALVM_JDK_VERSION=23.0.2
 ADD graalvm-${TARGETARCH}.tar.gz /opt
 RUN set -eux \
     && ls -hal /opt \
