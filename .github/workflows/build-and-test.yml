@@ -34,6 +34,13 @@ jobs:
           name: build-artifacts-${{ github.sha }}
           path: build-output/
 
+      - name: Prepare JVM Tars
+        env:
+          GRAALVM_JDK_VERSION: 23.0.2
+        run: |
+          wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_JDK_VERSION}/graalvm-community-jdk-${GRAALVM_JDK_VERSION}_linux-x64_bin.tar.gz -O graalvm-amd64.tar.gz
+          wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_JDK_VERSION}/graalvm-community-jdk-${GRAALVM_JDK_VERSION}_linux-aarch64_bin.tar.gz -O graalvm-arm64.tar.gz
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
