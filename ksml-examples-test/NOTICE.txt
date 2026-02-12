@@ -1,5 +1,5 @@
 
-Lists of 153 third-party dependencies.
+Lists of 154 third-party dependencies.
      (The Apache Software License, Version 2.0) Handy URI Templates (com.damnhandy:handy-uri-templates:2.1.8 - https://github.com/damnhandy/Handy-URI-Templates)
      (MIT License) minimal-json (com.eclipsesource.minimal-json:minimal-json:0.9.5 - https://github.com/ralfstx/minimal-json)
      (Apache License, Version 2.0) Internet Time Utility (com.ethlo.time:itu:1.10.2 - https://github.com/ethlo/itu)
@@ -62,6 +62,7 @@ Lists of 153 third-party dependencies.
      (Apache License Version 2.0) apicurio-registry-serdes-avro-serde (io.apicurio:apicurio-registry-serdes-avro-serde:2.6.13.Final - https://www.apicur.io/apicurio-registry-serdes-avro-serde/)
      (Apache License Version 2.0) apicurio-registry-serdes-jsonschema-serde (io.apicurio:apicurio-registry-serdes-jsonschema-serde:2.6.13.Final - https://www.apicur.io/apicurio-registry-serdes-jsonschema-serde/)
      (Apache License Version 2.0) apicurio-registry-serdes-protobuf-serde (io.apicurio:apicurio-registry-serdes-protobuf-serde:2.6.13.Final - https://www.apicur.io/apicurio-registry-serdes-protobuf-serde/)
+     (Apache 2.0) KSML (io.axual.ksml:ksml:1.2.0-RC0 - https://github.com/Axual/ksml/ksml)
      (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.2.0-RC0 - https://github.com/Axual/ksml/ksml-data)
      (Apache 2.0) KSML Data Library - AVRO (io.axual.ksml:ksml-data-avro:1.2.0-RC0 - https://github.com/Axual/ksml/ksml-data-avro)
      (Apache 2.0) KSML Data Library - AVRO Apicurio (io.axual.ksml:ksml-data-avro-apicurio:1.2.0-RC0 - https://github.com/Axual/ksml/ksml-data-avro-apicurio)

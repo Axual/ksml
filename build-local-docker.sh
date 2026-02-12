@@ -28,7 +28,7 @@ if [ ! -f graalvm-arm64.tar.gz ]; then
 fi
 
 # Create builder if it doesn't exist
-if ! docker buildx ls | grep -q "^ksml"; then
+if ! docker docker buildx ls --format {{.Name}} | grep -E "^ksml$"; then
     echo "Creating Docker buildx builder 'ksml'..."
     docker buildx create --name ksml --use
 else
