@@ -1,0 +1,21 @@
+ksml:
+  definitions:
+    jsonschema-producer: jsonschema-producer.yaml
+    jsonschema-processor: jsonschema-processor.yaml
+  schemaRegistries:
+    my_apicurio_registry:
+      config:
+        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
+  notations:
+    jsonschema:
+      type: apicurio_jsonschema
+      schemaRegistry: my_apicurio_registry
+      config: {}
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.jsonschema.example
+  security.protocol: PLAINTEXT
+  acks: all
