@@ -110,6 +110,33 @@ public class KSMLStateStoreTest {
         assertEquals(new DataString("70"), sensor1Data.get("value"));
     }
 
+    @KSMLTest(topology = "pipelines/test-state-store-avro.yaml", schemaDirectory = "schemas")
+    @DisplayName("Test messages are stored in a key/value store with avro value type")
+    void testStateStoreAvroValueType() {
+
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+        sensorIn.pipeInput("sensor2", SensorData.builder()
+                .city("Utrecht")
+                .type(SensorData.SensorType.TEMPERATURE)
+                .unit("C")
+                .value("26")
+                .build().toRecord());
+
+        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+        assertEquals(new DataString("80"), sensor1Data.get("value"));
+
+        DataStruct sensor2Data = (DataStruct) lastSensorDataStore.get("sensor2");
+        assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
+        assertEquals(new DataString("26"), sensor2Data.get("value"));
+    }
+
     @KSMLTest(topology = "pipelines/test-state-store-timestamped-factory.yaml", schemaDirectory = "schemas")
     @DisplayName("ValueAndTimestamp can be made with a factory method")
     void testJoinTimestampedFactory() {
