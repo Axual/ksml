@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.data.mapper.DataTypeFlattener;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
@@ -72,6 +72,8 @@ import java.util.Set;
 @Slf4j
 public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback, BeforeEachCallback, AfterEachCallback {
 
+    private final DataObjectFlattener dataMapper = new DataObjectFlattener();
+    private final DataTypeFlattener typeMapper = new DataTypeFlattener();
     private final Set<Field> modifiedFields = new HashSet<>();
 
     private TopologyTestDriver topologyTestDriver;
@@ -118,8 +120,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     @Override
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("Registering test notations");
-        final var dataMapper = new NativeDataObjectMapper();
-        final var typeMapper = new DataTypeFlattener();
         final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, dataMapper, typeMapper));
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, dataMapper, typeMapper), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
@@ -177,7 +177,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider = new ConfluentAvroNotationProvider(registryClient);
-        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var context = new NotationContext(provider.notationName(), provider.vendorName(), dataMapper, typeMapper, registryClient.configs());
         final var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 

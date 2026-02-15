@@ -23,6 +23,8 @@ package io.axual.ksml.testutil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
@@ -68,6 +70,8 @@ import java.util.Set;
 @Slf4j
 public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEachCallback, AfterEachCallback {
 
+    private final DataObjectFlattener dataMapper = new DataObjectFlattener();
+    private final DataTypeFlattener typeMapper = new DataTypeFlattener();
     private final Set<Field> modifiedFields = new HashSet<>();
 
     private TopologyTestDriver topologyTestDriver;
@@ -154,7 +158,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
 
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider =  new ConfluentAvroNotationProvider(registryClient);
-        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var context = new NotationContext(provider.notationName(), provider.vendorName(), dataMapper, typeMapper, registryClient.configs());
         final var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 
