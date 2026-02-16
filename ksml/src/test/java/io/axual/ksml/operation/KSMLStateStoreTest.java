@@ -30,10 +30,14 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.WindowStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.time.Instant;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(KSMLTestExtension.class)
 public class KSMLStateStoreTest {
@@ -135,6 +139,65 @@ public class KSMLStateStoreTest {
         DataStruct sensor2Data = (DataStruct) lastSensorDataStore.get("sensor2");
         assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
         assertEquals(new DataString("26"), sensor2Data.get("value"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-state-store-timestamped-avro.yaml", schemaDirectory = "schemas")
+    @DisplayName("A timestamped key/value store with avro value type works")
+    void testStateStoreTimestampedAvroValueType() {
+
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+        sensorIn.pipeInput("sensor2", SensorData.builder()
+                .city("Utrecht")
+                .type(SensorData.SensorType.TEMPERATURE)
+                .unit("C")
+                .value("26")
+                .build().toRecord());
+
+        var lastSensorDataStore = topologyTestDriver.getTimestampedKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1").value();
+        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+        assertEquals(new DataString("80"), sensor1Data.get("value"));
+
+        DataStruct sensor2Data = (DataStruct) lastSensorDataStore.get("sensor2").value();
+        assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
+        assertEquals(new DataString("26"), sensor2Data.get("value"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-state-store-windowed-avro.yaml", schemaDirectory = "schemas")
+    @DisplayName("A windowed store with avro value type works")
+    void testStateStoreWindowedAvroValueType() {
+
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+        sensorIn.pipeInput("sensor2", SensorData.builder()
+                .city("Utrecht")
+                .type(SensorData.SensorType.TEMPERATURE)
+                .unit("C")
+                .value("26")
+                .build().toRecord());
+
+        WindowStore<Object, Object> windowStore = topologyTestDriver.getWindowStore("sensor_data_window_store");
+        try (var iterator = windowStore.fetch("sensor1", Instant.ofEpochMilli(0), Instant.now().plusSeconds(3600))) {
+            assertTrue(iterator.hasNext());
+            DataStruct sensor1Data = (DataStruct) iterator.next().value;
+            assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
+            assertEquals(new DataString("80"), sensor1Data.get("value"));
+        }
+        try (var iterator = windowStore.fetch("sensor2", Instant.ofEpochMilli(0), Instant.now().plusSeconds(3600))) {
+            assertTrue(iterator.hasNext());
+            DataStruct sensor2Data = (DataStruct) iterator.next().value;
+            assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
+            assertEquals(new DataString("26"), sensor2Data.get("value"));
+        }
     }
 
     @KSMLTest(topology = "pipelines/test-state-store-timestamped-factory.yaml", schemaDirectory = "schemas")

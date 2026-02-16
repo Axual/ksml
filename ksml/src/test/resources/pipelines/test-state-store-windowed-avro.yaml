@@ -1,0 +1,33 @@
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+stores:
+  sensor_data_window_store:
+    type: window
+    keyType: string
+    valueType: avro:SensorData
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: forEach
+    globalCode: |
+      import time
+    code: |
+      now_ms = int(time.time() * 1000)
+      sensor_data_window_store.put(key, value, now_ms)
+      log.info("Stored value: {} = {} at {}", key, value, now_ms)
+    stores:
+      - sensor_data_window_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    forEach: process_message
