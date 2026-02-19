@@ -21,9 +21,8 @@ functions:
     globalCode: |
       import time
     code: |
-      now_ms = int(time.time() * 1000)
-      sensor_data_window_store.put(key, value, now_ms)
-      log.info("Stored value: {} = {} at {}", key, value, now_ms)
+      sensor_data_window_store.put(key, value, 0)
+      log.info("Stored value: {} = {} at {}", key, value, 0)
     stores:
       - sensor_data_window_store
 

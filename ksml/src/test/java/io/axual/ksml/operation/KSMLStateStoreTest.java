@@ -30,10 +30,12 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.WindowStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -108,8 +110,8 @@ public class KSMLStateStoreTest {
                 .build().toRecord());
 
         // the last value for sensor1 is present in the store named "last_sensor_data_store"
-        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
-        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+        KeyValueStore<Object, ValueAndTimestamp<Object>> lastSensorDataStore = topologyTestDriver.getTimestampedKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1").value();
         assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
         assertEquals(new DataString("70"), sensor1Data.get("value"));
     }
@@ -185,14 +187,15 @@ public class KSMLStateStoreTest {
                 .value("26")
                 .build().toRecord());
 
+        final var fetchEnd = Instant.ofEpochMilli(0).plus(Duration.ofDays(365));
         WindowStore<Object, Object> windowStore = topologyTestDriver.getWindowStore("sensor_data_window_store");
-        try (var iterator = windowStore.fetch("sensor1", Instant.ofEpochMilli(0), Instant.now().plusSeconds(3600))) {
+        try (var iterator = windowStore.fetch("sensor1", Instant.ofEpochMilli(0), fetchEnd)) {
             assertTrue(iterator.hasNext());
             DataStruct sensor1Data = (DataStruct) iterator.next().value;
             assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
             assertEquals(new DataString("80"), sensor1Data.get("value"));
         }
-        try (var iterator = windowStore.fetch("sensor2", Instant.ofEpochMilli(0), Instant.now().plusSeconds(3600))) {
+        try (var iterator = windowStore.fetch("sensor2", Instant.ofEpochMilli(0), fetchEnd)) {
             assertTrue(iterator.hasNext());
             DataStruct sensor2Data = (DataStruct) iterator.next().value;
             assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
@@ -227,8 +230,8 @@ public class KSMLStateStoreTest {
                 .build().toRecord());
 
         // the last value for sensor1 is present in the store named "last_sensor_data_store"
-        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
-        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
+        KeyValueStore<Object, ValueAndTimestamp<Object>> lastSensorDataStore = topologyTestDriver.getTimestampedKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1").value();
         assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
         assertEquals(new DataString("70"), sensor1Data.get("value"));
     }
