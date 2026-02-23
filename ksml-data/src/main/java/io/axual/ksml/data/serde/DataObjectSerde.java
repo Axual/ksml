@@ -166,7 +166,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     @Override
     public byte[] serialize(final String topic, final Object data) {
         try {
-            final var dataObject = nativeMapper.toDataObject(data);
+            final var dataObject = nativeMapper.toDataObject(expectedDataType, data);
             if (dataObject == DataNull.INSTANCE) return serializer.serialize(topic, null);
             final var serdeObject = serdeMapper.fromDataObject(dataObject);
             return serializer.serialize(topic, serdeObject);
@@ -188,7 +188,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     @Override
     public byte[] serialize(final String topic, final Headers headers, final Object data) {
         try {
-            final var dataObject = nativeMapper.toDataObject(data);
+            final var dataObject = nativeMapper.toDataObject(expectedDataType, data);
             if (dataObject == DataNull.INSTANCE) return serializer.serialize(topic, null);
             final var serdeObject = serdeMapper.fromDataObject(dataObject);
             return serializer.serialize(topic, headers, serdeObject);

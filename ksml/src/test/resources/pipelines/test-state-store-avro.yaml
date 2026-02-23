@@ -1,0 +1,28 @@
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+stores:
+  last_sensor_data_store:
+    type: keyValue
+    keyType: string
+    valueType: avro:SensorData
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: forEach
+    code: |
+      last_sensor_data_store.put(key, value)
+      log.info("Stored value: {} = {}", key, value)
+    stores:
+      - last_sensor_data_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    forEach: process_message

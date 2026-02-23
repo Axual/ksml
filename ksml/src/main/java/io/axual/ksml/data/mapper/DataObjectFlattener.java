@@ -24,6 +24,7 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.WindowedType;
 import org.apache.kafka.streams.kstream.Windowed;
 
@@ -50,6 +51,11 @@ public class DataObjectFlattener extends NativeDataObjectMapper {
 
     @Override
     public DataObject toDataObject(Object value) {
+        return toDataObject(null, value);
+    }
+
+    @Override
+    public DataObject toDataObject(DataType expected, Object value) {
         if (value instanceof Windowed<?> windowedObject) {
             // Convert a Windowed object into a struct with fields that contain the window fields.
             var keyAsData = toDataObject(windowedObject.key());
@@ -62,6 +68,6 @@ public class DataObjectFlattener extends NativeDataObjectMapper {
             result.put(WINDOWED_SCHEMA_KEY_FIELD, keyAsData);
             return result;
         }
-        return super.toDataObject(null, value);
+        return super.toDataObject(expected, value);
     }
 }
