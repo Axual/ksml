@@ -84,7 +84,7 @@
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.2</graalvm.version>
         <guava.version>33.5.0-jre</guava.version>
-        <jackson.version>2.21.0</jackson.version>
+        <jackson.version>2.21.1</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.1</jersey.version>
