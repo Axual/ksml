@@ -148,7 +148,7 @@ class PythonTypeConverterTest {
 
             assertThat(result).isNotNull().isInstanceOf(PythonDict.class);
             PythonDict proxy = (PythonDict) result;
-            assertThat(proxy.getHashSize()).isEqualTo(0);
+            assertThat(proxy.getHashSize()).isZero();
         }
 
         @Test
@@ -215,7 +215,7 @@ class PythonTypeConverterTest {
 
             assertThat(result).isNotNull().isInstanceOf(PythonList.class);
             PythonList proxy = (PythonList) result;
-            assertThat(proxy.getSize()).isEqualTo(0);
+            assertThat(proxy.getSize()).isZero();
         }
 
         @Test
@@ -522,7 +522,7 @@ class PythonTypeConverterTest {
 
             PythonDict dict = new PythonDict(map);
 
-            assertThat(dict.toString()).isEqualTo("{'key': 'value', 'count': 42}");
+            assertThat(dict).hasToString("{'key': 'value', 'count': 42}");
         }
 
         @Test
@@ -535,7 +535,7 @@ class PythonTypeConverterTest {
 
             PythonList pythonList = new PythonList(list);
 
-            assertThat(pythonList.toString()).isEqualTo("[1, 'two', 3]");
+            assertThat(pythonList).hasToString("[1, 'two', 3]");
         }
 
         @Test
@@ -546,7 +546,7 @@ class PythonTypeConverterTest {
 
             PythonDict dict = new PythonDict(map);
 
-            assertThat(dict.toString()).isEqualTo("{'value': None}");
+            assertThat(dict).hasToString("{'value': None}");
         }
 
         @Test
@@ -558,7 +558,7 @@ class PythonTypeConverterTest {
 
             PythonDict dict = new PythonDict(map);
 
-            assertThat(dict.toString()).isEqualTo("{'active': True, 'deleted': False}");
+            assertThat(dict).hasToString("{'active': True, 'deleted': False}");
         }
 
         @Test
@@ -572,7 +572,7 @@ class PythonTypeConverterTest {
 
             PythonDict dict = new PythonDict(outer);
 
-            assertThat(dict.toString()).isEqualTo("{'inner': {'nested': 'value'}}");
+            assertThat(dict).hasToString("{'inner': {'nested': 'value'}}");
         }
 
         @Test
@@ -588,7 +588,7 @@ class PythonTypeConverterTest {
 
             PythonDict dict = new PythonDict(map);
 
-            assertThat(dict.toString()).isEqualTo("{'numbers': [1, 2, 3]}");
+            assertThat(dict).hasToString("{'numbers': [1, 2, 3]}");
         }
 
         @Test
@@ -596,7 +596,7 @@ class PythonTypeConverterTest {
         void emptyDictToString() {
             PythonDict dict = new PythonDict(new LinkedHashMap<>());
 
-            assertThat(dict.toString()).isEqualTo("{}");
+            assertThat(dict).hasToString("{}");
         }
 
         @Test
@@ -604,7 +604,7 @@ class PythonTypeConverterTest {
         void emptyListToString() {
             PythonList list = new PythonList(new ArrayList<>());
 
-            assertThat(list.toString()).isEqualTo("[]");
+            assertThat(list).hasToString("[]");
         }
 
         @Test
@@ -616,11 +616,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(map);
 
-            // The result should contain Python-style formatting
-            String str = result.toString();
-            assertThat(str).contains("'name': 'test'")
-                .contains("'count': 42")
-                .startsWith("{").endsWith("}");
+            assertThat(result).hasToString("{'name': 'test', 'count': 42}");
         }
     }
 }
