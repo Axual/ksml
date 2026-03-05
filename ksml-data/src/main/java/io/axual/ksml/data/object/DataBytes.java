@@ -33,7 +33,7 @@ import java.util.Arrays;
  * binary values to be used as {@link DataObject} types, making them compatible with the
  * framework and allowing for standardized processing.</p>
  *
- * <p>For safety, input arrays are defensively copied on construction to preserve immutability
+ * <p>For safety, input arrays are defensively copied on construction to preserve the immutability
  * of the internal representation.</p>
  *
  * @see DataObject
@@ -60,5 +60,16 @@ public class DataBytes extends DataPrimitive<byte[]> {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DataBytes otherBytes)) return false;
+        return Arrays.equals(value(), otherBytes.value());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(value());
     }
 }

@@ -1,0 +1,60 @@
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+
+  windowed_count_output:
+    topic: ksml_sensordata_windowed_avro_count
+    keyType: avro:windowed(SensorKey)
+    valueType: long
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+      - type: peek
+        forEach:
+          code: log.info("key={}, value={}", key, value)
+      - type: filter
+        if:
+          expression: key is not None and value is not None
+
+      # Group by a composite Avro key (type + city).
+      # This creates a Windowed<SensorKey> after the windowed aggregation.
+      - type: groupBy
+        name: group_by_sensor_key
+        mapper:
+          code: |
+            sensor_key = {"type": str(value.get("type")), "city": value.get("city")}
+          expression: sensor_key
+          resultType: avro:SensorKey
+
+      - type: windowByTime
+        windowType: tumbling
+        duration: 5s
+        grace: 30s
+
+      - type: count
+        store:
+          name: sensor_type_count
+          type: window
+          windowSize: 1m
+          retention: 5m
+          caching: false
+
+      - type: toStream
+
+      # Convert the windowed key for serialization.
+      # the SensorKey schema is lost and Avro serialization fails with:
+      #   "AVRO schema do not support ANY types"
+      - type: convertKey
+        into: avro:windowed(SensorKey)
+
+      - type: peek
+        forEach:
+          code: |
+            log.info("Windowed Avro key count: key={}, value={}", key, value)
+
+    to: windowed_count_output

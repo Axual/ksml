@@ -116,7 +116,7 @@ public class UnionSerde implements Serde<Object> {
             }
 
             // No type compatibility found, so raise an exception
-            throw new DataException("Can not serialize value as union alternative: data=" + data + ", valuesTypes=" + memberTypesToString());
+            throw new DataException("Can not serialize value as union alternative: data=" + data + ", valueTypes=" + memberTypesToString());
         }
     }
 

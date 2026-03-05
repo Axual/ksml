@@ -64,7 +64,7 @@ class DataBytesTest {
         var b = new DataBytes(new byte[]{1, 2});
         assertThat(a)
                 .isEqualTo(a)
-                .isNotEqualTo(b)
+                .isEqualTo(b)
                 .isNotEqualTo(null);
     }
 }

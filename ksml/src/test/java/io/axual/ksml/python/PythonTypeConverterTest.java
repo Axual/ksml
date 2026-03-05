@@ -516,7 +516,7 @@ class PythonTypeConverterTest {
         @DisplayName("PythonDict renders as Python dict")
         void dictToString() {
             // Use LinkedHashMap to guarantee insertion order for assertion
-            Map<Object, Object> map = new LinkedHashMap<>();
+            Map<String, Object> map = new LinkedHashMap<>();
             map.put("key", "value");
             map.put("count", 42);
 
@@ -541,7 +541,7 @@ class PythonTypeConverterTest {
         @Test
         @DisplayName("null renders as None")
         void nullRendersAsNone() {
-            Map<Object, Object> map = new LinkedHashMap<>();
+            Map<String, Object> map = new LinkedHashMap<>();
             map.put("value", null);
 
             PythonDict dict = new PythonDict(map);
@@ -552,7 +552,7 @@ class PythonTypeConverterTest {
         @Test
         @DisplayName("booleans render as True/False")
         void booleansRenderAsPython() {
-            Map<Object, Object> map = new LinkedHashMap<>();
+            Map<String, Object> map = new LinkedHashMap<>();
             map.put("active", true);
             map.put("deleted", false);
 
@@ -564,10 +564,10 @@ class PythonTypeConverterTest {
         @Test
         @DisplayName("nested dict renders recursively")
         void nestedDictToString() {
-            Map<Object, Object> inner = new LinkedHashMap<>();
+            Map<String, Object> inner = new LinkedHashMap<>();
             inner.put("nested", "value");
 
-            Map<Object, Object> outer = new LinkedHashMap<>();
+            Map<String, Object> outer = new LinkedHashMap<>();
             outer.put("inner", new PythonDict(inner));
 
             PythonDict dict = new PythonDict(outer);
@@ -583,7 +583,7 @@ class PythonTypeConverterTest {
             list.add(2);
             list.add(3);
 
-            Map<Object, Object> map = new LinkedHashMap<>();
+            Map<String, Object> map = new LinkedHashMap<>();
             map.put("numbers", new PythonList(list));
 
             PythonDict dict = new PythonDict(map);
@@ -608,7 +608,7 @@ class PythonTypeConverterTest {
         }
 
         @Test
-        @DisplayName("toPython() result has Python-style toString()")
+        @DisplayName("toPython() result has sorted Python-style toString()")
         void toPythonResultHasPythonToString() {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("name", "test");
@@ -616,7 +616,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(map);
 
-            assertThat(result).hasToString("{'name': 'test', 'count': 42}");
+            assertThat(result).hasToString("{'count': 42, 'name': 'test'}");
         }
     }
 }

@@ -25,6 +25,9 @@ import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.value.Struct;
+import io.axual.ksml.python.PythonDict;
+import io.axual.ksml.python.PythonList;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.graalvm.polyglot.Value;
@@ -52,7 +55,7 @@ public final class PythonTypeConverter {
 
     /**
      * Convert a Java object to a Python-compatible proxy object.
-     * Maps become ProxyHashMap, Lists become ProxyArray.
+     * Maps become PythonDicts, Lists become PythonLists.
      * GraalVM Value objects are unwrapped and their contents converted.
      *
      * @param value the Java object to convert
@@ -79,7 +82,7 @@ public final class PythonTypeConverter {
             case List<?> list -> listToPython(list);
             default ->
                 // Primitives, strings, and other types pass through unchanged
-                value;
+                    value;
         };
     }
 
@@ -93,7 +96,7 @@ public final class PythonTypeConverter {
         if (value.isNull()) {
             return null;
         }
-        // Check if the Value wraps a host object (Java object) - most common case
+        // Check if the Value wraps a host object (Java object) - the most common case
         if (value.isHostObject()) {
             // Unwrap and recursively convert (will route to mapToPython/listToPython)
             return toPython(value.asHostObject());
@@ -117,10 +120,8 @@ public final class PythonTypeConverter {
      * Recursively converts nested Maps, Lists, and Values.
      */
     private static PythonDict mapToPython(Map<?, ?> map) {
-        Map<Object, Object> converted = new HashMap<>();
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            converted.put(toPython(entry.getKey()), toPython(entry.getValue()));
-        }
+        final var converted = new Struct<>();
+        map.forEach((k, v) -> converted.put(k != null ? k.toString() : null, toPython(v)));
         return new PythonDict(converted);
     }
 
@@ -142,14 +143,8 @@ public final class PythonTypeConverter {
      * Recursively converts nested DataObject values.
      */
     private static Object dataStructToPython(DataStruct struct) {
-        if (struct.isNull()) {
-            return null;
-        }
-        Map<Object, Object> converted = new HashMap<>();
-        for (var entry : struct.entrySet()) {
-            converted.put(entry.getKey(), toPython(entry.getValue()));
-        }
-        return new PythonDict(converted);
+        if (struct.isNull()) return null;
+        return new PythonDict(new Struct<>(struct.contents(), PythonTypeConverter::toPython));
     }
 
     /**
@@ -157,11 +152,8 @@ public final class PythonTypeConverter {
      * Recursively converts nested DataObject values.
      */
     private static PythonDict dataMapToPython(DataMap dataMap) {
-        Map<Object, Object> converted = new HashMap<>();
-        for (var entry : dataMap.entrySet()) {
-            converted.put(entry.getKey(), toPython(entry.getValue()));
-        }
-        return new PythonDict(converted);
+        if (dataMap.isNull()) return null;
+        return new PythonDict(new Struct<>(dataMap.contents(), PythonTypeConverter::toPython));
     }
 
     /**
@@ -182,7 +174,7 @@ public final class PythonTypeConverter {
      * Creates a dict with "value" and "timestamp" keys.
      */
     private static PythonDict valueAndTimestampToPython(ValueAndTimestamp<?> vat) {
-        Map<Object, Object> converted = new HashMap<>();
+        final var converted = new Struct<>();
         converted.put("value", toPython(vat.value()));
         converted.put("timestamp", vat.timestamp());
         return new PythonDict(converted);
@@ -193,9 +185,10 @@ public final class PythonTypeConverter {
      * Creates a dict with "value" and "timestamp" keys.
      */
     private static PythonDict versionedRecordToPython(VersionedRecord<?> vr) {
-        Map<Object, Object> converted = new HashMap<>();
+        final var converted = new Struct<>();
         converted.put("value", toPython(vr.value()));
         converted.put("timestamp", vr.timestamp());
+        vr.validTo().ifPresent(vt -> converted.put("validTo", vt));
         return new PythonDict(converted);
     }
 
