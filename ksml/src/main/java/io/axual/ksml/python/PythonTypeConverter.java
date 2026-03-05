@@ -26,8 +26,6 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.value.Struct;
-import io.axual.ksml.python.PythonDict;
-import io.axual.ksml.python.PythonList;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.graalvm.polyglot.Value;
