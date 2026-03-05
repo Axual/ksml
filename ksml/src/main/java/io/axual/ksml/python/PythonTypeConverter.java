@@ -28,8 +28,6 @@ import io.axual.ksml.data.object.DataStruct;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyArray;
-import org.graalvm.polyglot.proxy.ProxyHashMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -118,12 +116,12 @@ public final class PythonTypeConverter {
      * Convert a Map to a ProxyHashMap for Python interop.
      * Recursively converts nested Maps, Lists, and Values.
      */
-    private static ProxyHashMap mapToPython(Map<?, ?> map) {
+    private static PythonDict mapToPython(Map<?, ?> map) {
         Map<Object, Object> converted = new HashMap<>();
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             converted.put(toPython(entry.getKey()), toPython(entry.getValue()));
         }
-        return ProxyHashMap.from(converted);
+        return new PythonDict(converted);
     }
 
     /**
@@ -131,12 +129,12 @@ public final class PythonTypeConverter {
      * Recursively converts nested Maps, Lists, and Values.
      * Uses fromList() with ArrayList to support mutable operations like element removal.
      */
-    private static ProxyArray listToPython(List<?> list) {
+    private static PythonList listToPython(List<?> list) {
         List<Object> converted = new ArrayList<>();
         for (Object item : list) {
             converted.add(toPython(item));
         }
-        return ProxyArray.fromList(converted);
+        return new PythonList(converted);
     }
 
     /**
@@ -151,19 +149,19 @@ public final class PythonTypeConverter {
         for (var entry : struct.entrySet()) {
             converted.put(entry.getKey(), toPython(entry.getValue()));
         }
-        return ProxyHashMap.from(converted);
+        return new PythonDict(converted);
     }
 
     /**
      * Convert a DataMap to a ProxyHashMap for Python interop.
      * Recursively converts nested DataObject values.
      */
-    private static ProxyHashMap dataMapToPython(DataMap dataMap) {
+    private static PythonDict dataMapToPython(DataMap dataMap) {
         Map<Object, Object> converted = new HashMap<>();
         for (var entry : dataMap.entrySet()) {
             converted.put(entry.getKey(), toPython(entry.getValue()));
         }
-        return ProxyHashMap.from(converted);
+        return new PythonDict(converted);
     }
 
     /**
@@ -171,34 +169,34 @@ public final class PythonTypeConverter {
      * Recursively converts nested DataObject values.
      * Uses fromList() with ArrayList to support mutable operations like element removal.
      */
-    private static ProxyArray dataListToPython(DataList dataList) {
+    private static PythonList dataListToPython(DataList dataList) {
         List<Object> converted = new ArrayList<>();
         for (int i = 0; i < dataList.size(); i++) {
             converted.add(toPython(dataList.get(i)));
         }
-        return ProxyArray.fromList(converted);
+        return new PythonList(converted);
     }
 
     /**
      * Convert a Kafka ValueAndTimestamp to a ProxyHashMap for Python interop.
      * Creates a dict with "value" and "timestamp" keys.
      */
-    private static ProxyHashMap valueAndTimestampToPython(ValueAndTimestamp<?> vat) {
+    private static PythonDict valueAndTimestampToPython(ValueAndTimestamp<?> vat) {
         Map<Object, Object> converted = new HashMap<>();
         converted.put("value", toPython(vat.value()));
         converted.put("timestamp", vat.timestamp());
-        return ProxyHashMap.from(converted);
+        return new PythonDict(converted);
     }
 
     /**
      * Convert a Kafka VersionedRecord to a ProxyHashMap for Python interop.
      * Creates a dict with "value" and "timestamp" keys.
      */
-    private static ProxyHashMap versionedRecordToPython(VersionedRecord<?> vr) {
+    private static PythonDict versionedRecordToPython(VersionedRecord<?> vr) {
         Map<Object, Object> converted = new HashMap<>();
         converted.put("value", toPython(vr.value()));
         converted.put("timestamp", vr.timestamp());
-        return ProxyHashMap.from(converted);
+        return new PythonDict(converted);
     }
 
     /**

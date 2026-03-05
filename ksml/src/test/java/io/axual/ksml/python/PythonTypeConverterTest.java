@@ -23,8 +23,6 @@ package io.axual.ksml.python;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyArray;
-import org.graalvm.polyglot.proxy.ProxyHashMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -125,7 +124,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(input);
 
-            assertThat(result).isInstanceOf(ProxyHashMap.class);
+            assertThat(result).isInstanceOf(PythonDict.class);
         }
 
         @Test
@@ -137,7 +136,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(input);
 
-            assertThat(result).isInstanceOf(ProxyHashMap.class);
+            assertThat(result).isInstanceOf(PythonDict.class);
         }
 
         @Test
@@ -147,9 +146,9 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(input);
 
-            assertThat(result).isNotNull().isInstanceOf(ProxyHashMap.class);
-            ProxyHashMap proxy = (ProxyHashMap) result;
-            assertThat(proxy.getHashSize()).isEqualTo(0);
+            assertThat(result).isNotNull().isInstanceOf(PythonDict.class);
+            PythonDict proxy = (PythonDict) result;
+            assertThat(proxy.getHashSize()).isZero();
         }
 
         @Test
@@ -163,7 +162,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(outer);
 
-            assertThat(result).isInstanceOf(ProxyHashMap.class);
+            assertThat(result).isInstanceOf(PythonDict.class);
             // Verify accessibility from Python rather than direct proxy inspection
             context.getBindings("python").putMember("outer", result);
             Value innerValue = context.eval("python", "outer['inner']['nested']");
@@ -183,7 +182,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(input);
 
-            assertThat(result).isInstanceOf(ProxyHashMap.class);
+            assertThat(result).isInstanceOf(PythonDict.class);
             // Verify accessibility from Python rather than direct proxy inspection
             context.getBindings("python").putMember("data", result);
             Value sumResult = context.eval("python", "sum(data['numbers'])");
@@ -204,7 +203,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(input);
 
-            assertThat(result).isInstanceOf(ProxyArray.class);
+            assertThat(result).isInstanceOf(PythonList.class);
         }
 
         @Test
@@ -214,9 +213,9 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(input);
 
-            assertThat(result).isNotNull().isInstanceOf(ProxyArray.class);
-            ProxyArray proxy = (ProxyArray) result;
-            assertThat(proxy.getSize()).isEqualTo(0);
+            assertThat(result).isNotNull().isInstanceOf(PythonList.class);
+            PythonList proxy = (PythonList) result;
+            assertThat(proxy.getSize()).isZero();
         }
 
         @Test
@@ -230,10 +229,10 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(outer);
 
-            assertThat(result).isNotNull().isInstanceOf(ProxyArray.class);
-            ProxyArray outerProxy = (ProxyArray) result;
+            assertThat(result).isNotNull().isInstanceOf(PythonList.class);
+            PythonList outerProxy = (PythonList) result;
             Object innerValue = outerProxy.get(0);
-            assertThat(innerValue).isNotNull().isInstanceOf(ProxyArray.class);
+            assertThat(innerValue).isNotNull().isInstanceOf(PythonList.class);
         }
 
         @Test
@@ -250,10 +249,10 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(input);
 
-            assertThat(result).isNotNull().isInstanceOf(ProxyArray.class);
-            ProxyArray proxy = (ProxyArray) result;
-            assertThat(proxy.get(0)).isNotNull().isInstanceOf(ProxyHashMap.class);
-            assertThat(proxy.get(1)).isNotNull().isInstanceOf(ProxyHashMap.class);
+            assertThat(result).isNotNull().isInstanceOf(PythonList.class);
+            PythonList proxy = (PythonList) result;
+            assertThat(proxy.get(0)).isNotNull().isInstanceOf(PythonDict.class);
+            assertThat(proxy.get(1)).isNotNull().isInstanceOf(PythonDict.class);
         }
     }
 
@@ -270,7 +269,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(wrappedMap);
 
-            assertThat(result).isInstanceOf(ProxyHashMap.class);
+            assertThat(result).isInstanceOf(PythonDict.class);
         }
 
         @Test
@@ -282,7 +281,7 @@ class PythonTypeConverterTest {
 
             Object result = PythonTypeConverter.toPython(wrappedList);
 
-            assertThat(result).isInstanceOf(ProxyArray.class);
+            assertThat(result).isInstanceOf(PythonList.class);
         }
 
         @Test
@@ -481,7 +480,7 @@ class PythonTypeConverterTest {
             Object result = PythonTypeConverter.toPython(level1);
 
             // Verify structure type
-            assertThat(result).isInstanceOf(ProxyHashMap.class);
+            assertThat(result).isInstanceOf(PythonDict.class);
             // Verify accessibility from Python (this is what matters)
             context.getBindings("python").putMember("nested", result);
             Value deepValue = context.eval("python", "nested['list'][0]['value']");
@@ -506,6 +505,118 @@ class PythonTypeConverterTest {
             Value result = context.eval("python", "nested['list'][0]['value']");
 
             assertThat(result.asString()).isEqualTo("deep");
+        }
+    }
+
+    @Nested
+    @DisplayName("toString() - Python-style formatting")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("PythonDict renders as Python dict")
+        void dictToString() {
+            // Use LinkedHashMap to guarantee insertion order for assertion
+            Map<Object, Object> map = new LinkedHashMap<>();
+            map.put("key", "value");
+            map.put("count", 42);
+
+            PythonDict dict = new PythonDict(map);
+
+            assertThat(dict).hasToString("{'key': 'value', 'count': 42}");
+        }
+
+        @Test
+        @DisplayName("PythonList renders as Python list")
+        void listToString() {
+            List<Object> list = new ArrayList<>();
+            list.add(1);
+            list.add("two");
+            list.add(3);
+
+            PythonList pythonList = new PythonList(list);
+
+            assertThat(pythonList).hasToString("[1, 'two', 3]");
+        }
+
+        @Test
+        @DisplayName("null renders as None")
+        void nullRendersAsNone() {
+            Map<Object, Object> map = new LinkedHashMap<>();
+            map.put("value", null);
+
+            PythonDict dict = new PythonDict(map);
+
+            assertThat(dict).hasToString("{'value': None}");
+        }
+
+        @Test
+        @DisplayName("booleans render as True/False")
+        void booleansRenderAsPython() {
+            Map<Object, Object> map = new LinkedHashMap<>();
+            map.put("active", true);
+            map.put("deleted", false);
+
+            PythonDict dict = new PythonDict(map);
+
+            assertThat(dict).hasToString("{'active': True, 'deleted': False}");
+        }
+
+        @Test
+        @DisplayName("nested dict renders recursively")
+        void nestedDictToString() {
+            Map<Object, Object> inner = new LinkedHashMap<>();
+            inner.put("nested", "value");
+
+            Map<Object, Object> outer = new LinkedHashMap<>();
+            outer.put("inner", new PythonDict(inner));
+
+            PythonDict dict = new PythonDict(outer);
+
+            assertThat(dict).hasToString("{'inner': {'nested': 'value'}}");
+        }
+
+        @Test
+        @DisplayName("nested list in dict renders recursively")
+        void nestedListInDictToString() {
+            List<Object> list = new ArrayList<>();
+            list.add(1);
+            list.add(2);
+            list.add(3);
+
+            Map<Object, Object> map = new LinkedHashMap<>();
+            map.put("numbers", new PythonList(list));
+
+            PythonDict dict = new PythonDict(map);
+
+            assertThat(dict).hasToString("{'numbers': [1, 2, 3]}");
+        }
+
+        @Test
+        @DisplayName("empty dict renders as {}")
+        void emptyDictToString() {
+            PythonDict dict = new PythonDict(new LinkedHashMap<>());
+
+            assertThat(dict).hasToString("{}");
+        }
+
+        @Test
+        @DisplayName("empty list renders as []")
+        void emptyListToString() {
+            PythonList list = new PythonList(new ArrayList<>());
+
+            assertThat(list).hasToString("[]");
+        }
+
+        @Test
+        @DisplayName("toPython() result has Python-style toString()")
+        void toPythonResultHasPythonToString() {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("name", "test");
+            map.put("count", 42);
+
+            Object result = PythonTypeConverter.toPython(map);
+
+            assertThat(result).hasToString("{'name': 'test', 'count': 42}");
         }
     }
 }
