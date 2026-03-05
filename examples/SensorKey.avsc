@@ -1,0 +1,22 @@
+{
+  "namespace": "io.axual.ksml.example",
+  "doc": "Composite key for grouping sensor data by type and city",
+  "name": "SensorKey",
+  "type": "record",
+  "fields": [
+    {
+      "doc": "The type of the sensor",
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "doc": "The city of the sensor",
+      "name": "city",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    }
+  ]
+}

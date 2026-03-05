@@ -44,6 +44,7 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 public abstract class DefinitionParser<T> extends BaseParser<T> implements StructsParser<T> {
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
     private static final Parser<String> CODE_STRING_PARSER = new StringValueParser(value -> value ? "True" : "False");
+    private static final UserTypeParser USER_TYPE_PARSER = new UserTypeParser();
     private static final DataSchema CODE_SCHEMA = new UnionSchema(
             new UnionSchema.Member(DataSchema.BOOLEAN_SCHEMA),
             new UnionSchema.Member(DataSchema.LONG_SCHEMA),
@@ -225,7 +226,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return StructsParser.of(node -> {
                     final var content = stringParser.parse(node);
                     if (content == null) return defaultValue;
-                    final var parsedContent = UserTypeParser.parse(content);
+                    final var parsedContent = USER_TYPE_PARSER.parse(content);
                     if (parsedContent.isError()) throw new ParseException(node, parsedContent.errorMessage());
                     return parsedContent.result();
                 },

@@ -36,9 +36,9 @@ import java.util.StringJoiner;
  */
 public class PythonDict implements ProxyHashMap {
 
-    private final Map<Object, Object> map;
+    private final Map<String, Object> map;
 
-    public PythonDict(Map<Object, Object> map) {
+    public PythonDict(Map<String, Object> map) {
         this.map = map;
     }
 
@@ -49,27 +49,27 @@ public class PythonDict implements ProxyHashMap {
 
     @Override
     public boolean hasHashEntry(Value key) {
-        return map.containsKey(unwrap(key));
+        return map.containsKey(keyFrom(key));
     }
 
     @Override
     public Object getHashValue(Value key) {
-        return map.get(unwrap(key));
+        return map.get(keyFrom(key));
     }
 
     @Override
     public void putHashEntry(Value key, Value value) {
-        map.put(unwrap(key), unwrap(value));
+        map.put(keyFrom(key), unwrap(value));
     }
 
     @Override
     public boolean removeHashEntry(Value key) {
-        return map.remove(unwrap(key)) != null;
+        return map.remove(keyFrom(key)) != null;
     }
 
     @Override
     public Object getHashEntriesIterator() {
-        Iterator<Map.Entry<Object, Object>> it = map.entrySet().iterator();
+        Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();
         return new ProxyIterator() {
             @Override
             public boolean hasNext() {
@@ -78,7 +78,7 @@ public class PythonDict implements ProxyHashMap {
 
             @Override
             public Object getNext() {
-                Map.Entry<Object, Object> entry = it.next();
+                Map.Entry<String, Object> entry = it.next();
                 return ProxyArray.fromArray(entry.getKey(), entry.getValue());
             }
         };
@@ -86,29 +86,26 @@ public class PythonDict implements ProxyHashMap {
 
     /**
      * Return a String representation of this PythonDict, in Python format.
-     * @return
+     *
+     * @return String representation of this PythonDict, in Python format
      */
     @Override
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ", "{", "}");
-        for (Map.Entry<Object, Object> entry : map.entrySet()) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             joiner.add(formatValue(entry.getKey()) + ": " + formatValue(entry.getValue()));
         }
         return joiner.toString();
     }
 
     static String formatValue(Object value) {
-        if (value == null) {
-            return "None";
-        }
-        if (value instanceof String s) {
-            return "'" + s + "'";
-        }
-        if (value instanceof Boolean b) {
-            return b ? "True" : "False";
-        }
-        // PythonDict and PythonList have their own toString() which formats recursively
-        return value.toString();
+        return switch (value) {
+            case null -> "None";
+            case String val -> "'" + val + "'";
+            case Boolean val -> val ? "True" : "False";
+            // PythonDict and PythonList have their own toString() which formats recursively
+            default -> value.toString();
+        };
     }
 
     static Object unwrap(Value value) {
@@ -131,5 +128,10 @@ public class PythonDict implements ProxyHashMap {
             return value.asDouble();
         }
         return value;
+    }
+
+    static String keyFrom(Object value) {
+        if (value instanceof Value val) value = unwrap(val);
+        return value != null ? value.toString() : null;
     }
 }

@@ -28,7 +28,9 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
+import io.axual.ksml.data.value.Struct;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.Collections;
 import java.util.Map;
@@ -56,6 +58,7 @@ import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
  * @see MapType
  */
 @EqualsAndHashCode
+@Getter
 public class DataMap implements DataObject {
     /**
      * Represents the static map type for maps of unknown element types.
@@ -68,7 +71,7 @@ public class DataMap implements DataObject {
      * The {@link TreeMap} is chosen for its sorted nature, and the sorting is alphabetical.
      * </p>
      */
-    private final TreeMap<String, DataObject> contents;
+    private final Struct<DataObject> contents;
 
     /**
      * The value type information for this {@code DataMap} instance, represented by a {@link MapType}.
@@ -102,7 +105,7 @@ public class DataMap implements DataObject {
      * @param isNull    If {@code true}, the content is considered null.
      */
     public DataMap(DataType valueType, boolean isNull) {
-        contents = !isNull ? new TreeMap<>() : null;
+        contents = !isNull ? new Struct<>() : null;
         type = valueType != null ? new MapType(valueType) : MAP_OF_UNKNOWN;
     }
 
@@ -216,17 +219,6 @@ public class DataMap implements DataObject {
         if (contents == null)
             throw new DataException("Can not add item to a NULL Map: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
         return contents.computeIfAbsent(key, k -> assignableValue(value));
-    }
-
-    /**
-     * Inserts the specified key-value pair into the {@code DataMap} if value is not null.
-     *
-     * @param key   The key to insert.
-     * @param value The value to associate with the key.
-     * @return The value associated with the key.
-     */
-    public DataObject putIfNotNull(String key, DataObject value) {
-        return value != null ? put(key, value) : get(key);
     }
 
     /**

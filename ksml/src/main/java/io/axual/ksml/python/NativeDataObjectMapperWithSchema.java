@@ -30,14 +30,15 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.schema.NativeDataSchemaMapper;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
 public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
-    public static final String STRUCT_SCHEMA_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "schema";
-    public static final String STRUCT_TYPE_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "type";
+    public static final String STRUCT_SCHEMA_FIELD = Struct.META_ATTRIBUTE_CHAR + "schema";
+    public static final String STRUCT_TYPE_FIELD = Struct.META_ATTRIBUTE_CHAR + "type";
 
     private static final DataSchemaMapper<Object> NATIVE_DATA_SCHEMA_MAPPER = new NativeDataSchemaMapper();
     private final NativeDataObjectMapper recursiveDataObjectMapper;
@@ -73,8 +74,7 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
         // library. If this field is set, then look up the schema by name in the library.
         if (map.containsKey(STRUCT_TYPE_FIELD)) {
             final var schemaName = map.get(STRUCT_TYPE_FIELD).toString();
-            final var schema = loadSchemaByName(schemaName);
-            if (schema != null) return schema;
+            return loadSchemaByName(schemaName);
         }
 
         // No fields found to infer the schema

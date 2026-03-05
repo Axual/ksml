@@ -127,6 +127,9 @@ public class ConvertUtil {
 
         // If a union type is expected, then recurse into it before checking compatibility below
         if (targetType instanceof UnionType targetUnionType) {
+            // Check if the value is already compatible with the union type
+            if (targetType.isAssignableFrom(value).isAssignable()) return value;
+            // Convert the value to the first compatible member type
             for (int index = 0; index < targetUnionType.members().length; index++) {
                 var convertedValue = convert(sourceNotation, targetNotation, targetUnionType.members()[index].type(), value, true);
                 if (convertedValue != null) return convertedValue;

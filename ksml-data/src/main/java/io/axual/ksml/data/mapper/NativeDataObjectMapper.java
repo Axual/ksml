@@ -48,6 +48,7 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.util.ConvertUtil;
 import io.axual.ksml.data.util.MapUtil;
+import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +56,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Bidirectional mapper between KSML {@link io.axual.ksml.data.object.DataObject} values and
@@ -419,9 +419,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     @Nullable
     public Map<String, Object> convertDataMapToMap(DataMap map) {
         if (map.isNull()) return null;
-        final var result = new TreeMap<String, Object>();
-        map.forEach((key, value) -> result.put(key, fromDataObject(value)));
-        return result;
+        return new Struct<>(map.contents(), this::fromDataObject);
     }
 
     /**
@@ -434,7 +432,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     @Nullable
     public Map<String, Object> convertDataStructToMap(DataStruct struct) {
         if (struct.isNull()) return null;
-        final var result = new TreeMap<>(DataStruct.COMPARATOR);
+        final var result = new Struct<>();
         if (struct.type().schema() instanceof StructSchema structSchema) {
             for (final var field : structSchema.fields()) {
                 final var key = field.name();

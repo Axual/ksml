@@ -62,7 +62,8 @@ public class PythonList implements ProxyArray {
 
     /**
      * Return a String representation of this PythonList, in Python format.
-     * @return
+     *
+     * @return String representation of this PythonList, in Python format
      */
     @Override
     public String toString() {

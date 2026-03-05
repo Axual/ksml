@@ -28,14 +28,13 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.EqualUtil;
 import io.axual.ksml.data.util.ValuePrinter;
+import io.axual.ksml.data.value.Struct;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 import static io.axual.ksml.data.object.DataObjectFlag.IGNORE_DATA_STRUCT_CONTENTS;
@@ -63,42 +62,11 @@ import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 @EqualsAndHashCode
 @Getter
 public class DataStruct implements DataObject {
-    /**
-     * Character used for identifying "meta" keys. Meta keys (keys that start with this character)
-     * have a lower priority compared to standard keys when sorted.
-     */
-    public static final String META_ATTRIBUTE_CHAR = "@";
-
-    /**
-     * Custom comparator for sorting key-value pairs in the data structure.
-     * <p>
-     * The sorting logic prioritizes standard keys over "meta" keys, and within each group,
-     * sorts lexicographically.
-     */
-    public static final Comparator<String> COMPARATOR = (o1, o2) -> {
-        if ((o1 == null || o1.isEmpty()) && (o2 == null || o2.isEmpty())) return 0;
-        if (o1 == null || o1.isEmpty()) return -1;
-        if (o2 == null || o2.isEmpty()) return 1;
-
-        final var meta1 = o1.startsWith(META_ATTRIBUTE_CHAR);
-        final var meta2 = o2.startsWith(META_ATTRIBUTE_CHAR);
-
-        // If only the first string starts with the meta char, then sort it last
-        if (meta1 && !meta2) return 1;
-        // If only the second string starts with the meta char, then sort it first
-        if (!meta1 && meta2) return -1;
-        // If both (do not) start with the meta char, then sort as normal
-        return o1.compareTo(o2);
-    };
 
     /**
      * Represents the actual key-value pair data of the struct.
-     * <p>
-     * The {@link TreeMap} is chosen for its sorted nature, and the sorting behavior is determined
-     * by the {@link #COMPARATOR}.
-     * </p>
      */
-    private final TreeMap<String, DataObject> contents;
+    private final Struct<DataObject> contents;
 
     /**
      * The type of the struct, represented as a {@link StructType}.
@@ -148,7 +116,7 @@ public class DataStruct implements DataObject {
      * @param isNull If {@code true}, the content is considered null.
      */
     public DataStruct(StructSchema schema, boolean isNull) {
-        contents = !isNull ? new TreeMap<>(COMPARATOR) : null;
+        contents = !isNull ? new Struct<>() : null;
         type = new StructType(schema);
     }
 
@@ -244,7 +212,7 @@ public class DataStruct implements DataObject {
     public <T> T getAs(String key, Class<T> clazz, T defaultValue) {
         final var value = get(key);
         if (value != null && clazz.isAssignableFrom(value.getClass())) {
-            return (T) value;
+            return clazz.cast(value);
         }
         return defaultValue;
     }
@@ -338,7 +306,7 @@ public class DataStruct implements DataObject {
 
         final var iterator = entrySet().iterator();
 
-        // Return empty struct as value
+        // Return an empty struct as a value
         if (!iterator.hasNext()) return schemaName + "{}";
 
         // Iterate through all key/value entries

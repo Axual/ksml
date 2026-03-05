@@ -62,7 +62,7 @@ class UserTypeParserTest {
     @DisplayName("Test all known types")
     @ValueSource(strings = {"boolean", "byte", "bytes", "short", "double", "float", "int", "long", "?", "none", "str", "string"})
     void testParseValidTypes(String type) {
-        var userType = UserTypeParser.parse(type);
+        var userType = new UserTypeParser().parse(type);
         assertTrue(userType.isOk());
         assertNotNull(userType);
         assertEquals(UserType.DEFAULT_NOTATION, userType.result().notation(), "notation for " + type + "should default to " + UserType.DEFAULT_NOTATION);
@@ -72,7 +72,7 @@ class UserTypeParserTest {
     @DisplayName("Test parsing for dataType String (types 'str' and 'string'")
     @ValueSource(strings = {"str", "string"})
     void testParseStringType(String type) {
-        final var userType = UserTypeParser.parse(type).result();
+        final var userType = new UserTypeParser().parse(type).result();
         assertNotNull(userType);
         final var dataType = userType.dataType();
         assertEquals(String.class, dataType.containerClass());
@@ -84,7 +84,7 @@ class UserTypeParserTest {
     @DisplayName("Test mapping of dataType names to correct user types class")
     @MethodSource("typesAndDataTypes")
     void testDataTypes(String type, DataType dataType) {
-        final var userType = UserTypeParser.parse(type).result();
+        final var userType = new UserTypeParser().parse(type).result();
         assertNotNull(userType);
 
         assertEquals(dataType, userType.dataType(), "DataType for '" + type + "' should be set to " + dataType);

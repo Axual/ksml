@@ -81,17 +81,16 @@ class DataMapTest {
         // putIfAbsent
         var result = map.putIfAbsent("a", new DataString("y"));
         assertThat(result).isEqualTo(new DataString("x"));
-        map.putIfNotNull("b", new DataString("z"));
-        map.putIfNotNull("c", null);
+        map.put("b", new DataString("z"));
 
         assertThat(map.containsKey("a")).isTrue();
         assertThat(map.get("a")).isEqualTo(new DataString("x"));
 
         List<String> visited = new ArrayList<>();
         map.forEach((k, v) -> visited.add(k + "=" + v.toString(INTERNAL)));
-        assertThat(visited).containsExactly("a=x", "b=z"); // TreeMap orders by key
+        assertThat(visited).containsExactly("a=x", "b=z"); // Struct orders by key
 
-        // equals with same content and type
+        // equals with the same content and type
         var same = new DataMap(DataString.DATATYPE);
         same.put("a", new DataString("x"));
         same.put("b", new DataString("z"));
