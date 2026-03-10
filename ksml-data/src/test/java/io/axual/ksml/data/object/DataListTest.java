@@ -20,6 +20,8 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.type.DataType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,5 +100,53 @@ class DataListTest {
         // Despite being null, DataList prints as empty list per current implementation
         assertThat(nul.toString(INTERNAL)).isEqualTo("[]");
         assertThat(nul.toString(EXTERNAL_TOP_SCHEMA)).isEqualTo("ListOfString: []");
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns equal for lists with identical contents")
+    void flaggedEqualsSameContents() {
+        var a = new DataList(DataType.UNKNOWN);
+        a.add(new DataInteger(1));
+        a.add(new DataString("x"));
+
+        var b = new DataList(DataType.UNKNOWN);
+        b.add(new DataInteger(1));
+        b.add(new DataString("x"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isEqual())
+                .as("Lists with identical contents should be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for lists with different elements")
+    void flaggedEqualsDifferentElements() {
+        var a = new DataList(DataType.UNKNOWN);
+        a.add(new DataInteger(1));
+
+        var b = new DataList(DataType.UNKNOWN);
+        b.add(new DataInteger(2));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Lists with different elements should NOT be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for lists with different sizes")
+    void flaggedEqualsDifferentSizes() {
+        var a = new DataList(DataType.UNKNOWN);
+        a.add(new DataInteger(1));
+
+        var b = new DataList(DataType.UNKNOWN);
+        b.add(new DataInteger(1));
+        b.add(new DataInteger(2));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Lists with different sizes should NOT be equal")
+                .isTrue();
     }
 }
