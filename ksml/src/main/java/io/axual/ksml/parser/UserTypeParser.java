@@ -258,8 +258,9 @@ public class UserTypeParser {
         // Return a typed windowed object
         if (parsedWindowType.isOk())
             return Optional.of(Parsed.ok(new UserType(type.notation, new WindowedType(parsedWindowType.result().dataType()))));
-
-        // If outside notation does not work, try parsing with the default notation
+        if (type.explicitNotation())
+            return Optional.of(Parsed.error(parsedWindowType.errorMessage())); // Don't silently retry
+        // Only fall back to the default notation when the notation was not explicit
         final var parsedWindowType2 = parseTypeAndNotation(windowedTypeStr, DEFAULT_NOTATION);
         // Return a typed windowed object
         if (parsedWindowType2.isOk())
