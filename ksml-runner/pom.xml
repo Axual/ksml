@@ -148,7 +148,7 @@
                 <!-- Needed for JUnit Pioneer -->
                 <configuration>
                     <argLine>
-                        ${surefireArgLine}
+                        ${argLine}
                         --add-opens java.base/java.util=ALL-UNNAMED
                         --add-opens java.base/java.lang=ALL-UNNAMED
                     </argLine>
