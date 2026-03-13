@@ -20,6 +20,7 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.Notation;
@@ -68,6 +69,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UserTypeParserTest {
@@ -317,7 +319,7 @@ class UserTypeParserTest {
 
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", mockParser));
 
-        var userType = new UserTypeParser().parse("avro:" + schemaName);
+        final var userType = new UserTypeParser().parse("avro:" + schemaName);
         assertTrue(userType.isOk());
         assertEquals("avro", userType.result().notation());
         assertInstanceOf(StructType.class, userType.result().dataType());
@@ -339,7 +341,7 @@ class UserTypeParserTest {
 
         ExecutionContext.INSTANCE.notationLibrary().register("jsonschema", new MockNotation("jsonschema", ".json", mockParser));
 
-        var userType = new UserTypeParser().parse("jsonschema:" + schemaName);
+        final var userType = new UserTypeParser().parse("jsonschema:" + schemaName);
         assertTrue(userType.isOk());
         assertEquals("jsonschema", userType.result().notation());
         assertInstanceOf(StructType.class, userType.result().dataType());
@@ -361,7 +363,7 @@ class UserTypeParserTest {
 
         ExecutionContext.INSTANCE.notationLibrary().register("protobuf", new MockNotation("protobuf", ".proto", mockParser));
 
-        var userType = new UserTypeParser().parse("protobuf:" + schemaName);
+        final var userType = new UserTypeParser().parse("protobuf:" + schemaName);
         assertTrue(userType.isOk());
         assertEquals("protobuf", userType.result().notation());
         assertInstanceOf(StructType.class, userType.result().dataType());
@@ -380,9 +382,12 @@ class UserTypeParserTest {
         // Since DataType.UNKNOWN is a wildcard that's NOT a ComplexType, StructType.isAssignableFrom(UNKNOWN)
         // returns typeMismatch error in ComplexType.isAssignableFrom.
 
-        var result = new UserTypeParser().parse("avro:MissingSchema");
-        assertTrue(result.isError());
-        assertTrue(result.errorMessage().contains("Notation does not allow for type"));
+        final var exception = assertThrows(SchemaException.class, () -> new UserTypeParser().parse("avro:MissingSchema"));
+
+        String expectedMessage = "Can not load schema";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
@@ -401,11 +406,53 @@ class UserTypeParserTest {
 
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", mockParser));
 
-        var userType = new UserTypeParser().parse("avro:windowed(" + schemaName + ")");
+        final var userType = new UserTypeParser().parse("avro:windowed(" + schemaName + ")");
         assertTrue(userType.isOk(), userType.isError() ? userType.errorMessage() : "");
         assertEquals("avro", userType.result().notation());
         assertInstanceOf(WindowedType.class, userType.result().dataType());
-        WindowedType windowedType = (WindowedType) userType.result().dataType();
+        final var windowedType = (WindowedType) userType.result().dataType();
+        assertInstanceOf(StructType.class, windowedType.keyType());
+    }
+
+    @Test
+    @DisplayName("Test schema loading error: missing file")
+    void testAvroWindowedMissingSchemaFile() {
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", (c, n, s) -> null));
+
+        // When schema is not found, SchemaLibrary.getSchema returns null because it returns null
+        // when loader.load returns null.
+        // Then UserTypeParser.parseNotationWithOrWithoutSchema calls
+        // new DataTypeDataSchemaMapper().fromDataSchema(null) which returns DataType.UNKNOWN.
+        // Finally, it tries to check assignability: not.defaultType().isAssignableFrom(DataType.UNKNOWN)
+        // Since DataType.UNKNOWN is a wildcard that's NOT a ComplexType, StructType.isAssignableFrom(UNKNOWN)
+        // returns typeMismatch error in ComplexType.isAssignableFrom.
+
+        final var exception = assertThrows(SchemaException.class, () -> new UserTypeParser().parse("avro:windowed(MissingSchema)"));
+
+        String expectedMessage = "Can not load schema";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    @DisplayName("Test schema loading windowed default type")
+    void testAvroWindowedStandardType() {
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", (c, n, s) -> null));
+
+        // When schema is not found, SchemaLibrary.getSchema returns null because it returns null
+        // when loader.load returns null.
+        // Then UserTypeParser.parseNotationWithOrWithoutSchema calls
+        // new DataTypeDataSchemaMapper().fromDataSchema(null) which returns DataType.UNKNOWN.
+        // Finally, it tries to check assignability: not.defaultType().isAssignableFrom(DataType.UNKNOWN)
+        // Since DataType.UNKNOWN is a wildcard that's NOT a ComplexType, StructType.isAssignableFrom(UNKNOWN)
+        // returns typeMismatch error in ComplexType.isAssignableFrom.
+
+        final var userType = new UserTypeParser().parse("avro:windowed(struct)");
+        assertTrue(userType.isOk());
+        assertEquals("avro", userType.result().notation());
+        assertInstanceOf(WindowedType.class, userType.result().dataType());
+        final var windowedType = (WindowedType) userType.result().dataType();
         assertInstanceOf(StructType.class, windowedType.keyType());
     }
 
@@ -425,11 +472,11 @@ class UserTypeParserTest {
 
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", mockParser));
 
-        var userType = new UserTypeParser().parse("avro:[" + schemaName + "]");
+        final var userType = new UserTypeParser().parse("avro:[" + schemaName + "]");
         assertTrue(userType.isOk(), userType.isError() ? userType.errorMessage() : "");
         assertEquals("avro", userType.result().notation());
         assertInstanceOf(ListType.class, userType.result().dataType());
-        ListType listType = (ListType) userType.result().dataType();
+        final var listType = (ListType) userType.result().dataType();
         assertInstanceOf(StructType.class, listType.valueType());
     }
 }
