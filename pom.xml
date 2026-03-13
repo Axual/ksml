@@ -148,7 +148,7 @@
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.jacoco.xmlReportPaths>ksml/target/site/jacoco/jacoco.xml</sonar.jacoco.xmlReportPaths>
+        <sonar.jacoco.xmlReportPaths>${project.basedir}/ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>
