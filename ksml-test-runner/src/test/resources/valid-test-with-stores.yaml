@@ -1,0 +1,21 @@
+test:
+  name: "State store tracks last sensor reading"
+  pipeline: pipelines/test-state-store.yaml
+  schemaDirectory: schemas
+
+  produce:
+    - topic: ksml_sensordata_avro
+      keyType: string
+      valueType: avro:SensorData
+      messages:
+        - key: "sensor1"
+          value: { name: "s1", color: "blue", city: "Amsterdam" }
+        - key: "sensor2"
+          value: { name: "s2", color: "red", city: "Utrecht" }
+
+  assert:
+    - stores:
+        - last_sensor_data_store
+      code: |
+        sensor1 = last_sensor_data_store.get("sensor1")
+        assert sensor1["city"] == "Amsterdam"

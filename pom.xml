@@ -66,6 +66,7 @@
         <module>ksml-query</module>
         <module>ksml-kafka-clients</module>
         <module>ksml-runner</module>
+        <module>ksml-test-runner</module>
         <module>ksml-reporting</module>
         <module>ksml-integration-tests</module>
         <module>ksml-examples-test</module>
@@ -254,6 +255,11 @@
             <dependency>
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-runner</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-test-runner</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
