@@ -53,6 +53,15 @@ The gap is an orchestrator that ties these together, driven by a YAML test defin
 ### State stores injected by name in assert block
 **Rationale:** The assert block declares `stores: [store_name]`, mirroring how pipeline functions declare store access (`stores:` list). The runner fetches each store from `TopologyTestDriver.getKeyValueStore()` (etc.), wraps it via `StateStoreProxyFactory.wrap()`, and injects it as a Python global variable. This means assertion code uses the exact same store API as pipeline code — zero new API to learn.
 
+### Full Avro support via Notation.serde() pipeline
+**Rationale:** Test definitions specify type strings like `avro:SensorData` on produce blocks. The inline YAML messages are plain Java Maps after YAML parsing. To feed these into `TopologyTestDriver`, we need them serialized as Avro `GenericRecord` bytes. Rather than building GenericRecords manually, we reuse KSML's existing serde pipeline:
+1. `UserTypeParser.parse("avro:SensorData")` resolves the type string through `SchemaLibrary` → `DataTypeDataSchemaMapper` → a proper `UserType` with a schema-aware `StructType`
+2. `StreamDataType(userType, isKey).serde()` gets the `Notation` from `ExecutionContext` and calls `notation.serde(dataType, isKey)` → returns a `DataObjectSerde`
+3. The `DataObjectSerde.serialize()` method chains: `NativeDataObjectMapper.toDataObject(expectedType, yamlMap)` → `AvroDataObjectMapper.fromDataObject(dataStruct)` → `KafkaAvroSerializer.serialize(topic, genericRecord)` → bytes
+
+This means the `TestDataProducer` simply passes raw YAML maps to the serde's serializer, and the entire conversion is handled automatically. This approach supports any notation (Avro, JSON Schema, Protobuf) and is identical to KSML's runtime behavior.
+**Alternative considered:** Building Avro `GenericRecord` objects directly from YAML maps using Avro's `GenericRecordBuilder`. Rejected because it duplicates conversion logic already in `NativeDataObjectMapper` + `AvroDataObjectMapper`, only works for Avro, and requires custom handling for nested records, enums, unions, etc.
+
 ### ExecutionContext lifecycle management
 **Rationale:** `ExecutionContext.INSTANCE` is a global singleton holding notation and schema registries. Each test must get a clean context. The runner resets and re-registers notations before each test, following the pattern in `KSMLTestExtension.beforeAll()`. This ensures test isolation and prepares for suite mode where tests run sequentially.
 

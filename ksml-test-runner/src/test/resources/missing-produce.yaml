@@ -1,0 +1,8 @@
+test:
+  name: "Missing produce block"
+  pipeline: pipelines/test-filter.yaml
+
+  assert:
+    - topic: output_topic
+      code: |
+        assert True
