@@ -1,0 +1,15 @@
+test:
+  name: "Assert block without topic or stores"
+  pipeline: pipelines/test-filter.yaml
+
+  produce:
+    - topic: ksml_sensordata_avro
+      keyType: string
+      valueType: avro:SensorData
+      messages:
+        - key: "k1"
+          value: { color: "blue" }
+
+  assert:
+    - code: |
+        assert True

@@ -1,0 +1,44 @@
+test:
+  name: "Filter pipeline with explicit timestamps"
+  pipeline: pipelines/test-filter.yaml
+  schemaDirectory: schemas
+
+  produce:
+    - topic: ksml_sensordata_avro
+      keyType: string
+      valueType: "avro:SensorData"
+      messages:
+        - key: "sensor-1"
+          value:
+            name: "sensor-1"
+            timestamp: 1000
+            value: "25.0"
+            type: "TEMPERATURE"
+            unit: "celsius"
+            color: "blue"
+          timestamp: 1709200000000
+        - key: "sensor-2"
+          value:
+            name: "sensor-2"
+            timestamp: 2000
+            value: "60.0"
+            type: "HUMIDITY"
+            unit: "percent"
+            color: "red"
+          timestamp: 1709200001000
+        - key: "sensor-3"
+          value:
+            name: "sensor-3"
+            timestamp: 3000
+            value: "10.0"
+            type: "LENGTH"
+            unit: "meters"
+            color: "blue"
+          timestamp: 1709200002000
+
+  assert:
+    - topic: ksml_sensordata_filtered
+      code: |
+        assert len(records) == 2, f"Expected 2 filtered records, got {len(records)}"
+        assert records[0]["timestamp"] == 1709200000000, f"Expected timestamp 1709200000000, got {records[0]['timestamp']}"
+        assert records[1]["timestamp"] == 1709200002000, f"Expected timestamp 1709200002000, got {records[1]['timestamp']}"
