@@ -1,4 +1,4 @@
-package io.axual.ksml.store;
+package io.axual.ksml.proxy.base;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,12 +20,5 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
-/**
- * Exfeption type to signal as yet unimplemented methods in {@link KeyValueStoreProxy}.
- */
-public class KeyValueStoreProxyException extends RuntimeException {
-
-    public KeyValueStoreProxyException(String message) {
-        super(message);
-    }
+public interface AbstractProxy {
 }

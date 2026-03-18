@@ -1,4 +1,4 @@
-package io.axual.ksml.python;
+package io.axual.ksml.proxy.metric;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,35 +20,31 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
 import io.axual.ksml.metric.MetricName;
+import io.axual.ksml.proxy.base.AbstractProxy;
+import lombok.Getter;
 import org.graalvm.polyglot.HostAccess;
 
 import java.util.function.Consumer;
 
 /**
- * Metric proxy for a meter metric
+ * Base class for the metric proxy
  */
-public class MeterBridge extends MetricBridge<Meter> {
-    public MeterBridge(MetricName name, Meter metric, Consumer<MetricBridge<Meter>> onCloseCallback) {
-        super(name, metric, onCloseCallback);
+public abstract class MetricBridge<M extends Metric> implements AbstractProxy {
+    @Getter
+    private final MetricName name;
+    protected final M metric;
+    private final Consumer<MetricBridge<M>> onCloseCallback;
+
+    protected MetricBridge(MetricName name, M metric, Consumer<MetricBridge<M>> onCloseCallback) {
+        this.name = name;
+        this.metric = metric;
+        this.onCloseCallback = onCloseCallback;
     }
 
-    /**
-     * Update the metric that a single event occurred
-     */
     @HostAccess.Export
-    public void mark() {
-        mark(1);
-    }
-
-    /**
-     * Update the metric that a number of events have occurred
-     *
-     * @param nrOfEvents the number of events that have occurred
-     */
-    @HostAccess.Export
-    public void mark(long nrOfEvents) {
-        metric.mark(nrOfEvents);
+    public void close() {
+        if (onCloseCallback != null) onCloseCallback.accept(this);
     }
 }

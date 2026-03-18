@@ -1,4 +1,4 @@
-package io.axual.ksml.python;
+package io.axual.ksml.proxy.metric;
 
 /*-
  * ========================LICENSE_START=================================

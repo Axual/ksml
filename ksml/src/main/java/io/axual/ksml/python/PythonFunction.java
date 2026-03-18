@@ -46,8 +46,9 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
-    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true, new PythonDataObjectMapper(false, null));
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
+    private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
+    private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Value function;
@@ -119,9 +120,10 @@ public class PythonFunction extends UserFunction {
 
             // Check if the function is supposed to return a result value
             if (resultType != null) {
-                DataObject result = MAPPER.toDataObject(resultType.dataType(), pyResult);
+                DataObject result = DATA_OBJECT_MAPPER.toDataObject(resultType.dataType(), pyResult);
                 logCall(parameters, result);
-                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
+                if (converter != null)
+                    result = converter.convert(DEFAULT_NOTATION, result, resultType);
                 checkType(resultType.dataType(), result);
                 return result;
             } else {
@@ -137,12 +139,11 @@ public class PythonFunction extends UserFunction {
     private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
         Object[] result = new Object[parameters.length + 1];
         // Convert globalVariables (which contains stores map) to Python-compatible ProxyHashMap
-        result[0] = PythonTypeConverter.toPython(globalVariables);
+        result[0] = NATIVE_MAPPER.toPython(globalVariables);
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            // Convert DataObject to native Java, then to Python-compatible proxy
-            Object nativeValue = MAPPER.fromDataObject(parameters[index]);
-            result[index + 1] = PythonTypeConverter.toPython(nativeValue);
+            // Convert DataObject to Python value
+            result[index + 1] = DATA_OBJECT_MAPPER.fromDataObject(parameters[index]);
         }
         return result;
     }
@@ -209,15 +210,15 @@ public class PythonFunction extends UserFunction {
         final var pythonCodeTemplate =
                 """
                         import polyglot
-
+                        
                         stores = None
-
+                        
                         # global Python code goes here (first argument)
                         %1$s
-
+                        
                         # function definition and expression go here (second argument)
                         %2$s
-
+                        
                         # caller definition goes here (third argument)
                         @polyglot.export_value
                         %3$s

@@ -20,16 +20,17 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.errors.StreamsException;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.errors.StreamsException;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)

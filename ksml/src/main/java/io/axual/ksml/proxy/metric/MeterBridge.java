@@ -1,4 +1,4 @@
-package io.axual.ksml.python;
+package io.axual.ksml.proxy.metric;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,35 +20,35 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import io.axual.ksml.metric.MetricName;
 import org.graalvm.polyglot.HostAccess;
 
 import java.util.function.Consumer;
 
 /**
- * Metric proxy for a counter metric
+ * Metric proxy for a meter metric
  */
-public class CounterBridge extends MetricBridge<Counter> {
-    public CounterBridge(MetricName name, Counter metric, Consumer<MetricBridge<Counter>> onCloseCallback) {
+public class MeterBridge extends MetricBridge<Meter> {
+    public MeterBridge(MetricName name, Meter metric, Consumer<MetricBridge<Meter>> onCloseCallback) {
         super(name, metric, onCloseCallback);
     }
 
     /**
-     * Update the metric that the count needs to be incremented with 1
+     * Update the metric that a single event occurred
      */
     @HostAccess.Export
-    public void increment() {
-        increment(1);
+    public void mark() {
+        mark(1);
     }
 
     /**
-     * Update the metric that the count needs to be incremented by a specific value
+     * Update the metric that a number of events have occurred
      *
-     * @param delta the value with which to increment the counter
+     * @param nrOfEvents the number of events that have occurred
      */
     @HostAccess.Export
-    public void increment(long delta) {
-        metric.inc(delta);
+    public void mark(long nrOfEvents) {
+        metric.mark(nrOfEvents);
     }
 }

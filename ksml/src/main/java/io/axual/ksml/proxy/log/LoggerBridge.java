@@ -1,4 +1,4 @@
-package io.axual.ksml.python;
+package io.axual.ksml.proxy.log;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,11 +20,12 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.proxy.base.AbstractProxy;
 import org.graalvm.polyglot.HostAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoggerBridge {
+public class LoggerBridge implements AbstractProxy {
     // The below method is called from the Python context, so appears unused in the IDE
     @HostAccess.Export
     public PythonLogger getLogger(String loggerName) {
@@ -34,122 +35,124 @@ public class LoggerBridge {
     /**
      * The PythonLogger has less ambiguity by removing the multiple object and exception arguments
      */
-    public static class PythonLogger {
-        /** The instance's wrapped Slf4J {@link org.slf4j.Logger}. */
-        private final Logger logger;
+    public static class PythonLogger implements AbstractProxy {
+        /**
+         * The instance's wrapped Slf4J {@link org.slf4j.Logger}.
+         */
+        private final Logger delegate;
 
         /**
          * Hidden constructor, construction only happens via {@link #getLogger(String)} in the outer class.
-         * @param logger
+         *
+         * @param delegate The backing Java logger to use
          */
-        private PythonLogger(Logger logger) {
-            this.logger = logger;
+        private PythonLogger(Logger delegate) {
+            this.delegate = delegate;
         }
 
         @HostAccess.Export
         public String getName() {
-            return logger.getName();
+            return delegate.getName();
         }
 
         @HostAccess.Export
         public boolean isTraceEnabled() {
-            return logger.isTraceEnabled();
+            return delegate.isTraceEnabled();
         }
 
         @HostAccess.Export
         public void trace(String s) {
-            logger.trace(s);
+            delegate.trace(s);
         }
 
         @HostAccess.Export
         public void trace(String s, Object o) {
-            logger.trace(s, o);
+            delegate.trace(s, o);
         }
 
         @HostAccess.Export
         public void trace(String s, Object... objects) {
-            logger.trace(s, objects);
+            delegate.trace(s, objects);
         }
 
         @HostAccess.Export
         public boolean isDebugEnabled() {
-            return logger.isDebugEnabled();
+            return delegate.isDebugEnabled();
         }
 
         @HostAccess.Export
         public void debug(String s) {
-            logger.debug(s);
+            delegate.debug(s);
         }
 
         @HostAccess.Export
         public void debug(String s, Object o) {
-            logger.debug(s, o);
+            delegate.debug(s, o);
         }
 
         @HostAccess.Export
         public void debug(String s, Object... objects) {
-            logger.debug(s, objects);
+            delegate.debug(s, objects);
         }
 
         @HostAccess.Export
         public boolean isInfoEnabled() {
-            return logger.isInfoEnabled();
+            return delegate.isInfoEnabled();
         }
 
         @HostAccess.Export
         public void info(String s) {
-            logger.info(s);
+            delegate.info(s);
         }
 
         @HostAccess.Export
         public void info(String s, Object o) {
-            logger.info(s, o);
+            delegate.info(s, o);
         }
 
         @HostAccess.Export
         public void info(String s, Object... objects) {
-            logger.info(s, objects);
+            delegate.info(s, objects);
         }
 
         @HostAccess.Export
         public boolean isWarnEnabled() {
-            return logger.isWarnEnabled();
+            return delegate.isWarnEnabled();
         }
 
         @HostAccess.Export
         public void warn(String s) {
-            logger.warn(s);
+            delegate.warn(s);
         }
 
         @HostAccess.Export
         public void warn(String s, Object o) {
-            logger.warn(s, o);
+            delegate.warn(s, o);
         }
 
         @HostAccess.Export
         public void warn(String s, Object... objects) {
-            logger.warn(s, objects);
+            delegate.warn(s, objects);
         }
 
         @HostAccess.Export
         public boolean isErrorEnabled() {
-            return logger.isErrorEnabled();
+            return delegate.isErrorEnabled();
         }
 
         @HostAccess.Export
         public void error(String s) {
-            logger.error(s);
+            delegate.error(s);
         }
 
         @HostAccess.Export
         public void error(String s, Object o) {
-            logger.error(s, o);
+            delegate.error(s, o);
         }
 
         @HostAccess.Export
         public void error(String s, Object... objects) {
-            logger.error(s, objects);
+            delegate.error(s, objects);
         }
-
     }
 }

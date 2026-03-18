@@ -47,8 +47,8 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.notation.MockNotation;
 import io.axual.ksml.type.UserType;
-import org.apache.kafka.common.serialization.Serde;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -258,49 +258,6 @@ class UserTypeParserTest {
         final var ut = new UserTypeParser().parse(null);
         assertTrue(ut.isOk());
         assertEquals(DataType.UNKNOWN, ut.result().dataType());
-    }
-
-
-    private static class MockNotation implements Notation {
-        private final String name;
-        private final String extension;
-        private final SchemaParser schemaParser;
-
-        public MockNotation(String name, String extension, SchemaParser schemaParser) {
-            this.name = name;
-            this.extension = extension;
-            this.schemaParser = schemaParser;
-        }
-
-        @Override
-        public DataType defaultType() {
-            return new StructType();
-        }
-
-        @Override
-        public String name() {
-            return name;
-        }
-
-        @Override
-        public String filenameExtension() {
-            return extension;
-        }
-
-        @Override
-        public Serde<Object> serde(DataType type, boolean isKey) {
-            return null;
-        }
-
-        @Override
-        public Converter converter() {
-            return null;
-        }
-
-        @Override
-        public SchemaParser schemaParser() {
-            return schemaParser;
-        }
     }
 
     @Test

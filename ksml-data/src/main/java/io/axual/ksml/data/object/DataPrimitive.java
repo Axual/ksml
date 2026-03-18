@@ -25,6 +25,7 @@ import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.util.EqualUtil;
+import io.axual.ksml.data.util.JavaValuePrinter;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -47,6 +48,7 @@ import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 @EqualsAndHashCode
 @Getter
 public class DataPrimitive<T> implements DataObject {
+    private static final ValuePrinter VALUE_PRINTER = new JavaValuePrinter();
     private final DataType type;
     private final T value;
 
@@ -82,8 +84,8 @@ public class DataPrimitive<T> implements DataObject {
     @Override
     public String toString(Printer printer) {
         return value != null
-                ? ValuePrinter.print(value, printer != Printer.INTERNAL)
-                : printer.forceSchemaPrefix(this) + ValuePrinter.print(null, printer != Printer.INTERNAL);
+                ? VALUE_PRINTER.print(value, printer != Printer.INTERNAL)
+                : printer.forceSchemaPrefix(this) + VALUE_PRINTER.print(null, printer != Printer.INTERNAL);
     }
 
     @Override

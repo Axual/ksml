@@ -1,7 +1,7 @@
 # $schema: https://axual.github.io/ksml/latest/ksml-language-spec.json
 
-# This example shows how to read from an AVRO stream, modify a specific field and output to a target
-# stream. For validation purposes a second pipeline outputs the modified results.
+# This example shows how to read from an AVRO stream, modify a specific field and output to a target stream
+# with a different schema. For validation purposes a second pipeline outputs the modified results.
 
 streams:
   sensor_source:
@@ -32,14 +32,7 @@ functions:
     type: valueTransformer
     code: |
       if value is not None:
-        del value["@type"] # Remove preloaded type information from the value, so KSML does not associate it with an internally cached schema
-        schema = value["@schema"]
-        schema["name"] = schema["name"] + "NoColor"
-        for index, field in reversed(list(enumerate(schema["fields"]))):
-          if field["name"] == "color":
-            del schema["fields"][index]
-        value["@schema"] = schema
-        del value["color"]
+        del value["color"] # Remove color information from the value and return as SensorDataNoColor
     expression: value
     resultType: avro:SensorDataNoColor
 
@@ -55,8 +48,8 @@ pipelines:
       - type: transformValue
         mapper: remove_color
     to: sensor_target
-#
-#  validate:
-#    from: sensor_target
-#    forEach:
-#      code: log.info("OUTPUT - key={}, value={}", key, value)
+
+  validate:
+    from: sensor_target
+    forEach:
+      code: log.info("OUTPUT - key={}, value={}", key, value)

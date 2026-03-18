@@ -21,8 +21,6 @@ package io.axual.ksml.data.mapper;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.notation.SchemaResolver;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -40,6 +38,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -76,23 +75,12 @@ import java.util.Map;
 @Slf4j
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private static final DataTypeDataSchemaMapper DATA_TYPE_DATA_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
-    private final SchemaResolver<DataSchema> schemaResolver;
     private final ConvertUtil converter;
 
     /**
-     * Creates a mapper without a SchemaResolver. Schema names that need resolution will cause errors.
+     * Constructor for a new mapper.
      */
     public NativeDataObjectMapper() {
-        this(null);
-    }
-
-    /**
-     * Creates a mapper with a provided SchemaResolver for resolving schema names to DataSchema instances.
-     *
-     * @param schemaResolver resolver used to fetch schemas by name; may be null
-     */
-    public NativeDataObjectMapper(SchemaResolver<DataSchema> schemaResolver) {
-        this.schemaResolver = schemaResolver;
         this.converter = new ConvertUtil(this, DATA_TYPE_DATA_SCHEMA_MAPPER);
     }
 
@@ -126,49 +114,77 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private DataObject convertObjectToDataObject(DataType expected, Object value) {
         if (value == null) return ConvertUtil.convertNullToDataObject(expected);
         if (value instanceof DataObject val) return val;
-        if (value instanceof Boolean val) return new DataBoolean(val);
+        if (value instanceof Boolean val) {
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataBoolean.DATATYPE)
+                return new DataBoolean(val);
+        }
         if (value instanceof Byte val) {
-            if (expected == DataByte.DATATYPE) return new DataByte(val);
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataByte.DATATYPE)
+                return new DataByte(val);
             if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
             if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
             if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
-            return new DataByte(val);
+            if (expected == DataFloat.DATATYPE) return new DataFloat(val.floatValue());
+            if (expected == DataDouble.DATATYPE) return new DataDouble(val.doubleValue());
         }
         if (value instanceof Short val) {
             if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
-            if (expected == DataShort.DATATYPE) return new DataShort(val);
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataShort.DATATYPE)
+                return new DataShort(val);
             if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
             if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
-            return new DataShort(val);
+            if (expected == DataFloat.DATATYPE) return new DataFloat(val.floatValue());
+            if (expected == DataDouble.DATATYPE) return new DataDouble(val.doubleValue());
         }
         if (value instanceof Integer val) {
             if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
             if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
-            if (expected == DataInteger.DATATYPE) return new DataInteger(val);
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataInteger.DATATYPE)
+                return new DataInteger(val);
             if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
-            return new DataInteger(val);
+            if (expected == DataFloat.DATATYPE) return new DataFloat(val.floatValue());
+            if (expected == DataDouble.DATATYPE) return new DataDouble(val.doubleValue());
         }
         if (value instanceof Long val) {
             if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
             if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
             if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
-            if (expected == DataLong.DATATYPE) return new DataLong(val);
-            return new DataLong(val);
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataLong.DATATYPE)
+                return new DataLong(val);
+            if (expected == DataFloat.DATATYPE) return new DataFloat(val.floatValue());
+            if (expected == DataDouble.DATATYPE) return new DataDouble(val.doubleValue());
         }
         if (value instanceof Double val) {
-            if (expected == DataDouble.DATATYPE) return new DataDouble(val);
+            if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
+            if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
+            if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
+            if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataDouble.DATATYPE)
+                return new DataDouble(val);
             if (expected == DataFloat.DATATYPE) return new DataFloat(val.floatValue());
-            return new DataDouble(val);
         }
         if (value instanceof Float val) {
+            if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
+            if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
+            if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
+            if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
             if (expected == DataDouble.DATATYPE) return new DataDouble(val.doubleValue());
-            if (expected == DataFloat.DATATYPE) return new DataFloat(val);
-            return new DataFloat(val);
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataFloat.DATATYPE)
+                return new DataFloat(val);
         }
-        if (value instanceof byte[] val) return new DataBytes(val);
+        if (value instanceof byte[] val) {
+            if (expected instanceof ListType expectedListType)
+                return convertByteArrayToList(val, expectedListType.valueType());
+            if (expected == null || expected == DataType.UNKNOWN || expected == DataBytes.DATATYPE)
+                return new DataBytes(val);
+        }
         if (value instanceof CharSequence val) return new DataString(val.toString());
-        if (value instanceof List<?> val)
+        if (value instanceof Tuple<?> val) return convertTupleToDataTuple(val);
+        if (value instanceof List<?> val) {
+            if (expected == DataBytes.DATATYPE) return convertListToDataBytes(val);
+            if (expected instanceof TupleType expectedTupleType) return convertListToDataTuple(val, expectedTupleType);
             return convertListToDataList(val, expected instanceof ListType expectedList ? expectedList.valueType() : DataType.UNKNOWN);
+        }
         if (value instanceof Map<?, ?> val) {
             if (expected instanceof MapType expectedMapType) {
                 return convertMapToDataMap(MapUtil.stringKeys(val), expectedMapType);
@@ -176,7 +192,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
             if (expected instanceof StructType expectedStruct) {
                 return convertMapToDataStruct(MapUtil.stringKeys(val), expectedStruct.schema());
             } else {
-                log.debug("Ignoring exptected type {} for conversion", expected);
+                log.debug("Ignoring expected type {} for conversion", expected);
                 return convertMapToDataStruct(MapUtil.stringKeys(val), (DataSchema) null);
             }
         }
@@ -239,26 +255,28 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
      * @return the inferred {@code DataType}
      */
     protected DataType inferDataTypeFromNativeMap(Map<?, ?> map, DataSchema expected) {
-        // If the expected schema is a struct schema, then return that as inferred type
+        // If the expected schema is a map schema, then return that as the inferred type
+        if (expected instanceof MapSchema mapSchema)
+            return new MapType(DATA_TYPE_DATA_SCHEMA_MAPPER.fromDataSchema(mapSchema.valueSchema()));
+        // If the expected schema is a struct schema, then return that as the inferred type
         if (expected instanceof StructSchema structSchema) return new StructType(structSchema);
-        // By default, return a schemaless struct type. This behaviour can be overridden in subclasses.
-        // TODO: this should be MapType(), but leaving this step for now, as we may switch anytime in the future
+        // By default, return a schemaless struct type
         return new StructType();
     }
 
     /**
-     * Resolve a schema by name using the configured {@link SchemaResolver}.
+     * Infer a {@link TupleType} from a native {@link Tuple} by inferring all element subtypes.
      *
-     * @param schemaName the name of the schema to load
-     * @return the resolved {@link DataSchema}
-     * @throws SchemaException when no resolver is configured or the schema cannot be found
+     * @param list the source list
+     * @return the inferred tuple type
      */
-    protected DataSchema loadSchemaByName(String schemaName) {
-        if (schemaResolver != null) {
-            final var result = schemaResolver.get(schemaName);
-            if (result != null) return result;
+    private TupleType inferTupleTypeFromList(List<?> list) {
+        // Infer all subtypes
+        final var subTypes = new DataType[list.size()];
+        for (int index = 0; index < list.size(); index++) {
+            subTypes[index] = inferDataTypeFromObject(list.get(index));
         }
-        throw new SchemaException("Can not load schema: " + schemaName);
+        return new TupleType(subTypes);
     }
 
     /**
@@ -267,13 +285,54 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
      * @param tuple the source tuple
      * @return the inferred tuple type
      */
-    private DataType inferTupleTypeFromTuple(Tuple<?> tuple) {
+    private TupleType inferTupleTypeFromTuple(Tuple<?> tuple) {
         // Infer all subtypes
         final var subTypes = new DataType[tuple.elements().size()];
         for (int index = 0; index < tuple.elements().size(); index++) {
             subTypes[index] = inferDataTypeFromObject(tuple.elements().get(index));
         }
         return new TupleType(subTypes);
+    }
+
+    protected DataList convertByteArrayToList(byte[] bytes, DataType valueType) {
+        final var result = new DataList(valueType);
+        for (var index = 0; index < bytes.length; index++) {
+            result.add(new DataByte(bytes[index]));
+        }
+        return result;
+    }
+
+    protected DataBytes convertListToDataBytes(List<?> list) {
+        final var result = new byte[list.size()];
+        for (var index = 0; index < list.size(); index++)
+            result[index] = convertToByte(list.get(index));
+        return new DataBytes(result);
+    }
+
+    protected byte convertToByte(Object object) {
+        if (object instanceof Byte value) return value;
+        if (object instanceof Short value) return value.byteValue();
+        if (object instanceof Integer value) return value.byteValue();
+        if (object instanceof Long value) return value.byteValue();
+        throw new DataException("Can not convert value to byte: " + object.getClass().getSimpleName());
+    }
+
+    protected DataTuple convertTupleToDataTuple(Tuple<?> tuple, TupleType expected) {
+        if (tuple == null) return null;
+        if (expected == null) expected = inferTupleTypeFromTuple(tuple);
+        final var elements = new DataObject[tuple.elements().size()];
+        for (var index = 0; index < tuple.elements().size(); index++)
+            elements[index] = toDataObject(expected.subType(index), tuple.elements().get(index));
+        return new DataTuple(elements);
+    }
+
+    protected DataTuple convertListToDataTuple(List<?> list, TupleType expected) {
+        if (list == null) return null;
+        if (expected == null) expected = inferTupleTypeFromList(list);
+        final var elements = new DataObject[list.size()];
+        for (var index = 0; index < list.size(); index++)
+            elements[index] = toDataObject(expected.subType(index), list.get(index));
+        return new DataTuple(elements);
     }
 
     /**

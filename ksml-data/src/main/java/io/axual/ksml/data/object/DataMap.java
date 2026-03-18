@@ -27,6 +27,7 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.util.EqualUtil;
+import io.axual.ksml.data.util.JavaValuePrinter;
 import io.axual.ksml.data.util.ValuePrinter;
 import io.axual.ksml.data.value.Struct;
 import lombok.EqualsAndHashCode;
@@ -60,6 +61,8 @@ import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 @EqualsAndHashCode
 @Getter
 public class DataMap implements DataObject {
+    private static final ValuePrinter VALUE_PRINTER = new JavaValuePrinter();
+
     /**
      * Represents the static map type for maps of unknown element types.
      */
@@ -264,7 +267,7 @@ public class DataMap implements DataObject {
             final var entry = iterator.next();
             final var key = entry.getKey();
             final var value = entry.getValue();
-            sb.append(ValuePrinter.print(key, true));
+            sb.append(VALUE_PRINTER.print(key, true));
             sb.append(": ");
             sb.append(value != null ? value.toString(printer.childObjectPrinter()) : "null");
             if (!iterator.hasNext())

@@ -1,8 +1,8 @@
-package io.axual.ksml.store;
+package io.axual.ksml.data.util;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
  * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
@@ -20,17 +20,14 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.state.ValueAndTimestamp;
-import org.graalvm.polyglot.HostAccess;
+public class JavaValuePrinter extends ValuePrinter {
 
-/**
- * A factory for {@link ValueAndTimestamp} instances.
- * This works around the fact that the static {@link ValueAndTimestamp#make(Object, long)} method cannot be proxied.
- */
-public class ValueAndTimestampFactory {
+    private static final String DOUBLE_QUOTE = "\"";
+    private static final String JAVA_NULL = "null";
+    private static final String JAVA_TRUE = "true";
+    private static final String JAVA_FALSE = "false";
 
-    @HostAccess.Export
-    public <V> ValueAndTimestampProxy<V> make(V value, long timestamp) {
-        return new ValueAndTimestampProxy<>(ValueAndTimestamp.make(value, timestamp));
+    public JavaValuePrinter() {
+        super(new ValuePrinterDict(DOUBLE_QUOTE, JAVA_NULL, JAVA_TRUE, JAVA_FALSE));
     }
 }

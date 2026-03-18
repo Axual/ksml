@@ -27,6 +27,7 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.EqualUtil;
+import io.axual.ksml.data.util.JavaValuePrinter;
 import io.axual.ksml.data.util.ValuePrinter;
 import io.axual.ksml.data.value.Struct;
 import lombok.EqualsAndHashCode;
@@ -62,6 +63,7 @@ import static io.axual.ksml.data.util.EqualUtil.typeNotEqual;
 @EqualsAndHashCode
 @Getter
 public class DataStruct implements DataObject {
+    private static final ValuePrinter VALUE_PRINTER = new JavaValuePrinter();
 
     /**
      * Represents the actual key-value pair data of the struct.
@@ -315,7 +317,7 @@ public class DataStruct implements DataObject {
             final var entry = iterator.next();
             final var key = entry.getKey();
             final var value = entry.getValue();
-            sb.append(ValuePrinter.print(key, true));
+            sb.append(VALUE_PRINTER.print(key, true));
             sb.append(": ");
             sb.append(value != null ? value.toString(printer.childObjectPrinter()) : "null");
             if (!iterator.hasNext())
