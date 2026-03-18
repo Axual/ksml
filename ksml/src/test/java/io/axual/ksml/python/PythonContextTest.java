@@ -20,6 +20,7 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.DisplayName;
@@ -30,8 +31,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

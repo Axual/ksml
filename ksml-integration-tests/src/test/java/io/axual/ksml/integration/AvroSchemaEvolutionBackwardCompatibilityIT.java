@@ -20,6 +20,10 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
+import io.axual.ksml.integration.testutil.KSMLContainer;
+import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
@@ -41,11 +45,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
-import io.axual.ksml.integration.testutil.KSMLContainer;
-import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
