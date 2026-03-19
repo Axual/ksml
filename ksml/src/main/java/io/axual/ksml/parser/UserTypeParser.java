@@ -67,8 +67,9 @@ public class UserTypeParser {
     private static final String TUPLE_TYPE = DataSchemaConstants.TUPLE_TYPE;
     private static final String UNION_TYPE = DataSchemaConstants.UNION_TYPE;
     private static final String WINDOWED_TYPE = DataSchemaDSL.WINDOWED_TYPE;
+    private static final String NAMESPACE_SEPARATOR = ".";
     private static final String ALLOWED_LITERAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
-    private static final String ALLOWED_TYPE_CHARACTERS = ALLOWED_LITERAL_CHARACTERS + NOTATION_SEPARATOR + DataSchemaDSL.UNKNOWN_TYPE;
+    private static final String ALLOWED_TYPE_CHARACTERS = NAMESPACE_SEPARATOR + ALLOWED_LITERAL_CHARACTERS + NOTATION_SEPARATOR + DataSchemaDSL.UNKNOWN_TYPE;
 
     public Parsed<UserType> parse(String type) {
         final var parsedTypes = parseListOfTypesAndNotation(type, DEFAULT_NOTATION);
