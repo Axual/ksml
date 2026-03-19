@@ -20,8 +20,13 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.graalvm.polyglot.HostAccess;
+
+import java.time.Instant;
 
 /**
  * A proxy for accessing Kafka Streams WindowStore in Python code. This proxy mediates between Python and Java data
@@ -36,11 +41,81 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
     // ==================== ReadOnlyWindowStore methods ====================
 
     @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> all() {
+        throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardAll() {
+        throw new UnsupportedOperationException("backwardAll() is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
     public Object fetch(Object key, long time) {
         return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(key), time));
     }
 
     // ==================== WindowStore methods ====================
+
+    @HostAccess.Export
+    public WindowStoreIterator<Object> backwardFetch(Object key, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public WindowStoreIterator<Object> backwardFetch(Object key, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFetch(Object keyFrom, Object keyTo, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFetchAll(long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("backwardFetchAll(long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFetchAll(Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("backwardFetchAll(Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> fetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("fetch(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public WindowStoreIterator<Object> fetch(Object key, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("fetch(K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public WindowStoreIterator<Object> fetch(Object key, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("fetch(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> fetch(Object keyFrom, Object keyTo, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("fetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> fetchAll(long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("fetchAll(long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> fetchAll(Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("fetchAll(Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {

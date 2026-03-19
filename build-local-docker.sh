@@ -16,6 +16,7 @@ cp ksml-runner/target/ksml-runner*.jar build-output/
 cp -r ksml-runner/target/libs build-output/
 cp ksml-runner/NOTICE.txt build-output/
 cp LICENSE.txt build-output/
+GRAALVM_JDK_VERSION=${GRAALVM_JDK_VERSION:-23.0.2}
 
 # Download graalvm tarfiles
 if [ ! -f graalvm-amd64.tar.gz ]; then
@@ -28,7 +29,7 @@ if [ ! -f graalvm-arm64.tar.gz ]; then
 fi
 
 # Create builder if it doesn't exist
-if ! docker docker buildx ls --format {{.Name}} | grep -E "^ksml$"; then
+if ! docker buildx ls --format {{.Name}} | grep -E "^ksml$"; then
     echo "Creating Docker buildx builder 'ksml'..."
     docker buildx create --name ksml --use
 else

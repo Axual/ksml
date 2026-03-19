@@ -20,8 +20,12 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.SessionStore;
 import org.graalvm.polyglot.HostAccess;
+
+import java.time.Instant;
 
 /**
  * A proxy for accessing Kafka Streams SessionStore in Python code. This proxy mediates between Python and Java data
@@ -36,9 +40,84 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
     // ==================== ReadOnlySessionStore methods ====================
 
     @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFetch(Object key) {
+        throw new UnsupportedOperationException("backwardFetch(K) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFetch(Object keyFrom, Object keyTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, K) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> fetch(Object key) {
+        throw new UnsupportedOperationException("fetch(K) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> fetch(Object keyFrom, Object keyTo) {
+        throw new UnsupportedOperationException("fetch(K, K) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    // ==================== SessionStore methods ====================
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFindSessions(Object key, long earliestSessionEndTime, long latestSessionStartTime) {
+        throw new UnsupportedOperationException("backwardFindSessions(K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFindSessions(Object key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
+        throw new UnsupportedOperationException("backwardFindSessions(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFindSessions(Object keyFrom, Object keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
+        throw new UnsupportedOperationException("backwardFindSessions(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> backwardFindSessions(Object keyFrom, Object keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
+        throw new UnsupportedOperationException("backwardFindSessions(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
     public Object fetchSession(Object key, long sessionStartTime, long sessionEndTime) {
         return ProxyUtil.toPython(delegate.fetchSession(NATIVE_MAPPER.fromPython(key), sessionStartTime, sessionEndTime));
     }
 
-    // ==================== SessionStore methods ====================
+    @HostAccess.Export
+    public Object fetchSession(Object key, Instant sessionStartTime, Instant sessionEndTime) {
+        return ProxyUtil.toPython(delegate.fetchSession(NATIVE_MAPPER.fromPython(key), sessionStartTime, sessionEndTime));
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> findSessions(Object key, long earliestSessionEndTime, long latestSessionStartTime) {
+        throw new UnsupportedOperationException("findSessions(K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> findSessions(Object key, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
+        throw new UnsupportedOperationException("findSessions(K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> findSessions(Object keyFrom, Object keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
+        throw new UnsupportedOperationException("findSessions(K, K, long, long) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, Object> findSessions(Object keyFrom, Object keyTo, Instant earliestSessionEndTime, Instant latestSessionStartTime) {
+        throw new UnsupportedOperationException("findSessions(K, K, Instant, Instant) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public void put(Windowed<Object> sessionKey, Object aggregate) {
+        throw new UnsupportedOperationException("put(Windowed<K>, AGG) is not supported by this proxy (" + getClass() + ")");
+    }
+
+    @HostAccess.Export
+    public void remove(Windowed<Object> sessionKey) {
+        throw new UnsupportedOperationException("remove(Windowed<K>) is not supported by this proxy (" + getClass() + ")");
+    }
 }

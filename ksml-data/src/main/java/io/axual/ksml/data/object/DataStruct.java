@@ -350,7 +350,7 @@ public class DataStruct implements DataObject {
         // Compare contents
         if (!flags.isSet(IGNORE_DATA_STRUCT_CONTENTS) && (contents != null || that.contents != null)) {
             if (contents == null || that.contents == null) return EqualUtil.objectNotEqual(this, that);
-            final var contentsEqual = equalContents(that, that, flags);
+            final var contentsEqual = equalContents(this, that, flags);
             if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 

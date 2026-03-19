@@ -20,6 +20,8 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.type.TupleType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,5 +57,41 @@ class DataTupleTest {
         assertThat(t.toString(EXTERNAL_NO_SCHEMA)).isEqualTo("(1, \"x\")");
         assertThat(t.toString(EXTERNAL_TOP_SCHEMA)).isEqualTo("TupleOfIntegerAndString: (1, \"x\")");
         assertThat(t.toString(EXTERNAL_ALL_SCHEMA)).isEqualTo("TupleOfIntegerAndString: (1, \"x\")");
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns equal for tuples with identical elements")
+    void flaggedEqualsSameElements() {
+        var a = new DataTuple(new DataInteger(1), new DataString("x"));
+        var b = new DataTuple(new DataInteger(1), new DataString("x"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isEqual())
+                .as("Tuples with identical elements should be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for tuples with different elements")
+    void flaggedEqualsDifferentElements() {
+        var a = new DataTuple(new DataInteger(1), new DataString("x"));
+        var b = new DataTuple(new DataInteger(2), new DataString("x"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Tuples with different elements should NOT be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for tuples with different sizes")
+    void flaggedEqualsDifferentSizes() {
+        var a = new DataTuple(new DataInteger(1));
+        var b = new DataTuple(new DataInteger(1), new DataString("x"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Tuples with different sizes should NOT be equal")
+                .isTrue();
     }
 }

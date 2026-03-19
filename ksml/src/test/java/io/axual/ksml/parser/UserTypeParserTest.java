@@ -261,7 +261,7 @@ class UserTypeParserTest {
     }
 
     @Test
-    @DisplayName("Test AVRO schema loading from disk")
+    @DisplayName("Test AVRO schema loading from disk (without namespace)")
     void testAvroSchemaLoading() throws IOException {
         final var schemaName = "MyAvroSchema";
         final var schemaContent = "{\"type\":\"record\",\"name\":\"MyAvroSchema\",\"fields\":[]}";
@@ -277,6 +277,30 @@ class UserTypeParserTest {
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", mockParser));
 
         final var userType = new UserTypeParser().parse("avro:" + schemaName);
+        assertTrue(userType.isOk());
+        assertEquals("avro", userType.result().notation());
+        assertInstanceOf(StructType.class, userType.result().dataType());
+    }
+
+    @Test
+    @DisplayName("Test AVRO schema loading from disk (with namespace)")
+    void testAvroSchemaLoadingWithNamespace() throws IOException {
+        final var schemaName = "MyAvroSchema";
+        final var namespace = "io.axual.ksml.test";
+        final var fullName = namespace + "." + schemaName;
+        final var schemaContent = "{\"type\":\"record\",\"name\":\"" + schemaName + "\",\"namespace\":\"" + namespace + "\",\"fields\":[]}";
+        Files.writeString(tempDir.resolve(schemaName + ".avsc"), schemaContent);
+
+        final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
+            assertEquals(fullName + ".avsc", contextName);
+            assertEquals(fullName, name);
+            assertEquals(schemaContent, schemaString);
+            return new StructSchema(null, schemaName, null, Collections.emptyList());
+        };
+
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", mockParser));
+
+        final var userType = new UserTypeParser().parse("avro:" + namespace + "." + schemaName);
         assertTrue(userType.isOk());
         assertEquals("avro", userType.result().notation());
         assertInstanceOf(StructType.class, userType.result().dataType());

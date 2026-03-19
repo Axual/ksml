@@ -20,6 +20,8 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.type.DataType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -114,5 +116,50 @@ class DataMapTest {
         assertThat(map.toString(EXTERNAL_NO_SCHEMA)).isEqualTo("{\"a\": \"x\", \"b\": 2}");
         assertThat(map.toString(EXTERNAL_TOP_SCHEMA)).isEqualTo("MapOfUnknown: {\"a\": \"x\", \"b\": 2}");
         assertThat(map.toString(EXTERNAL_ALL_SCHEMA)).isEqualTo("MapOfUnknown: {\"a\": \"x\", \"b\": 2}");
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns equal for maps with identical contents")
+    void flaggedEqualsSameContents() {
+        var a = new DataMap(DataType.UNKNOWN);
+        a.put("key", new DataString("value"));
+
+        var b = new DataMap(DataType.UNKNOWN);
+        b.put("key", new DataString("value"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isEqual())
+                .as("Maps with identical contents should be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for maps with different values")
+    void flaggedEqualsDifferentValues() {
+        var a = new DataMap(DataType.UNKNOWN);
+        a.put("key", new DataString("value1"));
+
+        var b = new DataMap(DataType.UNKNOWN);
+        b.put("key", new DataString("value2"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Maps with different values should NOT be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for maps with different keys")
+    void flaggedEqualsDifferentKeys() {
+        var a = new DataMap(DataType.UNKNOWN);
+        a.put("key1", new DataString("value"));
+
+        var b = new DataMap(DataType.UNKNOWN);
+        b.put("key2", new DataString("value"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Maps with different keys should NOT be equal")
+                .isTrue();
     }
 }

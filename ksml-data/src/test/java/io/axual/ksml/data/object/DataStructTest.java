@@ -20,6 +20,8 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Equality;
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.schema.StructSchema;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -116,5 +118,50 @@ class DataStructTest {
         assertThat(a)
                 .isEqualTo(b)
                 .isNotEqualTo(c);
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns equal for structs with identical contents")
+    void flaggedEqualsSameContents() {
+        var a = new DataStruct();
+        a.put("key", new DataString("value"));
+
+        var b = new DataStruct();
+        b.put("key", new DataString("value"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isEqual())
+                .as("Structs with identical contents should be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for structs with different contents")
+    void flaggedEqualsDifferentContents() {
+        var a = new DataStruct();
+        a.put("key", new DataString("value1"));
+
+        var b = new DataStruct();
+        b.put("key", new DataString("value2"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Structs with different contents should NOT be equal")
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("equals(Object, EqualityFlags) returns not-equal for structs with different keys")
+    void flaggedEqualsDifferentKeys() {
+        var a = new DataStruct();
+        a.put("key1", new DataString("value"));
+
+        var b = new DataStruct();
+        b.put("key2", new DataString("value"));
+
+        Equality result = a.equals(b, EqualityFlags.EMPTY);
+        assertThat(result.isNotEqual())
+                .as("Structs with different keys should NOT be equal")
+                .isTrue();
     }
 }
