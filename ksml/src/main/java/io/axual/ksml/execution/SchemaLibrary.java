@@ -20,6 +20,7 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.NamedSchema;
@@ -62,20 +63,19 @@ public class SchemaLibrary {
 
         final var loader = new SchemaLoader(notation.name(), schemaDirectory, notation.filenameExtension());
         final var schemaStr = loader.load(schemaName);
-        if (schemaStr == null) return null;
-
-        final var schema = notation.schemaParser().parse(schemaName + notation.filenameExtension(), schemaName, schemaStr);
-        if (schema instanceof NamedSchema ns) {
-            if (notationSchemas == null) {
-                notationSchemas = new TreeMap<>();
-                schemas.put(notation.name(), notationSchemas);
+        if (schemaStr != null) {
+            final var schema = notation.schemaParser().parse(schemaName + notation.filenameExtension(), schemaName, schemaStr);
+            if (schema instanceof NamedSchema ns) {
+                if (notationSchemas == null) {
+                    notationSchemas = new TreeMap<>();
+                    schemas.put(notation.name(), notationSchemas);
+                }
+                notationSchemas.put(schemaName, ns);
             }
-            notationSchemas.put(schemaName, ns);
+            if (schema != null) return schema;
         }
 
-        if (!allowNull && schema == null) {
-            throw new ExecutionException("Can not load schema: notation=" + (notation.name() != null ? notation.name() : "null") + ", schema=" + schemaName);
-        }
-        return schema;
+        if (allowNull) return null;
+        throw new SchemaException("Can not load schema: notation=" + (notation.name() != null ? notation.name() : "null") + ", schema=" + schemaName);
     }
 }

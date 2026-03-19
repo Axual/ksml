@@ -21,20 +21,21 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.util.ValuePrinter;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
-import io.axual.ksml.store.ValueAndTimestampFactory;
+import io.axual.ksml.proxy.log.LoggerBridge;
+import io.axual.ksml.proxy.metric.MetricsBridge;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.io.FileSystem;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.EnvironmentAccess;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.io.FileSystem;
 import org.graalvm.polyglot.io.IOAccess;
 
 import java.nio.file.Path;
@@ -44,27 +45,24 @@ import java.util.List;
 public class PythonContext {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
-    private static final ValueAndTimestampFactory VALUE_AND_TIMESTAMP_FACTORY = new ValueAndTimestampFactory();
+    private static final ValuePrinter VALUE_PRINTER = new PythonValuePrinter();
     private static final String PYTHON = "python";
 
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
     // Java collections (ArrayList, HashMap, TreeMap) are no longer needed since PythonTypeConverter
     // converts them to Python-native types before passing to Python code
     private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
-            "io.axual.ksml.python.LoggerBridge$PythonLogger",
-            "io.axual.ksml.python.MetricsBridge",
-            "io.axual.ksml.python.CounterBridge",
-            "io.axual.ksml.python.MeterBridge",
-            "io.axual.ksml.python.TimerBridge",
-            "io.axual.ksml.store.KeyValueStoreProxy",
-            "io.axual.ksml.store.SessionStoreProxy",
-            "io.axual.ksml.store.WindowStoreProxy",
-            "io.axual.ksml.store.TimestampedWindowStoreProxy",
-            "io.axual.ksml.store.TimestampedKeyValueStoreProxy",
-            "io.axual.ksml.store.VersionedKeyValueStoreProxy",
-            "io.axual.ksml.store.VersionedRecordProxy",
-            "io.axual.ksml.store.ValueAndTimestampProxy",
-            "io.axual.ksml.store.ValueAndTimestampFactory");
+            "io.axual.ksml.proxy.log.LoggerBridge$PythonLogger",
+            "io.axual.ksml.proxy.metric.MetricsBridge",
+            "io.axual.ksml.proxy.metric.CounterBridge",
+            "io.axual.ksml.proxy.metric.MeterBridge",
+            "io.axual.ksml.proxy.metric.TimerBridge",
+            "io.axual.ksml.proxy.store.KeyValueStoreProxy",
+            "io.axual.ksml.proxy.store.SessionStoreProxy",
+            "io.axual.ksml.proxy.store.WindowStoreProxy",
+            "io.axual.ksml.proxy.store.TimestampedWindowStoreProxy",
+            "io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy",
+            "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
@@ -100,7 +98,7 @@ public class PythonContext {
                     .allowIO(ioAccess)
                     .build();
 
-            if (!StringUtils.isEmpty( config.modulePath() )) {
+            if (!StringUtils.isEmpty(config.modulePath())) {
 //                if (!Files.isDirectory( Path.of(config.pythonModulePath()))) {
 //                    log.error("Configured Python module path {} does not exist or is not a directory", config.pythonModulePath());
 //                    throw new ExecutionException("Configured Python module path does not exist or is not a directory");
@@ -117,7 +115,8 @@ public class PythonContext {
 
     /**
      * Register a function in the Python context.
-     * @param pyCode the function source code.
+     *
+     * @param pyCode     the function source code.
      * @param callerName the name of the function to be registered.
      * @return a GraalVM {@link Value} object that can be used to call the registered function.
      */
@@ -141,37 +140,35 @@ public class PythonContext {
         final var pyCode = """
                 loggerBridge = None
                 metrics = None
-                valueAndTimestamp = None
                 import polyglot
-
+                
                 @polyglot.export_value
-                def register_ksml_bridges(lb, mb, vatf):
+                def register_ksml_bridges(lb, mb):
                   global loggerBridge
                   loggerBridge = lb
                   global metrics
                   metrics = mb
-                  global valueAndTimestamp
-                  valueAndTimestamp = vatf
                 """;
         final var register = registerFunction(pyCode, "register_ksml_bridges");
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
         }
         // Pass the global LOGGER_BRIDGE and METRICS_BRIDGE variables into global variables of the Python context
-        register.execute(LOGGER_BRIDGE, METRICS_BRIDGE, VALUE_AND_TIMESTAMP_FACTORY);
+        register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
     }
 
     /**
      * Create an GraalVM IOAccess object based on the settings in the configuration.
-     * @param allowHostFileAccess indicate if host file access should be allowed.
+     *
+     * @param allowHostFileAccess   indicate if host file access should be allowed.
      * @param allowHostSocketAccess indicate if host socket access should be allowed.
-     * @param modulePath the path where customer Python modules are located.
+     * @param modulePath            the path where customer Python modules are located.
      * @return an IOAccess object based on the settings in the configuration.
      */
     private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
         log.debug("createIOAccess({}, {}, {})", allowHostFileAccess, allowHostSocketAccess, modulePath);
 
-        if (allowHostFileAccess || StringUtils.isEmpty( modulePath)) {
+        if (allowHostFileAccess || StringUtils.isEmpty(modulePath)) {
             // if host file access is allowed, then we don't need to set up a restricted file system for module access
             return IOAccess.newBuilder()
                     .allowHostFileAccess(allowHostFileAccess)
@@ -189,6 +186,7 @@ public class PythonContext {
 
     /**
      * Create an FileSystem object that allows read-only access to Python's home, and the given path and everything below it.
+     *
      * @param modulePath the path where customer Python modules are located.
      * @return an FileSystem for Python module access that allows read-only access to the given path and everything below it.
      */
@@ -209,6 +207,7 @@ public class PythonContext {
 
     /**
      * Get sys.prefix from GraalVM Python.
+     *
      * @return the value of sys.prefix.
      */
     private String getPythonSysPrefix() {
@@ -250,11 +249,10 @@ public class PythonContext {
      */
     public void debugPythonPath() {
         try {
-            var result = context.eval("python", "import sys; sys.path");
+            var result = context.eval(PYTHON, "import sys; sys.path");
             log.debug("Python sys.path: {}", result);
         } catch (Exception e) {
             log.warn("Could not read Python sys.path", e);
         }
     }
-
 }

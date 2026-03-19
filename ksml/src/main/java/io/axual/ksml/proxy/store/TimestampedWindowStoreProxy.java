@@ -1,4 +1,4 @@
-package io.axual.ksml.store;
+package io.axual.ksml.proxy.store;
 
 /*-
  * ========================LICENSE_START=================================
@@ -30,107 +30,101 @@ import org.graalvm.polyglot.HostAccess;
 import java.time.Instant;
 
 /**
- * A proxy wrapper around a Kafka Streams TimestampedWindowStore that delegates all operations
- * to the underlying store. This proxy exposes store methods to Python code via @HostAccess.Export.
- * <p>
- * The value type is ValueAndTimestamp, and methods that return values wrap them in
- * ValueAndTimestampProxy for Python accessibility.
- *
- * @param <K> the type of keys
- * @param <V> the type of values
+ * A proxy for accessing Kafka Streams TimestampedWindowStore in Python code. This proxy mediates between Python and
+ * Java data types and delegates all operations to the underlying store.
  */
-public class TimestampedWindowStoreProxy<K, V> extends AbstractStateStoreProxy<TimestampedWindowStore<K, V>> {
+public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<TimestampedWindowStore<Object, Object>> {
 
-    public TimestampedWindowStoreProxy(TimestampedWindowStore<K, V> delegate) {
+    public TimestampedWindowStoreProxy(TimestampedWindowStore<Object, Object> delegate) {
         super(delegate);
-    }
-
-    // ==================== WindowStore methods ====================
-
-    @HostAccess.Export
-    public void put(K key, ValueAndTimestamp<V> value, long windowStartTimestamp) {
-        delegate.put(key, value, windowStartTimestamp);
-    }
-
-    @HostAccess.Export
-    public void put(K key, V value, long windowStartTimestamp, long timestamp) {
-        delegate.put(key, ValueAndTimestamp.make(value, timestamp), windowStartTimestamp);
-    }
-
-    @HostAccess.Export
-    public WindowStoreIterator<ValueAndTimestampProxy<V>> fetch(K key, long timeFrom, long timeTo) {
-        throw new UnsupportedOperationException("fetch(K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public WindowStoreIterator<ValueAndTimestampProxy<V>> fetch(K key, Instant timeFrom, Instant timeTo) {
-        throw new UnsupportedOperationException("fetch(K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public WindowStoreIterator<ValueAndTimestampProxy<V>> backwardFetch(K key, long timeFrom, long timeTo) {
-        throw new UnsupportedOperationException("backwardFetch(K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public WindowStoreIterator<ValueAndTimestampProxy<V>> backwardFetch(K key, Instant timeFrom, Instant timeTo) {
-        throw new UnsupportedOperationException("backwardFetch(K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> fetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
-        throw new UnsupportedOperationException("fetch(K, K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> fetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
-        throw new UnsupportedOperationException("fetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> backwardFetch(K keyFrom, K keyTo, long timeFrom, long timeTo) {
-        throw new UnsupportedOperationException("backwardFetch(K, K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> backwardFetch(K keyFrom, K keyTo, Instant timeFrom, Instant timeTo) {
-        throw new UnsupportedOperationException("backwardFetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> fetchAll(long timeFrom, long timeTo) {
-        throw new UnsupportedOperationException("fetchAll(long, long) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> fetchAll(Instant timeFrom, Instant timeTo) {
-        throw new UnsupportedOperationException("fetchAll(Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> backwardFetchAll(long timeFrom, long timeTo) {
-        throw new UnsupportedOperationException("backwardFetchAll(long, long) is not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestampProxy<V>> backwardFetchAll(Instant timeFrom, Instant timeTo) {
-        throw new UnsupportedOperationException("backwardFetchAll(Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
     }
 
     // ==================== ReadOnlyWindowStore methods ====================
 
     @HostAccess.Export
-    public Object fetch(K key, long time) {
-        return toPython(delegate.fetch(key, time));
+    public java.lang.Object fetch(java.lang.Object key, long time) {
+        return ProxyUtil.resultFrom(delegate.fetch(NATIVE_MAPPER.fromPython(key), time));
     }
 
     @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestamp<V>> all() {
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> all() {
         throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass().getName() + ")");
     }
 
     @HostAccess.Export
-    public KeyValueIterator<Windowed<K>, ValueAndTimestamp<V>> backwardAll() {
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> backwardAll() {
         throw new UnsupportedOperationException("backwardAll() is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    // ==================== WindowStore methods ====================
+
+    @HostAccess.Export
+    public void put(Object key, ValueAndTimestamp<Object> value, long windowStartTimestamp) {
+        delegate.put(key, value, windowStartTimestamp);
+    }
+
+    @HostAccess.Export
+    public void put(Object key, Object value, long windowStartTimestamp, long timestamp) {
+        delegate.put(key, ValueAndTimestamp.make(value, timestamp), windowStartTimestamp);
+    }
+
+    @HostAccess.Export
+    public WindowStoreIterator<ValueAndTimestamp<Object>> fetch(Object key, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("fetch(K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public WindowStoreIterator<ValueAndTimestamp<Object>> fetch(Object key, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("fetch(K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public WindowStoreIterator<ValueAndTimestamp<Object>> backwardFetch(Object key, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public WindowStoreIterator<ValueAndTimestamp<Object>> backwardFetch(Object key, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> fetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("fetch(K, K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> fetch(Object keyFrom, Object keyTo, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("fetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> backwardFetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, K, long, long) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> backwardFetch(Object keyFrom, Object keyTo, Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("backwardFetch(K, K, Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> fetchAll(long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("fetchAll(long, long) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> fetchAll(Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("fetchAll(Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> backwardFetchAll(long timeFrom, long timeTo) {
+        throw new UnsupportedOperationException("backwardFetchAll(long, long) is not supported by this proxy (" + getClass().getName() + ")");
+    }
+
+    @HostAccess.Export
+    public KeyValueIterator<Windowed<Object>, ValueAndTimestamp<Object>> backwardFetchAll(Instant timeFrom, Instant timeTo) {
+        throw new UnsupportedOperationException("backwardFetchAll(Instant, Instant) is not supported by this proxy (" + getClass().getName() + ")");
     }
 }

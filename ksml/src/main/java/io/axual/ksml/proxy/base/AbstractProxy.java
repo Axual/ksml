@@ -1,4 +1,4 @@
-package io.axual.ksml.store;
+package io.axual.ksml.proxy.base;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,11 +21,9 @@ package io.axual.ksml.store;
  */
 
 /**
- * Exfeption type to signal as yet unimplemented methods in {@link KeyValueStoreProxy}.
+ * This interface acts as a marker interface for conversion between Java and Python values. Classes that implement
+ * this interface are considered "valid as is" and do not need explicit translation to Python.
+ * See PythonNativeMapper for the implementation of this policy.
  */
-public class KeyValueStoreProxyException extends RuntimeException {
-
-    public KeyValueStoreProxyException(String message) {
-        super(message);
-    }
+public interface AbstractProxy {
 }

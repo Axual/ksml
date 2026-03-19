@@ -21,7 +21,7 @@ package io.axual.ksml.operation.processor;
  */
 
 import io.axual.ksml.exception.ExecutionException;
-import io.axual.ksml.store.StateStoreProxyFactory;
+import io.axual.ksml.proxy.store.StateStoreProxyFactory;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.Processor;

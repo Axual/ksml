@@ -22,6 +22,7 @@ package io.axual.ksml.python;
 
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.metric.MetricsRegistry;
+import io.axual.ksml.proxy.metric.MetricsBridge;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

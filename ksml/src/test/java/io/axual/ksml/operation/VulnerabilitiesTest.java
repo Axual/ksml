@@ -20,6 +20,14 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.testutil.KSMLDriver;
+import io.axual.ksml.testutil.KSMLTest;
+import io.axual.ksml.testutil.KSMLTestExtension;
+import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.KSMLTopologyTest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -41,15 +49,6 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.testutil.KSMLDriver;
-import io.axual.ksml.testutil.KSMLTest;
-import io.axual.ksml.testutil.KSMLTestExtension;
-import io.axual.ksml.testutil.KSMLTopic;
-import io.axual.ksml.testutil.KSMLTopologyTest;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

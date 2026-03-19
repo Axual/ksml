@@ -1,4 +1,4 @@
-package io.axual.ksml.store;
+package io.axual.ksml.proxy.store;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,46 +20,38 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.graalvm.polyglot.HostAccess;
 
 /**
  * A proxy wrapper around a Kafka Streams VersionedKeyValueStore that delegates all operations
  * to the underlying store. This proxy exposes store methods to Python code via @HostAccess.Export.
- * <p>
- * Note: This class implements StateStore rather than VersionedKeyValueStore because
- * VersionedRecord is a final class that cannot be extended, and we need to return
- * VersionedRecordProxy to expose its methods to Python.
- *
- * @param <K> the type of keys
- * @param <V> the type of values
  */
-public class VersionedKeyValueStoreProxy<K, V> extends AbstractStateStoreProxy<VersionedKeyValueStore<K,V>> implements StateStore {
+public class VersionedKeyValueStoreProxy extends AbstractStateStoreProxy<VersionedKeyValueStore<Object, Object>> {
 
-    public VersionedKeyValueStoreProxy(VersionedKeyValueStore<K, V> delegate) {
+    public VersionedKeyValueStoreProxy(VersionedKeyValueStore<Object, Object> delegate) {
         super(delegate);
     }
 
     // ==================== VersionedKeyValueStore methods ====================
 
     @HostAccess.Export
-    public long put(K key, V value, long timestamp) {
-        return delegate.put(key, value, timestamp);
+    public Object delete(Object key, long timestamp) {
+        return ProxyUtil.resultFrom(delegate.delete(NATIVE_MAPPER.fromPython(key), timestamp));
     }
 
     @HostAccess.Export
-    public Object delete(K key, long timestamp) {
-        return toPython(delegate.delete(key, timestamp));
+    public Object get(Object key) {
+        return ProxyUtil.resultFrom(delegate.get(NATIVE_MAPPER.fromPython(key)));
     }
 
     @HostAccess.Export
-    public Object get(K key) {
-        return toPython(delegate.get(key));
+    public Object get(Object key, long asOfTimestamp) {
+        return ProxyUtil.resultFrom(delegate.get(NATIVE_MAPPER.fromPython(key), asOfTimestamp));
     }
 
     @HostAccess.Export
-    public Object get(K key, long asOfTimestamp) {
-        return toPython(delegate.get(key, asOfTimestamp));
+    public Object put(Object key, Object value, long timestamp) {
+        return ProxyUtil.toPython(delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value), timestamp));
     }
 }

@@ -532,8 +532,8 @@ class AvroDataObjectMapperTest {
                 .as("Verify conversion to Avro Data")
                 .usingRecursiveComparison()
                 .isEqualTo(expectedAvroValue);
-        final var convertedDataSchema = mapper.toDataObject(ksmlValue.type(), convertedAvroValue);
-        assertThat(convertedDataSchema)
+        final var convertedDataObject = mapper.toDataObject(ksmlValue.type(), convertedAvroValue);
+        assertThat(convertedDataObject)
                 .as("Verify conversion back to KSML Data")
                 .usingComparatorForType(new DoubleComparator(0.01d), Double.class)
                 .usingComparatorForType(new FloatComparator(0.01f), Float.class)

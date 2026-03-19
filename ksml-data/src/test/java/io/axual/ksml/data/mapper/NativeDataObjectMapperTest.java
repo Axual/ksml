@@ -41,6 +41,7 @@ import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -239,11 +240,11 @@ class NativeDataObjectMapperTest {
         expectedMap.put("a", null);
         expectedMap.put("b", 1);
 
-        Map<String, Object> expectedTypedStruct = new TreeMap<>(DataStruct.COMPARATOR);
+        Map<String, Object> expectedTypedStruct = new Struct<>();
         expectedTypedStruct.put("age", 42);
         expectedTypedStruct.put("name", null);
 
-        Map<String, Object> expectedSchemalessStruct = new TreeMap<>(DataStruct.COMPARATOR);
+        Map<String, Object> expectedSchemalessStruct = new Struct<>();
         expectedSchemalessStruct.put("x", "val");
         expectedSchemalessStruct.put("y", null);
 

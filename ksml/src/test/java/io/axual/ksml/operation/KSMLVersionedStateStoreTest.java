@@ -20,19 +20,17 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.avro.generic.GenericRecord;
-import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.TopologyTestDriver;
-import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.streams.state.VersionedKeyValueStore;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.VersionedKeyValueStore;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

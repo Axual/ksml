@@ -1,4 +1,4 @@
-package io.axual.ksml.python;
+package io.axual.ksml.proxy.metric;
 
 /*-
  * ========================LICENSE_START=================================
@@ -23,6 +23,7 @@ package io.axual.ksml.python;
 import io.axual.ksml.metric.MetricName;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.MetricsRegistry;
+import io.axual.ksml.proxy.base.AbstractProxy;
 import org.graalvm.polyglot.HostAccess;
 
 import java.util.HashMap;
@@ -35,7 +36,7 @@ import java.util.Map;
  * <br/>
  * All metrics registered using this bridge will be removed when closing the bridge
  */
-public class MetricsBridge {
+public class MetricsBridge implements AbstractProxy {
     private final MetricsRegistry registry;
     private final Map<MetricName, CounterBridge> counters = new HashMap<>();
     private final Map<MetricName, MeterBridge> meters = new HashMap<>();

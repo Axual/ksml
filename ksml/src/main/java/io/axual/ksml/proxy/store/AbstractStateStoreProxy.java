@@ -1,4 +1,4 @@
-package io.axual.ksml.store;
+package io.axual.ksml.proxy.store;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,7 +20,9 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.python.PythonTypeConverter;
+import io.axual.ksml.proxy.base.AbstractProxy;
+import io.axual.ksml.python.PythonDataObjectMapper;
+import io.axual.ksml.python.PythonNativeMapper;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.query.Position;
@@ -35,23 +37,13 @@ import org.graalvm.polyglot.HostAccess;
  * This class exposes the base state store methods for use in KSML Python code. All methods are
  * forwarded to the delegate, except for query and getPosition, which are not supported yet in any proxy.
  */
-public abstract class AbstractStateStoreProxy<T extends StateStore> implements StateStore {
+public abstract class AbstractStateStoreProxy<T extends StateStore> implements StateStore, AbstractProxy {
+    protected static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
+    protected static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
+    protected final T delegate;
 
-    final T delegate;
-
-    public AbstractStateStoreProxy(T delegate1) {
-        this.delegate = delegate1;
-    }
-
-    /**
-     * Convert a value to a Python-compatible type.
-     * Maps and Lists are converted to ProxyHashMap/ProxyArray for Python interop.
-     *
-     * @param value the value to convert
-     * @return the Python-compatible value
-     */
-    protected Object toPython(Object value) {
-        return PythonTypeConverter.toPython(value);
+    protected AbstractStateStoreProxy(T delegate) {
+        this.delegate = delegate;
     }
 
     @HostAccess.Export
@@ -93,7 +85,7 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     @HostAccess.Export
     public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
         throw new UnsupportedOperationException(
-            "query is not implemented by this StateStore proxy (" + getClass() + ")"
+                "query is not implemented by this StateStore proxy (" + getClass() + ")"
         );
     }
 
@@ -101,8 +93,7 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     @HostAccess.Export
     public Position getPosition() {
         throw new UnsupportedOperationException(
-            "getPosition is not implemented by this StateStore proxy (" + getClass() + ")"
+                "getPosition is not implemented by this StateStore proxy (" + getClass() + ")"
         );
     }
-
 }

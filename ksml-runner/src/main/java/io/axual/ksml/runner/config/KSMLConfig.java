@@ -21,8 +21,6 @@ package io.axual.ksml.runner.config;
  */
 
 
-import com.google.common.collect.ImmutableMap;
-
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -31,14 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinition;
@@ -49,6 +40,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = false)

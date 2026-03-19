@@ -56,7 +56,7 @@ class GlobalTableDefinitionTest {
     void testGlobalTableDefinition() {
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, mockNotation);
 
-        final var stringType = UserTypeParser.parse("string").result();
+        final var stringType = new UserTypeParser().parse("string").result();
 
         // given a TableDefinition
         final var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, null, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));

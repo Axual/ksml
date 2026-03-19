@@ -20,6 +20,8 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.util.ValuePrinter;
+import io.axual.ksml.data.value.Struct;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyHashMap;
@@ -35,41 +37,42 @@ import java.util.StringJoiner;
  * code logs map values via SLF4J (which calls {@code toString()} on the Java side).
  */
 public class PythonDict implements ProxyHashMap {
+    private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
+    private static final ValuePrinter VALUE_PRINTER = new PythonValuePrinter();
+    private final Struct<Object> struct = new Struct<>();
 
-    private final Map<Object, Object> map;
-
-    public PythonDict(Map<Object, Object> map) {
-        this.map = map;
+    public PythonDict(Map<?, ?> map) {
+        map.forEach((k, v) -> struct.put(keyFrom(k), NATIVE_MAPPER.toPython(v)));
     }
 
     @Override
     public long getHashSize() {
-        return map.size();
+        return struct.size();
     }
 
     @Override
     public boolean hasHashEntry(Value key) {
-        return map.containsKey(unwrap(key));
+        return struct.containsKey(keyFrom(key));
     }
 
     @Override
     public Object getHashValue(Value key) {
-        return map.get(unwrap(key));
+        return struct.get(keyFrom(key));
     }
 
     @Override
     public void putHashEntry(Value key, Value value) {
-        map.put(unwrap(key), unwrap(value));
+        struct.put(keyFrom(key), value);
     }
 
     @Override
     public boolean removeHashEntry(Value key) {
-        return map.remove(unwrap(key)) != null;
+        return struct.remove(keyFrom(key)) != null;
     }
 
     @Override
     public Object getHashEntriesIterator() {
-        Iterator<Map.Entry<Object, Object>> it = map.entrySet().iterator();
+        Iterator<Map.Entry<String, Object>> it = struct.entrySet().iterator();
         return new ProxyIterator() {
             @Override
             public boolean hasNext() {
@@ -78,7 +81,7 @@ public class PythonDict implements ProxyHashMap {
 
             @Override
             public Object getNext() {
-                Map.Entry<Object, Object> entry = it.next();
+                Map.Entry<String, Object> entry = it.next();
                 return ProxyArray.fromArray(entry.getKey(), entry.getValue());
             }
         };
@@ -86,50 +89,19 @@ public class PythonDict implements ProxyHashMap {
 
     /**
      * Return a String representation of this PythonDict, in Python format.
-     * @return
+     *
+     * @return String representation of this PythonDict, in Python format
      */
     @Override
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ", "{", "}");
-        for (Map.Entry<Object, Object> entry : map.entrySet()) {
-            joiner.add(formatValue(entry.getKey()) + ": " + formatValue(entry.getValue()));
-        }
+        struct.forEach((k, v) -> joiner.add(VALUE_PRINTER.print(k, true) + ": " + VALUE_PRINTER.print(v, true)));
         return joiner.toString();
     }
 
-    static String formatValue(Object value) {
-        if (value == null) {
-            return "None";
-        }
-        if (value instanceof String s) {
-            return "'" + s + "'";
-        }
-        if (value instanceof Boolean b) {
-            return b ? "True" : "False";
-        }
-        // PythonDict and PythonList have their own toString() which formats recursively
-        return value.toString();
-    }
-
-    static Object unwrap(Value value) {
-        if (value == null || value.isNull()) {
-            return null;
-        }
-        if (value.isString()) {
-            return value.asString();
-        }
-        if (value.isBoolean()) {
-            return value.asBoolean();
-        }
-        if (value.isNumber()) {
-            if (value.fitsInInt()) {
-                return value.asInt();
-            }
-            if (value.fitsInLong()) {
-                return value.asLong();
-            }
-            return value.asDouble();
-        }
-        return value;
+    private String keyFrom(Object key) {
+        if (key == null) return null;
+        if (key instanceof Value value && value.isString()) return value.asString();
+        return key.toString();
     }
 }

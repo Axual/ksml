@@ -1,4 +1,4 @@
-package io.axual.ksml.python;
+package io.axual.ksml.proxy.metric;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,30 +20,35 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import com.codahale.metrics.Metric;
+import com.codahale.metrics.Counter;
 import io.axual.ksml.metric.MetricName;
-import lombok.Getter;
 import org.graalvm.polyglot.HostAccess;
 
 import java.util.function.Consumer;
 
 /**
- * Base class for the metric proxy
+ * Metric proxy for a counter metric
  */
-public abstract class MetricBridge<M extends Metric> {
-    @Getter
-    private final MetricName name;
-    protected final M metric;
-    private final Consumer<MetricBridge<M>> onCloseCallback;
-
-    protected MetricBridge(MetricName name, M metric, Consumer<MetricBridge<M>> onCloseCallback) {
-        this.name = name;
-        this.metric = metric;
-        this.onCloseCallback = onCloseCallback;
+public class CounterBridge extends MetricBridge<Counter> {
+    public CounterBridge(MetricName name, Counter metric, Consumer<MetricBridge<Counter>> onCloseCallback) {
+        super(name, metric, onCloseCallback);
     }
 
+    /**
+     * Update the metric that the count needs to be incremented with 1
+     */
     @HostAccess.Export
-    public void close() {
-        if (onCloseCallback != null) onCloseCallback.accept(this);
+    public void increment() {
+        increment(1);
+    }
+
+    /**
+     * Update the metric that the count needs to be incremented by a specific value
+     *
+     * @param delta the value with which to increment the counter
+     */
+    @HostAccess.Export
+    public void increment(long delta) {
+        metric.inc(delta);
     }
 }

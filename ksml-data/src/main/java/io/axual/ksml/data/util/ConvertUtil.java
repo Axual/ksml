@@ -127,6 +127,9 @@ public class ConvertUtil {
 
         // If a union type is expected, then recurse into it before checking compatibility below
         if (targetType instanceof UnionType targetUnionType) {
+            // Check if the value is already compatible with the union type
+            if (targetType.isAssignableFrom(value).isAssignable()) return value;
+            // Convert the value to the first compatible member type
             for (int index = 0; index < targetUnionType.members().length; index++) {
                 var convertedValue = convert(sourceNotation, targetNotation, targetUnionType.members()[index].type(), value, true);
                 if (convertedValue != null) return convertedValue;
@@ -204,36 +207,58 @@ public class ConvertUtil {
             case DataNull ignored -> convertNullToDataObject(targetType);
             // Convert numbers to their proper specific type
             case DataByte val -> {
+                if (targetType == DataType.UNKNOWN || targetType == DataByte.DATATYPE) yield val;
                 if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
                 if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
                 if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
-                yield val;
+                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
+                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
+                throw new DataException("Can not convert DataByte value to " + targetType);
             }
             case DataShort val -> {
                 if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
+                if (targetType == DataType.UNKNOWN || targetType == DataShort.DATATYPE) yield val;
                 if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
                 if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
-                yield val;
+                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
+                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
+                throw new DataException("Can not convert DataShort value to " + targetType);
             }
             case DataInteger val -> {
                 if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
                 if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
+                if (targetType == DataType.UNKNOWN || targetType == DataInteger.DATATYPE) yield val;
                 if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
-                yield val;
+                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
+                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
+                throw new DataException("Can not convert DataInteger value to " + targetType);
             }
             case DataLong val -> {
                 if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
                 if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
                 if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
-                yield val;
+                if (targetType == DataType.UNKNOWN || targetType == DataLong.DATATYPE) yield val;
+                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
+                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
+                throw new DataException("Can not convert DataLong value to " + targetType);
             }
             case DataDouble val -> {
+                if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
+                if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
+                if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
+                if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
+                if (targetType == DataType.UNKNOWN || targetType == DataDouble.DATATYPE) yield val;
                 if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
-                yield val;
+                throw new DataException("Can not convert DataDouble value to " + targetType);
             }
             case DataFloat val -> {
+                if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
+                if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
+                if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
+                if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
                 if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
-                yield val;
+                if (targetType == DataType.UNKNOWN || targetType == DataFloat.DATATYPE) yield val;
+                throw new DataException("Can not convert DataDouble value to " + targetType);
             }
             // Convert from String to anything through recursion using the same target type
             case DataString stringValue -> convertStringToDataObject(targetType, stringValue.value(), allowFail);
@@ -271,8 +296,8 @@ public class ConvertUtil {
         if (expected == DataShort.DATATYPE) return parseOrNull(() -> new DataShort(Short.parseShort(value)));
         if (expected == DataInteger.DATATYPE) return parseOrNull(() -> new DataInteger(Integer.parseInt(value)));
         if (expected == DataLong.DATATYPE) return parseOrNull(() -> new DataLong(Long.parseLong(value)));
-        if (expected == DataFloat.DATATYPE) return parseOrNull(() -> new DataFloat(Float.parseFloat(value)));
         if (expected == DataDouble.DATATYPE) return parseOrNull(() -> new DataDouble(Double.parseDouble(value)));
+        if (expected == DataFloat.DATATYPE) return parseOrNull(() -> new DataFloat(Float.parseFloat(value)));
         if (expected == DataString.DATATYPE) return new DataString(value);
         return switch (expected) {
             case EnumType enumType -> new DataEnum(enumType, value);
@@ -380,8 +405,8 @@ public class ConvertUtil {
         if (expected == DataShort.DATATYPE) return new DataShort();
         if (expected == DataInteger.DATATYPE) return new DataInteger();
         if (expected == DataLong.DATATYPE) return new DataLong();
-        if (expected == DataFloat.DATATYPE) return new DataFloat();
         if (expected == DataDouble.DATATYPE) return new DataDouble();
+        if (expected == DataFloat.DATATYPE) return new DataFloat();
         if (expected == DataBytes.DATATYPE) return new DataBytes();
         if (expected == DataString.DATATYPE) return new DataString();
         return switch (expected) {
@@ -442,18 +467,14 @@ public class ConvertUtil {
 
     private BiConsumer<String, Object> structFiller(StructType expected, DataStruct result, boolean allowFail) {
         return (key, value) -> {
-            // If the expected struct type contains a schema, then only copy fields defined by the schema
-            if (expected.schema() != null) {
-                final var field = expected.schema().field(key);
-                // Only copy if the field exists in the target structure
-                if (field != null) {
-                    final var fieldType = dataSchemaMapper.fromDataSchema(field.schema());
-                    // Convert to that type if necessary
-                    result.put(key, convertDataObject(fieldType, dataObjectMapper.toDataObject(value), allowFail));
-                }
-            } else {
-                result.put(key, dataObjectMapper.toDataObject(value));
-            }
+            // If the expected struct type contains a schema, then extract a target type
+            final var field = expected.schema() != null ? expected.schema().field(key) : null;
+            final var fieldType = field != null ? dataSchemaMapper.fromDataSchema(field.schema()) : null;
+            // If there is an explicit target value, then recurse conversion using that, otherwise simply copy value
+            final var convertedValue = fieldType != null
+                    ? convertDataObject(fieldType, dataObjectMapper.toDataObject(value), allowFail)
+                    : dataObjectMapper.toDataObject(value);
+            result.put(key, convertedValue);
         };
     }
 

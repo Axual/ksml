@@ -20,9 +20,11 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.util.ValuePrinter;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -32,11 +34,12 @@ import java.util.StringJoiner;
  * code logs list values via SLF4J (which calls {@code toString()} on the Java side).
  */
 public class PythonList implements ProxyArray {
+    private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
+    private static final ValuePrinter VALUE_PRINTER = new PythonValuePrinter();
+    private final List<Object> list = new ArrayList<>();
 
-    private final List<Object> list;
-
-    public PythonList(List<Object> list) {
-        this.list = list;
+    public PythonList(List<?> list) {
+        list.forEach(element -> this.list.add(NATIVE_MAPPER.toPython(element)));
     }
 
     @Override
@@ -46,7 +49,7 @@ public class PythonList implements ProxyArray {
 
     @Override
     public void set(long index, Value value) {
-        list.set((int) index, PythonDict.unwrap(value));
+        list.set((int) index, value);
     }
 
     @Override
@@ -62,14 +65,13 @@ public class PythonList implements ProxyArray {
 
     /**
      * Return a String representation of this PythonList, in Python format.
-     * @return
+     *
+     * @return String representation of this PythonList, in Python format
      */
     @Override
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ", "[", "]");
-        for (Object item : list) {
-            joiner.add(PythonDict.formatValue(item));
-        }
+        list.forEach(element -> joiner.add(VALUE_PRINTER.print(element, true)));
         return joiner.toString();
     }
 }

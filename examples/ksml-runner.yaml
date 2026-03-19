@@ -136,6 +136,7 @@ ksml:
     inspect_with_metrics: 17-example-inspect-with-metrics.yaml
     timestamp_extractor: 18-example-timestamp-extractor.yaml
     performance-measurement: 19-example-performance-measurement.yaml
+    windowed-avro-state-store: 20-example-windowed-avro-state-store.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network

@@ -20,21 +20,30 @@ package io.axual.ksml.data.util;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataString;
+
 /**
  * Small utility to render objects as strings with optional quoting for Strings.
  *
  * <p>Used by diagnostic and equality-reporting code to produce consistent, human-readable
  * representations of values while preserving null vs. non-null distinctions.</p>
  */
-public class ValuePrinter {
-    private static final String QUOTE = "\"";
-
-    public static String print(Object value, boolean quoted) {
-        var quote = quoted && value instanceof String ? QUOTE : "";
-        return value != null ? quote + value + quote : "null";
+public abstract class ValuePrinter {
+    public record ValuePrinterDict(String quoteStr, String nullStr, String trueStr, String falseStr) {
     }
 
-    private ValuePrinter() {
-        // Prevent instantiation.
+    private final ValuePrinterDict dict;
+
+    protected ValuePrinter(ValuePrinterDict dict) {
+        this.dict = dict;
+    }
+
+    public String print(Object value, boolean quoted) {
+        final var quote = quoted && (value instanceof String || value instanceof DataString) ? dict.quoteStr() : "";
+        return switch (value) {
+            case null -> dict.nullStr();
+            case Boolean val -> val ? dict.trueStr() : dict.falseStr();
+            default -> quote + value + quote;
+        };
     }
 }

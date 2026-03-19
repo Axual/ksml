@@ -23,6 +23,7 @@ package io.axual.ksml.data.notation.avro;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -44,6 +45,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
+import io.axual.ksml.data.value.Struct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
@@ -52,73 +54,92 @@ import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
+import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
- * DataObjectMapper implementation for Avro native values.
+ * DataObjectMapper implementation for AVRO native values.
  *
- * <p>Converts between Avro runtime types (GenericRecord, GenericData.EnumSymbol, GenericFixed,
+ * <p>Converts between AVRO runtime types (GenericRecord, GenericData.EnumSymbol, GenericFixed,
  * Utf8, byte[]/ByteBuffer, arrays/maps, primitives) and KSML DataObject instances according
- * to the rules in ksml-data/DEVELOPER_GUIDE.md. Reverse mapping produces Avro-compatible
- * values, optionally using an Avro Schema derived from a StructSchema when present.</p>
+ * to the rules in ksml-data/DEVELOPER_GUIDE.md. Reverse mapping produces AVRO-compatible
+ * values, optionally using an AVRO Schema derived from a StructSchema when present.</p>
  */
 @Slf4j
 public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     private static final AvroSchemaMapper SCHEMA_MAPPER = new AvroSchemaMapper();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final DataTypeDataSchemaMapper TYPE_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
+    private static final ConvertUtil CONVERTER = new ConvertUtil(NATIVE_MAPPER, TYPE_SCHEMA_MAPPER);
 
     /**
-     * Convert an Avro-native value into a KSML DataObject.
+     * Convert an AVRO-native value into a KSML DataObject.
+     *
+     * <p>Uses derived method with extra schema parameter for recursion</p>
+     *
+     * @param expected the expected target DataType used for null handling and numeric coercion
+     * @param value    the AVRO-native value to convert (maybe null)
+     * @return the corresponding KSML DataObject
+     */
+    @Override
+    public DataObject toDataObject(DataType expected, Object value) {
+        return toDataObject(expected, value, null);
+    }
+
+    /**
+     * Convert an AVRO-native value into a KSML DataObject.
      *
      * <p>Handles Utf8, ByteBuffer, GenericFixed, GenericRecord, EnumSymbol, List and Map,
      * falling back to primitive conversion. Nulls are converted using ConvertUtil based on
      * the expected DataType.</p>
      *
      * @param expected the expected target DataType used for null handling and numeric coercion
-     * @param value    the Avro-native value to convert (may be null)
+     * @param value    the AVRO-native value to convert (maybe null)
+     * @param schema   the AVRO schema of the value (maybe null)
      * @return the corresponding KSML DataObject
      */
-    @Override
-    public DataObject toDataObject(DataType expected, Object value) {
-        if (value == null) return ConvertUtil.convertNullToDataObject(expected);
+    private DataObject toDataObject(DataType expected, Object value, Schema schema) {
+        // Quick return for NULL values
+        if (value == null || value == JsonProperties.NULL_VALUE)
+            return ConvertUtil.convertNullToDataObject(expected);
 
-        // Normalize common Avro wrappers first
-        if (value instanceof Utf8 utf8) value = utf8.toString();
-        if (value instanceof ByteBuffer bb) value = toByteArray(bb);
+        // Normalize common AVRO wrappers first
+        if (value instanceof Utf8 val) value = val.toString();
+        if (value instanceof ByteBuffer val) value = toByteArray(val);
 
-        if (value instanceof GenericData.EnumSymbol enumSym) {
-            return new DataString(enumSym.toString());
-        }
-        if (value instanceof GenericFixed fixed) {
-            return new DataBytes(fixed.bytes());
-        }
-        if (value instanceof GenericRecord genericRecord) {
-            return convertRecordToDataStruct(expected, genericRecord);
-        }
-        if (value instanceof List<?> list) {
-            return convertArrayToDataList(expected, list, null);
-        }
-        if (value instanceof Map<?, ?> map) {
-            return convertMapToDataMap(expected, map, null);
-        }
-
-        // Fallback: primitives and simple types
-        return primitiveToDataObject(expected, value);
+        // Convert value based on its type
+        return switch (value) {
+            case DataObject val -> val;
+            case Boolean val -> new DataBoolean(val);
+            case Byte val -> expected == DataInteger.DATATYPE ? new DataInteger(val.intValue()) : new DataByte(val);
+            case Short val -> expected == DataInteger.DATATYPE ? new DataInteger(val.intValue()) : new DataShort(val);
+            case Integer val -> new DataInteger(val);
+            case Long val -> new DataLong(val);
+            case Double val -> new DataDouble(val);
+            case Float val -> new DataFloat(val);
+            case byte[] val -> new DataBytes(val);
+            case CharSequence val -> new DataString(val.toString());
+            case GenericData.EnumSymbol val -> new DataString(val.toString());
+            case GenericFixed val -> new DataBytes(val.bytes());
+            case GenericRecord val -> convertRecordToDataStruct(expected, val);
+            case List<?> val -> convertArrayToDataList(expected, val, schema != null ? elementSchemaOf(schema) : null);
+            case Map<?, ?> val -> convertMapToDataMap(expected, val, schema != null ? mapValueSchemaOf(schema) : null);
+            default -> throw new DataException("Unsupported primitive type: " + value.getClass().getSimpleName());
+        };
     }
 
     /**
-     * Convert a KSML DataObject into an Avro-compatible value.
+     * Convert a KSML DataObject into an AVRO-compatible value.
      *
-     * <p>When a Struct with a StructSchema is provided, an Avro record is created using a
-     * schema derived from that StructSchema. Scalars are converted to their Avro-native
-     * counterparts, with byte and short widened to int to satisfy Avro's numeric model.</p>
+     * <p>When a Struct with a StructSchema is provided, an AVRO record is created using a
+     * schema derived from that StructSchema. Scalars are converted to their AVRO-native
+     * counterparts, with byte and short widened to int to satisfy AVRO's numeric model.</p>
      *
      * @param value the KSML DataObject to convert
-     * @return an Avro-native value (may be null)
+     * @return an AVRO-native value (may be null)
      * @throws io.axual.ksml.data.exception.DataException if the value type is unsupported
      */
     @Override
@@ -126,19 +147,19 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         return switch (value) {
             case null -> null;
             case DataNull ignored -> null;
-            case DataBoolean v -> v.value();
-            case DataByte v -> v.value() == null ? null : v.value().intValue();
-            case DataShort v -> v.value() == null ? null : v.value().intValue();
-            case DataInteger v -> v.value();
-            case DataLong v -> v.value();
-            case DataFloat v -> v.value();
-            case DataDouble v -> v.value();
-            case DataString v -> v.value();
-            case DataBytes v -> v.value();
-            case DataList v -> convertDataListToAvroList(v, null);
-            case DataMap v -> convertDataMapToAvroMap(v, null);
-            case DataStruct v -> convertDataStructToAvroRecord(v);
-            // DataTuple has no real counterpart in Avro, KSML does not support Avro with Tuples right
+            case DataBoolean val -> val.value();
+            case DataByte val -> val.value() == null ? null : val.value().intValue();
+            case DataShort val -> val.value() == null ? null : val.value().intValue();
+            case DataInteger val -> val.value();
+            case DataLong val -> val.value();
+            case DataDouble val -> val.value();
+            case DataFloat val -> val.value();
+            case DataString val -> val.value();
+            case DataBytes val -> val.value();
+            case DataList val -> convertDataListToAvroList(val, null);
+            case DataMap val -> convertDataMapToAvroMap(val, null);
+            case DataStruct val -> convertDataStructToAvroRecord(val);
+            // DataTuple has no real counterpart in AVRO, KSML does not convert Tuples to AVRO
             default ->
                     throw new DataException("Can not convert DataObject to AVRO: " + value.getClass().getSimpleName());
         };
@@ -147,50 +168,34 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     // ========================= TO DATAOBJECT HELPERS =========================
 
     private DataObject convertRecordToDataStruct(DataType expected, GenericRecord genericRecord) {
-        var avroSchema = genericRecord.getSchema();
-        var structSchema = (StructSchema) SCHEMA_MAPPER.toDataSchema(avroSchema.getNamespace(), avroSchema.getName(), avroSchema);
-        var result = new DataStruct(structSchema);
+        final var avroSchema = genericRecord.getSchema();
+        final var structSchema = (StructSchema) SCHEMA_MAPPER.toDataSchema(avroSchema.getNamespace(), avroSchema.getName(), avroSchema);
+        final var result = new DataStruct(structSchema);
 
         for (var field : avroSchema.getFields()) {
             final var name = field.name();
             final var raw = genericRecord.get(name);
-            final var fieldDataSchema = structSchema.field(name) != null ? structSchema.field(name).schema() : null;
-            final var fieldExpectedType = TYPE_SCHEMA_MAPPER.fromDataSchema(fieldDataSchema);
 
-            if (raw == null) {
-                // Handle optional unions with null defaults based on concrete branch
-                var nullValue = nullForOptionalField(field.schema());
-                if (nullValue != null) {
-                    result.put(name, nullValue);
-                }
-                // else: omit field for arrays/records/enums -> getter returns null
-                continue;
+            if (raw != null) {
+                // Non-null value: convert based on runtime type and schema
+                final var fieldDataSchema = structSchema.field(name) != null ? structSchema.field(name).schema() : null;
+                final var fieldExpectedType = TYPE_SCHEMA_MAPPER.fromDataSchema(fieldDataSchema);
+                final var conv = toDataObject(fieldExpectedType, raw, field.schema());
+                result.put(name, conv);
+            } else {
+                // Handle optional unions with null defaults based on a concrete branch
+                final var nullValue = nullForOptionalField(field.schema());
+                // Only add non-null values to the result, i.e., omit for arrays/records/enums -> getter returns null
+                if (nullValue != null) result.put(name, nullValue);
             }
-
-            // Non-null value: convert based on runtime type and schema
-            var conv = convertAvroValueToDataObject(fieldExpectedType, raw, field.schema());
-            result.put(name, conv);
         }
-        return result;
-    }
 
-    private DataObject convertAvroValueToDataObject(DataType expected, Object value, Schema avroFieldSchema) {
-        if (value == null) return ConvertUtil.convertNullToDataObject(expected);
-        if (value instanceof Utf8 utf8) value = utf8.toString();
-        if (value instanceof ByteBuffer bb) value = toByteArray(bb);
-        if (value instanceof GenericData.EnumSymbol enumSym)
-            return new DataString(enumSym.toString());
-        if (value instanceof GenericFixed fixed) return new DataBytes(fixed.bytes());
-        if (value instanceof GenericRecord rec) return convertRecordToDataStruct(expected, rec);
-        if (value instanceof List<?> list)
-            return convertArrayToDataList(expected, list, elementSchemaOf(avroFieldSchema));
-        if (value instanceof Map<?, ?> map)
-            return convertMapToDataMap(expected, map, mapValueSchemaOf(avroFieldSchema));
-        return primitiveToDataObject(expected, value);
+        // Make sure the returned DataObject conforms to the expected data type
+        return CONVERTER.convert(expected, result);
     }
 
     private DataObject nullForOptionalField(Schema fieldSchema) {
-        var effective = unwrapUnionToPrimary(fieldSchema);
+        final var effective = unwrapUnionToPrimary(fieldSchema);
         if (effective == null) return null; // not an optional union or ambiguous union
         return switch (effective.getType()) {
             case STRING -> new DataString(null);
@@ -213,7 +218,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Schema unwrapUnionToPrimary(Schema schema) {
         if (schema.getType() != Schema.Type.UNION) return null;
-        var types = schema.getTypes();
+        final var types = schema.getTypes();
         // Optional pattern: [null, T] or [T, null]
         if (types.size() == 2) {
             if (types.get(0).getType() == Schema.Type.NULL) return types.get(1);
@@ -247,25 +252,26 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     private DataObject convertArrayToDataList(DataType expected, List<?> list, Schema elementSchema) {
         var elemType = elementSchema != null ? dataTypeFromAvroSchema(elementSchema) : DataType.UNKNOWN;
         var result = new DataList(elemType);
-        for (var el : list) {
-            result.add(toDataObject(elemType, el));
-        }
-        return result;
+        // Add elements to the result list
+        list.forEach(el -> result.add(toDataObject(elemType, el, elementSchema)));
+        // Make sure the returned DataObject conforms to the expected data type
+        return CONVERTER.convert(expected, result);
     }
 
     private DataObject convertMapToDataMap(DataType expected, Map<?, ?> map, Schema valueSchema) {
-        var valType = valueSchema != null ? dataTypeFromAvroSchema(valueSchema) : DataType.UNKNOWN;
-        var result = new DataMap(valType);
-        for (var e : map.entrySet()) {
-            var key = e.getKey() instanceof Utf8 u ? u.toString() : String.valueOf(e.getKey());
-            result.put(key, toDataObject(valType, e.getValue()));
+        final var valType = valueSchema != null ? dataTypeFromAvroSchema(valueSchema) : DataType.UNKNOWN;
+        final var result = new DataMap(valType);
+        for (final var e : map.entrySet()) {
+            final var key = e.getKey() instanceof Utf8 u ? u.toString() : String.valueOf(e.getKey());
+            result.put(key, toDataObject(valType, e.getValue(), valueSchema));
         }
-        return result;
+        // Make sure the returned DataObject conforms to the expected data type
+        return CONVERTER.convert(expected, result);
     }
 
     private static byte[] toByteArray(ByteBuffer buffer) {
-        var dup = buffer.duplicate();
-        var arr = new byte[dup.remaining()];
+        final var dup = buffer.duplicate();
+        final var arr = new byte[dup.remaining()];
         dup.get(arr);
         return arr;
     }
@@ -297,37 +303,76 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         };
     }
 
-    private DataObject primitiveToDataObject(DataType expected, Object value) {
-        if (value == null || value == JsonProperties.NULL_VALUE)
-            return ConvertUtil.convertNullToDataObject(expected);
-        if (value instanceof DataObject d) return d;
-        if (value instanceof Boolean v) return new DataBoolean(v);
-        if (value instanceof Byte v)
-            return expected == DataInteger.DATATYPE ? new DataInteger(v.intValue()) : new DataByte(v);
-        if (value instanceof Short v)
-            return expected == DataInteger.DATATYPE ? new DataInteger(v.intValue()) : new DataShort(v);
-        if (value instanceof Integer v) return new DataInteger(v);
-        if (value instanceof Long v) return new DataLong(v);
-        if (value instanceof Float v) return new DataFloat(v);
-        if (value instanceof Double v) return new DataDouble(v);
-        if (value instanceof byte[] v) return new DataBytes(v);
-        if (value instanceof CharSequence v) return new DataString(v.toString());
-        throw new DataException("Unsupported primitive type: " + value.getClass().getSimpleName());
-    }
-
+    @Nullable
     private Map<String, Object> convertDataStructToPlainMap(DataStruct struct) {
         if (struct.isNull()) return null;
-        Map<String, Object> out = new TreeMap<>(DataStruct.COMPARATOR);
-        struct.forEach((k, v) -> out.put(k, fromDataObject(v)));
-        return out;
+        return new Struct<>(struct.contents(), this::fromDataObject);
     }
 
     // ========================= FROM DATAOBJECT HELPERS =========================
 
+    private Object convertDataObjectToAvroBySchema(DataObject value, Schema schema) {
+        if (value == null) return null;
+        return switch (schema.getType()) {
+            case NULL -> null;
+            case BOOLEAN -> value instanceof DataBoolean val ? val.value() : fromDataObject(value);
+            case INT -> switch (value) {
+                case DataByte val -> val.value() != null ? val.value().intValue() : null;
+                case DataShort val -> val.value() != null ? val.value().intValue() : null;
+                case DataInteger val -> val.value();
+                default -> fromDataObject(value);
+            };
+            case LONG -> value instanceof DataLong val ? val.value() : fromDataObject(value);
+            case DOUBLE -> value instanceof DataDouble val ? val.value() : fromDataObject(value);
+            case FLOAT -> value instanceof DataFloat val ? val.value() : fromDataObject(value);
+            case BYTES -> value instanceof DataBytes val ? val.value() : fromDataObject(value);
+            case FIXED -> value instanceof DataBytes val ? new GenericData.Fixed(schema, val.value()) : null;
+            case STRING -> value instanceof DataString val ? val.value() : fromDataObject(value);
+            case ENUM -> {
+                if (value instanceof DataString s)
+                    yield new GenericData.EnumSymbol(schema, s.value());
+                if (value instanceof DataEnum e)
+                    yield new GenericData.EnumSymbol(schema, e.value());
+                yield null;
+            }
+            case ARRAY ->
+                    value instanceof DataList val ? convertDataListToAvroList(val, schema.getElementType()) : null;
+            case MAP -> value instanceof DataMap val ? convertDataMapToAvroMap(val, schema.getValueType()) : null;
+            case RECORD -> value instanceof DataStruct val ? convertDataStructToAvroRecord(val) : null;
+            case UNION -> {
+                if (value instanceof DataNull) yield null;
+                // Try to match one of the union branches
+                for (var branch : schema.getTypes()) {
+                    if (branch.getType() == Schema.Type.NULL) continue;
+                    var candidate = convertDataObjectToAvroBySchema(value, branch);
+                    if (candidate != null) yield candidate;
+                }
+                // Last resort
+                yield fromDataObject(value);
+            }
+        };
+    }
+
+    @Nullable
+    private List<Object> convertDataListToAvroList(DataList list, Schema elementSchema) {
+        if (list.isNull()) return null;
+        List<Object> result = new ArrayList<>(list.size());
+        list.forEach(element -> result.add(elementSchema != null ? convertDataObjectToAvroBySchema(element, elementSchema) : fromDataObject(element)));
+        return result;
+    }
+
+    @Nullable
+    private Map<String, Object> convertDataMapToAvroMap(DataMap map, Schema valueSchema) {
+        if (map.isNull()) return null;
+        return new Struct<>(
+                map.contents(),
+                v -> valueSchema != null ? convertDataObjectToAvroBySchema(v, valueSchema) : fromDataObject(v));
+    }
+
     private Object convertDataStructToAvroRecord(DataStruct struct) {
         if (struct.isNull()) return null;
 
-        // Build Avro schema from struct type if available
+        // Build AVRO schema from the given struct type if available
         var ksmlSchema = struct.type() != null ? struct.type().schema() : null;
         var avroSchema = ksmlSchema != null ? SCHEMA_MAPPER.fromDataSchema(ksmlSchema) : null;
         if (avroSchema == null || avroSchema.getType() != Schema.Type.RECORD) {
@@ -341,98 +386,5 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             rec.put(f.name(), avroVal);
         }
         return rec;
-    }
-
-    private Object convertDataObjectToAvroBySchema(DataObject value, Schema schema) {
-        if (value == null) return null;
-        switch (schema.getType()) {
-            case STRING -> {
-                if (value instanceof DataString s) return s.value();
-                return fromDataObject(value);
-            }
-            case INT -> {
-                if (value instanceof DataInteger v) return v.value();
-                if (value instanceof DataByte v)
-                    return v.value() != null ? v.value().intValue() : null;
-                if (value instanceof DataShort v)
-                    return v.value() != null ? v.value().intValue() : null;
-                return fromDataObject(value);
-            }
-            case LONG -> {
-                if (value instanceof DataLong v) return v.value();
-                return fromDataObject(value);
-            }
-            case FLOAT -> {
-                if (value instanceof DataFloat v) return v.value();
-                return fromDataObject(value);
-            }
-            case DOUBLE -> {
-                if (value instanceof DataDouble v) return v.value();
-                return fromDataObject(value);
-            }
-            case BOOLEAN -> {
-                if (value instanceof DataBoolean v) return v.value();
-                return fromDataObject(value);
-            }
-            case BYTES -> {
-                if (value instanceof DataBytes v) return v.value();
-                return fromDataObject(value);
-            }
-            case FIXED -> {
-                if (value instanceof DataBytes v) return new GenericData.Fixed(schema, v.value());
-                return null;
-            }
-            case ENUM -> {
-                if (value instanceof DataString s)
-                    return new GenericData.EnumSymbol(schema, s.value());
-                if (value instanceof DataEnum e)
-                    return new GenericData.EnumSymbol(schema, e.value());
-                return null;
-            }
-            case ARRAY -> {
-                if (value instanceof DataList list)
-                    return convertDataListToAvroList(list, schema.getElementType());
-                return null;
-            }
-            case MAP -> {
-                if (value instanceof DataMap map)
-                    return convertDataMapToAvroMap(map, schema.getValueType());
-                return null;
-            }
-            case RECORD -> {
-                if (value instanceof DataStruct st) return convertDataStructToAvroRecord(st);
-                return null;
-            }
-            case UNION -> {
-                if (value instanceof DataNull) return null;
-                // Try to match one of the union branches
-                for (var branch : schema.getTypes()) {
-                    if (branch.getType() == Schema.Type.NULL) continue;
-                    var candidate = convertDataObjectToAvroBySchema(value, branch);
-                    if (candidate != null) return candidate;
-                }
-                // Last resort
-                return fromDataObject(value);
-            }
-            default -> {
-                return fromDataObject(value);
-            }
-        }
-    }
-
-    private List<Object> convertDataListToAvroList(DataList list, Schema elementSchema) {
-        if (list.isNull()) return null;
-        List<Object> out = new ArrayList<>(list.size());
-        for (var el : list) {
-            out.add(elementSchema != null ? convertDataObjectToAvroBySchema(el, elementSchema) : fromDataObject(el));
-        }
-        return out;
-    }
-
-    private Map<String, Object> convertDataMapToAvroMap(DataMap map, Schema valueSchema) {
-        if (map.isNull()) return null;
-        Map<String, Object> out = new TreeMap<>();
-        map.forEach((k, v) -> out.put(k, valueSchema != null ? convertDataObjectToAvroBySchema(v, valueSchema) : fromDataObject(v)));
-        return out;
     }
 }

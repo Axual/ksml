@@ -1,4 +1,4 @@
-package io.axual.ksml.store;
+package io.axual.ksml.proxy.store;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,6 +20,7 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.python.PythonNativeMapper;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
@@ -34,6 +35,7 @@ import org.apache.kafka.streams.state.WindowStore;
  * a controlled interface that can be safely exposed to user code (e.g., Python functions).
  */
 public class StateStoreProxyFactory {
+    private static final PythonNativeMapper MAPPER = new PythonNativeMapper();
 
     private StateStoreProxyFactory() {
         // Utility class, prevent instantiation
@@ -48,17 +50,17 @@ public class StateStoreProxyFactory {
     @SuppressWarnings("unchecked")
     public static StateStore wrap(StateStore store) {
         if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
-            return new VersionedKeyValueStoreProxy<>((VersionedKeyValueStore<Object, Object>) versionedStore);
+            return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore);
         } else if (store instanceof TimestampedKeyValueStore<?, ?> timestampedKeyValueStore) {
-            return new TimestampedKeyValueStoreProxy<>(timestampedKeyValueStore);
+            return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore);
         } else if (store instanceof KeyValueStore<?, ?> kvStore) {
-            return new KeyValueStoreProxy<>((KeyValueStore<Object, Object>) kvStore);
+            return new KeyValueStoreProxy((KeyValueStore<Object, Object>) kvStore);
         } else if (store instanceof SessionStore<?, ?> sessionStore) {
-            return new SessionStoreProxy<>((SessionStore<Object, Object>) sessionStore);
+            return new SessionStoreProxy((SessionStore<Object, Object>) sessionStore);
         } else if (store instanceof TimestampedWindowStore<?, ?> timestampedWindowStore) {
-            return new TimestampedWindowStoreProxy<>(timestampedWindowStore);
+            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore);
         } else if (store instanceof WindowStore<?, ?> windowStore) {
-            return new WindowStoreProxy<>((WindowStore<Object, Object>) windowStore);
+            return new WindowStoreProxy((WindowStore<Object, Object>) windowStore);
         }
         // Return unwrapped for unknown store types
         return store;
