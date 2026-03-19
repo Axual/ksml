@@ -25,11 +25,6 @@ import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonNativeMapper;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
-import org.apache.kafka.streams.query.Position;
-import org.apache.kafka.streams.query.PositionBound;
-import org.apache.kafka.streams.query.Query;
-import org.apache.kafka.streams.query.QueryConfig;
-import org.apache.kafka.streams.query.QueryResult;
 import org.graalvm.polyglot.HostAccess;
 
 /**
@@ -79,21 +74,5 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     @Override
     public boolean isOpen() {
         return delegate.isOpen();
-    }
-
-    @Override
-    @HostAccess.Export
-    public <R> QueryResult<R> query(Query<R> query, PositionBound positionBound, QueryConfig config) {
-        throw new UnsupportedOperationException(
-                "query is not implemented by this StateStore proxy (" + getClass() + ")"
-        );
-    }
-
-    @Override
-    @HostAccess.Export
-    public Position getPosition() {
-        throw new UnsupportedOperationException(
-                "getPosition is not implemented by this StateStore proxy (" + getClass() + ")"
-        );
     }
 }
