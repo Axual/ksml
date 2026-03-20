@@ -111,7 +111,7 @@ public class PythonFunction extends UserFunction {
 
         try {
             // Call the prepared function
-            log.debug("Calling Python function \"{}\" \"{}\" with arguments {}", namespace, name, arguments);
+            log.debug("Calling Python function: namespace={}, name={}, arguments={}", namespace, name, arguments);
             Value pyResult = function.execute(arguments);
 
             if (pyResult.canExecute()) {

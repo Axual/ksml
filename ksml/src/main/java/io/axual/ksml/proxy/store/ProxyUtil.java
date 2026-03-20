@@ -54,7 +54,7 @@ public class ProxyUtil {
     public static Object resultFrom(VersionedRecord<Object> vr) {
         if (vr == null) return null;
         final var converted = new Struct<>();
-        converted.put(VALID_TO_FIELD, toPython(vr.value()));
+        converted.put(VALUE_FIELD, toPython(vr.value()));
         converted.put(TIMESTAMP_FIELD, toPython(vr.timestamp()));
         vr.validTo().ifPresent(validTo -> converted.put(VALID_TO_FIELD, toPython(validTo)));
         return new PythonDict(converted);

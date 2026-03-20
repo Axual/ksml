@@ -23,16 +23,16 @@ functions:
     type: forEach
     globalCode: |
       import time
-      def current_milli_time():
-        return round(time.time() * 1000)
     code: |
+      log.info("Processing message: key={}, value={}", key, value)
       last_value = last_sensor_data_store.get(key)
       
       if last_value != None:
-        log.info("Found last value: {} = {}", key, last_value["value"])
-      last_sensor_data_store.put(key, value, current_milli_time())
+        log.info("Found last value in versioned state store: key={}, timestamp={}, value={}", key, last_value["timestamp"], last_value["value"])
+      time_in_millis = round(time.time() * 1000)
+      last_sensor_data_store.put(key, value, time_in_millis)
       if value != None:
-        log.info("Stored new value: {} = {}", key, value)
+        log.info("Stored new value in versioned state store: key={}, timestamp={}, value={}", key, time_in_millis, value)
     stores:
       - last_sensor_data_store
 
