@@ -20,16 +20,19 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.WindowedType;
+import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.SessionStore;
 import org.graalvm.polyglot.HostAccess;
-
-import java.time.Instant;
 
 /**
  * A proxy for accessing Kafka Streams SessionStore in Python code. This proxy mediates between Python and Java data
  * types and delegates all operations to the underlying store.
  */
 public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Object, Object>> {
+    private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
 
     public SessionStoreProxy(SessionStore<Object, Object> delegate) {
         super(delegate);
@@ -37,15 +40,68 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     // ==================== ReadOnlySessionStore methods ====================
 
-    // ==================== SessionStore methods ====================
+    @HostAccess.Export
+    public Object backwardFetch(final Object key) {
+        return new KeyValueIteratorProxy(delegate.backwardFetch(NATIVE_MAPPER.fromPython(key)));
+    }
 
     @HostAccess.Export
-    public Object fetchSession(Object key, long sessionStartTime, long sessionEndTime) {
+    public Object backwardFetch(final Object keyFrom, final Object keyTo) {
+        return new KeyValueIteratorProxy(delegate.backwardFetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo)));
+    }
+
+    @HostAccess.Export
+    public Object backwardFindSessions(final Object key, final long earliestSessionEndTime, final long latestSessionStartTime) {
+        return new KeyValueIteratorProxy(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(key), earliestSessionEndTime, latestSessionStartTime));
+    }
+
+    @HostAccess.Export
+    public Object backwardFindSessions(final Object keyFrom, final Object keyTo, final long earliestSessionEndTime, final long latestSessionStartTime) {
+        return new KeyValueIteratorProxy(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), earliestSessionEndTime, latestSessionStartTime));
+    }
+
+    @HostAccess.Export
+    public Object fetch(final Object key) {
+        return new KeyValueIteratorProxy(delegate.fetch(NATIVE_MAPPER.fromPython(key)));
+    }
+
+    @HostAccess.Export
+    public Object fetch(final Object keyFrom, final Object keyTo) {
+        return new KeyValueIteratorProxy(delegate.fetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo)));
+    }
+
+    @HostAccess.Export
+    public Object fetchSession(final Object key, final long sessionStartTime, final long sessionEndTime) {
         return ProxyUtil.toPython(delegate.fetchSession(NATIVE_MAPPER.fromPython(key), sessionStartTime, sessionEndTime));
     }
 
     @HostAccess.Export
-    public Object fetchSession(Object key, Instant sessionStartTime, Instant sessionEndTime) {
-        return ProxyUtil.toPython(delegate.fetchSession(NATIVE_MAPPER.fromPython(key), sessionStartTime, sessionEndTime));
+    public Object findSessions(Object key, long earliestSessionEndTime, long latestSessionStartTime) {
+        return new KeyValueIteratorProxy(delegate.findSessions(NATIVE_MAPPER.fromPython(key), earliestSessionEndTime, latestSessionStartTime));
+    }
+
+    @HostAccess.Export
+    public Object findSessions(Object keyFrom, Object keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
+        return new KeyValueIteratorProxy(delegate.findSessions(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), earliestSessionEndTime, latestSessionStartTime));
+    }
+
+    // ==================== SessionStore methods ====================
+
+    @HostAccess.Export
+    public void put(final Object sessionKey, final Object aggregate) {
+        final var key = FLATTENER.toDataObject(NATIVE_MAPPER.fromPython(sessionKey));
+        final var windowedKey = FLATTENER.unflatten(new WindowedType(DataType.UNKNOWN), key);
+        if (windowedKey instanceof Windowed<?> windowed) {
+            delegate.put((Windowed<Object>) windowed, NATIVE_MAPPER.fromPython(aggregate));
+        }
+    }
+
+    @HostAccess.Export
+    public void remove(final Object sessionKey) {
+        final var key = FLATTENER.toDataObject(NATIVE_MAPPER.fromPython(sessionKey));
+        final var windowedKey = FLATTENER.unflatten(new WindowedType(DataType.UNKNOWN), key);
+        if (windowedKey instanceof Windowed<?> windowed) {
+            delegate.remove((Windowed<Object>) windowed);
+        }
     }
 }

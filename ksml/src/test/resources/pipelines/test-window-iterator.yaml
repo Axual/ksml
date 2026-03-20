@@ -41,17 +41,11 @@ functions:
         iterator = window_store.fetch(key, time_from, time_to)
         log.info("SUCCESS: Got WindowStoreIterator from fetch()")
 
-        log.info("Attempting to call iterator.hasNext()...")
         try:
-          has_next = iterator.hasNext()
-          log.info("SUCCESS: hasNext() returned: {}", has_next)
-
-          if has_next:
-            log.info("Attempting to call iterator.next()...")
+          while iterator.hasNext():
             try:
               entry = iterator.next()
-              log.info("SUCCESS: next() returned an entry")
-              log.info("Entry type: {}", type(entry))
+              log.info("Entry: {}", entry)
             except Exception as e:
               log.error("FAIL: iterator.next() failed: {}", str(e))
         except Exception as e:
@@ -68,27 +62,21 @@ functions:
       # Test KeyValueIterator from all()
       log.info("Attempting to call window_store.all()...")
       try:
-        all_iterator = window_store.all()
+        iterator = window_store.all()
         log.info("SUCCESS: Got KeyValueIterator from all()")
 
-        log.info("Attempting to call all_iterator.hasNext()...")
-        try:
-          has_next = all_iterator.hasNext()
-          log.info("SUCCESS: hasNext() returned: {}", has_next)
-
-          if has_next:
-            log.info("Attempting to call all_iterator.next()...")
+        while iterator.hasNext():
+          try:
             try:
-              entry = all_iterator.next()
-              log.info("SUCCESS: next() returned an entry")
-              log.info("Entry type: {}", type(entry))
+              entry = iterator.next()
+              log.info("Entry: {}", entry)
             except Exception as e:
-              log.error("FAIL: all_iterator.next() failed: {}", str(e))
-        except Exception as e:
-          log.error("FAIL: all_iterator.hasNext() failed: {}", str(e))
+              log.error("FAIL: iterator.next() failed: {}", str(e))
+          except Exception as e:
+            log.error("FAIL: iterator.hasNext() failed: {}", str(e))
 
         try:
-          all_iterator.close()
+          iterator.close()
         except Exception as e:
           log.warn("Could not close iterator: {}", str(e))
 

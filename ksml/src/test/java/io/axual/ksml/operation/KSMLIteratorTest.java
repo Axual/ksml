@@ -25,12 +25,7 @@ import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.errors.StreamsException;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -46,16 +41,12 @@ public class KSMLIteratorTest {
      */
     @KSMLTest(topology = "pipelines/test-keyvalue-iterator.yaml")
     void testKeyValueStoreIterator() {
-        Exception e = assertThrows(StreamsException.class, () -> {
-            // Send data to trigger the forEach function which tests the iterator
-            inputTopic.pipeInput("sensor1", "value1");
-            inputTopic.pipeInput("sensor2", "value2");
-            inputTopic.pipeInput("sensor3", "value3");
-        });
+        // Send data to trigger the forEach function which tests the iterator
+        inputTopic.pipeInput("sensor1", "value1");
+        inputTopic.pipeInput("sensor2", "value2");
+        inputTopic.pipeInput("sensor3", "value3");
 
-        // need to assert RuntimeException, as FatalError changes the exception type
-        assertInstanceOf(RuntimeException.class, e.getCause(), "expected UnsupportedOperationException");
-        assertTrue(e.getCause().getMessage().contains("not supported by this proxy"));
+        // No exception is thrown and all messages could be processed
     }
 
     /**
@@ -65,15 +56,11 @@ public class KSMLIteratorTest {
      */
     @KSMLTest(topology = "pipelines/test-window-iterator.yaml")
     void testWindowStoreIterator() {
-        Exception e = assertThrows(StreamsException.class, () -> {
-            // Send data to trigger the forEach function which tests the iterator
-            inputTopic.pipeInput("sensor1", "value1");
-            inputTopic.pipeInput("sensor2", "value2");
-        });
+        // Send data to trigger the forEach function which tests the iterator
+        inputTopic.pipeInput("sensor1", "value1");
+        inputTopic.pipeInput("sensor2", "value2");
 
-        // need to assert RuntimeException, as FatalError changes the exception type
-        assertInstanceOf(RuntimeException.class, e.getCause(), "expected UnsupportedOperationException");
-        assertTrue(e.getCause().getMessage().contains("not supported by this proxy"));
+        // No exception is thrown and all messages could be processed
     }
 
     /**
@@ -82,14 +69,10 @@ public class KSMLIteratorTest {
      */
     @KSMLTest(topology = "pipelines/test-session-iterator.yaml")
     void testSessionStoreIterator() {
-        Exception e = assertThrows(StreamsException.class, () -> {
-            // Send data to trigger the forEach function which tests the iterator
-            inputTopic.pipeInput("sensor1", "value1");
-            inputTopic.pipeInput("sensor2", "value2");
-        });
+        // Send data to trigger the forEach function which tests the iterator
+        inputTopic.pipeInput("sensor3", "value3");
+        inputTopic.pipeInput("sensor4", "value4");
 
-        // need to assert RuntimeException, as FatalError changes the exception type
-        assertInstanceOf(RuntimeException.class, e.getCause(), "expected UnsupportedOperationException");
-        assertTrue(e.getCause().getMessage().contains("not supported by this proxy"));
+        // No exception is thrown and all messages could be processed
     }
 }

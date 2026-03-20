@@ -36,8 +36,18 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
     // ==================== ReadOnlyWindowStore methods ====================
 
     @HostAccess.Export
+    public Object all() {
+        return new KeyValueIteratorProxy(delegate.all());
+    }
+
+    @HostAccess.Export
     public Object fetch(Object key, long time) {
         return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(key), time));
+    }
+
+    @HostAccess.Export
+    public Object fetch(Object key, long timeFrom, long timeTo) {
+        return new WindowStoreIteratorProxy(delegate.fetch(NATIVE_MAPPER.fromPython(key), timeFrom, timeTo));
     }
 
     // ==================== WindowStore methods ====================

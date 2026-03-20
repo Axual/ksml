@@ -75,4 +75,10 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     public boolean isOpen() {
         return delegate.isOpen();
     }
+
+    @HostAccess.Export
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " [name=\"" + name() + "\"]";
+    }
 }

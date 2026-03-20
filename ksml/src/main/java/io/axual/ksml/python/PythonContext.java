@@ -62,7 +62,8 @@ public class PythonContext {
             "io.axual.ksml.proxy.store.WindowStoreProxy",
             "io.axual.ksml.proxy.store.TimestampedWindowStoreProxy",
             "io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy",
-            "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy");
+            "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy",
+            "io.axual.ksml.proxy.store.KeyValueIteratorProxy");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
