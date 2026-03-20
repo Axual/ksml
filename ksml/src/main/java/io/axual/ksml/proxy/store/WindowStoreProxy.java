@@ -37,7 +37,27 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public Object all() {
-        return new KeyValueIteratorProxy(delegate.all());
+        return ProxyUtil.toPython(delegate.all());
+    }
+
+    @HostAccess.Export
+    public Object backwardAll() {
+        return ProxyUtil.toPython(delegate.backwardAll());
+    }
+
+    @HostAccess.Export
+    public Object backwardFetch(Object key, long timeFrom, long timeTo) {
+        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(key), timeFrom, timeTo));
+    }
+
+    @HostAccess.Export
+    public Object backwardFetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
+        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), timeFrom, timeTo));
+    }
+
+    @HostAccess.Export
+    public Object backwardFetchAll(long timeFrom, long timeTo) {
+        return ProxyUtil.toPython(delegate.backwardFetchAll(timeFrom, timeTo));
     }
 
     @HostAccess.Export
@@ -47,7 +67,17 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public Object fetch(Object key, long timeFrom, long timeTo) {
-        return new WindowStoreIteratorProxy(delegate.fetch(NATIVE_MAPPER.fromPython(key), timeFrom, timeTo));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(key), timeFrom, timeTo));
+    }
+
+    @HostAccess.Export
+    public Object fetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), timeFrom, timeTo));
+    }
+
+    @HostAccess.Export
+    public Object fetchAll(long timeFrom, long timeTo) {
+        return ProxyUtil.toPython(delegate.fetchAll(timeFrom, timeTo));
     }
 
     // ==================== WindowStore methods ====================

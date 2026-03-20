@@ -37,7 +37,7 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public Object all() {
-        return new KeyValueIteratorProxy(delegate.all());
+        return ProxyUtil.toPython(delegate.all());
     }
 
     @HostAccess.Export

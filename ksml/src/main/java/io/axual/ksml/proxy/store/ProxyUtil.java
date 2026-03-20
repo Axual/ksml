@@ -28,8 +28,17 @@ import io.axual.ksml.python.PythonDict;
 import io.axual.ksml.python.PythonNativeMapper;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.KeyValueIterator;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
+import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
+import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 
 public class ProxyUtil {
     private static final String KEY_FIELD = "key";
@@ -70,10 +79,42 @@ public class ProxyUtil {
 
     public static Object toPython(Object object) {
         if (object == null) return null;
+        if (object instanceof WindowStoreIterator<?> wis) return new WindowStoreIteratorProxy(wis);
+        if (object instanceof KeyValueIterator<?, ?> kvi) return new KeyValueIteratorProxy(kvi);
         if (object instanceof Windowed<?> windowed)
             object = FLATTENER.toDataObject(windowed);
         if (object instanceof DataObject dataObject)
             return DATA_OBJECT_MAPPER.fromDataObject(dataObject);
         return NATIVE_MAPPER.toPython(object);
+    }
+
+    /**
+     * Wraps a state store in an appropriate proxy based on its type.
+     *
+     * @param store the state store to wrap
+     * @return a proxy wrapper around the store, or the original store if no proxy is available
+     */
+    /**
+     * Factory class for creating proxy wrappers around Kafka Streams state stores.
+     * The proxies delegate all operations to the underlying store while providing
+     * a controlled interface that can be safely exposed to user code (e.g., Python functions).
+     */
+    @SuppressWarnings("unchecked")
+    public static StateStore wrapStateStore(StateStore store) {
+        if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
+            return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore);
+        } else if (store instanceof TimestampedKeyValueStore<?, ?> timestampedKeyValueStore) {
+            return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore);
+        } else if (store instanceof KeyValueStore<?, ?> kvStore) {
+            return new KeyValueStoreProxy((KeyValueStore<Object, Object>) kvStore);
+        } else if (store instanceof SessionStore<?, ?> sessionStore) {
+            return new SessionStoreProxy((SessionStore<Object, Object>) sessionStore);
+        } else if (store instanceof TimestampedWindowStore<?, ?> timestampedWindowStore) {
+            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore);
+        } else if (store instanceof WindowStore<?, ?> windowStore) {
+            return new WindowStoreProxy((WindowStore<Object, Object>) windowStore);
+        }
+        // Return unwrapped for unknown store types
+        return store;
     }
 }
