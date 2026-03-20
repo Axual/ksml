@@ -37,12 +37,12 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public Object delete(Object key) {
-        return ProxyUtil.resultFrom(delegate.delete(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.delete(NATIVE_MAPPER.fromPython(key)));
     }
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.resultFrom(delegate.get(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(key)));
     }
 
     @HostAccess.Export
@@ -52,7 +52,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value, long timestamp) {
-        return ProxyUtil.resultFrom(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp)));
+        return ProxyUtil.toPython(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp)));
     }
 
     @HostAccess.Export

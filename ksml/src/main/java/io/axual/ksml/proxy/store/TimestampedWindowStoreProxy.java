@@ -38,7 +38,7 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
 
     @HostAccess.Export
     public java.lang.Object fetch(java.lang.Object key, long time) {
-        return ProxyUtil.resultFrom(delegate.fetch(NATIVE_MAPPER.fromPython(key), time));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(key), time));
     }
 
     // ==================== WindowStore methods ====================

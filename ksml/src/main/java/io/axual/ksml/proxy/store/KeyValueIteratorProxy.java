@@ -46,6 +46,6 @@ public class KeyValueIteratorProxy implements AbstractProxy {
     @HostAccess.Export
     public Object next() {
         if (!iterator.hasNext()) return null;
-        return ProxyUtil.resultFrom(iterator.next());
+        return ProxyUtil.toPython(iterator.next());
     }
 }

@@ -40,6 +40,9 @@ import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
+/**
+ * Utility class for creating proxy objects and converted values returned to Python
+ */
 public class ProxyUtil {
     private static final String KEY_FIELD = "key";
     private static final String TIMESTAMP_FIELD = "timestamp";
@@ -52,35 +55,21 @@ public class ProxyUtil {
     private ProxyUtil() {
     }
 
-    public static Object resultFrom(ValueAndTimestamp<Object> vat) {
-        if (vat == null) return null;
-        final var converted = new Struct<>();
-        converted.put(VALUE_FIELD, toPython(vat.value()));
-        converted.put(TIMESTAMP_FIELD, toPython(vat.timestamp()));
-        return new PythonDict(converted);
-    }
-
-    public static Object resultFrom(VersionedRecord<Object> vr) {
-        if (vr == null) return null;
-        final var converted = new Struct<>();
-        converted.put(VALUE_FIELD, toPython(vr.value()));
-        converted.put(TIMESTAMP_FIELD, toPython(vr.timestamp()));
-        vr.validTo().ifPresent(validTo -> converted.put(VALID_TO_FIELD, toPython(validTo)));
-        return new PythonDict(converted);
-    }
-
-    public static Object resultFrom(KeyValue<?, ?> kv) {
-        if (kv == null) return null;
-        final var converted = new Struct<>();
-        converted.put(KEY_FIELD, toPython(kv.key));
-        converted.put(VALUE_FIELD, toPython(kv.value));
-        return new PythonDict(converted);
-    }
-
+    /**
+     * Static method for creating proxy objects and converted values to Python
+     *
+     * @param object the Object to convert to polyglot / Python
+     * @return a proxy object or another wrapper that Python can directly use
+     */
     public static Object toPython(Object object) {
         if (object == null) return null;
+        if (object instanceof ValueAndTimestamp<?> vat) return resultFrom(vat);
+        if (object instanceof VersionedRecord<?> vr) return resultFrom(vr);
+        if (object instanceof KeyValue<?, ?> kv) return resultFrom(kv);
         if (object instanceof WindowStoreIterator<?> wis) return new WindowStoreIteratorProxy(wis);
         if (object instanceof KeyValueIterator<?, ?> kvi) return new KeyValueIteratorProxy(kvi);
+
+        // Normal processing, ensuring flattened data structures
         if (object instanceof Windowed<?> windowed)
             object = FLATTENER.toDataObject(windowed);
         if (object instanceof DataObject dataObject)
@@ -89,15 +78,55 @@ public class ProxyUtil {
     }
 
     /**
-     * Wraps a state store in an appropriate proxy based on its type.
+     * Static method for creating a PythonDict for the Kafka Streams ValueAndTimestamp type
+     *
+     * @param vat the ValueAndTimestamp to convert
+     * @return a PythonDict representing the ValueAndTimestamp
+     */
+    private static Object resultFrom(ValueAndTimestamp<?> vat) {
+        if (vat == null) return null;
+        final var converted = new Struct<>();
+        converted.put(VALUE_FIELD, toPython(vat.value()));
+        converted.put(TIMESTAMP_FIELD, toPython(vat.timestamp()));
+        return new PythonDict(converted);
+    }
+
+    /**
+     * Static method for creating a PythonDict for the Kafka Streams VersionedRecord type
+     *
+     * @param vr the VersionedRecord to convert
+     * @return a PythonDict representing the VersionedRecord
+     */
+    private static Object resultFrom(VersionedRecord<?> vr) {
+        if (vr == null) return null;
+        final var converted = new Struct<>();
+        converted.put(VALUE_FIELD, toPython(vr.value()));
+        converted.put(TIMESTAMP_FIELD, toPython(vr.timestamp()));
+        vr.validTo().ifPresent(validTo -> converted.put(VALID_TO_FIELD, toPython(validTo)));
+        return new PythonDict(converted);
+    }
+
+    /**
+     * Static method for creating a PythonDict for the Kafka Streams KeyValue type
+     *
+     * @param kv the KeyValue to convert
+     * @return a PythonDict representing the KeyValue
+     */
+    private static Object resultFrom(KeyValue<?, ?> kv) {
+        if (kv == null) return null;
+        final var converted = new Struct<>();
+        converted.put(KEY_FIELD, toPython(kv.key));
+        converted.put(VALUE_FIELD, toPython(kv.value));
+        return new PythonDict(converted);
+    }
+
+    /**
+     * Static method for creating proxy wrappers around Kafka Streams state stores.
+     * The proxies delegate all operations to the underlying store while providing
+     * a controlled interface that can be safely exposed to user code (e.g., Python functions).
      *
      * @param store the state store to wrap
      * @return a proxy wrapper around the store, or the original store if no proxy is available
-     */
-    /**
-     * Factory class for creating proxy wrappers around Kafka Streams state stores.
-     * The proxies delegate all operations to the underlying store while providing
-     * a controlled interface that can be safely exposed to user code (e.g., Python functions).
      */
     @SuppressWarnings("unchecked")
     public static StateStore wrapStateStore(StateStore store) {
