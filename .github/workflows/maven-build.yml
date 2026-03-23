@@ -70,7 +70,7 @@ jobs:
 
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: github.actor != 'dependabot[bot]'
         with:
           files: |
             **/target/surefire-reports/TEST-*.xml
