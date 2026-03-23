@@ -21,7 +21,7 @@ package io.axual.ksml.operation.processor;
  */
 
 import io.axual.ksml.exception.ExecutionException;
-import io.axual.ksml.proxy.store.StateStoreProxyFactory;
+import io.axual.ksml.proxy.store.ProxyUtil;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.Processor;
@@ -48,7 +48,7 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, StateStoreProxyFactory.wrap(store));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store));
         }
     }
 }

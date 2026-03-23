@@ -20,13 +20,9 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
-
-import java.util.List;
 
 /**
  * A proxy for accessing Kafka Streams TimestampedKeyValueStore in Python code. This proxy mediates between Python and
@@ -41,17 +37,12 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public Object delete(Object key) {
-        return ProxyUtil.resultFrom(delegate.delete(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.delete(NATIVE_MAPPER.fromPython(key)));
     }
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.resultFrom(delegate.get(NATIVE_MAPPER.fromPython(key)));
-    }
-
-    @HostAccess.Export
-    public void put(Object key, ValueAndTimestamp<Object> value) {
-        throw new UnsupportedOperationException("put(K, ValueAndTimestamp<V>) not supported by this proxy (" + getClass().getName() + ")");
+        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(key)));
     }
 
     @HostAccess.Export
@@ -60,28 +51,8 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     }
 
     @HostAccess.Export
-    public void putAll(List<KeyValue<Object, ValueAndTimestamp<Object>>> entries) {
-        throw new UnsupportedOperationException("putAll(List<KeyValue<K, ValueAndTimestamp<V>>>) not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public Object putIfAbsent(Object key, ValueAndTimestamp<Object> value) {
-        throw new UnsupportedOperationException("putIfAbsent(K, ValueAndTimestamp<V>) not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
     public Object putIfAbsent(Object key, Object value, long timestamp) {
-        return ProxyUtil.resultFrom(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp)));
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Object, ValueAndTimestamp<Object>> range(Object from, Object to) {
-        throw new UnsupportedOperationException("range(from, to) not supported by this proxy (" + getClass().getName() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Object, ValueAndTimestamp<Object>> all() {
-        throw new UnsupportedOperationException("all() not supported by this proxy (" + getClass().getName() + ")");
+        return ProxyUtil.toPython(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp)));
     }
 
     @HostAccess.Export

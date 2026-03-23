@@ -27,6 +27,7 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.WindowedType;
 import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.kstream.internals.TimeWindow;
 
 import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_END_FIELD;
 import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_END_TIME_FIELD;
@@ -58,9 +59,9 @@ public class DataObjectFlattener extends NativeDataObjectMapper {
     public DataObject toDataObject(DataType expected, Object value) {
         if (value instanceof Windowed<?> windowedObject) {
             // Convert a Windowed object into a struct with fields that contain the window fields.
-            var keyAsData = toDataObject(windowedObject.key());
-            var schema = generateWindowedSchema(new WindowedType(keyAsData.type()), FLATTENER::toDataSchema);
-            var result = new DataStruct(schema);
+            final var keyAsData = toDataObject(windowedObject.key());
+            final var schema = generateWindowedSchema(new WindowedType(keyAsData.type()), FLATTENER::toDataSchema);
+            final var result = new DataStruct(schema);
             result.put(WINDOWED_SCHEMA_START_FIELD, new DataLong(windowedObject.window().start()));
             result.put(WINDOWED_SCHEMA_END_FIELD, new DataLong(windowedObject.window().end()));
             result.put(WINDOWED_SCHEMA_START_TIME_FIELD, new DataString(windowedObject.window().startTime().toString()));
@@ -69,5 +70,23 @@ public class DataObjectFlattener extends NativeDataObjectMapper {
             return result;
         }
         return super.toDataObject(expected, value);
+    }
+
+    public Object unflatten(DataType expected, DataObject value) {
+        if (expected instanceof WindowedType && value instanceof DataStruct struct) {
+            if (struct.containsKey(WINDOWED_SCHEMA_START_FIELD) && struct.containsKey(WINDOWED_SCHEMA_END_FIELD)) {
+                if (struct.containsKey(WINDOWED_SCHEMA_KEY_FIELD)) {
+                    final var start = fromDataObject(struct.get(WINDOWED_SCHEMA_START_FIELD));
+                    final var end = fromDataObject(struct.get(WINDOWED_SCHEMA_END_FIELD));
+                    final var key = fromDataObject(struct.get(WINDOWED_SCHEMA_KEY_FIELD));
+                    if (start instanceof Long startTs && end instanceof Long endTs && key != null) {
+                        if (startTs >= endTs)
+                            throw new IllegalArgumentException("Invalid window: startTs=" + startTs + " endTs=" + endTs + ", end needs to be greater than start");
+                        return new Windowed<>(key, new TimeWindow(startTs, endTs));
+                    }
+                }
+            }
+        }
+        return value;
     }
 }

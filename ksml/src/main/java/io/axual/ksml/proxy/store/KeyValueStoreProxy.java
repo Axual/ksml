@@ -20,13 +20,8 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.graalvm.polyglot.HostAccess;
-
-import java.util.List;
 
 /**
  * A proxy for accessing Kafka Streams KeyValueStore in Python code. This proxy mediates between Python and Java data
@@ -41,38 +36,18 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
     // ==================== ReadOnlyKeyValueStore methods ====================
 
     @HostAccess.Export
-    public long approximateNumEntries() {
-        return delegate.approximateNumEntries();
+    public Object all() {
+        return ProxyUtil.toPython(delegate.all());
     }
 
     @HostAccess.Export
-    public KeyValueIterator<Object, Object> all() {
-        throw new UnsupportedOperationException("all() is not supported by this proxy (" + getClass() + ")");
+    public Object approximateNumEntries() {
+        return ProxyUtil.toPython(delegate.approximateNumEntries());
     }
 
     @HostAccess.Export
     public Object get(Object key) {
         return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(key)));
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Object, Object> range(Object from, Object to) {
-        throw new UnsupportedOperationException("range(K, K) is not supported by this proxy (" + getClass() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Object, Object> reverseAll() {
-        throw new UnsupportedOperationException("reverseAll() is not supported by this proxy (" + getClass() + ")");
-    }
-
-    @HostAccess.Export
-    public KeyValueIterator<Object, Object> reverseRange(Object from, Object to) {
-        throw new UnsupportedOperationException("reverseRange(K, K) is not supported by this proxy (" + getClass() + ")");
-    }
-
-    @HostAccess.Export
-    public <PS extends Serializer<P>, P> KeyValueIterator<Object, Object> prefixScan(P prefix, PS prefixKeySerializer) {
-        throw new UnsupportedOperationException("prefixScan(P, PS) is not supported by this proxy (" + getClass() + ")");
     }
 
     // ==================== KeyValueStore methods ====================
@@ -84,12 +59,7 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public void put(Object key, Object value) {
-        delegate.put(key, value);
-    }
-
-    @HostAccess.Export
-    public void putAll(List<KeyValue<Object, Object>> entries) {
-        throw new UnsupportedOperationException("putAll(List<KeyValue<K, V>>) is not supported by this proxy (" + getClass() + ")");
+        delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value));
     }
 
     @HostAccess.Export

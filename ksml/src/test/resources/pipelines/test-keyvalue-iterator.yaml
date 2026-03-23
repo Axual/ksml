@@ -36,19 +36,14 @@ functions:
         log.info("SUCCESS: Got iterator from all()")
 
         # Try to use the iterator - this is what fails in PR code
-        log.info("Attempting to call iterator.hasNext()...")
+        log.info("Attempting to iterate over all entries...")
         try:
-          has_next = iterator.hasNext()
-          log.info("SUCCESS: hasNext() returned: {}", has_next)
-
-          if has_next:
-            log.info("Attempting to call iterator.next()...")
-            try:
-              entry = iterator.next()
-              log.info("SUCCESS: next() returned an entry")
-              log.info("Entry type: {}", type(entry))
-            except Exception as e:
-              log.error("FAIL: iterator.next() failed: {}", str(e))
+          while iterator.hasNext():
+              try:
+                entry = iterator.next()
+                log.info("Entry: {}", entry)
+              except Exception as e:
+                log.error("FAIL: iterator.next() failed: {}", str(e))
         except Exception as e:
           log.error("FAIL: iterator.hasNext() failed: {}", str(e))
           log.error(" KeyValueIterator methods not exported")
