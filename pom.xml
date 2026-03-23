@@ -836,7 +836,7 @@
                     <plugin>
                         <groupId>org.sonarsource.scanner.maven</groupId>
                         <artifactId>sonar-maven-plugin</artifactId>
-                        <version>${sonar.version}</version>
+                        <version>5.2.0.4988</version>
                         <executions>
                             <execution>
                                 <id>sonar-scan</id>
