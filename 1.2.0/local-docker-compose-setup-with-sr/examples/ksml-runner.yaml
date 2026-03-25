@@ -1,0 +1,21 @@
+ksml:
+  definitions:
+    producer: producer.yaml
+    processor: processor.yaml
+  schemaRegistries:
+    my_schema_registry:
+      config:
+        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
+  notations:
+    avro:  
+      type: confluent_avro         # For Avro there are two implementations: apicurio_avro and confluent_avro
+      schemaRegistry: my_schema_registry
+      ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+      config:
+        normalize.schemas: true
+        auto.register.schemas: true
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.example.producer
+  security.protocol: PLAINTEXT
+  acks: all

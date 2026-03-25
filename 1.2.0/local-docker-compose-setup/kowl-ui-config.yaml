@@ -1,0 +1,7 @@
+server:
+  listenPort: 8080
+  listenAddress: 0.0.0.0
+
+kafka:
+  brokers:
+    - broker:9093

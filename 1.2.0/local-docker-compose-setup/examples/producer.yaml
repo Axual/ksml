@@ -1,0 +1,51 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Producer for order processing branching example
+
+functions:
+  generate_orders:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+      regions = ["US", "EU", "APAC", "LATAM"]
+      customer_types = ["premium", "standard", "basic"]
+      products = ["laptop", "phone", "tablet", "monitor", "keyboard"]
+    code: |
+      global counter, regions, customer_types, products
+      counter += 1
+
+      # Generate diverse order data for branching examples
+      order = {
+        "order_id": f"order_{counter:04d}",
+        "customer_id": f"customer_{random.randint(1, 100):03d}",
+        "customer_type": random.choice(customer_types),
+        "product": random.choice(products),
+        "quantity": random.randint(1, 5),
+        "unit_price": round(random.uniform(50.0, 2000.0), 2),
+        "region": random.choice(regions),
+        "timestamp": counter * 1000
+      }
+
+      # Calculate total
+      order["total_amount"] = round(order["quantity"] * order["unit_price"], 2)
+
+      # Add some order-specific flags
+      if order["total_amount"] > 1000:
+        order["high_value"] = True
+
+      if order["region"] not in ["US", "EU"]:
+        order["international"] = True
+
+      key = f"order_{counter:04d}"
+    expression: (key, order)
+    resultType: (string, json)
+
+producers:
+  order_producer:
+    generator: generate_orders
+    interval: 3s
+    to:
+      topic: order_input
+      keyType: string
+      valueType: json
