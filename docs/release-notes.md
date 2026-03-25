@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [1.2.0 (2026-03-25)](#120-2026-03-25)
         * [1.1.0 (2025-09-18)](#110-2025-09-18)
         * [1.0.8 (2025-06-20)](#108-2025-06-20)
         * [1.0.7 (2025-06-09)](#107-2025-06-09)
@@ -25,6 +26,15 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+## 1.2.0 (2026-03-25)
+
+* Strict security implemented to prevent exploits from Python code using Java objects
+* Allow your own Python files to be imported, eg. libraries with custom functions
+* JSON Schema for ksml-runner.yaml
+* Updated to latest RedHat UBI base image and other dependencies
+* Redesigned interfaces for Kafka Streams state stores called from Python functions
+* Deprecation of @type and @schema fields in Python dicts
 
 ## 1.1.0 (2025-09-18)
 
