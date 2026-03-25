@@ -133,7 +133,7 @@ After the release tag is created on main:
    # Enter next patch snapshot: 1.1.1-SNAPSHOT
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
-   Update `Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1.1-snapshot""
+   Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1.1-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin release/1.1.x`
 
@@ -144,7 +144,7 @@ After the release tag is created on main:
    # Enter next minor/major snapshot: 1.2.0-SNAPSHOT
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
-   Update `Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2.0-snapshot""
+   Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2.0-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin main`
 
@@ -243,7 +243,7 @@ mvn versions:set -DgenerateBackupPoms=false
 # Enter next patch snapshot: 1.0.10-SNAPSHOT
 mvn clean package -DskipTests # To generate NOTICE.TXT
 ```
-Update `Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0.10-snapshot""
+Update `packaging/heml-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0.10-snapshot""
 Commit: `git commit -m "Prepare for next development iteration"`
 Push: `git push origin release/1.0.x`
 
