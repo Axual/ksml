@@ -67,7 +67,7 @@ Still on `main` branch:
 
 5. Commit changes:
    ```bash
-   git add pom.xml **/NOTICE.txt
+   git add **/pom.xml **/NOTICE.txt
    git commit -m "Release 1.1.0"
    ```
 
