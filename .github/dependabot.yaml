@@ -20,6 +20,9 @@ updates:
     - dependency-name: "org.apache.kafka:*"
       versions: [ ">=4.0.0" ]
   - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
     open-pull-requests-limit: 10
     allow:
       # Allow both direct and indirect updates for all packages
