@@ -1,7 +1,7 @@
 babel==2.17.0
 backrefs==5.9
 bracex==2.6
-certifi==2025.8.3
+certifi==2026.2.25
 charset-normalizer==3.4.3
 click==8.2.1
 colorama==0.4.6
