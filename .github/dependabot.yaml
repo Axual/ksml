@@ -19,6 +19,11 @@ updates:
       versions: [ ">=4.0.0" ]
     - dependency-name: "org.apache.kafka:*"
       versions: [ ">=4.0.0" ]
+  - package-ecosystem: "pip"
+    open-pull-requests-limit: 10
+    allow:
+      # Allow both direct and indirect updates for all packages
+      - dependency-type: "all"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
