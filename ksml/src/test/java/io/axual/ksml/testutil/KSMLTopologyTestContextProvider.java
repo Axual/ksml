@@ -20,7 +20,6 @@ package io.axual.ksml.testutil;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
@@ -31,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
@@ -64,7 +64,7 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
      * @return a list containing one {@link KSMLTopologyTestInvocationContext} per configured KSML topology.
      */
     @Override
-    public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(final ExtensionContext context) {
+    public @NonNull Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(final ExtensionContext context) {
         log.debug("provideTestTemplateInvocationContexts()");
 
         final Map<String, KSMLTopic> inputTopics = new HashMap<>();
@@ -98,12 +98,12 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
 
         // one-time preparation for the test runs: register notations
         log.debug("Registering notations in notationLibrary");
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), jsonNotation::serde));
+        final var jsonNotation = new JsonNotation();
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
-        final var xmlNotation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var xmlNotation = new XmlNotation();
         ExecutionContext.INSTANCE.notationLibrary().register(XmlNotation.NOTATION_NAME, xmlNotation);
-        final var csvNotation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var csvNotation = new CsvNotation();
         ExecutionContext.INSTANCE.notationLibrary().register(CsvNotation.NOTATION_NAME, csvNotation);
 
         return Arrays.stream(ksmlTopologyTest.topologies())

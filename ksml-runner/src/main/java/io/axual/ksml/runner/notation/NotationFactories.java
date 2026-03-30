@@ -27,7 +27,6 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.NotationProvider;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.json.JsonNotationProvider;
 import io.axual.ksml.type.UserType;
 import lombok.Getter;
@@ -55,12 +54,10 @@ public class NotationFactories {
         for (final var provider : ServiceLoader.load(NotationProvider.class)) {
             if (provider.notationName() != null && !provider.notationName().isEmpty()) {
                 // Create the notation context and register the corresponding notation factory
-                final var context = new NotationContext(provider.notationName(), provider.vendorName(), nativeMapper, typeSchemaMapper, kafkaConfig);
-                notations.put(context.name(), configs ->
+                final var context = new NotationContext(nativeMapper, typeSchemaMapper, kafkaConfig);
+                notations.put(provider.name(), configs ->
                         provider.createNotation(
                                 new NotationContext(
-                                        context.notationName(),
-                                        context.vendorName(),
                                         context.nativeDataObjectMapper(),
                                         context.typeSchemaMapper(),
                                         MapUtil.merge(context.serdeConfigs(), configs))));
@@ -69,19 +66,19 @@ public class NotationFactories {
             }
         }
 
-        // JSON and Binary notations are core to KSML, so we instantiate them manually
+        // JSON and Binary notations are mandatory in KSML, so we instantiate them manually
+        final var defaultContext = new NotationContext(nativeMapper, typeSchemaMapper);
 
         // JSON notation
-        final var jsonContext = new NotationContext(JsonNotation.NOTATION_NAME, nativeMapper, typeSchemaMapper);
-        final NotationFactory json = configs -> new JsonNotationProvider().createNotation(jsonContext);
-        notations.put(jsonContext.name(), json);
+        final var jsonProvider = new JsonNotationProvider();
+        final NotationFactory json = configs -> jsonProvider.createNotation(defaultContext);
+        notations.put(jsonProvider.name(), json);
 
-        // Create the binary notation, with JSON for complex types
-        final var binaryContext = new NotationContext(BinaryNotation.NOTATION_NAME, nativeMapper, typeSchemaMapper);
-        notations.put(binaryContext.name(), config -> new BinaryNotation(binaryContext, json.create(null)::serde));
+        // Create the binary notation with JSON for complex types
+        final var binaryNotation = new BinaryNotation(defaultContext, json.create(null)::serde);
+        notations.put(BinaryNotation.NOTATION_NAME, config -> binaryNotation);
 
-        // Create the binary notation, with JSON for complex types and register it as the default notation
-        final var defaultContext = new NotationContext(UserType.DEFAULT_NOTATION, nativeMapper, typeSchemaMapper);
-        notations.put(defaultContext.name(), config -> new BinaryNotation(defaultContext, json.create(null)::serde));
+        // Create the binary notation with JSON for complex types and register it as the default notation
+        notations.put(UserType.DEFAULT_NOTATION, config -> binaryNotation);
     }
 }

@@ -48,11 +48,8 @@ class JsonNotationProviderTest {
     @Test
     @DisplayName("createNotation(context) returns JsonNotation with correct wiring")
     void createNotationBuildsJsonNotation() {
-        // Given a context without vendor
-        var context = new NotationContext(JsonNotation.NOTATION_NAME);
-
         // When
-        var notation = provider.createNotation(context);
+        var notation = provider.createNotation();
 
         // Then: verify type and key properties via chained assertions
         assertThat(notation)
@@ -66,13 +63,5 @@ class JsonNotationProviderTest {
         softly.assertThat(notation.converter()).isInstanceOf(JsonDataObjectConverter.class);
         softly.assertThat(notation.schemaParser()).isInstanceOf(JsonSchemaLoader.class);
         softly.assertAll();
-    }
-
-    @Test
-    @DisplayName("Vendor in context prefixes created notation name")
-    void nameIncludesVendorFromContext() {
-        var context = new NotationContext(JsonNotation.NOTATION_NAME, "vendorX");
-        var notation = provider.createNotation(context);
-        assertThat(notation.name()).isEqualTo("vendorX_json");
     }
 }

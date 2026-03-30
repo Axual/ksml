@@ -159,7 +159,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
      * Maps the provided value from native form to a DataObject and delegates to the underlying serializer.
      *
      * @param topic the topic name
-     * @param data  the value to serialize, may be null
+     * @param data  the value to serialize (can be null)
      * @return the serialized bytes
      * @throws io.axual.ksml.data.exception.DataException if mapping or serialization fails
      */
@@ -176,7 +176,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     }
 
     /**
-     * Maps the provided value from native form to a DataObject and delegates to the underlying serializer
+     * Maps the provided value from its native form to a DataObject and delegates to the underlying serializer
      * including the provided headers.
      *
      * @param topic   the topic name

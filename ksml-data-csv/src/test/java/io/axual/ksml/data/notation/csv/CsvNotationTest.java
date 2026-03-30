@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.csv;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.SimpleType;
@@ -45,11 +44,8 @@ class CsvNotationTest {
     @Test
     @DisplayName("Default properties: name, extension, default type, converter, parser")
     void basicProperties() {
-        // Given: a standard CSV notation context (no vendor)
-        var context = new NotationContext(CsvNotation.NOTATION_NAME);
-
         // When: constructing CsvNotation
-        var notation = new CsvNotation(context);
+        var notation = new CsvNotation();
 
         // Then: verify defaults using chained assertions
         assertThat(notation)
@@ -65,23 +61,10 @@ class CsvNotationTest {
     }
 
     @Test
-    @DisplayName("Name includes vendor prefix when provided by context")
-    void nameWithVendor() {
-        // Given: context with vendor
-        var context = new NotationContext(CsvNotation.NOTATION_NAME, "vendorX");
-
-        // When: constructing notation
-        var notation = new CsvNotation(context);
-
-        // Then: name should include vendor prefix
-        assertThat(notation.name()).isEqualTo("vendorX_csv");
-    }
-
-    @Test
     @DisplayName("Serde is provided for ListType, StructType, and DEFAULT_TYPE (Union)")
     void serdeForSupportedTypes() {
         // Given: CSV notation
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        var notation = new CsvNotation();
 
         // When/Then: verify serde creation for supported types
         var softly = new SoftAssertions();
@@ -125,12 +108,13 @@ class CsvNotationTest {
 
     @Test
     @DisplayName("Throws exception for unsupported type (not List or Struct)")
-    @SuppressWarnings("resource") // Expected to throw, no serde created to close
+    @SuppressWarnings("resource")
+        // Expected to throw, no serde created to close
     void unsupportedTypeThrowsException() {
         // Given: CSV notation
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        var notation = new CsvNotation();
 
-        // When/Then: trying to create serde for unsupported type should throw
+        // When/Then: trying to create serde for an unsupported type should throw
         var unsupportedType = new SimpleType(Integer.class, "int");
 
         assertThatThrownBy(() -> notation.serde(unsupportedType, false))
@@ -142,7 +126,7 @@ class CsvNotationTest {
     @DisplayName("File extension is .csv")
     void filenameExtension() {
         // Given: CSV notation
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        var notation = new CsvNotation();
 
         // Then: extension should be .csv
         assertThat(notation.filenameExtension()).isEqualTo(".csv");

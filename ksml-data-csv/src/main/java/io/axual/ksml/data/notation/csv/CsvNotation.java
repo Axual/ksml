@@ -36,8 +36,12 @@ public class CsvNotation extends StringNotation {
             new UnionType.Member(new StructType()),
             new UnionType.Member(new ListType()));
 
+    public CsvNotation() {
+        this(null);
+    }
+
     public CsvNotation(NotationContext context) {
-        super(context, ".csv", DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), new CsvDataObjectMapper());
+        super(NOTATION_NAME, context, ".csv", SchemaUsage.REQUIRES_SCHEMA, DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), new CsvDataObjectMapper());
     }
 
     @Override

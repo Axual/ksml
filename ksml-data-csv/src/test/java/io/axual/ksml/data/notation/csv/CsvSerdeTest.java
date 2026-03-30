@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.csv;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -51,12 +50,12 @@ class CsvSerdeTest {
     @DisplayName("StructType: DataStruct round-trip preserves field values")
     void structRoundTrip() {
         // Given: CSV notation with StructType
-        var schema = createSensorDataSchema();
-        var structType = new StructType(schema);
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var schema = createSensorDataSchema();
+        final var structType = new StructType(schema);
+        final var notation = new CsvNotation();
 
         // And: a DataStruct with sensor data
-        var struct = new DataStruct(schema);
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("sensor001"));
         struct.put("timestamp", DataString.from("1234567890"));
         struct.put("value", DataString.from("23.5"));
@@ -68,12 +67,12 @@ class CsvSerdeTest {
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("test-topic", struct);
-            var result = serde.deserializer().deserialize("test-topic", bytes);
+            final var bytes = serde.serializer().serialize("test-topic", struct);
+            final var result = serde.deserializer().deserialize("test-topic", bytes);
 
             // Then: should get DataStruct with same values
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
 
             assertThat(resultStruct.get("name").toString()).isEqualTo("sensor001");
             assertThat(resultStruct.get("timestamp").toString()).isEqualTo("1234567890");
@@ -90,23 +89,23 @@ class CsvSerdeTest {
     @DisplayName("ListType: DataList round-trip preserves element values")
     void listRoundTrip() {
         // Given: CSV notation with ListType
-        var listType = new ListType();
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var listType = new ListType();
+        final var notation = new CsvNotation();
 
         // And: a DataList with string values
-        var list = new DataList(DataString.DATATYPE);
+        final var list = new DataList(DataString.DATATYPE);
         list.add(DataString.from("sensor001"));
         list.add(DataString.from("1234567890"));
         list.add(DataString.from("23.5"));
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(listType, false)) {
-            var bytes = serde.serializer().serialize("test-topic", list);
-            var result = serde.deserializer().deserialize("test-topic", bytes);
+            final var bytes = serde.serializer().serialize("test-topic", list);
+            final var result = serde.deserializer().deserialize("test-topic", bytes);
 
             // Then: should get DataList with same values
             assertThat(result).isInstanceOf(DataList.class);
-            var resultList = (DataList) result;
+            final var resultList = (DataList) result;
 
             assertThat(resultList.size()).isEqualTo(3);
             assertThat(resultList.get(0).toString()).isEqualTo("sensor001");
@@ -119,19 +118,19 @@ class CsvSerdeTest {
     @DisplayName("UnionType (DEFAULT_TYPE): supports both Struct and List serialization")
     void unionRoundTrip() {
         // Given: CSV notation with default UnionType
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var notation = new CsvNotation();
 
         try (var serde = notation.serde(CsvNotation.DEFAULT_TYPE, false)) {
-            var softly = new SoftAssertions();
+            final var softly = new SoftAssertions();
 
             // When: serializing DataStruct
-            var schema = createSimpleSchema("name", "value");
-            var struct = new DataStruct(schema);
+            final var schema = createSimpleSchema("name", "value");
+            final var struct = new DataStruct(schema);
             struct.put("name", DataString.from("test"));
             struct.put("value", DataString.from("123"));
 
-            var bytes1 = serde.serializer().serialize("topic", struct);
-            var result1 = serde.deserializer().deserialize("topic", bytes1);
+            final var bytes1 = serde.serializer().serialize("topic", struct);
+            final var result1 = serde.deserializer().deserialize("topic", bytes1);
 
             // Then: should deserialize (CSV format doesn't preserve struct vs list distinction without schema)
             // With UnionType, CSV is parsed as DataList by default
@@ -139,12 +138,12 @@ class CsvSerdeTest {
             softly.assertThat(((DataList) result1).size()).isEqualTo(2);
 
             // When: serializing DataList
-            var list = new DataList(DataString.DATATYPE);
+            final var list = new DataList(DataString.DATATYPE);
             list.add(DataString.from("a"));
             list.add(DataString.from("b"));
 
-            var bytes2 = serde.serializer().serialize("topic", list);
-            var result2 = serde.deserializer().deserialize("topic", bytes2);
+            final var bytes2 = serde.serializer().serialize("topic", list);
+            final var result2 = serde.deserializer().deserialize("topic", bytes2);
 
             // Then: should get DataList back
             softly.assertThat(result2).isInstanceOf(DataList.class);
@@ -158,23 +157,23 @@ class CsvSerdeTest {
     @DisplayName("Handles special characters in values (commas, quotes)")
     void specialCharactersRoundTrip() {
         // Given: schema and serde
-        var schema = createSimpleSchema("name", "description");
-        var structType = new StructType(schema);
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var schema = createSimpleSchema("name", "description");
+        final var structType = new StructType(schema);
+        final var notation = new CsvNotation();
 
         // And: struct with special characters
-        var struct = new DataStruct(schema);
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("sensor, type A"));
         struct.put("description", DataString.from("temperature \"high\""));
 
         // When: round-trip
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", struct);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", struct);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: special characters should be preserved exactly
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
 
             // Verify exact values are preserved through round-trip with special characters
             assertThat(resultStruct.get("name").toString()).isEqualTo("sensor, type A");
@@ -186,17 +185,17 @@ class CsvSerdeTest {
     @DisplayName("Key serde can be created separately from value serde")
     void keySerde() {
         // Given: CSV notation
-        var schema = createSimpleSchema("id");
-        var structType = new StructType(schema);
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var schema = createSimpleSchema("id");
+        final var structType = new StructType(schema);
+        final var notation = new CsvNotation();
 
-        // When: creating key serde and using it for round-trip
+        // When: creating a key serde and using it for a round-trip
         try (var keySerde = notation.serde(structType, true)) {
-            var keyStruct = new DataStruct(schema);
+            final var keyStruct = new DataStruct(schema);
             keyStruct.put("id", DataString.from("key123"));
 
-            var bytes = keySerde.serializer().serialize("topic", keyStruct);
-            var result = keySerde.deserializer().deserialize("topic", bytes);
+            final var bytes = keySerde.serializer().serialize("topic", keyStruct);
+            final var result = keySerde.deserializer().deserialize("topic", bytes);
 
             // Then: should work correctly
             assertThat(result).isInstanceOf(DataStruct.class);
@@ -208,24 +207,24 @@ class CsvSerdeTest {
     @DisplayName("Empty field values are preserved in round-trip")
     void emptyFieldsRoundTrip() {
         // Given: schema and serde
-        var schema = createSimpleSchema("name", "optional", "value");
-        var structType = new StructType(schema);
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var schema = createSimpleSchema("name", "optional", "value");
+        final var structType = new StructType(schema);
+        final var notation = new CsvNotation();
 
-        // And: struct with empty field
-        var struct = new DataStruct(schema);
+        // And: struct with an empty field
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("test"));
         struct.put("optional", DataString.from(""));
         struct.put("value", DataString.from("123"));
 
         // When: round-trip
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", struct);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", struct);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: empty field should be preserved
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
 
             assertThat(resultStruct.get("name").toString()).isEqualTo("test");
             assertThat(resultStruct.get("optional").toString()).isEmpty();
@@ -239,9 +238,9 @@ class CsvSerdeTest {
         // Expected to throw, no serde created to close
     void unsupportedTypeThrowsException() {
         // Given: CSV notation
-        var notation = new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME));
+        final var notation = new CsvNotation();
 
-        // When/Then: trying to create serde for unsupported type should throw
+        // When/Then: trying to create serde for an unsupported type should throw
         assertThatThrownBy(() -> notation.serde(DataString.DATATYPE, false))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("serde");
@@ -250,7 +249,7 @@ class CsvSerdeTest {
     // Helper methods
 
     private StructSchema createSensorDataSchema() {
-        var fields = java.util.List.of(
+        final var fields = java.util.List.of(
                 new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
                 new StructSchema.Field("timestamp", DataSchema.STRING_SCHEMA, "Timestamp", NO_TAG, true, false, null),
                 new StructSchema.Field("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
@@ -264,7 +263,7 @@ class CsvSerdeTest {
     }
 
     private StructSchema createSimpleSchema(String... fieldNames) {
-        var fields = new java.util.ArrayList<StructSchema.Field>();
+        final var fields = new java.util.ArrayList<StructSchema.Field>();
         for (var fieldName : fieldNames) {
             fields.add(new StructSchema.Field(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }

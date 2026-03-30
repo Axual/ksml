@@ -68,7 +68,7 @@ class AvroTests {
     void confluentSerdeTest() {
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider = new ConfluentAvroNotationProvider(registryClient);
-        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var context = new NotationContext(registryClient.configs());
         final var notation = provider.createNotation(context);
         NotationTestRunner.serdeTest(notation, true, AVRO_EQUALITY_FLAGS);
     }

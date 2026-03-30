@@ -57,6 +57,6 @@ class XmlTests {
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME)), false, XML_EQUALITY_FLAGS);
+        NotationTestRunner.serdeTest(new XmlNotation(), false, XML_EQUALITY_FLAGS);
     }
 }

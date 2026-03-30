@@ -22,12 +22,15 @@ package io.axual.ksml.data.notation.vendor;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.serde.SerdeSupplier;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class VendorNotationContextTest {
     @Test
@@ -35,31 +38,16 @@ class VendorNotationContextTest {
     void vendorContextWrapsBaseContext() {
         var baseConfigs = new HashMap<String, String>();
         baseConfigs.put("x", "1");
-        var baseContext = new NotationContext("avro", "confluent", baseConfigs);
+        final var baseContext = new NotationContext(baseConfigs);
 
-        @SuppressWarnings("unchecked")
-        var serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new io.axual.ksml.data.mapper.StringDataObjectMapper();
-        var serdeSupplier = new VendorSerdeSupplier() {
-            @Override
-            public String vendorName() {
-                return "confluent";
-            }
+        @SuppressWarnings("unchecked") final var serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new io.axual.ksml.data.mapper.StringDataObjectMapper();
+        @SuppressWarnings({"rawtypes", "unchecked"}) final SerdeSupplier serdeSupplier = (type, isKey) -> (Serde) Serdes.String();
 
-            @Override
-            public org.apache.kafka.common.serialization.Serde<Object> get(io.axual.ksml.data.type.DataType type, boolean isKey) {
-                @SuppressWarnings({"rawtypes", "unchecked"})
-                org.apache.kafka.common.serialization.Serde<Object> raw = (org.apache.kafka.common.serialization.Serde) org.apache.kafka.common.serialization.Serdes.String();
-                return raw;
-            }
-        };
-
-        var vendorContext = new VendorNotationContext(baseContext, serdeSupplier, serdeMapper);
-        assertThat(vendorContext.notationName()).isEqualTo("avro");
-        assertThat(vendorContext.vendorName()).isEqualTo("confluent");
+        final var vendorContext = new VendorNotationContext("vendorY", baseContext, serdeSupplier, serdeMapper);
+        assertThat(vendorContext.vendorName()).isSameAs("vendorY");
         assertThat(vendorContext.nativeDataObjectMapper()).isSameAs(baseContext.nativeDataObjectMapper());
         assertThat(vendorContext.serdeConfigs()).isSameAs(baseContext.serdeConfigs());
         assertThat(vendorContext.serdeSupplier()).isSameAs(serdeSupplier);
         assertThat(vendorContext.serdeMapper()).isSameAs(serdeMapper);
-        assertThat(vendorContext.name()).isEqualTo("confluent_avro");
     }
 }

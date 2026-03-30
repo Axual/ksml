@@ -42,6 +42,6 @@ public class AvroNotation extends VendorNotation {
      * @param context the vendor notation context providing serde supplier, native mapper, and configs
      */
     public AvroNotation(VendorNotationContext context) {
-        super(context, ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER);
+        super(AvroNotation.NOTATION_NAME, context, ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER);
     }
 }

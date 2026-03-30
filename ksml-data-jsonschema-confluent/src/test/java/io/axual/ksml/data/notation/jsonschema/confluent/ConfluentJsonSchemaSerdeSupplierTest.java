@@ -33,13 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("ConfluentJsonSchemaSerdeSupplier - notation name, vendor name, and dummy get()")
 class ConfluentJsonSchemaSerdeSupplierTest {
     @Test
-    @DisplayName("notationName() returns 'jsonschema'; vendorName() returns 'confluent'; get() returns a serde")
+    @DisplayName("get() returns a serde")
     void basics() {
-        var supplier = new ConfluentJsonSchemaSerdeSupplier();
-        assertThat(supplier.notationName()).isEqualTo("jsonschema");
-        assertThat(supplier.vendorName()).isEqualTo("confluent");
-
-        var serde = supplier.get(new StructType(), false);
+        final var supplier = new ConfluentJsonSchemaSerdeSupplier();
+        final var serde = supplier.get(new StructType(), false);
         assertThat(serde).isNotNull();
     }
 }

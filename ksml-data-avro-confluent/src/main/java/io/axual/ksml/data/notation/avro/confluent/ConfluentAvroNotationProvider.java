@@ -75,8 +75,9 @@ public class ConfluentAvroNotationProvider extends VendorNotationProvider {
     public Notation createNotation(NotationContext context) {
         return new AvroNotation(
                 new VendorNotationContext(
+                        vendorName(),
                         context,
-                        new ConfluentAvroSerdeSupplier(context, registryClient),
+                        new ConfluentAvroSerdeSupplier(registryClient),
                         new AvroDataObjectMapper()));
     }
 }
