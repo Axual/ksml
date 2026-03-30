@@ -33,12 +33,36 @@ import java.util.Map;
  * @param generator optional generator function definition as a map (KSML generator syntax)
  * @param count    optional count for generator-based production
  */
+@JsonSchema(description = "A block that defines test data to be produced to a topic")
 public record ProduceBlock(
+        @JsonSchema(description = "Target Kafka topic name", required = true,
+                examples = {"input-topic", "sensor-data"})
         String topic,
+
+        @JsonSchema(description = "Key serialization type", defaultValue = "string",
+                examples = {"string", "avro:MyKeySchema", "json", "binary"})
         String keyType,
+
+        @JsonSchema(description = "Value serialization type", defaultValue = "string",
+                examples = {"string", "avro:SensorData", "json", "binary"})
         String valueType,
+
+        @JsonSchema(description = "Inline test messages to produce")
         List<TestMessage> messages,
+
+        @JsonSchema(description = "Generator function definition (KSML generator syntax)")
         Map<String, Object> generator,
+
+        @JsonSchema(description = "Number of times to invoke the generator function")
         Long count
 ) {
+    /**
+     * Validate that the produce block has either messages or a generator.
+     */
+    public void validate() {
+        if (messages == null && generator == null) {
+            throw new TestDefinitionException(
+                    "Produce block for topic '" + topic + "' must have either 'messages' or 'generator'");
+        }
+    }
 }

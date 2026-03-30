@@ -20,22 +20,24 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * A single test message with key, value, and optional timestamp.
- *
- * @param key       the message key
- * @param value     the message value (typically a map for structured data)
- * @param timestamp optional epoch milliseconds timestamp; null means auto-advancing time
+ * Annotation for enriching record components with JSON Schema metadata.
+ * Used by {@link TestDefinitionSchemaGenerator} to produce a JSON Schema
+ * for test definition YAML files.
  */
-@JsonSchema(description = "A single test message with key, value, and optional timestamp")
-public record TestMessage(
-        @JsonSchema(description = "Message key", required = true, examples = {"sensor-1", "user-42"})
-        Object key,
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.RECORD_COMPONENT, ElementType.TYPE})
+public @interface JsonSchema {
+    String description() default "";
 
-        @JsonSchema(description = "Message value (string or structured data)", required = true)
-        Object value,
+    String defaultValue() default "";
 
-        @JsonSchema(description = "Optional timestamp in epoch milliseconds", examples = {"1709200000000"})
-        Long timestamp
-) {
+    String[] examples() default {};
+
+    boolean required() default false;
 }

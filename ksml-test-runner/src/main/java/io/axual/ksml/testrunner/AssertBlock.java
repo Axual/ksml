@@ -29,9 +29,24 @@ import java.util.List;
  * @param stores optional list of state store names to inject into Python context
  * @param code   Python assertion code to execute
  */
+@JsonSchema(description = "A block that defines assertions to run against pipeline output")
 public record AssertBlock(
+        @JsonSchema(description = "Output topic to read records from", examples = {"output-topic"})
         String topic,
+
+        @JsonSchema(description = "State store names to inject into the Python assertion context",
+                examples = {"my_store"})
         List<String> stores,
+
+        @JsonSchema(description = "Python assertion code to execute", required = true)
         String code
 ) {
+    /**
+     * Validate that the assert block has at least a topic or stores.
+     */
+    public void validate() {
+        if (topic == null && stores == null) {
+            throw new TestDefinitionException("Assert block must have at least 'topic' or 'stores'");
+        }
+    }
 }

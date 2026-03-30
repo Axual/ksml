@@ -142,3 +142,51 @@ The `src/test/resources/` directory contains sample test definitions:
 - `sample-filter-test.yaml` — filters SensorData by color, asserts on output topic records
 - `sample-state-store-test.yaml` — stores sensor data per key, asserts on state store contents
 - `sample-timestamp-test.yaml` — uses explicit timestamps, asserts timestamps are preserved
+
+## Editor support (YAML schema)
+
+A JSON Schema for test definition files is generated at build time to
+`docs/ksml-test-spec.json` (analogous to `docs/ksml-language-spec.json` for pipelines).
+It provides auto-completion, validation, and field descriptions in editors that support
+YAML schemas.
+
+### Per-file activation
+
+Add this comment as the first line of your test YAML:
+
+```yaml
+# yaml-language-server: $schema=./path/to/test-definition.schema.json
+```
+
+### VS Code
+
+Install the [YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml),
+then add to your workspace `settings.json`:
+
+```json
+{
+  "yaml.schemas": {
+    "./docs/ksml-test-spec.json": [
+      "*-test.yaml",
+      "test-*.yaml"
+    ]
+  }
+}
+```
+
+### IntelliJ
+
+Go to **Settings > Languages & Frameworks > Schemas and DTDs > JSON Schema Mappings**,
+add a new mapping pointing to `docs/ksml-test-spec.json`, and configure the file pattern
+(e.g. `*-test.yaml`).
+
+### Regenerating the schema
+
+The schema is regenerated automatically during `mvn compile` (at the `process-classes` phase).
+To regenerate it manually:
+
+```bash
+mvn process-classes -pl ksml-test-runner -am
+```
+
+This runs `TestDefinitionSchemaGenerator` and writes the schema to `docs/ksml-test-spec.json`.
