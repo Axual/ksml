@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Parses a YAML test definition file into a {@link TestDefinition}.
@@ -51,142 +49,66 @@ public class TestDefinitionParser {
             throw new TestDefinitionException("Missing required 'test' root element in " + testFile);
         }
 
-        var name = requireString(testNode, "name", testFile);
-        var pipeline = requireString(testNode, "pipeline", testFile);
-        var schemaDirectory = optionalString(testNode, "schemaDirectory");
+        var fieldExtractor = new FieldExtractor(testNode, testFile);
 
-        var produceBlocks = parseProduceBlocks(testNode, testFile);
-        var assertBlocks = parseAssertBlocks(testNode, testFile);
-
-        return new TestDefinition(name, pipeline, schemaDirectory, produceBlocks, assertBlocks);
+        return new TestDefinition(
+                fieldExtractor.requireString("name"),
+                fieldExtractor.requireString("pipeline"),
+                fieldExtractor.optionalString("schemaDirectory"),
+                parseProduceBlocks(fieldExtractor.requireArray("produce"), testFile),
+                parseAssertBlocks(fieldExtractor.requireArray("assert"), testFile)
+        );
     }
 
-    private List<ProduceBlock> parseProduceBlocks(JsonNode testNode, Path testFile) {
-        var produceNode = testNode.get("produce");
-        if (produceNode == null || !produceNode.isArray()) {
-            throw new TestDefinitionException("Missing or invalid 'produce' array in " + testFile);
-        }
-
+    private List<ProduceBlock> parseProduceBlocks(JsonNode produceArray, Path testFile) {
         var blocks = new ArrayList<ProduceBlock>();
-        for (var blockNode : produceNode) {
-            var topic = requireString(blockNode, "topic", testFile);
-            var keyType = requireString(blockNode, "keyType", testFile);
-            var valueType = requireString(blockNode, "valueType", testFile);
+        for (var blockNode : produceArray) {
+            var f = new FieldExtractor(blockNode, testFile);
 
-            List<TestMessage> messages = null;
-            Map<String, Object> generator = null;
-            Long count = null;
+            var topic = f.requireString("topic");
+            var keyType = f.optionalString("keyType", "string");
+            var valueType = f.optionalString("valueType", "string");
+            var messages = parseMessages(blockNode.get("messages"));
+            var generator = f.optionalMap("generator");
+            var count = f.optionalLong("count");
 
-            var messagesNode = blockNode.get("messages");
-            var generatorNode = blockNode.get("generator");
-
-            if (messagesNode != null && messagesNode.isArray()) {
-                messages = new ArrayList<>();
-                for (var msgNode : messagesNode) {
-                    var key = nodeToObject(msgNode.get("key"));
-                    var value = nodeToObject(msgNode.get("value"));
-                    Long timestamp = null;
-                    if (msgNode.has("timestamp")) {
-                        timestamp = msgNode.get("timestamp").asLong();
-                    }
-                    messages.add(new TestMessage(key, value, timestamp));
-                }
-            }
-
-            if (generatorNode != null && generatorNode.isObject()) {
-                generator = nodeToMap(generatorNode);
-            }
-
-            if (blockNode.has("count")) {
-                count = blockNode.get("count").asLong();
-            }
-
-            if (messages == null && generator == null) {
-                throw new TestDefinitionException(
-                        "Produce block for topic '" + topic + "' must have either 'messages' or 'generator' in " + testFile);
-            }
-
-            blocks.add(new ProduceBlock(topic, keyType, valueType, messages, generator, count));
+            var block = new ProduceBlock(topic, keyType, valueType, messages, generator, count);
+            block.validate();
+            blocks.add(block);
         }
         return blocks;
     }
 
-    private List<AssertBlock> parseAssertBlocks(JsonNode testNode, Path testFile) {
-        var assertNode = testNode.get("assert");
-        if (assertNode == null || !assertNode.isArray()) {
-            throw new TestDefinitionException("Missing or invalid 'assert' array in " + testFile);
+    private List<TestMessage> parseMessages(JsonNode messagesNode) {
+        if (messagesNode == null || !messagesNode.isArray()) {
+            return null;
         }
+        var messages = new ArrayList<TestMessage>();
+        for (var msgNode : messagesNode) {
+            var key = FieldExtractor.nodeToObject(msgNode.get("key"));
+            var value = FieldExtractor.nodeToObject(msgNode.get("value"));
+            Long timestamp = null;
+            if (msgNode.has("timestamp")) {
+                timestamp = msgNode.get("timestamp").asLong();
+            }
+            messages.add(new TestMessage(key, value, timestamp));
+        }
+        return messages;
+    }
 
+    private List<AssertBlock> parseAssertBlocks(JsonNode assertArray, Path testFile) {
         var blocks = new ArrayList<AssertBlock>();
-        for (var blockNode : assertNode) {
-            var topic = optionalString(blockNode, "topic");
-            var code = requireString(blockNode, "code", testFile);
+        for (var blockNode : assertArray) {
+            var f = new FieldExtractor(blockNode, testFile);
 
-            List<String> stores = null;
-            var storesNode = blockNode.get("stores");
-            if (storesNode != null && storesNode.isArray()) {
-                stores = new ArrayList<>();
-                for (var storeNode : storesNode) {
-                    stores.add(storeNode.asText());
-                }
-            }
+            var topic = f.optionalString("topic");
+            var code = f.requireString("code");
+            var stores = f.optionalStringList("stores");
 
-            if (topic == null && stores == null) {
-                throw new TestDefinitionException(
-                        "Assert block must have at least 'topic' or 'stores' in " + testFile);
-            }
-
-            blocks.add(new AssertBlock(topic, stores, code));
+            var block = new AssertBlock(topic, stores, code);
+            block.validate();
+            blocks.add(block);
         }
         return blocks;
-    }
-
-    private String requireString(JsonNode parent, String field, Path testFile) {
-        var node = parent.get(field);
-        if (node == null || node.isNull()) {
-            throw new TestDefinitionException("Missing required field '" + field + "' in " + testFile);
-        }
-        return node.asText();
-    }
-
-    private String optionalString(JsonNode parent, String field) {
-        var node = parent.get(field);
-        if (node == null || node.isNull()) {
-            return null;
-        }
-        return node.asText();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> nodeToMap(JsonNode node) {
-        return YAML_MAPPER.convertValue(node, LinkedHashMap.class);
-    }
-
-    private Object nodeToObject(JsonNode node) {
-        if (node == null || node.isNull()) {
-            return null;
-        }
-        if (node.isTextual()) {
-            return node.asText();
-        }
-        if (node.isNumber()) {
-            if (node.isInt()) return node.asInt();
-            if (node.isLong()) return node.asLong();
-            return node.asDouble();
-        }
-        if (node.isBoolean()) {
-            return node.asBoolean();
-        }
-        if (node.isObject()) {
-            return nodeToMap(node);
-        }
-        if (node.isArray()) {
-            var list = new ArrayList<>();
-            for (var item : node) {
-                list.add(nodeToObject(item));
-            }
-            return list;
-        }
-        return node.asText();
     }
 }

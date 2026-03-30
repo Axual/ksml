@@ -1,0 +1,15 @@
+test:
+  name: "Defaults test - keyType and valueType should default to string"
+  pipeline: pipelines/test-filter.yaml
+  schemaDirectory: schemas
+
+  produce:
+    - topic: ksml_sensordata_avro
+      messages:
+        - key: "sensor1"
+          value: "some-value"
+
+  assert:
+    - topic: ksml_sensordata_filtered
+      code: |
+        assert True

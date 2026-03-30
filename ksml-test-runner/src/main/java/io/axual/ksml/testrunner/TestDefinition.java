@@ -31,11 +31,23 @@ import java.util.List;
  * @param produce         list of produce blocks defining test data
  * @param assertions      list of assertion blocks defining expected outcomes
  */
+@JsonSchema(description = "KSML test definition")
 public record TestDefinition(
+        @JsonSchema(description = "Human-readable test name", required = true,
+                examples = {"Filter keeps only blue sensors"})
         String name,
+
+        @JsonSchema(description = "Path to the KSML pipeline definition YAML", required = true,
+                examples = {"pipelines/my-pipeline.yaml"})
         String pipeline,
+
+        @JsonSchema(description = "Path to Avro schema files directory", examples = {"schemas"})
         String schemaDirectory,
+
+        @JsonSchema(description = "List of produce blocks defining test data to send to input topics", required = true)
         List<ProduceBlock> produce,
+
+        @JsonSchema(description = "List of assertion blocks defining expected outcomes", required = true)
         List<AssertBlock> assertions
 ) {
 }
