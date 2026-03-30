@@ -134,4 +134,22 @@ class TestDefinitionParserTest {
         // This file has a schemaDirectory
         assertEquals("schemas", def.schemaDirectory());
     }
+
+    @Test
+    void defaultsKeyTypeAndValueTypeToString() throws IOException {
+        var def = parser.parse(resource("defaults-test.yaml"));
+
+        var produce = def.produce().getFirst();
+        assertEquals("string", produce.keyType());
+        assertEquals("string", produce.valueType());
+    }
+
+    @Test
+    void explicitTypesOverrideDefaults() throws IOException {
+        var def = parser.parse(resource("valid-test-definition.yaml"));
+
+        var produce = def.produce().getFirst();
+        assertEquals("string", produce.keyType());
+        assertEquals("avro:SensorData", produce.valueType());
+    }
 }
