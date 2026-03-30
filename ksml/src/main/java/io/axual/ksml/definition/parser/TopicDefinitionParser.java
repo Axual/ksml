@@ -53,7 +53,7 @@ public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<Topic
                 optional(stringField(Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
                 optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false))),
                 optional(functionField(KSMLDSL.Streams.PARTITIONER, "A function that determines to which topic partition a given message needs to be written", new StreamPartitionerDefinitionParser(false))),
-                (topic, keyType, valueType, resetPolicy, tsExtractor, partitioner, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType, OffsetResetPolicyParser.parseResetPolicy(resetPolicy), tsExtractor, partitioner) : null);
+                (topic, keyType, valueType, resetPolicy, tsExtractor, partitioner, tags) -> topic != null ? new TopicDefinition(topic, resolveUserType(keyType, topic, true), resolveUserType(valueType, topic, false), OffsetResetPolicyParser.parseResetPolicy(resetPolicy), tsExtractor, partitioner) : null);
         return structsParser(
                 TopicDefinition.class,
                 "",
@@ -61,6 +61,6 @@ public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<Topic
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
                 optional(valueField),
-                (topic, keyType, valueType, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType, null, null, null) : null);
+                (topic, keyType, valueType, tags) -> topic != null ? new TopicDefinition(topic, resolveUserType(keyType, topic, true), resolveUserType(valueType, topic, false), null, null, null) : null);
     }
 }

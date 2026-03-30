@@ -38,7 +38,7 @@ When defining streams in KSML, you specify the data format using the `keyType` a
         valueType: avro:SensorData
     ```
 
-Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName` (e.g., `avro:SensorData`).
+Schema-based formats (Avro, XML, CSV) can specify a schema name: `format:SchemaName` (e.g., `avro:SensorData`). For notations backed by a schema registry (e.g., `confluent_avro`), the schema name can be omitted — KSML will fetch the latest schema from the registry using the topic name. See the [Data Types and Notations Reference](../../reference/data-and-formats-reference.md#local-files-vs-schema-registry) for details.
 
 
 ## Working with Avro Data

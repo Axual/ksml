@@ -39,6 +39,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UnresolvedType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.schema.parser.DataSchemaDSL;
@@ -306,8 +307,14 @@ public class UserTypeParser {
         final var not = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
         if (not == null) return Optional.empty();
 
-        // If the dataType (i.e., schema) is empty, then return the notation with its default type
-        if (type.dataType.isEmpty()) return Optional.of(Parsed.ok(new UserType(type.notation, not.defaultType())));
+        // If the dataType (i.e., schema) is empty, then return the notation with its default type,
+        // or an unresolved type if the notation supports fetching schemas from a remote registry
+        if (type.dataType.isEmpty()) {
+            if (not.supportsRemoteSchema()) {
+                return Optional.of(Parsed.ok(new UserType(type.notation, UnresolvedType.INSTANCE)));
+            }
+            return Optional.of(Parsed.ok(new UserType(type.notation, not.defaultType())));
+        }
 
         // Try to load the schema
         final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, type.dataType, false);

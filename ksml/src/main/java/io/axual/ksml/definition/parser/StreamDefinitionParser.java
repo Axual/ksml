@@ -54,7 +54,7 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
                 optional(functionField(KSMLDSL.Streams.PARTITIONER, "A function that determines to which topic partition a given message needs to be written", new StreamPartitionerDefinitionParser(false))),
                 (topic, keyType, valueType, resetPolicy, tsExtractor, partitioner, tags) -> {
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
-                    return new StreamDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner);
+                    return new StreamDefinition(topic, resolveUserType(keyType, topic, true), resolveUserType(valueType, topic, false), policy, tsExtractor, partitioner);
                 });
         return structsParser(
                 StreamDefinition.class,
@@ -63,6 +63,6 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
                 optional(valueField),
-                (topic, keyType, valueType, tags) -> new StreamDefinition(topic, keyType, valueType, null, null, null));
+                (topic, keyType, valueType, tags) -> new StreamDefinition(topic, resolveUserType(keyType, topic, true), resolveUserType(valueType, topic, false), null, null, null));
     }
 }

@@ -26,6 +26,7 @@ import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 
 /**
@@ -42,6 +43,8 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
  * - ksml-data-avro/DEVELOPER_GUIDE.md for AvroNotation behavior and mappers
  */
 public class ConfluentAvroNotationProvider extends VendorNotationProvider {
+    private static final String SCHEMA_REGISTRY_URL_CONFIG = "schema.registry.url";
+    private static final int SCHEMA_REGISTRY_CACHE_CAPACITY = 100;
     private final SchemaRegistryClient registryClient;
 
     /**
@@ -73,10 +76,23 @@ public class ConfluentAvroNotationProvider extends VendorNotationProvider {
      */
     @Override
     public Notation createNotation(NotationContext context) {
-        return new AvroNotation(
+        final var client = resolveRegistryClient(context);
+        return new ConfluentAvroNotation(
                 new VendorNotationContext(
                         context,
-                        new ConfluentAvroSerdeSupplier(context, registryClient),
-                        new AvroDataObjectMapper()));
+                        new ConfluentAvroSerdeSupplier(context, client),
+                        new AvroDataObjectMapper()),
+                client);
+    }
+
+    private SchemaRegistryClient resolveRegistryClient(NotationContext context) {
+        if (registryClient != null) {
+            return registryClient;
+        }
+        final var url = context.serdeConfigs().get(SCHEMA_REGISTRY_URL_CONFIG);
+        if (url != null && !url.isEmpty()) {
+            return new CachedSchemaRegistryClient(url, SCHEMA_REGISTRY_CACHE_CAPACITY);
+        }
+        return null;
     }
 }

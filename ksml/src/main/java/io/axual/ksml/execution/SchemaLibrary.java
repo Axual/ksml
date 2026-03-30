@@ -27,10 +27,12 @@ import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.schema.SchemaLoader;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.TreeMap;
 
+@Slf4j
 public class SchemaLibrary {
     private final Map<String, Map<String, NamedSchema>> schemas = new TreeMap<>();
     @Setter
@@ -77,5 +79,34 @@ public class SchemaLibrary {
 
         if (allowNull) return null;
         throw new SchemaException("Can not load schema: notation=" + (notation.name() != null ? notation.name() : "null") + ", schema=" + schemaName);
+    }
+
+    /**
+     * Gets a schema from the cache or fetches it from a remote schema registry.
+     * The fetched schema is cached using the subject name for subsequent lookups.
+     *
+     * @param notation the notation to use for fetching
+     * @param subject  the schema registry subject name (e.g., "my-topic-value")
+     * @return the fetched and cached DataSchema
+     */
+    public DataSchema getOrFetchRemoteSchema(Notation notation, String subject) {
+        var notationSchemas = schemas.get(notation.name());
+        if (notationSchemas != null) {
+            var schema = notationSchemas.get(subject);
+            if (schema != null) {
+                log.debug("Using cached remote schema for subject '{}'", subject);
+                return schema;
+            }
+        }
+
+        final var schema = notation.fetchRemoteSchema(subject);
+        if (schema instanceof NamedSchema ns) {
+            if (notationSchemas == null) {
+                notationSchemas = new TreeMap<>();
+                schemas.put(notation.name(), notationSchemas);
+            }
+            notationSchemas.put(subject, ns);
+        }
+        return schema;
     }
 }

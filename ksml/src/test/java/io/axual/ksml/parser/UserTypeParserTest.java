@@ -45,8 +45,10 @@ import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UnresolvedType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.notation.MockNotation;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.AfterEach;
@@ -459,5 +461,68 @@ class UserTypeParserTest {
         assertInstanceOf(ListType.class, userType.result().dataType());
         final var listType = (ListType) userType.result().dataType();
         assertInstanceOf(StructType.class, listType.valueType());
+    }
+
+    @Test
+    @DisplayName("Test notation without schema name returns UnresolvedType when notation supports remote schema")
+    void testNotationWithoutSchemaReturnsUnresolvedType() {
+        final var remoteNotation = new MockNotation("remote_avro", ".avsc", null) {
+            @Override
+            public boolean supportsRemoteSchema() {
+                return true;
+            }
+
+            @Override
+            public DataSchema fetchRemoteSchema(String subject) {
+                return new StructSchema(null, subject, null, Collections.emptyList());
+            }
+        };
+        ExecutionContext.INSTANCE.notationLibrary().register("remote_avro", remoteNotation);
+
+        final var userType = new UserTypeParser().parse("remote_avro");
+        assertTrue(userType.isOk());
+        assertEquals("remote_avro", userType.result().notation());
+        assertInstanceOf(UnresolvedType.class, userType.result().dataType());
+    }
+
+    @Test
+    @DisplayName("Test notation without schema name returns default type when notation does not support remote schema")
+    void testNotationWithoutSchemaReturnsDefaultType() {
+        final var localNotation = new MockNotation("local_avro", ".avsc", null);
+        ExecutionContext.INSTANCE.notationLibrary().register("local_avro", localNotation);
+
+        final var userType = new UserTypeParser().parse("local_avro");
+        assertTrue(userType.isOk());
+        assertEquals("local_avro", userType.result().notation());
+        assertInstanceOf(StructType.class, userType.result().dataType());
+    }
+
+    @Test
+    @DisplayName("Test notation with explicit schema name still loads from disk (regression)")
+    void testExplicitSchemaStillLoadsFromDisk() throws IOException {
+        final var schemaName = "RegressionSchema";
+        final var schemaContent = "{\"type\":\"record\",\"name\":\"RegressionSchema\",\"fields\":[]}";
+        Files.writeString(tempDir.resolve(schemaName + ".avsc"), schemaContent);
+
+        final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) ->
+                new StructSchema(null, schemaName, null, Collections.emptyList());
+
+        final var remoteNotation = new MockNotation("regression_avro", ".avsc", mockParser) {
+            @Override
+            public boolean supportsRemoteSchema() {
+                return true;
+            }
+
+            @Override
+            public DataSchema fetchRemoteSchema(String subject) {
+                throw new RuntimeException("Should not call fetchRemoteSchema when schema name is specified");
+            }
+        };
+        ExecutionContext.INSTANCE.notationLibrary().register("regression_avro", remoteNotation);
+
+        final var userType = new UserTypeParser().parse("regression_avro:" + schemaName);
+        assertTrue(userType.isOk());
+        assertEquals("regression_avro", userType.result().notation());
+        assertInstanceOf(StructType.class, userType.result().dataType());
     }
 }
