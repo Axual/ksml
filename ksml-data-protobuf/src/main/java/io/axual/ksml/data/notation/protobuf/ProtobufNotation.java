@@ -30,6 +30,6 @@ public class ProtobufNotation extends VendorNotation {
     public static final DataType DEFAULT_TYPE = new StructType();
 
     public ProtobufNotation(VendorNotationContext context, ProtobufSchemaParser schemaParser) {
-        super(context, ".proto", DEFAULT_TYPE, null, schemaParser);
+        super(NOTATION_NAME, context, ".proto", DEFAULT_TYPE, null, schemaParser);
     }
 }

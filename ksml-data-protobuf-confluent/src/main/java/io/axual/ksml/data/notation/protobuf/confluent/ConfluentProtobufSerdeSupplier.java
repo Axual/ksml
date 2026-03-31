@@ -43,11 +43,6 @@ public class ConfluentProtobufSerdeSupplier implements ProtobufSerdeSupplier {
     }
 
     @Override
-    public String vendorName() {
-        return "confluent";
-    }
-
-    @Override
     public Serde<Object> get(DataType type, boolean isKey) {
         return (Serde) Serdes.serdeFrom(
                 registryClient != null ? new KafkaProtobufSerializer<>(registryClient) : new KafkaProtobufSerializer<>(),

@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.jsonschema.confluent;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotation;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -48,9 +47,8 @@ class ConfluentJsonSchemaNotationProviderTest {
     @DisplayName("createNotation wires JsonSchemaNotation with Confluent serde supplier")
     void createNotation_wiresConfluentSerdeSupplier() {
         var provider = new ConfluentJsonSchemaNotationProvider();
-        var context = new NotationContext(JsonSchemaNotation.NOTATION_NAME, "confluent");
 
-        assertThat(provider.createNotation(context))
+        assertThat(provider.createNotation())
                 .asInstanceOf(InstanceOfAssertFactories.type(JsonSchemaNotation.class))
                 .returns("confluent_" + JsonSchemaNotation.NOTATION_NAME, JsonSchemaNotation::name)
                 .returns(".json", JsonSchemaNotation::filenameExtension)

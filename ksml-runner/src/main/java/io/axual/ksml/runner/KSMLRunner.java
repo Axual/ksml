@@ -246,7 +246,7 @@ public class KSMLRunner {
             if (ksmlConfig.notations().isEmpty()) {
                 final var dataMapper = new DataObjectFlattener();
                 final var dataTypeMapper = new DataTypeFlattener();
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, null, dataMapper, dataTypeMapper, config.getKafkaConfigMap()));
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(dataMapper, dataTypeMapper, config.getKafkaConfigMap()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
             }

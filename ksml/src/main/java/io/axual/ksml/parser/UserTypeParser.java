@@ -21,6 +21,7 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -310,11 +311,17 @@ public class UserTypeParser {
         // If the dataType (i.e., schema) is empty, then return the notation with its default type,
         // or an unresolved type if the notation supports fetching schemas from a remote registry
         if (type.dataType.isEmpty()) {
-            if (not.supportsRemoteSchema()) {
+            if (not.supportsRemoteSchema())
                 return Optional.of(Parsed.ok(new UserType(type.notation, UnresolvedType.INSTANCE)));
-            }
+            // If the notation requires a schema, then return an error
+            if (not.schemaUsage() == Notation.SchemaUsage.REQUIRES_SCHEMA)
+                return Optional.of(Parsed.error("Schema is required for notation " + not.name() + ". Use \"" + type.notation + ":SchemaName\" to specify the schema."));
             return Optional.of(Parsed.ok(new UserType(type.notation, not.defaultType())));
         }
+
+        // If the notation only works schemaless, then return an error
+        if (not.schemaUsage() == Notation.SchemaUsage.SCHEMALESS)
+            return Optional.of(Parsed.error("Schema \"" + type.dataType + "\" can not be used for notation " + not.name() + ". Use \"" + type.notation + "\" to use the notation schemaless."));
 
         // Try to load the schema
         final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, type.dataType, false);
@@ -344,8 +351,7 @@ public class UserTypeParser {
 
         // Check if the composedType is a reference to a schemaless notation
         if (ExecutionContext.INSTANCE.notationLibrary().exists(composedType)) {
-            final var not = ExecutionContext.INSTANCE.notationLibrary().get(composedType);
-            return new DecomposedType(not.name(), "", true);
+            return new DecomposedType(composedType, "", true);
         }
         // Return the whole type string to be processed further, along with the default notation
         return new DecomposedType(defaultNotation, composedType, false);

@@ -30,6 +30,21 @@ import org.apache.kafka.common.serialization.Serde;
  * Implementations provide the default data type, serde creation, and conversion/parsing capabilities.
  */
 public interface Notation {
+    enum SchemaUsage {
+        SCHEMALESS,          // Notation only supports schemaless
+        OPTIONAL_SCHEMA,     // Notation supports schemaless and schema
+        REQUIRES_SCHEMA     // Notation only works with an explicit schema
+    }
+
+    /**
+     * Indicates the dependence of the notation on a schema. When SCHEMALESS, only user types of the form
+     * "notation_name" are accepted. When REQUIRES_SCHEMA, only "notation_name:SchemaName" is accepted. In case of
+     * OPTIONAL_SCHEMA, both are accepted.
+     *
+     * @return the schema usage indicator
+     */
+    SchemaUsage schemaUsage();
+
     /**
      * Returns the default data type handled by this notation. This is typically the most
      * natural in-memory representation for data encoded with the notation.
@@ -57,7 +72,7 @@ public interface Notation {
     /**
      * Creates a Kafka Serde for the given data type and key/value role.
      *
-     * @param type the data type to serialize/deserialize
+     * @param type  the data type to serialize/deserialize
      * @param isKey whether the serde will be used for keys (true) or values (false)
      * @return a configured Serde instance
      * @throws RuntimeException when the type is not supported by this notation
@@ -71,7 +86,7 @@ public interface Notation {
         /**
          * Converts a value into the requested target data type.
          *
-         * @param value the source value
+         * @param value      the source value
          * @param targetType the desired DataType
          * @return the converted value
          * @throws RuntimeException when the conversion cannot be performed
@@ -93,8 +108,8 @@ public interface Notation {
         /**
          * Parses a schema string within a given context and schema name.
          *
-         * @param contextName a human-readable context or namespace
-         * @param schemaName the logical name of the schema
+         * @param contextName  a human-readable context or namespace
+         * @param schemaName   the logical name of the schema
          * @param schemaString the textual schema definition
          * @return a parsed DataSchema
          * @throws RuntimeException when the schema cannot be parsed

@@ -21,12 +21,10 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
-import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
 import io.axual.ksml.data.serde.DataObjectSerde;
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.type.StructType;
 import org.apache.kafka.common.serialization.Serde;
@@ -36,41 +34,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.HashMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AvroNotationTest {
 
     private static VendorNotationContext createContext(String vendorName) {
-        var base = new NotationContext(AvroNotation.NOTATION_NAME, vendorName, new HashMap<>());
         // We don't exercise (de)serialization in these tests, so any DataObjectMapper will do.
-        var serdeMapper = new NativeDataObjectMapper();
-        var supplier = new VendorSerdeSupplier() {
-            @Override
-            public String vendorName() {
-                return vendorName;
-            }
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public Serde<Object> get(DataType type, boolean isKey) {
-                @SuppressWarnings({"rawtypes"}) final var rawSerde = (Serde) Serdes.ByteArray();
-                return rawSerde;
-            }
-        };
-        return new VendorNotationContext(base, supplier, serdeMapper);
+        final var serdeMapper = new NativeDataObjectMapper();
+        @SuppressWarnings({"rawtypes"}) final SerdeSupplier supplier = (type, isKey) -> (Serde) Serdes.ByteArray();
+        return new VendorNotationContext(vendorName, supplier, serdeMapper);
     }
 
     @Test
     @DisplayName("AvroNotation wires defaults: name, extension, default type, parser, null converter")
     void avroNotation_defaults_areWired() {
-        var context = createContext("vendorX");
-
-        final var contextAssert = assertThat(new AvroNotation(context))
-                // Name comes from context (vendor_notation)
-                .returns("vendorX_" + AvroNotation.NOTATION_NAME, AvroNotation::name)
+        final var contextAssert = assertThat(new AvroNotation(createContext("vendorY")))
+                // The name return correctly
+                .returns("vendorY_" + AvroNotation.NOTATION_NAME, AvroNotation::name)
                 // File extension
                 .returns(".avsc", AvroNotation::filenameExtension)
                 // Default type
@@ -89,8 +70,7 @@ class AvroNotationTest {
     @DisplayName("serde() returns DataObjectSerde for StructType and throws for unsupported type")
     @ValueSource(booleans = {true, false})
     void serde_behavior_supportedAndUnsupportedTypes(boolean forKey) {
-        var context = createContext("vendorY");
-        var notation = new AvroNotation(context);
+        final var notation = new AvroNotation(createContext("vendorY"));
 
         // Supported: StructType
         assertThat(notation.serde(new StructType(), forKey))
@@ -99,7 +79,7 @@ class AvroNotationTest {
                 .isInstanceOf(DataObjectSerde.class);
 
         // Unsupported: a simple type not assignable from StructType
-        var wrongType = new SimpleType(Integer.class, "int");
+        final var wrongType = new SimpleType(Integer.class, "int");
         assertThatThrownBy(() -> notation.serde(wrongType, forKey))
                 .isInstanceOf(io.axual.ksml.data.exception.DataException.class)
                 .hasMessageEndingWith(notation.name() + " serde not available for data type: " + wrongType)
@@ -109,8 +89,8 @@ class AvroNotationTest {
     @Test
     @DisplayName("When no vendor specified, name() equals 'avro'")
     void name_withoutVendor_isJustNotation() {
-        var context = createContext(null);
-        var notation = new AvroNotation(context);
+        final var context = createContext(null);
+        final var notation = new AvroNotation(context);
         assertThat(notation.name()).isEqualTo(AvroNotation.NOTATION_NAME);
     }
 }

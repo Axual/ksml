@@ -63,18 +63,13 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
     }
 
     @Override
-    public String vendorName() {
-        return "apicurio";
-    }
-
-    @Override
     public Serde<Object> get(DataType type, boolean isKey) {
         // Create a serde that injects Apicurio defaults while honoring user-supplied configs
         return new ApicurioJsonSchemaSerde(registryClient);
     }
 
     /**
-     * Serde wrapper that injects default Apicurio configuration where not provided by the user.
+     * Serde wrapper that injects the default Apicurio configuration where not provided by the user.
      */
     static class ApicurioJsonSchemaSerde extends ConfigInjectionSerde {
         public ApicurioJsonSchemaSerde(RegistryClient registryClient) {

@@ -34,23 +34,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class StringNotationTest {
     private static class ConcreteStringNotation extends StringNotation {
-        ConcreteStringNotation(NotationContext context,
+        ConcreteStringNotation(String name,
+                               NotationContext context,
                                String filenameExtension,
                                DataType defaultType,
                                Notation.Converter converter,
                                Notation.SchemaParser schemaParser,
                                DataObjectMapper<String> stringMapper) {
-            super(context, filenameExtension, defaultType, converter, schemaParser, stringMapper);
+            super(name, context, filenameExtension, SchemaUsage.SCHEMALESS, defaultType, converter, schemaParser, stringMapper);
         }
     }
 
     @Test
     @DisplayName("serde() returns a StringSerde that roundtrips DataString via configured mappers and configs are applied")
     void serdeRoundTripsDataString() {
-        final var context = new NotationContext("string");
+        final var context = new NotationContext();
         context.serdeConfigs().put("dummy", "config");
 
         final var notation = new ConcreteStringNotation(
+                "string",
                 context,
                 ".txt",
                 DataString.DATATYPE,

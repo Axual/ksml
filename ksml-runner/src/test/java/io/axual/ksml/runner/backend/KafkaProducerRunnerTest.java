@@ -23,7 +23,6 @@ package io.axual.ksml.runner.backend;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
@@ -163,9 +162,9 @@ class KafkaProducerRunnerTest {
      * @throws URISyntaxException for invalid file name
      */
     private Map<String, TopologyDefinition> loadDefinitions(String filename) throws IOException, URISyntaxException {
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
+        final var jsonNotation = new JsonNotation();
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
-        final var binaryNotation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), jsonNotation::serde);
+        final var binaryNotation = new BinaryNotation(jsonNotation::serde);
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
 
         final var uri = ClassLoader.getSystemResource(filename).toURI();

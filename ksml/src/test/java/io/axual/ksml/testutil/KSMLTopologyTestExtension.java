@@ -30,6 +30,11 @@ import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
+import io.axual.ksml.data.notation.jsonschema.apicurio.ApicurioJsonSchemaNotationProvider;
+import io.axual.ksml.data.notation.jsonschema.apicurio.MockApicurioSchemaRegistryClient;
+import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
+import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufNotationProvider;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
@@ -156,11 +161,22 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
             modulesDirectoryAbsolute = modulesDirectoryURI.getPath();
         }
 
-        final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var provider =  new ConfluentAvroNotationProvider(registryClient);
-        final var context = new NotationContext(provider.notationName(), provider.vendorName(), dataMapper, typeMapper, registryClient.configs());
-        final var mockAvroNotation = provider.createNotation(context);
+        final var confluentSrClient = new MockConfluentSchemaRegistryClient();
+        final var avroProvider = new ConfluentAvroNotationProvider(confluentSrClient);
+        final var avroContext = new NotationContext(dataMapper, typeMapper, confluentSrClient.configs());
+        final var mockAvroNotation = avroProvider.createNotation(avroContext);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
+
+        final var apicurioSrClient = new MockApicurioSchemaRegistryClient();
+        final var jsonSchemaProvider = new ApicurioJsonSchemaNotationProvider(apicurioSrClient);
+        final var jsonSchemaContext = new NotationContext(dataMapper, typeMapper, apicurioSrClient.configs());
+        final var mockJsonSchemaNotation = jsonSchemaProvider.createNotation(jsonSchemaContext);
+        ExecutionContext.INSTANCE.notationLibrary().register(JsonSchemaNotation.NOTATION_NAME, mockJsonSchemaNotation);
+
+        final var protobufProvider = new ApicurioProtobufNotationProvider(apicurioSrClient);
+        final var protobufContext = new NotationContext(dataMapper, typeMapper, apicurioSrClient.configs());
+        final var mockProtobufNotation = protobufProvider.createNotation(protobufContext);
+        ExecutionContext.INSTANCE.notationLibrary().register(ProtobufNotation.NOTATION_NAME, mockProtobufNotation);
 
         // Get the KSML definition classpath relative path and load the topology into the test driver
         log.debug("Loading topology {}", topologyName);

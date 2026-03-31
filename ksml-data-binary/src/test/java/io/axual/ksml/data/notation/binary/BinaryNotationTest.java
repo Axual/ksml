@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.binary;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.serde.ByteSerde;
 import io.axual.ksml.data.serde.NullSerde;
@@ -53,11 +52,8 @@ class BinaryNotationTest {
     @Test
     @DisplayName("Default properties: name, extension, default type")
     void basicProperties() {
-        // Given: a standard binary notation context
-        var context = new NotationContext(BinaryNotation.NOTATION_NAME);
-
         // When: constructing BinaryNotation
-        var notation = new BinaryNotation(context, null);
+        final var notation = new BinaryNotation();
 
         // Then: verify defaults using chained assertions
         assertThat(notation)
@@ -73,29 +69,16 @@ class BinaryNotationTest {
     }
 
     @Test
-    @DisplayName("Name includes vendor prefix when provided by context")
-    void nameWithVendor() {
-        // Given: context with vendor
-        var context = new NotationContext(BinaryNotation.NOTATION_NAME, "vendorX");
-
-        // When: constructing notation
-        var notation = new BinaryNotation(context, null);
-
-        // Then: name should include vendor prefix
-        assertThat(notation.name()).isEqualTo("vendorX_binary");
-    }
-
-    @Test
     @DisplayName("Serde is provided for Byte and Null simple types")
     void serdeForSimpleTypes() {
         // Given: Binary notation
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        final var notation = new BinaryNotation();
 
         // When/Then: verify serde creation for supported simple types
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Byte type should use ByteSerde
-        var byteType = new SimpleType(Byte.class, "byte");
+        final var byteType = new SimpleType(Byte.class, "byte");
         try (var serde = notation.serde(byteType, false)) {
             softly.assertThat(serde)
                     .as("Byte type should have ByteSerde")
@@ -103,7 +86,7 @@ class BinaryNotationTest {
         }
 
         // Null type should use NullSerde
-        var nullType = new SimpleType(Null.class, "null");
+        final var nullType = new SimpleType(Null.class, "null");
         try (var serde = notation.serde(nullType, false)) {
             softly.assertThat(serde)
                     .as("Null type should have NullSerde")
@@ -111,7 +94,7 @@ class BinaryNotationTest {
         }
 
         // Integer type should use BinaryNotation.BinarySerde wrapper
-        var intType = new SimpleType(Integer.class, "int");
+        final var intType = new SimpleType(Integer.class, "int");
         try (var serde = notation.serde(intType, false)) {
             softly.assertThat(serde)
                     .as("Integer type should have serde")
@@ -119,7 +102,7 @@ class BinaryNotationTest {
         }
 
         // Long type should use BinaryNotation.BinarySerde wrapper
-        var longType = new SimpleType(Long.class, "long");
+        final var longType = new SimpleType(Long.class, "long");
         try (var serde = notation.serde(longType, false)) {
             softly.assertThat(serde)
                     .as("Long type should have serde")
@@ -127,7 +110,7 @@ class BinaryNotationTest {
         }
 
         // String type should use BinaryNotation.BinarySerde wrapper
-        var stringType = new SimpleType(String.class, "string");
+        final var stringType = new SimpleType(String.class, "string");
         try (var serde = notation.serde(stringType, false)) {
             softly.assertThat(serde)
                     .as("String type should have serde")
@@ -139,13 +122,14 @@ class BinaryNotationTest {
 
     @Test
     @DisplayName("Throws exception for complex types without SerdeSupplier")
-    @SuppressWarnings("resource") // Expected to throw, no serde created to close
+    @SuppressWarnings("resource")
+        // Expected to throw, no serde created to close
     void unsupportedComplexTypeWithoutSupplierThrowsException() {
-        // Given: Binary notation without complex type serde supplier
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation without a complex type serde supplier
+        final var notation = new BinaryNotation();
 
-        // When/Then: trying to create serde for complex type should throw
-        var complexType = new ListType();
+        // When/Then: trying to create serde for a complex type should throw
+        final var complexType = new ListType();
 
         assertThatThrownBy(() -> notation.serde(complexType, false))
                 .isInstanceOf(DataException.class)
@@ -156,8 +140,7 @@ class BinaryNotationTest {
     @DisplayName("Delegates complex types to SerdeSupplier when provided")
     void complexTypeWithSupplier() {
         // Given: Binary notation with a mock SerdeSupplier
-        var context = new NotationContext(BinaryNotation.NOTATION_NAME);
-        var mockSupplier = (SerdeSupplier) (type, isKey) -> new Serde<>() {
+        final var mockSupplier = (SerdeSupplier) (type, isKey) -> new Serde<>() {
             @Override
             public Serializer<Object> serializer() {
                 return (topic, data) -> new byte[0];
@@ -168,12 +151,12 @@ class BinaryNotationTest {
                 return (topic, data) -> new Object();
             }
         };
-        var notation = new BinaryNotation(context, mockSupplier);
+        final var notation = new BinaryNotation(mockSupplier);
 
-        // When: requesting serde for complex type
-        var complexType = new ListType();
+        // When: requesting serde for a complex type
+        final var complexType = new ListType();
         try (var serde = notation.serde(complexType, false)) {
-            // Then: should return serde from supplier
+            // Then: should return serde from the supplier
             assertThat(serde).isNotNull();
         }
     }
@@ -182,7 +165,7 @@ class BinaryNotationTest {
     @DisplayName("File extension is null (binary data doesn't have a standard extension in KSML)")
     void filenameExtension() {
         // Given: Binary notation
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        final var notation = new BinaryNotation();
 
         // Then: extension should be null (not defined for binary notation)
         assertThat(notation.filenameExtension()).isNull();
@@ -192,7 +175,7 @@ class BinaryNotationTest {
     @DisplayName("DEFAULT_TYPE is UNKNOWN")
     void defaultTypeIsUnknown() {
         // Given: Binary notation's DEFAULT_TYPE
-        var defaultType = BinaryNotation.DEFAULT_TYPE;
+        final var defaultType = BinaryNotation.DEFAULT_TYPE;
 
         // Then: should be DataType.UNKNOWN
         assertThat(defaultType).isEqualTo(DataType.UNKNOWN);
@@ -202,11 +185,11 @@ class BinaryNotationTest {
     @DisplayName("Serde works for both key and value serialization")
     void keyAndValueSerde() {
         // Given: Binary notation
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
-        var byteType = new SimpleType(Byte.class, "byte");
+        final var notation = new BinaryNotation();
+        final var byteType = new SimpleType(Byte.class, "byte");
 
         // When/Then: create serdes for both key and value
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         try (var serde = notation.serde(byteType, true)) {
             softly.assertThat(serde)

@@ -43,7 +43,7 @@ public class SoapNotation extends StringNotation {
     private final Notation.Converter converter = new SoapDataObjectConverter();
 
     public SoapNotation(NotationContext context) {
-        super(context, null, DEFAULT_TYPE, new SoapDataObjectConverter(), null, new DataObjectMapper<>() {
+        super(NOTATION_NAME, context, null, SchemaUsage.REQUIRES_SCHEMA, DEFAULT_TYPE, new SoapDataObjectConverter(), null, new DataObjectMapper<>() {
             @Override
             public DataObject toDataObject(DataType expected, String value) {
                 return DATA_OBJECT_MAPPER.toDataObject(expected, STRING_MAPPER.fromString(value));

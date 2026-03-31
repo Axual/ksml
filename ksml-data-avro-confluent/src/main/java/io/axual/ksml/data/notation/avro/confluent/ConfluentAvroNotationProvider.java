@@ -76,13 +76,13 @@ public class ConfluentAvroNotationProvider extends VendorNotationProvider {
      */
     @Override
     public Notation createNotation(NotationContext context) {
-        final var client = resolveRegistryClient(context);
         return new ConfluentAvroNotation(
                 new VendorNotationContext(
+                        vendorName(),
                         context,
-                        new ConfluentAvroSerdeSupplier(context, client),
+                        new ConfluentAvroSerdeSupplier(registryClient),
                         new AvroDataObjectMapper()),
-                client);
+                registryClient);
     }
 
     private SchemaRegistryClient resolveRegistryClient(NotationContext context) {

@@ -42,8 +42,10 @@ public class ConfluentProtobufNotationProvider extends VendorNotationProvider {
 
     @Override
     public Notation createNotation(NotationContext context) {
+        if (context == null) context = new NotationContext();
         return new ProtobufNotation(
                 new VendorNotationContext(
+                        vendorName(),
                         context,
                         new ConfluentProtobufSerdeSupplier(registryClient),
                         new ProtobufDataObjectMapper(new ConfluentProtobufFileElementDescriptorMapper(), context.nativeDataObjectMapper(), context.typeSchemaMapper())),

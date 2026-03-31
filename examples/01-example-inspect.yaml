@@ -17,7 +17,7 @@ streams:
   sensor_source_json:
     topic: ksml_sensordata_json
     keyType: string
-    valueType: json:SensorData
+    valueType: json
   sensor_source_jsonschema:
     topic: ksml_sensordata_jsonschema
     keyType: string

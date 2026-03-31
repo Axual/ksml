@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
+import io.axual.ksml.data.serde.SerdeSupplier;
 
 /**
  * Marker interface for vendor-specific Avro Serde suppliers.
@@ -29,5 +29,5 @@ import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
  * (e.g., Confluent or Apicurio) and are used by AvroNotation via VendorNotation to obtain
  * serdes for specific DataTypes.</p>
  */
-public interface AvroSerdeSupplier extends VendorSerdeSupplier {
+public interface AvroSerdeSupplier extends SerdeSupplier {
 }

@@ -20,18 +20,13 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
+import io.axual.ksml.data.serde.SerdeSupplier;
 
 /**
  * Marker interface for vendor-backed JSON Schema Serde suppliers.
  *
  * <p>Vendor modules (e.g., confluent/apicurio) implement this interface to provide
- * concrete Kafka Serde instances capable of handling JSON Schema encoded data.
- * The default {@link #notationName()} ties the supplier to the {@link JsonSchemaNotation}.
+ * concrete Kafka Serde instances capable of handling JSON Schema encoded data.</p>
  */
-public interface JsonSchemaSerdeSupplier extends VendorSerdeSupplier {
-    /** The notation name handled by this supplier, i.e. {@code "jsonschema"}. */
-    default String notationName() {
-        return JsonSchemaNotation.NOTATION_NAME;
-    }
+public interface JsonSchemaSerdeSupplier extends SerdeSupplier {
 }
