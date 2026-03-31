@@ -36,6 +36,7 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.EnumType;
@@ -48,7 +49,6 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UnresolvedType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.notation.MockNotation;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.AfterEach;
@@ -466,7 +466,7 @@ class UserTypeParserTest {
     @Test
     @DisplayName("Test notation without schema name returns UnresolvedType when notation supports remote schema")
     void testNotationWithoutSchemaReturnsUnresolvedType() {
-        final var remoteNotation = new MockNotation("remote_avro", ".avsc", null) {
+        final var remoteNotation = new MockNotation("remote_avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", null) {
             @Override
             public boolean supportsRemoteSchema() {
                 return true;
@@ -488,7 +488,7 @@ class UserTypeParserTest {
     @Test
     @DisplayName("Test notation without schema name returns default type when notation does not support remote schema")
     void testNotationWithoutSchemaReturnsDefaultType() {
-        final var localNotation = new MockNotation("local_avro", ".avsc", null);
+        final var localNotation = new MockNotation("local_avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", null);
         ExecutionContext.INSTANCE.notationLibrary().register("local_avro", localNotation);
 
         final var userType = new UserTypeParser().parse("local_avro");
@@ -507,7 +507,7 @@ class UserTypeParserTest {
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) ->
                 new StructSchema(null, schemaName, null, Collections.emptyList());
 
-        final var remoteNotation = new MockNotation("regression_avro", ".avsc", mockParser) {
+        final var remoteNotation = new MockNotation("regression_avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", mockParser) {
             @Override
             public boolean supportsRemoteSchema() {
                 return true;

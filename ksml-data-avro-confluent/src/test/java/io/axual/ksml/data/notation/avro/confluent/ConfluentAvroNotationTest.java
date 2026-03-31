@@ -22,7 +22,6 @@ package io.axual.ksml.data.notation.avro.confluent;
 
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.schema.StructSchema;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -41,7 +40,7 @@ class ConfluentAvroNotationTest {
     void supportsRemoteSchema_withClient_returnsTrue() {
         var registryClient = mock(SchemaRegistryClient.class);
         var provider = new ConfluentAvroNotationProvider(registryClient);
-        var context = new NotationContext(AvroNotation.NOTATION_NAME, "confluent");
+        var context = new NotationContext();
         var notation = (ConfluentAvroNotation) provider.createNotation(context);
 
         assertThat(notation.supportsRemoteSchema()).isTrue();
@@ -51,7 +50,7 @@ class ConfluentAvroNotationTest {
     @DisplayName("supportsRemoteSchema returns false when no registry client is configured")
     void supportsRemoteSchema_withoutClient_returnsFalse() {
         var provider = new ConfluentAvroNotationProvider();
-        var context = new NotationContext(AvroNotation.NOTATION_NAME, "confluent");
+        var context = new NotationContext();
         var notation = (ConfluentAvroNotation) provider.createNotation(context);
 
         assertThat(notation.supportsRemoteSchema()).isFalse();
@@ -66,7 +65,7 @@ class ConfluentAvroNotationTest {
                 .thenReturn(new SchemaMetadata(1, 1, schemaString));
 
         var provider = new ConfluentAvroNotationProvider(registryClient);
-        var context = new NotationContext(AvroNotation.NOTATION_NAME, "confluent");
+        var context = new NotationContext();
         var notation = (ConfluentAvroNotation) provider.createNotation(context);
 
         var schema = notation.fetchRemoteSchema("my-topic-value");
@@ -83,7 +82,7 @@ class ConfluentAvroNotationTest {
                 .thenThrow(new RuntimeException("Connection refused"));
 
         var provider = new ConfluentAvroNotationProvider(registryClient);
-        var context = new NotationContext(AvroNotation.NOTATION_NAME, "confluent");
+        var context = new NotationContext();
         var notation = (ConfluentAvroNotation) provider.createNotation(context);
 
         assertThatThrownBy(() -> notation.fetchRemoteSchema("unknown-topic-value"))
@@ -95,7 +94,7 @@ class ConfluentAvroNotationTest {
     @DisplayName("fetchRemoteSchema throws SchemaException when no registry client configured")
     void fetchRemoteSchema_withoutClient_throwsSchemaException() {
         var provider = new ConfluentAvroNotationProvider();
-        var context = new NotationContext(AvroNotation.NOTATION_NAME, "confluent");
+        var context = new NotationContext();
         var notation = (ConfluentAvroNotation) provider.createNotation(context);
 
         assertThatThrownBy(() -> notation.fetchRemoteSchema("my-topic-value"))
