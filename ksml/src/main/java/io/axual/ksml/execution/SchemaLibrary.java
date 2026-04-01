@@ -86,11 +86,13 @@ public class SchemaLibrary {
      * The fetched schema is cached using the subject name for subsequent lookups.
      *
      * @param notation the notation to use for fetching
-     * @param subject  the schema registry subject name (e.g., "my-topic-value")
+     * @param topic    the Kafka topic name
+     * @param isKey    whether we want the key schema (true) of the value schema (false)
      * @return the fetched and cached DataSchema
      */
-    public DataSchema getOrFetchRemoteSchema(Notation notation, String subject) {
-        var notationSchemas = schemas.get(notation.name());
+    public DataSchema getOrFetchRemoteSchema(Notation notation, String topic, boolean isKey) {
+        final var subject = topic + (isKey ? "-key" : "-value");
+        final var notationSchemas = schemas.get(notation.name());
         if (notationSchemas != null) {
             var schema = notationSchemas.get(subject);
             if (schema != null) {
@@ -101,11 +103,8 @@ public class SchemaLibrary {
 
         final var schema = notation.fetchRemoteSchema(subject);
         if (schema instanceof NamedSchema ns) {
-            if (notationSchemas == null) {
-                notationSchemas = new TreeMap<>();
-                schemas.put(notation.name(), notationSchemas);
-            }
-            notationSchemas.put(subject, ns);
+            if (notationSchemas == null) schemas.put(notation.name(), new TreeMap<>());
+            schemas.get(notation.name()).put(subject, ns);
         }
         return schema;
     }

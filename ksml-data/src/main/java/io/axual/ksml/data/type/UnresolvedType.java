@@ -27,9 +27,9 @@ import io.axual.ksml.data.compare.EqualityFlags;
 /**
  * Marker type that signals a deferred schema resolution.
  * <p>
- * When a stream definition uses a notation without an explicit schema name (e.g., {@code confluent_avro}
- * instead of {@code avro:SensorData}), an UnresolvedType is used as a placeholder. It must be resolved
- * before topology construction by fetching the schema from a schema registry using the topic name.
+ * When a stream definition uses a notation without an explicit schema name (e.g., {@code avro}, {@code apicurio_avro}
+ * or {@code confluent_avro} instead of {@code avro:SensorData}), an UnresolvedType is used as a placeholder. It must
+ * be resolved before topology construction by fetching the schema from a schema registry using the topic name.
  * <p>
  * This type is not assignable from or to any other type. If it leaks past the resolution phase,
  * any assignment check will fail with a clear error message.

@@ -93,8 +93,7 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
         if (notation == null) {
             throw new SchemaException("Unknown notation: " + userType.notation());
         }
-        final var subject = topic + (isKey ? "-key" : "-value");
-        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getOrFetchRemoteSchema(notation, subject);
+        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getOrFetchRemoteSchema(notation, topic, isKey);
         if (schema == null) {
             throw new SchemaException("Notation '" + userType.notation() + "' does not support fetching schemas from a remote registry");
         }

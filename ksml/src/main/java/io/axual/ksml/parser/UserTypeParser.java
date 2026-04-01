@@ -305,29 +305,31 @@ public class UserTypeParser {
 
     private Optional<Parsed<UserType>> parseNotationWithOrWithoutSchema(DecomposedType type) {
         // Notation type with or without a specific schema
-        final var not = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
-        if (not == null) return Optional.empty();
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
+        if (notation == null) return Optional.empty();
 
         // If the dataType (i.e., schema) is empty, then return the notation with its default type,
         // or an unresolved type if the notation supports fetching schemas from a remote registry
         if (type.dataType.isEmpty()) {
-            if (not.supportsRemoteSchema())
+            // If the notation supports fetching remote schemas, then return an unresolved user type
+            if (notation.supportsRemoteSchema())
                 return Optional.of(Parsed.ok(new UserType(type.notation, UnresolvedType.INSTANCE)));
             // If the notation requires a schema, then return an error
-            if (not.schemaUsage() == Notation.SchemaUsage.REQUIRES_SCHEMA)
-                return Optional.of(Parsed.error("Schema is required for notation " + not.name() + ". Use \"" + type.notation + ":SchemaName\" to specify the schema."));
-            return Optional.of(Parsed.ok(new UserType(type.notation, not.defaultType())));
+            if (notation.schemaUsage() == Notation.SchemaUsage.REQUIRES_SCHEMA)
+                return Optional.of(Parsed.error("Schema is required for notation " + notation.name() + ". Use \"" + type.notation + ":SchemaName\" to specify the schema."));
+            // Return a schemaless user type
+            return Optional.of(Parsed.ok(new UserType(type.notation, notation.defaultType())));
         }
 
         // If the notation only works schemaless, then return an error
-        if (not.schemaUsage() == Notation.SchemaUsage.SCHEMALESS)
-            return Optional.of(Parsed.error("Schema \"" + type.dataType + "\" can not be used for notation " + not.name() + ". Use \"" + type.notation + "\" to use the notation schemaless."));
+        if (notation.schemaUsage() == Notation.SchemaUsage.SCHEMALESS)
+            return Optional.of(Parsed.error("Schema \"" + type.dataType + "\" can not be used for notation " + notation.name() + ". Use \"" + type.notation + "\" to use the notation schemaless."));
 
         // Try to load the schema
-        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, type.dataType, false);
+        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(notation, type.dataType, false);
         final var schemaType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
-        if (not.defaultType().isAssignableFrom(schemaType).isNotAssignable()) {
-            return Optional.of(Parsed.error("Notation does not allow for type: notation=" + not.name() + ", type=" + schemaType));
+        if (notation.defaultType().isAssignableFrom(schemaType).isNotAssignable()) {
+            return Optional.of(Parsed.error("Notation does not allow for type: notation=" + notation.name() + ", type=" + schemaType));
         }
         return Optional.of(Parsed.ok(new UserType(type.notation, schemaType)));
     }
