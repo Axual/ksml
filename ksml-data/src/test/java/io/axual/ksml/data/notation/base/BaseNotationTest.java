@@ -53,7 +53,7 @@ class BaseNotationTest {
         Notation.Converter converter = (value, targetType) -> value; // not used
         Notation.SchemaParser parser = (ctx, name, schema) -> null; // not used
 
-        var notation = new DummyNotation(context, ".json", Notation.SchemaUsage.SCHEMALESS, defaultType, converter, parser);
+        var notation = new DummyNotation(context, ".json", Notation.SchemaUsage.SCHEMALESS_ONLY, defaultType, converter, parser);
 
         assertThat(notation.filenameExtension()).isEqualTo(".json");
         assertThat(notation.defaultType()).isEqualTo(defaultType);

@@ -72,7 +72,7 @@ public class JsonNotation extends BaseNotation {
      */
     public JsonNotation(NotationContext context) {
         // Wire the BaseNotation with the JSON-specific converter and schema loader.
-        super(NOTATION_NAME, context, ".json", SchemaUsage.SCHEMALESS, DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
+        super(NOTATION_NAME, context, ".json", SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
     }
 
     /**

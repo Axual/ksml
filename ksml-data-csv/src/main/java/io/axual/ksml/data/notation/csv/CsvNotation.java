@@ -41,7 +41,7 @@ public class CsvNotation extends StringNotation {
     }
 
     public CsvNotation(NotationContext context) {
-        super(NOTATION_NAME, context, ".csv", SchemaUsage.REQUIRES_SCHEMA, DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), new CsvDataObjectMapper());
+        super(NOTATION_NAME, context, ".csv", SchemaUsage.SCHEMA_REQUIRED, DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), new CsvDataObjectMapper());
     }
 
     @Override

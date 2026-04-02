@@ -231,7 +231,7 @@ class PythonDataObjectMapperTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         // Test a dict with @type, should preserve field1
         final var structType = new UserTypeParser().parse("avro:" + schemaName).result().dataType();
