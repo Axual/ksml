@@ -31,15 +31,15 @@ import org.apache.kafka.common.serialization.Serde;
  */
 public interface Notation {
     enum SchemaUsage {
-        SCHEMALESS,          // Notation only supports schemaless
-        OPTIONAL_SCHEMA,     // Notation supports schemaless and schema
-        REQUIRES_SCHEMA     // Notation only works with an explicit schema
+        SCHEMALESS_ONLY,    // Notation only supports schemaless
+        SCHEMA_OPTIONAL,    // Notation supports schemaless and schema
+        SCHEMA_REQUIRED     // Notation only works with an explicit schema
     }
 
     /**
-     * Indicates the dependence of the notation on a schema. When SCHEMALESS, only user types of the form
-     * "notation_name" are accepted. When REQUIRES_SCHEMA, only "notation_name:SchemaName" is accepted. In case of
-     * OPTIONAL_SCHEMA, both are accepted.
+     * Indicates the dependence of the notation on a schema. When SCHEMALESS_ONLY, only user types of the form
+     * "notation_name" are accepted. When SCHEMA_REQUIRED, only "notation_name:SchemaName" is accepted. In the case of
+     * SCHEMA_OPTIONAL, both are accepted.
      *
      * @return the schema usage indicator
      */
@@ -54,8 +54,8 @@ public interface Notation {
     DataType defaultType();
 
     /**
-     * Returns the fully qualified name of this notation, potentially including vendor prefix
-     * when applicable (eg. "vendor_notation").
+     * Returns the fully qualified name of this notation, potentially including the vendor prefix
+     * when applicable (e.g. "vendor_notation").
      *
      * @return the notation name
      */

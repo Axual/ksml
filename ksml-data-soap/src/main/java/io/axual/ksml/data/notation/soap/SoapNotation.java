@@ -34,6 +34,7 @@ import org.apache.kafka.common.serialization.Serde;
 
 import static io.axual.ksml.data.notation.soap.SoapSchema.generateSOAPSchema;
 
+@Deprecated(forRemoval = true, since = "1.3.0")
 @Getter
 public class SoapNotation extends StringNotation {
     public static final String NOTATION_NAME = "soap";
@@ -43,7 +44,7 @@ public class SoapNotation extends StringNotation {
     private final Notation.Converter converter = new SoapDataObjectConverter();
 
     public SoapNotation(NotationContext context) {
-        super(NOTATION_NAME, context, null, SchemaUsage.REQUIRES_SCHEMA, DEFAULT_TYPE, new SoapDataObjectConverter(), null, new DataObjectMapper<>() {
+        super(NOTATION_NAME, context, null, SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, new SoapDataObjectConverter(), null, new DataObjectMapper<>() {
             @Override
             public DataObject toDataObject(DataType expected, String value) {
                 return DATA_OBJECT_MAPPER.toDataObject(expected, STRING_MAPPER.fromString(value));

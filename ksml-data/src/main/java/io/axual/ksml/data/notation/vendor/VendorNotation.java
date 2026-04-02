@@ -39,7 +39,7 @@ public abstract class VendorNotation extends BaseNotation {
     private final String vendorName;
 
     protected VendorNotation(String name, VendorNotationContext context, String filenameExtension, DataType defaultType, Converter converter, SchemaParser schemaParser) {
-        super(name, context, filenameExtension, SchemaUsage.REQUIRES_SCHEMA, defaultType, converter, schemaParser);
+        super(name, context, filenameExtension, SchemaUsage.SCHEMA_REQUIRED, defaultType, converter, schemaParser);
         this.serdeSupplier = context.serdeSupplier();
         this.serdeMapper = context.serdeMapper();
         vendorName = context.vendorName();
@@ -53,6 +53,7 @@ public abstract class VendorNotation extends BaseNotation {
     /**
      * Creates a vendor-backed Serde for the given type and key/value role.
      * Only supported when the requested type is assignable from the notation's default type.
+     * This method is marked final, as all vendor-specific implementations should pass in a valid serdeSupplier.
      *
      * @param type  the data type to serialize/deserialize
      * @param isKey whether the serde will be used for keys (true) or values (false)
@@ -60,7 +61,7 @@ public abstract class VendorNotation extends BaseNotation {
      * @throws RuntimeException when the type is not supported
      */
     @Override
-    public Serde<Object> serde(DataType type, boolean isKey) {
+    public final Serde<Object> serde(DataType type, boolean isKey) {
         if (defaultType().isAssignableFrom(type).isNotAssignable()) throw noSerdeFor(type);
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used

@@ -48,7 +48,7 @@ public class BinaryNotation extends BaseNotation {
     }
 
     public BinaryNotation(NotationContext context, SerdeSupplier complexTypeSerdeSupplier) {
-        super(NOTATION_NAME, context, null, SchemaUsage.OPTIONAL_SCHEMA, DEFAULT_TYPE, null, null);
+        super(NOTATION_NAME, context, null, SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, null, null);
         this.complexTypeSerdeSupplier = complexTypeSerdeSupplier;
     }
 

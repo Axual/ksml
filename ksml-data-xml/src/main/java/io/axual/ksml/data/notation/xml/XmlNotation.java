@@ -41,7 +41,7 @@ public class XmlNotation extends StringNotation {
         super(NOTATION_NAME,
                 context,
                 ".xsd",
-                SchemaUsage.OPTIONAL_SCHEMA,
+                SchemaUsage.SCHEMA_OPTIONAL,
                 DEFAULT_TYPE,
                 new XmlDataObjectConverter(),
                 new XmlSchemaParser(

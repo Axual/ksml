@@ -155,20 +155,20 @@ public class UserTypeParser {
         if (internalType == null) return Optional.empty();
 
         // For basic data types, first try the parsed notation
-        final var n = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
-        if (n.defaultType() == null || n.defaultType().isAssignableFrom(internalType).isAssignable())
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
+        if (notation.defaultType() == null || notation.defaultType().isAssignableFrom(internalType).isAssignable())
             return Optional.of(Parsed.ok(new UserType(type.notation, internalType)));
 
         // If the notation was explicitly given, or the notation equals the default notation, then parsing failed
         if (type.explicitNotation() || DEFAULT_NOTATION.equals(type.notation))
-            return Optional.of(Parsed.error("Notation " + n.name() + " does not allow for data type " + type.dataType));
+            return Optional.of(Parsed.error("Notation " + notation.name() + " does not allow for data type " + type.dataType));
 
         // If no explicit notation was provided for the internal type, then try the default notation
         final var dn = ExecutionContext.INSTANCE.notationLibrary().get(DEFAULT_NOTATION);
         if (dn.defaultType() != null && dn.defaultType().isAssignableFrom(internalType).isAssignable())
             return Optional.of(Parsed.ok(new UserType(DEFAULT_NOTATION, internalType)));
 
-        return Optional.of(Parsed.error("Both notations " + n.name() + " and " + dn.name() + " do not allow for data type " + type.dataType));
+        return Optional.of(Parsed.error("Both notations " + notation.name() + " and " + dn.name() + " do not allow for data type " + type.dataType));
     }
 
     private Optional<Parsed<UserType>> parseList(DecomposedType type) {
@@ -304,26 +304,25 @@ public class UserTypeParser {
 
     private Optional<Parsed<UserType>> parseNotationWithOrWithoutSchema(DecomposedType type) {
         // Notation type with or without a specific schema
-        final var not = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
-        if (not == null) return Optional.empty();
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
 
         // If the dataType (i.e., schema) is empty, then return the notation with its default type
         if (type.dataType.isEmpty()) {
             // If the notation requires a schema, then return an error
-            if (not.schemaUsage() == Notation.SchemaUsage.REQUIRES_SCHEMA)
-                return Optional.of(Parsed.error("Schema is required for notation " + not.name() + ". Use \"" + type.notation + ":SchemaName\" to specify the schema."));
-            return Optional.of(Parsed.ok(new UserType(type.notation, not.defaultType())));
+            if (notation.schemaUsage() == Notation.SchemaUsage.SCHEMA_REQUIRED)
+                return Optional.of(Parsed.error("Schema is required for notation " + notation.name() + ". Use \"" + type.notation + ":SchemaName\" to specify the schema."));
+            return Optional.of(Parsed.ok(new UserType(type.notation, notation.defaultType())));
         }
 
         // If the notation only works schemaless, then return an error
-        if (not.schemaUsage() == Notation.SchemaUsage.SCHEMALESS)
-            return Optional.of(Parsed.error("Schema \"" + type.dataType + "\" can not be used for notation " + not.name() + ". Use \"" + type.notation + "\" to use the notation schemaless."));
+        if (notation.schemaUsage() == Notation.SchemaUsage.SCHEMALESS_ONLY)
+            return Optional.of(Parsed.error("Schema \"" + type.dataType + "\" can not be used for notation " + notation.name() + ". Use \"" + type.notation + "\" to use the notation schemaless."));
 
         // Try to load the schema
-        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, type.dataType, false);
+        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(notation, type.dataType, false);
         final var schemaType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
-        if (not.defaultType().isAssignableFrom(schemaType).isNotAssignable()) {
-            return Optional.of(Parsed.error("Notation does not allow for type: notation=" + not.name() + ", type=" + schemaType));
+        if (notation.defaultType().isAssignableFrom(schemaType).isNotAssignable()) {
+            return Optional.of(Parsed.error("Notation does not allow for type: notation=" + notation.name() + ", type=" + schemaType));
         }
         return Optional.of(Parsed.ok(new UserType(type.notation, schemaType)));
     }

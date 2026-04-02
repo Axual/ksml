@@ -274,7 +274,7 @@ class UserTypeParserTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = new UserTypeParser().parse("avro:" + schemaName);
         assertTrue(userType.isOk());
@@ -298,7 +298,7 @@ class UserTypeParserTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = new UserTypeParser().parse("avro:" + namespace + "." + schemaName);
         assertTrue(userType.isOk());
@@ -320,7 +320,7 @@ class UserTypeParserTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("jsonschema", new MockNotation("jsonschema", Notation.SchemaUsage.REQUIRES_SCHEMA, ".json", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("jsonschema", new MockNotation("jsonschema", Notation.SchemaUsage.SCHEMA_REQUIRED, ".json", mockParser));
 
         final var userType = new UserTypeParser().parse("jsonschema:" + schemaName);
         assertTrue(userType.isOk());
@@ -342,7 +342,7 @@ class UserTypeParserTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("protobuf", new MockNotation("protobuf", Notation.SchemaUsage.REQUIRES_SCHEMA, ".proto", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("protobuf", new MockNotation("protobuf", Notation.SchemaUsage.SCHEMA_REQUIRED, ".proto", mockParser));
 
         final var userType = new UserTypeParser().parse("protobuf:" + schemaName);
         assertTrue(userType.isOk());
@@ -353,7 +353,7 @@ class UserTypeParserTest {
     @Test
     @DisplayName("Test schema loading error: missing file")
     void testMissingSchemaFile() {
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", (c, n, s) -> null));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", (c, n, s) -> null));
 
         // When schema is not found, SchemaLibrary.getSchema returns null because it returns null
         // when loader.load returns null.
@@ -385,7 +385,7 @@ class UserTypeParserTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = new UserTypeParser().parse("avro:windowed(" + schemaName + ")");
         assertTrue(userType.isOk(), userType.isError() ? userType.errorMessage() : "");
@@ -398,7 +398,7 @@ class UserTypeParserTest {
     @Test
     @DisplayName("Test schema loading error: missing file")
     void testAvroWindowedMissingSchemaFile() {
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", (c, n, s) -> null));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", (c, n, s) -> null));
 
         // When schema is not found, SchemaLibrary.getSchema returns null because it returns null
         // when loader.load returns null.
@@ -419,7 +419,7 @@ class UserTypeParserTest {
     @Test
     @DisplayName("Test schema loading windowed default type")
     void testAvroWindowedStandardType() {
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", (c, n, s) -> null));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", (c, n, s) -> null));
 
         // When schema is not found, SchemaLibrary.getSchema returns null because it returns null
         // when loader.load returns null.
@@ -451,7 +451,7 @@ class UserTypeParserTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.REQUIRES_SCHEMA, ".avsc", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = new UserTypeParser().parse("avro:[" + schemaName + "]");
         assertTrue(userType.isOk(), userType.isError() ? userType.errorMessage() : "");

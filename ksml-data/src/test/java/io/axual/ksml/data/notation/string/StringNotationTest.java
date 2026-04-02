@@ -41,7 +41,7 @@ class StringNotationTest {
                                Notation.Converter converter,
                                Notation.SchemaParser schemaParser,
                                DataObjectMapper<String> stringMapper) {
-            super(name, context, filenameExtension, SchemaUsage.SCHEMALESS, defaultType, converter, schemaParser, stringMapper);
+            super(name, context, filenameExtension, SchemaUsage.SCHEMALESS_ONLY, defaultType, converter, schemaParser, stringMapper);
         }
     }
 
