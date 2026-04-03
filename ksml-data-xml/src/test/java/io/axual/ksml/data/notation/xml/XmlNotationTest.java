@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.xml;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
@@ -46,11 +45,8 @@ class XmlNotationTest {
     @Test
     @DisplayName("Default properties: name, extension, default type")
     void basicProperties() {
-        // Given: a standard XML notation context
-        var context = new NotationContext(XmlNotation.NOTATION_NAME);
-
         // When: constructing XmlNotation
-        var notation = new XmlNotation(context);
+        var notation = new XmlNotation();
 
         // Then: verify defaults using chained assertions
         assertThat(notation)
@@ -66,23 +62,10 @@ class XmlNotationTest {
     }
 
     @Test
-    @DisplayName("Name includes vendor prefix when provided by context")
-    void nameWithVendor() {
-        // Given: context with vendor
-        var context = new NotationContext(XmlNotation.NOTATION_NAME, "vendorX");
-
-        // When: constructing notation
-        var notation = new XmlNotation(context);
-
-        // Then: name should include vendor prefix
-        assertThat(notation.name()).isEqualTo("vendorX_xml");
-    }
-
-    @Test
     @DisplayName("Serde is provided for MapType and StructType")
     void serdeForSupportedTypes() {
         // Given: XML notation
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        var notation = new XmlNotation();
 
         // When/Then: verify serde creation for supported types
         var softly = new SoftAssertions();
@@ -113,10 +96,11 @@ class XmlNotationTest {
 
     @Test
     @DisplayName("Throws exception for unsupported types (not Map or Struct)")
-    @SuppressWarnings("resource") // Serde is never created because exception is thrown
+    @SuppressWarnings("resource")
+        // Serde is never created because exception is thrown
     void unsupportedTypeThrowsException() {
         // Given: XML notation
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        var notation = new XmlNotation();
 
         // When/Then: trying to create serde for unsupported types should throw
         var softly = new SoftAssertions();
@@ -138,7 +122,7 @@ class XmlNotationTest {
     @DisplayName("File extension is .xsd for XML Schema definitions")
     void filenameExtension() {
         // Given: XML notation
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        var notation = new XmlNotation();
 
         // Then: extension should be .xsd
         assertThat(notation.filenameExtension()).isEqualTo(".xsd");
@@ -158,7 +142,7 @@ class XmlNotationTest {
     @DisplayName("Serde works for both key and value serialization")
     void keyAndValueSerde() {
         // Given: XML notation
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        var notation = new XmlNotation();
         var structType = new StructType();
 
         // When/Then: create serdes for both key and value
@@ -183,7 +167,7 @@ class XmlNotationTest {
     @DisplayName("MapType serde can be created for generic XML structures")
     void mapTypeSerde() {
         // Given: XML notation
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        var notation = new XmlNotation();
         var mapType = new MapType();
 
         // When: creating serde for MapType

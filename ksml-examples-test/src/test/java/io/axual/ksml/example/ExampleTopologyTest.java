@@ -50,6 +50,7 @@ class ExampleTopologyTest {
 
     @KSMLTopologyTest(topologies = {
             "examples/00-example-dump-messages.yaml",
+            "examples/01-example-inspect.yaml",
             "examples/02-example-copy.yaml",
             "examples/03-example-filter.yaml",
             "examples/04-example-branch.yaml",

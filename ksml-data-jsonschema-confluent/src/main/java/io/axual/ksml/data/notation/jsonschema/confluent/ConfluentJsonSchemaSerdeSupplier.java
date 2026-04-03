@@ -52,11 +52,6 @@ public class ConfluentJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier
     }
 
     @Override
-    public String vendorName() {
-        return "confluent";
-    }
-
-    @Override
     public Serde<Object> get(DataType type, boolean isKey) {
         // Return serde composed of Confluent JsonSchema serializer/deserializer
         return Serdes.serdeFrom(

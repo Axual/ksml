@@ -63,7 +63,7 @@ class ProtobufTests {
     void apicurioSerdeTest() {
         final var registryClient = new MockApicurioSchemaRegistryClient();
         final var provider = new ApicurioProtobufNotationProvider(registryClient);
-        final var notationContext = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var notationContext = new NotationContext(registryClient.configs());
         final var notation = provider.createNotation(notationContext);
         NotationTestRunner.serdeTest(notation, true, PROTOBUF_EQUALITY_FLAGS);
     }
@@ -72,9 +72,9 @@ class ProtobufTests {
     void confluentSerdeTest() {
 //        final var registryClient = new MockConfluentSchemaRegistryClient();
 //        final var provider = new ConfluentProtobufNotationProvider(registryClient);
-//        final var notationContext = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
-//        final var confluentProtobuf = provider.createNotation(notationContext);
-//        NotationTestRunner.serdeTest(confluentProtobuf, true);
+//        final var notationContext = new NotationContext(registryClient.configs());
+//        final var notation = provider.createNotation(notationContext);
+//        NotationTestRunner.serdeTest(notation, true, PROTOBUF_EQUALITY_FLAGS);
     }
 
 //    @Test

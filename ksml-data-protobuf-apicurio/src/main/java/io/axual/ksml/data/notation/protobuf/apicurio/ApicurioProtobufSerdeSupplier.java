@@ -27,9 +27,9 @@ import io.apicurio.registry.serde.SerdeHeaders;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
 import io.apicurio.registry.serde.strategy.TopicIdStrategy;
-import io.axual.ksml.data.notation.protobuf.ProtobufSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
 import io.axual.ksml.data.serde.HeaderFilterSerde;
+import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -37,20 +37,15 @@ import org.apache.kafka.common.serialization.Serdes;
 import java.util.Map;
 import java.util.Set;
 
-public class ApicurioProtobufSerdeSupplier implements ProtobufSerdeSupplier {
+public class ApicurioProtobufSerdeSupplier implements SerdeSupplier {
     private final RegistryClient registryClient;
 
     public ApicurioProtobufSerdeSupplier() {
-        this(null);
+        this( null);
     }
 
     public ApicurioProtobufSerdeSupplier(RegistryClient registryClient) {
         this.registryClient = registryClient;
-    }
-
-    @Override
-    public String vendorName() {
-        return "apicurio";
     }
 
     @Override

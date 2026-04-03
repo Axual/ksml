@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation.vendor;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.serde.SerdeSupplier;
 import lombok.Getter;
 
 /**
@@ -29,8 +30,19 @@ import lombok.Getter;
  */
 @Getter
 public class VendorNotationContext extends NotationContext {
-    private final VendorSerdeSupplier serdeSupplier;
+    private final String vendorName;
+    private final SerdeSupplier serdeSupplier;
     private final DataObjectMapper<Object> serdeMapper;
+
+    /**
+     * Creates a vendor notation context from a default context together with vendor serde components.
+     *
+     * @param serdeSupplier the vendor-specific serde supplier
+     * @param serdeMapper   the DataObject mapper used with the vendor serdes
+     */
+    public VendorNotationContext(String vendorName, SerdeSupplier serdeSupplier, DataObjectMapper<Object> serdeMapper) {
+        this(vendorName, null, serdeSupplier, serdeMapper);
+    }
 
     /**
      * Creates a vendor notation context from an existing base context together with vendor serde components.
@@ -39,8 +51,9 @@ public class VendorNotationContext extends NotationContext {
      * @param serdeSupplier the vendor-specific serde supplier
      * @param serdeMapper   the DataObject mapper used with the vendor serdes
      */
-    public VendorNotationContext(NotationContext context, VendorSerdeSupplier serdeSupplier, DataObjectMapper<Object> serdeMapper) {
-        super(context.notationName(), context.vendorName(), context.nativeDataObjectMapper(), context.typeSchemaMapper(), context.serdeConfigs());
+    public VendorNotationContext(String vendorName, NotationContext context, SerdeSupplier serdeSupplier, DataObjectMapper<Object> serdeMapper) {
+        super(context != null ? context.nativeDataObjectMapper() : null, context != null ? context.typeSchemaMapper() : null, context != null ? context.serdeConfigs() : null);
+        this.vendorName = vendorName;
         this.serdeSupplier = serdeSupplier;
         this.serdeMapper = serdeMapper;
     }

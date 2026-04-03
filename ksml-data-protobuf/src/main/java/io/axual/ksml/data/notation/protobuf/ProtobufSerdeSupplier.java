@@ -20,10 +20,13 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
+import io.axual.ksml.data.serde.SerdeSupplier;
 
-public interface ProtobufSerdeSupplier extends VendorSerdeSupplier {
-    default String notationName() {
-        return ProtobufNotation.NOTATION_NAME;
-    }
+/**
+ * Marker interface for vendor-backed Protobuf Serde suppliers.
+ *
+ * <p>Vendor modules (e.g., confluent/apicurio) implement this interface to provide
+ * concrete Kafka Serde instances capable of handling Protobuf encoded data.</p>
+ */
+public interface ProtobufSerdeSupplier extends SerdeSupplier {
 }

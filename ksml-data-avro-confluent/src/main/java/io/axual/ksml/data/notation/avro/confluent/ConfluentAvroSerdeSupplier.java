@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -47,43 +46,27 @@ import org.apache.kafka.common.serialization.Serdes;
  * client configs at runtime (eg. schema.registry.url, auth, etc.).
  */
 public class ConfluentAvroSerdeSupplier implements AvroSerdeSupplier {
-    private final NotationContext notationContext;
-    // Registry Client is mocked by tests
     @Getter
-    private final SchemaRegistryClient registryClient;
+    private final SchemaRegistryClient registryClient;  // Registry Client is mocked by tests
 
     /**
      * Creates a supplier using default Confluent serializer/deserializer instances.
      * The created serdes will rely on standard Kafka client configuration for Schema Registry
      * connectivity (for example, schema.registry.url).
-     *
-     * @param notationContext the notation context under which this supplier operates; kept for
-     *                        future extension and parity with other suppliers
      */
-    public ConfluentAvroSerdeSupplier(NotationContext notationContext) {
-        this(notationContext, null);
+    public ConfluentAvroSerdeSupplier() {
+        this(null);
     }
 
     /**
      * Creates a supplier using the provided {@link SchemaRegistryClient}. This allows tests to
      * pass a mock client and applications to provide a preconfigured client instance.
      *
-     * @param notationContext the notation context under which this supplier operates
-     * @param registryClient  the Schema Registry client to use for serializer/deserializer creation;
-     *                        when {@code null} the default no-arg Confluent classes are used
+     * @param registryClient the Schema Registry client to use for serializer/deserializer creation;
+     *                       when {@code null} the default no-arg Confluent classes are used
      */
-    public ConfluentAvroSerdeSupplier(NotationContext notationContext, SchemaRegistryClient registryClient) {
-        this.notationContext = notationContext;
+    public ConfluentAvroSerdeSupplier(SchemaRegistryClient registryClient) {
         this.registryClient = registryClient;
-    }
-
-    /**
-     * Returns the vendor name used to namespace the Avro notation within KSML.
-     * For Confluent-backed Avro this is always {@code "confluent"}.
-     */
-    @Override
-    public String vendorName() {
-        return "confluent";
     }
 
     /**

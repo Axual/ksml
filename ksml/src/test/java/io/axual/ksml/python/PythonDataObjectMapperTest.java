@@ -83,7 +83,7 @@ class PythonDataObjectMapperTest {
 
     @BeforeAll
     static void setup() {
-        final var binaryNotation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, new DataObjectFlattener(), new DataTypeFlattener()), null);
+        final var binaryNotation = new BinaryNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()), null);
         // Register under both the UserType default alias ("default") and the notation's own name ("binary")
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
         ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, binaryNotation);
@@ -231,7 +231,7 @@ class PythonDataObjectMapperTest {
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
-        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", ".avsc", mockParser));
+        ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         // Test a dict with @type, should preserve field1
         final var structType = new UserTypeParser().parse("avro:" + schemaName).result().dataType();

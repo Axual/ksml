@@ -23,14 +23,12 @@ package io.axual.ksml.data.notation.jsonschema;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonSchemaLoader;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
-import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
 import io.axual.ksml.data.serde.DataObjectSerde;
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
@@ -52,23 +50,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JsonSchemaNotationTest {
 
     private static VendorNotationContext createContext(String vendor) {
-        final var base = new NotationContext(JsonSchemaNotation.NOTATION_NAME, vendor, new java.util.HashMap<>());
-        @SuppressWarnings("unchecked") final var serdeMapper = (DataObjectMapper<Object>) new JsonSchemaDataObjectMapper(new NativeDataObjectMapper());
-        final var supplier = new VendorSerdeSupplier() {
-            @Override
-            public String vendorName() {
-                return vendor == null ? "" : vendor;
-            }
-
-            @Override
-            public Serde<Object> get(DataType type, boolean isKey) {
-                // Return a simple String serde; we won't actually serialize in this test
-                @SuppressWarnings({"rawtypes", "unchecked"})
-                Serde<Object> raw = (Serde) Serdes.String();
-                return raw;
-            }
-        };
-        return new VendorNotationContext(base, supplier, serdeMapper);
+        final var serdeMapper = (DataObjectMapper<Object>) new JsonSchemaDataObjectMapper(new NativeDataObjectMapper());
+        @SuppressWarnings({"rawtypes", "unchecked"}) final SerdeSupplier supplier = (type, isKey) -> (Serde) Serdes.String();
+        return new VendorNotationContext(vendor, supplier, serdeMapper);
     }
 
     @Test

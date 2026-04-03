@@ -33,9 +33,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class BaseNotationTest {
     private static class DummyNotation extends BaseNotation {
-        DummyNotation(NotationContext context, String fileExt, DataType defaultType,
+        DummyNotation(NotationContext context, String fileExt, SchemaUsage schemaUsage, DataType defaultType,
                       Notation.Converter converter, Notation.SchemaParser parser) {
-            super(context, fileExt, defaultType, converter, parser);
+            super("dummy", context, fileExt, schemaUsage, defaultType, converter, parser);
         }
 
         @Override
@@ -48,14 +48,13 @@ class BaseNotationTest {
     @Test
     @DisplayName("name() delegates to context; getters expose provided constructor arguments; noSerdeFor message")
     void baseBehaviourAndNoSerdeFor() {
-        var context = new NotationContext("json", "vendorX");
+        var context = new NotationContext();
         var defaultType = new SimpleType(String.class, "string");
         Notation.Converter converter = (value, targetType) -> value; // not used
         Notation.SchemaParser parser = (ctx, name, schema) -> null; // not used
 
-        var notation = new DummyNotation(context, ".json", defaultType, converter, parser);
+        var notation = new DummyNotation(context, ".json", Notation.SchemaUsage.SCHEMALESS_ONLY, defaultType, converter, parser);
 
-        assertThat(notation.name()).isEqualTo("vendorX_json");
         assertThat(notation.filenameExtension()).isEqualTo(".json");
         assertThat(notation.defaultType()).isEqualTo(defaultType);
         assertThat(notation.converter()).isSameAs(converter);
@@ -63,7 +62,7 @@ class BaseNotationTest {
 
         var wrongType = new SimpleType(Integer.class, "int");
         assertThatThrownBy(() -> notation.serde(wrongType, true))
-                .hasMessageEndingWith("vendorX_json serde not available for data type: " + wrongType)
+                .hasMessageEndingWith("dummy serde not available for data type: " + wrongType)
                 .isInstanceOf(io.axual.ksml.data.exception.DataException.class);
     }
 }

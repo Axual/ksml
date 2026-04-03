@@ -20,6 +20,8 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
@@ -31,12 +33,20 @@ public class XmlNotation extends StringNotation {
     public static final String NOTATION_NAME = "xml";
     public static final DataType DEFAULT_TYPE = new StructType();
 
+    public XmlNotation() {
+        this(null);
+    }
+
     public XmlNotation(NotationContext context) {
-        super(context,
+        super(NOTATION_NAME,
+                context,
                 ".xsd",
+                SchemaUsage.SCHEMA_OPTIONAL,
                 DEFAULT_TYPE,
                 new XmlDataObjectConverter(),
-                new XmlSchemaParser(context.nativeDataObjectMapper(), context.typeSchemaMapper()),
+                new XmlSchemaParser(
+                        context != null ? context.nativeDataObjectMapper() : new NativeDataObjectMapper(),
+                        context != null ? context.typeSchemaMapper() : new DataTypeDataSchemaMapper()),
                 new XmlDataObjectMapper(false));
     }
 
@@ -44,7 +54,7 @@ public class XmlNotation extends StringNotation {
     public Serde<Object> serde(DataType type, boolean isKey) {
         // XML types should ways be Maps (or Structs)
         if (type instanceof MapType || type instanceof StructType) return super.serde(type, isKey);
-        // Other types can not be serialized as XML
+        // Other types cannot be serialized as XML
         throw noSerdeFor(type);
     }
 }

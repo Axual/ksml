@@ -25,6 +25,7 @@ import io.axual.ksml.data.mapper.StringDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import org.apache.kafka.common.serialization.Serde;
@@ -37,39 +38,28 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 class VendorNotationTest {
     private static class ConcreteVendorNotation extends VendorNotation {
-        ConcreteVendorNotation(VendorNotationContext context,
+        ConcreteVendorNotation(String name,
+                               VendorNotationContext context,
                                String filenameExtension,
                                DataType defaultType,
                                Notation.Converter converter,
                                Notation.SchemaParser schemaParser) {
-            super(context, filenameExtension, defaultType, converter, schemaParser);
+            super(name, context, filenameExtension, defaultType, converter, schemaParser);
         }
     }
 
     private static VendorNotationContext createContext() {
-        final var base = new NotationContext("avro", "vendorY", new java.util.HashMap<>());
+        final var context = new NotationContext(new java.util.HashMap<>());
         @SuppressWarnings("unchecked") final var serdeMapper = (DataObjectMapper<Object>) (DataObjectMapper<?>) new StringDataObjectMapper();
-        final var supplier = new VendorSerdeSupplier() {
-            @Override
-            public String vendorName() {
-                return "vendorY";
-            }
-
-            @Override
-            public Serde<Object> get(DataType type, boolean isKey) {
-                @SuppressWarnings({"rawtypes", "unchecked"})
-                Serde<Object> raw = (Serde) Serdes.String();
-                return raw;
-            }
-        };
-        return new VendorNotationContext(base, supplier, serdeMapper);
+        @SuppressWarnings({"rawtypes", "unchecked"}) final SerdeSupplier supplier = (type, isKey) -> (Serde) Serdes.String();
+        return new VendorNotationContext("vendorY", context, supplier, serdeMapper);
     }
 
     @Test
-    @DisplayName("serde() returns DataObjectSerde that roundtrips DataString via vendor String serde when type is supported")
+    @DisplayName("serde() returns DataObjectSerde that round trips DataString via vendor String serde when type is supported")
     void serdeRoundTripsForSupportedType() {
         final var context = createContext();
-        final var notation = new ConcreteVendorNotation(context, ".avsc", DataString.DATATYPE, (v, t) -> v, (c, n, s) -> null);
+        final var notation = new ConcreteVendorNotation("avro", context, ".avsc", DataString.DATATYPE, (v, t) -> v, (c, n, s) -> null);
 
         try (final var serde = notation.serde(DataString.DATATYPE, false)) {
             final var bytes = serde.serializer().serialize("t", new DataString("abc"));
@@ -84,7 +74,7 @@ class VendorNotationTest {
     @DisplayName("serde() throws DataException with helpful message when requested type not assignable from default type")
     void serdeThrowsForUnsupportedType() {
         final var context = createContext();
-        final var notation = new ConcreteVendorNotation(context, ".avsc", DataString.DATATYPE, (v, t) -> v, (c, n, s) -> null);
+        final var notation = new ConcreteVendorNotation("avro", context, ".avsc", DataString.DATATYPE, (v, t) -> v, (c, n, s) -> null);
         final var wrongType = new SimpleType(Integer.class, "int");
 
         assertThatThrownBy(() -> notation.serde(wrongType, true))

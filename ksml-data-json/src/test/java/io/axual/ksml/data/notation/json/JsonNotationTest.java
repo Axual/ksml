@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.json;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.ListType;
@@ -50,11 +49,8 @@ class JsonNotationTest {
     @Test
     @DisplayName("Default properties, name/extension, converter and schema parser types")
     void basicProperties() {
-        // Given a standard JSON notation context (no vendor)
-        var context = new NotationContext(JsonNotation.NOTATION_NAME);
-
         // When constructing JsonNotation
-        var notation = new JsonNotation(context);
+        final var notation = new JsonNotation();
 
         // Then: verify defaults and wiring using chained assertions
         assertThat(notation)
@@ -69,30 +65,22 @@ class JsonNotationTest {
     }
 
     @Test
-    @DisplayName("Name includes vendor prefix when provided by context")
-    void nameWithVendor() {
-        var context = new NotationContext(JsonNotation.NOTATION_NAME, "vendorX");
-        var notation = new JsonNotation(context);
-        assertThat(notation.name()).isEqualTo("vendorX_json");
-    }
-
-    @Test
     @DisplayName("Serde is provided for MapType, ListType, StructType, and DEFAULT_TYPE (Union)")
     void serdeForSupportedTypes() {
-        var notation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
+        final var notation = new JsonNotation();
 
         // Use soft assertions to validate multiple serde creations
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
         softly.assertThat(notation.serde(new MapType(), false)).isInstanceOf(JsonSerde.class);
         softly.assertThat(notation.serde(new ListType(), true)).isInstanceOf(JsonSerde.class);
         softly.assertThat(notation.serde(new StructType(), false)).isInstanceOf(JsonSerde.class);
 
         // DEFAULT_TYPE is a union of Struct|List and should be accepted directly
-        var defaultUnion = JsonNotation.DEFAULT_TYPE;
+        final var defaultUnion = JsonNotation.DEFAULT_TYPE;
         softly.assertThat(notation.serde(defaultUnion, false)).isInstanceOf(JsonSerde.class);
 
         // A different union that is assignable from DEFAULT_TYPE should also be supported
-        var compatibleUnion = new UnionType(
+        final var compatibleUnion = new UnionType(
                 new UnionType.Member(new StructType()),
                 new UnionType.Member(new ListType())
         );
@@ -104,7 +92,7 @@ class JsonNotationTest {
     @Test
     @DisplayName("Serde rejects unsupported types with DataException")
     void serdeForUnsupportedTypeThrows() {
-        var notation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
+        final var notation = new JsonNotation();
 
         // DataString is not supported directly by JsonNotation serde selection
         assertThatThrownBy(() -> notation.serde(DataString.DATATYPE, true))

@@ -39,8 +39,16 @@ public class BinaryNotation extends BaseNotation {
     public static final DataType DEFAULT_TYPE = DataType.UNKNOWN;
     private final SerdeSupplier complexTypeSerdeSupplier;
 
+    public BinaryNotation() {
+        this(null);
+    }
+
+    public BinaryNotation(SerdeSupplier complexTypeSerdeSupplier) {
+        this(null, complexTypeSerdeSupplier);
+    }
+
     public BinaryNotation(NotationContext context, SerdeSupplier complexTypeSerdeSupplier) {
-        super(context, null, DEFAULT_TYPE, null, null);
+        super(NOTATION_NAME, context, null, SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, null, null);
         this.complexTypeSerdeSupplier = complexTypeSerdeSupplier;
     }
 

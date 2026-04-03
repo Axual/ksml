@@ -60,20 +60,19 @@ public class JsonNotation extends BaseNotation {
             new UnionType.Member(new ListType()));
 
     /**
+     * Creates a JsonNotation with a default {@link NotationContext}.
+     */
+    public JsonNotation() {
+        this(null);
+    }
+
+    /**
      * Creates a JsonNotation with a given {@link NotationContext}.
      * The filename extension is fixed to ".json".
      */
     public JsonNotation(NotationContext context) {
         // Wire the BaseNotation with the JSON-specific converter and schema loader.
-        super(context, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
-    }
-
-    /**
-     * Returns the default JSON data type (Struct|List union).
-     */
-    @Override
-    public DataType defaultType() {
-        return DEFAULT_TYPE;
+        super(NOTATION_NAME, context, ".json", SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
     }
 
     /**

@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -48,12 +47,12 @@ class XmlSerdeTest {
     @DisplayName("StructType: SensorData round-trip preserves all field values")
     void sensorDataRoundTrip() {
         // Given: XML notation with SensorData schema (matching tutorial)
-        var schema = createSensorDataSchema();
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = createSensorDataSchema();
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
         // And: a SensorData struct matching the tutorial example
-        var struct = new DataStruct(schema);
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("sensor001"));
         struct.put("timestamp", new DataLong(1234567890L));
         struct.put("value", DataString.from("23.5"));
@@ -65,12 +64,12 @@ class XmlSerdeTest {
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("ksml_sensordata_xml", struct);
-            var result = serde.deserializer().deserialize("ksml_sensordata_xml", bytes);
+            final var bytes = serde.serializer().serialize("ksml_sensordata_xml", struct);
+            final var result = serde.deserializer().deserialize("ksml_sensordata_xml", bytes);
 
             // Then: should get DataStruct with all values preserved
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
 
             assertThat(resultStruct.get("name").toString()).isEqualTo("sensor001");
             assertThat(resultStruct.get("timestamp").toString()).isEqualTo("1234567890");
@@ -87,12 +86,12 @@ class XmlSerdeTest {
     @DisplayName("Round-trip with uppercase transformation (like tutorial processor)")
     void uppercaseCityTransformationRoundTrip() {
         // Given: XML notation with SensorData schema
-        var schema = createSensorDataSchema();
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = createSensorDataSchema();
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
         // And: sensor data with lowercase city
-        var struct = new DataStruct(schema);
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("sensor6"));
         struct.put("timestamp", new DataLong(1754376106863L));
         struct.put("value", DataString.from("12"));
@@ -104,11 +103,11 @@ class XmlSerdeTest {
 
         // When: round-trip through serde
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", struct);
-            var deserialized = (DataStruct) serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", struct);
+            final var deserialized = (DataStruct) serde.deserializer().deserialize("topic", bytes);
 
             // Simulate the tutorial transformation: uppercase city
-            var transformed = new DataStruct(schema);
+            final var transformed = new DataStruct(schema);
             transformed.put("name", deserialized.get("name"));
             transformed.put("timestamp", deserialized.get("timestamp"));
             transformed.put("value", deserialized.get("value"));
@@ -119,8 +118,8 @@ class XmlSerdeTest {
             transformed.put("owner", deserialized.get("owner"));
 
             // Then: serialize transformed data
-            var transformedBytes = serde.serializer().serialize("topic", transformed);
-            var result = (DataStruct) serde.deserializer().deserialize("topic", transformedBytes);
+            final var transformedBytes = serde.serializer().serialize("topic", transformed);
+            final var result = (DataStruct) serde.deserializer().deserialize("topic", transformedBytes);
 
             // And: verify transformation persisted
             assertThat(result.get("city").toString()).isEqualTo("ROTTERDAM");
@@ -132,23 +131,23 @@ class XmlSerdeTest {
     @DisplayName("Special XML characters are preserved through round-trip")
     void specialCharactersRoundTrip() {
         // Given: schema and serde
-        var schema = createSimpleSchema("name", "description");
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = createSimpleSchema("name", "description");
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
         // And: struct with special XML characters
-        var struct = new DataStruct(schema);
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("test & example"));
         struct.put("description", DataString.from("<value> with \"quotes\" and 'apostrophes'"));
 
         // When: round-trip
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", struct);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", struct);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: special characters should be preserved exactly
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
 
             // Verify exact values are preserved through round-trip with special XML characters
             assertThat(resultStruct.get("name").toString()).isEqualTo("test & example");
@@ -160,24 +159,24 @@ class XmlSerdeTest {
     @DisplayName("Empty element values are preserved in round-trip")
     void emptyElementsRoundTrip() {
         // Given: schema and serde
-        var schema = createSimpleSchema("name", "optional", "value");
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = createSimpleSchema("name", "optional", "value");
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
-        // And: struct with empty field
-        var struct = new DataStruct(schema);
+        // And: struct with an empty field
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("test"));
         struct.put("optional", DataString.from(""));
         struct.put("value", DataString.from("123"));
 
         // When: round-trip
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", struct);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", struct);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: empty field should be preserved
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
 
             assertThat(resultStruct.get("name").toString()).isEqualTo("test");
             assertThat(resultStruct.get("optional").toString()).isEmpty();
@@ -189,17 +188,17 @@ class XmlSerdeTest {
     @DisplayName("Key serde works independently from value serde")
     void keySerde() {
         // Given: XML notation
-        var schema = createSimpleSchema("id");
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = createSimpleSchema("id");
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
-        // When: creating key serde and using it for round-trip
+        // When: creating a key serde and using it for a round-trip
         try (var keySerde = notation.serde(structType, true)) {
-            var keyStruct = new DataStruct(schema);
+            final var keyStruct = new DataStruct(schema);
             keyStruct.put("id", DataString.from("key123"));
 
-            var bytes = keySerde.serializer().serialize("topic", keyStruct);
-            var result = keySerde.deserializer().deserialize("topic", bytes);
+            final var bytes = keySerde.serializer().serialize("topic", keyStruct);
+            final var result = keySerde.deserializer().deserialize("topic", bytes);
 
             // Then: should work correctly
             assertThat(result).isInstanceOf(DataStruct.class);
@@ -211,18 +210,18 @@ class XmlSerdeTest {
     @DisplayName("Null serialization produces null bytes and deserializes to DataStruct with isNull=true")
     void nullRoundTrip() {
         // Given: XML notation with StructType
-        var structType = new StructType();
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var structType = new StructType();
+        final var notation = new XmlNotation();
 
         // When: serializing null
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", null);
+            final var bytes = serde.serializer().serialize("topic", null);
 
             // Then: bytes should be null
             assertThat(bytes).isNull();
 
             // And: deserializing null bytes should return DataStruct with isNull=true
-            var result = serde.deserializer().deserialize("topic", null);
+            final var result = serde.deserializer().deserialize("topic", null);
             assertThat(result).isInstanceOf(DataStruct.class);
             assertThat(((DataStruct) result).isNull()).isTrue();
         }
@@ -231,30 +230,30 @@ class XmlSerdeTest {
     @Test
     @DisplayName("Numeric timestamp field preserves long values through round-trip")
     void numericTypeRoundTrip() {
-        // Given: schema with long timestamp (like tutorial SensorData)
-        var fields = java.util.List.of(
+        // Given: schema with a Long timestamp (like tutorial SensorData)
+        final var fields = java.util.List.of(
                 new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
                 new StructSchema.Field("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
                 new StructSchema.Field("value", DataSchema.STRING_SCHEMA, "Value", NO_TAG, true, false, null)
         );
-        var schema = new StructSchema("io.axual.test", "TimestampData", "Data with timestamp", fields, false);
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = new StructSchema("io.axual.test", "TimestampData", "Data with timestamp", fields, false);
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
-        // And: struct with long timestamp
-        var struct = new DataStruct(schema);
+        // And: struct with a Long timestamp
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("sensor1"));
         struct.put("timestamp", new DataLong(1754376106863L));
         struct.put("value", DataString.from("42"));
 
         // When: round-trip
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", struct);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", struct);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: numeric value should be preserved
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
             assertThat(resultStruct.get("timestamp").toString()).isEqualTo("1754376106863");
         }
     }
@@ -262,22 +261,22 @@ class XmlSerdeTest {
     @Test
     @DisplayName("Multiple different city names round-trip correctly (like tutorial data)")
     void multipleCitiesRoundTrip() {
-        // Given: XML notation with simple schema
-        var schema = createSimpleSchema("city");
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        // Given: XML notation with a simple schema
+        final var schema = createSimpleSchema("city");
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
         // When/Then: verify different city names from tutorial round-trip correctly
         try (var serde = notation.serde(structType, false)) {
-            var softly = new SoftAssertions();
+            final var softly = new SoftAssertions();
 
             String[] cities = {"Amsterdam", "Utrecht", "Rotterdam", "The Hague", "Eindhoven"};
             for (String city : cities) {
-                var struct = new DataStruct(schema);
+                final var struct = new DataStruct(schema);
                 struct.put("city", DataString.from(city));
 
-                var bytes = serde.serializer().serialize("topic", struct);
-                var result = serde.deserializer().deserialize("topic", bytes);
+                final var bytes = serde.serializer().serialize("topic", struct);
+                final var result = serde.deserializer().deserialize("topic", bytes);
 
                 softly.assertThat(result).isInstanceOf(DataStruct.class);
                 softly.assertThat(((DataStruct) result).get("city").toString())
@@ -293,13 +292,13 @@ class XmlSerdeTest {
     @DisplayName("All sensor types from tutorial round-trip correctly")
     void sensorTypesRoundTrip() {
         // Given: XML notation
-        var schema = createSimpleSchema("type", "unit");
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = createSimpleSchema("type", "unit");
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
         // When/Then: verify sensor types and units from tutorial
         try (var serde = notation.serde(structType, false)) {
-            var softly = new SoftAssertions();
+            final var softly = new SoftAssertions();
 
             Object[][] typesAndUnits = {
                     {"TEMPERATURE", "C"},
@@ -309,15 +308,15 @@ class XmlSerdeTest {
             };
 
             for (Object[] typeAndUnit : typesAndUnits) {
-                var struct = new DataStruct(schema);
+                final var struct = new DataStruct(schema);
                 struct.put("type", DataString.from((String) typeAndUnit[0]));
                 struct.put("unit", DataString.from((String) typeAndUnit[1]));
 
-                var bytes = serde.serializer().serialize("topic", struct);
-                var result = serde.deserializer().deserialize("topic", bytes);
+                final var bytes = serde.serializer().serialize("topic", struct);
+                final var result = serde.deserializer().deserialize("topic", bytes);
 
                 softly.assertThat(result).isInstanceOf(DataStruct.class);
-                var resultStruct = (DataStruct) result;
+                final var resultStruct = (DataStruct) result;
                 softly.assertThat(resultStruct.get("type").toString()).isEqualTo(typeAndUnit[0]);
                 softly.assertThat(resultStruct.get("unit").toString()).isEqualTo(typeAndUnit[1]);
             }
@@ -330,24 +329,24 @@ class XmlSerdeTest {
     @DisplayName("Optional fields (minOccurs=0 in XSD) can be omitted")
     void optionalFieldsHandling() {
         // Given: schema with required and optional fields (like tutorial SensorData)
-        var schema = createSchemaWithOptionalFields();
-        var structType = new StructType(schema);
-        var notation = new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME));
+        final var schema = createSchemaWithOptionalFields();
+        final var structType = new StructType(schema);
+        final var notation = new XmlNotation();
 
         // And: struct with only required fields
-        var struct = new DataStruct(schema);
+        final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("sensor1"));
         struct.put("value", DataString.from("42"));
         // Optional fields not set
 
         // When: round-trip
         try (var serde = notation.serde(structType, false)) {
-            var bytes = serde.serializer().serialize("topic", struct);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", struct);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: should work without optional fields
             assertThat(result).isInstanceOf(DataStruct.class);
-            var resultStruct = (DataStruct) result;
+            final var resultStruct = (DataStruct) result;
             assertThat(resultStruct.get("name").toString()).isEqualTo("sensor1");
             assertThat(resultStruct.get("value").toString()).isEqualTo("42");
         }
@@ -357,7 +356,7 @@ class XmlSerdeTest {
 
     private StructSchema createSensorDataSchema() {
         // Schema matching the tutorial SensorData.xsd
-        var fields = java.util.List.of(
+        final var fields = java.util.List.of(
                 new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "Sensor name", NO_TAG, true, false, null),
                 new StructSchema.Field("timestamp", DataSchema.LONG_SCHEMA, "Timestamp", NO_TAG, true, false, null),
                 new StructSchema.Field("value", DataSchema.STRING_SCHEMA, "Sensor value", NO_TAG, true, false, null),
@@ -371,7 +370,7 @@ class XmlSerdeTest {
     }
 
     private StructSchema createSimpleSchema(String... fieldNames) {
-        var fields = new java.util.ArrayList<StructSchema.Field>();
+        final var fields = new java.util.ArrayList<StructSchema.Field>();
         for (var fieldName : fieldNames) {
             fields.add(new StructSchema.Field(fieldName, DataSchema.STRING_SCHEMA, fieldName, NO_TAG, true, false, null));
         }
@@ -379,7 +378,7 @@ class XmlSerdeTest {
     }
 
     private StructSchema createSchemaWithOptionalFields() {
-        var fields = java.util.List.of(
+        final var fields = java.util.List.of(
                 new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "Name", NO_TAG, true, false, null),
                 new StructSchema.Field("value", DataSchema.STRING_SCHEMA, "Value", NO_TAG, true, false, null),
                 // Optional fields like in SensorData.xsd
