@@ -101,7 +101,7 @@ public class SchemaLibrary {
             }
         }
 
-        final var schema = notation.fetchRemoteSchema(subject);
+        final var schema = notation.fetchRemoteSchema(topic, isKey);
         if (schema instanceof NamedSchema ns) {
             if (notationSchemas == null) schemas.put(notation.name(), new TreeMap<>());
             schemas.get(notation.name()).put(subject, ns);

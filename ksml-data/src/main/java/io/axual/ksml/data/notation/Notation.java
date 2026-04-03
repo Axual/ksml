@@ -143,10 +143,11 @@ public interface Notation {
      * support remote schema fetching. Notations backed by a schema registry (e.g., Confluent Avro)
      * should override this method to query the registry for the latest version of the given subject.
      *
-     * @param subject the schema registry subject name (e.g., "my-topic-value" or "my-topic-key")
+     * @param topic the topic name to look up the schema for
+     * @param isKey true if we want to look up the topic's key schema, false is we want the value schema
      * @return the fetched DataSchema, or {@code null} if remote fetching is not supported
      */
-    default DataSchema fetchRemoteSchema(String subject) {
+    default DataSchema fetchRemoteSchema(String topic, boolean isKey) {
         return null;
     }
 }

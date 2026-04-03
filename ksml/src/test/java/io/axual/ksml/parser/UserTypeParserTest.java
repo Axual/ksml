@@ -473,8 +473,8 @@ class UserTypeParserTest {
             }
 
             @Override
-            public DataSchema fetchRemoteSchema(String subject) {
-                return new StructSchema(null, subject, null, Collections.emptyList());
+            public DataSchema fetchRemoteSchema(String topic, boolean isKey) {
+                return new StructSchema(null, topic, null, Collections.emptyList());
             }
         };
         ExecutionContext.INSTANCE.notationLibrary().register("remote_avro", remoteNotation);
@@ -516,7 +516,7 @@ class UserTypeParserTest {
             }
 
             @Override
-            public DataSchema fetchRemoteSchema(String subject) {
+            public DataSchema fetchRemoteSchema(String topic, boolean isKey) {
                 throw new RuntimeException("Should not call fetchRemoteSchema when schema name is specified");
             }
         };

@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.axual.ksml.client.resolving.Resolver;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
@@ -36,15 +37,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApicurioAvroNotation extends AvroNotation {
     private final RegistryClient registryClient;
+    private final Resolver topicResolver;
 
     /**
      * Construct an AvroNotation with the provided vendor context.
      *
      * @param context the vendor notation context providing serde supplier, native mapper, and configs
      */
-    public ApicurioAvroNotation(VendorNotationContext context, RegistryClient registryClient) {
+    public ApicurioAvroNotation(VendorNotationContext context, RegistryClient registryClient, Resolver topicResolver) {
         super(context);
         this.registryClient = registryClient;
+        this.topicResolver = topicResolver;
     }
 
     @Override
@@ -53,14 +56,17 @@ public class ApicurioAvroNotation extends AvroNotation {
     }
 
     @Override
-    public DataSchema fetchRemoteSchema(String subject) {
+    public DataSchema fetchRemoteSchema(String topic, boolean isKey) {
         if (registryClient == null) {
             throw new SchemaException("Cannot fetch remote schema: no schema registry client configured");
         }
+
+        final var subject = topicResolver.resolve(topic) + (isKey ? "-key" : "-value");
         try {
             log.info("Fetching latest schema for subject '{}' from schema registry", subject);
-            final var schema = registryClient.getLatestArtifact(null, subject);
-            return schemaParser().parse(subject, subject, schema.toString());
+            final var schemaStream = registryClient.getLatestArtifact(null, subject);
+            final var schema = new String(schemaStream.readAllBytes());
+            return schemaParser().parse(subject, subject, schema);
         } catch (Exception e) {
             throw new SchemaException("Failed to fetch schema for subject '" + subject + "' from schema registry", e);
         }

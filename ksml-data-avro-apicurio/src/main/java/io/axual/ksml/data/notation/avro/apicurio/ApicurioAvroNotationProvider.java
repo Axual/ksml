@@ -21,12 +21,15 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+
+import java.util.HashMap;
 
 public class ApicurioAvroNotationProvider extends VendorNotationProvider {
     private final RegistryClient registryClient;
@@ -42,8 +45,10 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
 
     @Override
     public Notation createNotation(NotationContext context) {
+        final var clientConfig = new ResolvingClientConfig(context != null ? context.serdeConfigs() : new HashMap<>());
         return new ApicurioAvroNotation(
                 new VendorNotationContext(vendorName(), context, new ApicurioAvroSerdeSupplier(registryClient), new AvroDataObjectMapper()),
-                registryClient);
+                registryClient,
+                clientConfig.topicResolver());
     }
 }

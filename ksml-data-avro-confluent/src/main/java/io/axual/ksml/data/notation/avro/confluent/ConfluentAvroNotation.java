@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.resolving.Resolver;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
@@ -36,10 +37,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ConfluentAvroNotation extends AvroNotation {
     private final SchemaRegistryClient registryClient;
+    private final Resolver topicResolver;
 
-    public ConfluentAvroNotation(VendorNotationContext context, SchemaRegistryClient registryClient) {
+    public ConfluentAvroNotation(VendorNotationContext context, SchemaRegistryClient registryClient, Resolver topicResolver) {
         super(context);
         this.registryClient = registryClient;
+        this.topicResolver = topicResolver;
     }
 
     @Override
@@ -48,10 +51,12 @@ public class ConfluentAvroNotation extends AvroNotation {
     }
 
     @Override
-    public DataSchema fetchRemoteSchema(String subject) {
+    public DataSchema fetchRemoteSchema(String topic, boolean isKey) {
         if (registryClient == null) {
             throw new SchemaException("Cannot fetch remote schema: no schema registry client configured");
         }
+
+        final var subject = topicResolver.resolve(topic) + (isKey ? "-key" : "-value");
         try {
             log.info("Fetching latest schema for subject '{}' from schema registry", subject);
             final var metadata = registryClient.getLatestSchemaMetadata(subject);

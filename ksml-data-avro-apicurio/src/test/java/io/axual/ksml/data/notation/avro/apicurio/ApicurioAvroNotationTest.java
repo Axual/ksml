@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.avro.confluent;
+package io.axual.ksml.data.notation.avro.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - AVRO Confluent
+ * KSML Data Library - AVRO Apicurio
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,28 +20,29 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.rest.client.RegistryClient;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.schema.StructSchema;
-import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ConfluentAvroNotationTest {
+class ApicurioAvroNotationTest {
 
     @Test
     @DisplayName("supportsRemoteSchema returns true when registry client is configured")
     void supportsRemoteSchema_withClient_returnsTrue() {
-        var registryClient = mock(SchemaRegistryClient.class);
-        var provider = new ConfluentAvroNotationProvider(registryClient);
+        var registryClient = mock(RegistryClient.class);
+        var provider = new ApicurioAvroNotationProvider(registryClient);
         var context = new NotationContext();
-        var notation = (ConfluentAvroNotation) provider.createNotation(context);
+        var notation = (ApicurioAvroNotation) provider.createNotation(context);
 
         assertThat(notation.supportsRemoteSchema()).isTrue();
     }
@@ -49,24 +50,24 @@ class ConfluentAvroNotationTest {
     @Test
     @DisplayName("supportsRemoteSchema returns false when no registry client is configured")
     void supportsRemoteSchema_withoutClient_returnsFalse() {
-        var provider = new ConfluentAvroNotationProvider();
+        var provider = new ApicurioAvroNotationProvider();
         var context = new NotationContext();
-        var notation = (ConfluentAvroNotation) provider.createNotation(context);
+        var notation = (ApicurioAvroNotation) provider.createNotation(context);
 
         assertThat(notation.supportsRemoteSchema()).isFalse();
     }
 
     @Test
     @DisplayName("fetchRemoteSchema fetches and parses schema from registry")
-    void fetchRemoteSchema_withValidSubject_returnsSchema() throws Exception {
+    void fetchRemoteSchema_withValidSubject_returnsSchema() {
         var schemaString = "{\"type\":\"record\",\"name\":\"SensorData\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"}]}";
-        var registryClient = mock(SchemaRegistryClient.class);
-        when(registryClient.getLatestSchemaMetadata("my-topic-value"))
-                .thenReturn(new SchemaMetadata(1, 1, schemaString));
+        var registryClient = mock(RegistryClient.class);
+        when(registryClient.getLatestArtifact(null, "my-topic-value"))
+                .thenReturn(new ByteArrayInputStream(schemaString.getBytes()));
 
-        var provider = new ConfluentAvroNotationProvider(registryClient);
+        var provider = new ApicurioAvroNotationProvider(registryClient);
         var context = new NotationContext();
-        var notation = (ConfluentAvroNotation) provider.createNotation(context);
+        var notation = (ApicurioAvroNotation) provider.createNotation(context);
 
         var schema = notation.fetchRemoteSchema("my-topic", false);
 
@@ -76,14 +77,14 @@ class ConfluentAvroNotationTest {
 
     @Test
     @DisplayName("fetchRemoteSchema throws SchemaException when registry is unreachable")
-    void fetchRemoteSchema_withUnreachableRegistry_throwsSchemaException() throws Exception {
-        var registryClient = mock(SchemaRegistryClient.class);
-        when(registryClient.getLatestSchemaMetadata("unknown-topic-value"))
+    void fetchRemoteSchema_withUnreachableRegistry_throwsSchemaException() {
+        var registryClient = mock(RegistryClient.class);
+        when(registryClient.getLatestArtifact(null, "unknown-topic-value"))
                 .thenThrow(new RuntimeException("Connection refused"));
 
-        var provider = new ConfluentAvroNotationProvider(registryClient);
+        var provider = new ApicurioAvroNotationProvider(registryClient);
         var context = new NotationContext();
-        var notation = (ConfluentAvroNotation) provider.createNotation(context);
+        var notation = (ApicurioAvroNotation) provider.createNotation(context);
 
         assertThatThrownBy(() -> notation.fetchRemoteSchema("unknown-topic", false))
                 .isInstanceOf(SchemaException.class)
@@ -93,9 +94,9 @@ class ConfluentAvroNotationTest {
     @Test
     @DisplayName("fetchRemoteSchema throws SchemaException when no registry client configured")
     void fetchRemoteSchema_withoutClient_throwsSchemaException() {
-        var provider = new ConfluentAvroNotationProvider();
+        var provider = new ApicurioAvroNotationProvider();
         var context = new NotationContext();
-        var notation = (ConfluentAvroNotation) provider.createNotation(context);
+        var notation = (ApicurioAvroNotation) provider.createNotation(context);
 
         assertThatThrownBy(() -> notation.fetchRemoteSchema("my-topic", false))
                 .isInstanceOf(SchemaException.class)
