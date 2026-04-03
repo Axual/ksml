@@ -1810,6 +1810,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#notation-behaviour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation Behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#format-selection-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1825,6 +1836,28 @@
     <span class="md-ellipsis">
       
         Avro
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#binary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CSV
       
     </span>
   </a>
@@ -1854,28 +1887,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#csv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CSV
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#xml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        XML
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#protobuf" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1887,10 +1898,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#binary" class="md-nav__link">
+  <a href="#soap-deprecated-scheduled-for-removal-in-140" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binary
+        SOAP (deprecated, scheduled for removal in 1.4.0)
       
     </span>
   </a>
@@ -1898,10 +1909,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#soap" class="md-nav__link">
+  <a href="#xml" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SOAP
+        XML
       
     </span>
   </a>
@@ -2378,6 +2389,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#notation-behaviour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation Behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#format-selection-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2393,6 +2415,28 @@
     <span class="md-ellipsis">
       
         Avro
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#binary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CSV
       
     </span>
   </a>
@@ -2422,28 +2466,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#csv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CSV
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#xml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        XML
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#protobuf" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2455,10 +2477,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#binary" class="md-nav__link">
+  <a href="#soap-deprecated-scheduled-for-removal-in-140" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binary
+        SOAP (deprecated, scheduled for removal in 1.4.0)
       
     </span>
   </a>
@@ -2466,10 +2488,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#soap" class="md-nav__link">
+  <a href="#xml" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SOAP
+        XML
       
     </span>
   </a>
@@ -2649,7 +2671,8 @@
 
 
 <h1 id="data-types-and-notations-reference">Data Types and Notations Reference</h1>
-<p>KSML supports a wide range of data types and formats for both keys and values in your streams. This comprehensive reference covers all data types, notation formats, and type conversion capabilities available in KSML.</p>
+<p>KSML supports a wide range of data types and formats for both keys and values in your streams. This comprehensive
+reference covers all data types, notation formats, and type conversion capabilities available in KSML.</p>
 <h2 id="data-types-in-ksml">Data Types in KSML</h2>
 <h3 id="primitive-types">Primitive Types</h3>
 <p>KSML supports the following primitive types:</p>
@@ -2729,18 +2752,18 @@
 <p>KSML also supports several complex types that can contain multiple values:</p>
 <h4 id="enum">Enum</h4>
 <p>An enumeration defines a set of allowed values.</p>
-<p><strong>Syntax:</strong>
+<p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enum(&lt;value1&gt;, &lt;value2&gt;, ...)</span><span class="w">   </span><span class="c1"># Quotes optional</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">order_status_stream</span><span class="p">:</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order-statuses</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enum(PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)</span><span class="w">  </span><span class="c1"># Works without quotes</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="c1"># valueType: &quot;enum(PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)&quot;  # Also works with quotes</span>
-</code></pre></div></p>
-<p>In Python code, an enum value is always represented as a string:
+</code></pre></div>
+<p>In Python code, an enum value is always represented as a string:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">update_status</span><span class="p">:</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
@@ -2751,7 +2774,7 @@
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="no">return &quot;PROCESSING&quot;</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;PENDING&quot;</span>
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-</code></pre></div></p>
+</code></pre></div>
 <details class="info">
 <summary>Producer - Enum example (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Demonstrates enum data type usage in KSML</span>
@@ -2849,11 +2872,11 @@
 </details>
 <h4 id="list">List</h4>
 <p>A list contains multiple elements of the same type.</p>
-<p><strong>Syntax:</strong>
+<p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Function notation (recommended - avoids YAML validation warnings)</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(&lt;element_type&gt;)</span><span class="w"> </span><span class="c1"># valueType: [&lt;element_type&gt;] also works</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">tags_stream</span><span class="p">:</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tags</span>
@@ -2864,8 +2887,8 @@
 <a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">categories</span>
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(string)</span><span class="w">      </span><span class="c1"># Alternative notation (no quotes needed)</span>
-</code></pre></div></p>
-<p>In Python code, a list is represented as a Python list:
+</code></pre></div>
+<p>In Python code, a list is represented as a Python list:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">extract_tags</span><span class="p">:</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueToValueListTransformer</span>
@@ -2876,10 +2899,11 @@
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueToValueListTransformer</span>
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;categories&quot;, [])</span>
 <a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(string)</span><span class="w">    </span><span class="c1"># Alternative notation (no quotes needed)</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>See it in action</strong>:</p>
 <ul>
-<li><a href="../function-reference/#keyvaluetovaluelisttransformer">List example</a> for predicate functions for data filtering</li>
+<li><a href="../function-reference/#keyvaluetovaluelisttransformer">List example</a> for predicate functions for data
+  filtering</li>
 </ul>
 <h4 id="example">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">functions</span><span class="p">:</span>
@@ -2973,10 +2997,10 @@
 </ul>
 <h4 id="map">Map</h4>
 <p>A map contains key-value pairs where keys are always strings and values are of a specified type.</p>
-<p><strong>Syntax:</strong>
+<p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map(&lt;value_type&gt;)</span><span class="w">   </span><span class="c1"># Quotes optional</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">user_preferences</span><span class="p">:</span>
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-preferences</span>
@@ -2987,8 +3011,8 @@
 <a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scores</span>
 <a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map(int)</span><span class="w">     </span><span class="c1"># Map with string keys and integer values, &quot;map(int)&quot; also valid</span>
-</code></pre></div></p>
-<p>In Python code, a map is represented as a Python dictionary:
+</code></pre></div>
+<p>In Python code, a map is represented as a Python dictionary:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">create_preferences</span><span class="p">:</span>
 <a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
@@ -3011,7 +3035,7 @@
 <a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
 <a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map(int)</span><span class="w"> </span><span class="c1"># &quot;map(int)&quot; also valid </span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Key characteristics:</strong></p>
 <ul>
 <li>Keys are always strings (this is enforced by the type system)</li>
@@ -3030,7 +3054,8 @@
 <a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map(int)</span><span class="w">     </span><span class="c1"># Map with string keys and integer values</span>
 </code></pre></div>
-<p>This simple example demonstrates using <code>map(string)</code> and <code>map(int)</code> types in stream definitions and function result types:</p>
+<p>This simple example demonstrates using <code>map(string)</code> and <code>map(int)</code> types in stream definitions and function result
+types:</p>
 <details class="info">
 <summary>Producer - <code>map</code> example (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Simple producer demonstrating map(string) and map(int) data types</span>
@@ -3170,22 +3195,24 @@
 <ul>
 <li><strong>Stream definitions</strong> use <code>valueType: map(string)</code> and <code>valueType: map(int)</code> to define strongly-typed maps</li>
 <li><strong>Function result types</strong> use <code>resultType: (string, map(string))</code> to return maps with type safety</li>
-<li><strong>Processing functions</strong> use <code>resultType: map(string)</code> and <code>resultType: map(int)</code> to transform and validate map contents</li>
+<li><strong>Processing functions</strong> use <code>resultType: map(string)</code> and <code>resultType: map(int)</code> to transform and validate map
+  contents</li>
 <li>Demonstrates how the <code>map(valuetype)</code> syntax ensures all values in a map conform to the specified type</li>
 </ul>
 <h4 id="struct">Struct</h4>
-<p>A struct is a key-value map where all keys are strings. This is the most common complex type and is used for JSON objects, Avro records, etc.</p>
-<p><strong>Syntax:</strong>
+<p>A struct is a key-value map where all keys are strings. This is the most common complex type and is used for JSON
+objects, Avro records, etc.</p>
+<p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">user_profiles</span><span class="p">:</span>
 <a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-profiles</span>
 <a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">struct</span>
-</code></pre></div></p>
-<p>In Python code, a struct is represented as a dictionary:
+</code></pre></div>
+<p>In Python code, a struct is represented as a dictionary:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">create_user</span><span class="p">:</span>
 <a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
@@ -3196,7 +3223,7 @@
 <a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">        </span><span class="no">&quot;email&quot;: value.get(&quot;email&quot;),</span>
 <a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">        </span><span class="no">&quot;age&quot;: value.get(&quot;age&quot;)</span>
 <a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">      </span><span class="no">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <details class="info">
 <summary>Producer - Struct example (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Demonstrates struct data type usage in KSML</span>
@@ -3303,14 +3330,14 @@
 </details>
 <h4 id="tuple">Tuple</h4>
 <p>A tuple combines multiple elements of different types into a single value.</p>
-<p><strong>Syntax:</strong>
+<p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Standard bracket notation</span>
 <a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(&lt;type1&gt;, &lt;type2&gt;, ...)</span>
 <a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
 <a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Alternative function notation (avoids YAML validation warnings)</span>
 <a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tuple(&lt;type1&gt;, &lt;type2&gt;, ...)</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">sensor_stream</span><span class="p">:</span>
 <a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor-data</span>
@@ -3321,8 +3348,8 @@
 <a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordinates</span>
 <a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tuple(double, double)</span><span class="w">           </span><span class="c1"># Alternative notation (no quotes needed)</span>
-</code></pre></div></p>
-<p>In Python code, a tuple is represented as a Python tuple:
+</code></pre></div>
+<p>In Python code, a tuple is represented as a Python tuple:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="nt">create_user_age_pair</span><span class="p">:</span>
 <a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueTransformer</span>
@@ -3333,7 +3360,7 @@
 <a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValueTransformer</span>
 <a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(value.get(&quot;lat&quot;), value.get(&quot;lng&quot;))</span>
 <a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tuple(double, double)</span><span class="w">         </span><span class="c1"># Alternative notation (no quotes needed)</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>See it in action</strong>:</p>
 <ul>
 <li><a href="../function-reference/#foreignkeyextractor">Tuple example</a></li>
@@ -3434,19 +3461,19 @@
 </ul>
 <h4 id="union">Union</h4>
 <p>A union type can be one of several possible types.</p>
-<p><strong>Syntax:</strong>
+<p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">union(&lt;type1&gt;, &lt;type2&gt;, ...)</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Example:</strong></p>
 <p>Union types are used in two main places in KSML:</p>
-<p><strong>1. In stream definitions</strong> - to specify that a stream can contain multiple types:
+<p><strong>1. In stream definitions</strong> - to specify that a stream can contain multiple types:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="w">  </span><span class="nt">optional_messages</span><span class="p">:</span>
 <a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">optional-messages</span>
 <a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">union(null, json)</span><span class="w">  </span><span class="c1"># This stream accepts either null OR a JSON object</span>
-</code></pre></div></p>
-<p><strong>2. In function return types</strong> - to specify that a function can return multiple types:
+</code></pre></div>
+<p><strong>2. In function return types</strong> - to specify that a function can return multiple types:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="w">  </span><span class="nt">generate_optional</span><span class="p">:</span>
 <a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
@@ -3457,7 +3484,7 @@
 <a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="w">      </span><span class="no">else:</span>
 <a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="w">        </span><span class="no">return (&quot;key1&quot;, None)</span>
 <a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, union(null, json))</span><span class="w">  </span><span class="c1"># Returns a tuple with union type</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>What union types mean:</strong></p>
 <ul>
 <li><code>union(null, json)</code> means the value can be either <code>null</code> OR a JSON object</li>
@@ -3570,34 +3597,38 @@
 </code></pre></div>
 </details>
 <h4 id="windowed">Windowed</h4>
-<p>Windowing operations in Kafka Streams group messages together in time-based windows. KSML provides the <code>windowed(&lt;base_type&gt;)</code> syntax to work with these windowed keys.</p>
-<p><strong>Syntax:</strong>
+<p>Windowing operations in Kafka Streams group messages together in time-based windows. KSML provides the
+<code>windowed(&lt;base_type&gt;)</code> syntax to work with these windowed keys.</p>
+<p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Without notation - requires manual transformation for Kafka output</span>
 <a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowed(&lt;base_type&gt;)</span>
 <a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
 <a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># With notation - automatically serializes to the specified format</span>
 <a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;notation&gt;:windowed(&lt;base_type&gt;)</span><span class="w">  </span><span class="c1"># e.g., json:windowed(string), avro:windowed(string)</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Understanding Windowed Keys:</strong></p>
 <p>After windowing operations (like <code>windowByTime</code>), Kafka Streams internally creates windowed keys that contain:</p>
 <ul>
 <li>The original key value</li>
 <li>Window start timestamp (milliseconds)</li>
-<li>Window end timestamp (milliseconds)  </li>
+<li>Window end timestamp (milliseconds)</li>
 <li>Human-readable start/end times</li>
 </ul>
 <p><strong>Two Approaches for Handling Windowed Keys:</strong></p>
 <p><strong>1. Without Notation (Manual Transformation Required):</strong></p>
-<p>When using plain <code>windowed(string)</code>, the windowed keys cannot be directly serialized to Kafka topics. You must manually transform them to a regular type:</p>
+<p>When using plain <code>windowed(string)</code>, the windowed keys cannot be directly serialized to Kafka topics. You must manually
+transform them to a regular type:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertKey</span>
 <a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowed(string)</span>
 </code></pre></div>
 <p><strong>2. With Notation Prefix (Automatic Serialization):</strong></p>
-<p>Using a notation prefix like <code>json:windowed(string)</code> or <code>avro:windowed(string)</code> enables automatic serialization of the windowed key structure:</p>
+<p>Using a notation prefix like <code>json:windowed(string)</code> or <code>avro:windowed(string)</code> enables automatic serialization of the
+windowed key structure:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertKey</span>
 <a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json:windowed(string)</span><span class="w">  </span><span class="c1"># Recommended: use notation prefix for automatic serialization</span>
 </code></pre></div>
-<p>The notation automatically serializes the windowed key as a structured object with fields: <code>start</code>, <code>end</code>, <code>startTime</code>, <code>endTime</code>, and <code>key</code>.</p>
+<p>The notation automatically serializes the windowed key as a structured object with fields: <code>start</code>, <code>end</code>, <code>startTime</code>,
+<code>endTime</code>, and <code>key</code>.</p>
 <p><strong>Complete Examples:</strong></p>
 <details class="info">
 <summary>Producer - Generates events for windowing (click to expand)</summary>
@@ -3828,9 +3859,14 @@
 </li>
 </ul>
 <p><strong>Key Takeaway:</strong></p>
-<p>Windowed types enable time-based analytics like counting events per time window, calculating moving averages, or detecting patterns over time intervals. The notation prefix approach simplifies working with windowed data by handling serialization automatically.</p>
+<p>Windowed types enable time-based analytics like counting events per time window, calculating moving averages, or
+detecting patterns over time intervals. The notation prefix approach simplifies working with windowed data by handling
+serialization automatically.</p>
 <h3 id="the-any-and-types">The Any and "?" Types</h3>
-<p>KSML supports wildcard types <code>any</code> and <code>?</code> (which are equivalent) that represent unknown or variable data types. These map internally to <code>DataType.UNKNOWN</code> and can only be used for function parameters when the exact type is not known at definition time. They cannot be used for stream types or function result types due to serialization and type system requirements.</p>
+<p>KSML supports wildcard types <code>any</code> and <code>?</code> (which are equivalent) that represent unknown or variable data types. These
+map internally to <code>DataType.UNKNOWN</code> and can only be used for function parameters when the exact type is not known at
+definition time. They cannot be used for stream types or function result types due to serialization and type system
+requirements.</p>
 <p><strong>Syntax:</strong></p>
 <p>The <code>any</code> and <code>?</code> types can be used in:</p>
 <ul>
@@ -3859,8 +3895,10 @@
 </code></pre></div>
 <p><strong>Why the limitations exist:</strong></p>
 <ul>
-<li><strong>Stream types</strong>: Kafka requires concrete serialization formats. The <code>any</code> type cannot be serialized to Kafka topics because there's no serde for unknown data types.</li>
-<li><strong>Result types</strong>: The topology type system requires concrete types for type checking and ensuring data flows correctly between operations.</li>
+<li><strong>Stream types</strong>: Kafka requires concrete serialization formats. The <code>any</code> type cannot be serialized to Kafka topics
+  because there's no serde for unknown data types.</li>
+<li><strong>Result types</strong>: The topology type system requires concrete types for type checking and ensuring data flows correctly
+  between operations.</li>
 </ul>
 <p><strong>Key Use Cases:</strong></p>
 <ul>
@@ -3967,12 +4005,93 @@
 </code></pre></div>
 </details>
 <h2 id="notation-formats">Notation Formats</h2>
-<p>KSML uses <em>notations</em> to allow reading/writing different message formats to Kafka topics. Notations are specified as a prefix to the schema name.</p>
+<p>KSML uses <em>notations</em> to allow reading/writing different message formats to Kafka topics. Notations are specified as a
+prefix to the schema name.</p>
 <h3 id="examples">Examples</h3>
 <p><strong>See a working example for every data format in this tutorial</strong>:</p>
 <ul>
 <li><a href="../../tutorials/beginner/data-formats/">Data Format Examples</a></li>
 </ul>
+<h3 id="notation-behaviour">Notation Behaviour</h3>
+<p>Some notations behave differently depending on the specific use. For instance, when you specify <code>keyType: avro</code>, KSML
+loads the schema (once during startup of KSML) from the configured schema registry. For XML this done differently,
+namely when you say <code>keyType: xml</code> you refer to a schemaless XML type. See the table below for more details.</p>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>Primitives</th>
+<th>Uses schema</th>
+<th>Used as <code>notation</code></th>
+<th>Used as <code>notation:Schema</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>none</em></td>
+<td>Yes</td>
+<td>Never</td>
+<td>Binary encoding (default serdes)</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>avro</td>
+<td>No</td>
+<td>Always</td>
+<td>Loads latest AVRO schema from SR</td>
+<td>Loads Schema.avsc from disk</td>
+</tr>
+<tr>
+<td>binary</td>
+<td>Yes</td>
+<td>Never</td>
+<td>Binary encoding (default serdes)</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>csv</td>
+<td>No</td>
+<td>Always</td>
+<td>n/a</td>
+<td>Loads Schema.csv from disk</td>
+</tr>
+<tr>
+<td>json</td>
+<td>No</td>
+<td>Never</td>
+<td>Schemaless JSON</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>jsonschema</td>
+<td>No</td>
+<td>Always</td>
+<td>Loads latest JSON Schema from SR</td>
+<td>Loads Schema.json from disk</td>
+</tr>
+<tr>
+<td>protobuf</td>
+<td>No</td>
+<td>Always</td>
+<td>Loads latest Protobuf schema from SR</td>
+<td>Loads Schema.proto from disk</td>
+</tr>
+<tr>
+<td>soap</td>
+<td>No</td>
+<td>Never</td>
+<td>Schemaless SOAP</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>xml</td>
+<td>No</td>
+<td>Optional</td>
+<td>Schemaless XML</td>
+<td>Loads Schema.xsd from disk</td>
+</tr>
+</tbody>
+</table>
 <h3 id="format-selection-guide">Format Selection Guide</h3>
 <p>The choice of notation depends on your specific requirements:</p>
 <table>
@@ -3985,11 +4104,11 @@
 <tbody>
 <tr>
 <td>Schema evolution and backward compatibility</td>
-<td>Avro or Protobuf</td>
+<td>Avro, JSON Schema or Protobuf</td>
 </tr>
 <tr>
 <td>Human-readable data for debugging</td>
-<td>JSON</td>
+<td>JSON or JSON Schema</td>
 </tr>
 <tr>
 <td>Integration with legacy systems</td>
@@ -4010,135 +4129,146 @@
 </tbody>
 </table>
 <h3 id="avro">Avro</h3>
-<p>Avro is a binary format that supports schema evolution.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:&lt;schema_name&gt;</span>
-<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="c1"># or for schema registry lookup</span>
-<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+<p>Avro is a binary format that supports schema evolution. Make sure to specify
+the <a href="../configuration-reference/#notation-configuration">correct notation configuration</a> in <code>ksml-runner.yaml</code> to select
+the correct implementation (Apicurio or Confluent).</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Loads schema_name.avsc from the local schema directory</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:&lt;schema_name&gt;</span>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="c1"># Or for the dynamic lookup in the configured schema registry</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="w">  </span><span class="nt">sensor_readings</span><span class="p">:</span>
 <a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor-data</span>
 <a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
-</code></pre></div></p>
-<h3 id="json">JSON</h3>
-<p>JSON is a text-based, human-readable format for data transfer.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># For schemaless JSON:</span>
-<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="c1"># For JSON with a schema:</span>
-<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json:&lt;schema_name&gt;</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<h3 id="binary">Binary</h3>
+<p>Binary data represents raw bytes for custom protocols. It uses the default serializers/deserialiers from Kafka to
+write/read the data from topics.</p>
+<p>The binary notation only accepts internal types and no schema. When writing out lists or structs, it falls back to JSON
+encoding and writes out strings with the encoded values.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary:string</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary:struct</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="w">  </span><span class="nt">user_profiles</span><span class="p">:</span>
-<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-profiles</span>
-<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>
-<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="w">  </span><span class="nt">orders</span><span class="p">:</span>
-<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
-<a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json:Order</span>
-</code></pre></div></p>
-<p>Python functions can return JSON by returning a dictionary:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="nt">functions</span><span class="p">:</span>
-<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a><span class="w">  </span><span class="nt">merge_key_value_data</span><span class="p">:</span>
-<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
-<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="s">&#39;key&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">key</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;value&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-</code></pre></div></p>
-<h3 id="json-schema">JSON Schema</h3>
-<p>JSON Schema adds vendor-specific schema support to JSON serialization.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="c1"># For schema registry lookup:</span>
-<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jsonschema</span>
-<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="c1"># For JSON with a schema:</span>
-<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jsonschema:&lt;schema_name&gt;</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="w">  </span><span class="nt">user_profiles</span><span class="p">:</span>
-<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-profiles</span>
-<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jsonschema:UserProfile</span>
-</code></pre></div></p>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="w">  </span><span class="nt">binary_data</span><span class="p">:</span>
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary-messages</span>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bytes</span><span class="w">                   </span><span class="c1"># Reads/writes as a byte array</span>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary:list(string)</span><span class="w">   </span><span class="c1"># Reads/writes as a JSON array, i.e., a string containing &quot;[&quot;a&quot;, &quot;b&quot;, ...]&quot;</span>
+</code></pre></div>
 <h3 id="csv">CSV</h3>
 <p>CSV (Comma-Separated Values) is a simple tabular data format.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="c1"># For schemaless CSV:</span>
-<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
-<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a><span class="c1"># For CSV with a schema:</span>
-<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv:&lt;schema_name&gt;</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a><span class="w">  </span><span class="nt">sales_data</span><span class="p">:</span>
-<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales-data</span>
-<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
-<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a>
-<a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a><span class="w">  </span><span class="nt">inventory_data</span><span class="p">:</span>
-<a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory-data</span>
-<a id="__codelineno-50-9" name="__codelineno-50-9" href="#__codelineno-50-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-50-10" name="__codelineno-50-10" href="#__codelineno-50-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv:InventoryRecord</span>
-</code></pre></div></p>
-<h3 id="xml">XML</h3>
-<p>XML (Extensible Markup Language) is used for complex hierarchical data.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="c1"># For schemaless XML:</span>
-<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xml</span>
-<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a><span class="c1"># For XML with a schema:</span>
-<a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xml:&lt;schema_name&gt;</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="c1"># Loads schema_name.csv from the local schema directory</span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv:&lt;schema_name&gt;</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a><span class="w">  </span><span class="nt">sales_data</span><span class="p">:</span>
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sales-data</span>
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv:SalesRecord</span>
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a><span class="w">  </span><span class="nt">inventory_data</span><span class="p">:</span>
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventory-data</span>
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv:InventoryRecord</span>
+</code></pre></div>
+<h3 id="json">JSON</h3>
+<p>JSON is a text-based, human-readable format for data transfer.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="c1"># JSON is always schemaless</span>
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a><span class="w">  </span><span class="nt">user_profiles</span><span class="p">:</span>
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-profiles</span>
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a>
+<a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a><span class="w">  </span><span class="nt">orders</span><span class="p">:</span>
+<a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
+<a id="__codelineno-49-9" name="__codelineno-49-9" href="#__codelineno-49-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-49-10" name="__codelineno-49-10" href="#__codelineno-49-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+</code></pre></div>
+<p>Python functions can return JSON by returning a dictionary:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a><span class="w">  </span><span class="nt">merge_key_value_data</span><span class="p">:</span>
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
+<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&#39;key&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">key</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;value&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">value</span><span class="p p-Indicator">}</span>
+<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+</code></pre></div>
+<h3 id="json-schema">JSON Schema</h3>
+<p>JSON Schema adds vendor-specific schema support to JSON serialization. Make sure to specify
+the <a href="../configuration-reference/#notation-configuration">correct notation configuration</a> in <code>ksml-runner.yaml</code> to select
+the correct implementation (Apicurio or Confluent).</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="c1"># Loads schema_name.json from the local schema directory</span>
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jsonschema:&lt;schema_name&gt;</span>
+<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a><span class="c1"># Or for the dynamic lookup in the configured schema registry</span>
+<a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jsonschema</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a><span class="w">  </span><span class="nt">customer_data</span><span class="p">:</span>
-<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer-data</span>
+<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a><span class="w">  </span><span class="nt">user_profiles</span><span class="p">:</span>
+<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-profiles</span>
 <a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xml:CustomerData</span>
-</code></pre></div></p>
+<a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jsonschema:UserProfile</span>
+</code></pre></div>
 <h3 id="protobuf">Protobuf</h3>
-<p>Protobuf is a popular encoding format developed by Google.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="c1"># For schema registry lookup:</span>
-<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf</span>
-<a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a><span class="c1"># For Protobuf with a schema:</span>
-<a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf:&lt;schema_name&gt;</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+<p>Protobuf is a popular encoding format developed by Google. Make sure to specify
+the <a href="../configuration-reference/#notation-configuration">correct notation configuration</a> in <code>ksml-runner.yaml</code> to select
+the correct implementation (Apicurio or Confluent).</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="c1"># Loads schema_name.proto from the local schema directory</span>
+<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf:&lt;schema_name&gt;</span>
+<a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a><span class="c1"># Or for the dynamic lookup in the configured schema registry</span>
+<a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a><span class="nt">streams</span><span class="p">:</span>
 <a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a><span class="w">  </span><span class="nt">user_profiles</span><span class="p">:</span>
 <a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-profiles</span>
 <a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf:UserProfile</span>
-</code></pre></div></p>
-<h3 id="binary">Binary</h3>
-<p>Binary data represents raw bytes for custom protocols.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-56-2" name="__codelineno-56-2" href="#__codelineno-56-2"></a><span class="w">  </span><span class="nt">binary_data</span><span class="p">:</span>
-<a id="__codelineno-56-3" name="__codelineno-56-3" href="#__codelineno-56-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary-messages</span>
-<a id="__codelineno-56-4" name="__codelineno-56-4" href="#__codelineno-56-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-56-5" name="__codelineno-56-5" href="#__codelineno-56-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary</span>
-</code></pre></div></p>
-<h3 id="soap">SOAP</h3>
+<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a><span class="w">  </span><span class="nt">orders</span><span class="p">:</span>
+<a id="__codelineno-54-7" name="__codelineno-54-7" href="#__codelineno-54-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
+<a id="__codelineno-54-8" name="__codelineno-54-8" href="#__codelineno-54-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-54-9" name="__codelineno-54-9" href="#__codelineno-54-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf</span>
+</code></pre></div>
+<h3 id="soap-deprecated-scheduled-for-removal-in-140">SOAP (deprecated, scheduled for removal in 1.4.0)</h3>
 <p>SOAP (Simple Object Access Protocol) is an XML-based messaging protocol.</p>
-<p><strong>Syntax:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">soap</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">soap</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-56-2" name="__codelineno-56-2" href="#__codelineno-56-2"></a><span class="w">  </span><span class="nt">service_requests</span><span class="p">:</span>
+<a id="__codelineno-56-3" name="__codelineno-56-3" href="#__codelineno-56-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service-requests</span>
+<a id="__codelineno-56-4" name="__codelineno-56-4" href="#__codelineno-56-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-56-5" name="__codelineno-56-5" href="#__codelineno-56-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">soap</span>
+</code></pre></div>
+<h3 id="xml">XML</h3>
+<p>XML (Extensible Markup Language) is used for complex hierarchical data.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a><span class="c1"># Loads schema_name.xsd from the local schema directory</span>
+<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xml:&lt;schema_name&gt;</span>
+<a id="__codelineno-57-3" name="__codelineno-57-3" href="#__codelineno-57-3"></a><span class="c1"># Or use schemaless XML</span>
+<a id="__codelineno-57-4" name="__codelineno-57-4" href="#__codelineno-57-4"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xml</span>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a><span class="w">  </span><span class="nt">service_requests</span><span class="p">:</span>
-<a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service-requests</span>
+<a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a><span class="w">  </span><span class="nt">customer_data</span><span class="p">:</span>
+<a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer-data</span>
 <a id="__codelineno-58-4" name="__codelineno-58-4" href="#__codelineno-58-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-58-5" name="__codelineno-58-5" href="#__codelineno-58-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">soap</span>
-</code></pre></div></p>
+<a id="__codelineno-58-5" name="__codelineno-58-5" href="#__codelineno-58-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xml:CustomerData</span>
+</code></pre></div>
 <h2 id="schema-management">Schema Management</h2>
 <p>When working with structured data, it's important to manage your schemas effectively.</p>
 <h3 id="examples_1">Examples</h3>
@@ -4148,10 +4278,11 @@
 </ul>
 <h3 id="local-files-vs-schema-registry">Local Files vs. Schema Registry</h3>
 <p><strong>Local Schema Files:</strong>
-When a schema is specified, KSML loads the schema from a local file from the <code>schemaDirectory</code>. The notation determines the filename extension:</p>
+When a schema is specified, KSML loads the schema from a local file from the <code>schemaDirectory</code>. The notation determines
+the filename extension:</p>
 <ul>
 <li>Avro schemas: <code>.avsc</code> extension</li>
-<li>XML schemas: <code>.xsd</code> extension  </li>
+<li>XML schemas: <code>.xsd</code> extension</li>
 <li>CSV schemas: <code>.csv</code> extension</li>
 <li>JSON schemas: <code>.json</code> extension</li>
 </ul>
@@ -4197,7 +4328,8 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 <p><strong>Successful Conversions:</strong></p>
 <ul>
 <li>Any type → string: Always works via automatic <code>.toString()</code> conversion</li>
-<li>String → numeric types (int, long, float, double): Works only if string contains a valid numeric value (e.g., "123" → int)</li>
+<li>String → numeric types (int, long, float, double): Works only if string contains a valid numeric value (e.g., "123" →
+  int)</li>
 <li>Numeric conversions: Work between compatible numeric types (int ↔ long, float ↔ double)</li>
 <li>Complex types: Dict → JSON, lists/structs/tuples with matching schemas</li>
 </ul>
@@ -4206,7 +4338,7 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 <li>Invalid string → numeric: Throws exception and stops processing (e.g., "not_a_number" → int fails)</li>
 <li>Incompatible complex types: Mismatched schemas or structures</li>
 </ul>
-<p><strong>Example:</strong>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a><span class="w">  </span><span class="nt">string_to_int</span><span class="p">:</span>
 <a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
@@ -4221,7 +4353,7 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 <a id="__codelineno-61-12" name="__codelineno-61-12" href="#__codelineno-61-12"></a><span class="w">      </span><span class="no">result = &quot;not_a_number&quot;  # Invalid numeric string</span>
 <a id="__codelineno-61-13" name="__codelineno-61-13" href="#__codelineno-61-13"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
 <a id="__codelineno-61-14" name="__codelineno-61-14" href="#__codelineno-61-14"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span><span class="w">         </span><span class="c1"># ← Fails: throws conversion exception</span>
-</code></pre></div></p>
+</code></pre></div>
 <details class="info">
 <summary>Working example - Automatic type conversion in functions</summary>
 <p>Producer:
@@ -4433,7 +4565,7 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 <a id="__codelineno-67-4" name="__codelineno-67-4" href="#__codelineno-67-4"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
 <a id="__codelineno-67-5" name="__codelineno-67-5" href="#__codelineno-67-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
 <a id="__codelineno-67-6" name="__codelineno-67-6" href="#__codelineno-67-6"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">      </span><span class="c1"># JSON → String</span>
-<a id="__codelineno-67-7" name="__codelineno-67-7" href="#__codelineno-67-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span><span class="w">  </span>
+<a id="__codelineno-67-7" name="__codelineno-67-7" href="#__codelineno-67-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convertValue</span>
 <a id="__codelineno-67-8" name="__codelineno-67-8" href="#__codelineno-67-8"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">        </span><span class="c1"># String → JSON</span>
 <a id="__codelineno-67-9" name="__codelineno-67-9" href="#__codelineno-67-9"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json_output</span>
 </code></pre></div>
@@ -4722,38 +4854,42 @@ When no schema is specified, KSML assumes the schema is loadable from Schema Reg
 </code></pre></div>
 </details>
 <h2 id="type-definition-quoting-rules">Type Definition Quoting Rules</h2>
-<p>In KSML, quotes around type definitions are <strong>always optional</strong>. KSML can parse all type expressions correctly whether they have quotes or not. The choice to use quotes is purely a matter of style and preference.</p>
+<p>In KSML, quotes around type definitions are <strong>always optional</strong>. KSML can parse all type expressions correctly whether
+they have quotes or not. The choice to use quotes is purely a matter of style and preference.</p>
 <h3 id="all-type-expressions-work-without-quotes">All Type Expressions Work Without Quotes:</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a><span class="c1"># Basic types</span>
 <a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-72-4" name="__codelineno-72-4" href="#__codelineno-72-4"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span>
-<a id="__codelineno-72-5" name="__codelineno-72-5" href="#__codelineno-72-5"></a>
-<a id="__codelineno-72-6" name="__codelineno-72-6" href="#__codelineno-72-6"></a><span class="c1"># Function-style types</span>
-<a id="__codelineno-72-7" name="__codelineno-72-7" href="#__codelineno-72-7"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enum(PENDING, PROCESSING, SHIPPED)</span>
-<a id="__codelineno-72-8" name="__codelineno-72-8" href="#__codelineno-72-8"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map(string)</span>
-<a id="__codelineno-72-9" name="__codelineno-72-9" href="#__codelineno-72-9"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowed(string)</span>
-<a id="__codelineno-72-10" name="__codelineno-72-10" href="#__codelineno-72-10"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(int)</span>
-<a id="__codelineno-72-11" name="__codelineno-72-11" href="#__codelineno-72-11"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tuple(string, json)</span>
-<a id="__codelineno-72-12" name="__codelineno-72-12" href="#__codelineno-72-12"></a>
-<a id="__codelineno-72-13" name="__codelineno-72-13" href="#__codelineno-72-13"></a><span class="c1"># Complex expressions</span>
-<a id="__codelineno-72-14" name="__codelineno-72-14" href="#__codelineno-72-14"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">union(null, string)</span>
-<a id="__codelineno-72-15" name="__codelineno-72-15" href="#__codelineno-72-15"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(tuple(string, json))</span><span class="w"> </span><span class="c1"># [(string, json)] also valid</span>
-<a id="__codelineno-72-16" name="__codelineno-72-16" href="#__codelineno-72-16"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
-<a id="__codelineno-72-17" name="__codelineno-72-17" href="#__codelineno-72-17"></a>
-<a id="__codelineno-72-18" name="__codelineno-72-18" href="#__codelineno-72-18"></a><span class="c1"># Notation prefixes (with colons)</span>
-<a id="__codelineno-72-19" name="__codelineno-72-19" href="#__codelineno-72-19"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
-<a id="__codelineno-72-20" name="__codelineno-72-20" href="#__codelineno-72-20"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf:UserProfile</span>
-<a id="__codelineno-72-21" name="__codelineno-72-21" href="#__codelineno-72-21"></a>
-<a id="__codelineno-72-22" name="__codelineno-72-22" href="#__codelineno-72-22"></a><span class="c1"># With quotes (also valid)</span>
-<a id="__codelineno-72-23" name="__codelineno-72-23" href="#__codelineno-72-23"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(tuple(string, json))</span><span class="w"> </span><span class="c1"># [(string, json)] also valid</span>
-<a id="__codelineno-72-24" name="__codelineno-72-24" href="#__codelineno-72-24"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enum(PENDING, SHIPPED)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a><span class="c1"># Complex types</span>
+<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enum(PENDING, PROCESSING, SHIPPED)</span>
+<a id="__codelineno-73-3" name="__codelineno-73-3" href="#__codelineno-73-3"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">map(string)</span>
+<a id="__codelineno-73-4" name="__codelineno-73-4" href="#__codelineno-73-4"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">windowed(string)</span>
+<a id="__codelineno-73-5" name="__codelineno-73-5" href="#__codelineno-73-5"></a><span class="nt">resultType2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(int)</span>
+<a id="__codelineno-73-6" name="__codelineno-73-6" href="#__codelineno-73-6"></a><span class="nt">resultType3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tuple(string, json)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a><span class="c1"># Composed types</span>
+<a id="__codelineno-74-2" name="__codelineno-74-2" href="#__codelineno-74-2"></a><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">union(null, string)</span>
+<a id="__codelineno-74-3" name="__codelineno-74-3" href="#__codelineno-74-3"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(tuple(string, json))</span><span class="w"> </span><span class="c1"># [(string, json)] also valid</span>
+<a id="__codelineno-74-4" name="__codelineno-74-4" href="#__codelineno-74-4"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a><span class="c1"># Notation prefixes (with colons)</span>
+<a id="__codelineno-75-2" name="__codelineno-75-2" href="#__codelineno-75-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
+<a id="__codelineno-75-3" name="__codelineno-75-3" href="#__codelineno-75-3"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">protobuf:UserProfile</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a><span class="c1"># With quotes (also valid)</span>
+<a id="__codelineno-76-2" name="__codelineno-76-2" href="#__codelineno-76-2"></a><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(tuple(string, json))</span><span class="w"> </span><span class="c1"># [(string, json)] also valid</span>
+<a id="__codelineno-76-3" name="__codelineno-76-3" href="#__codelineno-76-3"></a><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enum(PENDING, SHIPPED)</span>
 </code></pre></div>
 <h3 id="yaml-syntax-highlighting-note">YAML Syntax Highlighting Note</h3>
-<p>Some YAML syntax highlighters may incorrectly interpret bracket notation like <code>[(string, json)]</code>, expecting proper array syntax.</p>
+<p>Some YAML syntax highlighters may incorrectly interpret bracket notation like <code>[(string, json)]</code>, expecting an array
+syntax after the opening bracket.</p>
 <p>For better highlighting, use quotes <code>"[(string, json)]"</code> or the cleaner <code>list(tuple(string, json))</code> syntax.</p>
 <h3 id="summary">Summary:</h3>
-<p><strong>All type expressions work without quotes in KSML.</strong> Use quotes only if you prefer them for style, but they are never functionally required. For bracket notation, consider using the <code>list()</code> function syntax for cleaner, more readable code.</p>
+<p><strong>All type expressions work without quotes in KSML.</strong> Use quotes only if you prefer them for style, but they are never
+functionally required. For bracket notation, consider using the <code>list()</code> function syntax for cleaner, more readable
+code.</p>
 
 
 
