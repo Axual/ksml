@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Confluent-backed AvroNotation that supports fetching schemas from a schema registry.
  * <p>
- * This extends AvroNotation to override {@link #fetchRemoteSchema(String)}, enabling
+ * This extends AvroNotation to override {@link #fetchRemoteSchema(String, boolean)}, enabling
  * deferred schema resolution for stream definitions that omit an explicit schema name.
  */
 @Slf4j
@@ -47,7 +47,9 @@ public class ConfluentAvroNotation extends AvroNotation {
 
     @Override
     public boolean supportsRemoteSchema() {
-        return registryClient != null;
+        if (registryClient != null) return true;
+        log.warn("Confluent schema registry not configured, remote schema resolution is disabled");
+        return false;
     }
 
     @Override

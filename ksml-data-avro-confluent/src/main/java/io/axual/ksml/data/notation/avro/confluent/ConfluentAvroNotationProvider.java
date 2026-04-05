@@ -27,9 +27,16 @@ import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+import io.axual.ksml.data.util.MapUtil;
+import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientFactory;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Notation provider for Confluent-backed Avro support.
@@ -45,8 +52,6 @@ import java.util.HashMap;
  * - ksml-data-avro/DEVELOPER_GUIDE.md for AvroNotation behavior and mappers
  */
 public class ConfluentAvroNotationProvider extends VendorNotationProvider {
-    private static final String SCHEMA_REGISTRY_URL_CONFIG = "schema.registry.url";
-    private static final int SCHEMA_REGISTRY_CACHE_CAPACITY = 100;
     private final SchemaRegistryClient registryClient;
 
     /**
@@ -78,15 +83,28 @@ public class ConfluentAvroNotationProvider extends VendorNotationProvider {
      */
     @Override
     public Notation createNotation(NotationContext context) {
-        final var clientConfig = new ResolvingClientConfig(context != null ? context.serdeConfigs() : new HashMap<>());
+        final Map<String, Object> serdeConfigs = context != null ? MapUtil.stringKeys(context.serdeConfigs()) : new HashMap<>();
+        final var clientConfig = new ResolvingClientConfig(serdeConfigs);
+        final var srClient = registryClient != null ? registryClient : createSrClient(serdeConfigs);
         return new ConfluentAvroNotation(
                 new VendorNotationContext(
                         vendorName(),
                         context,
-                        new ConfluentAvroSerdeSupplier(registryClient),
+                        new ConfluentAvroSerdeSupplier(srClient),
                         new AvroDataObjectMapper()),
-                registryClient,
+                srClient,
                 clientConfig.topicResolver()
         );
+    }
+
+    private SchemaRegistryClient createSrClient(Map<String, Object> serdeConfigs) {
+        if (!serdeConfigs.containsKey(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)) return null;
+        final var config = new KafkaAvroSerializerConfig(serdeConfigs);
+        return SchemaRegistryClientFactory.newClient(
+                config.getSchemaRegistryUrls(),
+                config.getMaxSchemasPerSubject(),
+                Collections.singletonList(new AvroSchemaProvider()),
+                config.originalsWithPrefix(""),
+                config.requestHeaders());
     }
 }
