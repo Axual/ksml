@@ -41,8 +41,8 @@ public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<Topic
 
     @Override
     public StructsParser<TopicDefinition> parser() {
-        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the topic");
-        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the topic");
+        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the topic", true);
+        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the topic", true);
         if (isSource) return structsParser(
                 TopicDefinition.class,
                 "Source",
