@@ -45,9 +45,10 @@ public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider 
 
     @Override
     public Notation createNotation(NotationContext context) {
-        // Build a VendorNotationContext combining the base context with vendor serde and mapper
+        if (context == null) context = new NotationContext();
         return new JsonSchemaNotation(
                 new VendorNotationContext(
+                        vendorName(),
                         context,
                         new ConfluentJsonSchemaSerdeSupplier(),
                         new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));

@@ -43,11 +43,6 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
     }
 
     @Override
-    public String vendorName() {
-        return "apicurio";
-    }
-
-    @Override
     public Serde<Object> get(DataType type, boolean isKey) {
         return new ApicurioAvroSerde(registryClient);
     }

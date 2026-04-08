@@ -30,7 +30,9 @@ public interface NotationProvider {
      *
      * @return the notation name (eg. "avro", "jsonschema", "protobuf")
      */
-    String notationName();
+    default String notationName() {
+        return null;
+    }
 
     /**
      * Optional vendor name when this provider is vendor-specific.
@@ -39,6 +41,21 @@ public interface NotationProvider {
      */
     default String vendorName() {
         return null;
+    }
+
+    /**
+     * Builds the display/identifier name for the notation provider, including an optional vendor prefix separated
+     * by an underscore.
+     *
+     * @return the combined name, e.g. "vendor_notation" or just "notation"
+     */
+    default String name() {
+        if (notationName() == null || notationName().isEmpty()) return null;
+        return (vendorName() != null && !vendorName().isEmpty() ? vendorName() + "_" : "") + notationName();
+    }
+
+    default Notation createNotation() {
+        return createNotation(null);
     }
 
     /**

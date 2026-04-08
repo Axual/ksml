@@ -26,36 +26,28 @@ import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 
-import java.util.Objects;
-
 /**
  * Base implementation for Notation that stores common context and helpers.
- * Subclasses specialize serialization, conversion, and schema parsing behavior.
+ * Subclasses specialize in serialization, conversion, and schema parsing behavior.
  */
 @Getter
 public abstract class BaseNotation implements Notation {
+    private final String name;
     private final NotationContext context;
     private final String filenameExtension;
+    private final SchemaUsage schemaUsage;
     private final DataType defaultType;
     private final Converter converter;
     private final SchemaParser schemaParser;
 
-    protected BaseNotation(NotationContext context, String filenameExtension, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
-        Objects.requireNonNull(context, "Notation context");
-        this.context = context;
+    protected BaseNotation(String name, NotationContext context, String filenameExtension, SchemaUsage schemaUsage, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
+        this.name = name;
+        this.context = context != null ? context : new NotationContext();
         this.filenameExtension = filenameExtension;
+        this.schemaUsage = schemaUsage;
         this.defaultType = defaultType;
         this.converter = converter;
         this.schemaParser = schemaParser;
-    }
-
-    /**
-     * The display/identifier name for this notation instance derived from its context.
-     *
-     * @return the notation name
-     */
-    public String name() {
-        return context.name();
     }
 
     protected RuntimeException noSerdeFor(DataType type) {

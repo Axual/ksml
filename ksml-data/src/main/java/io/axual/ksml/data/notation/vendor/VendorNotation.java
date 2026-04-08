@@ -23,6 +23,7 @@ package io.axual.ksml.data.notation.vendor;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.serde.DataObjectSerde;
+import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
@@ -33,18 +34,26 @@ import org.apache.kafka.common.serialization.Serde;
  */
 public abstract class VendorNotation extends BaseNotation {
     @Getter
-    private final VendorSerdeSupplier serdeSupplier;
+    private final SerdeSupplier serdeSupplier;
     private final DataObjectMapper<Object> serdeMapper;
+    private final String vendorName;
 
-    protected VendorNotation(VendorNotationContext context, String filenameExtension, DataType defaultType, Converter converter, SchemaParser schemaParser) {
-        super(context, filenameExtension, defaultType, converter, schemaParser);
+    protected VendorNotation(String name, VendorNotationContext context, String filenameExtension, DataType defaultType, Converter converter, SchemaParser schemaParser) {
+        super(name, context, filenameExtension, SchemaUsage.SCHEMA_REQUIRED, defaultType, converter, schemaParser);
         this.serdeSupplier = context.serdeSupplier();
         this.serdeMapper = context.serdeMapper();
+        vendorName = context.vendorName();
+    }
+
+    @Override
+    public String name() {
+        return (vendorName != null && !vendorName.isEmpty() ? vendorName + "_" : "") + super.name();
     }
 
     /**
      * Creates a vendor-backed Serde for the given type and key/value role.
      * Only supported when the requested type is assignable from the notation's default type.
+     * This method is marked final, as all vendor-specific implementations should pass in a valid serdeSupplier.
      *
      * @param type  the data type to serialize/deserialize
      * @param isKey whether the serde will be used for keys (true) or values (false)
@@ -52,7 +61,7 @@ public abstract class VendorNotation extends BaseNotation {
      * @throws RuntimeException when the type is not supported
      */
     @Override
-    public Serde<Object> serde(DataType type, boolean isKey) {
+    public final Serde<Object> serde(DataType type, boolean isKey) {
         if (defaultType().isAssignableFrom(type).isNotAssignable()) throw noSerdeFor(type);
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used

@@ -22,7 +22,6 @@ package io.axual.ksml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
@@ -56,8 +55,8 @@ class TopologyGeneratorBasicTest {
     @BeforeAll
     static void beforeAll() {
         log.debug("Registering test notations");
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), jsonNotation::serde));
+        final var jsonNotation = new JsonNotation();
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
     }
 
@@ -65,8 +64,8 @@ class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
-        ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), jsonNotation::serde));
+        final var jsonNotation = new JsonNotation();
+        ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();

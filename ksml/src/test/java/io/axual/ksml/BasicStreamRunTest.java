@@ -68,8 +68,8 @@ class BasicStreamRunTest {
     static void setup() {
         final var dataMapper = new DataObjectFlattener();
         final var typeMapper = new DataTypeFlattener();
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, dataMapper, typeMapper));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, dataMapper, typeMapper), jsonNotation::serde));
+        final var jsonNotation = new JsonNotation(new NotationContext(dataMapper, typeMapper));
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(dataMapper, typeMapper), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         try {
@@ -108,7 +108,7 @@ class BasicStreamRunTest {
     void testFilterAvroRecords() throws Exception {
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider = new ConfluentAvroNotationProvider(registryClient);
-        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var context = new NotationContext(registryClient.configs());
         final var avroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, avroNotation);
 

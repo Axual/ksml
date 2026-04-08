@@ -26,25 +26,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class NotationContextTest {
-    @Test
-    @DisplayName("name() builds vendor_notation when vendor present; otherwise notation")
-    void nameBuildsFromVendorAndNotation() {
-        final var contextWithoutVendor = new NotationContext("json");
-        assertThat(contextWithoutVendor.vendorName()).isNull();
-        assertThat(contextWithoutVendor.notationName()).isEqualTo("json");
-        assertThat(contextWithoutVendor.name()).isEqualTo("json");
-
-        final var contextWithVendor = new NotationContext("avro", "confluent");
-        assertThat(contextWithVendor.vendorName()).isEqualTo("confluent");
-        assertThat(contextWithVendor.notationName()).isEqualTo("avro");
-        assertThat(contextWithVendor.name()).isEqualTo("confluent_avro");
-    }
-
     @Test
     @DisplayName("constructors populate fields; serdeConfigs default to mutable empty map and can be supplied")
     void constructorsPopulateFieldsAndSerdeConfigs() {
@@ -53,24 +38,13 @@ class NotationContextTest {
         final var providedDataMapper = new NativeDataObjectMapper();
         final var providedTypeSchemaMapper = new DataTypeDataSchemaMapper();
 
-        final var context1 = new NotationContext("protobuf", providedDataMapper, providedTypeSchemaMapper);
-        assertThat(context1.notationName()).isEqualTo("protobuf");
-        assertThat(context1.vendorName()).isNull();
-        assertThat(context1.nativeDataObjectMapper()).isSameAs(providedDataMapper);
-        assertThat(context1.serdeConfigs()).isEmpty();
-        context1.serdeConfigs().put("x", "y");
-        assertThat(context1.serdeConfigs()).containsEntry("x", "y");
-
-        final var context2 = new NotationContext("jsonschema", "apicurio", providedConfigs);
-        assertThat(context2.notationName()).isEqualTo("jsonschema");
-        assertThat(context2.vendorName()).isEqualTo("apicurio");
-        assertThat(context2.nativeDataObjectMapper()).isNotNull();
+        final var context = new NotationContext(providedDataMapper, providedTypeSchemaMapper, providedConfigs);
+        assertThat(context.nativeDataObjectMapper()).isSameAs(providedDataMapper);
+        assertThat(context.serdeConfigs()).isSameAs(providedConfigs);
+        context.serdeConfigs().put("x", "y");
+        assertThat(context.serdeConfigs()).containsEntry("x", "y");
         // The map reference is kept as-is per implementation
-        assertThat(context2.serdeConfigs()).isSameAs(providedConfigs);
-        assertThat(context2.serdeConfigs()).containsEntry("a", "1");
-
-        final var context3 = new NotationContext("csv", "", (Map<String, String>) null);
-        assertThat(context3.vendorName()).isEmpty();
-        assertThat(context3.name()).isEqualTo("csv");
+        assertThat(context.serdeConfigs()).isSameAs(providedConfigs);
+        assertThat(context.serdeConfigs()).containsEntry("a", "1");
     }
 }

@@ -42,9 +42,13 @@ import io.axual.ksml.data.type.UnionType;
  * </ul>
  */
 public class JsonSchemaNotation extends VendorNotation {
-    /** Canonical notation name for JSON Schema. */
+    /**
+     * Canonical notation name for JSON Schema.
+     */
     public static final String NOTATION_NAME = "jsonschema";
-    /** Default supported data type: union of Struct and List. */
+    /**
+     * Default supported data type: union of Struct and List.
+     */
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UnionType.Member(new StructType()),
             new UnionType.Member(new ListType()));
@@ -55,6 +59,6 @@ public class JsonSchemaNotation extends VendorNotation {
      */
     public JsonSchemaNotation(VendorNotationContext context) {
         // Wire the VendorNotation with JSON-specific converter and schema loader.
-        super(context,  ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
+        super(JsonSchemaNotation.NOTATION_NAME, context, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
     }
 }

@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 public interface TopicResolver extends Resolver {
     /**
-     * Translates the internal representation of topic pattern to the external one.
+     * Translates the internal representation of a topic pattern to the external one.
      *
      * @param pattern the application's internal topic pattern
      * @return the external representation of the topic pattern

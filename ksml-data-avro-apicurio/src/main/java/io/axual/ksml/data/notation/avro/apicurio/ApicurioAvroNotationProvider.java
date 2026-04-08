@@ -42,6 +42,7 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
 
     @Override
     public Notation createNotation(NotationContext context) {
-        return new AvroNotation(new VendorNotationContext(context, new ApicurioAvroSerdeSupplier(registryClient), new AvroDataObjectMapper()));
+        return new AvroNotation(
+                new VendorNotationContext(vendorName(), context, new ApicurioAvroSerdeSupplier(registryClient), new AvroDataObjectMapper()));
     }
 }

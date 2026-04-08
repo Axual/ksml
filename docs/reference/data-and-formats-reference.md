@@ -1,6 +1,7 @@
 # Data Types and Notations Reference
 
-KSML supports a wide range of data types and formats for both keys and values in your streams. This comprehensive reference covers all data types, notation formats, and type conversion capabilities available in KSML.
+KSML supports a wide range of data types and formats for both keys and values in your streams. This comprehensive
+reference covers all data types, notation formats, and type conversion capabilities available in KSML.
 
 ## Data Types in KSML
 
@@ -30,11 +31,13 @@ KSML also supports several complex types that can contain multiple values:
 An enumeration defines a set of allowed values.
 
 **Syntax:**
+
 ```yaml
 valueType: enum(<value1>, <value2>, ...)   # Quotes optional
 ```
 
 **Example:**
+
 ```yaml
 streams:
   order_status_stream:
@@ -45,6 +48,7 @@ streams:
 ```
 
 In Python code, an enum value is always represented as a string:
+
 ```yaml
 functions:
   update_status:
@@ -75,19 +79,21 @@ functions:
 A list contains multiple elements of the same type.
 
 **Syntax:**
+
 ```yaml
 # Function notation (recommended - avoids YAML validation warnings)
 valueType: list(<element_type>) # valueType: [<element_type>] also works
 ```
 
 **Example:**
+
 ```yaml
 streams:
   tags_stream:
     topic: tags
     keyType: string
     valueType: list(string)     # Function notation, valueType: [string] is also valid
-  
+
   categories_stream:
     topic: categories
     keyType: string
@@ -95,13 +101,14 @@ streams:
 ```
 
 In Python code, a list is represented as a Python list:
+
 ```yaml
 functions:
   extract_tags:
     type: keyValueToValueListTransformer
     expression: value.get("tags", [])
     resultType: list(string)    # Function notation, resultType: [string] is also valid
-  
+
   extract_categories:
     type: keyValueToValueListTransformer
     expression: value.get("categories", [])
@@ -110,7 +117,8 @@ functions:
 
 **See it in action**:
 
-- [List example](../reference/function-reference.md#keyvaluetovaluelisttransformer) for predicate functions for data filtering
+- [List example](../reference/function-reference.md#keyvaluetovaluelisttransformer) for predicate functions for data
+  filtering
 
 #### Example
 
@@ -143,11 +151,13 @@ This example demonstrates using `list(int)` syntax in function result types to a
 A map contains key-value pairs where keys are always strings and values are of a specified type.
 
 **Syntax:**
+
 ```yaml
 valueType: map(<value_type>)   # Quotes optional
 ```
 
 **Example:**
+
 ```yaml
 streams:
   user_preferences:
@@ -162,6 +172,7 @@ streams:
 ```
 
 In Python code, a map is represented as a Python dictionary:
+
 ```yaml
 functions:
   create_preferences:
@@ -199,7 +210,8 @@ functions:
 --8<-- "docs-examples/reference/data-types/map-producer.yaml:37:46"
 ```
 
-This simple example demonstrates using `map(string)` and `map(int)` types in stream definitions and function result types:
+This simple example demonstrates using `map(string)` and `map(int)` types in stream definitions and function result
+types:
 
 ??? info "Producer - `map` example (click to expand)"
 
@@ -217,19 +229,23 @@ This simple example demonstrates using `map(string)` and `map(int)` types in str
 
 - **Stream definitions** use `valueType: map(string)` and `valueType: map(int)` to define strongly-typed maps
 - **Function result types** use `resultType: (string, map(string))` to return maps with type safety
-- **Processing functions** use `resultType: map(string)` and `resultType: map(int)` to transform and validate map contents
+- **Processing functions** use `resultType: map(string)` and `resultType: map(int)` to transform and validate map
+  contents
 - Demonstrates how the `map(valuetype)` syntax ensures all values in a map conform to the specified type
 
 #### Struct
 
-A struct is a key-value map where all keys are strings. This is the most common complex type and is used for JSON objects, Avro records, etc.
+A struct is a key-value map where all keys are strings. This is the most common complex type and is used for JSON
+objects, Avro records, etc.
 
 **Syntax:**
+
 ```yaml
 valueType: struct
 ```
 
 **Example:**
+
 ```yaml
 streams:
   user_profiles:
@@ -239,6 +255,7 @@ streams:
 ```
 
 In Python code, a struct is represented as a dictionary:
+
 ```yaml
 functions:
   create_user:
@@ -269,6 +286,7 @@ functions:
 A tuple combines multiple elements of different types into a single value.
 
 **Syntax:**
+
 ```yaml
 # Standard bracket notation
 valueType: (<type1>, <type2>, ...)
@@ -278,13 +296,14 @@ valueType: tuple(<type1>, <type2>, ...)
 ```
 
 **Example:**
+
 ```yaml
 streams:
   sensor_stream:
     topic: sensor-data
     keyType: string
     valueType: (string, avro:SensorData)     # Standard notation
-  
+
   coordinate_stream:
     topic: coordinates
     keyType: string
@@ -292,13 +311,14 @@ streams:
 ```
 
 In Python code, a tuple is represented as a Python tuple:
+
 ```yaml
 functions:
   create_user_age_pair:
     type: keyValueTransformer
     expression: (value.get("name"), value.get("age"))
     resultType: (string, int)               # Standard notation
-  
+
   create_coordinate_pair:
     type: keyValueTransformer
     expression: (value.get("lat"), value.get("lng"))
@@ -340,6 +360,7 @@ This example demonstrates using `tuple(string, json)` syntax in function result 
 A union type can be one of several possible types.
 
 **Syntax:**
+
 ```yaml
 valueType: union(<type1>, <type2>, ...)
 ```
@@ -349,6 +370,7 @@ valueType: union(<type1>, <type2>, ...)
 Union types are used in two main places in KSML:
 
 **1. In stream definitions** - to specify that a stream can contain multiple types:
+
 ```yaml
 streams:
   optional_messages:
@@ -358,6 +380,7 @@ streams:
 ```
 
 **2. In function return types** - to specify that a function can return multiple types:
+
 ```yaml
 functions:
   generate_optional:
@@ -392,9 +415,11 @@ functions:
 
 #### Windowed
 
-Windowing operations in Kafka Streams group messages together in time-based windows. KSML provides the `windowed(<base_type>)` syntax to work with these windowed keys.
+Windowing operations in Kafka Streams group messages together in time-based windows. KSML provides the
+`windowed(<base_type>)` syntax to work with these windowed keys.
 
 **Syntax:**
+
 ```yaml
 # Without notation - requires manual transformation for Kafka output
 keyType: windowed(<base_type>)
@@ -409,14 +434,15 @@ After windowing operations (like `windowByTime`), Kafka Streams internally creat
 
 - The original key value
 - Window start timestamp (milliseconds)
-- Window end timestamp (milliseconds)  
+- Window end timestamp (milliseconds)
 - Human-readable start/end times
 
 **Two Approaches for Handling Windowed Keys:**
 
 **1. Without Notation (Manual Transformation Required):**
 
-When using plain `windowed(string)`, the windowed keys cannot be directly serialized to Kafka topics. You must manually transform them to a regular type:
+When using plain `windowed(string)`, the windowed keys cannot be directly serialized to Kafka topics. You must manually
+transform them to a regular type:
 
 ```yaml
 --8<-- "docs-examples/reference/data-types/windowed-processor.yaml:51:52"
@@ -424,13 +450,15 @@ When using plain `windowed(string)`, the windowed keys cannot be directly serial
 
 **2. With Notation Prefix (Automatic Serialization):**
 
-Using a notation prefix like `json:windowed(string)` or `avro:windowed(string)` enables automatic serialization of the windowed key structure:
+Using a notation prefix like `json:windowed(string)` or `avro:windowed(string)` enables automatic serialization of the
+windowed key structure:
 
 ```yaml
 --8<-- "docs-examples/reference/data-types/windowed-processor-notation.yaml:59:60"
 ```
 
-The notation automatically serializes the windowed key as a structured object with fields: `start`, `end`, `startTime`, `endTime`, and `key`.
+The notation automatically serializes the windowed key as a structured object with fields: `start`, `end`, `startTime`,
+`endTime`, and `key`.
 
 **Complete Examples:**
 
@@ -459,22 +487,27 @@ The notation automatically serializes the windowed key as a structured object wi
 **When to Use Each Approach:**
 
 - **Use notation prefix** (`json:windowed(string)`) when you want to:
-     - Write windowed keys directly to Kafka topics
-     - Preserve the complete window structure in a standard format
-     - Avoid manual transformation code
+    - Write windowed keys directly to Kafka topics
+    - Preserve the complete window structure in a standard format
+    - Avoid manual transformation code
 
 - **Use plain windowed type** (`windowed(string)`) when you:
-     - Only need windowed keys for internal processing
-     - Want custom key formatting for output
-     - Need to extract specific window information
+    - Only need windowed keys for internal processing
+    - Want custom key formatting for output
+    - Need to extract specific window information
 
 **Key Takeaway:**
 
-Windowed types enable time-based analytics like counting events per time window, calculating moving averages, or detecting patterns over time intervals. The notation prefix approach simplifies working with windowed data by handling serialization automatically.
+Windowed types enable time-based analytics like counting events per time window, calculating moving averages, or
+detecting patterns over time intervals. The notation prefix approach simplifies working with windowed data by handling
+serialization automatically.
 
 ### The Any and "?" Types
 
-KSML supports wildcard types `any` and `?` (which are equivalent) that represent unknown or variable data types. These map internally to `DataType.UNKNOWN` and can only be used for function parameters when the exact type is not known at definition time. They cannot be used for stream types or function result types due to serialization and type system requirements.
+KSML supports wildcard types `any` and `?` (which are equivalent) that represent unknown or variable data types. These
+map internally to `DataType.UNKNOWN` and can only be used for function parameters when the exact type is not known at
+definition time. They cannot be used for stream types or function result types due to serialization and type system
+requirements.
 
 **Syntax:**
 
@@ -507,8 +540,10 @@ functions:
 
 **Why the limitations exist:**
 
-- **Stream types**: Kafka requires concrete serialization formats. The `any` type cannot be serialized to Kafka topics because there's no serde for unknown data types.
-- **Result types**: The topology type system requires concrete types for type checking and ensuring data flows correctly between operations.
+- **Stream types**: Kafka requires concrete serialization formats. The `any` type cannot be serialized to Kafka topics
+  because there's no serde for unknown data types.
+- **Result types**: The topology type system requires concrete types for type checking and ensuring data flows correctly
+  between operations.
 
 **Key Use Cases:**
 
@@ -534,38 +569,63 @@ functions:
 
 ## Notation Formats
 
-KSML uses _notations_ to allow reading/writing different message formats to Kafka topics. Notations are specified as a prefix to the schema name.
+KSML uses _notations_ to allow reading/writing different message formats to Kafka topics. Notations are specified as a
+prefix to the schema name.
 
 ### Examples
+
 **See a working example for every data format in this tutorial**:
 
 - [Data Format Examples](../tutorials/beginner/data-formats.md)
+
+### Notation Behaviour
+
+Some notations behave differently depending on the specific use. For instance, when you specify `keyType: avro`, KSML
+loads the schema (once during startup of KSML) from the configured schema registry. For XML this done differently,
+namely when you say `keyType: xml` you refer to a schemaless XML type. See the table below for more details.
+
+| Notation   | Primitives | Uses schema | Used as `notation`                   | Used as `notation:Schema`    |
+|------------|------------|-------------|--------------------------------------|------------------------------|
+| _none_     | Yes        | Never       | Binary encoding (default serdes)     | n/a                          |
+| avro       | No         | Always      | Loads latest AVRO schema from SR     | Loads Schema.avsc from disk  |
+| binary     | Yes        | Never       | Binary encoding (default serdes)     | n/a                          |
+| csv        | No         | Always      | n/a                                  | Loads Schema.csv from disk   |
+| json       | No         | Never       | Schemaless JSON                      | n/a                          |
+| jsonschema | No         | Always      | Loads latest JSON Schema from SR     | Loads Schema.json from disk  |
+| protobuf   | No         | Always      | Loads latest Protobuf schema from SR | Loads Schema.proto from disk |
+| soap       | No         | Never       | Schemaless SOAP                      | n/a                          |
+| xml        | No         | Optional    | Schemaless XML                       | Loads Schema.xsd from disk   |
 
 ### Format Selection Guide
 
 The choice of notation depends on your specific requirements:
 
-| If you need...                              | Consider using... |
-|---------------------------------------------|-------------------|
-| Schema evolution and backward compatibility | Avro or Protobuf  |
-| Human-readable data for debugging           | JSON              |
-| Integration with legacy systems             | XML or SOAP       |
-| Simple tabular data                         | CSV               |
-| Compact binary format                       | Avro or Protobuf  |
-| Raw binary data handling                    | Binary            |
+| If you need...                              | Consider using...             |
+|---------------------------------------------|-------------------------------|
+| Schema evolution and backward compatibility | Avro, JSON Schema or Protobuf |
+| Human-readable data for debugging           | JSON or JSON Schema           |
+| Integration with legacy systems             | XML or SOAP                   |
+| Simple tabular data                         | CSV                           |
+| Compact binary format                       | Avro or Protobuf              |
+| Raw binary data handling                    | Binary                        |
 
 ### Avro
 
-Avro is a binary format that supports schema evolution.
+Avro is a binary format that supports schema evolution. Make sure to specify
+the [correct notation configuration](configuration-reference.md#notation-configuration) in `ksml-runner.yaml` to select
+the correct implementation (Apicurio or Confluent).
 
 **Syntax:**
+
 ```yaml
-valueType: avro:<schema_name>
-# or for schema registry lookup
+# Loads schema_name.avsc from the local schema directory
+keyType: avro:<schema_name>
+# Or for the dynamic lookup in the configured schema registry
 valueType: avro
 ```
 
 **Example:**
+
 ```yaml
 streams:
   sensor_readings:
@@ -574,19 +634,70 @@ streams:
     valueType: avro:SensorData
 ```
 
+### Binary
+
+Binary data represents raw bytes for custom protocols. It uses the default serializers/deserialiers from Kafka to
+write/read the data from topics.
+
+The binary notation only accepts internal types and no schema. When writing out lists or structs, it falls back to JSON
+encoding and writes out strings with the encoded values.
+
+**Syntax:**
+
+```yaml
+keyType: binary:string
+valueType: binary:struct
+```
+
+**Example:**
+
+```yaml
+streams:
+  binary_data:
+    topic: binary-messages
+    keyType: bytes                   # Reads/writes as a byte array
+    valueType: binary:list(string)   # Reads/writes as a JSON array, i.e., a string containing "["a", "b", ...]"
+```
+
+### CSV
+
+CSV (Comma-Separated Values) is a simple tabular data format.
+
+**Syntax:**
+
+```yaml
+# Loads schema_name.csv from the local schema directory
+keyType: csv:<schema_name>
+```
+
+**Example:**
+
+```yaml
+streams:
+  sales_data:
+    topic: sales-data
+    keyType: string
+    valueType: csv:SalesRecord
+
+  inventory_data:
+    topic: inventory-data
+    keyType: string
+    valueType: csv:InventoryRecord
+```
+
 ### JSON
 
 JSON is a text-based, human-readable format for data transfer.
 
 **Syntax:**
+
 ```yaml
-# For schemaless JSON:
+# JSON is always schemaless
 valueType: json
-# For JSON with a schema:
-valueType: json:<schema_name>
 ```
 
 **Example:**
+
 ```yaml
 streams:
   user_profiles:
@@ -597,31 +708,36 @@ streams:
   orders:
     topic: orders
     keyType: string
-    valueType: json:Order
+    valueType: json
 ```
 
 Python functions can return JSON by returning a dictionary:
+
 ```yaml
 functions:
   merge_key_value_data:
     type: valueTransformer
-    expression: { 'key': key, 'value': value }
+    expression: {'key': key, 'value': value}
     resultType: json
 ```
 
 ### JSON Schema
 
-JSON Schema adds vendor-specific schema support to JSON serialization.
+JSON Schema adds vendor-specific schema support to JSON serialization. Make sure to specify
+the [correct notation configuration](configuration-reference.md#notation-configuration) in `ksml-runner.yaml` to select
+the correct implementation (Apicurio or Confluent).
 
 **Syntax:**
+
 ```yaml
-# For schema registry lookup:
+# Loads schema_name.json from the local schema directory
+keyType: jsonschema:<schema_name>
+# Or for the dynamic lookup in the configured schema registry
 valueType: jsonschema
-# For JSON with a schema:
-valueType: jsonschema:<schema_name>
 ```
 
 **Example:**
+
 ```yaml
 streams:
   user_profiles:
@@ -630,102 +746,47 @@ streams:
     valueType: jsonschema:UserProfile
 ```
 
-### CSV
-
-CSV (Comma-Separated Values) is a simple tabular data format.
-
-**Syntax:**
-```yaml
-# For schemaless CSV:
-valueType: csv
-# For CSV with a schema:
-valueType: csv:<schema_name>
-```
-
-**Example:**
-```yaml
-streams:
-  sales_data:
-    topic: sales-data
-    keyType: string
-    valueType: csv
-
-  inventory_data:
-    topic: inventory-data
-    keyType: string
-    valueType: csv:InventoryRecord
-```
-
-### XML
-
-XML (Extensible Markup Language) is used for complex hierarchical data.
-
-**Syntax:**
-```yaml
-# For schemaless XML:
-valueType: xml
-# For XML with a schema:
-valueType: xml:<schema_name>
-```
-
-**Example:**
-```yaml
-streams:
-  customer_data:
-    topic: customer-data
-    keyType: string
-    valueType: xml:CustomerData
-```
-
 ### Protobuf
 
-Protobuf is a popular encoding format developed by Google.
+Protobuf is a popular encoding format developed by Google. Make sure to specify
+the [correct notation configuration](configuration-reference.md#notation-configuration) in `ksml-runner.yaml` to select
+the correct implementation (Apicurio or Confluent).
 
 **Syntax:**
+
 ```yaml
-# For schema registry lookup:
+# Loads schema_name.proto from the local schema directory
+keyType: protobuf:<schema_name>
+# Or for the dynamic lookup in the configured schema registry
 valueType: protobuf
-# For Protobuf with a schema:
-valueType: protobuf:<schema_name>
 ```
 
 **Example:**
+
 ```yaml
 streams:
   user_profiles:
     topic: user-profiles
     keyType: string
     valueType: protobuf:UserProfile
-```
-
-### Binary
-
-Binary data represents raw bytes for custom protocols.
-
-**Syntax:**
-```yaml
-valueType: binary
-```
-
-**Example:**
-```yaml
-streams:
-  binary_data:
-    topic: binary-messages
+  orders:
+    topic: orders
     keyType: string
-    valueType: binary
+    valueType: protobuf
 ```
 
-### SOAP
+### SOAP (deprecated, scheduled for removal in 1.4.0)
 
 SOAP (Simple Object Access Protocol) is an XML-based messaging protocol.
 
 **Syntax:**
+
 ```yaml
 valueType: soap
 ```
 
 **Example:**
+
 ```yaml
 streams:
   service_requests:
@@ -734,11 +795,35 @@ streams:
     valueType: soap
 ```
 
+### XML
+
+XML (Extensible Markup Language) is used for complex hierarchical data.
+
+**Syntax:**
+
+```yaml
+# Loads schema_name.xsd from the local schema directory
+keyType: xml:<schema_name>
+# Or use schemaless XML
+valueType: xml
+```
+
+**Example:**
+
+```yaml
+streams:
+  customer_data:
+    topic: customer-data
+    keyType: string
+    valueType: xml:CustomerData
+```
+
 ## Schema Management
 
 When working with structured data, it's important to manage your schemas effectively.
 
 ### Examples
+
 **See a working example for every type of schema in this tutorial**:
 
 - [Schema Examples](../tutorials/beginner/data-formats.md)
@@ -746,10 +831,11 @@ When working with structured data, it's important to manage your schemas effecti
 ### Local Files vs. Schema Registry
 
 **Local Schema Files:**
-When a schema is specified, KSML loads the schema from a local file from the `schemaDirectory`. The notation determines the filename extension:
+When a schema is specified, KSML loads the schema from a local file from the `schemaDirectory`. The notation determines
+the filename extension:
 
 - Avro schemas: `.avsc` extension
-- XML schemas: `.xsd` extension  
+- XML schemas: `.xsd` extension
 - CSV schemas: `.csv` extension
 - JSON schemas: `.json` extension
 
@@ -776,10 +862,10 @@ streams:
 
 KSML handles type conversion differently depending on the context:
 
-| Context | Conversion Type | When to Use |
-|---------|----------------|-------------|
-| **Functions** | Automatic | When `resultType` differs from returned value |
-| **Streams** | Explicit | When input/output stream formats differ |
+| Context       | Conversion Type | When to Use                                   |
+|---------------|-----------------|-----------------------------------------------|
+| **Functions** | Automatic       | When `resultType` differs from returned value |
+| **Streams**   | Explicit        | When input/output stream formats differ       |
 
 ### Function Type Conversion (Automatic)
 
@@ -788,7 +874,8 @@ Functions automatically convert return values to match their declared `resultTyp
 **Successful Conversions:**
 
 - Any type → string: Always works via automatic `.toString()` conversion
-- String → numeric types (int, long, float, double): Works only if string contains a valid numeric value (e.g., "123" → int)
+- String → numeric types (int, long, float, double): Works only if string contains a valid numeric value (e.g., "123" →
+  int)
 - Numeric conversions: Work between compatible numeric types (int ↔ long, float ↔ double)
 - Complex types: Dict → JSON, lists/structs/tuples with matching schemas
 
@@ -798,6 +885,7 @@ Functions automatically convert return values to match their declared `resultTyp
 - Incompatible complex types: Mismatched schemas or structures
 
 **Example:**
+
 ```yaml
 functions:
   string_to_int:
@@ -866,7 +954,7 @@ pipelines:
     via:
       - type: convertValue
         into: string      # JSON → String
-      - type: convertValue  
+      - type: convertValue
         into: json        # String → JSON
     to: json_output
 ```
@@ -907,7 +995,8 @@ This processor shows two pipelines handling different formats (Avro and JSON) an
 
 ## Type Definition Quoting Rules
 
-In KSML, quotes around type definitions are **always optional**. KSML can parse all type expressions correctly whether they have quotes or not. The choice to use quotes is purely a matter of style and preference.
+In KSML, quotes around type definitions are **always optional**. KSML can parse all type expressions correctly whether
+they have quotes or not. The choice to use quotes is purely a matter of style and preference.
 
 ### All Type Expressions Work Without Quotes:
 
@@ -916,34 +1005,45 @@ In KSML, quotes around type definitions are **always optional**. KSML can parse 
 keyType: string
 valueType: json
 resultType: int
+```
 
-# Function-style types
-valueType: enum(PENDING, PROCESSING, SHIPPED)
+```yaml
+# Complex types
+keyType: enum(PENDING, PROCESSING, SHIPPED)
 valueType: map(string)
-keyType: windowed(string)
-resultType: list(int)
-resultType: tuple(string, json)
+resultType: windowed(string)
+resultType2: list(int)
+resultType3: tuple(string, json)
+```
 
-# Complex expressions
-valueType: union(null, string)
-resultType: list(tuple(string, json)) # [(string, json)] also valid
+```yaml
+# Composed types
+keyType: union(null, string)
+valueType: list(tuple(string, json)) # [(string, json)] also valid
 resultType: (string, json)
+```
 
+```yaml
 # Notation prefixes (with colons)
 valueType: avro:SensorData
-keyType: protobuf:UserProfile
+resultType: protobuf:UserProfile
+```
 
+```yaml
 # With quotes (also valid)
-resultType: list(tuple(string, json)) # [(string, json)] also valid
-valueType: enum(PENDING, SHIPPED)
+valueType: list(tuple(string, json)) # [(string, json)] also valid
+resultType: enum(PENDING, SHIPPED)
 ```
 
 ### YAML Syntax Highlighting Note
 
-Some YAML syntax highlighters may incorrectly interpret bracket notation like `[(string, json)]`, expecting proper array syntax.
+Some YAML syntax highlighters may incorrectly interpret bracket notation like `[(string, json)]`, expecting an array
+syntax after the opening bracket.
 
 For better highlighting, use quotes `"[(string, json)]"` or the cleaner `list(tuple(string, json))` syntax.
 
 ### Summary:
 
-**All type expressions work without quotes in KSML.** Use quotes only if you prefer them for style, but they are never functionally required. For bracket notation, consider using the `list()` function syntax for cleaner, more readable code.
+**All type expressions work without quotes in KSML.** Use quotes only if you prefer them for style, but they are never
+functionally required. For bracket notation, consider using the `list()` function syntax for cleaner, more readable
+code.

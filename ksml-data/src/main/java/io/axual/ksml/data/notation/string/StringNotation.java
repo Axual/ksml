@@ -34,17 +34,17 @@ import org.apache.kafka.common.serialization.Serde;
 public abstract class StringNotation extends BaseNotation {
     private final DataObjectMapper<String> stringMapper;
 
-    protected StringNotation(NotationContext context, String filenameExtension, DataType defaultType,
-                             Notation.Converter converter, Notation.SchemaParser schemaParser,
-                             DataObjectMapper<String> stringMapper) {
-        super(context, filenameExtension, defaultType, converter, schemaParser);
+    protected StringNotation(String name, NotationContext context, String filenameExtension, SchemaUsage schemaUsage,
+                             DataType defaultType, Notation.Converter converter,
+                             Notation.SchemaParser schemaParser, DataObjectMapper<String> stringMapper) {
+        super(name, context, filenameExtension, schemaUsage, defaultType, converter, schemaParser);
         this.stringMapper = stringMapper;
     }
 
     /**
      * Creates a StringSerde configured for the requested data type and key/value role.
      *
-     * @param type the data type to serialize/deserialize
+     * @param type  the data type to serialize/deserialize
      * @param isKey whether the serde will be used for keys (true) or values (false)
      * @return a configured String-backed Serde
      */

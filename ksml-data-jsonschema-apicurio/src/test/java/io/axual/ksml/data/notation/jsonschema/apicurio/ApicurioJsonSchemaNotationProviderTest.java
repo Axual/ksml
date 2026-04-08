@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotation;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -48,9 +47,8 @@ class ApicurioJsonSchemaNotationProviderTest {
     @DisplayName("createNotation wires JsonSchemaNotation with Apicurio serde supplier")
     void createNotation_wiresApicurioSerdeSupplier() {
         var provider = new ApicurioJsonSchemaNotationProvider();
-        var context = new NotationContext(JsonSchemaNotation.NOTATION_NAME, "apicurio");
 
-        assertThat(provider.createNotation(context))
+        assertThat(provider.createNotation())
                 .asInstanceOf(InstanceOfAssertFactories.type(JsonSchemaNotation.class))
                 .returns("apicurio_" + JsonSchemaNotation.NOTATION_NAME, JsonSchemaNotation::name)
                 .returns(".json", JsonSchemaNotation::filenameExtension)
