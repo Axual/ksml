@@ -82,9 +82,7 @@
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
-            <version>4.7.7</version>
         </dependency>
-
 
         <dependency>
             <groupId>io.axual.utils</groupId>
