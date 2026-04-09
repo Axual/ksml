@@ -93,15 +93,21 @@ public class TestDataProducer {
             return new StringSerdeWrapper();
         }
 
-        var parsed = UserTypeParser.parse(type);
-        if (parsed.isError()) {
-            throw new TestDefinitionException("Cannot resolve type '" + type + "': " + parsed.errorMessage());
-        }
+        try {
+            var parsed = new UserTypeParser().parse(type);
+            if (parsed.isError()) {
+                throw new TestDefinitionException("Cannot resolve type '" + type + "': " + parsed.errorMessage());
+            }
 
-        var userType = parsed.result();
-        var streamDataType = new StreamDataType(userType, isKey);
-        log.debug("Resolved type '{}' to StreamDataType: {}", type, streamDataType);
-        return streamDataType.serde();
+            var userType = parsed.result();
+            var streamDataType = new StreamDataType(userType, isKey);
+            log.debug("Resolved type '{}' to StreamDataType: {}", type, streamDataType);
+            return streamDataType.serde();
+        } catch (TestDefinitionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TestDefinitionException("Exception resolving type '" + type + "': " + e.getMessage(), e);
+        }
     }
 
     /**

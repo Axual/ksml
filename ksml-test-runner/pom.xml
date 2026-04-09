@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.axual.ksml</groupId>
         <artifactId>ksml-parent</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,6 +16,7 @@
     <properties>
         <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
+        <ksml-test.schema.output.file>docs/ksml-test-spec.json</ksml-test.schema.output.file>
     </properties>
 
     <dependencies>
@@ -28,6 +29,7 @@
             <artifactId>ksml</artifactId>
             <type>test-jar</type>
             <scope>compile</scope>
+          <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -122,9 +124,7 @@
                         </goals>
                         <configuration>
                             <mainClass>io.axual.ksml.testrunner.TestDefinitionSchemaGenerator</mainClass>
-                            <arguments>
-                                <argument>${ksml-test.schema.output.file}</argument>
-                            </arguments>
+                            <commandlineArgs>${ksml-test.schema.output.file}</commandlineArgs>
                             <classpathScope>compile</classpathScope>
                             <includeProjectDependencies>true</includeProjectDependencies>
                             <includePluginDependencies>false</includePluginDependencies>
