@@ -1,12 +1,12 @@
 # KSML Schema Validation
 
-KSML provides two JSON Schema specification files that enable IDE validation, autocompletion, and error checking for your KSML files. These schemas help you write correct syntax and catch errors early in development.
+KSML provides three JSON Schema specification files that enable IDE validation, autocompletion, and error checking for your KSML files. These schemas help you write correct syntax and catch errors early in development.
 
 The KSML project is available at: [https://github.com/Axual/ksml](https://github.com/Axual/ksml)
 
 ## Understanding KSML Schemas
 
-KSML provides **two separate JSON schemas** for different types of configuration files:
+KSML provides **three separate JSON schemas** for different types of configuration files:
 
 ### 1. KSML Language Specification Schema
 
@@ -48,6 +48,24 @@ This schema validates the runner configuration that controls how KSML executes:
     {%
       include "../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/confluent_avro/ksml-runner.yaml"
     %}
+    ```
+
+### 3. KSML Test Definition Schema
+
+**File:** `docs/ksml-test-spec.json`
+**Validates:** KSML test definition files used by the [test runner](testing-your-pipeline.md)
+
+This schema validates test definitions that describe how to test your pipelines:
+
+- Test metadata (`name`, `pipeline`, `schemaDirectory`)
+- Produce blocks with topic, key/value types, and inline messages
+- Assert blocks with output topic, state store, and Python assertion code
+- Required vs optional fields and default values (e.g. `keyType` defaults to `string`)
+
+??? info "Example KSML test definition file"
+
+    ```yaml
+    --8<-- "sample-filter-test.yaml"
     ```
 
 ### Schema Benefits
@@ -97,6 +115,19 @@ Add this line at the top of your `ksml-runner.yaml` file:
 kafka:
   bootstrap.servers: localhost:9092
   # ... rest of your configuration
+```
+
+#### For KSML Test Definition Files
+
+Add this line at the top of your test YAML files:
+
+```yaml
+# yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-test-spec.json
+
+test:
+  name: "My pipeline test"
+  pipeline: my-pipeline.yaml
+  # ... rest of your test definition
 ```
 
 #### How Inline Schemas Work
@@ -164,7 +195,20 @@ Configure validation for KSML Runner configuration files:
    - **For specific files**: `ksml-runner.yaml`, `application.yaml`
    - **For file patterns**: `ksml-runner*.yaml`, `*-runner.yaml`
 
-**Important**: Make sure the file patterns for each schema don't overlap. KSML definition files should map to the Language Specification schema, while runner configuration files should map to the Runner Configuration schema.
+**Step 4: Add KSML Test Definition Schema**
+
+Configure validation for KSML test definition files:
+
+1. Click the **+** (plus) button again to add another schema mapping
+2. Configure the mapping:
+   - **Name**: `KSML Test Definition`
+   - **Schema file or URL**: Browse to `docs/ksml-test-spec.json` in your KSML project directory
+   - **Schema version**: Select **JSON Schema version 7**
+
+3. Add file mappings by clicking **+** in the mappings section:
+   - **For file patterns**: `*-test.yaml`, `test-*.yaml`
+
+**Important**: Make sure the file patterns for each schema don't overlap. KSML definition files should map to the Language Specification schema, runner configuration files to the Runner Configuration schema, and test files to the Test Definition schema.
 
 #### Visual Studio Code Setup
 
@@ -200,6 +244,10 @@ You need to map different file patterns to the appropriate schema.
       "**/ksml-runner.yaml",
       "**/*-runner.yaml",
       "**/application.yaml"
+    ],
+    "file:///path/to/ksml/docs/ksml-test-spec.json": [
+      "**/*-test.yaml",
+      "**/test-*.yaml"
     ]
   }
 }
@@ -221,6 +269,10 @@ Create a `.vscode/settings.json` file in your project root for project-specific 
     "./docs/ksml-runner-spec.json": [
       "**/ksml-runner.yaml",
       "examples/**/ksml-runner.yaml"
+    ],
+    "./docs/ksml-test-spec.json": [
+      "**/*-test.yaml",
+      "**/test-*.yaml"
     ]
   }
 }
@@ -307,10 +359,20 @@ To generate both the KSML Language Specification and Runner Configuration schema
 mvn package -DskipTests -pl ksml-runner -am
 ```
 
-This builds the module with its dependencies and generates both schema files:
+This builds the module with its dependencies and generates the pipeline and runner schema files:
 
 - `docs/ksml-language-spec.json` for KSML definitions
 - `docs/ksml-runner-spec.json` for runner configuration
+
+To also generate the test definition schema:
+
+```bash
+mvn package -DskipTests -pl ksml-test-runner -am
+```
+
+This generates:
+
+- `docs/ksml-test-spec.json` for test definitions
 
 **Note:** The `-am` (also-make) flag is required to build all dependencies needed for schema generation.
 
@@ -336,9 +398,10 @@ java -jar ksml-runner/target/ksml-runner-*.jar --runner-schema docs/ksml-runner-
 
 Schemas are automatically regenerated when running:
 
-- `mvn clean package` for a full build (recommended)
-- `mvn package -DskipTests -pl ksml-runner -am` for quick schema generation without tests
-- Any Maven build that includes the `process-classes` phase for `ksml-runner`
+- `mvn clean package` for a full build (recommended, generates all three schemas)
+- `mvn package -DskipTests -pl ksml-runner -am` for pipeline and runner schemas
+- `mvn package -DskipTests -pl ksml-test-runner -am` for the test definition schema
+- Any Maven build that includes the `process-classes` phase for `ksml-runner` or `ksml-test-runner`
 
 The schemas are always kept in sync with the codebase, ensuring your IDE validation matches the current KSML version.
 
@@ -362,9 +425,17 @@ docs/ksml-runner-spec.json
 **Purpose:** Validates KSML Runner configuration files (Kafka settings, error handling, observability)
 **Schema Version:** JSON Schema Draft 2019-09
 
+### KSML Test Definition
+```
+docs/ksml-test-spec.json
+```
+
+**Purpose:** Validates KSML test definition files (test data, assertions, pipeline references)
+**Schema Version:** JSON Schema Draft-07
+
 ### Schema Characteristics
 
-Both schema files share these characteristics:
+All schema files share these characteristics:
 
 - Updated and version-controlled with each KSML release
 - Comprehensive coverage of all features and configuration options

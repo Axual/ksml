@@ -5,15 +5,18 @@
 
 set -e  # Exit on any error
 
-mvn package -DskipITs=true
+mvn clean package -DskipITs=true
 
 # Prepare build artifacts
 echo "  - Creating build-output/ directory"
-echo "  - Copying ksml-runner JAR, libraries, and license files"
+echo "  - Copying ksml-runner JAR, ksml-test-runner JAR, libraries, and license files"
 
 mkdir -p build-output
 cp ksml-runner/target/ksml-runner*.jar build-output/
+cp ksml-test-runner/target/ksml-test-runner*.jar build-output/
 cp -r ksml-runner/target/libs build-output/
+# Copy test-runner libs on top, so both manifests find the JARs they reference
+cp ksml-test-runner/target/libs/*.jar build-output/libs/
 cp ksml-runner/NOTICE.txt build-output/
 cp LICENSE.txt build-output/
 GRAALVM_JDK_VERSION=${GRAALVM_JDK_VERSION:-23.0.2}
