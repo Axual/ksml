@@ -22,9 +22,10 @@ package io.axual.ksml.testrunner;
 
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
-import io.axual.ksml.python.PythonTypeConverter;
-import io.axual.ksml.store.StateStoreProxyFactory;
+import io.axual.ksml.proxy.store.ProxyUtil;
+import io.axual.ksml.util.Pair;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.TopologyTestDriver;
 
@@ -74,19 +75,13 @@ public class AssertionRunner {
 
     private TestResult runSingleAssertion(PythonContext pythonContext, AssertBlock block, String testName) {
         try {
-            // Build the Python code that injects variables and runs assertions
-            var setupCode = new StringBuilder();
-            setupCode.append("import polyglot\n\n");
-
             // Collect variables to inject
-            var variableNames = new ArrayList<String>();
-            var variableValues = new ArrayList<>();
+            var args = new ArrayList<Pair<String, Object>>();
 
             // If topic is specified, collect output records
             if (block.topic() != null) {
                 var records = collectOutputRecords(block.topic());
-                variableNames.add("records");
-                variableValues.add(PythonTypeConverter.toPython(records));
+                args.add(Pair.of("records", ProxyUtil.toPython(records)));
             }
 
             // If stores are specified, inject store proxies
@@ -97,27 +92,24 @@ public class AssertionRunner {
                         return TestResult.error(testName,
                                 "State store '" + storeName + "' not found in topology");
                     }
-                    var proxy = StateStoreProxyFactory.wrap(store);
-                    variableNames.add(storeName);
-                    variableValues.add(proxy);
+                    var proxy = ProxyUtil.wrapStateStore(store);
+                    args.add(Pair.of(storeName, proxy));
                 }
             }
 
             // Inject variables one at a time using prefixed parameter names
-            for (int j = 0; j < variableNames.size(); j++) {
-                var varName = variableNames.get(j);
-                var varValue = variableValues.get(j);
-                var code = String.format("""
-                        %s = None
+            for (var nameValue : args) {
+                var code = """
+                        VARNAME = None
                         import polyglot
                         @polyglot.export_value
-                        def _set_%s(_val):
-                            global %s
-                            %s = _val
-                        """, varName, varName, varName, varName);
-                var setter = pythonContext.registerFunction(code, "_set_" + varName);
+                        def _set_VARNAME(_val):
+                            global VARNAME
+                            VARNAME = _val
+                        """.replace("VARNAME", nameValue.left());
+                var setter = pythonContext.registerFunction(code, "_set_" + nameValue.left());
                 if (setter != null) {
-                    setter.execute(varValue);
+                    setter.execute(nameValue.right());
                 }
             }
 

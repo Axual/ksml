@@ -20,8 +20,6 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
@@ -40,8 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestExecutionContext {
 
-    private final DataObjectFlattener dataMapper = new DataObjectFlattener();
-    private final DataTypeFlattener typeMapper = new DataTypeFlattener();
     @Getter
     private MockConfluentSchemaRegistryClient registryClient;
 
@@ -54,15 +50,15 @@ public class TestExecutionContext {
         log.debug("Setting up test execution context");
 
         // Register JSON and Binary notations
-        var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, dataMapper, typeMapper));
+        var jsonNotation = new JsonNotation(new NotationContext());
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION,
-                new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, dataMapper, typeMapper), jsonNotation::serde));
+                new BinaryNotation(new NotationContext(), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         // Register Avro notation with mock schema registry
         registryClient = new MockConfluentSchemaRegistryClient();
         var provider = new ConfluentAvroNotationProvider(registryClient);
-        var context = new NotationContext(provider.notationName(), provider.vendorName(), dataMapper, typeMapper, registryClient.configs());
+        var context = new NotationContext(registryClient.configs());
         var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 
