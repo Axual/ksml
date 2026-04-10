@@ -1,0 +1,24 @@
+test:
+  name: "Filter keeps only blue sensors"
+  pipeline: pipelines/test-filter.yaml
+  schemaDirectory: schemas
+
+  produce:
+    - topic: ksml_sensordata_avro
+      keyType: string
+      valueType: avro:SensorData
+      messages:
+        - key: "sensor1"
+          value: { name: "sensor1", color: "blue", city: "Amsterdam" }
+        - key: "sensor2"
+          value: { name: "sensor2", color: "red", city: "Utrecht" }
+        - key: "sensor3"
+          timestamp: 1000
+          value: { name: "sensor3", color: "blue", city: "Rotterdam" }
+
+  assert:
+    - topic: ksml_sensordata_filtered
+      code: |
+        assert len(records) == 2
+        for r in records:
+          assert r.value["color"] == "blue"

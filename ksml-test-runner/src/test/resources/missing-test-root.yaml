@@ -1,0 +1,2 @@
+name: "No test root"
+pipeline: pipelines/test-filter.yaml

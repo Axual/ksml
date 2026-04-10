@@ -1,0 +1,45 @@
+test:
+  name: "State store records last sensor data per key"
+  pipeline: pipelines/test-state-store.yaml
+  schemaDirectory: schemas
+
+  produce:
+    - topic: ksml_sensordata_avro
+      keyType: string
+      valueType: "avro:SensorData"
+      messages:
+        - key: "sensor-1"
+          value:
+            name: "sensor-1"
+            timestamp: 1000
+            value: "20.0"
+            type: "TEMPERATURE"
+            unit: "celsius"
+            color: "blue"
+        - key: "sensor-1"
+          value:
+            name: "sensor-1"
+            timestamp: 2000
+            value: "25.0"
+            type: "TEMPERATURE"
+            unit: "celsius"
+            color: "blue"
+        - key: "sensor-2"
+          value:
+            name: "sensor-2"
+            timestamp: 3000
+            value: "55.0"
+            type: "HUMIDITY"
+            unit: "percent"
+            color: "red"
+
+  assert:
+    - stores:
+        - last_sensor_data_store
+      code: |
+        val1 = last_sensor_data_store.get("sensor-1")
+        assert val1 is not None, "Expected sensor-1 to be in the store"
+        assert val1["value"] == "25.0", f"Expected last value '25.0', got {val1['value']}"
+        val2 = last_sensor_data_store.get("sensor-2")
+        assert val2 is not None, "Expected sensor-2 to be in the store"
+        assert val2["value"] == "55.0", f"Expected value '55.0', got {val2['value']}"
