@@ -21,12 +21,17 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.UnresolvedType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.metric.MetricTags;
+import io.axual.ksml.type.UserType;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -69,5 +74,31 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
 
     protected <S> StructsParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<S> parser) {
         return new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
+    }
+
+    /**
+     * Resolves a UserType that contains an {@link UnresolvedType} by fetching the schema
+     * from the remote schema registry using the topic name and key/value suffix.
+     *
+     * @param userType the UserType to resolve (returned as-is if already resolved)
+     * @param topic    the Kafka topic name
+     * @param isKey    whether this is a key type (true) or value type (false)
+     * @return the resolved UserType with a concrete DataType
+     * @throws SchemaException if the notation is unknown or the schema cannot be fetched
+     */
+    protected static UserType resolveUserType(UserType userType, String topic, boolean isKey) {
+        if (userType == null || !(userType.dataType() instanceof UnresolvedType)) {
+            return userType;
+        }
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(userType.notation());
+        if (notation == null) {
+            throw new SchemaException("Unknown notation: " + userType.notation());
+        }
+        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getOrFetchRemoteSchema(notation, topic, isKey);
+        if (schema == null) {
+            throw new SchemaException("Notation '" + userType.notation() + "' does not support fetching schemas from a remote registry");
+        }
+        final var dataType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
+        return new UserType(userType.notation(), dataType);
     }
 }

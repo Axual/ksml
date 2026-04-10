@@ -43,6 +43,18 @@ public class MapUtil {
         return result;
     }
 
+    /**
+     * Create a new map with String values by converting the values of the input map via toString().
+     *
+     * @param map the input map with arbitrary value types
+     * @return a map with String values and the same keys as the input
+     */
+    public static <T> Map<T, String> stringValues(Map<T, ?> map) {
+        final var result = new HashMap<T, String>();
+        map.forEach((key, value) -> result.put(key, value != null ? value.toString() : null));
+        return result;
+    }
+
     private MapUtil() {
         // Prevent instantiation
     }

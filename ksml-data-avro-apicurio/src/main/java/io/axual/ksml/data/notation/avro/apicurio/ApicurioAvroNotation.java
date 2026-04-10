@@ -1,0 +1,76 @@
+package io.axual.ksml.data.notation.avro.apicurio;
+
+/*-
+ * ========================LICENSE_START=================================
+ * KSML Data Library - AVRO Apicurio
+ * %%
+ * Copyright (C) 2021 - 2026 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
+import io.apicurio.registry.rest.client.RegistryClient;
+import io.axual.ksml.client.resolving.Resolver;
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.vendor.VendorNotationContext;
+import io.axual.ksml.data.schema.DataSchema;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Apicurio-backed AvroNotation that supports fetching schemas from a schema registry.
+ * <p>
+ * This extends AvroNotation to override {@link #fetchRemoteSchema(String, boolean)}, enabling
+ * deferred schema resolution for stream definitions that omit an explicit schema name.
+ */
+@Slf4j
+public class ApicurioAvroNotation extends AvroNotation {
+    private final RegistryClient registryClient;
+    private final Resolver topicResolver;
+
+    /**
+     * Construct an AvroNotation with the provided vendor context.
+     *
+     * @param context the vendor notation context providing serde supplier, native mapper, and configs
+     */
+    public ApicurioAvroNotation(VendorNotationContext context, RegistryClient registryClient, Resolver topicResolver) {
+        super(context);
+        this.registryClient = registryClient;
+        this.topicResolver = topicResolver;
+    }
+
+    @Override
+    public boolean supportsRemoteSchema() {
+        if (registryClient != null) return true;
+        log.warn("Apicurio registry not configured, remote schema resolution is disabled");
+        return false;
+    }
+
+    @Override
+    public DataSchema fetchRemoteSchema(String topic, boolean isKey) {
+        if (registryClient == null) {
+            throw new SchemaException("Cannot fetch remote schema: no schema registry client configured");
+        }
+
+        final var subject = topicResolver.resolve(topic) + (isKey ? "-key" : "-value");
+        try {
+            log.info("Fetching latest schema for subject '{}' from schema registry", subject);
+            final var schemaStream = registryClient.getLatestArtifact(null, subject);
+            final var schema = new String(schemaStream.readAllBytes());
+            return schemaParser().parse(subject, subject, schema);
+        } catch (Exception e) {
+            throw new SchemaException("Failed to fetch schema for subject '" + subject + "' from schema registry", e);
+        }
+    }
+}

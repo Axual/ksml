@@ -21,12 +21,19 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.rest.client.RegistryClientFactory;
+import io.apicurio.registry.serde.SerdeConfig;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+import io.axual.ksml.data.util.MapUtil;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ApicurioAvroNotationProvider extends VendorNotationProvider {
     private final RegistryClient registryClient;
@@ -42,7 +49,17 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
 
     @Override
     public Notation createNotation(NotationContext context) {
-        return new AvroNotation(
-                new VendorNotationContext(vendorName(), context, new ApicurioAvroSerdeSupplier(registryClient), new AvroDataObjectMapper()));
+        final Map<String, Object> serdeConfigs = context != null ? MapUtil.stringKeys(context.serdeConfigs()) : new HashMap<>();
+        final var clientConfig = new ResolvingClientConfig(serdeConfigs);
+        final var srClient = this.registryClient != null ? this.registryClient : createSrClient(serdeConfigs);
+        return new ApicurioAvroNotation(
+                new VendorNotationContext(vendorName(), context, new ApicurioAvroSerdeSupplier(srClient), new AvroDataObjectMapper()),
+                srClient,
+                clientConfig.topicResolver());
+    }
+
+    private RegistryClient createSrClient(Map<String, Object> serdeConfigs) {
+        if (!serdeConfigs.containsKey(SerdeConfig.REGISTRY_URL)) return null;
+        return RegistryClientFactory.create(MapUtil.stringValues(serdeConfigs).get(SerdeConfig.REGISTRY_URL), serdeConfigs);
     }
 }

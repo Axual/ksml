@@ -216,17 +216,21 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected StructsParser<UserType> userTypeField(String childName, String doc) {
-        return userTypeField(childName, doc, null);
+        return userTypeField(childName, doc, false);
     }
 
-    protected StructsParser<UserType> userTypeField(String childName, String doc, UserType defaultValue) {
+    protected StructsParser<UserType> userTypeField(String childName, String doc, boolean allowUnresolved) {
+        return userTypeField(childName, doc, allowUnresolved, null);
+    }
+
+    protected StructsParser<UserType> userTypeField(String childName, String doc, boolean allowUnresolved, UserType defaultValue) {
         final var stringParser = stringField(childName, doc);
         final var field = new StructSchema.Field(childName, DataSchema.STRING_SCHEMA, doc, NO_TAG, true, false, null);
         final var schemas = structSchema((String) null, null, List.of(field));
         return StructsParser.of(node -> {
                     final var content = stringParser.parse(node);
                     if (content == null) return defaultValue;
-                    final var parsedContent = USER_TYPE_PARSER.parse(content);
+                    final var parsedContent = USER_TYPE_PARSER.parse(content, allowUnresolved);
                     if (parsedContent.isError()) throw new ParseException(node, parsedContent.errorMessage());
                     return parsedContent.result();
                 },

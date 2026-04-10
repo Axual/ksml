@@ -123,4 +123,32 @@ public interface Notation {
      * @return the SchemaParser instance
      */
     SchemaParser schemaParser();
+
+    /**
+     * Returns whether this notation supports fetching schemas from a remote schema registry.
+     * <p>
+     * The default implementation returns {@code false}. Notations backed by a schema registry
+     * (e.g., Confluent Avro) should override this to return {@code true}.
+     *
+     * @return {@code true} if {@link #fetchRemoteSchema(String)} is supported
+     */
+    default boolean supportsRemoteSchema() {
+        return false;
+    }
+
+    /**
+     * Fetches a schema from a remote schema registry by subject name.
+     * <p>
+     * The default implementation returns {@code null}, indicating that this notation does not
+     * support remote schema fetching. Notations backed by a schema registry (e.g., Confluent Avro)
+     * should override this method to query the registry for the latest version of the given subject.
+     *
+     * @param topic the topic name to look up the schema for
+     * @param isKey true if we want to look up the topic's key schema, false is we want the value schema
+     * @return the fetched DataSchema, or {@code null} if remote fetching is not supported
+     * @throws RuntimeException if the schema cannot be fetched
+     */
+    default DataSchema fetchRemoteSchema(String topic, boolean isKey) {
+        return null;
+    }
 }

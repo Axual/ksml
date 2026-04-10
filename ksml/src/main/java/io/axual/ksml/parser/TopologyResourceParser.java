@@ -80,7 +80,7 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
                     return new TopologyResource<>(resourceToFind, resource, node.tags());
                 }
 
-                // Parse as anonymous inline definition using the supplied inline parser
+                // Parse as an anonymous inline definition using the supplied inline parser
                 final var childNode = node.get(childName);
                 if (childNode != null) {
                     final var name = childNode.longName();

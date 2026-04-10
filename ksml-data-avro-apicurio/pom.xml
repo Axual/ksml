@@ -19,6 +19,10 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-kafka-clients</artifactId>
+        </dependency>
         <!-- Serialization formats -->
         <dependency>
             <groupId>io.axual.ksml</groupId>
