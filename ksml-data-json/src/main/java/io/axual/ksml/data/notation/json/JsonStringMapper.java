@@ -45,9 +45,13 @@ import java.io.StringWriter;
  * </ul>
  */
 public class JsonStringMapper implements StringMapper<Object> {
-    /** Shared Jackson ObjectMapper for parsing and generating JSON. */
+    /**
+     * Shared Jackson ObjectMapper for parsing and generating JSON.
+     */
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    /** Whether to pretty-print output JSON produced by {@link #toString(Object)}. */
+    /**
+     * Whether to pretty-print output JSON produced by {@link #toString(Object)}.
+     */
     private final boolean prettyPrint;
 
     /**

@@ -84,6 +84,7 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
      * @param topic    the Kafka topic name
      * @param isKey    whether this is a key type (true) or value type (false)
      * @return the resolved UserType with a concrete DataType
+     * @throws SchemaException if the notation is unknown or the schema cannot be fetched
      */
     protected static UserType resolveUserType(UserType userType, String topic, boolean isKey) {
         if (userType == null || !(userType.dataType() instanceof UnresolvedType)) {

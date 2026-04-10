@@ -89,6 +89,7 @@ public class SchemaLibrary {
      * @param topic    the Kafka topic name
      * @param isKey    whether we want the key schema (true) of the value schema (false)
      * @return the fetched and cached DataSchema
+     * @throws SchemaException if the schema cannot be fetched
      */
     public DataSchema getOrFetchRemoteSchema(Notation notation, String topic, boolean isKey) {
         final var subject = topic + (isKey ? "-key" : "-value");

@@ -146,6 +146,7 @@ public interface Notation {
      * @param topic the topic name to look up the schema for
      * @param isKey true if we want to look up the topic's key schema, false is we want the value schema
      * @return the fetched DataSchema, or {@code null} if remote fetching is not supported
+     * @throws RuntimeException if the schema cannot be fetched
      */
     default DataSchema fetchRemoteSchema(String topic, boolean isKey) {
         return null;

@@ -44,10 +44,10 @@ public class MapUtil {
     }
 
     /**
-     * Create a new map with String keys by converting the keys of the input map via toString().
+     * Create a new map with String values by converting the values of the input map via toString().
      *
-     * @param map the input map with arbitrary key types
-     * @return a map with String keys and the same values as the input
+     * @param map the input map with arbitrary value types
+     * @return a map with String values and the same keys as the input
      */
     public static <T> Map<T, String> stringValues(Map<T, ?> map) {
         final var result = new HashMap<T, String>();
