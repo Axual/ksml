@@ -2544,7 +2544,7 @@
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avro:SensorData</span>
 </code></pre></div>
 </details>
-<p>Schema-based formats (Avro, XML, CSV) require a schema name: <code>format:SchemaName</code> (e.g., <code>avro:SensorData</code>).</p>
+<p>Schema-based formats (Avro, XML, CSV) can specify a schema name: <code>format:SchemaName</code> (e.g., <code>avro:SensorData</code>). For notations backed by a schema registry (e.g., <code>confluent_avro</code>), the schema name can be omitted — KSML will fetch the latest schema from the registry using the topic name. See the <a href="../../../reference/data-and-formats-reference/#local-files-vs-schema-registry">Data Types and Notations Reference</a> for details.</p>
 <h2 id="working-with-avro-data">Working with Avro Data</h2>
 <p>Avro provides schema-based binary serialization with validation, evolution support, and compact encoding.</p>
 <h3 id="setup-requirements-for-avro">Setup Requirements for Avro</h3>
