@@ -204,3 +204,21 @@ mvn process-classes -pl ksml-test-runner -am
 ```
 
 This runs `TestDefinitionSchemaGenerator` and writes the schema to `docs/ksml-test-spec.json`.
+
+## Logging
+
+The test runner ships with a default `logback.xml` that keeps output quiet: `WARN`
+for everything, `INFO` for `io.axual.ksml.testrunner` to show the
+`Running test: ...` progress lines and the final results table.
+
+To get verbose output for one run, point Logback at a custom config file at
+invocation time:
+
+```bash
+docker run --rm \
+  -v ./my-tests:/tests \
+  --entrypoint java \
+  axual/ksml:local \
+  -Dlogback.configurationFile=/tests/logback-debug.xml \
+  -jar /opt/ksml/ksml-test.jar /tests/
+```

@@ -158,3 +158,18 @@ assert value["temperature"] == "25.0"
 ## Schema Validation for Test Files
 
 A JSON Schema is available for test definition files at `docs/ksml-test-spec.json`. See the [Schema Validation](schema-validation.md) page for instructions on setting up editor auto-completion and validation.
+
+## Logging
+
+The test runner ships with a default Logback configuration that keeps output quiet: `WARN` for everything, `INFO` for the test runner itself so you still see the `Running test: ...` progress lines and the final results table.
+
+To get verbose output for one run, point Logback at a custom logback configuration file at invocation time:
+
+```bash
+docker run --rm \
+  -v ./my-tests:/tests \
+  --entrypoint java \
+  axual/ksml:latest \
+  -Dlogback.configurationFile=/tests/logback-debug.xml \
+  -jar /opt/ksml/ksml-test.jar /tests/my-test.yaml
+```
