@@ -34,10 +34,13 @@ import org.graalvm.home.Version;
 import picocli.CommandLine;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Standalone test runner for KSML pipeline definitions.
@@ -49,9 +52,9 @@ public class KSMLTestRunner {
 
     @CommandLine.Command(name = "ksml-test", description = "Run KSML pipeline tests defined in YAML")
     public static class Arguments {
-        @CommandLine.Parameters(arity = "1..*", paramLabel = "TEST-FILE",
-                description = "One or more YAML test definition files")
-        List<File> testFiles;
+        @CommandLine.Parameters(arity = "1..*", paramLabel = "PATH",
+                description = "Test definition YAML files, or directories containing them (searched recursively)")
+        List<File> testPaths;
     }
 
     public static void main(String[] args) {
@@ -65,7 +68,7 @@ public class KSMLTestRunner {
             return;
         }
 
-        if (arguments.testFiles == null || arguments.testFiles.isEmpty()) {
+        if (arguments.testPaths == null || arguments.testPaths.isEmpty()) {
             cmd.usage(System.out);
             System.exit(1);
             return;
@@ -78,10 +81,25 @@ public class KSMLTestRunner {
             return;
         }
 
+        List<Path> testFiles;
+        try {
+            testFiles = collectTestFiles(arguments.testPaths);
+        } catch (IOException | TestDefinitionException e) {
+            System.err.println("ERROR: " + e.getMessage());
+            System.exit(1);
+            return;
+        }
+
+        if (testFiles.isEmpty()) {
+            System.err.println("ERROR: No test files (*.yaml, *.yml) found in: " + arguments.testPaths);
+            System.exit(1);
+            return;
+        }
+
         var runner = new KSMLTestRunner();
         var results = new ArrayList<TestResult>();
-        for (var file : arguments.testFiles) {
-            results.add(runner.runSingleTest(file.toPath()));
+        for (var file : testFiles) {
+            results.add(runner.runSingleTest(file));
         }
 
         // Report results
@@ -193,6 +211,35 @@ public class KSMLTestRunner {
             return Files.readString(absolute);
         }
         throw new TestDefinitionException("Pipeline file not found: " + pipeline);
+    }
+
+    /**
+     * Expand the user-supplied paths into a flat, sorted list of YAML test files.
+     * Files are accepted as-is; directories are walked recursively for *.yaml / *.yml.
+     */
+    static List<Path> collectTestFiles(List<File> inputs) throws IOException {
+        var files = new ArrayList<Path>();
+        for (var input : inputs) {
+            var path = input.toPath();
+            if (Files.isDirectory(path)) {
+                try (var stream = Files.walk(path)) {
+                    stream.filter(Files::isRegularFile)
+                            .filter(KSMLTestRunner::isYamlFile)
+                            .forEach(files::add);
+                }
+            } else if (Files.isRegularFile(path)) {
+                files.add(path);
+            } else {
+                throw new TestDefinitionException("Path not found: " + path);
+            }
+        }
+        files.sort(Comparator.naturalOrder());
+        return files;
+    }
+
+    private static boolean isYamlFile(Path path) {
+        var name = path.getFileName().toString().toLowerCase(Locale.ROOT);
+        return name.endsWith(".yaml") || name.endsWith(".yml");
     }
 
     /**

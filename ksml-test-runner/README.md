@@ -88,13 +88,14 @@ Build the project first:
 mvn clean package
 ```
 
-Then run one or more test files:
+Then run one or more test files, directories, or a mix of both. When a directory is given,
+the runner walks it recursively and picks up every `*.yaml` / `*.yml` file inside:
 
 ```bash
 java -Djava.security.manager=allow \
   -cp "ksml-test-runner/target/ksml-test-runner-1.2.0-SNAPSHOT.jar:ksml-test-runner/target/libs/*" \
   io.axual.ksml.testrunner.KSMLTestRunner \
-  path/to/test1.yaml path/to/test2.yaml
+  path/to/test1.yaml path/to/tests/
 ```
 
 Or using the JAR directly (the manifest classpath expects `libs/` next to the JAR):
@@ -102,7 +103,7 @@ Or using the JAR directly (the manifest classpath expects `libs/` next to the JA
 ```bash
 java -Djava.security.manager=allow \
   -jar ksml-test-runner/target/ksml-test-runner-1.2.0-SNAPSHOT.jar \
-  path/to/test1.yaml path/to/test2.yaml
+  path/to/test1.yaml path/to/tests/
 ```
 
 The exit code is `0` if all tests pass, `1` otherwise.
@@ -125,15 +126,28 @@ The exit code is `0` if all tests pass, `1` otherwise.
 ## Running from Docker
 
 The KSML Docker image includes the test runner JAR at `/opt/ksml/ksml-test.jar`.
-Override the entrypoint to run tests:
+Override the entrypoint to run tests, passing one or more files, directories, or a mix:
 
 ```bash
-docker run \
+# Run a single test file
+docker run --rm \
   -v ./my-tests:/tests \
   --entrypoint java \
   axual/ksml:local \
   -Djava.security.manager=allow -jar /opt/ksml/ksml-test.jar /tests/my-test.yaml
+
+# Run every *.yaml / *.yml test inside a directory (walked recursively)
+docker run --rm \
+  -v ./my-tests:/tests \
+  --entrypoint java \
+  axual/ksml:local \
+  -Djava.security.manager=allow -jar /opt/ksml/ksml-test.jar /tests/
 ```
+
+Letting the runner expand the directory inside the container avoids shell glob
+expansion problems on the host (e.g. `fish: No matches for wildcard …`), since
+the pattern would otherwise be evaluated against the host filesystem before
+`docker run` ever starts.
 
 ## Sample tests
 
