@@ -39,8 +39,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Standalone test runner for KSML pipeline definitions.
@@ -161,7 +163,7 @@ public class KSMLTestRunner {
         } catch (Exception e) {
             var name = testFile.getFileName().toString();
             log.error("Error running test '{}'", name, e);
-            return TestResult.error(name, e.getMessage());
+            return TestResult.error(name, describeFailure(e));
         } finally {
             // 7. Cleanup
             if (driver != null) {
@@ -240,6 +242,30 @@ public class KSMLTestRunner {
     private static boolean isYamlFile(Path path) {
         var name = path.getFileName().toString().toLowerCase(Locale.ROOT);
         return name.endsWith(".yaml") || name.endsWith(".yml");
+    }
+
+    /**
+     * Walk the cause chain and join distinct messages with ": ", so the report
+     * surfaces the actual reason a wrapped exception (e.g. DataException) failed.
+     */
+    static String describeFailure(Throwable t) {
+        // t cannot be null, check added to satisfy SonarQube
+        Objects.requireNonNull(t, "throwable cannot be null");
+
+        var parts = new ArrayList<String>();
+        var seen = new HashSet<String>();
+        for (var current = t; current != null; current = current.getCause()) {
+            // NullPointerExceptions in a cause chain almost always restate a parent
+            // "X was null" message in JVM-internal terms ("Cannot invoke ... because
+            // ... is null") and adds no information; stop walking once we hit one.
+            // Only skip when it's NOT the top-level exception, so a directly-thrown
+            // NPE with a meaningful message still gets reported.
+            if (current != t && current instanceof NullPointerException) break;
+            var message = current.getMessage();
+            if (message != null && !message.isBlank() && seen.add(message)) parts.add(message);
+            if (current.getCause() == current) break;
+        }
+        return parts.isEmpty() ? t.getClass().getSimpleName() : String.join(": ", parts);
     }
 
     /**
