@@ -255,17 +255,27 @@ public class KSMLTestRunner {
         var parts = new ArrayList<String>();
         var seen = new HashSet<String>();
         for (var current = t; current != null; current = current.getCause()) {
-            // NullPointerExceptions in a cause chain almost always restate a parent
-            // "X was null" message in JVM-internal terms ("Cannot invoke ... because
-            // ... is null") and adds no information; stop walking once we hit one.
-            // Only skip when it's NOT the top-level exception, so a directly-thrown
-            // NPE with a meaningful message still gets reported.
-            if (current != t && current instanceof NullPointerException) break;
-            var message = current.getMessage();
+            var message = stripHelpfulNpeSuffix(current.getMessage());
             if (message != null && !message.isBlank() && seen.add(message)) parts.add(message);
             if (current.getCause() == current) break;
         }
         return parts.isEmpty() ? t.getClass().getSimpleName() : String.join(": ", parts);
+    }
+
+    /**
+     * Trim the JVM helpful-NPE tail (JEP 358) from an exception message. Avro and similar
+     * libraries often prepend their own context to a JVM-generated NPE message, producing
+     * something like "null value for ... at Foo.bar: Cannot invoke ... because ... is null".
+     * The "Cannot invoke ..." segment is JVM noise that hides the useful prefix.
+     */
+    private static String stripHelpfulNpeSuffix(String message) {
+        if (message == null) return null;
+        var marker = message.indexOf("Cannot invoke \"");
+        if (marker < 0) return message;
+        // Drop the marker and any preceding ": " separator, then trim trailing whitespace.
+        var end = marker;
+        if (end >= 2 && message.charAt(end - 2) == ':' && message.charAt(end - 1) == ' ') end -= 2;
+        return message.substring(0, end).stripTrailing();
     }
 
     /**
