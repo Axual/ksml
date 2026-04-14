@@ -20,8 +20,19 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.type.UserTupleType;
+import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -29,6 +40,7 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,6 +53,9 @@ import java.util.List;
  */
 @Slf4j
 public class TestDataProducer {
+
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private static final String GENERATOR_NAMESPACE = "test";
 
     private final TopologyTestDriver driver;
 
@@ -58,13 +73,14 @@ public class TestDataProducer {
     }
 
     private void produceBlock(ProduceBlock block) {
-        log.debug("Producing {} messages to topic '{}'",
-                block.messages() != null ? block.messages().size() : 0, block.topic());
-
         if (block.messages() != null) {
+            log.debug("Producing {} inline messages to topic '{}'", block.messages().size(), block.topic());
             produceInlineMessages(block);
+        } else if (block.generator() != null) {
+            long count = block.count() != null ? block.count() : 1;
+            log.debug("Producing via generator ({} invocations) to topic '{}'", count, block.topic());
+            produceGeneratedMessages(block, count);
         }
-        // Generator-based production would be handled here in a future enhancement
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -82,6 +98,70 @@ public class TestDataProducer {
                 inputTopic.pipeInput(msg.key(), msg.value());
             }
         }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void produceGeneratedMessages(ProduceBlock block, long count) {
+        var generatorMap = block.generator();
+        var generatorName = (String) generatorMap.getOrDefault("name", "test_generator");
+        var globalCode = (String) generatorMap.getOrDefault("globalCode", "");
+        var code = (String) generatorMap.getOrDefault("code", "");
+        var expression = (String) generatorMap.getOrDefault("expression", "result");
+
+        // Use a concrete ListType result type rather than GeneratorDefinition's UnionType default.
+        // PythonDataObjectMapper cannot convert a polyglot Value when the expected type is a UnionType,
+        // because polyglotValueToNative runs before the union dispatch. Real KSML generators always
+        // specify an explicit resultType in YAML (e.g. "list(tuple(string, json))"), so this matches
+        // established usage.
+        var resultType = new UserType(new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)));
+        var functionDef = FunctionDefinition.as(
+                "generator", generatorName, List.of(),
+                globalCode, code, expression, resultType, null);
+
+        // Create a PythonContext and register the generator function
+        var pythonContext = new PythonContext(PythonContextConfig.builder().build());
+        var pythonFunction = PythonFunction.forGenerator(
+                pythonContext, GENERATOR_NAMESPACE, generatorName, functionDef);
+
+        // Set up the input topic with proper serdes
+        var keySerde = resolveSerde(block.keyType(), true);
+        var valueSerde = resolveSerde(block.valueType(), false);
+        TestInputTopic inputTopic = driver.createInputTopic(
+                block.topic(), keySerde.serializer(), valueSerde.serializer());
+
+        // Invoke the generator 'count' times and pipe results
+        int totalMessages = 0;
+        for (long i = 0; i < count; i++) {
+            var generated = pythonFunction.call();
+            var messages = extractKeyValuePairs(generated);
+            for (var pair : messages) {
+                inputTopic.pipeInput(pair[0], pair[1]);
+                totalMessages++;
+            }
+        }
+        log.debug("Generator produced {} messages to topic '{}'", totalMessages, block.topic());
+    }
+
+    /**
+     * Extract key/value pairs from a generator result (always a list of tuples).
+     */
+    private List<Object[]> extractKeyValuePairs(DataObject generated) {
+        var result = new ArrayList<Object[]>();
+        if (generated instanceof DataList list) {
+            for (DataObject element : list) {
+                if (element instanceof DataTuple tuple && tuple.elements().size() == 2) {
+                    result.add(new Object[]{
+                            NATIVE_MAPPER.fromDataObject(tuple.elements().get(0)),
+                            NATIVE_MAPPER.fromDataObject(tuple.elements().get(1))
+                    });
+                } else {
+                    log.warn("Skipping invalid generator result element: {}", element);
+                }
+            }
+        } else {
+            log.warn("Generator returned unexpected result type: {}", generated != null ? generated.type() : "null");
+        }
+        return result;
     }
 
     /**

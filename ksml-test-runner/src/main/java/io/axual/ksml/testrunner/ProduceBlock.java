@@ -64,5 +64,9 @@ public record ProduceBlock(
             throw new TestDefinitionException(
                     "Produce block for topic '" + topic + "' must have either 'messages' or 'generator'");
         }
+        if (messages != null && generator != null) {
+            throw new TestDefinitionException(
+                    "Produce block for topic '" + topic + "' must have either 'messages' or 'generator'");
+        }
     }
 }
