@@ -56,7 +56,7 @@ class TestDefinitionParserTest {
         assertNull(produce.generator());
 
         // First message: no timestamp
-        var msg1 = produce.messages().get(0);
+        var msg1 = produce.messages().getFirst();
         assertEquals("sensor1", msg1.key());
         assertInstanceOf(Map.class, msg1.value());
         assertNull(msg1.timestamp());
@@ -136,12 +136,12 @@ class TestDefinitionParserTest {
     }
 
     @Test
-    void defaultsKeyTypeAndValueTypeToString() throws IOException {
+    void omittedKeyTypeAndValueTypeAreNull() throws IOException {
         var def = parser.parse(resource("defaults-test.yaml"));
 
         var produce = def.produce().getFirst();
-        assertEquals("string", produce.keyType());
-        assertEquals("string", produce.valueType());
+        assertNull(produce.keyType());
+        assertNull(produce.valueType());
     }
 
     @Test
@@ -151,5 +151,57 @@ class TestDefinitionParserTest {
         var produce = def.produce().getFirst();
         assertEquals("string", produce.keyType());
         assertEquals("avro:SensorData", produce.valueType());
+    }
+
+    @Test
+    void parsesRegistryBlock() throws IOException {
+        var def = parser.parse(resource("sample-filter-test-confluent-avro.yaml"));
+
+        assertNotNull(def.registry());
+        assertEquals(2, def.registry().size());
+
+        var entry1 = def.registry().getFirst();
+        assertEquals("ksml_sensordata_avro", entry1.topic());
+        assertEquals("string", entry1.keyType());
+        assertEquals("avro:SensorData", entry1.valueType());
+
+        var entry2 = def.registry().get(1);
+        assertEquals("ksml_sensordata_filtered", entry2.topic());
+    }
+
+    @Test
+    void registryIsNullWhenOmitted() throws IOException {
+        var def = parser.parse(resource("valid-test-definition.yaml"));
+        assertNull(def.registry());
+    }
+
+    @Test
+    void buildTopicTypeMapMergesRegistryAndProduceBlocks() throws IOException {
+        var def = parser.parse(resource("sample-filter-test-confluent-avro.yaml"));
+        var map = TestDefinitionParser.buildTopicTypeMap(def);
+
+        // Both topics from registry should be present
+        assertTrue(map.containsKey("ksml_sensordata_avro"));
+        assertTrue(map.containsKey("ksml_sensordata_filtered"));
+
+        // Produce block has explicit types that match registry, so produce wins
+        var inputEntry = map.get("ksml_sensordata_avro");
+        assertEquals("string", inputEntry.keyType());
+        assertEquals("avro:SensorData", inputEntry.valueType());
+    }
+
+    @Test
+    void buildTopicTypeMapUsesRegistryWhenProduceOmitsTypes() throws IOException {
+        var def = parser.parse(resource("sample-filter-test-registry-only-types.yaml"));
+        var map = TestDefinitionParser.buildTopicTypeMap(def);
+
+        // Input topic: produce block has no types, so registry entry is used
+        var inputEntry = map.get("ksml_sensordata_avro");
+        assertEquals("string", inputEntry.keyType());
+        assertEquals("avro:SensorData", inputEntry.valueType());
+
+        // Output topic: only in registry
+        var outputEntry = map.get("ksml_sensordata_filtered");
+        assertEquals("avro:SensorData", outputEntry.valueType());
     }
 }

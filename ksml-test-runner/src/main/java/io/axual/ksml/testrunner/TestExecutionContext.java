@@ -31,6 +31,12 @@ import io.axual.ksml.type.UserType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Sets up the KSML execution context for test runs, registering notations
  * and schema directories. Follows the same pattern as KSMLTestExtension.
@@ -42,11 +48,13 @@ public class TestExecutionContext {
     private MockConfluentSchemaRegistryClient registryClient;
 
     /**
-     * Initialize the execution context with all required notations and optional schema directory.
+     * Initialize the execution context with all required notations, optional schema directory,
+     * and topic type map for mock registry population.
      *
      * @param schemaDirectory optional path to Avro schema files, or null
+     * @param topicTypeMap    merged map of topic types from registry and produce blocks
      */
-    public void setup(String schemaDirectory) {
+    public void setup(String schemaDirectory, Map<String, RegistryEntry> topicTypeMap) {
         log.debug("Setting up test execution context");
 
         // Register JSON and Binary notations
@@ -55,12 +63,13 @@ public class TestExecutionContext {
                 new BinaryNotation(new NotationContext(), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
-        // Register Avro notation with mock schema registry
+        // Register Avro notation with mock schema registry under both "avro" and "confluent_avro"
         registryClient = new MockConfluentSchemaRegistryClient();
         var provider = new ConfluentAvroNotationProvider(registryClient);
         var context = new NotationContext(registryClient.configs());
         var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
+        ExecutionContext.INSTANCE.notationLibrary().register("confluent_avro", mockAvroNotation);
 
         // Register schema directory if provided
         if (schemaDirectory != null && !schemaDirectory.isEmpty()) {
@@ -68,6 +77,63 @@ public class TestExecutionContext {
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);
         } else {
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory("");
+        }
+
+        // Populate mock registry from topic type map
+        if (topicTypeMap != null && schemaDirectory != null) {
+            populateMockRegistry(schemaDirectory, topicTypeMap);
+        }
+    }
+
+    /**
+     * Populate the mock schema registry with schemas from the topic type map.
+     * For each topic entry with an Avro schema reference (e.g. "avro:SensorData"),
+     * loads the .avsc file from the schema directory and registers it under the
+     * conventional subject name ({topic}-key or {topic}-value).
+     */
+    private void populateMockRegistry(String schemaDirectory, Map<String, RegistryEntry> topicTypeMap) {
+        for (var entry : topicTypeMap.values()) {
+            registerSchemaIfAvro(schemaDirectory, entry.topic(), entry.keyType(), true);
+            registerSchemaIfAvro(schemaDirectory, entry.topic(), entry.valueType(), false);
+        }
+    }
+
+    private void registerSchemaIfAvro(String schemaDirectory, String topic, String typeString, boolean isKey) {
+        if (typeString == null || !typeString.contains(":")) {
+            return;
+        }
+        var parts = typeString.split(":", 2);
+        var notation = parts[0].toLowerCase();
+        var schemaName = parts[1];
+
+        // Only register Avro schemas (avro:X, confluent_avro:X, apicurio_avro:X)
+        if (!notation.contains("avro")) {
+            return;
+        }
+
+        var suffix = isKey ? "-key" : "-value";
+        var subject = topic + suffix;
+        var schemaFile = Path.of(schemaDirectory, schemaName + ".avsc");
+
+        if (!Files.exists(schemaFile)) {
+            throw new TestDefinitionException(
+                    "Schema file not found for registry entry: " + schemaFile
+                            + " (topic=" + topic + ", type=" + typeString + ")");
+        }
+
+        try {
+            var schemaString = Files.readString(schemaFile);
+            var parsedSchema = registryClient.parseSchema("AVRO", schemaString, List.of());
+            if (parsedSchema.isPresent()) {
+                registryClient.register(subject, parsedSchema.get());
+                log.debug("Registered schema '{}' under subject '{}'", schemaName, subject);
+            } else {
+                throw new TestDefinitionException(
+                        "Failed to parse Avro schema from " + schemaFile + " for subject " + subject);
+            }
+        } catch (IOException | io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException e) {
+            throw new TestDefinitionException(
+                    "Failed to register schema for subject '" + subject + "': " + e.getMessage(), e);
         }
     }
 

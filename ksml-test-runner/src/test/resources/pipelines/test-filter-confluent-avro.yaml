@@ -1,0 +1,32 @@
+# Filter pipeline using confluent_avro (schema inferred from registry at runtime).
+# This pipeline is identical to test-filter.yaml but uses registry-inferred schema types.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: confluent_avro
+  sensor_filtered:
+    topic: ksml_sensordata_filtered
+    keyType: string
+    valueType: confluent_avro
+
+functions:
+  sensor_is_blue:
+    type: predicate
+    code: |
+      if value == None:
+        log.warn("No value in message with key={}", key)
+        return False
+      if value["color"] != "blue":
+        log.warn("Unknown color: {}", value["color"])
+        return False
+    expression: True
+
+pipelines:
+  filter_pipeline:
+    from: sensor_source
+    via:
+      - type: filter
+        if: sensor_is_blue
+    to: sensor_filtered

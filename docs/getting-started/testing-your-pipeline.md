@@ -63,6 +63,47 @@ Each assert block runs Python code with injected variables. At least one of `top
 When `topic` is set, `records` is a list of dicts with `key`, `value`, and `timestamp` fields.
 When `stores` is set, each store is available as a Python variable with the same API as in pipeline functions (e.g. `store.get(key)`).
 
+### Registry Block
+
+When your pipeline uses registry-inferred schema types like `valueType: confluent_avro` (without an explicit schema name), KSML normally fetches the schema from a schema registry at runtime. In tests, there is no registry — but you can use the `registry` block to tell the test runner which schemas to associate with which topics.
+
+```yaml
+test:
+  name: "My test"
+  pipeline: pipelines/my-pipeline.yaml
+  schemaDirectory: schemas
+  registry:
+    - topic: my-input-topic
+      keyType: string
+      valueType: "avro:SensorData"
+    - topic: my-output-topic
+      keyType: string
+      valueType: "avro:SensorData"
+```
+
+| Field | Required | Default | Description |
+|---|---|---|---|
+| `topic` | yes | | Kafka topic name |
+| `keyType` | no | `string` | Key type (e.g. `string`, `avro:MyKeySchema`) |
+| `valueType` | no | `string` | Value type (e.g. `avro:SensorData`) |
+
+The test runner loads each referenced schema (e.g. `SensorData.avsc`) from the `schemaDirectory` and registers it in a mock schema registry under the standard subject names (`{topic}-key`, `{topic}-value`). This happens before the topology is built, so `resolveUserType()` finds the schema when it encounters the `confluent_avro` type.
+
+**Type merging with produce blocks:** If a produce block specifies `keyType` or `valueType` for the same topic, those values are merged into the registry — the produce block's types take precedence. This means you don't need to repeat types in both places:
+
+```yaml
+  registry:
+    - topic: my-output-topic             # output topic: only in registry
+      valueType: "avro:SensorData"
+
+  produce:
+    - topic: my-input-topic              # types here are also registered
+      valueType: "avro:SensorData"
+      messages: [...]
+```
+
+**Assertion deserialization:** When an assert block reads from an output topic, the test runner uses the registry to determine the correct deserializer. Without a registry entry, output records are deserialized as strings (the existing default behavior).
+
 ## Example: Testing a Filter Pipeline
 
 Let's walk through testing a pipeline that filters sensor data, keeping only sensors with color "blue".
@@ -86,6 +127,30 @@ This pipeline reads from `ksml_sensordata_avro`, filters messages where the sens
     ```
 
 The test sends three sensor messages (two blue, one red) and asserts that only the two blue sensors appear in the output topic.
+
+## Example: Testing a Pipeline with Registry-Inferred Schemas
+
+If your pipeline uses `confluent_avro` (or `apicurio_avro`) without an explicit schema name, the test runner needs a `registry` block to provide the schemas that would normally come from the schema registry.
+
+### The Pipeline
+
+??? info "Pipeline definition: `test-filter-confluent-avro.yaml` (click to expand)"
+
+    ```yaml
+    --8<-- "pipelines/test-filter-confluent-avro.yaml"
+    ```
+
+This is the same filter logic, but the stream types use `confluent_avro` — the schema will be inferred from the registry at runtime.
+
+### The Test
+
+??? info "Test definition: `sample-filter-test-confluent-avro.yaml` (click to expand)"
+
+    ```yaml
+    --8<-- "sample-filter-test-confluent-avro.yaml"
+    ```
+
+The `registry` block maps both the input and output topics to `avro:SensorData`. The test runner loads `SensorData.avsc` from the `schemas` directory and registers it in the mock registry. The pipeline then resolves its `confluent_avro` types from the mock registry, and the assertion can properly deserialize the Avro output records.
 
 ## Running Tests with Docker
 

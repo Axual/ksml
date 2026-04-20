@@ -44,6 +44,9 @@ public record TestDefinition(
         @JsonSchema(description = "Path to Avro schema files directory", examples = {"schemas"})
         String schemaDirectory,
 
+        @JsonSchema(description = "Registry entries mapping topics to their key/value types for mock schema registry population")
+        List<RegistryEntry> registry,
+
         @JsonSchema(description = "List of produce blocks defining test data to send to input topics", required = true)
         List<ProduceBlock> produce,
 

@@ -23,6 +23,34 @@
           "description" : "Path to Avro schema files directory",
           "examples" : [ "schemas" ]
         },
+        "registry" : {
+          "type" : "array",
+          "items" : {
+            "type" : "object",
+            "description" : "A registry entry mapping a topic to its key and value types for mock schema registry population",
+            "properties" : {
+              "topic" : {
+                "type" : "string",
+                "description" : "Kafka topic name",
+                "examples" : [ "my-topic", "sensor-data" ]
+              },
+              "keyType" : {
+                "type" : "string",
+                "description" : "Key serialization type",
+                "default" : "string",
+                "examples" : [ "string", "avro:MyKeySchema" ]
+              },
+              "valueType" : {
+                "type" : "string",
+                "description" : "Value serialization type",
+                "default" : "string",
+                "examples" : [ "string", "avro:SensorData", "confluent_avro" ]
+              }
+            },
+            "required" : [ "topic" ]
+          },
+          "description" : "Registry entries mapping topics to their key/value types for mock schema registry population"
+        },
         "produce" : {
           "type" : "array",
           "items" : {

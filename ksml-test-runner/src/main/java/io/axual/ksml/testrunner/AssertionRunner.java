@@ -20,12 +20,17 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.proxy.store.ProxyUtil;
 import io.axual.ksml.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.TopologyTestDriver;
 
@@ -41,9 +46,11 @@ import java.util.Map;
 public class AssertionRunner {
 
     private final TopologyTestDriver driver;
+    private final Map<String, RegistryEntry> topicTypeMap;
 
-    public AssertionRunner(TopologyTestDriver driver) {
+    public AssertionRunner(TopologyTestDriver driver, Map<String, RegistryEntry> topicTypeMap) {
         this.driver = driver;
+        this.topicTypeMap = topicTypeMap;
     }
 
     /**
@@ -139,20 +146,67 @@ public class AssertionRunner {
         }
     }
 
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+
     private List<Map<String, Object>> collectOutputRecords(String topic) {
-        var outputTopic = driver.createOutputTopic(
-                topic, new StringDeserializer(), new StringDeserializer());
+        var keyDeserializer = resolveDeserializer(topic, true);
+        var valueDeserializer = resolveDeserializer(topic, false);
+
+        var outputTopic = driver.createOutputTopic(topic, keyDeserializer, valueDeserializer);
 
         var records = new ArrayList<Map<String, Object>>();
         var keyValues = outputTopic.readRecordsToList();
         for (var record : keyValues) {
             var map = new HashMap<String, Object>();
-            map.put("key", record.key());
-            map.put("value", record.value());
+            map.put("key", toNativeValue(record.key()));
+            map.put("value", toNativeValue(record.value()));
             map.put("timestamp", record.timestamp());
             records.add(map);
         }
         return records;
+    }
+
+    /**
+     * Resolve a deserializer for a topic's key or value based on the topic type map.
+     * Falls back to StringDeserializer when the topic is not in the map or uses string type.
+     */
+    @SuppressWarnings("unchecked")
+    private Deserializer<Object> resolveDeserializer(String topic, boolean isKey) {
+        var entry = topicTypeMap.get(topic);
+        var typeString = entry != null ? (isKey ? entry.keyType() : entry.valueType()) : null;
+
+        if (typeString == null || typeString.equalsIgnoreCase("string")) {
+            var stringDeserializer = new StringDeserializer();
+            return (Deserializer<Object>) (Deserializer<?>) stringDeserializer;
+        }
+
+        try {
+            var parsed = new UserTypeParser().parse(typeString);
+            if (parsed.isError()) {
+                log.warn("Cannot resolve type '{}' for topic '{}', falling back to StringDeserializer: {}",
+                        typeString, topic, parsed.errorMessage());
+                var stringDeserializer = new StringDeserializer();
+                return (Deserializer<Object>) (Deserializer<?>) stringDeserializer;
+            }
+            var streamDataType = new StreamDataType(parsed.result(), isKey);
+            return streamDataType.serde().deserializer();
+        } catch (Exception e) {
+            log.warn("Failed to create deserializer for type '{}' on topic '{}', falling back to StringDeserializer",
+                    typeString, topic, e);
+            var stringDeserializer = new StringDeserializer();
+            return (Deserializer<Object>) (Deserializer<?>) stringDeserializer;
+        }
+    }
+
+    /**
+     * Convert a deserialized value to a native Java object suitable for Python injection.
+     * DataObjects are converted to native maps/lists, other values pass through.
+     */
+    private static Object toNativeValue(Object value) {
+        if (value instanceof DataObject dataObject) {
+            return NATIVE_MAPPER.fromDataObject(dataObject);
+        }
+        return value;
     }
 
     private String extractAssertionMessage(org.graalvm.polyglot.PolyglotException e) {

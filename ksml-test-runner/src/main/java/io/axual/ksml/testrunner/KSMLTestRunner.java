@@ -126,8 +126,10 @@ public class KSMLTestRunner {
             definition = parser.parse(testFile);
             log.info("Running test: {}", definition.name());
 
-            // 2. Set up execution context
-            executionContext.setup(resolveSchemaDirectory(testFile, definition.schemaDirectory()));
+            // 2. Build merged type map and set up execution context
+            var topicTypeMap = TestDefinitionParser.buildTopicTypeMap(definition);
+            var schemaDirectory = resolveSchemaDirectory(testFile, definition.schemaDirectory());
+            executionContext.setup(schemaDirectory, topicTypeMap);
 
             // 3. Parse pipeline definition and build topology
             var topologyName = sanitizeTopologyName(definition.name());
@@ -151,11 +153,11 @@ public class KSMLTestRunner {
             driver = new TopologyTestDriver(topology);
 
             // 5. Produce test data
-            var producer = new TestDataProducer(driver);
+            var producer = new TestDataProducer(driver, topicTypeMap);
             producer.produce(definition.produce());
 
             // 6. Run assertions
-            var assertionRunner = new AssertionRunner(driver);
+            var assertionRunner = new AssertionRunner(driver, topicTypeMap);
             return assertionRunner.runAssertions(definition.assertions(), definition.name());
 
         } catch (TestDefinitionException e) {

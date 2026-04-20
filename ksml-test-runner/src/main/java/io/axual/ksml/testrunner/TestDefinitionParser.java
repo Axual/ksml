@@ -29,7 +29,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Parses a YAML test definition file into a {@link TestDefinition}.
@@ -55,9 +57,56 @@ public class TestDefinitionParser {
                 fieldExtractor.requireString("name"),
                 fieldExtractor.requireString("pipeline"),
                 fieldExtractor.optionalString("schemaDirectory"),
+                parseRegistryEntries(testNode.get("registry"), testFile),
                 parseProduceBlocks(fieldExtractor.requireArray("produce"), testFile),
                 parseAssertBlocks(fieldExtractor.requireArray("assert"), testFile)
         );
+    }
+
+    private List<RegistryEntry> parseRegistryEntries(JsonNode registryNode, Path testFile) {
+        if (registryNode == null || !registryNode.isArray()) {
+            return null;
+        }
+        var entries = new ArrayList<RegistryEntry>();
+        for (var entryNode : registryNode) {
+            var f = new FieldExtractor(entryNode, testFile);
+            entries.add(new RegistryEntry(
+                    f.requireString("topic"),
+                    f.optionalString("keyType", "string"),
+                    f.optionalString("valueType", "string")
+            ));
+        }
+        return entries;
+    }
+
+    /**
+     * Build a merged type map from registry entries and produce blocks.
+     * Registry entries are added first, then produce block types overwrite on overlap.
+     *
+     * @param definition the parsed test definition
+     * @return map from topic name to {@link RegistryEntry} with effective key/value types
+     */
+    public static Map<String, RegistryEntry> buildTopicTypeMap(TestDefinition definition) {
+        var map = new LinkedHashMap<String, RegistryEntry>();
+
+        // 1. Add registry entries
+        if (definition.registry() != null) {
+            for (var entry : definition.registry()) {
+                map.put(entry.topic(), entry);
+            }
+        }
+
+        // 2. Merge produce block types (overwrite on overlap)
+        for (var block : definition.produce()) {
+            if (block.keyType() != null || block.valueType() != null) {
+                var existing = map.get(block.topic());
+                var keyType = block.keyType() != null ? block.keyType() : (existing != null ? existing.keyType() : "string");
+                var valueType = block.valueType() != null ? block.valueType() : (existing != null ? existing.valueType() : "string");
+                map.put(block.topic(), new RegistryEntry(block.topic(), keyType, valueType));
+            }
+        }
+
+        return map;
     }
 
     private List<ProduceBlock> parseProduceBlocks(JsonNode produceArray, Path testFile) {
@@ -66,8 +115,8 @@ public class TestDefinitionParser {
             var f = new FieldExtractor(blockNode, testFile);
 
             var topic = f.requireString("topic");
-            var keyType = f.optionalString("keyType", "string");
-            var valueType = f.optionalString("valueType", "string");
+            var keyType = f.optionalString("keyType");
+            var valueType = f.optionalString("valueType");
             var messages = parseMessages(blockNode.get("messages"));
             var generator = f.optionalMap("generator");
             var count = f.optionalLong("count");

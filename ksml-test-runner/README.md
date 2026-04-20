@@ -50,8 +50,28 @@ test:
 | `test.name` | yes | Human-readable test name, shown in the output |
 | `test.pipeline` | yes | Path to the KSML pipeline YAML (relative to the test file or absolute) |
 | `test.schemaDirectory` | no | Path to Avro/JSON schema files (relative to the test file or absolute) |
+| `test.registry` | no | List of registry entries mapping topics to key/value types (see below) |
 | `test.produce` | yes | List of produce blocks |
 | `test.assert` | yes | List of assertion blocks |
+
+### Registry block
+
+Each registry entry maps a topic to its key and value types for mock schema registry population.
+Use this when your pipeline declares types like `confluent_avro` or `apicurio_avro` that would
+normally fetch schemas from a registry at runtime.
+
+| Field | Required | Description |
+|---|---|---|
+| `topic` | yes | Kafka topic name |
+| `keyType` | no | Key type (default: `string`) |
+| `valueType` | no | Value type, e.g. `avro:SensorData` (default: `string`) |
+
+The test runner loads each referenced schema from `schemaDirectory` and registers it in the
+mock registry under the standard subjects (`{topic}-key`, `{topic}-value`).
+
+Types from produce blocks are merged into the same map — produce block types take precedence
+on overlap. The merged map is also used to determine the correct deserializer for assert block
+output topics.
 
 ### Produce block
 
@@ -154,6 +174,8 @@ the pattern would otherwise be evaluated against the host filesystem before
 The `src/test/resources/` directory contains sample test definitions:
 
 - `sample-filter-test.yaml` — filters SensorData by color, asserts on output topic records
+- `sample-filter-test-confluent-avro.yaml` — same filter logic, but pipeline uses `confluent_avro` with a `registry` block
+- `sample-filter-test-registry-only-types.yaml` — types declared only in `registry`, not on produce block
 - `sample-state-store-test.yaml` — stores sensor data per key, asserts on state store contents
 - `sample-timestamp-test.yaml` — uses explicit timestamps, asserts timestamps are preserved
 

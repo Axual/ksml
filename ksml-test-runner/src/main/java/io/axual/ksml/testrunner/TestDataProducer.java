@@ -42,6 +42,7 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Produces test data into TopologyTestDriver input topics from ProduceBlock definitions.
@@ -58,9 +59,11 @@ public class TestDataProducer {
     private static final String GENERATOR_NAMESPACE = "test";
 
     private final TopologyTestDriver driver;
+    private final Map<String, RegistryEntry> topicTypeMap;
 
-    public TestDataProducer(TopologyTestDriver driver) {
+    public TestDataProducer(TopologyTestDriver driver, Map<String, RegistryEntry> topicTypeMap) {
         this.driver = driver;
+        this.topicTypeMap = topicTypeMap;
     }
 
     /**
@@ -85,8 +88,8 @@ public class TestDataProducer {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void produceInlineMessages(ProduceBlock block) {
-        var keySerde = resolveSerde(block.keyType(), true);
-        var valueSerde = resolveSerde(block.valueType(), false);
+        var keySerde = resolveSerde(resolveKeyType(block), true);
+        var valueSerde = resolveSerde(resolveValueType(block), false);
 
         TestInputTopic inputTopic = driver.createInputTopic(
                 block.topic(), keySerde.serializer(), valueSerde.serializer());
@@ -124,8 +127,8 @@ public class TestDataProducer {
                 pythonContext, GENERATOR_NAMESPACE, generatorName, functionDef);
 
         // Set up the input topic with proper serdes
-        var keySerde = resolveSerde(block.keyType(), true);
-        var valueSerde = resolveSerde(block.valueType(), false);
+        var keySerde = resolveSerde(resolveKeyType(block), true);
+        var valueSerde = resolveSerde(resolveValueType(block), false);
         TestInputTopic inputTopic = driver.createInputTopic(
                 block.topic(), keySerde.serializer(), valueSerde.serializer());
 
@@ -162,6 +165,26 @@ public class TestDataProducer {
             log.warn("Generator returned unexpected result type: {}", generated != null ? generated.type() : "null");
         }
         return result;
+    }
+
+    /**
+     * Resolve the effective key type for a produce block: use the block's own keyType if present,
+     * otherwise fall back to the topic type map.
+     */
+    private String resolveKeyType(ProduceBlock block) {
+        if (block.keyType() != null) return block.keyType();
+        var entry = topicTypeMap.get(block.topic());
+        return entry != null ? entry.keyType() : "string";
+    }
+
+    /**
+     * Resolve the effective value type for a produce block: use the block's own valueType if present,
+     * otherwise fall back to the topic type map.
+     */
+    private String resolveValueType(ProduceBlock block) {
+        if (block.valueType() != null) return block.valueType();
+        var entry = topicTypeMap.get(block.topic());
+        return entry != null ? entry.valueType() : "string";
     }
 
     /**

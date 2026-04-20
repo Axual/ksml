@@ -109,7 +109,7 @@ class AssertionRunnerTest {
     void passingAssertionReturnsPass() {
         produceMessages("k1", "v1", "k2", "v2");
 
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block = new AssertBlock(OUTPUT_TOPIC, null,
                 "assert len(records) == 2\n");
 
@@ -124,7 +124,7 @@ class AssertionRunnerTest {
     void failingAssertionReturnsFail() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block = new AssertBlock(OUTPUT_TOPIC, null,
                 "assert len(records) == 99, \"expected 99 records\"\n");
 
@@ -140,7 +140,7 @@ class AssertionRunnerTest {
     void assertionErrorWithoutMessageReturnsFail() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block = new AssertBlock(OUTPUT_TOPIC, null,
                 "assert False\n");
 
@@ -154,7 +154,7 @@ class AssertionRunnerTest {
     void pythonErrorReturnsError() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block = new AssertBlock(OUTPUT_TOPIC, null,
                 "x = 1 / 0\n");
 
@@ -169,7 +169,7 @@ class AssertionRunnerTest {
     void recordsContainKeyValueAndTimestamp() {
         produceMessages("mykey", "myvalue");
 
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block = new AssertBlock(OUTPUT_TOPIC, null, """
                 assert len(records) == 1
                 assert records[0]["key"] == "mykey"
@@ -185,7 +185,7 @@ class AssertionRunnerTest {
     @Test
     void emptyTopicYieldsEmptyRecords() {
         // Don't produce any messages
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block = new AssertBlock(OUTPUT_TOPIC, null,
                 "assert len(records) == 0\n");
 
@@ -196,7 +196,7 @@ class AssertionRunnerTest {
 
     @Test
     void missingStoreReturnsError() {
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block = new AssertBlock(null, List.of("nonexistent_store"),
                 "pass\n");
 
@@ -210,7 +210,7 @@ class AssertionRunnerTest {
     void multipleAssertBlocksStopOnFirstFailure() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var passingBlock = new AssertBlock(OUTPUT_TOPIC, null,
                 "assert len(records) == 1\n");
         var failingBlock = new AssertBlock(OUTPUT_TOPIC, null,
@@ -229,7 +229,7 @@ class AssertionRunnerTest {
     void allBlocksPassReturnsPass() {
         produceMessages("k1", "v1", "k2", "v2");
 
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
         var block1 = new AssertBlock(OUTPUT_TOPIC, null,
                 "assert len(records) >= 1\n");
         var block2 = new AssertBlock(OUTPUT_TOPIC, null,
@@ -242,7 +242,7 @@ class AssertionRunnerTest {
 
     @Test
     void emptyAssertBlockListReturnsPass() {
-        var runner = new AssertionRunner(driver);
+        var runner = new AssertionRunner(driver, java.util.Map.of());
 
         var result = runner.runAssertions(List.of(), "no-blocks");
 

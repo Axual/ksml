@@ -66,7 +66,7 @@ class TestDataProducerTest {
 
     @Test
     void producesSingleMessage() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
@@ -81,7 +81,7 @@ class TestDataProducerTest {
 
     @Test
     void producesMultipleMessages() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
                 List.of(
                         new TestMessage("k1", "v1", null),
@@ -100,7 +100,7 @@ class TestDataProducerTest {
 
     @Test
     void producesWithExplicitTimestamp() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
                 List.of(new TestMessage("k1", "v1", 1709200000000L)),
                 null, null);
@@ -114,7 +114,7 @@ class TestDataProducerTest {
 
     @Test
     void producesWithMixedTimestamps() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
                 List.of(
                         new TestMessage("k1", "v1", 1000L),
@@ -133,7 +133,7 @@ class TestDataProducerTest {
     @Test
     void producesMultipleBlocks() {
         // Use the same topic for both blocks since our topology only has one input
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block1 = new ProduceBlock(INPUT_TOPIC, "string", "string",
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
@@ -151,7 +151,7 @@ class TestDataProducerTest {
 
     @Test
     void nullKeyTypeDefaultsToString() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, null, "string",
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
@@ -165,7 +165,7 @@ class TestDataProducerTest {
 
     @Test
     void nullValueTypeDefaultsToString() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, "string", null,
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
@@ -179,7 +179,7 @@ class TestDataProducerTest {
 
     @Test
     void blockWithNullMessagesIsSkipped() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
                 null, null, null);
 
@@ -191,7 +191,7 @@ class TestDataProducerTest {
 
     @Test
     void emptyBlockListProducesNothing() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
 
         producer.produce(List.of());
 
@@ -201,7 +201,7 @@ class TestDataProducerTest {
 
     @Test
     void invalidTypeThrowsException() {
-        var producer = new TestDataProducer(driver);
+        var producer = new TestDataProducer(driver, java.util.Map.of());
         var block = new ProduceBlock(INPUT_TOPIC, "string", "nonexistent:FakeSchema",
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
