@@ -20,6 +20,7 @@ package io.axual.ksml.client.consumer;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.consumer.CloseOptions;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -296,9 +297,15 @@ public class ForwardingConsumer<K, V> implements Consumer<K, V> {
         delegate.close();
     }
 
+    @Deprecated
     @Override
     public void close(Duration timeout) {
         delegate.close(timeout);
+    }
+
+    @Override
+    public void close(CloseOptions options) {
+        delegate.close(options);
     }
 
     @Override
