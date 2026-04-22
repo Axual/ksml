@@ -1,0 +1,21 @@
+test:
+  name: "Filter pipeline with apicurio_avro (testing docs claim)"
+  pipeline: pipelines/test-filter-apicurio-avro.yaml
+  schemaDirectory: schemas
+  registry:
+    - topic: ksml_sensordata_avro
+      valueType: "avro:SensorData"
+    - topic: ksml_sensordata_filtered
+      valueType: "avro:SensorData"
+
+  produce:
+    - topic: ksml_sensordata_avro
+      valueType: "avro:SensorData"
+      messages:
+        - key: "s1"
+          value: { name: "s1", timestamp: 1000, value: "25.0", type: "TEMPERATURE", unit: "C", color: "blue" }
+
+  assert:
+    - topic: ksml_sensordata_filtered
+      code: |
+        assert len(records) == 1

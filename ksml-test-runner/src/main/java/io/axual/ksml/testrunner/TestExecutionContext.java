@@ -70,6 +70,7 @@ public class TestExecutionContext {
         var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
         ExecutionContext.INSTANCE.notationLibrary().register("confluent_avro", mockAvroNotation);
+        ExecutionContext.INSTANCE.notationLibrary().register("apicurio_avro", mockAvroNotation);
 
         // Register schema directory if provided
         if (schemaDirectory != null && !schemaDirectory.isEmpty()) {

@@ -1,7 +1,7 @@
 
 Lists of 43 third-party dependencies.
      (MIT License) minimal-json (com.eclipsesource.minimal-json:minimal-json:0.9.5 - https://github.com/ralfstx/minimal-json)
-     (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.16.2 - https://github.com/FasterXML/jackson)
+     (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.21 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.21.2 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.21.2 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-dataformat-CSV (com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.21.2 - https://github.com/FasterXML/jackson-dataformats-text)

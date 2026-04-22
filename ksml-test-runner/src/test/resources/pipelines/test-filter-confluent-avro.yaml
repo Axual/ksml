@@ -5,11 +5,7 @@ streams:
   sensor_source:
     topic: ksml_sensordata_avro
     keyType: string
-    valueType: confluent_avro
-  sensor_filtered:
-    topic: ksml_sensordata_filtered
-    keyType: string
-    valueType: confluent_avro
+    valueType: "avro:SensorData"
 
 functions:
   sensor_is_blue:
@@ -29,4 +25,7 @@ pipelines:
     via:
       - type: filter
         if: sensor_is_blue
-    to: sensor_filtered
+    to:
+      topic: ksml_sensordata_filtered
+      keyType: string
+      valueType: confluent_avro
