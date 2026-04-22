@@ -112,9 +112,9 @@
         <mockito-junit-jupiter.version>5.19.0</mockito-junit-jupiter.version>
 
         <!-- Project and java version settings -->
-        <java.source.version>21</java.source.version>
-        <java.target.version>21</java.target.version>
-        <java.release.version>21</java.release.version>
+        <java.source.version>23</java.source.version>
+        <java.target.version>23</java.target.version>
+        <java.release.version>23</java.release.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -143,7 +143,7 @@
         <!-- SonarCloud properties -->
         <sonar.organization>axual</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.version>5.5.0.6356</sonar.version>
+        <sonar.version>5.6.0.6792</sonar.version>
 
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
@@ -836,7 +836,7 @@
                     <plugin>
                         <groupId>org.sonarsource.scanner.maven</groupId>
                         <artifactId>sonar-maven-plugin</artifactId>
-                        <version>5.6.0.6792</version>
+                        <version>${sonar.version}</version>
                         <executions>
                             <execution>
                                 <id>sonar-scan</id>
