@@ -90,7 +90,7 @@
         <jersey.version>4.0.1</jersey.version>
         <logback.version>1.5.26</logback.version>
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
-        <lombok.version>1.18.44</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
         <prometheus.version>1.0.1</prometheus.version>
         <prometheus-instrumentation.version>1.4.3</prometheus-instrumentation.version>
         <protobuf.version>3.25.8</protobuf.version>
