@@ -32,33 +32,65 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class BaseNotationTest {
+
+    private static final SimpleType DEFAULT_TYPE = new SimpleType(String.class, "string");
+    private static final Notation.Converter CONVERTER = (value, targetType) -> value;
+    private static final Notation.SchemaParser PARSER = (ctx, name, schema) -> null;
+
     private static class DummyNotation extends BaseNotation {
-        DummyNotation(NotationContext context, String fileExt, SchemaUsage schemaUsage, DataType defaultType,
-                      Notation.Converter converter, Notation.SchemaParser parser) {
-            super("dummy", context, fileExt, schemaUsage, defaultType, converter, parser);
+        DummyNotation(NotationContext context) {
+            super(context);
+        }
+
+        @Override
+        public String notationName() {
+            return "dummy";
+        }
+
+        @Override
+        public String filenameExtension() {
+            return ".json";
+        }
+
+        @Override
+        public SchemaUsage schemaUsage() {
+            return SchemaUsage.SCHEMALESS_ONLY;
+        }
+
+        @Override
+        public DataType defaultType() {
+            return DEFAULT_TYPE;
+        }
+
+        @Override
+        public Converter converter() {
+            return CONVERTER;
+        }
+
+        @Override
+        public SchemaParser schemaParser() {
+            return PARSER;
         }
 
         @Override
         public Serde<Object> serde(DataType type, boolean isKey) {
-            // Always fail with the standard message to expose BaseNotation.noSerdeFor
             throw noSerdeFor(type);
         }
     }
 
     @Test
-    @DisplayName("name() delegates to context; getters expose provided constructor arguments; noSerdeFor message")
+    @DisplayName("name() delegates to notationName(); method overrides expose constants; noSerdeFor message")
     void baseBehaviourAndNoSerdeFor() {
         var context = new NotationContext();
-        var defaultType = new SimpleType(String.class, "string");
-        Notation.Converter converter = (value, targetType) -> value; // not used
-        Notation.SchemaParser parser = (ctx, name, schema) -> null; // not used
+        var notation = new DummyNotation(context);
 
-        var notation = new DummyNotation(context, ".json", Notation.SchemaUsage.SCHEMALESS_ONLY, defaultType, converter, parser);
-
+        assertThat(notation.name()).isEqualTo("dummy");
+        assertThat(notation.notationName()).isEqualTo("dummy");
         assertThat(notation.filenameExtension()).isEqualTo(".json");
-        assertThat(notation.defaultType()).isEqualTo(defaultType);
-        assertThat(notation.converter()).isSameAs(converter);
-        assertThat(notation.schemaParser()).isSameAs(parser);
+        assertThat(notation.defaultType()).isEqualTo(DEFAULT_TYPE);
+        assertThat(notation.converter()).isSameAs(CONVERTER);
+        assertThat(notation.schemaParser()).isSameAs(PARSER);
+        assertThat(notation.context()).isSameAs(context);
 
         var wrongType = new SimpleType(Integer.class, "int");
         assertThatThrownBy(() -> notation.serde(wrongType, true))

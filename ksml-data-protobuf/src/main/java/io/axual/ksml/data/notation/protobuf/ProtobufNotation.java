@@ -28,8 +28,35 @@ import io.axual.ksml.data.type.StructType;
 public class ProtobufNotation extends VendorNotation {
     public static final String NOTATION_NAME = "protobuf";
     public static final DataType DEFAULT_TYPE = new StructType();
+    private final ProtobufSchemaParser protobufSchemaParser;
 
     public ProtobufNotation(VendorNotationContext context, ProtobufSchemaParser schemaParser) {
-        super(NOTATION_NAME, context, ".proto", DEFAULT_TYPE, null, schemaParser);
+        super(context);
+        this.protobufSchemaParser = schemaParser;
+    }
+
+    @Override
+    public String notationName() {
+        return NOTATION_NAME;
+    }
+
+    @Override
+    public String filenameExtension() {
+        return ".proto";
+    }
+
+    @Override
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
+    }
+
+    @Override
+    public Converter converter() {
+        return null;
+    }
+
+    @Override
+    public SchemaParser schemaParser() {
+        return protobufSchemaParser;
     }
 }

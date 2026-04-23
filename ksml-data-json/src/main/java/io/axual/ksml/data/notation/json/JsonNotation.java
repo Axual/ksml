@@ -58,6 +58,8 @@ public class JsonNotation extends BaseNotation {
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UnionType.Member(new StructType()),
             new UnionType.Member(new ListType()));
+    private static final JsonDataObjectConverter CONVERTER = new JsonDataObjectConverter();
+    private static final JsonSchemaLoader SCHEMA_PARSER = new JsonSchemaLoader();
 
     /**
      * Creates a JsonNotation with a default {@link NotationContext}.
@@ -71,8 +73,37 @@ public class JsonNotation extends BaseNotation {
      * The filename extension is fixed to ".json".
      */
     public JsonNotation(NotationContext context) {
-        // Wire the BaseNotation with the JSON-specific converter and schema loader.
-        super(NOTATION_NAME, context, ".json", SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
+        super(context);
+    }
+
+    @Override
+    public String notationName() {
+        return NOTATION_NAME;
+    }
+
+    @Override
+    public String filenameExtension() {
+        return ".json";
+    }
+
+    @Override
+    public SchemaUsage schemaUsage() {
+        return SchemaUsage.SCHEMALESS_ONLY;
+    }
+
+    @Override
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
+    }
+
+    @Override
+    public Converter converter() {
+        return CONVERTER;
+    }
+
+    @Override
+    public SchemaParser schemaParser() {
+        return SCHEMA_PARSER;
     }
 
     /**
