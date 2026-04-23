@@ -140,7 +140,7 @@ If your pipeline uses `confluent_avro` (or `apicurio_avro`) without an explicit 
     --8<-- "pipelines/test-filter-confluent-avro.yaml"
     ```
 
-This is the same filter logic, but the stream types use `confluent_avro` — the schema will be inferred from the registry at runtime.
+This is the same filter logic, but the output topic uses `confluent_avro` — the schema will be inferred from the registry at runtime.
 
 ### The Test
 
@@ -150,7 +150,9 @@ This is the same filter logic, but the stream types use `confluent_avro` — the
     --8<-- "sample-filter-test-confluent-avro.yaml"
     ```
 
-The `registry` block maps both the input and output topics to `avro:SensorData`. The test runner loads `SensorData.avsc` from the `schemas` directory and registers it in the mock registry. The pipeline then resolves its `confluent_avro` types from the mock registry, and the assertion can properly deserialize the Avro output records.
+In this example, the `registry` block maps both the input and output topics to `avro:SensorData`. The test runner loads `SensorData.avsc` from the `schemas` directory and registers it in the mock registry. The pipeline then resolves its `confluent_avro` types from the mock registry, and the assertion can properly deserialize the Avro output records.
+Note that in this example both the `registry` block and the `produce` block specify `"avro:SensorData"` as the valueType; either by itself is fine, in cases where both 
+are present like here, the valueType from the produce block would win in case of a difference.
 
 ## Running Tests with Docker
 
