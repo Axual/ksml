@@ -38,16 +38,21 @@ public abstract class VendorNotation extends BaseNotation {
     private final DataObjectMapper<Object> serdeMapper;
     private final String vendorName;
 
-    protected VendorNotation(String name, VendorNotationContext context, String filenameExtension, DataType defaultType, Converter converter, SchemaParser schemaParser) {
-        super(name, context, filenameExtension, SchemaUsage.SCHEMA_REQUIRED, defaultType, converter, schemaParser);
+    protected VendorNotation(VendorNotationContext context) {
+        super(context);
         this.serdeSupplier = context.serdeSupplier();
         this.serdeMapper = context.serdeMapper();
-        vendorName = context.vendorName();
+        this.vendorName = context.vendorName();
     }
 
     @Override
     public String name() {
-        return (vendorName != null && !vendorName.isEmpty() ? vendorName + "_" : "") + super.name();
+        return (vendorName != null && !vendorName.isEmpty() ? vendorName + "_" : "") + notationName();
+    }
+
+    @Override
+    public SchemaUsage schemaUsage() {
+        return SchemaUsage.SCHEMA_REQUIRED;
     }
 
     /**

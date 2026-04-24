@@ -40,7 +40,7 @@ public class BinaryNotation extends BaseNotation {
     private final SerdeSupplier complexTypeSerdeSupplier;
 
     public BinaryNotation() {
-        this(null);
+        this(null, null);
     }
 
     public BinaryNotation(SerdeSupplier complexTypeSerdeSupplier) {
@@ -48,8 +48,38 @@ public class BinaryNotation extends BaseNotation {
     }
 
     public BinaryNotation(NotationContext context, SerdeSupplier complexTypeSerdeSupplier) {
-        super(NOTATION_NAME, context, null, SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, null, null);
+        super(context);
         this.complexTypeSerdeSupplier = complexTypeSerdeSupplier;
+    }
+
+    @Override
+    public String notationName() {
+        return NOTATION_NAME;
+    }
+
+    @Override
+    public String filenameExtension() {
+        return null;
+    }
+
+    @Override
+    public SchemaUsage schemaUsage() {
+        return SchemaUsage.SCHEMALESS_ONLY;
+    }
+
+    @Override
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
+    }
+
+    @Override
+    public Converter converter() {
+        return null;
+    }
+
+    @Override
+    public SchemaParser schemaParser() {
+        return null;
     }
 
     @Override
