@@ -6,7 +6,7 @@ charset-normalizer==3.4.7
 click==8.3.3
 colorama==0.4.6
 ghp-import==2.1.0
-idna==3.12
+idna==3.13
 importlib_metadata==9.0.0
 importlib_resources==7.1.0
 Jinja2==3.1.6
