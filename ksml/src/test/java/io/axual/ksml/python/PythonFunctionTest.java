@@ -27,6 +27,7 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -35,6 +36,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class PythonFunctionTest {
+    @BeforeAll
+    static void warmupGraalVM() {
+        // The very first Python context creation in a JVM can fail with a libgraal cold-start
+        // error ("Error decoding exception: [B@..."). Build one throwaway context here so the
+        // field initializer below always runs against a warm libgraal isolate.
+        try {
+            new PythonContext(PythonContextConfig.builder().build());
+        } catch (Exception ignored) {
+            // Warmup only — the real assertions happen in the @Test methods.
+        }
+    }
+
     final PythonContext context = new PythonContext(PythonContextConfig.builder().build());
     final ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     final ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);

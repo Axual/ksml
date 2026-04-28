@@ -530,4 +530,263 @@ class AvroSchemaMapperTest {
                     .isEqualTo(DataNull.INSTANCE);
         });
     }
+
+    // ============================================================================
+    // Regression tests for an Avro default-value bug.
+    //
+    // Background:
+    // When KSML produces a message, it has to hand its internal schema back to
+    // Apache Avro. Avro then asks "what is the default value of this field?"
+    // and tries to write that default into the schema as JSON. Avro can only
+    // turn very specific Java types into JSON: plain Maps, Lists, byte arrays,
+    // strings, numbers, booleans, and a special sentinel for null. If we hand
+    // it anything else (for example, an Avro record object), it crashes with
+    //     "Unknown datum class: GenericData$Record"
+    // and the producer never sends a single message.
+    //
+    // KSML used to give Avro a record object for record-typed defaults, which
+    // is what caused the bug. The fix is in AvroSchemaMapper: instead of giving
+    // Avro a record object, we hand it a plain Map.
+    //
+    // Each test below sends a small Avro schema through KSML's converter twice
+    // (Avro -> KSML schema -> Avro) and checks that the conversion succeeds and
+    // produces the right shape of default value.
+    // ============================================================================
+
+    @Test
+    @DisplayName("Record field with empty default {} survives the round-trip (the original bug)")
+    void recordDefault_emptyObject_roundTrips() {
+        // This is the simplest reproduction of the original bug as reported
+        // The "inner" field is itself a record, and its default is {} (empty record).
+        // Before the fix, just running this test would crash with
+        // "Unknown datum class: GenericData$Record".
+        final var schemaJson = """
+                {
+                  "type": "record",
+                  "name": "Outer",
+                  "namespace": "io.axual.test",
+                  "fields": [
+                    {
+                      "name": "inner",
+                      "type": {
+                        "type": "record",
+                        "name": "Inner",
+                        "fields": [
+                          { "name": "content", "type": "string", "default": "" }
+                        ]
+                      },
+                      "default": {}
+                    }
+                  ]
+                }
+                """;
+        final var avroSchema = new Schema.Parser().parse(schemaJson);
+
+        // Avro -> KSML schema -> Avro again. The third line is the one that used
+        // to crash before the fix.
+        final var ksml = schemaMapper.toDataSchema(avroSchema);
+        final var back = schemaMapper.fromDataSchema(ksml);
+
+        // Going one more lap should give the same KSML schema back. If anything
+        // went wrong inside the conversion, the two won't match.
+        final var ksml2 = schemaMapper.toDataSchema(back.getNamespace(), back.getName(), back);
+        assertThat(ksml2).isEqualTo(ksml);
+
+        // The default for the inner record must be a plain Java Map (which Avro
+        // can JSON-encode). A Map is also what `{}` looks like when written as
+        // JSON. If the fix regresses, this would be an Avro record object instead
+        // and Avro's Schema.Field constructor would have already thrown above.
+        final var innerField = back.getField("inner");
+        assertThat(innerField.hasDefaultValue()).isTrue();
+        assertThat(innerField.defaultVal()).isInstanceOf(java.util.Map.class);
+    }
+
+    @Test
+    @DisplayName("Record default that has 'null' inside it must use Avro's null sentinel, not raw null")
+    void recordDefault_withExplicitNullInside_mapsToNullValue() {
+        // This is a case I uncovered while testing partial fixes. If a record
+        // default contains a literal null somewhere (here: typeCode is null),
+        // the converter must turn that null into Avro's special "null sentinel"
+        // (JsonProperties.NULL_VALUE). If we leave it as a plain Java null,
+        // Avro crashes with a NullPointerException when it tries to encode the
+        // default map. Easy to miss because most schemas don't hit this case.
+        final var schemaJson = """
+                {
+                  "type": "record",
+                  "name": "Outer",
+                  "namespace": "io.axual.test",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "type": "record",
+                        "name": "OpenIDType",
+                        "fields": [
+                          { "name": "content", "type": "string", "default": "" },
+                          { "name": "typeCode", "type": ["null", "string"], "default": null }
+                        ]
+                      },
+                      "default": { "content": "x", "typeCode": null }
+                    }
+                  ]
+                }
+                """;
+        final var avroSchema = new Schema.Parser().parse(schemaJson);
+        final var ksml = schemaMapper.toDataSchema(avroSchema);
+        final var back = schemaMapper.fromDataSchema(ksml);
+
+        // Pull out the default map for the "id" field.
+        @SuppressWarnings("unchecked")
+        final var defaultMap = (java.util.Map<String, Object>) back.getField("id").defaultVal();
+
+        // Plain string default — should be the string "x".
+        assertThat(defaultMap.get("content")).isEqualTo("x");
+
+        // The important assertion: the null inside the default must be Avro's
+        // null sentinel, NOT a raw Java null. A raw null here is what makes
+        // Avro crash when it tries to JSON-encode the default.
+        assertThat(defaultMap.get("typeCode")).isEqualTo(JsonProperties.NULL_VALUE);
+    }
+
+    @Test
+    @DisplayName("Array of records as a default value (with nulls inside) survives the round-trip")
+    void arrayDefault_roundTrips() {
+        // Same idea as the previous test, but for arrays instead of plain records.
+        // The schema has two array fields:
+        //   - "tags" — empty list of strings as default. Easy case.
+        //   - "items" — a list of records, each with a null in it. This is the
+        //     hard case: KSML has to recurse into the list, into each record,
+        //     and turn the inner nulls into Avro's null sentinel — same rule as
+        //     the previous test, but going through a different code branch.
+        final var schemaJson = """
+                {
+                  "type": "record",
+                  "name": "Outer",
+                  "namespace": "io.axual.test",
+                  "fields": [
+                    {
+                      "name": "tags",
+                      "type": { "type": "array", "items": "string" },
+                      "default": []
+                    },
+                    {
+                      "name": "items",
+                      "type": {
+                        "type": "array",
+                        "items": {
+                          "type": "record",
+                          "name": "Item",
+                          "fields": [
+                            { "name": "k", "type": "string" },
+                            { "name": "v", "type": ["null", "string"], "default": null }
+                          ]
+                        }
+                      },
+                      "default": [{ "k": "a", "v": null }, { "k": "b", "v": null }]
+                    }
+                  ]
+                }
+                """;
+        final var avroSchema = new Schema.Parser().parse(schemaJson);
+        final var ksml = schemaMapper.toDataSchema(avroSchema);
+        final var back = schemaMapper.fromDataSchema(ksml);
+
+        // Empty array default should be a plain Java List.
+        assertThat(back.getField("tags").defaultVal()).isInstanceOf(java.util.List.class);
+
+        // The "items" default is a list with two records in it.
+        @SuppressWarnings("unchecked")
+        final var items = (java.util.List<Object>) back.getField("items").defaultVal();
+        assertThat(items).hasSize(2);
+
+        // Each item should have been turned into a plain Java Map.
+        assertThat(items.getFirst()).isInstanceOf(java.util.Map.class);
+
+        // And the null inside each record must be Avro's null sentinel — same
+        // rule as the previous test, but reached through the list branch.
+        @SuppressWarnings("unchecked")
+        final var first = (java.util.Map<String, Object>) items.getFirst();
+        assertThat(first.get("v")).isEqualTo(JsonProperties.NULL_VALUE);
+    }
+
+    @Test
+    @DisplayName("End-to-end: a deep schema like the original Enexis report survives the round-trip")
+    void recordDefault_roundTrips() {
+        // A trimmed copy of the schema from the original bug report. It combines
+        // everything the previous tests cover, in one realistic shape:
+        //   - top-level record field with default {}
+        //   - record inside that with its own default {}
+        //   - a named-type reference (OpenIDType) used twice, also with default {}
+        //   - a union field "typeCode" with default null
+        //   - an array-of-records field with default []
+        //
+        // If any one piece of the fix breaks, this test will fail too. Think of
+        // it as the "does the real-world case work end-to-end" check.
+        final var schemaJson = """
+                {
+                  "type": "record",
+                  "name": "AssetEventValue",
+                  "namespace": "io.axual.test.deep",
+                  "fields": [
+                    {
+                      "name": "AssetEvent",
+                      "type": {
+                        "type": "record",
+                        "name": "AssetEvent",
+                        "fields": [
+                          {
+                            "name": "MRID",
+                            "type": {
+                              "type": "record",
+                              "name": "OpenIDType",
+                              "fields": [
+                                { "name": "content", "type": "string", "default": "" },
+                                { "name": "typeCode", "type": ["null", "string"], "default": null }
+                              ]
+                            },
+                            "default": {}
+                          },
+                          {
+                            "name": "Asset",
+                            "type": {
+                              "type": "record",
+                              "name": "Asset",
+                              "fields": [
+                                { "name": "MRID", "type": "OpenIDType", "default": {} },
+                                {
+                                  "name": "Attributes",
+                                  "type": { "type": "array", "items": {
+                                    "type": "record",
+                                    "name": "Attribute",
+                                    "fields": [
+                                      { "name": "name", "type": "string" },
+                                      { "name": "value", "type": "string" }
+                                    ]
+                                  } },
+                                  "default": []
+                                }
+                              ]
+                            },
+                            "default": {}
+                          }
+                        ]
+                      },
+                      "default": {}
+                    }
+                  ]
+                }
+                """;
+        final var avroSchema = new Schema.Parser().parse(schemaJson);
+        final var ksml = schemaMapper.toDataSchema(avroSchema);
+
+        // First check: just don't throw. Before the fix, this line would crash
+        // with "Unknown datum class: GenericData$Record".
+        final var back = schemaMapper.fromDataSchema(ksml);
+        assertThat(back.getField("AssetEvent").hasDefaultValue()).isTrue();
+
+        // Second check: the round-trip is stable. Going through the conversion
+        // twice should give us the same KSML schema each time.
+        final var ksml2 = schemaMapper.toDataSchema(back.getNamespace(), back.getName(), back);
+        assertThat(ksml2).isEqualTo(ksml);
+    }
 }
