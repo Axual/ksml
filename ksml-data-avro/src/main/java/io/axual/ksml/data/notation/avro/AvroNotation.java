@@ -36,12 +36,32 @@ public class AvroNotation extends VendorNotation {
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroSchemaParser AVRO_SCHEMA_PARSER = new AvroSchemaParser();
 
-    /**
-     * Construct an AvroNotation with the provided vendor context.
-     *
-     * @param context the vendor notation context providing serde supplier, native mapper, and configs
-     */
     public AvroNotation(VendorNotationContext context) {
-        super(AvroNotation.NOTATION_NAME, context, ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER);
+        super(context);
+    }
+
+    @Override
+    public String notationName() {
+        return NOTATION_NAME;
+    }
+
+    @Override
+    public String filenameExtension() {
+        return ".avsc";
+    }
+
+    @Override
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
+    }
+
+    @Override
+    public Converter converter() {
+        return null;
+    }
+
+    @Override
+    public SchemaParser schemaParser() {
+        return AVRO_SCHEMA_PARSER;
     }
 }

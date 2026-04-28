@@ -20,33 +20,70 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
-import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
-@Getter
 public class CsvNotation extends StringNotation {
     public static final String NOTATION_NAME = "csv";
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UnionType.Member(new StructType()),
             new UnionType.Member(new ListType()));
+    private static final CsvDataObjectConverter CONVERTER = new CsvDataObjectConverter();
+    private static final CsvSchemaParser SCHEMA_PARSER = new CsvSchemaParser();
+    private static final CsvDataObjectMapper STRING_MAPPER = new CsvDataObjectMapper();
 
     public CsvNotation() {
         this(null);
     }
 
     public CsvNotation(NotationContext context) {
-        super(NOTATION_NAME, context, ".csv", SchemaUsage.SCHEMA_REQUIRED, DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), new CsvDataObjectMapper());
+        super(context);
+    }
+
+    @Override
+    public String notationName() {
+        return NOTATION_NAME;
+    }
+
+    @Override
+    public String filenameExtension() {
+        return ".csv";
+    }
+
+    @Override
+    public SchemaUsage schemaUsage() {
+        return SchemaUsage.SCHEMA_REQUIRED;
+    }
+
+    @Override
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
+    }
+
+    @Override
+    public Converter converter() {
+        return CONVERTER;
+    }
+
+    @Override
+    public SchemaParser schemaParser() {
+        return SCHEMA_PARSER;
+    }
+
+    @Override
+    protected DataObjectMapper<String> stringMapper() {
+        return STRING_MAPPER;
     }
 
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        // CSV types should ways be Lists, Structs or the union of them both
+        // CSV types should always be Lists, Structs or the union of them both
         if (type instanceof ListType || type instanceof StructType || DEFAULT_TYPE.equals(type))
             return super.serde(type, isKey);
         // Other types cannot be serialized as CSV
