@@ -84,7 +84,7 @@
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>25.0.2</graalvm.version>
         <guava.version>33.6.0-jre</guava.version>
-        <jackson.version>2.21.2</jackson.version>
+        <jackson.version>2.21.3</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
@@ -109,7 +109,7 @@
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
         <junit.version>6.0.3</junit.version>
         <mockito-core.version>5.23.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.19.0</mockito-junit-jupiter.version>
+        <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
 
         <!-- Project and java version settings -->
         <java.source.version>23</java.source.version>
