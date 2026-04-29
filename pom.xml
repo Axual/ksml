@@ -75,16 +75,19 @@
         <!-- Compile, runtime and provided dependency versions -->
         <apache.avro.version>1.12.1</apache.avro.version>
         <apache.commons.compress.version>1.28.0</apache.commons.compress.version>
+        <apache.commons.csv.version>1.14.1</apache.commons.csv.version>
         <apache.commons.text.version>1.15.0</apache.commons.text.version>
         <apache.kafka.version>4.2.0</apache.kafka.version>
         <apicurio.version>2.6.13.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
+        <commons.io.version>2.22.0</commons.io.version>
         <confluent.version>8.2.0</confluent.version>
         <dropwizard.version>4.2.38</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>25.0.2</graalvm.version>
         <guava.version>33.6.0-jre</guava.version>
         <jackson.version>2.21.3</jackson.version>
+        <jackson.annotations.version>2.21</jackson.annotations.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
@@ -284,13 +287,18 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
-                <artifactId>commons-text</artifactId>
-                <version>${apache.commons.text.version}</version>
+                <artifactId>commons-compress</artifactId>
+                <version>${apache.commons.compress.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
-                <artifactId>commons-compress</artifactId>
-                <version>${apache.commons.compress.version}</version>
+                <artifactId>commons-csv</artifactId>
+                <version>${apache.commons.csv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${apache.commons.text.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.avro</groupId>
