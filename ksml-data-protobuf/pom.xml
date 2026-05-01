@@ -13,12 +13,6 @@
     <name>KSML Data Library - PROTOBUF</name>
     <description>Implementation for PROTOBUF message serialization/deserialization and schemas</description>
 
-    <properties>
-        <!-- Compress excluded from avro CVE-2024-25710 CVE-2024-26308  -->
-        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
-    </properties>
-
     <dependencies>
         <!-- Base dependencies -->
         <dependency>

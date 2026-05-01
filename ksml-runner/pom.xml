@@ -13,13 +13,6 @@
     <name>KSML Runner</name>
     <description>A command line runner for KSML</description>
 
-    <properties>
-        <picocli.version>4.7.7</picocli.version>
-        <victools.version>4.38.0</victools.version>
-        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.prometheus.jmx</groupId>
@@ -69,22 +62,18 @@
         <dependency>
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-generator</artifactId>
-            <version>${victools.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-module-jackson</artifactId>
-            <version>${victools.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-module-jakarta-validation</artifactId>
-            <version>${victools.version}</version>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
-            <version>${picocli.version}</version>
         </dependency>
 
         <dependency>
@@ -227,8 +216,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
-
 </project>
