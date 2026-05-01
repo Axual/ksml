@@ -171,6 +171,7 @@ The following table lists the configurable parameters of the `ksml` chart and th
 | readinessProbe.successThreshold                    | int | `1` | Minimum consecutive successes for the probe to be considered successful after having failed. |
 | readinessProbe.timeoutSeconds                      | int | `1` | Number of seconds after which the probe times out. |
 | replicaCount                                       | int | `1` |  |
+| runtimeClassName                                   | string | `""` | RuntimeClassName refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod. If unset or empty, the "legacy" RuntimeClass will be used. |
 | resources                                          | object | `{}` |  |
 | schemaDefinitions                                  | object | `{}` | Schema definitions files. See https://github.com/Axual/ksml/tree/main/examples |
 | securityContext                                    | object | See `values.yaml` file. | Defines the security options the container should be run with. If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext. |
