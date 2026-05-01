@@ -35,9 +35,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "ksml.serviceAccountName" . }}
-      {{- with .Values.runtimeClassName }}
-      runtimeClassName: {{ . }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       restartPolicy: Never
@@ -90,6 +87,9 @@ spec:
             sizeLimit: 10Mi
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.runtimeClassName }}
+      runtimeClassName: {{ . | quote }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
