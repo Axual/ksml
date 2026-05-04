@@ -1,6 +1,6 @@
 test:
   name: "Valid sensor data is filtered through and transformed"
-  pipeline: ../../../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml
+  pipeline: pipelines/processor-filtering-transforming-complete.yaml
 
   registry:
     - topic: tutorial_input

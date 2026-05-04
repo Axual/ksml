@@ -1,6 +1,6 @@
 test:
   name: "Malformed sensor data is routed to alerts_stream when transformation fails"
-  pipeline: ../../../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml
+  pipeline: pipelines/processor-filtering-transforming-complete.yaml
 
   registry:
     - topic: tutorial_input
