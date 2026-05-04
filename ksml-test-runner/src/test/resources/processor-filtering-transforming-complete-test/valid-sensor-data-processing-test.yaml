@@ -1,0 +1,52 @@
+test:
+  name: "Valid sensor data is filtered through and transformed"
+  pipeline: ../../../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-complete.yaml
+
+  registry:
+    - topic: tutorial_input
+      keyType: string
+      valueType: json
+    - topic: filtered_data
+      keyType: string
+      valueType: json
+    - topic: alerts_stream
+      keyType: string
+      valueType: json
+
+  produce:
+    - topic: tutorial_input
+      keyType: string
+      valueType: json
+      messages:
+        - key: "sensor0"
+          value:
+            sensors:
+              temperature:
+                value: 80
+                unit: "F"
+              humidity:
+                value: 88
+                unit: "%"
+              location:
+                value: "data_center"
+                unit: "text"
+            metadata:
+              timestamp: 1700000000000
+
+  assert:
+    - topic: filtered_data
+      code: |
+        assert len(records) == 1, f"Expected 1 record on filtered_data, got {len(records)}"
+        output = records[0]["value"]
+        assert output["sensor_id"] == "sensor0", f"Expected sensor_id 'sensor0', got {output['sensor_id']}"
+        assert output["location"] == "data_center", f"Expected location 'data_center', got {output['location']}"
+        assert output["readings"]["temperature"]["fahrenheit"] == 80, f"Expected fahrenheit 80, got {output['readings']['temperature']['fahrenheit']}"
+        celsius = output["readings"]["temperature"]["celsius"]
+        assert abs(celsius - 26.67) < 0.01, f"Expected celsius ~26.67, got {celsius}"
+        assert output["readings"]["humidity"] == 88, f"Expected humidity 88, got {output['readings']['humidity']}"
+        assert "heat_index" in output["readings"], "Expected heat_index field in readings"
+        assert "timestamp" in output, "Expected timestamp field in output"
+        assert "processed_at" in output, "Expected processed_at field in output"
+    - topic: alerts_stream
+      code: |
+        assert len(records) == 0, f"Expected no records on alerts_stream, got {len(records)}"
