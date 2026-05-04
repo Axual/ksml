@@ -57,6 +57,7 @@ public class TestDefinitionParser {
                 fieldExtractor.requireString("name"),
                 fieldExtractor.requireString("pipeline"),
                 fieldExtractor.optionalString("schemaDirectory"),
+                fieldExtractor.optionalString("moduleDirectory"),
                 parseRegistryEntries(testNode.get("registry"), testFile),
                 parseProduceBlocks(fieldExtractor.requireArray("produce"), testFile),
                 parseAssertBlocks(fieldExtractor.requireArray("assert"), testFile)

@@ -44,6 +44,9 @@ public record TestDefinition(
         @JsonSchema(description = "Path to Avro schema files directory", examples = {"schemas"})
         String schemaDirectory,
 
+        @JsonSchema(description = "Path to externalized Python modules", examples = {"schemas"})
+        String moduleDirectory,
+
         @JsonSchema(description = "Registry entries mapping topics to their key/value types for mock schema registry population")
         List<RegistryEntry> registry,
 

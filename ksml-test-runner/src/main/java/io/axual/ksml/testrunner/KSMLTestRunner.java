@@ -128,7 +128,8 @@ public class KSMLTestRunner {
 
             // 2. Build merged type map and set up execution context
             var topicTypeMap = TestDefinitionParser.buildTopicTypeMap(definition);
-            var schemaDirectory = resolveSchemaDirectory(testFile, definition.schemaDirectory());
+            var schemaDirectory = resolveDirectory(testFile, definition.schemaDirectory());
+            var modulesDirectory = resolveDirectory(testFile, definition.moduleDirectory());
             executionContext.setup(schemaDirectory, topicTypeMap);
 
             // 3. Parse pipeline definition and build topology
@@ -141,7 +142,9 @@ public class KSMLTestRunner {
             var topologyGenerator = new TopologyGenerator(
                     topologyName + ".test",
                     null,
-                    PythonContextConfig.builder().build()
+                    PythonContextConfig.builder()
+                        .modulePath(modulesDirectory)
+                        .build()
             );
 
             var streamsBuilder = new StreamsBuilder();
@@ -175,26 +178,32 @@ public class KSMLTestRunner {
         }
     }
 
-    private String resolveSchemaDirectory(Path testFile, String schemaDirectory) {
-        if (schemaDirectory == null || schemaDirectory.isEmpty()) {
+    /**
+     * Resolve a directory path as specified in the definition to an absolute path.
+     * @param testFile Path to a tes definition.
+     * @param directoryName the directory name as specified (relative or absolute).
+     * @return the input directoryName resolved to an absolute path.
+     */
+    private String resolveDirectory(Path testFile, String directoryName) {
+        if (directoryName == null || directoryName.isEmpty()) {
             return null;
         }
         // Try relative to test file first (most common for standalone use)
-        var resolved = testFile.getParent().resolve(schemaDirectory);
+        var resolved = testFile.getParent().resolve(directoryName);
         if (Files.isDirectory(resolved)) {
             return resolved.toAbsolutePath().toString();
         }
         // Try classpath (only works for exploded directories, not inside JARs)
-        var url = getClass().getClassLoader().getResource(schemaDirectory);
+        var url = getClass().getClassLoader().getResource(directoryName);
         if (url != null && "file".equals(url.getProtocol())) {
             return url.getPath();
         }
         // Try as absolute path
-        var absolute = Path.of(schemaDirectory);
+        var absolute = Path.of(directoryName);
         if (Files.isDirectory(absolute)) {
             return absolute.toAbsolutePath().toString();
         }
-        return schemaDirectory;
+        return directoryName;
     }
 
     private String readPipelineContent(Path testFile, String pipeline) throws java.io.IOException {
