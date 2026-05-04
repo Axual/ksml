@@ -13,6 +13,11 @@
     <name>KSML Data Library - SOAP</name>
     <description>Implementation for SOAP message serialization/deserialization and schemas</description>
 
+    <properties>
+        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+    </properties>
+
     <dependencies>
         <!-- Base dependencies -->
         <dependency>
