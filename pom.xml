@@ -156,7 +156,7 @@
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.jacoco.xmlReportPaths>${project.basedir}/ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 
         <!-- Skip integration tests by default to avoid Docker-in-Docker issues -->
         <skipITs>true</skipITs>

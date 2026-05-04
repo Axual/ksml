@@ -13,10 +13,6 @@
     <name>KSML Queryable State Store</name>
     <description>Implementation for allowing real-time state store queries via REST</description>
 
-    <properties>
-        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.axual.ksml</groupId>
