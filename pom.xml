@@ -12,7 +12,7 @@
     <licenses>
         <license>
             <name>Apache 2.0</name>
-            <url>http://www.apache.org/licenses/license-2.0.txt</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
             <comments>A business-friendly OSS license</comments>
         </license>
@@ -75,10 +75,13 @@
         <!-- Compile, runtime and provided dependency versions -->
         <apache.avro.version>1.12.1</apache.avro.version>
         <apache.commons.compress.version>1.28.0</apache.commons.compress.version>
+        <apache.commons.csv.version>1.14.1</apache.commons.csv.version>
         <apache.commons.text.version>1.15.0</apache.commons.text.version>
         <apache.kafka.version>4.2.0</apache.kafka.version>
+        <apache.xmlschema.version>2.3.2</apache.xmlschema.version>
         <apicurio.version>2.6.13.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
+        <commons.io.version>2.22.0</commons.io.version>
         <confluent.version>8.2.0</confluent.version>
         <dropwizard.version>4.2.38</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
@@ -86,16 +89,19 @@
         <guava.version>33.6.0-jre</guava.version>
         <jackson.version>2.21.3</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
+        <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
         <logback.version>1.5.32</logback.version>
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
         <lombok.version>1.18.46</lombok.version>
+        <picocli.version>4.7.7</picocli.version>
         <prometheus.version>1.0.1</prometheus.version>
         <prometheus-instrumentation.version>1.5.1</prometheus-instrumentation.version>
         <protobuf.version>3.25.9</protobuf.version>
         <saaj.version>3.0.4</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
+        <victools.version>4.38.0</victools.version>
         <wire.version>5.2.0</wire.version>
 
         <!-- KSML schema generation -->
@@ -110,6 +116,7 @@
         <junit.version>6.0.3</junit.version>
         <mockito-core.version>5.23.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
 
         <!-- Project and java version settings -->
         <java.source.version>23</java.source.version>
@@ -148,7 +155,7 @@
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.jacoco.xmlReportPaths>${project.basedir}/ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>
@@ -284,18 +291,28 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
-                <artifactId>commons-text</artifactId>
-                <version>${apache.commons.text.version}</version>
+                <artifactId>commons-compress</artifactId>
+                <version>${apache.commons.compress.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
-                <artifactId>commons-compress</artifactId>
-                <version>${apache.commons.compress.version}</version>
+                <artifactId>commons-csv</artifactId>
+                <version>${apache.commons.csv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${apache.commons.text.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
                 <version>${apache.avro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ws.xmlschema</groupId>
+                <artifactId>xmlschema-core</artifactId>
+                <version>${apache.xmlschema.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -322,6 +339,32 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-streams</artifactId>
                 <version>${apache.kafka.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.osgi</groupId>
+                        <artifactId>org.osgi.core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-databind</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.dataformat</groupId>
+                        <artifactId>jackson-dataformat-yaml</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+                        <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -367,39 +410,28 @@
             </dependency>
 
             <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
             </dependency>
+            <!-- Jackson — all artefacts version-aligned via the official BOM -->
             <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-csv</artifactId>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
                 <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-xml</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
-                <artifactId>jackson-jakarta-rs-json-provider</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-jsonSchema-jakarta</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>jakarta.xml.soap</groupId>
                 <artifactId>jakarta.xml.soap-api</artifactId>
                 <version>${jakarta.soap.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${jakarta.validation.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.sun.xml.messaging.saaj</groupId>
@@ -554,6 +586,36 @@
                 <artifactId>kafka-streams-test-utils</artifactId>
                 <version>${apache.kafka.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- TestContainers — version aligned via the official BOM -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.victools</groupId>
+                <artifactId>jsonschema-generator</artifactId>
+                <version>${victools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.victools</groupId>
+                <artifactId>jsonschema-module-jackson</artifactId>
+                <version>${victools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.victools</groupId>
+                <artifactId>jsonschema-module-jakarta-validation</artifactId>
+                <version>${victools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli</artifactId>
+                <version>${picocli.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
