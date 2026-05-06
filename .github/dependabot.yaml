@@ -16,9 +16,11 @@ updates:
         dependency-type: "production"      
     ignore:
     - dependency-name: "com.google.protobuf:protobuf-java"
-      versions: [ ">=4.0.0" ]
-    - dependency-name: "org.apache.kafka:*"
-      versions: [ ">=4.0.0" ]
+      versions: [ ">=4.0.0" ]   # 4.x has breaking lite-runtime semantics; KSML on 3.25.9
+    - dependency-name: "com.github.victools:*"
+      versions: [ ">=5.0.0" ]   # 5.0 requires Jackson 3 + Java 17
+    - dependency-name: "com.squareup.wire:*"
+      versions: [ ">=6.0.0" ]   # 6.0 changed ProtoFileElement constructor
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
