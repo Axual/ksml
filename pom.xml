@@ -85,7 +85,7 @@
         <confluent.version>8.2.0</confluent.version>
         <dropwizard.version>4.2.38</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
-        <graalvm.version>25.0.2</graalvm.version>
+        <graalvm.version>25.0.3</graalvm.version>
         <guava.version>33.6.0-jre</guava.version>
         <jackson.version>2.21.3</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
@@ -93,16 +93,16 @@
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
         <logback.version>1.5.32</logback.version>
-        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <lombok.version>1.18.46</lombok.version>
         <picocli.version>4.7.7</picocli.version>
         <prometheus.version>1.0.1</prometheus.version>
-        <prometheus-instrumentation.version>1.5.1</prometheus-instrumentation.version>
+        <prometheus-instrumentation.version>1.6.1</prometheus-instrumentation.version>
         <protobuf.version>3.25.9</protobuf.version>
-        <saaj.version>3.0.4</saaj.version>
+        <saaj.version>3.0.5</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
         <victools.version>4.38.0</victools.version>
-        <wire.version>5.2.0</wire.version>
+        <wire.version>5.5.1</wire.version>
 
         <!-- KSML schema generation -->
         <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
@@ -116,7 +116,7 @@
         <junit.version>6.0.3</junit.version>
         <mockito-core.version>5.23.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
-        <testcontainers.version>1.21.4</testcontainers.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
 
         <!-- Project and java version settings -->
         <java.source.version>23</java.source.version>
