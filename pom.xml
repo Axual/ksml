@@ -116,7 +116,7 @@
         <junit.version>6.0.3</junit.version>
         <mockito-core.version>5.23.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
-        <testcontainers.version>1.21.4</testcontainers.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
 
         <!-- Project and java version settings -->
         <java.source.version>23</java.source.version>
