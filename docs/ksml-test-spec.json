@@ -1,146 +1,152 @@
 {
   "$schema" : "http://json-schema.org/draft-07/schema#",
-  "title" : "KSML Test Definition",
-  "description" : "Schema for KSML test runner YAML definition files",
+  "title" : "KSML Test Suite Definition",
+  "description" : "Schema for KSML test runner YAML suite definition files",
   "type" : "object",
+  "additionalProperties" : false,
   "properties" : {
-    "test" : {
+    "name" : {
+      "type" : "string",
+      "description" : "Optional suite-level name; falls back to filename without extension"
+    },
+    "pipeline" : {
+      "type" : "string",
+      "description" : "Path to the KSML pipeline definition YAML"
+    },
+    "schemaDirectory" : {
+      "type" : "string",
+      "description" : "Path to schema files directory"
+    },
+    "moduleDirectory" : {
+      "type" : "string",
+      "description" : "Path to externalized Python modules"
+    },
+    "streams" : {
       "type" : "object",
-      "description" : "KSML test definition",
-      "properties" : {
-        "name" : {
-          "type" : "string",
-          "description" : "Human-readable test name",
-          "examples" : [ "Filter keeps only blue sensors" ]
-        },
-        "pipeline" : {
-          "type" : "string",
-          "description" : "Path to the KSML pipeline definition YAML",
-          "examples" : [ "pipelines/my-pipeline.yaml" ]
-        },
-        "schemaDirectory" : {
-          "type" : "string",
-          "description" : "Path to Avro schema files directory",
-          "examples" : [ "schemas" ]
-        },
-        "registry" : {
-          "type" : "array",
-          "items" : {
-            "type" : "object",
-            "description" : "A registry entry mapping a topic to its key and value types for mock schema registry population",
-            "properties" : {
-              "topic" : {
-                "type" : "string",
-                "description" : "Kafka topic name",
-                "examples" : [ "my-topic", "sensor-data" ]
-              },
-              "keyType" : {
-                "type" : "string",
-                "description" : "Key serialization type",
-                "default" : "string",
-                "examples" : [ "string", "avro:MyKeySchema" ]
-              },
-              "valueType" : {
-                "type" : "string",
-                "description" : "Value serialization type",
-                "default" : "string",
-                "examples" : [ "string", "avro:SensorData", "confluent_avro" ]
-              }
+      "description" : "Named topic+type bindings, referenced from to:/on: in produce/assert blocks",
+      "additionalProperties" : false,
+      "patternProperties" : {
+        "^[a-zA-Z][a-zA-Z0-9_]*$" : {
+          "type" : "object",
+          "description" : "A named binding from a logical stream identifier to a Kafka topic and its key/value types",
+          "additionalProperties" : false,
+          "properties" : {
+            "topic" : {
+              "type" : "string",
+              "description" : "Kafka topic name"
             },
-            "required" : [ "topic" ]
+            "keyType" : {
+              "type" : "string",
+              "description" : "Key serialization type",
+              "default" : "string"
+            },
+            "valueType" : {
+              "type" : "string",
+              "description" : "Value serialization type",
+              "default" : "string"
+            }
           },
-          "description" : "Registry entries mapping topics to their key/value types for mock schema registry population"
-        },
-        "produce" : {
-          "type" : "array",
-          "items" : {
-            "type" : "object",
-            "description" : "A block that defines test data to be produced to a topic",
-            "properties" : {
-              "topic" : {
-                "type" : "string",
-                "description" : "Target Kafka topic name",
-                "examples" : [ "input-topic", "sensor-data" ]
-              },
-              "keyType" : {
-                "type" : "string",
-                "description" : "Key serialization type",
-                "default" : "string",
-                "examples" : [ "string", "avro:MyKeySchema", "json", "binary" ]
-              },
-              "valueType" : {
-                "type" : "string",
-                "description" : "Value serialization type",
-                "default" : "string",
-                "examples" : [ "string", "avro:SensorData", "json", "binary" ]
-              },
-              "messages" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object",
-                  "description" : "A single test message with key, value, and optional timestamp",
-                  "properties" : {
-                    "key" : {
-                      "description" : "Message key",
-                      "examples" : [ "sensor-1", "user-42" ]
-                    },
-                    "value" : {
-                      "description" : "Message value (string or structured data)"
-                    },
-                    "timestamp" : {
-                      "type" : "integer",
-                      "description" : "Optional timestamp in epoch milliseconds",
-                      "examples" : [ "1709200000000" ]
+          "required" : [ "topic" ]
+        }
+      }
+    },
+    "tests" : {
+      "type" : "object",
+      "description" : "Named tests in the suite; at least one entry required",
+      "additionalProperties" : false,
+      "minProperties" : 1,
+      "patternProperties" : {
+        "^[a-zA-Z][a-zA-Z0-9_]*$" : {
+          "type" : "object",
+          "description" : "One hermetic test entry in a test suite",
+          "additionalProperties" : false,
+          "properties" : {
+            "description" : {
+              "type" : "string",
+              "description" : "Optional human-readable description; falls back to the test key when absent"
+            },
+            "produce" : {
+              "type" : "array",
+              "description" : "Produce blocks defining test data for this test",
+              "items" : {
+                "type" : "object",
+                "description" : "A block that defines test data to be produced into a stream",
+                "additionalProperties" : false,
+                "properties" : {
+                  "to" : {
+                    "type" : "string",
+                    "description" : "Key into the suite's streams: map identifying the target stream"
+                  },
+                  "messages" : {
+                    "type" : "array",
+                    "description" : "Inline test messages",
+                    "items" : {
+                      "type" : "object",
+                      "description" : "An inline test message (key, value, optional timestamp)",
+                      "properties" : {
+                        "key" : { },
+                        "value" : { },
+                        "timestamp" : {
+                          "type" : "integer",
+                          "description" : "Optional epoch-millis timestamp"
+                        }
+                      }
                     }
                   },
-                  "required" : [ "key", "value" ]
+                  "generator" : {
+                    "type" : "object",
+                    "description" : "Generator function definition (KSML generator syntax)"
+                  },
+                  "count" : {
+                    "type" : "integer",
+                    "description" : "Number of times to invoke the generator function"
+                  }
                 },
-                "description" : "Inline test messages to produce"
-              },
-              "generator" : {
+                "required" : [ "to" ],
+                "oneOf" : [ {
+                  "required" : [ "messages" ]
+                }, {
+                  "required" : [ "generator" ]
+                } ]
+              }
+            },
+            "assert" : {
+              "type" : "array",
+              "description" : "Assertion blocks defining expected outcomes for this test",
+              "items" : {
                 "type" : "object",
-                "description" : "Generator function definition (KSML generator syntax)"
-              },
-              "count" : {
-                "type" : "integer",
-                "description" : "Number of times to invoke the generator function"
-              }
-            },
-            "required" : [ "topic" ]
-          },
-          "description" : "List of produce blocks defining test data to send to input topics"
-        },
-        "assert" : {
-          "type" : "array",
-          "items" : {
-            "type" : "object",
-            "description" : "A block that defines assertions to run against pipeline output",
-            "properties" : {
-              "topic" : {
-                "type" : "string",
-                "description" : "Output topic to read records from",
-                "examples" : [ "output-topic" ]
-              },
-              "stores" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "string"
+                "description" : "A block that defines assertions to run against pipeline output",
+                "additionalProperties" : false,
+                "properties" : {
+                  "on" : {
+                    "type" : "string",
+                    "description" : "Key into the suite's streams: map identifying the output stream to read records from"
+                  },
+                  "stores" : {
+                    "type" : "array",
+                    "description" : "State store names to inject into the Python assertion context",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "code" : {
+                    "type" : "string",
+                    "description" : "Python assertion code to execute"
+                  }
                 },
-                "description" : "State store names to inject into the Python assertion context",
-                "examples" : [ "my_store" ]
-              },
-              "code" : {
-                "type" : "string",
-                "description" : "Python assertion code to execute"
+                "required" : [ "code" ],
+                "anyOf" : [ {
+                  "required" : [ "on" ]
+                }, {
+                  "required" : [ "stores" ]
+                } ]
               }
-            },
-            "required" : [ "code" ]
+            }
           },
-          "description" : "List of assertion blocks defining expected outcomes"
+          "required" : [ "produce", "assert" ]
         }
-      },
-      "required" : [ "name", "pipeline", "produce", "assert" ]
+      }
     }
   },
-  "required" : [ "test" ]
+  "required" : [ "pipeline", "tests" ]
 }

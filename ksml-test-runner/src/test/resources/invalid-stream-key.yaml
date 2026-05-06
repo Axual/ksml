@@ -1,17 +1,18 @@
-name: "Assert block without on or stores"
+name: "Stream key violates identifier regex"
 pipeline: pipelines/test-filter.yaml
 streams:
-  source:
+  "with-dash":
     topic: ksml_sensordata_avro
     keyType: string
     valueType: "avro:SensorData"
 tests:
-  empty_assert:
+  trivial:
     produce:
-      - to: source
+      - to: with-dash
         messages:
           - key: "k1"
             value: { color: "blue" }
     assert:
-      - code: |
+      - on: with-dash
+        code: |
           assert True

@@ -1,5 +1,8 @@
-## ADDED Requirements
+# test-runner-execution Specification
 
+## Purpose
+TBD - created by archiving change ksml-test-runner. Update Purpose after archive.
+## Requirements
 ### Requirement: Test execution lifecycle
 The test runner SHALL execute a test definition through the following phases in order: parse test YAML, set up execution context (notations, schema directory), parse pipeline definition, build topology, create TopologyTestDriver, produce test data, collect output, run Python assertions, report result, clean up.
 
@@ -69,3 +72,4 @@ The test runner SHALL accept one or more file paths as positional arguments. In 
 #### Scenario: No arguments
 - **WHEN** invoked with no arguments
 - **THEN** it SHALL print usage information and exit with code 1
+

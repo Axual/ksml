@@ -1,17 +1,22 @@
-name: "Assert block without on or stores"
+name: "Two streams with the same topic"
 pipeline: pipelines/test-filter.yaml
 streams:
-  source:
+  source_one:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+  source_two:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: "avro:SensorData"
 tests:
-  empty_assert:
+  trivial:
     produce:
-      - to: source
+      - to: source_one
         messages:
           - key: "k1"
             value: { color: "blue" }
     assert:
-      - code: |
+      - on: source_one
+        code: |
           assert True

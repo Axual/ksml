@@ -54,7 +54,7 @@ public class TestExecutionContext {
      * @param schemaDirectory optional path to Avro schema files, or null
      * @param topicTypeMap    merged map of topic types from registry and produce blocks
      */
-    public void setup(String schemaDirectory, Map<String, RegistryEntry> topicTypeMap) {
+    public void setup(String schemaDirectory, Map<String, StreamDefinition> topicTypeMap) {
         log.debug("Setting up test execution context");
 
         // Register JSON and Binary notations
@@ -92,7 +92,7 @@ public class TestExecutionContext {
      * loads the .avsc file from the schema directory and registers it under the
      * conventional subject name ({topic}-key or {topic}-value).
      */
-    private void populateMockRegistry(String schemaDirectory, Map<String, RegistryEntry> topicTypeMap) {
+    private void populateMockRegistry(String schemaDirectory, Map<String, StreamDefinition> topicTypeMap) {
         for (var entry : topicTypeMap.values()) {
             registerSchemaIfAvro(schemaDirectory, entry.topic(), entry.keyType(), true);
             registerSchemaIfAvro(schemaDirectory, entry.topic(), entry.valueType(), false);

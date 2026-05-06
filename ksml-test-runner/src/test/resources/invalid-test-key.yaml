@@ -1,4 +1,4 @@
-name: "Test entry without produce block"
+name: "Test key violates identifier regex"
 pipeline: pipelines/test-filter.yaml
 streams:
   source:
@@ -6,7 +6,12 @@ streams:
     keyType: string
     valueType: "avro:SensorData"
 tests:
-  no_produce:
+  "test with spaces":
+    produce:
+      - to: source
+        messages:
+          - key: "k1"
+            value: { color: "blue" }
     assert:
       - on: source
         code: |

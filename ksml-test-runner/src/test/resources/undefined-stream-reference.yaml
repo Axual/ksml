@@ -1,4 +1,4 @@
-name: "Test entry without produce block"
+name: "Reference to undefined stream"
 pipeline: pipelines/test-filter.yaml
 streams:
   source:
@@ -6,7 +6,12 @@ streams:
     keyType: string
     valueType: "avro:SensorData"
 tests:
-  no_produce:
+  bad_reference:
+    produce:
+      - to: nonexistent
+        messages:
+          - key: "k1"
+            value: { color: "blue" }
     assert:
       - on: source
         code: |

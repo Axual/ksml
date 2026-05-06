@@ -50,34 +50,38 @@ class KSMLTestRunnerTest {
     @Test
     void confluentAvroFilterTestPasses() {
         var runner = new KSMLTestRunner();
-        var result = runner.runSingleTest(resource("sample-filter-test-confluent-avro.yaml"));
-
-        assertEquals(TestResult.Status.PASS, result.status(),
-                () -> "Expected PASS but got " + result.status() + ": " + result.message());
+        var results = runner.runTestFile(resource("sample-filter-test-confluent-avro.yaml"));
+        assertAllPass(results, "sample-filter-test-confluent-avro.yaml");
     }
 
     @Test
     void apicurioAvroFilterTestPasses() {
         var runner = new KSMLTestRunner();
-        var result = runner.runSingleTest(resource("sample-filter-test-apicurio-avro.yaml"));
-
-        assertEquals(TestResult.Status.PASS, result.status(),
-                () -> "Expected PASS but got " + result.status() + ": " + result.message());
+        var results = runner.runTestFile(resource("sample-filter-test-apicurio-avro.yaml"));
+        assertAllPass(results, "sample-filter-test-apicurio-avro.yaml");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "missing-test-root.yaml",
-            "missing-name.yaml",
+            "missing-tests.yaml",
             "missing-produce.yaml",
-            "assert-no-topic-no-stores.yaml"
+            "assert-no-topic-no-stores.yaml",
+            "invalid-test-key.yaml",
+            "invalid-stream-key.yaml",
+            "duplicate-test-key.yaml",
+            "duplicate-stream-topic.yaml",
+            "undefined-stream-reference.yaml",
+            "bare-vendor-avro.yaml"
     })
     void invalidDefinitionsReturnNonPass(String testFile) {
         var runner = new KSMLTestRunner();
-        var result = runner.runSingleTest(resource(testFile));
+        var results = runner.runTestFile(resource(testFile));
 
-        assertNotEquals(TestResult.Status.PASS, result.status(),
-                () -> "Expected non-PASS for invalid definition '" + testFile + "' but got PASS");
+        assertFalse(results.isEmpty(),
+                () -> "Expected at least one result for invalid file '" + testFile + "'");
+        assertTrue(results.stream().anyMatch(r -> r.status() != TestResult.Status.PASS),
+                () -> "Expected at least one non-PASS result for invalid file '" + testFile
+                        + "', got: " + results);
     }
 
     @ParameterizedTest
@@ -90,27 +94,52 @@ class KSMLTestRunnerTest {
             "sample-filter-test-python-produce.yaml",
             "sample-filter-test-module-import.yaml",
             "sample-state-store-test.yaml",
-            "sample-timestamp-test.yaml"
+            "sample-timestamp-test.yaml",
+            "processor-filtering-transforming-complete-test.yaml"
     })
     void validTestsReturnPass(String testFile) {
         var runner = new KSMLTestRunner();
-        var result = runner.runSingleTest(resource(testFile));
-
-        assertEquals(TestResult.Status.PASS, result.status(),
-                () -> "Expected PASS for '" + testFile + "' but got " + result.status() + ": " + result.message());
+        var results = runner.runTestFile(resource(testFile));
+        assertAllPass(results, testFile);
     }
 
     @Test
-    void filteringTransformingCompleteTestsAllPass() throws Exception {
-        var dir = resource("processor-filtering-transforming-complete-test");
-        var testFiles = KSMLTestRunner.collectTestFiles(List.of(dir.toFile()));
-        assertFalse(testFiles.isEmpty(), () -> "No test files found in " + dir);
-
+    void suiteWithFailingAssertReportsFailNotError() {
         var runner = new KSMLTestRunner();
-        for (var file : testFiles) {
-            var result = runner.runSingleTest(file);
+        var results = runner.runTestFile(resource("partial-fail-test.yaml"));
+
+        // The fixture has 5 tests; one assertion in `out_of_range_temperature_is_filtered`
+        // is inverted to FAIL. The other 4 tests still PASS, demonstrating that the runner
+        // does not short-circuit when one test in a suite fails.
+        assertEquals(5, results.size(),
+                () -> "Expected 5 results, got " + results.size() + ": " + results);
+
+        long passes = results.stream().filter(r -> r.status() == TestResult.Status.PASS).count();
+        long fails = results.stream().filter(r -> r.status() == TestResult.Status.FAIL).count();
+        long errors = results.stream().filter(r -> r.status() == TestResult.Status.ERROR).count();
+
+        assertEquals(0, errors, () -> "Expected zero ERROR results, got " + errors + ": " + results);
+        assertEquals(1, fails, () -> "Expected exactly one FAIL result, got " + fails + ": " + results);
+        assertEquals(4, passes, () -> "Expected exactly four PASS results, got " + passes + ": " + results);
+
+        // The failing test is the second one in YAML order; verify its identity and that the
+        // failure message comes from the assertion (FAIL), not from a runtime exception (ERROR).
+        var failed = results.stream()
+                .filter(r -> r.status() == TestResult.Status.FAIL)
+                .findFirst()
+                .orElseThrow();
+        assertTrue(failed.testName().contains("Out-of-range") || failed.testName().contains("out_of_range"),
+                () -> "Expected the FAIL to be the out-of-range test, got: " + failed.testName());
+        assertNotNull(failed.message());
+        assertTrue(failed.message().contains("AssertionError"),
+                () -> "Expected FAIL message to mention AssertionError, got: " + failed.message());
+    }
+
+    private static void assertAllPass(List<TestResult> results, String testFile) {
+        assertFalse(results.isEmpty(), () -> "Expected at least one result for '" + testFile + "'");
+        for (var result : results) {
             assertEquals(TestResult.Status.PASS, result.status(),
-                    () -> "Expected PASS for '" + file.getFileName() + "' but got "
+                    () -> "Expected PASS for '" + testFile + "' (" + result.qualifiedLabel() + ") but got "
                             + result.status() + ": " + result.message());
         }
     }

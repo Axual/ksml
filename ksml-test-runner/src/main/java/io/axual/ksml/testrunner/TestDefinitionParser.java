@@ -20,6 +20,8 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -29,100 +31,234 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
- * Parses a YAML test definition file into a {@link TestDefinition}.
+ * Parses a YAML test suite definition file into a {@link TestSuiteDefinition}.
+ *
+ * <p>Format overview: a flat YAML document (no outer wrapper) with top-level fields
+ * {@code name} (optional), {@code pipeline} (required), {@code schemaDirectory},
+ * {@code moduleDirectory}, {@code streams} (map keyed by logical stream name with
+ * topic/keyType/valueType), and {@code tests} (map keyed by stable identifier with
+ * per-test {@code description}, {@code produce}, {@code assert}).
  */
 @Slf4j
 public class TestDefinitionParser {
 
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    /** Regex enforced for both stream-map keys and test-map keys. */
+    public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]*$");
 
-    public TestDefinition parse(Path testFile) throws IOException {
-        log.debug("Parsing test definition from {}", testFile);
+    /** Top-level fields permitted at the suite level. Anything else triggers a "did you misplace this?" error when it appears under a test entry. */
+    private static final Set<String> SUITE_LEVEL_FIELDS = Set.of(
+            "name", "pipeline", "schemaDirectory", "moduleDirectory", "streams", "tests");
+
+    // STRICT_DUPLICATE_DETECTION makes Jackson throw on duplicate keys at any nesting level
+    // instead of silently keeping one of them. The thrown JsonParseException carries line/column
+    // info we surface in the error message.
+    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory())
+            .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+
+    public TestSuiteDefinition parse(Path testFile) throws IOException {
+        log.debug("Parsing test suite definition from {}", testFile);
         var content = Files.readString(testFile);
-        var root = YAML_MAPPER.readTree(content);
 
-        var testNode = root.get("test");
-        if (testNode == null) {
-            throw new TestDefinitionException("Missing required 'test' root element in " + testFile);
+        JsonNode root;
+        try {
+            root = YAML_MAPPER.readTree(content);
+        } catch (JsonProcessingException e) {
+            // Catches duplicate-key detection and other YAML-level malformation
+            throw new TestDefinitionException(
+                    "Invalid YAML in " + testFile + ": " + e.getOriginalMessage(), e);
+        }
+        if (root == null || !root.isObject()) {
+            throw new TestDefinitionException("Top-level YAML node must be an object in " + testFile);
         }
 
-        var fieldExtractor = new FieldExtractor(testNode, testFile);
-
-        return new TestDefinition(
-                fieldExtractor.requireString("name"),
-                fieldExtractor.requireString("pipeline"),
-                fieldExtractor.optionalString("schemaDirectory"),
-                fieldExtractor.optionalString("moduleDirectory"),
-                parseRegistryEntries(testNode.get("registry"), testFile),
-                parseProduceBlocks(fieldExtractor.requireArray("produce"), testFile),
-                parseAssertBlocks(fieldExtractor.requireArray("assert"), testFile)
-        );
-    }
-
-    private List<RegistryEntry> parseRegistryEntries(JsonNode registryNode, Path testFile) {
-        if (registryNode == null || !registryNode.isArray()) {
-            return null;
+        // Reject the legacy outer wrapper explicitly with a helpful message
+        if (root.has("test") && root.size() == 1) {
+            throw new TestDefinitionException(
+                    "Test definition must be a flat document: remove the outer 'test:' wrapper element ("
+                            + testFile + ")");
         }
-        var entries = new ArrayList<RegistryEntry>();
-        for (var entryNode : registryNode) {
-            var f = new FieldExtractor(entryNode, testFile);
-            entries.add(new RegistryEntry(
-                    f.requireString("topic"),
-                    f.optionalString("keyType", "string"),
-                    f.optionalString("valueType", "string")
-            ));
-        }
-        return entries;
+
+        var f = new FieldExtractor(root, testFile);
+
+        var name = f.optionalString("name");
+        var pipeline = f.requireString("pipeline");
+        var schemaDirectory = f.optionalString("schemaDirectory");
+        var moduleDirectory = f.optionalString("moduleDirectory");
+
+        var streams = parseStreams(root.get("streams"), testFile);
+        var tests = parseTests(root.get("tests"), streams.keySet(), testFile);
+
+        return new TestSuiteDefinition(name, pipeline, schemaDirectory, moduleDirectory, streams, tests);
     }
 
     /**
-     * Build a merged type map from registry entries and produce blocks.
-     * Registry entries are added first, then produce block types overwrite on overlap.
-     *
-     * @param definition the parsed test definition
-     * @return map from topic name to {@link RegistryEntry} with effective key/value types
+     * Build a topic-to-stream map for callers that need to look up types by topic name
+     * (e.g., the assertion runner's deserializer resolution and the schema registry population).
      */
-    public static Map<String, RegistryEntry> buildTopicTypeMap(TestDefinition definition) {
-        var map = new LinkedHashMap<String, RegistryEntry>();
-
-        // 1. Add registry entries
-        if (definition.registry() != null) {
-            for (var entry : definition.registry()) {
+    public static Map<String, StreamDefinition> buildTopicTypeMap(TestSuiteDefinition suite) {
+        var map = new LinkedHashMap<String, StreamDefinition>();
+        if (suite.streams() != null) {
+            for (var entry : suite.streams().values()) {
                 map.put(entry.topic(), entry);
             }
         }
-
-        // 2. Merge produce block types (overwrite on overlap)
-        for (var block : definition.produce()) {
-            if (block.keyType() != null || block.valueType() != null) {
-                var existing = map.get(block.topic());
-                var keyType = block.keyType() != null ? block.keyType() : (existing != null ? existing.keyType() : "string");
-                var valueType = block.valueType() != null ? block.valueType() : (existing != null ? existing.valueType() : "string");
-                map.put(block.topic(), new RegistryEntry(block.topic(), keyType, valueType));
-            }
-        }
-
         return map;
     }
 
-    private List<ProduceBlock> parseProduceBlocks(JsonNode produceArray, Path testFile) {
+    private LinkedHashMap<String, StreamDefinition> parseStreams(JsonNode streamsNode, Path testFile) {
+        var result = new LinkedHashMap<String, StreamDefinition>();
+        if (streamsNode == null || streamsNode.isNull()) {
+            return result;
+        }
+        if (!streamsNode.isObject()) {
+            throw new TestDefinitionException("'streams' must be a map in " + testFile);
+        }
+
+        var seenTopics = new HashMap<String, String>(); // topic -> first stream key that used it
+        var fields = streamsNode.fields();
+        while (fields.hasNext()) {
+            var entry = fields.next();
+            var streamKey = entry.getKey();
+            validateIdentifier("stream", streamKey, testFile);
+
+            var entryNode = entry.getValue();
+            if (!entryNode.isObject()) {
+                throw new TestDefinitionException(
+                        "Stream entry '" + streamKey + "' must be an object in " + testFile);
+            }
+            var ef = new FieldExtractor(entryNode, testFile);
+            var topic = ef.requireString("topic");
+            var keyType = ef.optionalString("keyType", "string");
+            var valueType = ef.optionalString("valueType", "string");
+
+            // Note: type-string validation (e.g., rejection of bare 'confluent_avro' or 'json:Foo')
+            // is deferred to runtime. UserTypeParser depends on the global notation library, which
+            // is registered in TestExecutionContext.setup() — that happens after parsing. Errors
+            // surface as a runtime ERROR result when the runner tries to construct a serde for
+            // the type.
+
+            // Reject duplicate topic across streams
+            var existing = seenTopics.put(topic, streamKey);
+            if (existing != null) {
+                throw new TestDefinitionException(
+                        "Streams '" + existing + "' and '" + streamKey + "' both reference topic '"
+                                + topic + "'; each topic may appear at most once in 'streams' (" + testFile + ")");
+            }
+
+            result.put(streamKey, new StreamDefinition(topic, keyType, valueType));
+        }
+        return result;
+    }
+
+    private LinkedHashMap<String, TestCaseDefinition> parseTests(JsonNode testsNode,
+                                                                 Set<String> streamKeys,
+                                                                 Path testFile) {
+        if (testsNode == null || testsNode.isNull()) {
+            throw new TestDefinitionException("Missing required 'tests' map in " + testFile);
+        }
+        if (!testsNode.isObject()) {
+            throw new TestDefinitionException("'tests' must be a map in " + testFile);
+        }
+        if (testsNode.isEmpty()) {
+            throw new TestDefinitionException(
+                    "'tests' map must contain at least one entry in " + testFile);
+        }
+
+        var result = new LinkedHashMap<String, TestCaseDefinition>();
+        var fields = testsNode.fields();
+        while (fields.hasNext()) {
+            var entry = fields.next();
+            var testKey = entry.getKey();
+            validateIdentifier("test", testKey, testFile);
+
+            var entryNode = entry.getValue();
+            if (!entryNode.isObject()) {
+                throw new TestDefinitionException(
+                        "Test entry '" + testKey + "' must be an object in " + testFile);
+            }
+
+            // Reject suite-level fields appearing inside a test entry
+            entryNode.fieldNames().forEachRemaining(field -> {
+                if (SUITE_LEVEL_FIELDS.contains(field)) {
+                    throw new TestDefinitionException(
+                            "Field '" + field + "' is a suite-level field and cannot appear under test '"
+                                    + testKey + "' (" + testFile + ")");
+                }
+            });
+
+            var description = optionalText(entryNode.get("description"));
+            var produceNode = entryNode.get("produce");
+            if (produceNode == null) {
+                throw new TestDefinitionException(
+                        "Test '" + testKey + "' is missing required field 'produce' in " + testFile);
+            }
+            if (!produceNode.isArray()) {
+                throw new TestDefinitionException(
+                        "Test '" + testKey + "' field 'produce' must be an array in " + testFile);
+            }
+            var assertNode = entryNode.get("assert");
+            if (assertNode == null) {
+                throw new TestDefinitionException(
+                        "Test '" + testKey + "' is missing required field 'assert' in " + testFile);
+            }
+            if (!assertNode.isArray()) {
+                throw new TestDefinitionException(
+                        "Test '" + testKey + "' field 'assert' must be an array in " + testFile);
+            }
+
+            var produceBlocks = parseProduceBlocks(produceNode, streamKeys, testKey, testFile);
+            var assertBlocks = parseAssertBlocks(assertNode, streamKeys, testKey, testFile);
+
+            result.put(testKey, new TestCaseDefinition(description, produceBlocks, assertBlocks));
+        }
+        return result;
+    }
+
+    private List<ProduceBlock> parseProduceBlocks(JsonNode produceArray, Set<String> streamKeys,
+                                                  String testKey, Path testFile) {
         var blocks = new ArrayList<ProduceBlock>();
         for (var blockNode : produceArray) {
             var f = new FieldExtractor(blockNode, testFile);
-
-            var topic = f.requireString("topic");
-            var keyType = f.optionalString("keyType");
-            var valueType = f.optionalString("valueType");
+            var to = f.requireString("to");
+            if (!streamKeys.contains(to)) {
+                throw new TestDefinitionException(
+                        "Produce block in test '" + testKey + "' references stream '" + to
+                                + "' that is not declared in 'streams:' (" + testFile + ")");
+            }
             var messages = parseMessages(blockNode.get("messages"));
             var generator = f.optionalMap("generator");
             var count = f.optionalLong("count");
 
-            var block = new ProduceBlock(topic, keyType, valueType, messages, generator, count);
+            var block = new ProduceBlock(to, messages, generator, count);
+            block.validate();
+            blocks.add(block);
+        }
+        return blocks;
+    }
+
+    private List<AssertBlock> parseAssertBlocks(JsonNode assertArray, Set<String> streamKeys,
+                                                String testKey, Path testFile) {
+        var blocks = new ArrayList<AssertBlock>();
+        for (var blockNode : assertArray) {
+            var f = new FieldExtractor(blockNode, testFile);
+            var on = f.optionalString("on");
+            if (on != null && !streamKeys.contains(on)) {
+                throw new TestDefinitionException(
+                        "Assert block in test '" + testKey + "' references stream '" + on
+                                + "' that is not declared in 'streams:' (" + testFile + ")");
+            }
+            var stores = f.optionalStringList("stores");
+            var code = f.requireString("code");
+
+            var block = new AssertBlock(on, stores, code);
             block.validate();
             blocks.add(block);
         }
@@ -146,19 +282,18 @@ public class TestDefinitionParser {
         return messages;
     }
 
-    private List<AssertBlock> parseAssertBlocks(JsonNode assertArray, Path testFile) {
-        var blocks = new ArrayList<AssertBlock>();
-        for (var blockNode : assertArray) {
-            var f = new FieldExtractor(blockNode, testFile);
-
-            var topic = f.optionalString("topic");
-            var code = f.requireString("code");
-            var stores = f.optionalStringList("stores");
-
-            var block = new AssertBlock(topic, stores, code);
-            block.validate();
-            blocks.add(block);
-        }
-        return blocks;
+    private static String optionalText(JsonNode node) {
+        if (node == null || node.isNull()) return null;
+        return node.asText();
     }
+
+    private static void validateIdentifier(String kind, String key, Path testFile) {
+        if (!IDENTIFIER_PATTERN.matcher(key).matches()) {
+            throw new TestDefinitionException(
+                    "Invalid " + kind + " key '" + key + "': must match "
+                            + IDENTIFIER_PATTERN.pattern()
+                            + " (alphanumeric and underscore, starting with a letter) in " + testFile);
+        }
+    }
+
 }

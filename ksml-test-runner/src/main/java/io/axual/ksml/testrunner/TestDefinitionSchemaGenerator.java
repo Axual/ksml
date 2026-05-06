@@ -25,6 +25,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -32,10 +35,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Generates a JSON Schema for KSML test definition YAML files by reading
- * {@link JsonSchema} annotations from the record classes.
+ * Generates a JSON Schema for KSML test suite YAML files by reflectively walking the
+ * record types in this package and reading their {@link JsonSchema} annotations.
+ *
+ * <p>The walker is driven entirely by record metadata — per-component metadata (description,
+ * defaultValue, examples, required, minProperties, yamlName) comes from the component's
+ * annotation, and per-type metadata (oneOfRequired, anyOfRequired) comes from the type's
+ * annotation. The only structural rule baked into this class is "{@code Map<String, X>}
+ * where X is a record means a regex-keyed object" — which is the convention KSML test files
+ * use for the {@code streams:} and {@code tests:} maps.
  */
 public class TestDefinitionSchemaGenerator {
+
+    /** Identifier regex shared with {@link TestDefinitionParser}. */
+    static final String IDENTIFIER_REGEX = "^[a-zA-Z][a-zA-Z0-9_]*$";
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
@@ -51,105 +64,172 @@ public class TestDefinitionSchemaGenerator {
     }
 
     static String generateSchema() throws IOException {
-        var root = MAPPER.createObjectNode();
+        var root = buildRecordSchema(TestSuiteDefinition.class);
         root.put("$schema", "http://json-schema.org/draft-07/schema#");
-        root.put("title", "KSML Test Definition");
-        root.put("description", "Schema for KSML test runner YAML definition files");
-        root.put("type", "object");
-
-        // The root has a single "test" property
-        var properties = root.putObject("properties");
-        var testProp = properties.putObject("test");
-        testProp.put("type", "object");
-        testProp.put("description", annotationDescription(TestDefinition.class));
-        // The YAML field name "assert" maps to the Java record component "assertions"
-        buildRecordProperties(testProp, TestDefinition.class, Map.of("assertions", "assert"));
-
-        root.putArray("required").add("test");
-
+        root.put("title", "KSML Test Suite Definition");
+        // Override the type-level description to read more like a top-level title than a record blurb
+        root.put("description", "Schema for KSML test runner YAML suite definition files");
         return MAPPER.writeValueAsString(root);
     }
 
-    private static void buildRecordProperties(ObjectNode parent, Class<?> recordClass) {
-        buildRecordProperties(parent, recordClass, Map.of());
-    }
+    /**
+     * Build the JSON Schema for a record type by walking its components and reading
+     * their annotations. Object-typed schemas always set {@code additionalProperties: false}.
+     */
+    private static ObjectNode buildRecordSchema(Class<?> recordClass) {
+        var schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        schema.put("additionalProperties", false);
 
-    private static void buildRecordProperties(ObjectNode parent, Class<?> recordClass,
-                                              Map<String, String> nameOverrides) {
-        var properties = parent.putObject("properties");
+        var typeAnnotation = recordClass.getAnnotation(JsonSchema.class);
+        if (typeAnnotation != null && !typeAnnotation.description().isEmpty()) {
+            schema.put("description", typeAnnotation.description());
+        }
+
+        var properties = schema.putObject("properties");
         var required = new ArrayList<String>();
 
         for (var component : recordClass.getRecordComponents()) {
-            var annotation = component.getAnnotation(JsonSchema.class);
-            var yamlName = nameOverrides.getOrDefault(component.getName(), component.getName());
-            var prop = properties.putObject(yamlName);
+            var componentAnnotation = component.getAnnotation(JsonSchema.class);
+            var yamlName = yamlNameOf(component, componentAnnotation);
+            var componentSchema = buildComponentSchema(component, componentAnnotation);
+            properties.set(yamlName, componentSchema);
 
-            setTypeForJavaType(prop, component.getType(), component.getGenericType());
-
-            if (annotation != null) {
-                if (!annotation.description().isEmpty()) {
-                    prop.put("description", annotation.description());
-                }
-                if (!annotation.defaultValue().isEmpty()) {
-                    prop.put("default", annotation.defaultValue());
-                }
-                if (annotation.examples().length > 0) {
-                    var examples = prop.putArray("examples");
-                    for (var ex : annotation.examples()) {
-                        examples.add(ex);
-                    }
-                }
-                if (annotation.required()) {
-                    required.add(yamlName);
-                }
+            if (componentAnnotation != null && componentAnnotation.required()) {
+                required.add(yamlName);
             }
         }
 
         if (!required.isEmpty()) {
-            var reqArray = parent.putArray("required");
-            required.forEach(reqArray::add);
+            var arr = schema.putArray("required");
+            required.forEach(arr::add);
         }
-    }
 
-    private static void setTypeForJavaType(ObjectNode prop, Class<?> type, java.lang.reflect.Type genericType) {
-        if (type == String.class) {
-            prop.put("type", "string");
-        } else if (type == Long.class || type == long.class) {
-            prop.put("type", "integer");
-        } else if (type == Integer.class || type == int.class) {
-            prop.put("type", "integer");
-        } else if (type == Boolean.class || type == boolean.class) {
-            prop.put("type", "boolean");
-        } else if (type == Object.class) {
-            // key/value can be any type
-        } else if (List.class.isAssignableFrom(type)) {
-            prop.put("type", "array");
-            var itemType = resolveListItemType(genericType);
-            if (itemType != null && itemType.isRecord()) {
-                var items = prop.putObject("items");
-                items.put("type", "object");
-                items.put("description", annotationDescription(itemType));
-                buildRecordProperties(items, itemType);
-            } else if (itemType == String.class) {
-                prop.putObject("items").put("type", "string");
+        // Apply type-level structural constraints (oneOfRequired / anyOfRequired)
+        if (typeAnnotation != null) {
+            if (typeAnnotation.oneOfRequired().length > 0) {
+                var oneOf = schema.putArray("oneOf");
+                for (var fieldName : typeAnnotation.oneOfRequired()) {
+                    var variant = MAPPER.createObjectNode();
+                    variant.putArray("required").add(fieldName);
+                    oneOf.add(variant);
+                }
             }
-        } else if (Map.class.isAssignableFrom(type)) {
-            prop.put("type", "object");
+            if (typeAnnotation.anyOfRequired().length > 0) {
+                var anyOf = schema.putArray("anyOf");
+                for (var fieldName : typeAnnotation.anyOfRequired()) {
+                    var variant = MAPPER.createObjectNode();
+                    variant.putArray("required").add(fieldName);
+                    anyOf.add(variant);
+                }
+            }
+        }
+
+        return schema;
+    }
+
+    /**
+     * Build the JSON Schema fragment for a single record component, using its annotation
+     * for description/default/examples/minProperties and its Java type for shape.
+     */
+    private static ObjectNode buildComponentSchema(RecordComponent component, JsonSchema annotation) {
+        var schema = buildTypeSchema(component.getType(), component.getGenericType());
+        if (annotation != null) {
+            applyComponentAnnotation(schema, annotation);
+        }
+        return schema;
+    }
+
+    private static ObjectNode buildTypeSchema(Class<?> rawType, Type genericType) {
+        if (rawType == String.class) {
+            return MAPPER.createObjectNode().put("type", "string");
+        }
+        if (rawType == Long.class || rawType == long.class
+                || rawType == Integer.class || rawType == int.class) {
+            return MAPPER.createObjectNode().put("type", "integer");
+        }
+        if (rawType == Boolean.class || rawType == boolean.class) {
+            return MAPPER.createObjectNode().put("type", "boolean");
+        }
+        if (rawType == Object.class) {
+            // Unconstrained — any JSON type is acceptable (used for TestMessage.key/value)
+            return MAPPER.createObjectNode();
+        }
+        if (List.class.isAssignableFrom(rawType)) {
+            var schema = MAPPER.createObjectNode().put("type", "array");
+            var itemType = resolveSingleTypeArg(genericType);
+            if (itemType != null) {
+                schema.set("items", buildItemSchema(itemType));
+            }
+            return schema;
+        }
+        if (Map.class.isAssignableFrom(rawType)) {
+            var schema = MAPPER.createObjectNode().put("type", "object");
+            var valueType = resolveMapValueType(genericType);
+            if (valueType instanceof Class<?> valueClass && valueClass.isRecord()) {
+                // Map<String, SomeRecord> → patternProperties keyed by IDENTIFIER_REGEX
+                schema.put("additionalProperties", false);
+                schema.putObject("patternProperties")
+                        .set(IDENTIFIER_REGEX, buildRecordSchema(valueClass));
+            }
+            // Otherwise Map<String, Object> — leave as plain object with no constraints
+            return schema;
+        }
+        if (rawType.isRecord()) {
+            return buildRecordSchema(rawType);
+        }
+        // Fallback: untyped object
+        return MAPPER.createObjectNode().put("type", "object");
+    }
+
+    private static ObjectNode buildItemSchema(Type itemType) {
+        if (itemType instanceof Class<?> c) {
+            return buildTypeSchema(c, c);
+        }
+        if (itemType instanceof ParameterizedType pt && pt.getRawType() instanceof Class<?> rawClass) {
+            return buildTypeSchema(rawClass, pt);
+        }
+        return MAPPER.createObjectNode();
+    }
+
+    private static void applyComponentAnnotation(ObjectNode schema, JsonSchema annotation) {
+        if (!annotation.description().isEmpty()) {
+            schema.put("description", annotation.description());
+        }
+        if (!annotation.defaultValue().isEmpty()) {
+            schema.put("default", annotation.defaultValue());
+        }
+        if (annotation.examples().length > 0) {
+            var examples = schema.putArray("examples");
+            for (var example : annotation.examples()) {
+                examples.add(example);
+            }
+        }
+        if (annotation.minProperties() > 0) {
+            schema.put("minProperties", annotation.minProperties());
         }
     }
 
-    private static Class<?> resolveListItemType(java.lang.reflect.Type genericType) {
-        if (genericType instanceof java.lang.reflect.ParameterizedType pt) {
+    private static String yamlNameOf(RecordComponent component, JsonSchema annotation) {
+        if (annotation != null && !annotation.yamlName().isEmpty()) {
+            return annotation.yamlName();
+        }
+        return component.getName();
+    }
+
+    private static Type resolveSingleTypeArg(Type genericType) {
+        if (genericType instanceof ParameterizedType pt) {
             var args = pt.getActualTypeArguments();
-            if (args.length == 1 && args[0] instanceof Class<?> c) {
-                return c;
-            }
+            if (args.length == 1) return args[0];
         }
         return null;
     }
 
-    private static String annotationDescription(Class<?> clazz) {
-        var annotation = clazz.getAnnotation(JsonSchema.class);
-        return annotation != null ? annotation.description() : "";
+    private static Type resolveMapValueType(Type genericType) {
+        if (genericType instanceof ParameterizedType pt) {
+            var args = pt.getActualTypeArguments();
+            if (args.length == 2) return args[1];
+        }
+        return null;
     }
 }

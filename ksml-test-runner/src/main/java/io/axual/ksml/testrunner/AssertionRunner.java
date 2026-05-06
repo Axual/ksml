@@ -41,26 +41,30 @@ import java.util.Map;
 
 /**
  * Executes Python assertion code against output records and state stores.
+ * The runner is given the suite's stream map (keyed by logical stream name);
+ * assertion blocks reference output streams via {@code on:} which resolves
+ * against this map to the topic + serdes.
  */
 @Slf4j
 public class AssertionRunner {
 
     private final TopologyTestDriver driver;
-    private final Map<String, RegistryEntry> topicTypeMap;
+    private final Map<String, StreamDefinition> streams;
 
-    public AssertionRunner(TopologyTestDriver driver, Map<String, RegistryEntry> topicTypeMap) {
+    public AssertionRunner(TopologyTestDriver driver, Map<String, StreamDefinition> streams) {
         this.driver = driver;
-        this.topicTypeMap = topicTypeMap;
+        this.streams = streams;
     }
 
     /**
      * Run all assertion blocks and return the result.
      *
      * @param assertBlocks the assertion blocks to execute
-     * @param testName     the test name for reporting
+     * @param suiteName    the suite-level name for reporting
+     * @param testName     the test display label for reporting
      * @return the test result
      */
-    public TestResult runAssertions(List<AssertBlock> assertBlocks, String testName) {
+    public TestResult runAssertions(List<AssertBlock> assertBlocks, String suiteName, String testName) {
         var pythonContext = new PythonContext(PythonContextConfig.builder().build());
 
         try {
@@ -68,26 +72,33 @@ public class AssertionRunner {
                 var block = assertBlocks.get(i);
                 log.debug("Running assertion block {}/{}", i + 1, assertBlocks.size());
 
-                var result = runSingleAssertion(pythonContext, block, testName);
+                var result = runSingleAssertion(pythonContext, block, suiteName, testName);
                 if (result.status() != TestResult.Status.PASS) {
                     return result;
                 }
             }
-            return TestResult.pass(testName);
+            return TestResult.pass(suiteName, testName);
         } catch (Exception e) {
-            log.error("Unexpected error running assertions for test '{}'", testName, e);
-            return TestResult.error(testName, e.getMessage());
+            // Log at debug — the exception is preserved in the returned TestResult.message
+            log.debug("Unexpected error running assertions for test '{} › {}'", suiteName, testName, e);
+            return TestResult.error(suiteName, testName, e.getMessage());
         }
     }
 
-    private TestResult runSingleAssertion(PythonContext pythonContext, AssertBlock block, String testName) {
+    private TestResult runSingleAssertion(PythonContext pythonContext, AssertBlock block,
+                                          String suiteName, String testName) {
         try {
             // Collect variables to inject
             var args = new ArrayList<Pair<String, Object>>();
 
-            // If topic is specified, collect output records
-            if (block.topic() != null) {
-                var records = collectOutputRecords(block.topic());
+            // If 'on:' is specified, collect output records from the referenced stream's topic
+            if (block.on() != null) {
+                var stream = streams.get(block.on());
+                if (stream == null) {
+                    return TestResult.error(suiteName, testName,
+                            "Assert block references undeclared stream '" + block.on() + "'");
+                }
+                var records = collectOutputRecords(stream);
                 args.add(Pair.of("records", ProxyUtil.toPython(records)));
             }
 
@@ -96,7 +107,7 @@ public class AssertionRunner {
                 for (var storeName : block.stores()) {
                     var store = driver.getKeyValueStore(storeName);
                     if (store == null) {
-                        return TestResult.error(testName,
+                        return TestResult.error(suiteName, testName,
                                 "State store '" + storeName + "' not found in topology");
                     }
                     var proxy = ProxyUtil.wrapStateStore(store);
@@ -134,25 +145,26 @@ public class AssertionRunner {
             } catch (org.graalvm.polyglot.PolyglotException e) {
                 if (e.getMessage() != null && e.getMessage().contains("AssertionError")) {
                     var msg = extractAssertionMessage(e);
-                    return TestResult.fail(testName, msg);
+                    return TestResult.fail(suiteName, testName, msg);
                 }
-                return TestResult.error(testName, e.getMessage());
+                return TestResult.error(suiteName, testName, e.getMessage());
             }
 
-            return TestResult.pass(testName);
+            return TestResult.pass(suiteName, testName);
         } catch (Exception e) {
-            log.error("Error running assertion for test '{}'", testName, e);
-            return TestResult.error(testName, e.getMessage());
+            // Log at debug — the exception is preserved in the returned TestResult.message
+            log.debug("Error running assertion for test '{} › {}'", suiteName, testName, e);
+            return TestResult.error(suiteName, testName, e.getMessage());
         }
     }
 
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
 
-    private List<Map<String, Object>> collectOutputRecords(String topic) {
-        var keyDeserializer = resolveDeserializer(topic, true);
-        var valueDeserializer = resolveDeserializer(topic, false);
+    private List<Map<String, Object>> collectOutputRecords(StreamDefinition stream) {
+        var keyDeserializer = resolveDeserializer(stream.keyType(), true);
+        var valueDeserializer = resolveDeserializer(stream.valueType(), false);
 
-        var outputTopic = driver.createOutputTopic(topic, keyDeserializer, valueDeserializer);
+        var outputTopic = driver.createOutputTopic(stream.topic(), keyDeserializer, valueDeserializer);
 
         var records = new ArrayList<Map<String, Object>>();
         var keyValues = outputTopic.readRecordsToList();
@@ -167,14 +179,11 @@ public class AssertionRunner {
     }
 
     /**
-     * Resolve a deserializer for a topic's key or value based on the topic type map.
-     * Falls back to StringDeserializer when the topic is not in the map or uses string type.
+     * Resolve a deserializer for a topic's key or value based on the stream's declared type string.
+     * Falls back to StringDeserializer when the type is null or "string".
      */
     @SuppressWarnings("unchecked")
-    private Deserializer<Object> resolveDeserializer(String topic, boolean isKey) {
-        var entry = topicTypeMap.get(topic);
-        var typeString = entry != null ? (isKey ? entry.keyType() : entry.valueType()) : null;
-
+    private Deserializer<Object> resolveDeserializer(String typeString, boolean isKey) {
         if (typeString == null || typeString.equalsIgnoreCase("string")) {
             var stringDeserializer = new StringDeserializer();
             return (Deserializer<Object>) (Deserializer<?>) stringDeserializer;
@@ -183,16 +192,16 @@ public class AssertionRunner {
         try {
             var parsed = new UserTypeParser().parse(typeString);
             if (parsed.isError()) {
-                log.warn("Cannot resolve type '{}' for topic '{}', falling back to StringDeserializer: {}",
-                        typeString, topic, parsed.errorMessage());
+                log.warn("Cannot resolve type '{}', falling back to StringDeserializer: {}",
+                        typeString, parsed.errorMessage());
                 var stringDeserializer = new StringDeserializer();
                 return (Deserializer<Object>) (Deserializer<?>) stringDeserializer;
             }
             var streamDataType = new StreamDataType(parsed.result(), isKey);
             return streamDataType.serde().deserializer();
         } catch (Exception e) {
-            log.warn("Failed to create deserializer for type '{}' on topic '{}', falling back to StringDeserializer",
-                    typeString, topic, e);
+            log.warn("Failed to create deserializer for type '{}', falling back to StringDeserializer",
+                    typeString, e);
             var stringDeserializer = new StringDeserializer();
             return (Deserializer<Object>) (Deserializer<?>) stringDeserializer;
         }

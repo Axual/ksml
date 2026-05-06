@@ -17,72 +17,107 @@ and executes your Python assertions.
 
 ## Test definition format
 
+A test definition file is a flat YAML document — no outer wrapper element — describing one
+test suite (one pipeline plus one or more named tests). Each test runs against a fresh
+`TopologyTestDriver`, so tests in the same suite are hermetic and do not share state.
+
 ```yaml
-test:
-  name: "Filter pipeline passes blue sensors"
-  pipeline: pipelines/test-filter.yaml
-  schemaDirectory: schemas
+name: "Filter pipeline passes blue sensors"     # optional; falls back to filename without extension
+pipeline: pipelines/test-filter.yaml
+schemaDirectory: schemas
 
-  produce:
-    - topic: ksml_sensordata_avro
-      keyType: string
-      valueType: "avro:SensorData"
-      messages:
-        - key: "sensor-1"
-          value:
-            name: "sensor-1"
-            timestamp: 1000
-            value: "25.0"
-            type: "TEMPERATURE"
-            unit: "celsius"
-            color: "blue"
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+  sensor_filtered:
+    topic: ksml_sensordata_filtered
+    keyType: string
+    valueType: "avro:SensorData"
 
-  assert:
-    - topic: ksml_sensordata_filtered
-      code: |
-        assert len(records) == 2, f"Expected 2 records, got {len(records)}"
+tests:
+  blue_sensors_pass:
+    description: "Blue sensors pass through, red ones are filtered out"
+    produce:
+      - to: sensor_source
+        messages:
+          - key: "sensor-1"
+            value:
+              name: "sensor-1"
+              timestamp: 1000
+              value: "25.0"
+              type: "TEMPERATURE"
+              unit: "celsius"
+              color: "blue"
+    assert:
+      - on: sensor_filtered
+        code: |
+          assert len(records) == 1, f"Expected 1 record, got {len(records)}"
 ```
 
-### Fields
+### Suite-level fields
 
 | Field | Required | Description |
 |---|---|---|
-| `test.name` | yes | Human-readable test name, shown in the output |
-| `test.pipeline` | yes | Path to the KSML pipeline YAML (relative to the test file or absolute) |
-| `test.schemaDirectory` | no | Path to Avro/JSON schema files (relative to the test file or absolute) |
-| `test.registry` | no | List of registry entries mapping topics to key/value types (see below) |
-| `test.produce` | yes | List of produce blocks |
-| `test.assert` | yes | List of assertion blocks |
+| `name` | no | Human-readable suite name shown in reports. Falls back to filename without extension. |
+| `pipeline` | yes | Path to the KSML pipeline YAML (relative to the test file, on the classpath, or absolute). |
+| `schemaDirectory` | no | Path to schema files (relative to the test file or absolute). Required when any stream uses a schema-bearing notation like `avro:Foo`. |
+| `moduleDirectory` | no | Path to externalized Python modules accessible to the pipeline. |
+| `streams` | no | Map of named topic+type bindings, referenced by `to:` and `on:`. See below. |
+| `tests` | yes | Map of named tests. Must contain at least one entry. See below. |
 
-### Registry block
+### Streams
 
-Each registry entry maps a topic to its key and value types for mock schema registry population.
-Use this when your pipeline declares types like `confluent_avro` or `apicurio_avro` that would
-normally fetch schemas from a registry at runtime.
+The `streams:` map declares every Kafka topic the test suite produces to or asserts on.
+Each entry is keyed by a logical stream identifier (matching `^[a-zA-Z][a-zA-Z0-9_]*$`)
+and binds it to a topic plus key/value types.
 
 | Field | Required | Description |
 |---|---|---|
-| `topic` | yes | Kafka topic name |
-| `keyType` | no | Key type (default: `string`) |
-| `valueType` | no | Value type, e.g. `avro:SensorData` (default: `string`) |
+| `topic` | yes | Kafka topic name. Each topic may appear in at most one stream entry. |
+| `keyType` | no | Key type string (default `string`). |
+| `valueType` | no | Value type string (default `string`). |
 
-The test runner loads each referenced schema from `schemaDirectory` and registers it in the
-mock registry under the standard subjects (`{topic}-key`, `{topic}-value`).
+Type strings follow KSML's standard type grammar (the same one `StreamDefinitionParser` uses
+in pipeline yamls):
 
-Types from produce blocks are merged into the same map — produce block types take precedence
-on overlap. The merged map is also used to determine the correct deserializer for assert block
-output topics.
+- Schema-less notations (`string`, `long`, `int`, `boolean`, `bytes`, `json`, `binary`, `xml`, etc.)
+  may appear unqualified.
+- Schema-bearing notations (`avro`, `confluent_avro`, `apicurio_avro`, `protobuf`, `json_schema`,
+  `csv`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is
+  loaded from `schemaDirectory` and registered in the in-memory mock registry under
+  `<topic>-key` / `<topic>-value`.
+- Bare schema-bearing notations (e.g., `confluent_avro` without `:Schema`) are rejected — the
+  test runner has no real registry to resolve them against.
+
+### Tests
+
+The `tests:` map carries one or more test entries. Each key is a stable test identifier
+(matching `^[a-zA-Z][a-zA-Z0-9_]*$`); the value contains that test's produce data and assertions.
+Tests run in YAML-defined order; failure in one test does not stop later tests.
+
+| Field | Required | Description |
+|---|---|---|
+| `description` | no | Human-readable label. Falls back to the test key. |
+| `produce` | yes | List of produce blocks. |
+| `assert` | yes | List of assertion blocks. |
 
 ### Produce block
 
-Each produce block targets one input topic:
+Each produce block targets one stream by reference:
 
 | Field | Required | Description |
 |---|---|---|
-| `topic` | yes | Kafka topic name to produce to |
-| `keyType` | no | Key type (default: `string`) |
-| `valueType` | no | Value type, e.g. `string` or `avro:SensorData` (default: `string`) |
-| `messages` | yes | List of messages with `key`, `value`, and optional `timestamp` (epoch millis) |
+| `to` | yes | Stream key (must exist in `streams:`). |
+| `messages` | * | List of messages with `key`, `value`, and optional `timestamp` (epoch millis). |
+| `generator` | * | Generator function (KSML generator syntax). Mutually exclusive with `messages`. |
+| `count` | no | Number of times to invoke the generator (default `1`). |
+
+\* Exactly one of `messages` or `generator` must be present.
+
+Inline `topic`, `keyType`, or `valueType` fields on a produce block are not permitted —
+declare the stream under `streams:` and reference it via `to:`.
 
 ### Assert block
 
@@ -90,15 +125,26 @@ Each assert block runs Python code with injected variables:
 
 | Field | Required | Description |
 |---|---|---|
-| `topic` | no* | Output topic to read records from. Injects a `records` variable |
-| `stores` | no* | List of state store names to inject as Python variables |
-| `code` | yes | Python assertion code. Use `assert` statements |
+| `on` | no* | Stream key (must exist in `streams:`). The runner reads all records from the underlying topic and injects them as `records`. |
+| `stores` | no* | List of state store names (the names declared in the pipeline's `stores:` block). Each store is injected as a Python variable. |
+| `code` | yes | Python assertion code. Use `assert` statements. |
 
-\* At least one of `topic` or `stores` must be specified.
+\* At least one of `on` or `stores` must be specified.
 
-When `topic` is set, the `records` variable is a list of dicts with `key`, `value`, and `timestamp` fields.
-When `stores` is set, each store is available as a Python variable with the same API as in pipeline code
-(e.g. `store.get(key)`, `store.put(key, value)`).
+When `on:` is set, `records` is a list of dicts with `key`, `value`, and `timestamp` fields,
+deserialized using the referenced stream's serdes. When `stores:` is set, each store is
+available as a Python variable with the same API as in pipeline code (e.g. `store.get(key)`,
+`store.put(key, value)`).
+
+Inline `topic` fields on an assert block are not permitted — declare the stream under
+`streams:` and reference it via `on:`.
+
+### Reporting
+
+Each test result is labeled `<suite> › <test>` where `<suite>` is the file's `name:` (or
+filename without extension) and `<test>` is the test entry's `description:` (or the test key
+if absent). Suite-level parse failures (missing `pipeline:`, malformed YAML, undefined stream
+references, etc.) are reported as a single ERROR result for the whole suite.
 
 ## Running from the command line
 

@@ -1,17 +1,18 @@
-name: "Assert block without on or stores"
-pipeline: pipelines/test-filter.yaml
+name: "Stream with bare confluent_avro (no schema name)"
+pipeline: pipelines/test-filter-confluent-avro.yaml
 streams:
   source:
     topic: ksml_sensordata_avro
     keyType: string
-    valueType: "avro:SensorData"
+    valueType: confluent_avro
 tests:
-  empty_assert:
+  bare_notation_rejected:
     produce:
       - to: source
         messages:
           - key: "k1"
             value: { color: "blue" }
     assert:
-      - code: |
+      - on: source
+        code: |
           assert True

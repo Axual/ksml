@@ -45,9 +45,9 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Standalone test runner for KSML pipeline definitions.
- * Parses YAML test definitions, sets up TopologyTestDriver, produces test data,
- * and runs Python assertions.
+ * Standalone test runner for KSML pipeline tests defined in YAML.
+ * Each YAML file is a test suite (one or more named tests sharing a pipeline);
+ * the runner produces one {@link TestResult} per test in each suite.
  */
 @Slf4j
 public class KSMLTestRunner {
@@ -101,7 +101,7 @@ public class KSMLTestRunner {
         var runner = new KSMLTestRunner();
         var results = new ArrayList<TestResult>();
         for (var file : testFiles) {
-            results.add(runner.runSingleTest(file));
+            results.addAll(runner.runTestFile(file));
         }
 
         // Report results
@@ -113,29 +113,57 @@ public class KSMLTestRunner {
     }
 
     /**
-     * Execute a single test definition and return the result.
+     * Execute every test in a suite file and return one {@link TestResult} per test.
+     * If the suite YAML or pipeline YAML cannot be parsed, returns a single ERROR result.
      */
-    public TestResult runSingleTest(Path testFile) {
+    public List<TestResult> runTestFile(Path testFile) {
         var parser = new TestDefinitionParser();
-        var executionContext = new TestExecutionContext();
-        TestDefinition definition;
-        TopologyTestDriver driver = null;
+        var suiteFallbackName = filenameWithoutExtension(testFile);
 
+        TestSuiteDefinition suite;
+        String pipelineYaml;
         try {
-            // 1. Parse test definition
-            definition = parser.parse(testFile);
-            log.info("Running test: {}", definition.name());
+            suite = parser.parse(testFile);
+            pipelineYaml = readPipelineContent(testFile, suite.pipeline());
+        } catch (TestDefinitionException e) {
+            return List.of(TestResult.error(suiteFallbackName, "<parse>",
+                    "Invalid test definition: " + e.getMessage()));
+        } catch (Exception e) {
+            return List.of(TestResult.error(suiteFallbackName, "<parse>", describeFailure(e)));
+        }
 
-            // 2. Build merged type map and set up execution context
-            var topicTypeMap = TestDefinitionParser.buildTopicTypeMap(definition);
-            var schemaDirectory = resolveDirectory(testFile, definition.schemaDirectory());
-            var modulesDirectory = resolveDirectory(testFile, definition.moduleDirectory());
+        var suiteName = suite.name() != null && !suite.name().isEmpty() ? suite.name() : suiteFallbackName;
+        var topicTypeMap = TestDefinitionParser.buildTopicTypeMap(suite);
+        var schemaDirectory = resolveDirectory(testFile, suite.schemaDirectory());
+        var modulesDirectory = resolveDirectory(testFile, suite.moduleDirectory());
+
+        log.info("Running suite: {} ({} test(s))", suiteName, suite.tests().size());
+
+        var results = new ArrayList<TestResult>();
+        for (var entry : suite.tests().entrySet()) {
+            var testKey = entry.getKey();
+            var testCase = entry.getValue();
+            var displayLabel = testCase.description() != null && !testCase.description().isEmpty()
+                    ? testCase.description() : testKey;
+            results.add(runSingleTest(testFile, suite, suiteName, testKey, displayLabel,
+                    testCase, pipelineYaml, topicTypeMap, schemaDirectory, modulesDirectory));
+        }
+        return results;
+    }
+
+    private TestResult runSingleTest(Path testFile, TestSuiteDefinition suite, String suiteName,
+                                     String testKey, String displayLabel, TestCaseDefinition testCase,
+                                     String pipelineYaml, java.util.Map<String, StreamDefinition> topicTypeMap,
+                                     String schemaDirectory, String modulesDirectory) {
+        var executionContext = new TestExecutionContext();
+        TopologyTestDriver driver = null;
+        try {
+            log.info("  Running test: {} › {}", suiteName, displayLabel);
+
             executionContext.setup(schemaDirectory, topicTypeMap);
 
-            // 3. Parse pipeline definition and build topology
-            var topologyName = sanitizeTopologyName(definition.name());
-            var yamlContent = readPipelineContent(testFile, definition.pipeline());
-            var pipelineJson = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
+            var topologyName = sanitizeTopologyName(suiteName + "_" + testKey);
+            var pipelineJson = YAMLObjectMapper.INSTANCE.readValue(pipelineYaml, JsonNode.class);
             var topologyDefinition = new TopologyDefinitionParser(topologyName)
                     .parse(ParseNode.fromRoot(pipelineJson, topologyName));
 
@@ -143,8 +171,8 @@ public class KSMLTestRunner {
                     topologyName + ".test",
                     null,
                     PythonContextConfig.builder()
-                        .modulePath(modulesDirectory)
-                        .build()
+                            .modulePath(modulesDirectory)
+                            .build()
             );
 
             var streamsBuilder = new StreamsBuilder();
@@ -152,25 +180,23 @@ public class KSMLTestRunner {
                     ImmutableMap.of("definition", topologyDefinition));
             log.debug("Topology:\n{}", topology.describe());
 
-            // 4. Create TopologyTestDriver
             driver = new TopologyTestDriver(topology);
 
-            // 5. Produce test data
-            var producer = new TestDataProducer(driver, topicTypeMap);
-            producer.produce(definition.produce());
+            var producer = new TestDataProducer(driver, suite.streams());
+            producer.produce(testCase.produce());
 
-            // 6. Run assertions
-            var assertionRunner = new AssertionRunner(driver, topicTypeMap);
-            return assertionRunner.runAssertions(definition.assertions(), definition.name());
+            var assertionRunner = new AssertionRunner(driver, suite.streams());
+            return assertionRunner.runAssertions(testCase.assertions(), suiteName, displayLabel);
 
         } catch (TestDefinitionException e) {
-            return TestResult.error(testFile.getFileName().toString(), "Invalid test definition: " + e.getMessage());
+            return TestResult.error(suiteName, displayLabel,
+                    "Invalid test definition: " + e.getMessage());
         } catch (Exception e) {
-            var name = testFile.getFileName().toString();
-            log.error("Error running test '{}'", name, e);
-            return TestResult.error(name, describeFailure(e));
+            // Log at debug — the exception detail is preserved in the returned TestResult.message
+            // via describeFailure(e), so reportResults() shows it on the ERROR line for CLI users.
+            log.debug("Error running test '{} › {}'", suiteName, displayLabel, e);
+            return TestResult.error(suiteName, displayLabel, describeFailure(e));
         } finally {
-            // 7. Cleanup
             if (driver != null) {
                 driver.close();
             }
@@ -180,25 +206,19 @@ public class KSMLTestRunner {
 
     /**
      * Resolve a directory path as specified in the definition to an absolute path.
-     * @param testFile Path to a tes definition.
-     * @param directoryName the directory name as specified (relative or absolute).
-     * @return the input directoryName resolved to an absolute path.
      */
     private String resolveDirectory(Path testFile, String directoryName) {
         if (directoryName == null || directoryName.isEmpty()) {
             return null;
         }
-        // Try relative to test file first (most common for standalone use)
         var resolved = testFile.getParent().resolve(directoryName);
         if (Files.isDirectory(resolved)) {
             return resolved.toAbsolutePath().toString();
         }
-        // Try classpath (only works for exploded directories, not inside JARs)
         var url = getClass().getClassLoader().getResource(directoryName);
         if (url != null && "file".equals(url.getProtocol())) {
             return url.getPath();
         }
-        // Try as absolute path
         var absolute = Path.of(directoryName);
         if (Files.isDirectory(absolute)) {
             return absolute.toAbsolutePath().toString();
@@ -207,18 +227,15 @@ public class KSMLTestRunner {
     }
 
     private String readPipelineContent(Path testFile, String pipeline) throws java.io.IOException {
-        // Try classpath first
         try (var stream = getClass().getClassLoader().getResourceAsStream(pipeline)) {
             if (stream != null) {
                 return new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
             }
         }
-        // Try relative to test file
         var resolved = testFile.getParent().resolve(pipeline);
         if (Files.exists(resolved)) {
             return Files.readString(resolved);
         }
-        // Try as absolute path
         var absolute = Path.of(pipeline);
         if (Files.exists(absolute)) {
             return Files.readString(absolute);
@@ -228,7 +245,6 @@ public class KSMLTestRunner {
 
     /**
      * Expand the user-supplied paths into a flat, sorted list of YAML test files.
-     * Files are accepted as-is; directories are walked recursively for *.yaml / *.yml.
      */
     static List<Path> collectTestFiles(List<File> inputs) throws IOException {
         var files = new ArrayList<Path>();
@@ -260,7 +276,6 @@ public class KSMLTestRunner {
      * surfaces the actual reason a wrapped exception (e.g. DataException) failed.
      */
     static String describeFailure(Throwable t) {
-        // t cannot be null, check added to satisfy SonarQube
         Objects.requireNonNull(t, "throwable cannot be null");
 
         var parts = new ArrayList<String>();
@@ -273,28 +288,26 @@ public class KSMLTestRunner {
         return parts.isEmpty() ? t.getClass().getSimpleName() : String.join(": ", parts);
     }
 
-    /**
-     * Trim the JVM helpful-NPE tail (JEP 358) from an exception message. Avro and similar
-     * libraries often prepend their own context to a JVM-generated NPE message, producing
-     * something like "null value for ... at Foo.bar: Cannot invoke ... because ... is null".
-     * The "Cannot invoke ..." segment is JVM noise that hides the useful prefix.
-     */
     private static String stripHelpfulNpeSuffix(String message) {
         if (message == null) return null;
         var marker = message.indexOf("Cannot invoke \"");
         if (marker < 0) return message;
-        // Drop the marker and any preceding ": " separator, then trim trailing whitespace.
         var end = marker;
         if (end >= 2 && message.charAt(end - 2) == ':' && message.charAt(end - 1) == ' ') end -= 2;
         return message.substring(0, end).stripTrailing();
     }
 
     /**
-     * Sanitize a test name into a valid Kafka Streams topology name.
-     * Kafka Streams only allows ASCII alphanumerics, '.', '_' and '-'.
+     * Sanitize a name into a valid Kafka Streams topology name (ASCII alnum, '.', '_', '-').
      */
     private static String sanitizeTopologyName(String name) {
         return name.replaceAll("[^A-Za-z0-9._-]", "_");
+    }
+
+    private static String filenameWithoutExtension(Path file) {
+        var name = file.getFileName().toString();
+        var dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
     }
 
     private static void reportResults(List<TestResult> results) {
@@ -309,16 +322,16 @@ public class KSMLTestRunner {
         for (var result : results) {
             switch (result.status()) {
                 case PASS -> {
-                    System.out.println("  PASS  " + result.testName());
+                    System.out.println("  PASS  " + result.qualifiedLabel());
                     passed++;
                 }
                 case FAIL -> {
-                    System.out.println("  FAIL  " + result.testName());
+                    System.out.println("  FAIL  " + result.qualifiedLabel());
                     System.out.println("        " + result.message());
                     failed++;
                 }
                 case ERROR -> {
-                    System.out.println("  ERROR " + result.testName());
+                    System.out.println("  ERROR " + result.qualifiedLabel());
                     System.out.println("        " + result.message());
                     errored++;
                 }

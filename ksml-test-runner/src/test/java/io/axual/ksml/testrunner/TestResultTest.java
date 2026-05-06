@@ -28,7 +28,8 @@ class TestResultTest {
 
     @Test
     void passResultHasCorrectStatus() {
-        var result = TestResult.pass("my test");
+        var result = TestResult.pass("my suite", "my test");
+        assertEquals("my suite", result.suiteName());
         assertEquals("my test", result.testName());
         assertEquals(TestResult.Status.PASS, result.status());
         assertNull(result.message());
@@ -36,7 +37,8 @@ class TestResultTest {
 
     @Test
     void failResultHasMessageAndStatus() {
-        var result = TestResult.fail("my test", "expected 2, got 3");
+        var result = TestResult.fail("my suite", "my test", "expected 2, got 3");
+        assertEquals("my suite", result.suiteName());
         assertEquals("my test", result.testName());
         assertEquals(TestResult.Status.FAIL, result.status());
         assertEquals("expected 2, got 3", result.message());
@@ -44,9 +46,22 @@ class TestResultTest {
 
     @Test
     void errorResultHasMessageAndStatus() {
-        var result = TestResult.error("my test", "NullPointerException");
+        var result = TestResult.error("my suite", "my test", "NullPointerException");
+        assertEquals("my suite", result.suiteName());
         assertEquals("my test", result.testName());
         assertEquals(TestResult.Status.ERROR, result.status());
         assertEquals("NullPointerException", result.message());
+    }
+
+    @Test
+    void qualifiedLabelComposesSuiteAndTest() {
+        var result = TestResult.pass("my suite", "my test");
+        assertEquals("my suite › my test", result.qualifiedLabel());
+    }
+
+    @Test
+    void qualifiedLabelHandlesEmptySuiteName() {
+        var result = TestResult.pass(null, "my test");
+        assertEquals("my test", result.qualifiedLabel());
     }
 }

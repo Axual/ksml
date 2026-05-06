@@ -24,15 +24,21 @@ import java.util.List;
 
 /**
  * A block that defines assertions to run against pipeline output.
+ * Either {@code on} (referencing a stream) or {@code stores} (a list of state store names)
+ * MUST be present.
  *
- * @param topic  optional output topic to read records from
- * @param stores optional list of state store names to inject into Python context
+ * @param on     optional key into the suite's {@code streams:} map identifying the output stream;
+ *               when set, output records become a {@code records} Python list in the assertion code
+ * @param stores optional list of state store names to inject as Python globals into the assertion code
  * @param code   Python assertion code to execute
  */
-@JsonSchema(description = "A block that defines assertions to run against pipeline output")
+@JsonSchema(
+        description = "A block that defines assertions to run against pipeline output",
+        anyOfRequired = {"on", "stores"})
 public record AssertBlock(
-        @JsonSchema(description = "Output topic to read records from", examples = {"output-topic"})
-        String topic,
+        @JsonSchema(description = "Key into the suite's streams: map identifying the output stream to read records from",
+                examples = {"sensor_filtered", "alerts"})
+        String on,
 
         @JsonSchema(description = "State store names to inject into the Python assertion context",
                 examples = {"my_store"})
@@ -42,11 +48,11 @@ public record AssertBlock(
         String code
 ) {
     /**
-     * Validate that the assert block has at least a topic or stores.
+     * Validate that the assert block has at least an {@code on} reference or {@code stores}.
      */
     public void validate() {
-        if (topic == null && stores == null) {
-            throw new TestDefinitionException("Assert block must have at least 'topic' or 'stores'");
+        if (on == null && stores == null) {
+            throw new TestDefinitionException("Assert block must have at least 'on' or 'stores'");
         }
     }
 }

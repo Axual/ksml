@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,8 +42,10 @@ class TestDataProducerTest {
 
     private static final String INPUT_TOPIC = "input";
     private static final String OUTPUT_TOPIC = "output";
+    private static final String INPUT_STREAM = "in";
 
     private TopologyTestDriver driver;
+    private Map<String, StreamDefinition> streams;
 
     @BeforeEach
     void setUp() {
@@ -51,6 +54,8 @@ class TestDataProducerTest {
         builder.stream(INPUT_TOPIC, Consumed.with(stringSerde, stringSerde))
                 .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));
         driver = new TopologyTestDriver(builder.build());
+
+        streams = Map.of(INPUT_STREAM, new StreamDefinition(INPUT_TOPIC, "string", "string"));
     }
 
     @AfterEach
@@ -66,8 +71,8 @@ class TestDataProducerTest {
 
     @Test
     void producesSingleMessage() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
+        var producer = new TestDataProducer(driver, streams);
+        var block = new ProduceBlock(INPUT_STREAM,
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
 
@@ -81,8 +86,8 @@ class TestDataProducerTest {
 
     @Test
     void producesMultipleMessages() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
+        var producer = new TestDataProducer(driver, streams);
+        var block = new ProduceBlock(INPUT_STREAM,
                 List.of(
                         new TestMessage("k1", "v1", null),
                         new TestMessage("k2", "v2", null),
@@ -100,8 +105,8 @@ class TestDataProducerTest {
 
     @Test
     void producesWithExplicitTimestamp() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
+        var producer = new TestDataProducer(driver, streams);
+        var block = new ProduceBlock(INPUT_STREAM,
                 List.of(new TestMessage("k1", "v1", 1709200000000L)),
                 null, null);
 
@@ -114,8 +119,8 @@ class TestDataProducerTest {
 
     @Test
     void producesWithMixedTimestamps() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
+        var producer = new TestDataProducer(driver, streams);
+        var block = new ProduceBlock(INPUT_STREAM,
                 List.of(
                         new TestMessage("k1", "v1", 1000L),
                         new TestMessage("k2", "v2", null),
@@ -132,12 +137,11 @@ class TestDataProducerTest {
 
     @Test
     void producesMultipleBlocks() {
-        // Use the same topic for both blocks since our topology only has one input
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block1 = new ProduceBlock(INPUT_TOPIC, "string", "string",
+        var producer = new TestDataProducer(driver, streams);
+        var block1 = new ProduceBlock(INPUT_STREAM,
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
-        var block2 = new ProduceBlock(INPUT_TOPIC, "string", "string",
+        var block2 = new ProduceBlock(INPUT_STREAM,
                 List.of(new TestMessage("k2", "v2", null)),
                 null, null);
 
@@ -150,38 +154,9 @@ class TestDataProducerTest {
     }
 
     @Test
-    void nullKeyTypeDefaultsToString() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, null, "string",
-                List.of(new TestMessage("k1", "v1", null)),
-                null, null);
-
-        producer.produce(List.of(block));
-
-        var records = outputTopic().readRecordsToList();
-        assertEquals(1, records.size());
-        assertEquals("k1", records.getFirst().key());
-    }
-
-    @Test
-    void nullValueTypeDefaultsToString() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, "string", null,
-                List.of(new TestMessage("k1", "v1", null)),
-                null, null);
-
-        producer.produce(List.of(block));
-
-        var records = outputTopic().readRecordsToList();
-        assertEquals(1, records.size());
-        assertEquals("v1", records.getFirst().value());
-    }
-
-    @Test
     void blockWithNullMessagesIsSkipped() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, "string", "string",
-                null, null, null);
+        var producer = new TestDataProducer(driver, streams);
+        var block = new ProduceBlock(INPUT_STREAM, null, null, null);
 
         producer.produce(List.of(block));
 
@@ -191,7 +166,7 @@ class TestDataProducerTest {
 
     @Test
     void emptyBlockListProducesNothing() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
+        var producer = new TestDataProducer(driver, streams);
 
         producer.produce(List.of());
 
@@ -200,9 +175,21 @@ class TestDataProducerTest {
     }
 
     @Test
-    void invalidTypeThrowsException() {
-        var producer = new TestDataProducer(driver, java.util.Map.of());
-        var block = new ProduceBlock(INPUT_TOPIC, "string", "nonexistent:FakeSchema",
+    void invalidTypeOnStreamThrowsException() {
+        var badStreams = Map.of("bad", new StreamDefinition(INPUT_TOPIC, "string", "nonexistent:FakeSchema"));
+        var producer = new TestDataProducer(driver, badStreams);
+        var block = new ProduceBlock("bad",
+                List.of(new TestMessage("k1", "v1", null)),
+                null, null);
+
+        assertThrows(TestDefinitionException.class,
+                () -> producer.produce(List.of(block)));
+    }
+
+    @Test
+    void undefinedStreamReferenceThrows() {
+        var producer = new TestDataProducer(driver, streams);
+        var block = new ProduceBlock("nonexistent",
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
 

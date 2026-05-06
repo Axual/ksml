@@ -1,0 +1,152 @@
+# Intentional-failure fixture: identical to processor-filtering-transforming-complete-test.yaml
+# except one assertion in `out_of_range_temperature_is_filtered` is inverted to produce a FAIL.
+# Used by KSMLTestRunnerTest.suiteWithFailingAssertReportsFailNotError to verify that:
+#   - at least one test FAILs (not ERRORs),
+#   - the remaining tests still PASS (the runner doesn't short-circuit on a failure).
+name: "Filtering & transforming pipeline (with intentional failure)"
+pipeline: pipelines/processor-filtering-transforming-complete.yaml
+
+streams:
+  tutorial_input:
+    topic: tutorial_input
+    keyType: string
+    valueType: json
+  filtered_data:
+    topic: filtered_data
+    keyType: string
+    valueType: json
+  alerts_stream:
+    topic: alerts_stream
+    keyType: string
+    valueType: json
+
+tests:
+  valid_sensor_data_is_transformed:
+    description: "Valid sensor data is filtered through and transformed"
+    produce:
+      - to: tutorial_input
+        messages:
+          - key: "sensor0"
+            value:
+              sensors:
+                temperature:
+                  value: 80
+                  unit: "F"
+                humidity:
+                  value: 88
+                  unit: "%"
+                location:
+                  value: "data_center"
+                  unit: "text"
+              metadata:
+                timestamp: 1700000000000
+    assert:
+      - on: filtered_data
+        code: |
+          assert len(records) == 1, f"Expected 1 record on filtered_data, got {len(records)}"
+          output = records[0]["value"]
+          assert output["sensor_id"] == "sensor0", f"Expected sensor_id 'sensor0', got {output['sensor_id']}"
+          assert output["location"] == "data_center", f"Expected location 'data_center', got {output['location']}"
+          assert output["readings"]["temperature"]["fahrenheit"] == 80, f"Expected fahrenheit 80, got {output['readings']['temperature']['fahrenheit']}"
+          celsius = output["readings"]["temperature"]["celsius"]
+          assert abs(celsius - 26.67) < 0.01, f"Expected celsius ~26.67, got {celsius}"
+          assert output["readings"]["humidity"] == 88, f"Expected humidity 88, got {output['readings']['humidity']}"
+          assert "heat_index" in output["readings"], "Expected heat_index field in readings"
+          assert "timestamp" in output, "Expected timestamp field in output"
+          assert "processed_at" in output, "Expected processed_at field in output"
+      - on: alerts_stream
+        code: |
+          assert len(records) == 0, f"Expected no records on alerts_stream, got {len(records)}"
+
+  out_of_range_temperature_is_filtered:
+    description: "Out-of-range temperature is filtered out"
+    produce:
+      - to: tutorial_input
+        messages:
+          - key: "sensor1"
+            value:
+              sensors:
+                temperature:
+                  value: 250
+                  unit: "F"
+                humidity:
+                  value: 50
+                  unit: "%"
+                location:
+                  value: "warehouse"
+                  unit: "text"
+              metadata:
+                timestamp: 1700000000000
+    assert:
+      # Intentionally inverted: out-of-range temp IS filtered, so records is in fact empty —
+      # asserting != 0 forces a FAIL (AssertionError, not a runtime error).
+      - on: filtered_data
+        code: |
+          assert len(records) != 0, f"Intentional failure: expected records on filtered_data, got {len(records)}"
+      - on: alerts_stream
+        code: |
+          assert len(records) == 0, f"Expected no records on alerts_stream, got {len(records)}"
+
+  missing_temperature_is_filtered:
+    description: "Sensor data without temperature is filtered out"
+    produce:
+      - to: tutorial_input
+        messages:
+          - key: "sensor2"
+            value:
+              sensors:
+                humidity:
+                  value: 70
+                  unit: "%"
+                location:
+                  value: "server_room"
+                  unit: "text"
+              metadata:
+                timestamp: 1700000000000
+    assert:
+      - on: filtered_data
+        code: |
+          assert len(records) == 0, f"Expected no records on filtered_data, got {len(records)}"
+      - on: alerts_stream
+        code: |
+          assert len(records) == 0, f"Expected no records on alerts_stream, got {len(records)}"
+
+  missing_humidity_is_filtered:
+    description: "Sensor data without humidity is filtered out"
+    produce:
+      - to: tutorial_input
+        messages:
+          - key: "sensor3"
+            value:
+              sensors:
+                temperature:
+                  value: 75
+                  unit: "F"
+                location:
+                  value: "office"
+                  unit: "text"
+              metadata:
+                timestamp: 1700000000000
+    assert:
+      - on: filtered_data
+        code: |
+          assert len(records) == 0, f"Expected no records on filtered_data, got {len(records)}"
+      - on: alerts_stream
+        code: |
+          assert len(records) == 0, f"Expected no records on alerts_stream, got {len(records)}"
+
+  malformed_payload_routes_to_alerts:
+    description: "Malformed sensor data is routed to alerts_stream when transformation fails"
+    produce:
+      - to: tutorial_input
+        messages:
+          - key: "sensor4"
+            value:
+              invalid_field: "malformed"
+    assert:
+      - on: alerts_stream
+        code: |
+          if len(records) > 0:
+              error = records[0]["value"]
+              assert "error" in error, "Expected 'error' field in alert record"
+              assert error["sensor_id"] == "sensor4", f"Expected sensor_id 'sensor4', got {error['sensor_id']}"

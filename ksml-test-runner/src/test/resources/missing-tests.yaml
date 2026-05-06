@@ -1,13 +1,7 @@
-name: "Test entry without produce block"
+name: "Suite without a tests map"
 pipeline: pipelines/test-filter.yaml
 streams:
   source:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: "avro:SensorData"
-tests:
-  no_produce:
-    assert:
-      - on: source
-        code: |
-          assert True

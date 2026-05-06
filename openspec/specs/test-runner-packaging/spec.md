@@ -1,5 +1,8 @@
-## ADDED Requirements
+# test-runner-packaging Specification
 
+## Purpose
+TBD - created by archiving change ksml-test-runner. Update Purpose after archive.
+## Requirements
 ### Requirement: Separate Maven module
 The test runner SHALL be a separate Maven module named `ksml-test-runner` in the project root, with its own `pom.xml` declaring dependencies on `ksml` (core), `kafka-streams-test-utils` (compile scope), and Picocli.
 
@@ -31,3 +34,4 @@ The `ksml-test-runner` module SHALL be listed in the root `pom.xml` modules list
 #### Scenario: Full project build
 - **WHEN** `mvn clean package` is run from the project root
 - **THEN** the `ksml-test-runner` module SHALL be built along with all other modules
+

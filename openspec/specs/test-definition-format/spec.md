@@ -1,5 +1,8 @@
-## ADDED Requirements
+# test-definition-format Specification
 
+## Purpose
+TBD - created by archiving change ksml-test-runner. Update Purpose after archive.
+## Requirements
 ### Requirement: Test definition YAML structure
 A test definition YAML file SHALL contain a `test` root element with the following fields: `name` (string, required), `pipeline` (classpath-relative path to a KSML pipeline definition, required), `schemaDirectory` (path to Avro schema files, optional), `produce` (list of produce blocks, required), and `assert` (list of assertion blocks, required).
 
@@ -80,3 +83,4 @@ The `code` field in each assert block SHALL be executed as a Python script in a 
 #### Scenario: Python runtime error
 - **WHEN** the assertion code raises a non-assertion exception (e.g., `KeyError`, `TypeError`)
 - **THEN** the test SHALL be reported as errored with the exception details
+

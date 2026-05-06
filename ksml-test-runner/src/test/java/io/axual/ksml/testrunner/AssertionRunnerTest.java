@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -50,8 +51,11 @@ class AssertionRunnerTest {
     private static final String INPUT_TOPIC = "input-topic";
     private static final String OUTPUT_TOPIC = "output-topic";
     private static final String STORE_NAME = "test-store";
+    private static final String OUTPUT_STREAM = "output";
+    private static final String SUITE = "assertion-runner-test";
 
     private TopologyTestDriver driver;
+    private Map<String, StreamDefinition> streams;
 
     static boolean isRunningOnGraalVM() {
         return Version.getCurrent().isRelease();
@@ -88,6 +92,8 @@ class AssertionRunnerTest {
                 .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));
 
         driver = new TopologyTestDriver(builder.build());
+
+        streams = Map.of(OUTPUT_STREAM, new StreamDefinition(OUTPUT_TOPIC, "string", "string"));
     }
 
     @AfterEach
@@ -109,14 +115,15 @@ class AssertionRunnerTest {
     void passingAssertionReturnsPass() {
         produceMessages("k1", "v1", "k2", "v2");
 
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var block = new AssertBlock(OUTPUT_TOPIC, null,
+        var runner = new AssertionRunner(driver, streams);
+        var block = new AssertBlock(OUTPUT_STREAM, null,
                 "assert len(records) == 2\n");
 
-        var result = runner.runAssertions(List.of(block), "pass-test");
+        var result = runner.runAssertions(List.of(block), SUITE, "pass-test");
 
         assertEquals(TestResult.Status.PASS, result.status());
         assertEquals("pass-test", result.testName());
+        assertEquals(SUITE, result.suiteName());
         assertNull(result.message());
     }
 
@@ -124,11 +131,11 @@ class AssertionRunnerTest {
     void failingAssertionReturnsFail() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var block = new AssertBlock(OUTPUT_TOPIC, null,
+        var runner = new AssertionRunner(driver, streams);
+        var block = new AssertBlock(OUTPUT_STREAM, null,
                 "assert len(records) == 99, \"expected 99 records\"\n");
 
-        var result = runner.runAssertions(List.of(block), "fail-test");
+        var result = runner.runAssertions(List.of(block), SUITE, "fail-test");
 
         assertEquals(TestResult.Status.FAIL, result.status());
         assertEquals("fail-test", result.testName());
@@ -140,11 +147,11 @@ class AssertionRunnerTest {
     void assertionErrorWithoutMessageReturnsFail() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var block = new AssertBlock(OUTPUT_TOPIC, null,
+        var runner = new AssertionRunner(driver, streams);
+        var block = new AssertBlock(OUTPUT_STREAM, null,
                 "assert False\n");
 
-        var result = runner.runAssertions(List.of(block), "bare-assert");
+        var result = runner.runAssertions(List.of(block), SUITE, "bare-assert");
 
         assertEquals(TestResult.Status.FAIL, result.status());
         assertTrue(result.message().contains("AssertionError"));
@@ -154,11 +161,11 @@ class AssertionRunnerTest {
     void pythonErrorReturnsError() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var block = new AssertBlock(OUTPUT_TOPIC, null,
+        var runner = new AssertionRunner(driver, streams);
+        var block = new AssertBlock(OUTPUT_STREAM, null,
                 "x = 1 / 0\n");
 
-        var result = runner.runAssertions(List.of(block), "error-test");
+        var result = runner.runAssertions(List.of(block), SUITE, "error-test");
 
         assertEquals(TestResult.Status.ERROR, result.status());
         assertEquals("error-test", result.testName());
@@ -169,38 +176,37 @@ class AssertionRunnerTest {
     void recordsContainKeyValueAndTimestamp() {
         produceMessages("mykey", "myvalue");
 
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var block = new AssertBlock(OUTPUT_TOPIC, null, """
+        var runner = new AssertionRunner(driver, streams);
+        var block = new AssertBlock(OUTPUT_STREAM, null, """
                 assert len(records) == 1
                 assert records[0]["key"] == "mykey"
                 assert records[0]["value"] == "myvalue"
                 assert "timestamp" in records[0]
                 """);
 
-        var result = runner.runAssertions(List.of(block), "record-fields");
+        var result = runner.runAssertions(List.of(block), SUITE, "record-fields");
 
         assertEquals(TestResult.Status.PASS, result.status());
     }
 
     @Test
     void emptyTopicYieldsEmptyRecords() {
-        // Don't produce any messages
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var block = new AssertBlock(OUTPUT_TOPIC, null,
+        var runner = new AssertionRunner(driver, streams);
+        var block = new AssertBlock(OUTPUT_STREAM, null,
                 "assert len(records) == 0\n");
 
-        var result = runner.runAssertions(List.of(block), "empty-topic");
+        var result = runner.runAssertions(List.of(block), SUITE, "empty-topic");
 
         assertEquals(TestResult.Status.PASS, result.status());
     }
 
     @Test
     void missingStoreReturnsError() {
-        var runner = new AssertionRunner(driver, java.util.Map.of());
+        var runner = new AssertionRunner(driver, streams);
         var block = new AssertBlock(null, List.of("nonexistent_store"),
                 "pass\n");
 
-        var result = runner.runAssertions(List.of(block), "missing-store");
+        var result = runner.runAssertions(List.of(block), SUITE, "missing-store");
 
         assertEquals(TestResult.Status.ERROR, result.status());
         assertTrue(result.message().contains("nonexistent_store"));
@@ -210,16 +216,16 @@ class AssertionRunnerTest {
     void multipleAssertBlocksStopOnFirstFailure() {
         produceMessages("k1", "v1");
 
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var passingBlock = new AssertBlock(OUTPUT_TOPIC, null,
+        var runner = new AssertionRunner(driver, streams);
+        var passingBlock = new AssertBlock(OUTPUT_STREAM, null,
                 "assert len(records) == 1\n");
-        var failingBlock = new AssertBlock(OUTPUT_TOPIC, null,
+        var failingBlock = new AssertBlock(OUTPUT_STREAM, null,
                 "assert False, \"should fail\"\n");
-        var unreachedBlock = new AssertBlock(OUTPUT_TOPIC, null,
+        var unreachedBlock = new AssertBlock(OUTPUT_STREAM, null,
                 "assert False, \"should not run\"\n");
 
         var result = runner.runAssertions(
-                List.of(passingBlock, failingBlock, unreachedBlock), "multi-block");
+                List.of(passingBlock, failingBlock, unreachedBlock), SUITE, "multi-block");
 
         assertEquals(TestResult.Status.FAIL, result.status());
         assertTrue(result.message().contains("should fail"));
@@ -229,22 +235,22 @@ class AssertionRunnerTest {
     void allBlocksPassReturnsPass() {
         produceMessages("k1", "v1", "k2", "v2");
 
-        var runner = new AssertionRunner(driver, java.util.Map.of());
-        var block1 = new AssertBlock(OUTPUT_TOPIC, null,
+        var runner = new AssertionRunner(driver, streams);
+        var block1 = new AssertBlock(OUTPUT_STREAM, null,
                 "assert len(records) >= 1\n");
-        var block2 = new AssertBlock(OUTPUT_TOPIC, null,
+        var block2 = new AssertBlock(OUTPUT_STREAM, null,
                 "assert True\n");
 
-        var result = runner.runAssertions(List.of(block1, block2), "all-pass");
+        var result = runner.runAssertions(List.of(block1, block2), SUITE, "all-pass");
 
         assertEquals(TestResult.Status.PASS, result.status());
     }
 
     @Test
     void emptyAssertBlockListReturnsPass() {
-        var runner = new AssertionRunner(driver, java.util.Map.of());
+        var runner = new AssertionRunner(driver, streams);
 
-        var result = runner.runAssertions(List.of(), "no-blocks");
+        var result = runner.runAssertions(List.of(), SUITE, "no-blocks");
 
         assertEquals(TestResult.Status.PASS, result.status());
     }

@@ -1,4 +1,4 @@
-name: "Assert block without on or stores"
+name: "Duplicate keys in tests map"
 pipeline: pipelines/test-filter.yaml
 streams:
   source:
@@ -6,12 +6,23 @@ streams:
     keyType: string
     valueType: "avro:SensorData"
 tests:
-  empty_assert:
+  same_key:
     produce:
       - to: source
         messages:
           - key: "k1"
             value: { color: "blue" }
     assert:
-      - code: |
+      - on: source
+        code: |
+          assert True
+  same_key:
+    produce:
+      - to: source
+        messages:
+          - key: "k2"
+            value: { color: "red" }
+    assert:
+      - on: source
+        code: |
           assert True

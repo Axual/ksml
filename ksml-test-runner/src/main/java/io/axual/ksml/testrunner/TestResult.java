@@ -21,13 +21,15 @@ package io.axual.ksml.testrunner;
  */
 
 /**
- * Result of executing a single test definition.
+ * Result of executing a single test entry.
  *
- * @param testName the human-readable test name
- * @param status   PASS, FAIL, or ERROR
- * @param message  details on failure/error, or null for PASS
+ * @param suiteName the suite-level name (file's {@code name:} or filename without extension)
+ * @param testName  the per-test display label (test entry's {@code description:} or test key)
+ * @param status    PASS, FAIL, or ERROR
+ * @param message   details on failure/error, or null for PASS
  */
 public record TestResult(
+        String suiteName,
         String testName,
         Status status,
         String message
@@ -36,15 +38,24 @@ public record TestResult(
         PASS, FAIL, ERROR
     }
 
-    public static TestResult pass(String testName) {
-        return new TestResult(testName, Status.PASS, null);
+    public static TestResult pass(String suiteName, String testName) {
+        return new TestResult(suiteName, testName, Status.PASS, null);
     }
 
-    public static TestResult fail(String testName, String message) {
-        return new TestResult(testName, Status.FAIL, message);
+    public static TestResult fail(String suiteName, String testName, String message) {
+        return new TestResult(suiteName, testName, Status.FAIL, message);
     }
 
-    public static TestResult error(String testName, String message) {
-        return new TestResult(testName, Status.ERROR, message);
+    public static TestResult error(String suiteName, String testName, String message) {
+        return new TestResult(suiteName, testName, Status.ERROR, message);
+    }
+
+    /**
+     * Compose the qualified display label as {@code <suite> › <test>}.
+     */
+    public String qualifiedLabel() {
+        if (suiteName == null || suiteName.isEmpty()) return testName;
+        if (testName == null || testName.isEmpty()) return suiteName;
+        return suiteName + " › " + testName;
     }
 }

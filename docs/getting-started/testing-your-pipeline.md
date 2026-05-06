@@ -13,96 +13,114 @@ The test runner:
 
 No Kafka broker, no Schema Registry, no infrastructure required.
 
+A test definition file is a *suite* — it describes one pipeline plus one or more named tests that share the suite's configuration. Each test runs against a fresh `TopologyTestDriver`, so tests in the same suite are hermetic and do not share state.
+
 ## Test Definition Format
 
-A test definition is a YAML file with a `test` root element:
+A test definition is a flat YAML document — no outer wrapper element — describing one pipeline, the streams it touches, and one or more named tests:
 
 ```yaml
-test:
-  name: "Human-readable test name"
-  pipeline: path/to/pipeline.yaml
-  schemaDirectory: path/to/schemas    # optional, for Avro schemas
+name: "Filtering pipeline tests"          # optional; falls back to filename without extension
+pipeline: path/to/pipeline.yaml
+schemaDirectory: path/to/schemas          # optional, for schemas
+moduleDirectory: path/to/modules          # optional, for externalized Python modules
 
-  produce:
-    - topic: input-topic-name
-      keyType: string                 # optional, defaults to "string"
-      valueType: "avro:SensorData"    # optional, defaults to "string"
-      messages:
-        - key: "my-key"
-          value: { field: "value" }
-          timestamp: 1709200000000    # optional, epoch millis
+streams:
+  sensor_source:                          # logical stream name (referenced by to: / on:)
+    topic: input-topic-name
+    keyType: string                       # optional, defaults to "string"
+    valueType: "avro:SensorData"          # optional, defaults to "string"
+  sensor_filtered:
+    topic: output-topic-name
+    keyType: string
+    valueType: "avro:SensorData"
 
-  assert:
-    - topic: output-topic-name
-      code: |
-        assert len(records) == 1
-        assert records[0]["key"] == "my-key"
+tests:
+  blue_sensors_pass:                      # test identifier (referenced in reports)
+    description: "Blue sensors pass through"   # optional, falls back to the test key
+    produce:
+      - to: sensor_source                 # references streams: key, not a topic name
+        messages:
+          - key: "my-key"
+            value: { field: "value" }
+            timestamp: 1709200000000      # optional, epoch millis
+
+    assert:
+      - on: sensor_filtered               # references streams: key, not a topic name
+        code: |
+          assert len(records) == 1
+          assert records[0]["key"] == "my-key"
 ```
 
-### Produce Blocks
-
-Each produce block targets one input topic. You can define multiple produce blocks to feed data into different topics (e.g. for join tests).
-
-| Field | Required | Default | Description |
-|---|---|---|---|
-| `topic` | yes | | Kafka topic name |
-| `keyType` | no | `string` | Key serialization type (e.g. `string`, `avro:MySchema`) |
-| `valueType` | no | `string` | Value serialization type |
-| `messages` | yes | | List of messages with `key`, `value`, and optional `timestamp` |
-
-### Assert Blocks
-
-Each assert block runs Python code with injected variables. At least one of `topic` or `stores` must be specified.
+### Suite-level fields
 
 | Field | Required | Description |
 |---|---|---|
-| `topic` | no | Output topic to read records from. Injects a `records` list variable |
-| `stores` | no | List of state store names to inject as Python variables |
-| `code` | yes | Python assertion code using `assert` statements |
+| `name` | no | Human-readable suite name shown in reports. Falls back to filename without extension. |
+| `pipeline` | yes | Path to the KSML pipeline YAML (relative to the test file, on the classpath, or absolute). |
+| `schemaDirectory` | no | Path to schema files. Required when any stream uses a schema-bearing notation like `avro:Foo`. |
+| `moduleDirectory` | no | Path to externalized Python modules accessible to the pipeline. |
+| `streams` | no | Map of named topic+type bindings, referenced by `to:` and `on:`. See below. |
+| `tests` | yes | Map of named tests. Must contain at least one entry. See below. |
 
-When `topic` is set, `records` is a list of dicts with `key`, `value`, and `timestamp` fields.
-When `stores` is set, each store is available as a Python variable with the same API as in pipeline functions (e.g. `store.get(key)`).
+### Streams
 
-### Registry Block
-
-When your pipeline uses registry-inferred schema types like `valueType: confluent_avro` (without an explicit schema name), KSML normally fetches the schema from a schema registry at runtime. In tests, there is no registry — but you can use the `registry` block to tell the test runner which schemas to associate with which topics.
-
-```yaml
-test:
-  name: "My test"
-  pipeline: pipelines/my-pipeline.yaml
-  schemaDirectory: schemas
-  registry:
-    - topic: my-input-topic
-      keyType: string
-      valueType: "avro:SensorData"
-    - topic: my-output-topic
-      keyType: string
-      valueType: "avro:SensorData"
-```
+The `streams:` map declares every Kafka topic the test suite produces to or asserts on. Each entry is keyed by a logical stream identifier (matching `^[a-zA-Z][a-zA-Z0-9_]*$`) and binds it to a topic plus key/value types. The same identifier-regex applies to test keys.
 
 | Field | Required | Default | Description |
 |---|---|---|---|
-| `topic` | yes | | Kafka topic name |
-| `keyType` | no | `string` | Key type (e.g. `string`, `avro:MyKeySchema`) |
-| `valueType` | no | `string` | Value type (e.g. `avro:SensorData`) |
+| `topic` | yes | | Kafka topic name. Each topic may appear in at most one stream entry. |
+| `keyType` | no | `string` | Key serialization type (e.g. `string`, `avro:MyKey`). |
+| `valueType` | no | `string` | Value serialization type (e.g. `string`, `avro:SensorData`). |
 
-The test runner loads each referenced schema (e.g. `SensorData.avsc`) from the `schemaDirectory` and registers it in a mock schema registry under the standard subject names (`{topic}-key`, `{topic}-value`). This happens before the topology is built, so `resolveUserType()` finds the schema when it encounters the `confluent_avro` type.
+Type strings follow KSML's standard type grammar — the same one `StreamDefinitionParser` uses in pipeline yamls:
 
-**Type merging with produce blocks:** If a produce block specifies `keyType` or `valueType` for the same topic, those values are merged into the registry — the produce block's types take precedence. This means you don't need to repeat types in both places:
+- **Schema-less notations** (`string`, `long`, `int`, `boolean`, `bytes`, `json`, `binary`, `xml`, etc.) may appear unqualified.
+- **Schema-bearing notations** (`avro`, `confluent_avro`, `apicurio_avro`, `protobuf`, `json_schema`, `csv`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is loaded from `schemaDirectory` and registered in the in-memory mock registry under `<topic>-key` / `<topic>-value`. This replaces the old `registry:` block — registry population is now a side effect of declaring streams with schema-bearing types.
+- **Bare schema-bearing notations** (e.g., `confluent_avro` without `:Schema`) are rejected — the test runner has no real registry to resolve them against.
 
-```yaml
-  registry:
-    - topic: my-output-topic             # output topic: only in registry
-      valueType: "avro:SensorData"
+### Tests
 
-  produce:
-    - topic: my-input-topic              # types here are also registered
-      valueType: "avro:SensorData"
-      messages: [...]
-```
+The `tests:` map carries one or more test entries. Each key is a stable test identifier (matching the same regex as stream keys); the value contains that test's produce data and assertions. Tests run in YAML-defined order; failure in one test does not stop later tests.
 
-**Assertion deserialization:** When an assert block reads from an output topic, the test runner uses the registry to determine the correct deserializer. Without a registry entry, output records are deserialized as strings (the existing default behavior).
+| Field | Required | Description |
+|---|---|---|
+| `description` | no | Human-readable label. Falls back to the test key. |
+| `produce` | yes | List of produce blocks. |
+| `assert` | yes | List of assertion blocks. |
+
+### Produce Blocks
+
+Each produce block targets one stream by reference. You can define multiple produce blocks to feed data into different streams (e.g. for join tests).
+
+| Field | Required | Default | Description |
+|---|---|---|---|
+| `to` | yes | | Stream key (must exist in `streams:`). |
+| `messages` | * | | List of messages with `key`, `value`, and optional `timestamp` (epoch millis). |
+| `generator` | * | | Generator function (KSML generator syntax). Mutually exclusive with `messages`. |
+| `count` | no | `1` | Number of times to invoke the generator. |
+
+\* Exactly one of `messages` or `generator` must be present.
+
+Inline `topic`, `keyType`, or `valueType` fields on a produce block are not permitted — declare the stream under `streams:` and reference it via `to:`.
+
+### Assert Blocks
+
+Each assert block runs Python code with injected variables. At least one of `on` or `stores` must be specified.
+
+| Field | Required | Description |
+|---|---|---|
+| `on` | no* | Stream key (must exist in `streams:`). The runner reads all records from the underlying topic and injects them as a `records` list variable, deserialized using the stream's serdes. |
+| `stores` | no* | List of state store names (the names declared in the pipeline's `stores:` block). Each store is injected as a Python variable. |
+| `code` | yes | Python assertion code using `assert` statements. |
+
+When `on:` is set, `records` is a list of dicts with `key`, `value`, and `timestamp` fields. When `stores:` is set, each store is available as a Python variable with the same API as in pipeline functions (e.g. `store.get(key)`, `store.put(key, value)`).
+
+Inline `topic` fields on an assert block are not permitted — declare the stream under `streams:` and reference it via `on:`.
+
+### Reporting
+
+Each test result is labeled `<suite> › <test>` where `<suite>` is the file's `name:` (or the filename without extension) and `<test>` is the test entry's `description:` (or the test key if absent). Suite-level parse failures (missing `pipeline:`, malformed YAML, undefined stream references, etc.) are reported as a single ERROR result for the whole suite.
 
 ## Example: Testing a Filter Pipeline
 
@@ -126,11 +144,11 @@ This pipeline reads from `ksml_sensordata_avro`, filters messages where the sens
     --8<-- "sample-filter-test.yaml"
     ```
 
-The test sends three sensor messages (two blue, one red) and asserts that only the two blue sensors appear in the output topic.
+The suite declares two logical streams (`sensor_source` and `sensor_filtered`) bound to the two Kafka topics, then defines one test that produces three sensor messages (two blue, one red) into `sensor_source` and asserts that only the two blue sensors appear on `sensor_filtered`.
 
-## Example: Testing a Pipeline with Registry-Inferred Schemas
+## Example: Testing a Pipeline Using `confluent_avro`
 
-If your pipeline uses `confluent_avro` (or `apicurio_avro`) without an explicit schema name, the test runner needs a `registry` block to provide the schemas that would normally come from the schema registry.
+If your pipeline uses `confluent_avro` (or `apicurio_avro`) — notations that would normally fetch schemas from a real registry at runtime — the suite's `streams:` block tells the test runner which schemas to register in the mock registry. Each stream entry's `valueType: "avro:SensorData"` causes `SensorData.avsc` to be loaded from `schemaDirectory` and registered under the `<topic>-key` / `<topic>-value` subjects. The pipeline's `confluent_avro` types resolve from the mock registry, and the assertion can deserialize the Avro output records correctly.
 
 ### The Pipeline
 
@@ -140,8 +158,6 @@ If your pipeline uses `confluent_avro` (or `apicurio_avro`) without an explicit 
     --8<-- "pipelines/test-filter-confluent-avro.yaml"
     ```
 
-This is the same filter logic, but the output topic uses `confluent_avro` — the schema will be inferred from the registry at runtime.
-
 ### The Test
 
 ??? info "Test definition: `sample-filter-test-confluent-avro.yaml` (click to expand)"
@@ -150,9 +166,7 @@ This is the same filter logic, but the output topic uses `confluent_avro` — th
     --8<-- "sample-filter-test-confluent-avro.yaml"
     ```
 
-In this example, the `registry` block maps both the input and output topics to `avro:SensorData`. The test runner loads `SensorData.avsc` from the `schemas` directory and registers it in the mock registry. The pipeline then resolves its `confluent_avro` types from the mock registry, and the assertion can properly deserialize the Avro output records.
-Note that in this example both the `registry` block and the `produce` block specify `"avro:SensorData"` as the valueType; either by itself is fine, in cases where both 
-are present like here, the valueType from the produce block would win in case of a difference.
+The same suite shape works for both `avro:SensorData` (where the schema name is part of the type) and `confluent_avro:SensorData` (where it would normally come from a real registry) — the test runner handles them uniformly through the `streams:` block.
 
 ## Running Tests with Docker
 
@@ -167,7 +181,7 @@ docker run --rm \
   /tests/my-test.yaml
 ```
 
-You can pass multiple test files:
+You can pass multiple test files or directories:
 
 ```bash
 docker run --rm \
@@ -175,7 +189,7 @@ docker run --rm \
   --entrypoint java \
   axual/ksml:latest \
   -Djava.security.manager=allow -jar /opt/ksml/ksml-test.jar \
-  /tests/filter-test.yaml /tests/join-test.yaml /tests/store-test.yaml
+  /tests/
 ```
 
 ### Example Output
@@ -183,9 +197,11 @@ docker run --rm \
 ```
 === KSML Test Results ===
 
-  PASS  Filter pipeline passes blue sensors
+  PASS  Filter pipeline passes blue sensors › Blue sensors pass through, red ones are filtered out
+  PASS  Filtering & transforming pipeline › Valid sensor data is transformed
+  PASS  Filtering & transforming pipeline › Out-of-range temperature is filtered out
 
-1 passed, 0 failed, 0 errors
+3 passed, 0 failed, 0 errors
 ```
 
 The exit code is `0` when all tests pass, `1` otherwise. This makes it easy to integrate into CI/CD pipelines.
@@ -222,13 +238,25 @@ assert value is not None, "Expected sensor-1 in store"
 assert value["temperature"] == "25.0"
 ```
 
+### Combine output records and state stores in one block
+
+```yaml
+assert:
+  - on: enriched_output
+    stores:
+      - last_seen_store
+    code: |
+      assert len(records) == 1
+      assert last_seen_store.get(records[0]["key"]) is not None
+```
+
 ## Schema Validation for Test Files
 
-A JSON Schema is available for test definition files at `docs/ksml-test-spec.json`. See the [Schema Validation](schema-validation.md) page for instructions on setting up editor auto-completion and validation.
+A JSON Schema is available for test definition files at `docs/ksml-test-spec.json`. See the [Schema Validation](schema-validation.md) page for instructions on setting up editor auto-completion and validation. The schema enforces the identifier regex on stream and test keys via `patternProperties`, so editors will flag invalid keys as you type.
 
 ## Logging
 
-The test runner ships with a default Logback configuration that keeps output quiet: `WARN` for everything, `INFO` for the test runner itself so you still see the `Running test: ...` progress lines and the final results table.
+The test runner ships with a default Logback configuration that keeps output quiet: `WARN` for everything, `INFO` for the test runner itself so you still see the `Running suite: ...` progress lines and the final results table.
 
 To get verbose output for one run, point Logback at a custom logback configuration file at invocation time:
 

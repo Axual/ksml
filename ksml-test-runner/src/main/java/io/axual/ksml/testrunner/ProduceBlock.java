@@ -24,28 +24,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A block that defines test data to be produced to a topic.
+ * A block that defines test data to be produced into a stream declared in the
+ * suite's {@code streams:} map.
  *
- * @param topic    the target topic name
- * @param keyType  the key type (e.g., "string")
- * @param valueType the value type (e.g., "avro:SensorData", "json")
- * @param messages inline test messages (may be null if generator is used)
+ * @param to        key into the suite's {@code streams:} map identifying the target stream
+ * @param messages  inline test messages (mutually exclusive with {@code generator})
  * @param generator optional generator function definition as a map (KSML generator syntax)
- * @param count    optional count for generator-based production
+ * @param count     optional count for generator-based production
  */
-@JsonSchema(description = "A block that defines test data to be produced to a topic")
+@JsonSchema(
+        description = "A block that defines test data to be produced into a stream",
+        oneOfRequired = {"messages", "generator"})
 public record ProduceBlock(
-        @JsonSchema(description = "Target Kafka topic name", required = true,
-                examples = {"input-topic", "sensor-data"})
-        String topic,
-
-        @JsonSchema(description = "Key serialization type", defaultValue = "string",
-                examples = {"string", "avro:MyKeySchema", "json", "binary"})
-        String keyType,
-
-        @JsonSchema(description = "Value serialization type", defaultValue = "string",
-                examples = {"string", "avro:SensorData", "json", "binary"})
-        String valueType,
+        @JsonSchema(description = "Key into the suite's streams: map identifying the target stream",
+                required = true,
+                examples = {"sensor_source", "raw_input"})
+        String to,
 
         @JsonSchema(description = "Inline test messages to produce")
         List<TestMessage> messages,
@@ -57,16 +51,16 @@ public record ProduceBlock(
         Long count
 ) {
     /**
-     * Validate that the produce block has either messages or a generator.
+     * Validate that the produce block has either messages or a generator, but not both.
      */
     public void validate() {
         if (messages == null && generator == null) {
             throw new TestDefinitionException(
-                    "Produce block for topic '" + topic + "' must have either 'messages' or 'generator'");
+                    "Produce block targeting stream '" + to + "' must have either 'messages' or 'generator'");
         }
         if (messages != null && generator != null) {
             throw new TestDefinitionException(
-                    "Produce block for topic '" + topic + "' must have either 'messages' or 'generator'");
+                    "Produce block targeting stream '" + to + "' must have either 'messages' or 'generator', not both");
         }
     }
 }

@@ -21,14 +21,16 @@ package io.axual.ksml.testrunner;
  */
 
 /**
- * A registry entry that maps a topic to its key and value types for mock schema registry population.
+ * A named binding from a logical stream identifier to a Kafka topic and its key/value types.
+ * Stream definitions live in the suite-level {@code streams:} map and are referenced by
+ * produce blocks (via {@code to:}) and assert blocks (via {@code on:}).
  *
  * @param topic     the Kafka topic name
- * @param keyType   the key type (e.g., "string", "avro:MyKey")
- * @param valueType the value type (e.g., "string", "avro:SensorData")
+ * @param keyType   the key type string (e.g., "string", "avro:MyKey")
+ * @param valueType the value type string (e.g., "string", "avro:SensorData")
  */
-@JsonSchema(description = "A registry entry mapping a topic to its key and value types for mock schema registry population")
-public record RegistryEntry(
+@JsonSchema(description = "A named binding from a logical stream identifier to a Kafka topic and its key/value types")
+public record StreamDefinition(
         @JsonSchema(description = "Kafka topic name", required = true,
                 examples = {"my-topic", "sensor-data"})
         String topic,
@@ -38,10 +40,10 @@ public record RegistryEntry(
         String keyType,
 
         @JsonSchema(description = "Value serialization type", defaultValue = "string",
-                examples = {"string", "avro:SensorData", "confluent_avro"})
+                examples = {"string", "avro:SensorData", "json"})
         String valueType
 ) {
-    public RegistryEntry {
+    public StreamDefinition {
         if (keyType == null) keyType = "string";
         if (valueType == null) valueType = "string";
     }
