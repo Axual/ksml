@@ -20,7 +20,7 @@ updates:
     - dependency-name: "com.github.victools:*"
       versions: [ ">=5.0.0" ]   # 5.0 requires Jackson 3 + Java 17
     - dependency-name: "com.squareup.wire:*"
-      versions: [ ">=6.0.0" ]   # 6.0 changed ProtoFileElement constructor
+      versions: [ ">=5.3.0" ]   # 5.3 changed ProtoFileElement constructor (added a param)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
