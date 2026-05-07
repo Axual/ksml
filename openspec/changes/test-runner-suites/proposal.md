@@ -1,6 +1,6 @@
 ## Why
 
-The KSML test runner currently requires one YAML file per test, with a top-level `registry:` block that mirrors information already declared in the pipeline's `streams:` block. The five files in `processor-filtering-transforming-complete-test/` illustrate the per-file cost: each repeats the same `pipeline:`, `registry:`, `schemaDirectory:`, and `moduleDirectory:` configuration to vary only produce data and assertions. Beyond the duplication, the `registry:` block introduces a vocabulary that has no counterpart in pipeline yamls, even though it describes the same concept (named topic + types). With the test runner still in pre-release, this is the right moment to restructure the format so that (a) one file holds many tests for one pipeline and (b) the file's vocabulary mirrors KSML pipeline yamls — `streams:` for named topic+type bindings, referenced by name from elsewhere in the file.
+The KSML test runner currently requires one YAML file per test, with a top-level `registry:` block that mirrors information already declared in the pipeline's `streams:` block. The five files in `processor-filtering-transforming-complete-test/` illustrate the per-file cost: each repeats the same `definition:`, `registry:`, `schemaDirectory:`, and `moduleDirectory:` configuration to vary only produce data and assertions. Beyond the duplication, the `registry:` block introduces a vocabulary that has no counterpart in pipeline yamls, even though it describes the same concept (named topic + types). With the test runner still in pre-release, this is the right moment to restructure the format so that (a) one file holds many tests for one pipeline and (b) the file's vocabulary mirrors KSML pipeline yamls — `streams:` for named topic+type bindings, referenced by name from elsewhere in the file.
 
 ## What Changes
 
@@ -33,7 +33,7 @@ The KSML test runner currently requires one YAML file per test, with a top-level
 ## Impact
 
 - **Code (Java)**:
-  - `TestDefinition` record is replaced. New types: `TestSuiteDefinition` (file-level: `name`, `pipeline`, `schemaDirectory`, `moduleDirectory`, `streams`, `tests`), `StreamDefinition` (per-entry: `topic`, `keyType`, `valueType`), `TestCaseDefinition` (per-test entry: `description`, `produce`, `assertions`).
+  - `TestDefinition` record is replaced. New types: `TestSuiteDefinition` (file-level: `name`, `definition`, `schemaDirectory`, `moduleDirectory`, `streams`, `tests`), `StreamDefinition` (per-entry: `topic`, `keyType`, `valueType`), `TestCaseDefinition` (per-test entry: `description`, `produce`, `assertions`).
   - `RegistryEntry` record is removed (its role is now covered by `StreamDefinition`).
   - `TestDefinitionParser` is rewritten to parse the new YAML shape, validate stream-key and test-key regexes, parse type strings via `UserTypeParser` with `allowUnresolved=false`, and detect duplicate keys / duplicate topics / undefined stream references.
   - `ProduceBlock` gains a `to:` field referencing a stream key; `topic`/`keyType`/`valueType` fields are removed.

@@ -1,5 +1,5 @@
 name: "Filter pipeline with confluent_avro and registry block"
-pipeline: pipelines/test-filter-confluent-avro.yaml
+definition: pipelines/test-filter-confluent-avro.yaml
 schemaDirectory: schemas
 
 streams:

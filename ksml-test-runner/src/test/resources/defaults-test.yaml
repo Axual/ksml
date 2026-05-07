@@ -1,5 +1,5 @@
 name: "Defaults test - keyType and valueType default to string"
-pipeline: pipelines/test-passthrough.yaml
+definition: pipelines/test-passthrough.yaml
 
 streams:
   input:

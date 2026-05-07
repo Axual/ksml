@@ -11,7 +11,7 @@ The test runner:
 3. Runs Python assertions against output topics and/or state stores
 4. Reports pass/fail results
 
-No Kafka broker, no Schema Registry, no infrastructure required.
+Since the test runner is using Kafka's topology test driver, there is no infrastructure needed: no Kafka broker, no Schema Registry. Tests can be run on any machine.
 
 A test definition file is a *suite* — it describes one pipeline plus one or more named tests that share the suite's configuration. Each test runs against a fresh `TopologyTestDriver`, so tests in the same suite are hermetic and do not share state.
 
@@ -21,7 +21,7 @@ A test definition is a flat YAML document — no outer wrapper element — descr
 
 ```yaml
 name: "Filtering pipeline tests"          # optional; falls back to filename without extension
-pipeline: path/to/pipeline.yaml
+definition: path/to/pipeline.yaml         # path to the KSML pipeline definition YAML
 schemaDirectory: path/to/schemas          # optional, for schemas
 moduleDirectory: path/to/modules          # optional, for externalized Python modules
 
@@ -57,7 +57,7 @@ tests:
 | Field | Required | Description |
 |---|---|---|
 | `name` | no | Human-readable suite name shown in reports. Falls back to filename without extension. |
-| `pipeline` | yes | Path to the KSML pipeline YAML (relative to the test file, on the classpath, or absolute). |
+| `definition` | yes | Path to the KSML pipeline definition YAML (relative to the test file, on the classpath, or absolute). |
 | `schemaDirectory` | no | Path to schema files. Required when any stream uses a schema-bearing notation like `avro:Foo`. |
 | `moduleDirectory` | no | Path to externalized Python modules accessible to the pipeline. |
 | `streams` | no | Map of named topic+type bindings, referenced by `to:` and `on:`. See below. |
@@ -65,7 +65,7 @@ tests:
 
 ### Streams
 
-The `streams:` map declares every Kafka topic the test suite produces to or asserts on. Each entry is keyed by a logical stream identifier (matching `^[a-zA-Z][a-zA-Z0-9_]*$`) and binds it to a topic plus key/value types. The same identifier-regex applies to test keys.
+The `streams:` map declares every Kafka topic the test suite produces to or asserts on. Each entry is keyed by a logical stream identifier (matching `^[a-zA-Z][a-zA-Z0-9_]*$`) and binds it to a topic plus key/value types. 
 
 | Field | Required | Default | Description |
 |---|---|---|---|
@@ -76,12 +76,12 @@ The `streams:` map declares every Kafka topic the test suite produces to or asse
 Type strings follow KSML's standard type grammar — the same one `StreamDefinitionParser` uses in pipeline yamls:
 
 - **Schema-less notations** (`string`, `long`, `int`, `boolean`, `bytes`, `json`, `binary`, `xml`, etc.) may appear unqualified.
-- **Schema-bearing notations** (`avro`, `confluent_avro`, `apicurio_avro`, `protobuf`, `json_schema`, `csv`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is loaded from `schemaDirectory` and registered in the in-memory mock registry under `<topic>-key` / `<topic>-value`. This replaces the old `registry:` block — registry population is now a side effect of declaring streams with schema-bearing types.
+- **Schema-bearing notations** (`avro`, `confluent_avro`, `apicurio_avro`, `protobuf`, `json_schema`, `csv`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is loaded from `schemaDirectory` and registered in an in-memory mock registry under `<topic>-key` / `<topic>-value`. 
 - **Bare schema-bearing notations** (e.g., `confluent_avro` without `:Schema`) are rejected — the test runner has no real registry to resolve them against.
 
 ### Tests
 
-The `tests:` map carries one or more test entries. Each key is a stable test identifier (matching the same regex as stream keys); the value contains that test's produce data and assertions. Tests run in YAML-defined order; failure in one test does not stop later tests.
+The `tests:` map carries one or more test entries. Each key is a stable test identifier matching the same regex as stream keys; the value contains that test's produce data and assertions. Tests run in YAML-defined order; failure in one test does not stop later tests.
 
 | Field | Required | Description |
 |---|---|---|
@@ -116,11 +116,9 @@ Each assert block runs Python code with injected variables. At least one of `on`
 
 When `on:` is set, `records` is a list of dicts with `key`, `value`, and `timestamp` fields. When `stores:` is set, each store is available as a Python variable with the same API as in pipeline functions (e.g. `store.get(key)`, `store.put(key, value)`).
 
-Inline `topic` fields on an assert block are not permitted — declare the stream under `streams:` and reference it via `on:`.
-
 ### Reporting
 
-Each test result is labeled `<suite> › <test>` where `<suite>` is the file's `name:` (or the filename without extension) and `<test>` is the test entry's `description:` (or the test key if absent). Suite-level parse failures (missing `pipeline:`, malformed YAML, undefined stream references, etc.) are reported as a single ERROR result for the whole suite.
+Each test result is labeled `<suite> › <test>` where `<suite>` is the file's `name:` (or the filename without extension) and `<test>` is the test entry's `description:` (or the test key if absent). Suite-level parse failures (missing `definition:`, malformed YAML, undefined stream references, etc.) are reported as a single ERROR result for the whole suite.
 
 ## Example: Testing a Filter Pipeline
 
@@ -148,7 +146,7 @@ The suite declares two logical streams (`sensor_source` and `sensor_filtered`) b
 
 ## Example: Testing a Pipeline Using `confluent_avro`
 
-If your pipeline uses `confluent_avro` (or `apicurio_avro`) — notations that would normally fetch schemas from a real registry at runtime — the suite's `streams:` block tells the test runner which schemas to register in the mock registry. Each stream entry's `valueType: "avro:SensorData"` causes `SensorData.avsc` to be loaded from `schemaDirectory` and registered under the `<topic>-key` / `<topic>-value` subjects. The pipeline's `confluent_avro` types resolve from the mock registry, and the assertion can deserialize the Avro output records correctly.
+If your pipeline uses `confluent_avro` (or `apicurio_avro`) — notations that would normally fetch schemas from a real registry at runtime — the suite's `streams:` block tells the test runner which schemas to register in the mock registry. Each stream entry's `valueType: "avro:SensorData"` causes `SensorData.avsc` to be loaded from `schemaDirectory` and registered under the `<topic>-key` / `<topic>-value` subjects. The KSML definition's `confluent_avro` types resolve from the mock registry, and the assertion can deserialize the Avro output records correctly.
 
 ### The Pipeline
 
@@ -194,17 +192,36 @@ docker run --rm \
 
 ### Example Output
 
+Output for a single multi-test suite that exercises five cases against the same pipeline:
+
 ```
 === KSML Test Results ===
 
-  PASS  Filter pipeline passes blue sensors › Blue sensors pass through, red ones are filtered out
-  PASS  Filtering & transforming pipeline › Valid sensor data is transformed
+  PASS  Filtering & transforming pipeline › Valid sensor data is filtered through and transformed
   PASS  Filtering & transforming pipeline › Out-of-range temperature is filtered out
+  PASS  Filtering & transforming pipeline › Sensor data without temperature is filtered out
+  PASS  Filtering & transforming pipeline › Sensor data without humidity is filtered out
+  PASS  Filtering & transforming pipeline › Malformed sensor data is routed to alerts_stream when transformation fails
 
-3 passed, 0 failed, 0 errors
+5 passed, 0 failed, 0 errors
 ```
 
-The exit code is `0` when all tests pass, `1` otherwise. This makes it easy to integrate into CI/CD pipelines.
+When a test fails or errors, the offending result also includes the assertion message or exception detail on the line below:
+
+```
+=== KSML Test Results ===
+
+  PASS  Filtering & transforming pipeline › Valid sensor data is filtered through and transformed
+  FAIL  Filtering & transforming pipeline › Out-of-range temperature is filtered out
+        AssertionError: Intentional failure: expected records on filtered_data, got 0
+  PASS  Filtering & transforming pipeline › Sensor data without temperature is filtered out
+  PASS  Filtering & transforming pipeline › Sensor data without humidity is filtered out
+  PASS  Filtering & transforming pipeline › Malformed sensor data is routed to alerts_stream when transformation fails
+
+4 passed, 1 failed, 0 errors
+```
+
+A failure in one test does not stop later tests in the same suite from running. The exit code of the runner is `0` when every result is `PASS` and `1` otherwise. This makes it easy to integrate into CI/CD pipelines.
 
 ## Writing Assertions
 

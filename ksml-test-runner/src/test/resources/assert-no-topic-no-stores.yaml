@@ -1,5 +1,5 @@
 name: "Assert block without on or stores"
-pipeline: pipelines/test-filter.yaml
+definition: pipelines/test-filter.yaml
 streams:
   source:
     topic: ksml_sensordata_avro

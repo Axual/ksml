@@ -1,6 +1,6 @@
 ## Context
 
-The KSML test runner exists as of the just-archived `ksml-test-runner` change. Its current YAML format is a single-test definition: every file has a `test:` root with one `name`, one `pipeline`, one optional `registry:` block, one `produce` list, and one `assert` list. The five files in `ksml-test-runner/src/test/resources/processor-filtering-transforming-complete-test/` exemplify two friction points: (a) shared configuration is duplicated across files, and (b) the `registry:` vocabulary has no parallel in KSML pipeline yamls even though it describes the same concept (a named topic with key and value types).
+The KSML test runner exists as of the just-archived `ksml-test-runner` change. Its current YAML format is a single-test definition: every file has a `test:` root with one `name`, one `definition`, one optional `registry:` block, one `produce` list, and one `assert` list. The five files in `ksml-test-runner/src/test/resources/processor-filtering-transforming-complete-test/` exemplify two friction points: (a) shared configuration is duplicated across files, and (b) the `registry:` vocabulary has no parallel in KSML pipeline yamls even though it describes the same concept (a named topic with key and value types).
 
 This change is a pre-release format restructure. The test runner has not yet shipped to users, so we accept breaking changes to all existing test definitions. The goals are to land one file per pipeline (with N hermetic tests), and to align the file's vocabulary with KSML pipeline conventions: `streams:` for named topic+type bindings, `to:` and `on:` for references from produce/assert blocks. The `registry:` block disappears — its two functions (declaring topic types for serdes and pre-populating the mock schema registry) become natural side effects of the new `streams:` map.
 
@@ -34,7 +34,7 @@ The earlier explore-mode discussion considered three flavors of "multiple tests 
 
 ```yaml
 name: "Filtering & transforming pipeline"          # optional, falls back to file basename
-pipeline: pipelines/processor-filtering-transforming-complete.yaml
+definition: pipelines/processor-filtering-transforming-complete.yaml
 schemaDirectory: schemas
 moduleDirectory: modules
 
@@ -226,7 +226,7 @@ The duplicate-key check is worth verifying during implementation — Jackson's b
 
 `TestDefinitionSchemaGenerator` regenerates `docs/ksml-test-spec.json`. Notable shape:
 
-- Top-level: `name` (string, optional), `pipeline` (string, required), `schemaDirectory`, `moduleDirectory`, `streams` (object), `tests` (object).
+- Top-level: `name` (string, optional), `definition` (string, required), `schemaDirectory`, `moduleDirectory`, `streams` (object), `tests` (object).
 - `streams`: `additionalProperties: false`, `patternProperties: { "^[a-zA-Z][a-zA-Z0-9_]*$": StreamSchema }`.
 - `tests`: `additionalProperties: false`, `patternProperties: { "^[a-zA-Z][a-zA-Z0-9_]*$": TestCaseSchema }`, `minProperties: 1`.
 - `StreamSchema`: `topic` (required string), `keyType` (optional string, default "string"), `valueType` (optional string, default "string").

@@ -42,10 +42,10 @@ import java.util.regex.Pattern;
  * Parses a YAML test suite definition file into a {@link TestSuiteDefinition}.
  *
  * <p>Format overview: a flat YAML document (no outer wrapper) with top-level fields
- * {@code name} (optional), {@code pipeline} (required), {@code schemaDirectory},
- * {@code moduleDirectory}, {@code streams} (map keyed by logical stream name with
- * topic/keyType/valueType), and {@code tests} (map keyed by stable identifier with
- * per-test {@code description}, {@code produce}, {@code assert}).
+ * {@code name} (optional), {@code definition} (required, path to a KSML pipeline definition
+ * YAML), {@code schemaDirectory}, {@code moduleDirectory}, {@code streams} (map keyed by
+ * logical stream name with topic/keyType/valueType), and {@code tests} (map keyed by
+ * stable identifier with per-test {@code description}, {@code produce}, {@code assert}).
  */
 @Slf4j
 public class TestDefinitionParser {
@@ -55,7 +55,7 @@ public class TestDefinitionParser {
 
     /** Top-level fields permitted at the suite level. Anything else triggers a "did you misplace this?" error when it appears under a test entry. */
     private static final Set<String> SUITE_LEVEL_FIELDS = Set.of(
-            "name", "pipeline", "schemaDirectory", "moduleDirectory", "streams", "tests");
+            "name", "definition", "schemaDirectory", "moduleDirectory", "streams", "tests");
 
     // STRICT_DUPLICATE_DETECTION makes Jackson throw on duplicate keys at any nesting level
     // instead of silently keeping one of them. The thrown JsonParseException carries line/column
@@ -63,6 +63,13 @@ public class TestDefinitionParser {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory())
             .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
 
+    /**
+     * Parse a test suite definition file into a {@link TestSuiteDefinition}.
+     * @param testFile {@link @link Path} to the test suite definition file.
+     * @return a TestSuiteDefinition object.
+     * @throws IOException if the file cannot be read or parsed.
+     * @throws TestDefinitionException if the file is malformed.
+     */
     public TestSuiteDefinition parse(Path testFile) throws IOException {
         log.debug("Parsing test suite definition from {}", testFile);
         var content = Files.readString(testFile);
@@ -89,19 +96,21 @@ public class TestDefinitionParser {
         var f = new FieldExtractor(root, testFile);
 
         var name = f.optionalString("name");
-        var pipeline = f.requireString("pipeline");
+        var definition = f.requireString("definition");
         var schemaDirectory = f.optionalString("schemaDirectory");
         var moduleDirectory = f.optionalString("moduleDirectory");
 
         var streams = parseStreams(root.get("streams"), testFile);
         var tests = parseTests(root.get("tests"), streams.keySet(), testFile);
 
-        return new TestSuiteDefinition(name, pipeline, schemaDirectory, moduleDirectory, streams, tests);
+        return new TestSuiteDefinition(name, definition, schemaDirectory, moduleDirectory, streams, tests);
     }
 
     /**
      * Build a topic-to-stream map for callers that need to look up types by topic name
      * (e.g., the assertion runner's deserializer resolution and the schema registry population).
+     * @param suite the parsed test suite definition.
+     * @return a map of topic name to stream definition.
      */
     public static Map<String, StreamDefinition> buildTopicTypeMap(TestSuiteDefinition suite) {
         var map = new LinkedHashMap<String, StreamDefinition>();
@@ -141,7 +150,7 @@ public class TestDefinitionParser {
 
             // Note: type-string validation (e.g., rejection of bare 'confluent_avro' or 'json:Foo')
             // is deferred to runtime. UserTypeParser depends on the global notation library, which
-            // is registered in TestExecutionContext.setup() — that happens after parsing. Errors
+            // is registered in TestExecutionContext.setup() which happens after parsing. Errors
             // surface as a runtime ERROR result when the runner tries to construct a serde for
             // the type.
 

@@ -1,5 +1,5 @@
 name: "Two streams with the same topic"
-pipeline: pipelines/test-filter.yaml
+definition: pipelines/test-filter.yaml
 streams:
   source_one:
     topic: ksml_sensordata_avro

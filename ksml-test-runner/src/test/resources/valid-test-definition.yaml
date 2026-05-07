@@ -1,5 +1,5 @@
 name: "Filter keeps only blue sensors"
-pipeline: pipelines/test-filter.yaml
+definition: pipelines/test-filter.yaml
 schemaDirectory: schemas
 
 streams:

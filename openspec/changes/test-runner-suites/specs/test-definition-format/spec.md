@@ -1,14 +1,14 @@
 ## MODIFIED Requirements
 
 ### Requirement: Test definition YAML structure
-A test definition YAML file SHALL be a flat document with no outer wrapper element. The following fields SHALL appear at the file root: `name` (string, optional, falls back to filename without extension), `pipeline` (path to a KSML pipeline definition, required), `schemaDirectory` (path to schema files, optional), `moduleDirectory` (path to externalized Python modules, optional), `streams` (map of named topic+type declarations, optional but practically required for any non-trivial test), and `tests` (map of test entries keyed by stable identifier, required, must contain at least one entry).
+A test definition YAML file SHALL be a flat document with no outer wrapper element. The following fields SHALL appear at the file root: `name` (string, optional, falls back to filename without extension), `definition` (path to a KSML pipeline definition, required), `schemaDirectory` (path to schema files, optional), `moduleDirectory` (path to externalized Python modules, optional), `streams` (map of named topic+type declarations, optional but practically required for any non-trivial test), and `tests` (map of test entries keyed by stable identifier, required, must contain at least one entry).
 
 #### Scenario: Minimal valid test definition
-- **WHEN** a YAML file contains a `pipeline` field, a `streams:` map declaring at least the topics referenced by the tests, and a non-empty `tests:` map with at least one test entry having `produce` and `assert`
+- **WHEN** a YAML file contains a `definition` field, a `streams:` map declaring at least the topics referenced by the tests, and a non-empty `tests:` map with at least one test entry having `produce` and `assert`
 - **THEN** the test runner SHALL accept it as a valid test definition
 
 #### Scenario: Missing required fields
-- **WHEN** a YAML file is missing `pipeline` or `tests`
+- **WHEN** a YAML file is missing `definition` or `tests`
 - **THEN** the test runner SHALL reject it with a clear error message identifying the missing field
 
 #### Scenario: Empty tests map
@@ -89,10 +89,10 @@ A test definition file SHALL contain a `tests` map where each entry represents o
 - **THEN** the parser SHALL reject the file with an error identifying the offending test key
 
 ### Requirement: Suite-level shared configuration
-The fields `pipeline`, `schemaDirectory`, `moduleDirectory`, `streams`, and the optional suite `name` SHALL appear at the file root and apply uniformly to every test in the suite. These fields SHALL NOT be permitted under individual test entries.
+The fields `definition`, `schemaDirectory`, `moduleDirectory`, `streams`, and the optional suite `name` SHALL appear at the file root and apply uniformly to every test in the suite. These fields SHALL NOT be permitted under individual test entries.
 
 #### Scenario: Shared pipeline applies to every test
-- **WHEN** a suite has multiple tests and a single root-level `pipeline:` field
+- **WHEN** a suite has multiple tests and a single root-level `definition:` field
 - **THEN** every test in the suite SHALL run against that pipeline
 
 #### Scenario: Shared streams apply to every test
@@ -100,7 +100,7 @@ The fields `pipeline`, `schemaDirectory`, `moduleDirectory`, `streams`, and the 
 - **THEN** every test SHALL resolve its `to:` and `on:` references against that map
 
 #### Scenario: Suite-level field at test level rejected
-- **WHEN** a test entry contains a field reserved for the suite level (e.g., `pipeline:` or `streams:` inside a test entry)
+- **WHEN** a test entry contains a field reserved for the suite level (e.g., `definition:` or `streams:` inside a test entry)
 - **THEN** the parser SHALL reject the file with an error identifying the misplaced field
 
 ### Requirement: Test order preservation

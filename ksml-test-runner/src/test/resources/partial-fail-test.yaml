@@ -4,7 +4,7 @@
 #   - at least one test FAILs (not ERRORs),
 #   - the remaining tests still PASS (the runner doesn't short-circuit on a failure).
 name: "Filtering & transforming pipeline (with intentional failure)"
-pipeline: pipelines/processor-filtering-transforming-complete.yaml
+definition: pipelines/processor-filtering-transforming-complete.yaml
 
 streams:
   tutorial_input:

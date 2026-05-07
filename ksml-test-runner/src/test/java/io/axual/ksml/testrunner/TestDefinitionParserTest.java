@@ -43,7 +43,7 @@ class TestDefinitionParserTest {
         var suite = parser.parse(resource("valid-test-definition.yaml"));
 
         assertEquals("Filter keeps only blue sensors", suite.name());
-        assertEquals("pipelines/test-filter.yaml", suite.pipeline());
+        assertEquals("pipelines/test-filter.yaml", suite.definition());
         assertEquals("schemas", suite.schemaDirectory());
 
         // Streams

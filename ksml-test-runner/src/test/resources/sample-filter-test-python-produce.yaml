@@ -1,5 +1,5 @@
 name: "Simple passthrough with Python produce block"
-pipeline: pipelines/test-passthrough.yaml
+definition: pipelines/test-passthrough.yaml
 
 streams:
   input:

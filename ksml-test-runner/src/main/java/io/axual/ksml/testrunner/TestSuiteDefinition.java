@@ -29,7 +29,7 @@ import java.util.LinkedHashMap;
  * runs against a fresh {@code TopologyTestDriver} for hermetic isolation.
  *
  * @param name             optional suite-level name; falls back to the filename without extension
- * @param pipeline         path to the KSML pipeline definition YAML
+ * @param definition       path to the KSML pipeline definition YAML
  * @param schemaDirectory  optional path to schema files
  * @param moduleDirectory  optional path to externalized Python modules
  * @param streams          named topic+type bindings, referenced from {@code to:} and {@code on:}
@@ -42,8 +42,8 @@ public record TestSuiteDefinition(
         String name,
 
         @JsonSchema(description = "Path to the KSML pipeline definition YAML", required = true,
-                examples = {"pipelines/my-pipeline.yaml"})
-        String pipeline,
+                examples = {"definitions/my-pipeline.yaml"})
+        String definition,
 
         @JsonSchema(description = "Path to schema files directory", examples = {"schemas"})
         String schemaDirectory,

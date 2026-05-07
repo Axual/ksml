@@ -1,5 +1,5 @@
 name: "Filter pipeline using a Python module import"
-pipeline: pipelines/test-filter-module-import.yaml
+definition: pipelines/test-filter-module-import.yaml
 schemaDirectory: schemas
 moduleDirectory: modules
 

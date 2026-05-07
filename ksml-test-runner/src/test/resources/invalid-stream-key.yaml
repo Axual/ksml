@@ -1,5 +1,5 @@
 name: "Stream key violates identifier regex"
-pipeline: pipelines/test-filter.yaml
+definition: pipelines/test-filter.yaml
 streams:
   "with-dash":
     topic: ksml_sensordata_avro

@@ -1,5 +1,5 @@
 name: "State store records last sensor data per key"
-pipeline: pipelines/test-state-store.yaml
+definition: pipelines/test-state-store.yaml
 schemaDirectory: schemas
 
 streams:

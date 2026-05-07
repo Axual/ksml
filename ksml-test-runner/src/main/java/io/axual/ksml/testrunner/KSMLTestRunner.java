@@ -42,6 +42,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -114,17 +115,17 @@ public class KSMLTestRunner {
 
     /**
      * Execute every test in a suite file and return one {@link TestResult} per test.
-     * If the suite YAML or pipeline YAML cannot be parsed, returns a single ERROR result.
+     * If the suite YAML or the referenced definition YAML cannot be parsed, returns a single ERROR result.
      */
     public List<TestResult> runTestFile(Path testFile) {
         var parser = new TestDefinitionParser();
         var suiteFallbackName = filenameWithoutExtension(testFile);
 
         TestSuiteDefinition suite;
-        String pipelineYaml;
+        String definitionYaml;
         try {
             suite = parser.parse(testFile);
-            pipelineYaml = readPipelineContent(testFile, suite.pipeline());
+            definitionYaml = readDefinitionContent(testFile, suite.definition());
         } catch (TestDefinitionException e) {
             return List.of(TestResult.error(suiteFallbackName, "<parse>",
                     "Invalid test definition: " + e.getMessage()));
@@ -145,15 +146,15 @@ public class KSMLTestRunner {
             var testCase = entry.getValue();
             var displayLabel = testCase.description() != null && !testCase.description().isEmpty()
                     ? testCase.description() : testKey;
-            results.add(runSingleTest(testFile, suite, suiteName, testKey, displayLabel,
-                    testCase, pipelineYaml, topicTypeMap, schemaDirectory, modulesDirectory));
+            results.add(runSingleTest(suite, suiteName, testKey, displayLabel,
+                    testCase, definitionYaml, topicTypeMap, schemaDirectory, modulesDirectory));
         }
         return results;
     }
 
-    private TestResult runSingleTest(Path testFile, TestSuiteDefinition suite, String suiteName,
+    private TestResult runSingleTest(TestSuiteDefinition suite, String suiteName,
                                      String testKey, String displayLabel, TestCaseDefinition testCase,
-                                     String pipelineYaml, java.util.Map<String, StreamDefinition> topicTypeMap,
+                                     String definitionYaml, Map<String, StreamDefinition> topicTypeMap,
                                      String schemaDirectory, String modulesDirectory) {
         var executionContext = new TestExecutionContext();
         TopologyTestDriver driver = null;
@@ -163,9 +164,9 @@ public class KSMLTestRunner {
             executionContext.setup(schemaDirectory, topicTypeMap);
 
             var topologyName = sanitizeTopologyName(suiteName + "_" + testKey);
-            var pipelineJson = YAMLObjectMapper.INSTANCE.readValue(pipelineYaml, JsonNode.class);
+            var definitionJson = YAMLObjectMapper.INSTANCE.readValue(definitionYaml, JsonNode.class);
             var topologyDefinition = new TopologyDefinitionParser(topologyName)
-                    .parse(ParseNode.fromRoot(pipelineJson, topologyName));
+                    .parse(ParseNode.fromRoot(definitionJson, topologyName));
 
             var topologyGenerator = new TopologyGenerator(
                     topologyName + ".test",
@@ -226,21 +227,21 @@ public class KSMLTestRunner {
         return directoryName;
     }
 
-    private String readPipelineContent(Path testFile, String pipeline) throws java.io.IOException {
-        try (var stream = getClass().getClassLoader().getResourceAsStream(pipeline)) {
+    private String readDefinitionContent(Path testFile, String definitionPath) throws java.io.IOException {
+        try (var stream = getClass().getClassLoader().getResourceAsStream(definitionPath)) {
             if (stream != null) {
                 return new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
             }
         }
-        var resolved = testFile.getParent().resolve(pipeline);
+        var resolved = testFile.getParent().resolve(definitionPath);
         if (Files.exists(resolved)) {
             return Files.readString(resolved);
         }
-        var absolute = Path.of(pipeline);
+        var absolute = Path.of(definitionPath);
         if (Files.exists(absolute)) {
             return Files.readString(absolute);
         }
-        throw new TestDefinitionException("Pipeline file not found: " + pipeline);
+        throw new TestDefinitionException("Definition file not found: " + definitionPath);
     }
 
     /**

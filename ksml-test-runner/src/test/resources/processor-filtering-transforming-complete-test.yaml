@@ -1,5 +1,5 @@
 name: "Filtering & transforming pipeline"
-pipeline: pipelines/processor-filtering-transforming-complete.yaml
+definition: pipelines/processor-filtering-transforming-complete.yaml
 
 streams:
   tutorial_input:

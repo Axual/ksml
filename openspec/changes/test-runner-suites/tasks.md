@@ -1,7 +1,7 @@
 ## 1. Java type model
 
 - [x] 1.1 Add `StreamDefinition` record (`topic`, `keyType`, `valueType`) replacing the current `RegistryEntry` record.
-- [x] 1.2 Add `TestSuiteDefinition` record (`name`, `pipeline`, `schemaDirectory`, `moduleDirectory`, `streams: LinkedHashMap<String, StreamDefinition>`, `tests: LinkedHashMap<String, TestCaseDefinition>`).
+- [x] 1.2 Add `TestSuiteDefinition` record (`name`, `definition`, `schemaDirectory`, `moduleDirectory`, `streams: LinkedHashMap<String, StreamDefinition>`, `tests: LinkedHashMap<String, TestCaseDefinition>`).
 - [x] 1.3 Add `TestCaseDefinition` record (`description`, `produce`, `assertions`).
 - [x] 1.4 Update `ProduceBlock`: replace `topic`/`keyType`/`valueType` with a single `to` field (String, references a `streams` key).
 - [x] 1.5 Update `AssertBlock`: replace `topic` with an `on` field (String, optional, references a `streams` key).
@@ -19,7 +19,7 @@
 - [x] 2.6 Reject test entries missing `produce` or `assert` with an error identifying the offending test key.
 - [x] 2.7 For each `produce` block, validate that `to:` references an existing key in `streams:`. (No migration aid for old `topic`/`keyType`/`valueType` fields — pre-release format, not in production.)
 - [x] 2.8 For each `assert` block, validate that `on:` (when present) references an existing key in `streams:`; preserve "at least one of `on:`/`stores:` is required" check.
-- [x] 2.9 Reject suite-level fields (`pipeline`, `streams`, `schemaDirectory`, `moduleDirectory`, `name`) appearing inside individual test entries.
+- [x] 2.9 Reject suite-level fields (`definition`, `streams`, `schemaDirectory`, `moduleDirectory`, `name`) appearing inside individual test entries.
 - [x] 2.10 Detect duplicate keys in both the `streams:` map and the `tests:` map (raw-YAML scan or strict reader configuration); reject with a clear error identifying the duplicate key.
 
 ## 3. Runner

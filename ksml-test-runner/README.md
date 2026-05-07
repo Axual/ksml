@@ -23,7 +23,7 @@ test suite (one pipeline plus one or more named tests). Each test runs against a
 
 ```yaml
 name: "Filter pipeline passes blue sensors"     # optional; falls back to filename without extension
-pipeline: pipelines/test-filter.yaml
+definition: pipelines/test-filter.yaml          # path to the KSML pipeline definition YAML
 schemaDirectory: schemas
 
 streams:
@@ -61,7 +61,7 @@ tests:
 | Field | Required | Description |
 |---|---|---|
 | `name` | no | Human-readable suite name shown in reports. Falls back to filename without extension. |
-| `pipeline` | yes | Path to the KSML pipeline YAML (relative to the test file, on the classpath, or absolute). |
+| `definition` | yes | Path to the KSML pipeline definition YAML (relative to the test file, on the classpath, or absolute). |
 | `schemaDirectory` | no | Path to schema files (relative to the test file or absolute). Required when any stream uses a schema-bearing notation like `avro:Foo`. |
 | `moduleDirectory` | no | Path to externalized Python modules accessible to the pipeline. |
 | `streams` | no | Map of named topic+type bindings, referenced by `to:` and `on:`. See below. |
@@ -143,7 +143,7 @@ Inline `topic` fields on an assert block are not permitted — declare the strea
 
 Each test result is labeled `<suite> › <test>` where `<suite>` is the file's `name:` (or
 filename without extension) and `<test>` is the test entry's `description:` (or the test key
-if absent). Suite-level parse failures (missing `pipeline:`, malformed YAML, undefined stream
+if absent). Suite-level parse failures (missing `definition:`, malformed YAML, undefined stream
 references, etc.) are reported as a single ERROR result for the whole suite.
 
 ## Running from the command line

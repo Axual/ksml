@@ -1,5 +1,5 @@
 name: "Filter pipeline with apicurio_avro"
-pipeline: pipelines/test-filter-apicurio-avro.yaml
+definition: pipelines/test-filter-apicurio-avro.yaml
 schemaDirectory: schemas
 
 streams:

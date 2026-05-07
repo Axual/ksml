@@ -1,97 +1,109 @@
 {
-  "$schema" : "http://json-schema.org/draft-07/schema#",
-  "title" : "KSML Test Suite Definition",
-  "description" : "Schema for KSML test runner YAML suite definition files",
   "type" : "object",
   "additionalProperties" : false,
+  "description" : "Schema for KSML test runner YAML suite definition files",
   "properties" : {
     "name" : {
       "type" : "string",
-      "description" : "Optional suite-level name; falls back to filename without extension"
+      "description" : "Optional suite-level name; falls back to filename without extension",
+      "examples" : [ "Filtering & transforming pipeline" ]
     },
-    "pipeline" : {
+    "definition" : {
       "type" : "string",
-      "description" : "Path to the KSML pipeline definition YAML"
+      "description" : "Path to the KSML pipeline definition YAML",
+      "examples" : [ "definitions/my-pipeline.yaml" ]
     },
     "schemaDirectory" : {
       "type" : "string",
-      "description" : "Path to schema files directory"
+      "description" : "Path to schema files directory",
+      "examples" : [ "schemas" ]
     },
     "moduleDirectory" : {
       "type" : "string",
-      "description" : "Path to externalized Python modules"
+      "description" : "Path to externalized Python modules",
+      "examples" : [ "modules" ]
     },
     "streams" : {
       "type" : "object",
-      "description" : "Named topic+type bindings, referenced from to:/on: in produce/assert blocks",
       "additionalProperties" : false,
       "patternProperties" : {
         "^[a-zA-Z][a-zA-Z0-9_]*$" : {
           "type" : "object",
-          "description" : "A named binding from a logical stream identifier to a Kafka topic and its key/value types",
           "additionalProperties" : false,
+          "description" : "A named binding from a logical stream identifier to a Kafka topic and its key/value types",
           "properties" : {
             "topic" : {
               "type" : "string",
-              "description" : "Kafka topic name"
+              "description" : "Kafka topic name",
+              "examples" : [ "my-topic", "sensor-data" ]
             },
             "keyType" : {
               "type" : "string",
               "description" : "Key serialization type",
-              "default" : "string"
+              "default" : "string",
+              "examples" : [ "string", "avro:MyKeySchema" ]
             },
             "valueType" : {
               "type" : "string",
               "description" : "Value serialization type",
-              "default" : "string"
+              "default" : "string",
+              "examples" : [ "string", "avro:SensorData", "json" ]
             }
           },
           "required" : [ "topic" ]
         }
-      }
+      },
+      "description" : "Named topic+type bindings, referenced from to:/on: in produce/assert blocks"
     },
     "tests" : {
       "type" : "object",
-      "description" : "Named tests in the suite; at least one entry required",
       "additionalProperties" : false,
-      "minProperties" : 1,
       "patternProperties" : {
         "^[a-zA-Z][a-zA-Z0-9_]*$" : {
           "type" : "object",
-          "description" : "One hermetic test entry in a test suite",
           "additionalProperties" : false,
+          "description" : "One hermetic test entry in a test suite",
           "properties" : {
             "description" : {
               "type" : "string",
-              "description" : "Optional human-readable description; falls back to the test key when absent"
+              "description" : "Optional human-readable description; falls back to the test key when absent",
+              "examples" : [ "Valid sensor data is transformed" ]
             },
             "produce" : {
               "type" : "array",
-              "description" : "Produce blocks defining test data for this test",
               "items" : {
                 "type" : "object",
-                "description" : "A block that defines test data to be produced into a stream",
                 "additionalProperties" : false,
+                "description" : "A block that defines test data to be produced into a stream",
                 "properties" : {
                   "to" : {
                     "type" : "string",
-                    "description" : "Key into the suite's streams: map identifying the target stream"
+                    "description" : "Key into the suite's streams: map identifying the target stream",
+                    "examples" : [ "sensor_source", "raw_input" ]
                   },
                   "messages" : {
                     "type" : "array",
-                    "description" : "Inline test messages",
                     "items" : {
                       "type" : "object",
-                      "description" : "An inline test message (key, value, optional timestamp)",
+                      "additionalProperties" : false,
+                      "description" : "A single test message with key, value, and optional timestamp",
                       "properties" : {
-                        "key" : { },
-                        "value" : { },
+                        "key" : {
+                          "description" : "Message key",
+                          "examples" : [ "sensor-1", "user-42" ]
+                        },
+                        "value" : {
+                          "description" : "Message value (string or structured data)"
+                        },
                         "timestamp" : {
                           "type" : "integer",
-                          "description" : "Optional epoch-millis timestamp"
+                          "description" : "Optional timestamp in epoch milliseconds",
+                          "examples" : [ "1709200000000" ]
                         }
-                      }
-                    }
+                      },
+                      "required" : [ "key", "value" ]
+                    },
+                    "description" : "Inline test messages to produce"
                   },
                   "generator" : {
                     "type" : "object",
@@ -108,26 +120,28 @@
                 }, {
                   "required" : [ "generator" ]
                 } ]
-              }
+              },
+              "description" : "Produce blocks defining test data for this test"
             },
             "assert" : {
               "type" : "array",
-              "description" : "Assertion blocks defining expected outcomes for this test",
               "items" : {
                 "type" : "object",
-                "description" : "A block that defines assertions to run against pipeline output",
                 "additionalProperties" : false,
+                "description" : "A block that defines assertions to run against pipeline output",
                 "properties" : {
                   "on" : {
                     "type" : "string",
-                    "description" : "Key into the suite's streams: map identifying the output stream to read records from"
+                    "description" : "Key into the suite's streams: map identifying the output stream to read records from",
+                    "examples" : [ "sensor_filtered", "alerts" ]
                   },
                   "stores" : {
                     "type" : "array",
-                    "description" : "State store names to inject into the Python assertion context",
                     "items" : {
                       "type" : "string"
-                    }
+                    },
+                    "description" : "State store names to inject into the Python assertion context",
+                    "examples" : [ "my_store" ]
                   },
                   "code" : {
                     "type" : "string",
@@ -140,13 +154,18 @@
                 }, {
                   "required" : [ "stores" ]
                 } ]
-              }
+              },
+              "description" : "Assertion blocks defining expected outcomes for this test"
             }
           },
           "required" : [ "produce", "assert" ]
         }
-      }
+      },
+      "description" : "Named tests in the suite; at least one entry required",
+      "minProperties" : 1
     }
   },
-  "required" : [ "pipeline", "tests" ]
+  "required" : [ "definition", "tests" ],
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "title" : "KSML Test Suite Definition"
 }
