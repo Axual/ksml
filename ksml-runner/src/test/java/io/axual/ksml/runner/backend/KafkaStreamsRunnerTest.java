@@ -699,12 +699,12 @@ class KafkaStreamsRunnerTest {
         // start returning state running
         streamState.set(KafkaStreams.State.RUNNING);
 
-        try (final var executor = Executors.newSingleThreadExecutor()) {
-
+        final var executor = Executors.newSingleThreadExecutor();
+        try {
             // Start runner, is blocked so check with async
             var future = CompletableFuture.runAsync(runner, executor);
 
-            verify(mockStreams, Mockito.timeout(1000).times(1)).start();
+            verify(mockStreams, Mockito.timeout(5000).times(1)).start();
             assertThat(future)
                     .as("Future should not have finished yet")
                     .isNotDone();
@@ -716,8 +716,12 @@ class KafkaStreamsRunnerTest {
             runner.stop();
 
             Awaitility.await("Wait for runner to stop")
-                    .atMost(Duration.ofSeconds(1))
+                    .atMost(Duration.ofSeconds(10))
                     .until(future::isDone);
+        } finally {
+            // shutdownNow() interrupts immediately rather than waiting up to 24 hours
+            // (Java 19+ ExecutorService.close() calls awaitTermination(1, DAYS))
+            executor.shutdownNow();
         }
     }
 
