@@ -167,10 +167,13 @@ When doing a patch release (e.g., 1.0.9, 1.1.1):
 
 ### Step 2: Set Release Version
 
-```bash
-mvn versions:set -DgenerateBackupPoms=false
-# Enter version like: 1.0.9
-```
+1. Set Maven version:
+   ```bash
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter version like: 1.0.9
+   ```
+
+2. Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion to the release version, i.e. `version: 1.0.9` and `appVersion: "1.0.9"`
 
 ### Step 3: Build and Update Files
 
@@ -205,7 +208,7 @@ This script will:
 ### Step 6: Commit Changes
 
 ```bash
-git add pom.xml **/NOTICE.txt
+git add **/pom.xml **/NOTICE.txt packaging/helm-charts/ksml/Chart.yaml
 git commit -m "Release 1.0.9"
 ```
 
