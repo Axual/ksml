@@ -44,5 +44,7 @@ COPY --chown=ksml:0 build-output/NOTICE.txt /licenses/THIRD-PARTY-LICENSES.txt
 COPY --chown=ksml:0 build-output/LICENSE.txt /licenses/LICENSE.txt
 COPY --chown=ksml:0 build-output/libs/ /opt/ksml/libs/
 COPY --chown=ksml:0 build-output/ksml-runner*.jar /opt/ksml/ksml.jar
+COPY --chown=ksml:0 entrypoint.sh /opt/ksml/entrypoint.sh
+RUN chmod +x /opt/ksml/entrypoint.sh
 
-ENTRYPOINT ["java", "-Djava.security.manager=allow", "-jar", "/opt/ksml/ksml.jar"]
+ENTRYPOINT ["/opt/ksml/entrypoint.sh"]
