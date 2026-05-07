@@ -148,7 +148,7 @@
         <license.licensename>apache_v2</license.licensename>
 
         <!-- SonarCloud properties -->
-        <sonar.organization>axual</sonar.organization>
+        <sonar.organization>axual-github</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.version>5.6.0.6792</sonar.version>
 
