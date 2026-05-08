@@ -124,6 +124,21 @@ After the release tag is created on main:
 1. Go to GitHub -> Actions -> Monitor release workflow
 2. Ensure the build completes successfully
 
+### Step 5a: Verify Release Artifacts
+
+After the build completes, verify the Docker image and Helm chart are published:
+
+```bash
+# Check Docker image tags
+skopeo list-tags docker://registry.axual.io/opensource/images/axual/ksml
+
+# Inspect the specific release image
+skopeo inspect --override-os linux docker://registry.axual.io/opensource/images/axual/ksml:1.1.0
+
+# Check Helm chart tags
+skopeo list-tags docker://registry.axual.io/opensource/charts/ksml
+```
+
 ### Step 6: Set Next Development Version
 
 1. In release branch:
@@ -238,6 +253,21 @@ git push origin 1.0.9
    ```bash
    git push origin release/1.0.x
    ```
+
+### Step 9a: Verify Release Artifacts
+
+After the build completes, verify the Docker image and Helm chart are published:
+
+```bash
+# Check Docker image tags
+skopeo list-tags docker://registry.axual.io/opensource/images/axual/ksml
+
+# Inspect the specific release image
+skopeo inspect --override-os linux docker://registry.axual.io/opensource/images/axual/ksml:1.0.9
+
+# Check Helm chart tags
+skopeo list-tags docker://registry.axual.io/opensource/charts/ksml
+```
 
 ### Step 10: Set Next Development Version
 
