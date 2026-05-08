@@ -2,8 +2,8 @@ apiVersion: v2
 name: ksml
 description: "KSML: Kafka Streaming for Low Code Environments"
 type: application
-version: 1.2.1
-appVersion: "1.2.1"
+version: 1.3.0-SNAPSHOT
+appVersion: "1.3.0-snapshot"
 icon: https://avatars.githubusercontent.com/u/26816390?s=48&v=4
 keywords:
   - kafka

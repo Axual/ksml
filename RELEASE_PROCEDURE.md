@@ -241,14 +241,32 @@ git push origin 1.0.9
 
 ### Step 10: Set Next Development Version
 
-```bash
-mvn versions:set -DgenerateBackupPoms=false
-# Enter next patch snapshot: 1.0.10-SNAPSHOT
-mvn clean package -DskipTests # To generate NOTICE.TXT
-```
-Update `packaging/heml-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0.10-snapshot""
-Commit: `git commit -m "Prepare for next development iteration"`
-Push: `git push origin release/1.0.x`
+1. Switch to main branch:
+   ```bash
+   git checkout main
+   ```
+
+2. Set the next patch snapshot version:
+   ```bash
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter next patch snapshot, e.g.: 1.0.10-SNAPSHOT
+   ```
+
+3. Update NOTICE.txt files:
+   ```bash
+   mvn clean package -DskipTests
+   ```
+
+4. Update `packaging/helm-charts/ksml/Chart.yaml`:
+   - Set `version: 1.0.10-SNAPSHOT`
+   - Set `appVersion: "1.0.10-snapshot"`
+
+5. Commit and push to main:
+   ```bash
+   git add **/pom.xml **/NOTICE.txt packaging/helm-charts/ksml/Chart.yaml
+   git commit -m "Prepare for next development iteration"
+   git push origin main
+   ```
 
 ## Version Numbering
 
