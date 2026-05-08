@@ -197,7 +197,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
             case DataBytes value -> node.put(fieldName, value.value());
             case DataString value -> node.put(fieldName, value.value());
             default ->
-                    throw new ExecutionException("Can not encode default value of type: " + defaultValue.getClass().getSimpleName());
+                    throw new ExecutionException(String.format(
+                        "Can not encode default value: type= %s, value= %s", defaultValue.getClass().getSimpleName(), defaultValue));
         }
     }
 }
