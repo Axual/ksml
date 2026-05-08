@@ -22,7 +22,6 @@ package io.axual.ksml.data.notation.string;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.StringDataObjectMapper;
-import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
@@ -33,31 +32,56 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StringNotationTest {
+    private static final StringDataObjectMapper STRING_MAPPER = new StringDataObjectMapper();
+
     private static class ConcreteStringNotation extends StringNotation {
-        ConcreteStringNotation(NotationContext context,
-                               String filenameExtension,
-                               DataType defaultType,
-                               Notation.Converter converter,
-                               Notation.SchemaParser schemaParser,
-                               DataObjectMapper<String> stringMapper) {
-            super(context, filenameExtension, defaultType, converter, schemaParser, stringMapper);
+        ConcreteStringNotation(NotationContext context) {
+            super(context);
+        }
+
+        @Override
+        public String notationName() {
+            return "string";
+        }
+
+        @Override
+        public String filenameExtension() {
+            return ".txt";
+        }
+
+        @Override
+        public SchemaUsage schemaUsage() {
+            return SchemaUsage.SCHEMALESS_ONLY;
+        }
+
+        @Override
+        public DataType defaultType() {
+            return DataString.DATATYPE;
+        }
+
+        @Override
+        public Converter converter() {
+            return (value, targetType) -> value;
+        }
+
+        @Override
+        public SchemaParser schemaParser() {
+            return (ctx, name, str) -> null;
+        }
+
+        @Override
+        protected DataObjectMapper<String> stringMapper() {
+            return STRING_MAPPER;
         }
     }
 
     @Test
     @DisplayName("serde() returns a StringSerde that roundtrips DataString via configured mappers and configs are applied")
     void serdeRoundTripsDataString() {
-        final var context = new NotationContext("string");
+        final var context = new NotationContext();
         context.serdeConfigs().put("dummy", "config");
 
-        final var notation = new ConcreteStringNotation(
-                context,
-                ".txt",
-                DataString.DATATYPE,
-                (value, targetType) -> value,
-                (ctx, name, str) -> null,
-                new StringDataObjectMapper()
-        );
+        final var notation = new ConcreteStringNotation(context);
 
         try (final var serde = notation.serde(DataString.DATATYPE, true)) {
             final var serialized = serde.serializer().serialize("topic", new DataString("hello"));

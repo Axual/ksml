@@ -67,7 +67,7 @@ Still on `main` branch:
 
 5. Commit changes:
    ```bash
-   git add pom.xml **/NOTICE.txt
+   git add **/pom.xml **/NOTICE.txt
    git commit -m "Release 1.1.0"
    ```
 
@@ -133,7 +133,7 @@ After the release tag is created on main:
    # Enter next patch snapshot: 1.1.1-SNAPSHOT
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
-   Update `Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1.1-snapshot""
+   Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1.1-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin release/1.1.x`
 
@@ -144,7 +144,7 @@ After the release tag is created on main:
    # Enter next minor/major snapshot: 1.2.0-SNAPSHOT
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
-   Update `Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2.0-snapshot""
+   Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2.0-snapshot""
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin main`
 
@@ -167,10 +167,13 @@ When doing a patch release (e.g., 1.0.9, 1.1.1):
 
 ### Step 2: Set Release Version
 
-```bash
-mvn versions:set -DgenerateBackupPoms=false
-# Enter version like: 1.0.9
-```
+1. Set Maven version:
+   ```bash
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter version like: 1.0.9
+   ```
+
+2. Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion to the release version, i.e. `version: 1.0.9` and `appVersion: "1.0.9"`
 
 ### Step 3: Build and Update Files
 
@@ -205,7 +208,7 @@ This script will:
 ### Step 6: Commit Changes
 
 ```bash
-git add pom.xml **/NOTICE.txt
+git add **/pom.xml **/NOTICE.txt packaging/helm-charts/ksml/Chart.yaml
 git commit -m "Release 1.0.9"
 ```
 
@@ -243,7 +246,7 @@ mvn versions:set -DgenerateBackupPoms=false
 # Enter next patch snapshot: 1.0.10-SNAPSHOT
 mvn clean package -DskipTests # To generate NOTICE.TXT
 ```
-Update `Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0.10-snapshot""
+Update `packaging/heml-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0.10-snapshot""
 Commit: `git commit -m "Prepare for next development iteration"`
 Push: `git push origin release/1.0.x`
 

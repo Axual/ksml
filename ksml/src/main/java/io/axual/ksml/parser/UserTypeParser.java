@@ -21,6 +21,7 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -39,6 +40,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UnresolvedType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.schema.parser.DataSchemaDSL;
@@ -72,7 +74,11 @@ public class UserTypeParser {
     private static final String ALLOWED_TYPE_CHARACTERS = NAMESPACE_SEPARATOR + ALLOWED_LITERAL_CHARACTERS + NOTATION_SEPARATOR + DataSchemaDSL.UNKNOWN_TYPE;
 
     public Parsed<UserType> parse(String type) {
-        final var parsedTypes = parseListOfTypesAndNotation(type, DEFAULT_NOTATION);
+        return parse(type, false);
+    }
+
+    public Parsed<UserType> parse(String type, boolean allowUnresolved) {
+        final var parsedTypes = parseListOfTypesAndNotation(type, DEFAULT_NOTATION, allowUnresolved);
         if (parsedTypes.isError()) return Parsed.error(parsedTypes.errorMessage());
         if (parsedTypes.result().length == 1) return Parsed.ok(parsedTypes.result()[0]);
         return Parsed.error("Could not parse data type: " + type);
@@ -80,7 +86,7 @@ public class UserTypeParser {
 
     // Parses a list of comma-separated user data types. If no comma is found, then the returned
     // list only contains one dataType.
-    private Parsed<UserType[]> parseListOfTypesAndNotation(String type, String defaultNotation) {
+    private Parsed<UserType[]> parseListOfTypesAndNotation(String type, String defaultNotation, boolean allowUnresolved) {
         if (type == null || type.isEmpty()) {
             return Parsed.ok(new UserType[]{UserType.UNKNOWN});
         }
@@ -88,13 +94,13 @@ public class UserTypeParser {
 
         final var leftTerm = parseLeftMostTerm(type);
         if (leftTerm.isError()) return Parsed.error(leftTerm.errorMessage());
-        final var parsedLeftTerm = parseTypeAndNotation(leftTerm.result(), defaultNotation);
+        final var parsedLeftTerm = parseTypeAndNotation(leftTerm.result(), defaultNotation, allowUnresolved);
         if (parsedLeftTerm.isError()) return Parsed.error(parsedLeftTerm.errorMessage());
 
         final UserType[] remainderTypes;
         final var remainder = type.substring(leftTerm.result().length()).trim();
         if (remainder.startsWith(TYPE_SEPARATOR)) {
-            final var parsedRemainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation);
+            final var parsedRemainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation, allowUnresolved);
             if (parsedRemainderTypes.isError()) return Parsed.error(parsedRemainderTypes.errorMessage());
             remainderTypes = parsedRemainderTypes.result();
         } else if (remainder.isEmpty()) {
@@ -112,7 +118,7 @@ public class UserTypeParser {
     private record DecomposedType(String notation, String dataType, boolean explicitNotation) {
     }
 
-    private Parsed<UserType> parseTypeAndNotation(String composedType, String defaultNotation) {
+    private Parsed<UserType> parseTypeAndNotation(String composedType, String defaultNotation, boolean allowUnresolved) {
         final var decomposedType = decompose(composedType, defaultNotation);
         final var notation = decomposedType.notation();
         final var dataType = decomposedType.dataType();
@@ -142,7 +148,12 @@ public class UserTypeParser {
 
         for (final var parser : parsers) {
             final var parseResult = parser.apply(decomposedType);
-            if (parseResult.isPresent()) return parseResult.get();
+            if (parseResult.isPresent()) {
+                final var result = parseResult.get();
+                if (result.isOk() && result.result().dataType() instanceof UnresolvedType && !allowUnresolved)
+                    return Parsed.error("Unspecified schema can only be used in the context of a topic: " + result.result());
+                return parseResult.get();
+            }
         }
 
         return Parsed.error("Unknown user type: notation=" + (notation != null ? notation : "null") + ", type=" + dataType);
@@ -154,20 +165,20 @@ public class UserTypeParser {
         if (internalType == null) return Optional.empty();
 
         // For basic data types, first try the parsed notation
-        final var n = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
-        if (n.defaultType() == null || n.defaultType().isAssignableFrom(internalType).isAssignable())
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
+        if (notation.defaultType() == null || notation.defaultType().isAssignableFrom(internalType).isAssignable())
             return Optional.of(Parsed.ok(new UserType(type.notation, internalType)));
 
         // If the notation was explicitly given, or the notation equals the default notation, then parsing failed
         if (type.explicitNotation() || DEFAULT_NOTATION.equals(type.notation))
-            return Optional.of(Parsed.error("Notation " + n.name() + " does not allow for data type " + type.dataType));
+            return Optional.of(Parsed.error("Notation " + notation.name() + " does not allow for data type " + type.dataType));
 
         // If no explicit notation was provided for the internal type, then try the default notation
         final var dn = ExecutionContext.INSTANCE.notationLibrary().get(DEFAULT_NOTATION);
         if (dn.defaultType() != null && dn.defaultType().isAssignableFrom(internalType).isAssignable())
             return Optional.of(Parsed.ok(new UserType(DEFAULT_NOTATION, internalType)));
 
-        return Optional.of(Parsed.error("Both notations " + n.name() + " and " + dn.name() + " do not allow for data type " + type.dataType));
+        return Optional.of(Parsed.error("Both notations " + notation.name() + " and " + dn.name() + " do not allow for data type " + type.dataType));
     }
 
     private Optional<Parsed<UserType>> parseList(DecomposedType type) {
@@ -179,7 +190,7 @@ public class UserTypeParser {
 
         // Parse the type in brackets separately as the type of list elements
         final var valueTypeStr = type.dataType.substring(1, type.dataType.length() - 1);
-        final var parsedValueType = parseTypeAndNotation(valueTypeStr, type.notation);
+        final var parsedValueType = parseTypeAndNotation(valueTypeStr, type.notation, false);
         if (parsedValueType.isError()) return Optional.of(parsedValueType);
         // Return a typed list
         return Optional.of(Parsed.ok(new UserType(type.notation, new ListType(parsedValueType.result().dataType()))));
@@ -194,7 +205,7 @@ public class UserTypeParser {
 
         // Parse the type in brackets separately as the type of list elements
         final var valueTypeStr = type.dataType.substring(LIST_TYPE.length() + 1, type.dataType.length() - 1);
-        final var parsedValueType = parseTypeAndNotation(valueTypeStr, type.notation);
+        final var parsedValueType = parseTypeAndNotation(valueTypeStr, type.notation, false);
         if (parsedValueType.isError()) return Optional.of(parsedValueType);
         // Return a typed list
         return Optional.of(Parsed.ok(new UserType(type.notation, new ListType(parsedValueType.result().dataType()))));
@@ -223,7 +234,7 @@ public class UserTypeParser {
 
         // Parse the type in brackets separately as the type of map elements
         final var valueTypeStr = type.dataType.substring(MAP_TYPE.length() + 1, type.dataType.length() - 1);
-        final var parsedValueType = parseTypeAndNotation(valueTypeStr, type.notation);
+        final var parsedValueType = parseTypeAndNotation(valueTypeStr, type.notation, false);
         if (parsedValueType.isError()) return Optional.of(parsedValueType);
         // Return a typed map
         return Optional.of(Parsed.ok(new UserType(type.notation, new MapType(parsedValueType.result().dataType()))));
@@ -238,7 +249,7 @@ public class UserTypeParser {
 
         // Parse the types in brackets separately as the union's member types
         final var memberTypesStr = type.dataType.substring(UNION_TYPE.length() + 1, type.dataType.length() - 1);
-        final var parsedMemberTypes = parseListOfTypesAndNotation(memberTypesStr, type.notation);
+        final var parsedMemberTypes = parseListOfTypesAndNotation(memberTypesStr, type.notation, false);
         if (parsedMemberTypes.isError()) return Optional.of(Parsed.error(parsedMemberTypes.errorMessage()));
         // Return a new union type with parsed member types
         final var memberTypes = Arrays.stream(UserType.userTypesToDataTypes(parsedMemberTypes.result())).map(UnionType.Member::new).toArray(UnionType.Member[]::new);
@@ -255,14 +266,14 @@ public class UserTypeParser {
         // Parse the type in brackets separately as the type of the windowed key
         final var windowedTypeStr = type.dataType.substring(WINDOWED_TYPE.length() + 1, type.dataType.length() - 1);
         // For internal types, first try the parsed notation (infectious notation downwards)
-        final var parsedWindowType = parseTypeAndNotation(windowedTypeStr, type.notation);
+        final var parsedWindowType = parseTypeAndNotation(windowedTypeStr, type.notation, false);
         // Return a typed windowed object
         if (parsedWindowType.isOk())
             return Optional.of(Parsed.ok(new UserType(type.notation, new WindowedType(parsedWindowType.result().dataType()))));
         if (type.explicitNotation())
             return Optional.of(Parsed.error(parsedWindowType.errorMessage())); // Don't silently retry
         // Only fall back to the default notation when the notation was not explicit
-        final var parsedWindowType2 = parseTypeAndNotation(windowedTypeStr, DEFAULT_NOTATION);
+        final var parsedWindowType2 = parseTypeAndNotation(windowedTypeStr, DEFAULT_NOTATION, false);
         // Return a typed windowed object
         if (parsedWindowType2.isOk())
             return Optional.of(Parsed.ok(new UserType(type.notation, new WindowedType(parsedWindowType2.result().dataType()))));
@@ -280,7 +291,7 @@ public class UserTypeParser {
 
         // Parse the type in brackets separately as the tuple's element types
         final var elementTypesStr = type.dataType.substring(1, type.dataType.length() - 1);
-        final var parsedElementTypes = parseListOfTypesAndNotation(elementTypesStr, type.notation);
+        final var parsedElementTypes = parseListOfTypesAndNotation(elementTypesStr, type.notation, false);
         if (parsedElementTypes.isError()) return Optional.of(Parsed.error(parsedElementTypes.errorMessage()));
         // Return a new tuple type with parsed element types
         return Optional.of(Parsed.ok(new UserType(type.notation, new UserTupleType(parsedElementTypes.result()))));
@@ -295,7 +306,7 @@ public class UserTypeParser {
 
         // Parse the type in brackets separately as the tuple's element types
         final var elementTypesStr = type.dataType.substring(TUPLE_TYPE.length() + 1, type.dataType.length() - 1);
-        final var parsedElementTypes = parseListOfTypesAndNotation(elementTypesStr, type.notation);
+        final var parsedElementTypes = parseListOfTypesAndNotation(elementTypesStr, type.notation, false);
         if (parsedElementTypes.isError()) return Optional.of(Parsed.error(parsedElementTypes.errorMessage()));
         // Return a new tuple type with parsed element types
         return Optional.of(Parsed.ok(new UserType(type.notation, new UserTupleType(parsedElementTypes.result()))));
@@ -303,17 +314,30 @@ public class UserTypeParser {
 
     private Optional<Parsed<UserType>> parseNotationWithOrWithoutSchema(DecomposedType type) {
         // Notation type with or without a specific schema
-        final var not = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
-        if (not == null) return Optional.empty();
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(type.notation);
 
-        // If the dataType (i.e., schema) is empty, then return the notation with its default type
-        if (type.dataType.isEmpty()) return Optional.of(Parsed.ok(new UserType(type.notation, not.defaultType())));
+        // If the dataType (i.e., schema) is empty, then return the notation with its default type,
+        // or an unresolved type if the notation supports fetching schemas from a remote registry
+        if (type.dataType.isEmpty()) {
+            // If the notation supports fetching remote schemas, then return an unresolved user type
+            if (notation.supportsRemoteSchema())
+                return Optional.of(Parsed.ok(new UserType(type.notation, UnresolvedType.INSTANCE)));
+            // If the notation requires a schema, then return an error
+            if (notation.schemaUsage() == Notation.SchemaUsage.SCHEMA_REQUIRED)
+                return Optional.of(Parsed.error("Schema is required for notation " + notation.name() + ". Use \"" + type.notation + ":SchemaName\" to specify the schema."));
+            // Return a schemaless user type
+            return Optional.of(Parsed.ok(new UserType(type.notation, notation.defaultType())));
+        }
+
+        // If the notation only works schemaless, then return an error
+        if (notation.schemaUsage() == Notation.SchemaUsage.SCHEMALESS_ONLY)
+            return Optional.of(Parsed.error("Schema \"" + type.dataType + "\" can not be used for notation " + notation.name() + ". Use \"" + type.notation + "\" to use the notation schemaless."));
 
         // Try to load the schema
-        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, type.dataType, false);
+        final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(notation, type.dataType, false);
         final var schemaType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
-        if (not.defaultType().isAssignableFrom(schemaType).isNotAssignable()) {
-            return Optional.of(Parsed.error("Notation does not allow for type: notation=" + not.name() + ", type=" + schemaType));
+        if (notation.defaultType().isAssignableFrom(schemaType).isNotAssignable()) {
+            return Optional.of(Parsed.error("Notation does not allow for type: notation=" + notation.name() + ", type=" + schemaType));
         }
         return Optional.of(Parsed.ok(new UserType(type.notation, schemaType)));
     }
@@ -337,8 +361,7 @@ public class UserTypeParser {
 
         // Check if the composedType is a reference to a schemaless notation
         if (ExecutionContext.INSTANCE.notationLibrary().exists(composedType)) {
-            final var not = ExecutionContext.INSTANCE.notationLibrary().get(composedType);
-            return new DecomposedType(not.name(), "", true);
+            return new DecomposedType(composedType, "", true);
         }
         // Return the whole type string to be processed further, along with the default notation
         return new DecomposedType(defaultNotation, composedType, false);

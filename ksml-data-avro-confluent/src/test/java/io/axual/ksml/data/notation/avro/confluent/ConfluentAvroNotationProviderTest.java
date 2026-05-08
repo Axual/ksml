@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotation;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -46,10 +45,9 @@ class ConfluentAvroNotationProviderTest {
     void createNotation_defaultConstructor_wiresConfluentSerdeSupplier() {
         // Given a provider without an explicit Schema Registry client
         var provider = new ConfluentAvroNotationProvider();
-        var context = new NotationContext(AvroNotation.NOTATION_NAME, "confluent");
 
         // Then
-        assertThat(provider.createNotation(context))
+        assertThat(provider.createNotation())
                 .asInstanceOf(InstanceOfAssertFactories.type(AvroNotation.class))
                 .returns("confluent_" + AvroNotation.NOTATION_NAME, AvroNotation::name)
                 .returns(".avsc", AvroNotation::filenameExtension)
@@ -67,9 +65,8 @@ class ConfluentAvroNotationProviderTest {
         // Given
         var registryClient = mock(SchemaRegistryClient.class);
         var provider = new ConfluentAvroNotationProvider(registryClient);
-        var context = new NotationContext(AvroNotation.NOTATION_NAME, "confluent");
 
-        assertThat(provider.createNotation(context))
+        assertThat(provider.createNotation())
                 .asInstanceOf(InstanceOfAssertFactories.type(VendorNotation.class))
                 .extracting(VendorNotation::serdeSupplier, InstanceOfAssertFactories.type(ConfluentAvroSerdeSupplier.class))
                 .extracting(ConfluentAvroSerdeSupplier::registryClient)

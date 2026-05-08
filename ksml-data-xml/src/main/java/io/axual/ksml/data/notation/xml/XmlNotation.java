@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
@@ -30,21 +31,64 @@ import org.apache.kafka.common.serialization.Serde;
 public class XmlNotation extends StringNotation {
     public static final String NOTATION_NAME = "xml";
     public static final DataType DEFAULT_TYPE = new StructType();
+    private static final XmlDataObjectConverter CONVERTER = new XmlDataObjectConverter();
+    private static final XmlDataObjectMapper STRING_MAPPER = new XmlDataObjectMapper(false);
+
+    private SchemaParser lazySchemaParser;
+
+    public XmlNotation() {
+        this(null);
+    }
 
     public XmlNotation(NotationContext context) {
-        super(context,
-                ".xsd",
-                DEFAULT_TYPE,
-                new XmlDataObjectConverter(),
-                new XmlSchemaParser(context.nativeDataObjectMapper(), context.typeSchemaMapper()),
-                new XmlDataObjectMapper(false));
+        super(context);
+    }
+
+    @Override
+    public String notationName() {
+        return NOTATION_NAME;
+    }
+
+    @Override
+    public String filenameExtension() {
+        return ".xsd";
+    }
+
+    @Override
+    public SchemaUsage schemaUsage() {
+        return SchemaUsage.SCHEMA_OPTIONAL;
+    }
+
+    @Override
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
+    }
+
+    @Override
+    public Converter converter() {
+        return CONVERTER;
+    }
+
+    @Override
+    public SchemaParser schemaParser() {
+        if (lazySchemaParser == null) {
+            lazySchemaParser = new XmlSchemaParser(
+                    context().nativeDataObjectMapper(),
+                    context().typeSchemaMapper());
+        }
+        return lazySchemaParser;
+    }
+
+    @Override
+    protected DataObjectMapper<String> stringMapper() {
+        return STRING_MAPPER;
     }
 
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        // XML types should ways be Maps (or Structs)
+        // XML types should always be Maps (or Structs)
         if (type instanceof MapType || type instanceof StructType) return super.serde(type, isKey);
-        // Other types can not be serialized as XML
+        // Other types cannot be serialized as XML
         throw noSerdeFor(type);
     }
 }

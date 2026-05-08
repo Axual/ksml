@@ -20,7 +20,6 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;

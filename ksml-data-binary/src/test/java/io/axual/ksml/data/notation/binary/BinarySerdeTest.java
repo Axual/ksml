@@ -44,16 +44,16 @@ class BinarySerdeTest {
     @DisplayName("Byte round-trip preserves value")
     void byteRoundTrip() {
         // Given: Binary notation with Byte type
-        var byteType = new SimpleType(Byte.class, "byte");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        final var byteType = new SimpleType(Byte.class, "byte");
+        final var notation = new BinaryNotation(new NotationContext(), null);
 
         // And: a byte value
-        Byte value = (byte) 42;
+        final Byte value = (byte) 42;
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(byteType, false)) {
-            var bytes = serde.serializer().serialize("test-topic", value);
-            var result = serde.deserializer().deserialize("test-topic", bytes);
+            final var bytes = serde.serializer().serialize("test-topic", value);
+            final var result = serde.deserializer().deserialize("test-topic", bytes);
 
             // Then: should get the same byte value back
             assertThat(result).isInstanceOf(Byte.class);
@@ -65,16 +65,16 @@ class BinarySerdeTest {
     @DisplayName("Integer round-trip preserves value")
     void integerRoundTrip() {
         // Given: Binary notation with Integer type
-        var intType = new SimpleType(Integer.class, "int");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        final var intType = new SimpleType(Integer.class, "int");
+        final var notation = new BinaryNotation(null);
 
         // And: an integer value
-        Integer value = 123456;
+        final Integer value = 123456;
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(intType, false)) {
-            var bytes = serde.serializer().serialize("test-topic", value);
-            var result = serde.deserializer().deserialize("test-topic", bytes);
+            final var bytes = serde.serializer().serialize("test-topic", value);
+            final var result = serde.deserializer().deserialize("test-topic", bytes);
 
             // Then: should get the same integer value back
             assertThat(result).isInstanceOf(Integer.class);
@@ -86,16 +86,16 @@ class BinarySerdeTest {
     @DisplayName("Long round-trip preserves value")
     void longRoundTrip() {
         // Given: Binary notation with Long type
-        var longType = new SimpleType(Long.class, "long");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        final var longType = new SimpleType(Long.class, "long");
+        final var notation = new BinaryNotation();
 
         // And: a long value
-        Long value = 9876543210L;
+        final Long value = 9876543210L;
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(longType, false)) {
-            var bytes = serde.serializer().serialize("test-topic", value);
-            var result = serde.deserializer().deserialize("test-topic", bytes);
+            final var bytes = serde.serializer().serialize("test-topic", value);
+            final var result = serde.deserializer().deserialize("test-topic", bytes);
 
             // Then: should get the same long value back
             assertThat(result).isInstanceOf(Long.class);
@@ -107,16 +107,16 @@ class BinarySerdeTest {
     @DisplayName("String round-trip preserves value")
     void stringRoundTrip() {
         // Given: Binary notation with String type
-        var stringType = new SimpleType(String.class, "string");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        final var stringType = new SimpleType(String.class, "string");
+        final var notation = new BinaryNotation();
 
         // And: a string value
-        String value = "Hello KSML";
+        final String value = "Hello KSML";
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(stringType, false)) {
-            var bytes = serde.serializer().serialize("test-topic", value);
-            var result = serde.deserializer().deserialize("test-topic", bytes);
+            final var bytes = serde.serializer().serialize("test-topic", value);
+            final var result = serde.deserializer().deserialize("test-topic", bytes);
 
             // Then: should get the same string value back
             assertThat(result).isInstanceOf(String.class);
@@ -128,14 +128,14 @@ class BinarySerdeTest {
     @DisplayName("Multiple byte values round-trip correctly")
     @ValueSource(bytes = {0, 1, 42, 127, -1, -128, (byte) 255})
     void multipleByteRoundTrips(byte value) {
-        // Given: Binary notation with Byte type
-        var byteType = new SimpleType(Byte.class, "byte");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with a Byte type
+        final var byteType = new SimpleType(Byte.class, "byte");
+        final var notation = new BinaryNotation();
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(byteType, false)) {
-            var bytes = serde.serializer().serialize("topic", value);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", value);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: should round-trip correctly
             assertThat(result)
@@ -147,12 +147,12 @@ class BinarySerdeTest {
     @Test
     @DisplayName("Binary data similar to docs example round-trips correctly")
     void binaryMessageLikeDocsExample() {
-        // Given: Binary notation with Integer type (simulating byte array operations)
-        var intType = new SimpleType(Integer.class, "int");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with an Integer type (simulating byte array operations)
+        final var intType = new SimpleType(Integer.class, "int");
+        final var notation = new BinaryNotation();
 
         // And: values simulating the binary producer example (counter byte)
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         // Test counter values like in the docs example
         try (var serde = notation.serde(intType, false)) {
@@ -177,15 +177,15 @@ class BinarySerdeTest {
     @DisplayName("Key serde works independently from value serde")
     void keySerde() {
         // Given: Binary notation
-        var stringType = new SimpleType(String.class, "string");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        final var stringType = new SimpleType(String.class, "string");
+        final var notation = new BinaryNotation();
 
-        // When: creating key serde and using it for round-trip
+        // When: creating a key serde and using it for a round-trip
         try (var keySerde = notation.serde(stringType, true)) {
-            String keyValue = "key123";
+            final String keyValue = "key123";
 
-            var bytes = keySerde.serializer().serialize("topic", keyValue);
-            var result = keySerde.deserializer().deserialize("topic", bytes);
+            final var bytes = keySerde.serializer().serialize("topic", keyValue);
+            final var result = keySerde.deserializer().deserialize("topic", bytes);
 
             // Then: should work correctly
             assertThat(result).isInstanceOf(String.class);
@@ -196,19 +196,19 @@ class BinarySerdeTest {
     @Test
     @DisplayName("Null serialization produces null bytes and deserializes to null")
     void nullRoundTrip() {
-        // Given: Binary notation with String type
-        var stringType = new SimpleType(String.class, "string");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with a String type
+        final var stringType = new SimpleType(String.class, "string");
+        final var notation = new BinaryNotation();
 
         // When: serializing null
         try (var serde = notation.serde(stringType, false)) {
-            var bytes = serde.serializer().serialize("topic", null);
+            final var bytes = serde.serializer().serialize("topic", null);
 
             // Then: bytes should be null
             assertThat(bytes).isNull();
 
             // And: deserializing null bytes should return null
-            var result = serde.deserializer().deserialize("topic", null);
+            final var result = serde.deserializer().deserialize("topic", null);
             assertThat(result).isNull();
         }
     }
@@ -216,17 +216,17 @@ class BinarySerdeTest {
     @Test
     @DisplayName("Empty string round-trips correctly")
     void emptyStringRoundTrip() {
-        // Given: Binary notation with String type
-        var stringType = new SimpleType(String.class, "string");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with a String type
+        final var stringType = new SimpleType(String.class, "string");
+        final var notation = new BinaryNotation();
 
         // And: empty string
-        String value = "";
+        final String value = "";
 
         // When: serializing to bytes and deserializing back
         try (var serde = notation.serde(stringType, false)) {
-            var bytes = serde.serializer().serialize("topic", value);
-            var result = serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", value);
+            final var result = serde.deserializer().deserialize("topic", bytes);
 
             // Then: should get empty string back
             assertThat(result).isInstanceOf(String.class);
@@ -237,12 +237,12 @@ class BinarySerdeTest {
     @Test
     @DisplayName("Special characters in strings round-trip correctly")
     void specialCharactersRoundTrip() {
-        // Given: Binary notation with String type
-        var stringType = new SimpleType(String.class, "string");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with a String type
+        final var stringType = new SimpleType(String.class, "string");
+        final var notation = new BinaryNotation();
 
         // When/Then: verify strings with special characters round-trip correctly
-        var softly = new SoftAssertions();
+        final var softly = new SoftAssertions();
 
         String[] testStrings = {
                 "Hello, World!",
@@ -255,8 +255,8 @@ class BinarySerdeTest {
 
         try (var serde = notation.serde(stringType, false)) {
             for (String testString : testStrings) {
-                var bytes = serde.serializer().serialize("topic", testString);
-                var result = serde.deserializer().deserialize("topic", bytes);
+                final var bytes = serde.serializer().serialize("topic", testString);
+                final var result = serde.deserializer().deserialize("topic", bytes);
                 softly.assertThat(result)
                         .as("String '%s' should round-trip correctly", testString)
                         .isEqualTo(testString);
@@ -269,13 +269,13 @@ class BinarySerdeTest {
     @Test
     @DisplayName("Integer edge cases round-trip correctly")
     void integerEdgeCases() {
-        // Given: Binary notation with Integer type
-        var intType = new SimpleType(Integer.class, "int");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with an Integer type
+        final var intType = new SimpleType(Integer.class, "int");
+        final var notation = new BinaryNotation();
 
         // When/Then: verify edge case integer values round-trip correctly
         try (var serde = notation.serde(intType, false)) {
-            var softly = new SoftAssertions();
+            final var softly = new SoftAssertions();
 
             Integer[] testValues = {
                     0,
@@ -288,8 +288,8 @@ class BinarySerdeTest {
             };
 
             for (Integer testValue : testValues) {
-                var bytes = serde.serializer().serialize("topic", testValue);
-                var result = serde.deserializer().deserialize("topic", bytes);
+                final var bytes = serde.serializer().serialize("topic", testValue);
+                final var result = serde.deserializer().deserialize("topic", bytes);
                 softly.assertThat(result)
                         .as("Integer value %d should round-trip correctly", testValue)
                         .isEqualTo(testValue);
@@ -302,13 +302,13 @@ class BinarySerdeTest {
     @Test
     @DisplayName("Long edge cases round-trip correctly")
     void longEdgeCases() {
-        // Given: Binary notation with Long type
-        var longType = new SimpleType(Long.class, "long");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with a Long type
+        final var longType = new SimpleType(Long.class, "long");
+        final var notation = new BinaryNotation();
 
         // When/Then: verify edge case long values round-trip correctly
         try (var serde = notation.serde(longType, false)) {
-            var softly = new SoftAssertions();
+            final var softly = new SoftAssertions();
 
             Long[] testValues = {
                     0L,
@@ -321,8 +321,8 @@ class BinarySerdeTest {
             };
 
             for (Long testValue : testValues) {
-                var bytes = serde.serializer().serialize("topic", testValue);
-                var result = serde.deserializer().deserialize("topic", bytes);
+                final var bytes = serde.serializer().serialize("topic", testValue);
+                final var result = serde.deserializer().deserialize("topic", bytes);
                 softly.assertThat(result)
                         .as("Long value %d should round-trip correctly", testValue)
                         .isEqualTo(testValue);
@@ -335,23 +335,23 @@ class BinarySerdeTest {
     @Test
     @DisplayName("Binary operations similar to docs processor example")
     void binaryOperationsLikeDocsExample() {
-        // Given: Binary notation with Byte type (simulating byte manipulation)
-        var byteType = new SimpleType(Byte.class, "byte");
-        var notation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME), null);
+        // Given: Binary notation with a Byte type (simulating byte manipulation)
+        final var byteType = new SimpleType(Byte.class, "byte");
+        final var notation = new BinaryNotation();
 
         // Simulate the docs example: increment first byte operation
-        byte originalValue = 42;
+        final byte originalValue = 42;
 
         // When: serialize, "process" (increment), serialize again
         try (var serde = notation.serde(byteType, false)) {
-            var bytes = serde.serializer().serialize("topic", originalValue);
-            var deserialized = (Byte) serde.deserializer().deserialize("topic", bytes);
+            final var bytes = serde.serializer().serialize("topic", originalValue);
+            final var deserialized = (Byte) serde.deserializer().deserialize("topic", bytes);
 
             // Simulate Python: modified[0] = (modified[0] + 1) % 256
-            byte modifiedValue = (byte) ((deserialized + 1) % 256);
+            final byte modifiedValue = (byte) ((deserialized + 1) % 256);
 
-            var modifiedBytes = serde.serializer().serialize("topic", modifiedValue);
-            var finalResult = serde.deserializer().deserialize("topic", modifiedBytes);
+            final var modifiedBytes = serde.serializer().serialize("topic", modifiedValue);
+            final var finalResult = serde.deserializer().deserialize("topic", modifiedBytes);
 
             // Then: should have incremented value
             assertThat(finalResult).isEqualTo(modifiedValue);

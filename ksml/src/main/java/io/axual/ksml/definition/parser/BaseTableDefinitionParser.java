@@ -51,11 +51,11 @@ public abstract class BaseTableDefinitionParser<T> extends TopologyBaseResourceA
     }
 
     protected StructsParser<UserType> keyField() {
-        return optional(userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the " + tableType), UserType.UNKNOWN);
+        return optional(userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the " + tableType, true), UserType.UNKNOWN);
     }
 
     protected StructsParser<UserType> valueField() {
-        return optional(userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the " + tableType), UserType.UNKNOWN);
+        return optional(userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the " + tableType, true), UserType.UNKNOWN);
     }
 
     protected StructsParser<FunctionDefinition> timestampExtractorField() {

@@ -64,6 +64,6 @@ class CsvTests {
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME)), true, CSV_EQUALITY_FLAGS);
+        NotationTestRunner.serdeTest(new CsvNotation(), true, CSV_EQUALITY_FLAGS);
     }
 }

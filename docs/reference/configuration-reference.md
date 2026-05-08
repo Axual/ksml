@@ -1,6 +1,7 @@
 # Configuration Reference
 
-This document provides a comprehensive reference for configuring the KSML Runner application through the `ksml-runner.yaml` configuration file.
+This document provides a comprehensive reference for configuring the KSML Runner application through the
+`ksml-runner.yaml` configuration file.
 
 ## Configuration File Structure
 
@@ -83,12 +84,12 @@ The `ksml` section contains all configuration specific to the KSML Runner applic
 
 ### Directory Configuration
 
-| Property               | Type    | Default                    | Description                                                    |
-|------------------------|---------|----------------------------|----------------------------------------------------------------|
-| `configDirectory`      | String  | Working directory          | Directory containing KSML definition files                    |
-| `schemaDirectory`      | String  | Same as configDirectory    | Directory containing schema files                              |
-| `storageDirectory`     | String  | System temp directory      | Directory for Kafka Streams state stores                      |
-| `createStorageDirectory` | Boolean | false                    | Create storage directory if it doesn't exist                  |
+| Property                 | Type    | Default                 | Description                                  |
+|--------------------------|---------|-------------------------|----------------------------------------------|
+| `configDirectory`        | String  | Working directory       | Directory containing KSML definition files   |
+| `schemaDirectory`        | String  | Same as configDirectory | Directory containing schema files            |
+| `storageDirectory`       | String  | System temp directory   | Directory for Kafka Streams state stores     |
+| `createStorageDirectory` | Boolean | false                   | Create storage directory if it doesn't exist |
 
 ```yaml
 ksml:
@@ -102,11 +103,11 @@ ksml:
 
 Enables a REST API for state store queries and health checks:
 
-| Property  | Type    | Default   | Description                              |
-|-----------|---------|-----------|------------------------------------------|
-| `enabled` | Boolean | false     | Enable/disable the REST server           |
-| `host`    | String  | 0.0.0.0   | IP address to bind the server to         |
-| `port`    | Integer | 8080      | Port number for the REST API             |
+| Property  | Type    | Default | Description                      |
+|-----------|---------|---------|----------------------------------|
+| `enabled` | Boolean | false   | Enable/disable the REST server   |
+| `host`    | String  | 0.0.0.0 | IP address to bind the server to |
+| `port`    | Integer | 8080    | Port number for the REST API     |
 
 ```yaml
 ksml:
@@ -120,11 +121,11 @@ ksml:
 
 Enables Prometheus metrics endpoint:
 
-| Property  | Type    | Default   | Description                              |
-|-----------|---------|-----------|------------------------------------------|
-| `enabled` | Boolean | false     | Enable/disable Prometheus metrics        |
-| `host`    | String  | 0.0.0.0   | IP address to bind the metrics server to |
-| `port`    | Integer | 9999      | Port number for metrics endpoint         |
+| Property  | Type    | Default | Description                              |
+|-----------|---------|---------|------------------------------------------|
+| `enabled` | Boolean | false   | Enable/disable Prometheus metrics        |
+| `host`    | String  | 0.0.0.0 | IP address to bind the metrics server to |
+| `port`    | Integer | 9999    | Port number for metrics endpoint         |
 
 ```yaml
 ksml:
@@ -140,12 +141,12 @@ Configure how different types of errors are handled:
 
 Each error type (`consume`, `process`, `produce`) supports these properties:
 
-| Property     | Type    | Default | Description                                           |
-|--------------|---------|---------|-------------------------------------------------------|
-| `log`        | Boolean | true    | Whether to log errors                                 |
-| `logPayload` | Boolean | false   | Whether to include message payload in error logs     |
-| `loggerName` | String  | Auto-generated | Custom logger name for this error type               |
-| `handler`    | String  | stop    | Error handling strategy (`continueOnFail`, `stopOnFail`, `retryOnFail`) |
+| Property     | Type    | Default        | Description                                                             |
+|--------------|---------|----------------|-------------------------------------------------------------------------|
+| `log`        | Boolean | true           | Whether to log errors                                                   |
+| `logPayload` | Boolean | false          | Whether to include message payload in error logs                        |
+| `loggerName` | String  | Auto-generated | Custom logger name for this error type                                  |
+| `handler`    | String  | stop           | Error handling strategy (`continueOnFail`, `stopOnFail`, `retryOnFail`) |
 
 ```yaml
 ksml:
@@ -171,10 +172,10 @@ ksml:
 
 Control which KSML features are enabled:
 
-| Property          | Type    | Default | Description                                    |
-|-------------------|---------|---------|------------------------------------------------|
-| `enableProducers` | Boolean | true    | Enable producer definitions in KSML files     |
-| `enablePipelines` | Boolean | true    | Enable pipeline definitions in KSML files     |
+| Property          | Type    | Default | Description                               |
+|-------------------|---------|---------|-------------------------------------------|
+| `enableProducers` | Boolean | true    | Enable producer definitions in KSML files |
+| `enablePipelines` | Boolean | true    | Enable pipeline definitions in KSML files |
 
 ```yaml
 ksml:
@@ -259,16 +260,16 @@ ksml:
 
 Configure data format serializers and deserializers. Each notation entry defines:
 
-| Property         | Type   | Required | Description                                    |
-|------------------|--------|----------|------------------------------------------------|
-| `type`           | String | Yes      | Serializer implementation type                 |
-| `schemaRegistry` | String | No       | Schema registry to use (if applicable)        |
-| `config`         | Object | No       | Additional properties for the serializer      |
+| Property         | Type   | Required | Description                              |
+|------------------|--------|----------|------------------------------------------|
+| `type`           | String | Yes      | Serializer implementation type           |
+| `schemaRegistry` | String | No       | Schema registry to use (if applicable)   |
+| `config`         | Object | No       | Additional properties for the serializer |
 
 ```yaml
 ksml:
   notations:
-    # Avro with Confluent
+    # Avro with Confluent implementation, registered as notation "avro" for use in KSML definitions
     avro:
       type: confluent_avro
       schemaRegistry: confluent
@@ -276,21 +277,21 @@ ksml:
         normalize.schemas: true
         auto.register.schemas: false
 
-    # Avro with Apicurio
+    # Avro with Apicurio implementation, registered as notation "apicurio_avro" for use in KSML definitions
     apicurio_avro:
       type: apicurio_avro
       schemaRegistry: apicurio
       config:
         apicurio.registry.auto-register: true
 
-    # JSON Schema with Apicurio
+    # JSON Schema with Apicurio implementation, registered as notation "jsonschema" for use in KSML definitions
     jsonschema:
       type: apicurio_jsonschema
       schemaRegistry: apicurio
       config:
         apicurio.registry.auto-register: true
 
-    # Protobuf with Apicurio
+    # Protobuf with Apicurio implementation, registered as notation "protobuf" for use in KSML definitions
     protobuf:
       type: apicurio_protobuf
       schemaRegistry: apicurio
@@ -300,21 +301,21 @@ ksml:
 
 Available serializer types:
 
-| Serializer Type          | Notation  | Schema Registry | Description                    |
-|--------------------------|-----------|-----------------|--------------------------------|
-| `confluent_avro`         | avro      | Confluent       | Avro with Confluent SR         |
-| `apicurio_avro`          | avro      | Apicurio        | Avro with Apicurio SR          |
-| `confluent_jsonschema`   | jsonschema| Confluent       | JSON Schema with Confluent SR  |
-| `apicurio_jsonschema`    | jsonschema| Apicurio        | JSON Schema with Apicurio SR   |
-| `confluent_protobuf`     | protobuf  | Confluent       | Protobuf with Confluent SR     |
-| `apicurio_protobuf`      | protobuf  | Apicurio        | Protobuf with Apicurio SR      |
+| Internal notation name | Exposed as | Schema Registry | Description                   |
+|------------------------|------------|-----------------|-------------------------------|
+| `apicurio_avro`        | avro       | Apicurio        | Avro with Apicurio SR         |
+| `confluent_avro`       | avro       | Confluent       | Avro with Confluent SR        |
+| `apicurio_jsonschema`  | jsonschema | Apicurio        | JSON Schema with Apicurio SR  |
+| `confluent_jsonschema` | jsonschema | Confluent       | JSON Schema with Confluent SR |
+| `apicurio_protobuf`    | protobuf   | Apicurio        | Protobuf with Apicurio SR     |
+| `confluent_protobuf`   | protobuf   | Confluent       | Protobuf with Confluent SR    |
 
 Built-in serializers (no configuration needed):
 
 - `json`: Schemaless JSON
 - `csv`: Comma-separated values
 - `xml`: XML format
-- `soap`: SOAP messages
+- `soap`: SOAP messages (deprecated)
 
 ### KSML Definition Loading
 
@@ -345,29 +346,31 @@ ksml:
 
 ## Kafka Configuration Section
 
-The `kafka` section contains standard Kafka client configuration properties. All Kafka Streams and Kafka client properties are supported.
+The `kafka` section contains standard Kafka client configuration properties. All Kafka Streams and Kafka client
+properties are supported.
 
 ### Essential Properties
 
-| Property              | Type   | Required | Description                                    |
-|-----------------------|--------|----------|------------------------------------------------|
-| `bootstrap.servers`   | String | Yes      | Comma-separated list of Kafka brokers         |
-| `application.id`      | String | Yes      | Unique identifier for the Kafka Streams app   |
+| Property            | Type   | Required | Description                                 |
+|---------------------|--------|----------|---------------------------------------------|
+| `bootstrap.servers` | String | Yes      | Comma-separated list of Kafka brokers       |
+| `application.id`    | String | Yes      | Unique identifier for the Kafka Streams app |
 
 !!! note "Application ID Aliases"
-    You can use any of these property names for the application ID:
-    - `application.id` (standard Kafka property)
-    - `applicationId` (camelCase variant)  
-    - `app.id` (KSML shorthand)
+You can use any of these property names for the application ID:
+
+- `application.id` (standard Kafka property)
+- `applicationId` (camelCase variant)
+- `app.id` (KSML shorthand)
 
 ### Common Properties
 
-| Property              | Type   | Default   | Description                                    |
-|-----------------------|--------|-----------|------------------------------------------------|
-| `group.instance.id`   | String | -         | Static member ID for faster rebalancing       |
-| `security.protocol`   | String | PLAINTEXT | Security protocol (PLAINTEXT, SSL, SASL_*)    |
-| `auto.offset.reset`   | String | latest    | Offset reset policy (earliest, latest, none)  |
-| `acks`               | String | 1         | Producer acknowledgment mode                    |
+| Property            | Type   | Default   | Description                                  |
+|---------------------|--------|-----------|----------------------------------------------|
+| `group.instance.id` | String | -         | Static member ID for faster rebalancing      |
+| `security.protocol` | String | PLAINTEXT | Security protocol (PLAINTEXT, SSL, SASL_*)   |
+| `auto.offset.reset` | String | latest    | Offset reset policy (earliest, latest, none) |
+| `acks`              | String | 1         | Producer acknowledgment mode                 |
 
 ```yaml
 kafka:
@@ -427,7 +430,7 @@ kafka:
   axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
   axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
   axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
-  
+
   # Pattern variables
   tenant: "mytenant"
   instance: "myinstance"
@@ -442,7 +445,7 @@ KSML supports environment variable substitution in configuration values using `$
 kafka:
   bootstrap.servers: "${KAFKA_BROKERS}"
   application.id: "${APP_ID:-default-app-id}"  # With default value
-  
+
 ksml:
   schemaRegistries:
     confluent:
@@ -540,7 +543,7 @@ kafka:
 ### Security
 
 - Use environment variables for sensitive information like passwords and API keys
-- Enable SSL/TLS for production environments  
+- Enable SSL/TLS for production environments
 - Use proper authentication mechanisms (SASL_PLAIN, SASL_SSL, SCRAM, etc.)
 - Store certificates and keystores securely
 - Regularly rotate passwords and certificates

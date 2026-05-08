@@ -6,7 +6,7 @@
 # - ksml            = base plus GraalVM and pre-built artifacts from build-output/
 
 # Step 1: Create the common base image with the ksml user and group and the required packages
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1773939694 AS base
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1778072020 AS base
 ENV LANG=en_US.UTF-8
 
 # Environment variable for Connect Build and Runtime
@@ -44,5 +44,7 @@ COPY --chown=ksml:0 build-output/NOTICE.txt /licenses/THIRD-PARTY-LICENSES.txt
 COPY --chown=ksml:0 build-output/LICENSE.txt /licenses/LICENSE.txt
 COPY --chown=ksml:0 build-output/libs/ /opt/ksml/libs/
 COPY --chown=ksml:0 build-output/ksml-runner*.jar /opt/ksml/ksml.jar
+COPY --chown=ksml:0 entrypoint.sh /opt/ksml/entrypoint.sh
+RUN chmod +x /opt/ksml/entrypoint.sh
 
-ENTRYPOINT ["java", "-Djava.security.manager=allow", "-jar", "/opt/ksml/ksml.jar"]
+ENTRYPOINT ["/opt/ksml/entrypoint.sh"]

@@ -47,12 +47,12 @@ class UnionSerdeTest {
     @Test
     @DisplayName("configure() propagates to all member serializers and deserializers")
     void configurePropagatesToMembers() {
-        var seenSerConfig = new AtomicReference<Map<String, ?>>();
-        var seenSerIsKey = new AtomicReference<Boolean>();
-        var seenDeserConfig = new AtomicReference<Map<String, ?>>();
-        var seenDeserIsKey = new AtomicReference<Boolean>();
+        final var seenSerConfig = new AtomicReference<Map<String, ?>>();
+        final var seenSerIsKey = new AtomicReference<Boolean>();
+        final var seenDeserConfig = new AtomicReference<Map<String, ?>>();
+        final var seenDeserIsKey = new AtomicReference<Boolean>();
 
-        var spyingSerde = new Serde<>() {
+        final SerdeSupplier spyingSerde = (type, isKey) -> new Serde<>() {
             @Override
             public Serializer<Object> serializer() {
                 return new Serializer<>() {
@@ -86,11 +86,9 @@ class UnionSerdeTest {
             }
         };
 
-        var union = new UnionType(new UnionType.Member(new SimpleType(String.class, "String")));
-        SerdeSupplier supplier = (type, isKey) -> spyingSerde;
-        var serde = new UnionSerde(union, false, supplier);
-
-        var config = Map.of("a", 1);
+        final var union = new UnionType(new UnionType.Member(new SimpleType(String.class, "String")));
+        final var serde = new UnionSerde(union, false, spyingSerde);
+        final var config = Map.of("a", 1);
         serde.configure(config, true);
 
         assertThat(seenSerConfig.get()).isEqualTo(config);
@@ -102,11 +100,11 @@ class UnionSerdeTest {
     @Test
     @DisplayName("serializer: null and DataNull serialize to null; native values routed by first compatible type")
     void serializeNullsAndNativeValues() {
-        var union = new UnionType(
+        final var union = new UnionType(
                 new UnionType.Member(STR_TYPE),
                 new UnionType.Member(BYTE_TYPE)
         );
-        SerdeSupplier supplier = (type, isKey) -> {
+        final SerdeSupplier supplier = (type, isKey) -> {
             if (type.equals(STR_TYPE)) {
                 var kafka = Serdes.String();
                 return new Serde<>() {
@@ -124,18 +122,19 @@ class UnionSerdeTest {
             if (type.equals(BYTE_TYPE)) return new ByteSerde();
             throw new IllegalArgumentException("unexpected type");
         };
-        var serde = new UnionSerde(union, false, supplier);
+        final var serde = new UnionSerde(union, false, supplier);
 
         // null and DataNull -> null bytes
         assertThat(serde.serializer().serialize(TOPIC, null)).isNull();
         assertThat(serde.serializer().serialize(TOPIC, DataNull.INSTANCE)).isNull();
 
         // String value goes to String serializer (first member)
-        var sBytes = serde.serializer().serialize(TOPIC, "hello");
+        final var sBytes = serde.serializer().serialize(TOPIC, "hello");
+
         assertThat(new String(sBytes)).isEqualTo("hello");
 
-        // Byte value matches second member
-        var bBytes = serde.serializer().serialize(TOPIC, (byte) 0x7F);
+        // Byte value matches the second member
+        final var bBytes = serde.serializer().serialize(TOPIC, (byte) 0x7F);
         assertThat(bBytes).containsExactly((byte) 0x7F);
     }
 
@@ -154,11 +153,11 @@ class UnionSerdeTest {
     @Test
     @DisplayName("deserializer: null/empty -> DataNull, tries in order and returns first compatible")
     void deserializeNullsAndOrdering() {
-        var union = new UnionType(
+        final var union = new UnionType(
                 new UnionType.Member(STR_TYPE),
                 new UnionType.Member(BYTE_TYPE)
         );
-        SerdeSupplier supplier = (type, isKey) -> {
+        final SerdeSupplier supplier = (type, isKey) -> {
             if (type.equals(STR_TYPE)) {
                 var kafka = Serdes.String();
                 return new Serde<>() {
@@ -176,15 +175,15 @@ class UnionSerdeTest {
             if (type.equals(BYTE_TYPE)) return new ByteSerde();
             throw new IllegalArgumentException("unexpected type");
         };
-        var serde = new UnionSerde(union, false, supplier);
+        final var serde = new UnionSerde(union, false, supplier);
 
         // null/empty -> DataNull.INSTANCE
         assertThat(serde.deserializer().deserialize(TOPIC, null)).isSameAs(DataNull.INSTANCE);
         assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isSameAs(DataNull.INSTANCE);
 
         // Bytes that could be read by multiple members should yield the first compatible (String first)
-        var bytes = "A".getBytes();
-        var out = serde.deserializer().deserialize(TOPIC, bytes);
+        final var bytes = "A".getBytes();
+        final var out = serde.deserializer().deserialize(TOPIC, bytes);
         assertThat(out).isInstanceOf(String.class).isEqualTo("A");
     }
 
@@ -192,8 +191,8 @@ class UnionSerdeTest {
     @DisplayName("deserializer throws DataException when all members fail to deserialize")
     void deserializeNoMemberSucceedsThrows() {
         // Define a member whose deserializer always throws
-        var throwingType = new SimpleType(Integer.class, "Int");
-        var throwingSerde = new Serde<>() {
+        final var throwingType = new SimpleType(Integer.class, "Int");
+        final var throwingSerde = new Serde<>() {
             @Override
             public Serializer<Object> serializer() {
                 return new Serializer<>() {
@@ -215,9 +214,9 @@ class UnionSerdeTest {
             }
         };
 
-        var union = new UnionType(new UnionType.Member(throwingType));
-        SerdeSupplier supplier = (type, isKey) -> throwingSerde;
-        var serde = new UnionSerde(union, false, supplier);
+        final var union = new UnionType(new UnionType.Member(throwingType));
+        final SerdeSupplier supplier = (type, isKey) -> throwingSerde;
+        final var serde = new UnionSerde(union, false, supplier);
 
         assertThatThrownBy(() -> serde.deserializer().deserialize(TOPIC, "data".getBytes()))
                 .isInstanceOf(DataException.class)

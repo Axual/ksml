@@ -44,8 +44,8 @@ public class TableDefinitionParser extends BaseTableDefinitionParser<TableDefini
                 partitionerField(),
                 storeField(),
                 (topic, keyType, valueType, resetPolicy, tsExtractor, partitioner, store, tags) -> {
-                    keyType = keyType != null ? keyType : UserType.UNKNOWN;
-                    valueType = valueType != null ? valueType : UserType.UNKNOWN;
+                    keyType = resolveUserType(keyType != null ? keyType : UserType.UNKNOWN, topic, true);
+                    valueType = resolveUserType(valueType != null ? valueType : UserType.UNKNOWN, topic, false);
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
                     // If a backing store is used, then align its name, keyType and valueType to the topic
                     return new TableDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
@@ -61,8 +61,8 @@ public class TableDefinitionParser extends BaseTableDefinitionParser<TableDefini
                 partitionerField(),
                 storeField(),
                 (topic, keyType, valueType, partitioner, store, tags) -> {
-                    keyType = keyType != null ? keyType : UserType.UNKNOWN;
-                    valueType = valueType != null ? valueType : UserType.UNKNOWN;
+                    keyType = resolveUserType(keyType != null ? keyType : UserType.UNKNOWN, topic, true);
+                    valueType = resolveUserType(valueType != null ? valueType : UserType.UNKNOWN, topic, false);
                     // If a backing store is used, then align its name, keyType and valueType to the topic
                     return new TableDefinition(topic, keyType, valueType, null, null, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
                 });

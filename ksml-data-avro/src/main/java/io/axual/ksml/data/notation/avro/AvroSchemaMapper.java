@@ -23,8 +23,12 @@ package io.axual.ksml.data.notation.avro;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
@@ -40,6 +44,7 @@ import org.apache.avro.Schema;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
@@ -56,6 +61,7 @@ import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 @Slf4j
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
     private static final DataTypeDataSchemaMapper TYPE_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
 
@@ -360,7 +366,70 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private Object convertDataObjectToAvroDefaultValue(DataObject defaultValue) {
         if (defaultValue == null) return null;
         if (defaultValue == DataNull.INSTANCE) return Schema.Field.NULL_DEFAULT_VALUE;
-        return avroMapper.fromDataObject(defaultValue);
+        return toJsonShapedDefault(defaultValue);
+    }
+
+    /**
+     * Turn a KSML default value into a plain Java value that Avro can write into the schema as JSON.
+     *
+     * <p>Why this exists: when we build an Avro {@code Schema.Field}, Avro asks us
+     * for the field's default value and then tries to write it into the schema as
+     * JSON. Avro can only do that for a small set of Java types — plain Maps, plain
+     * Lists, byte arrays, strings, numbers, booleans, and a special "null sentinel"
+     * for nulls inside containers. If we hand it anything else (for example one of
+     * Avro's own internal record objects), it crashes with
+     * {@code Unknown datum class: GenericData$Record} and the producer never sends
+     * a single message.</p>
+     *
+     * <p>So this method walks the KSML default value and rebuilds it using only
+     * those JSON-friendly Java types: KSML structs and maps become plain
+     * {@link LinkedHashMap}s, KSML lists become plain {@link ArrayList}s, scalars
+     * are unwrapped to their native Java values, and any null inside a container
+     * is replaced with Avro's null sentinel {@link JsonProperties#NULL_VALUE} (a
+     * raw Java {@code null} inside a Map or List would also crash Avro).</p>
+     */
+    private Object toJsonShapedDefault(DataObject value) {
+        // A null (either a Java null or KSML's DataNull) becomes Avro's null sentinel.
+        // We use this anywhere null shows up *inside* a default value — at the top
+        // level the caller (convertDataObjectToAvroDefaultValue) handles null first.
+        if (value == null || value instanceof DataNull) return JsonProperties.NULL_VALUE;
+
+        // KSML record (struct) -> plain Map. Recurse on each field value so that a
+        // record-inside-a-record default also turns into nested Maps, not Avro
+        // record objects.
+        if (value instanceof DataStruct struct) {
+            final var result = new LinkedHashMap<String, Object>();
+            for (var entry : struct.entrySet()) {
+                result.put(entry.getKey(), toJsonShapedDefault(entry.getValue()));
+            }
+            return result;
+        }
+
+        // KSML map -> plain Map. Same idea as struct.
+        if (value instanceof DataMap map) {
+            final var result = new LinkedHashMap<String, Object>();
+            for (var entry : map.entrySet()) {
+                result.put(entry.getKey(), toJsonShapedDefault(entry.getValue()));
+            }
+            return result;
+        }
+
+        // KSML list -> plain List. Recurse on each element so a list of records
+        // also becomes a list of Maps.
+        if (value instanceof DataList list) {
+            final var result = new ArrayList<>(list.size());
+            for (var item : list) {
+                result.add(toJsonShapedDefault(item));
+            }
+            return result;
+        }
+
+        // Anything else (string, int, long, boolean, bytes, enum, ...) — let the
+        // native mapper unwrap the KSML wrapper to its underlying Java value
+        // (DataString -> String, DataInteger -> Integer, etc.). If unwrapping
+        // produces a raw Java null, swap it for Avro's null sentinel.
+        final var native_ = NATIVE_MAPPER.fromDataObject(value);
+        return native_ == null ? JsonProperties.NULL_VALUE : native_;
     }
 
     private Schema.Field.Order convertStructFieldOrderToAvroFieldOrder(StructSchema.Field.Order order) {

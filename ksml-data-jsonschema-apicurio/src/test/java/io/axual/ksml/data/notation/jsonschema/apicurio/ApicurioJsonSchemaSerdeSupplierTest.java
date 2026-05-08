@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  */
 
 import io.axual.ksml.data.serde.HeaderFilterSerde;
+import io.axual.ksml.data.type.StructType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -115,8 +116,7 @@ class ApicurioJsonSchemaSerdeSupplierTest {
     @Test
     void testSupplierBasics_vendorNameAndSerdeNotNull() {
         final var supplier = new ApicurioJsonSchemaSerdeSupplier();
-        assertEquals("apicurio", supplier.vendorName());
-        final var serde = supplier.get(new io.axual.ksml.data.type.StructType(), false);
+        final var serde = supplier.get(new StructType(), false);
         assertNotNull(serde);
         assertNotNull(serde.serializer());
         assertNotNull(serde.deserializer());

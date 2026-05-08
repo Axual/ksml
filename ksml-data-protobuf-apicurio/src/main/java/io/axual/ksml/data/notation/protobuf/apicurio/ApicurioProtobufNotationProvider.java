@@ -45,8 +45,10 @@ public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
 
     @Override
     public Notation createNotation(NotationContext context) {
+        if (context == null) context = new NotationContext();
         return new ProtobufNotation(
                 new VendorNotationContext(
+                        vendorName(),
                         context,
                         new ApicurioProtobufSerdeSupplier(registryClient),
                         new ProtobufDataObjectMapper(new ApicurioProtobufFileElementDescriptorMapper(), context.nativeDataObjectMapper(), context.typeSchemaMapper())),

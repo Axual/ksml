@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
@@ -33,19 +32,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 class ConfluentAvroSerdeSupplierTest {
-
-    @Test
-    @DisplayName("vendorName returns 'confluent'")
-    void vendorName_isConfluent() {
-        var supplier = new ConfluentAvroSerdeSupplier(new NotationContext("avro", "confluent"));
-        assertThat(supplier.vendorName()).isEqualTo("confluent");
-    }
-
     @Test
     @DisplayName("get() returns WrapperSerde with KafkaAvroSerializer/Deserializer (no SR client)")
     void get_returnsSerdeWithConfluentSerdes_withoutClient() {
         // Given
-        var serdeSupplier = new ConfluentAvroSerdeSupplier(new NotationContext("avro", "confluent"));
+        var serdeSupplier = new ConfluentAvroSerdeSupplier();
 
         // When
         var serde = serdeSupplier.get(DataType.UNKNOWN, false);
@@ -62,7 +53,7 @@ class ConfluentAvroSerdeSupplierTest {
     void get_returnsSerdeWithConfluentSerdes_withClient() {
         // Given
         var client = mock(SchemaRegistryClient.class);
-        var supplier = new ConfluentAvroSerdeSupplier(new NotationContext("avro", "confluent"), client);
+        var supplier = new ConfluentAvroSerdeSupplier(client);
 
         // When
         var serde = supplier.get(DataType.UNKNOWN, true);

@@ -27,11 +27,13 @@ import org.apache.kafka.common.serialization.Serde;
 
 public class MockNotation implements Notation {
     private final String name;
+    private final SchemaUsage schemaUsage;
     private final String extension;
     private final SchemaParser schemaParser;
 
-    public MockNotation(String name, String extension, SchemaParser schemaParser) {
+    public MockNotation(String name, SchemaUsage schemaUsage, String extension, SchemaParser schemaParser) {
         this.name = name;
+        this.schemaUsage = schemaUsage;
         this.extension = extension;
         this.schemaParser = schemaParser;
     }
@@ -44,6 +46,11 @@ public class MockNotation implements Notation {
     @Override
     public String name() {
         return name;
+    }
+
+    @Override
+    public SchemaUsage schemaUsage() {
+        return schemaUsage;
     }
 
     @Override

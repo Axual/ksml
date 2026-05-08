@@ -120,8 +120,8 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     @Override
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("Registering test notations");
-        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, dataMapper, typeMapper));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, dataMapper, typeMapper), jsonNotation::serde));
+        final var jsonNotation = new JsonNotation(new NotationContext(dataMapper, typeMapper));
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(dataMapper, typeMapper), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
@@ -177,7 +177,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider = new ConfluentAvroNotationProvider(registryClient);
-        final var context = new NotationContext(provider.notationName(), provider.vendorName(), dataMapper, typeMapper, registryClient.configs());
+        final var context = new NotationContext(dataMapper, typeMapper, registryClient.configs());
         final var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 
@@ -194,9 +194,9 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
                 methodName + ".app",
                 null,
                 PythonContextConfig.builder()
-                    .modulePath(modulesDirectory)
-                    .allowHostFileAccess(ksmlTest.allowHostFileAccess())
-                    .build()
+                        .modulePath(modulesDirectory)
+                        .allowHostFileAccess(ksmlTest.allowHostFileAccess())
+                        .build()
         );
 
         final var topology = topologyGenerator.create(streamsBuilder, definitions);

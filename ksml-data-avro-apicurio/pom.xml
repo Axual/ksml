@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.axual.ksml</groupId>
         <artifactId>ksml-parent</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.2.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,12 +13,11 @@
     <name>KSML Data Library - AVRO Apicurio</name>
     <description>Apicurio implementation of AVRO message serialization/deserialization</description>
 
-    <properties>
-        <!-- Compress excluded from avro CVE-2024-25710 CVE-2024-26308  -->
-        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    </properties>
-
     <dependencies>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-kafka-clients</artifactId>
+        </dependency>
         <!-- Serialization formats -->
         <dependency>
             <groupId>io.axual.ksml</groupId>

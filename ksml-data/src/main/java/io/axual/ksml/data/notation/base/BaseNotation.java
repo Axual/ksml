@@ -26,36 +26,34 @@ import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 
-import java.util.Objects;
-
 /**
  * Base implementation for Notation that stores common context and helpers.
- * Subclasses specialize serialization, conversion, and schema parsing behavior.
+ * Subclasses specialize in serialization, conversion, and schema parsing behavior.
+ * <p>
+ * Type-constant properties (notation name, filename extension, schema usage, default type,
+ * converter, schema parser) are provided by subclasses via method overrides rather than
+ * constructor arguments, since they are fixed per leaf type.
  */
 @Getter
 public abstract class BaseNotation implements Notation {
     private final NotationContext context;
-    private final String filenameExtension;
-    private final DataType defaultType;
-    private final Converter converter;
-    private final SchemaParser schemaParser;
 
-    protected BaseNotation(NotationContext context, String filenameExtension, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
-        Objects.requireNonNull(context, "Notation context");
-        this.context = context;
-        this.filenameExtension = filenameExtension;
-        this.defaultType = defaultType;
-        this.converter = converter;
-        this.schemaParser = schemaParser;
+    protected BaseNotation(NotationContext context) {
+        this.context = context != null ? context : new NotationContext();
     }
 
     /**
-     * The display/identifier name for this notation instance derived from its context.
+     * Returns the base notation name (e.g. "avro", "json", "csv").
+     * This is used by the default {@link #name()} implementation and can be
+     * combined with a vendor prefix by subclasses like VendorNotation.
      *
-     * @return the notation name
+     * @return the base notation name
      */
+    public abstract String notationName();
+
+    @Override
     public String name() {
-        return context.name();
+        return notationName();
     }
 
     protected RuntimeException noSerdeFor(DataType type) {

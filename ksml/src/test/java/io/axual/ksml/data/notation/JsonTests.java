@@ -44,7 +44,7 @@ class JsonTests {
 
     @Test
     void serdeTest() {
-        final var notation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
+        final var notation = new JsonNotation();
         NotationTestRunner.serdeTest(notation, true, new EqualityFlags());
     }
 }

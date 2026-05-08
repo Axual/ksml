@@ -33,86 +33,46 @@ import java.util.Map;
  */
 @Getter
 public class NotationContext {
-    private final String notationName;
-    private final String vendorName;
     private final NativeDataObjectMapper nativeDataObjectMapper;
     private final DataTypeDataSchemaMapper typeSchemaMapper;
     private final Map<String, String> serdeConfigs;
 
     /**
-     * Creates a context for a non-vendor specific notation name.
-     *
-     * @param notationName the notation name
-     */
-    public NotationContext(String notationName) {
-        this(notationName, (String) null);
-    }
-
-    /**
      * Creates a context for a notation with an optional vendor.
-     *
-     * @param notationName the notation name
-     * @param vendorName   the vendor name (nullable)
      */
-    public NotationContext(String notationName, String vendorName) {
-        this(notationName, vendorName, (Map<String, String>) null);
+    public NotationContext() {
+        this(null);
     }
 
     /**
      * Creates a context with serde configuration properties.
      *
-     * @param notationName the notation name
-     * @param vendorName   the vendor name (nullable)
-     * @param configs      serde configuration map (nullable)
+     * @param configs serde configuration map (nullable)
      */
-    public NotationContext(String notationName, String vendorName, Map<String, String> configs) {
-        this(notationName, vendorName, null, null, configs);
-    }
-
-    /**
-     * Creates a context with a custom NativeDataObjectMapper.
-     *
-     * @param notationName           the notation name
-     * @param nativeDataObjectMapper the custom native mapper
-     */
-    public NotationContext(String notationName, NativeDataObjectMapper nativeDataObjectMapper, DataTypeDataSchemaMapper typeSchemaMapper) {
-        this(notationName, null, nativeDataObjectMapper, typeSchemaMapper, null);
+    public NotationContext(Map<String, String> configs) {
+        this(null, null, configs);
     }
 
     /**
      * Creates a context with a vendor and a custom NativeDataObjectMapper.
      *
-     * @param notationName           the notation name
-     * @param vendorName             the vendor name (nullable)
      * @param nativeDataObjectMapper the custom native mapper
+     * @param typeSchemaMapper       the custom type to schema mapper
      */
-    public NotationContext(String notationName, String vendorName, NativeDataObjectMapper nativeDataObjectMapper, DataTypeDataSchemaMapper typeSchemaMapper) {
-        this(notationName, vendorName, nativeDataObjectMapper, typeSchemaMapper, null);
+    public NotationContext(NativeDataObjectMapper nativeDataObjectMapper, DataTypeDataSchemaMapper typeSchemaMapper) {
+        this(nativeDataObjectMapper, typeSchemaMapper, null);
     }
 
     /**
      * Creates a context with full control over vendor, native mapper, and serde configs.
      *
-     * @param notationName           the notation name
-     * @param vendorName             the vendor name (nullable)
      * @param nativeDataObjectMapper the custom native mapper
+     * @param typeSchemaMapper       the custom type to schema mapper
      * @param serdeConfigs           serde configuration map (nullable)
      */
-    public NotationContext(String notationName, String vendorName, NativeDataObjectMapper nativeDataObjectMapper, DataTypeDataSchemaMapper typeSchemaMapper, Map<String, String> serdeConfigs) {
-        this.notationName = notationName;
-        this.vendorName = vendorName;
+    public NotationContext(NativeDataObjectMapper nativeDataObjectMapper, DataTypeDataSchemaMapper typeSchemaMapper, Map<String, String> serdeConfigs) {
         this.nativeDataObjectMapper = nativeDataObjectMapper != null ? nativeDataObjectMapper : new NativeDataObjectMapper();
         this.typeSchemaMapper = typeSchemaMapper != null ? typeSchemaMapper : new DataTypeDataSchemaMapper();
         this.serdeConfigs = serdeConfigs != null ? serdeConfigs : new HashMap<>();
-    }
-
-    /**
-     * Builds the display/identifier name for the notation context, including an optional
-     * vendor prefix separated by an underscore.
-     *
-     * @return the combined name, e.g. "vendor_notation" or just "notation"
-     */
-    public String name() {
-        return (vendorName() != null && !vendorName().isEmpty() ? vendorName() + "_" : "") + notationName();
     }
 }
