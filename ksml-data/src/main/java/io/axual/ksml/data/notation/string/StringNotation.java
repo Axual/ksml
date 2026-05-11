@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.string;
  */
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.serde.StringSerde;
@@ -32,14 +31,17 @@ import org.apache.kafka.common.serialization.Serde;
  * Base notation implementation for notations that internally serialize to textual String form.
  */
 public abstract class StringNotation extends BaseNotation {
-    private final DataObjectMapper<String> stringMapper;
 
-    protected StringNotation(String name, NotationContext context, String filenameExtension, SchemaUsage schemaUsage,
-                             DataType defaultType, Notation.Converter converter,
-                             Notation.SchemaParser schemaParser, DataObjectMapper<String> stringMapper) {
-        super(name, context, filenameExtension, schemaUsage, defaultType, converter, schemaParser);
-        this.stringMapper = stringMapper;
+    protected StringNotation(NotationContext context) {
+        super(context);
     }
+
+    /**
+     * Returns the mapper used to convert DataObjects to/from their String representation.
+     *
+     * @return the string mapper for this notation
+     */
+    protected abstract DataObjectMapper<String> stringMapper();
 
     /**
      * Creates a StringSerde configured for the requested data type and key/value role.
@@ -50,7 +52,7 @@ public abstract class StringNotation extends BaseNotation {
      */
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        final var result = new StringSerde(context().nativeDataObjectMapper(), stringMapper, type);
+        final var result = new StringSerde(context().nativeDataObjectMapper(), stringMapper(), type);
         result.configure(context().serdeConfigs(), isKey);
         return result;
     }

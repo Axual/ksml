@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [1.2.1 (2026-05-08)](#121-2026-05-08)
         * [1.2.0 (2026-03-25)](#120-2026-03-25)
         * [1.1.0 (2025-09-18)](#110-2025-09-18)
         * [1.0.8 (2025-06-20)](#108-2025-06-20)
@@ -26,6 +27,16 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+## 1.2.1 (2026-05-08)
+
+* Infer schema from registry and updated serde structure to prepare for more flexible schema loading
+* Add configurable runtimeClassName support for pods in Helm chart
+* Upgraded to Kafka Clients 4.2.0
+* Adopted Testcontainers 2.x
+* Fixed Avro record-typed default round-trip regression
+* Fixed Dependabot ignore rules and cleaned up hardcoded versions in POMs
+* Updated to latest RedHat UBI base image and other dependencies
 
 ## 1.2.0 (2026-03-25)
 

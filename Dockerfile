@@ -6,7 +6,7 @@
 # - ksml            = base plus GraalVM and pre-built artifacts from build-output/
 
 # Step 1: Create the common base image with the ksml user and group and the required packages
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1776104705 AS base
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1778461551 AS base
 ENV LANG=en_US.UTF-8
 
 # Environment variable for Connect Build and Runtime
@@ -50,3 +50,7 @@ COPY --chown=ksml:0 build-output/ksml-test-runner*.jar /opt/ksml/ksml-test.jar
 # To run the test runner instead, override the entrypoint:
 #   docker run --entrypoint java <image> -Djava.security.manager=allow -jar /opt/ksml/ksml-test.jar /tests/my-test.yaml
 ENTRYPOINT ["java", "-Djava.security.manager=allow", "-jar", "/opt/ksml/ksml.jar"]
+COPY --chown=ksml:0 entrypoint.sh /opt/ksml/entrypoint.sh
+RUN chmod +x /opt/ksml/entrypoint.sh
+
+ENTRYPOINT ["/opt/ksml/entrypoint.sh"]

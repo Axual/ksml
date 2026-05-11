@@ -29,25 +29,31 @@ import lombok.Getter;
 /**
  * Base implementation for Notation that stores common context and helpers.
  * Subclasses specialize in serialization, conversion, and schema parsing behavior.
+ * <p>
+ * Type-constant properties (notation name, filename extension, schema usage, default type,
+ * converter, schema parser) are provided by subclasses via method overrides rather than
+ * constructor arguments, since they are fixed per leaf type.
  */
 @Getter
 public abstract class BaseNotation implements Notation {
-    private final String name;
     private final NotationContext context;
-    private final String filenameExtension;
-    private final SchemaUsage schemaUsage;
-    private final DataType defaultType;
-    private final Converter converter;
-    private final SchemaParser schemaParser;
 
-    protected BaseNotation(String name, NotationContext context, String filenameExtension, SchemaUsage schemaUsage, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
-        this.name = name;
+    protected BaseNotation(NotationContext context) {
         this.context = context != null ? context : new NotationContext();
-        this.filenameExtension = filenameExtension;
-        this.schemaUsage = schemaUsage;
-        this.defaultType = defaultType;
-        this.converter = converter;
-        this.schemaParser = schemaParser;
+    }
+
+    /**
+     * Returns the base notation name (e.g. "avro", "json", "csv").
+     * This is used by the default {@link #name()} implementation and can be
+     * combined with a vendor prefix by subclasses like VendorNotation.
+     *
+     * @return the base notation name
+     */
+    public abstract String notationName();
+
+    @Override
+    public String name() {
+        return notationName();
     }
 
     protected RuntimeException noSerdeFor(DataType type) {

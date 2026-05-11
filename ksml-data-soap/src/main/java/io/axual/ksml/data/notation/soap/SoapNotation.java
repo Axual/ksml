@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.soap;
  */
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.object.DataObject;
@@ -29,37 +28,72 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
-import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
 import static io.axual.ksml.data.notation.soap.SoapSchema.generateSOAPSchema;
 
 @Deprecated(forRemoval = true, since = "1.3.0")
-@Getter
 public class SoapNotation extends StringNotation {
     public static final String NOTATION_NAME = "soap";
     public static final DataType DEFAULT_TYPE = new StructType(generateSOAPSchema(DataSchema.ANY_SCHEMA));
     private static final SoapDataObjectMapper DATA_OBJECT_MAPPER = new SoapDataObjectMapper();
     private static final SoapStringMapper STRING_MAPPER = new SoapStringMapper();
-    private final Notation.Converter converter = new SoapDataObjectConverter();
+    private static final SoapDataObjectConverter CONVERTER = new SoapDataObjectConverter();
+
+    private static final DataObjectMapper<String> SOAP_STRING_MAPPER = new DataObjectMapper<>() {
+        @Override
+        public DataObject toDataObject(DataType expected, String value) {
+            return DATA_OBJECT_MAPPER.toDataObject(expected, STRING_MAPPER.fromString(value));
+        }
+
+        @Override
+        public String fromDataObject(DataObject value) {
+            return STRING_MAPPER.toString(DATA_OBJECT_MAPPER.fromDataObject(value));
+        }
+    };
 
     public SoapNotation(NotationContext context) {
-        super(NOTATION_NAME, context, null, SchemaUsage.SCHEMALESS_ONLY, DEFAULT_TYPE, new SoapDataObjectConverter(), null, new DataObjectMapper<>() {
-            @Override
-            public DataObject toDataObject(DataType expected, String value) {
-                return DATA_OBJECT_MAPPER.toDataObject(expected, STRING_MAPPER.fromString(value));
-            }
+        super(context);
+    }
 
-            @Override
-            public String fromDataObject(DataObject value) {
-                return STRING_MAPPER.toString(DATA_OBJECT_MAPPER.fromDataObject(value));
-            }
-        });
+    @Override
+    public String notationName() {
+        return NOTATION_NAME;
+    }
+
+    @Override
+    public String filenameExtension() {
+        return null;
+    }
+
+    @Override
+    public SchemaUsage schemaUsage() {
+        return SchemaUsage.SCHEMALESS_ONLY;
+    }
+
+    @Override
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
+    }
+
+    @Override
+    public Converter converter() {
+        return CONVERTER;
+    }
+
+    @Override
+    public SchemaParser schemaParser() {
+        return null;
+    }
+
+    @Override
+    protected DataObjectMapper<String> stringMapper() {
+        return SOAP_STRING_MAPPER;
     }
 
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        // SOAP types should ways be Maps (or Structs)
+        // SOAP types should always be Maps (or Structs)
         if (type instanceof MapType) return super.serde(type, isKey);
         // Other types cannot be serialized as SOAP
         throw noSerdeFor(type);

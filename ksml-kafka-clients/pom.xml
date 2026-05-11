@@ -15,11 +15,6 @@
     <description>Kafka client classes for KSML that allow pattern usage for topics, group ids and transactional ids.
     </description>
 
-    <properties>
-        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>

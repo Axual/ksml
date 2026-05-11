@@ -15,13 +15,8 @@
     <description>The core components for parsing and executing a KSML definition to a Kafka Streams topology
     </description>
 
-    <properties>
-        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
-    </properties>
-
     <dependencies>
-        <!-- project dependencies -->
+        <!-- Project dependencies -->
         <dependency>
             <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-data</artifactId>
@@ -130,7 +125,6 @@
                     <groupId>org.osgi</groupId>
                     <artifactId>org.osgi.core</artifactId>
                 </exclusion>
-
                 <exclusion>
                     <groupId>com.fasterxml.jackson.dataformat</groupId>
                     <artifactId>jackson-dataformat-yaml</artifactId>
@@ -151,7 +145,6 @@
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
                 </exclusion>
-
             </exclusions>
         </dependency>
 
@@ -213,7 +206,6 @@
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
-            <version>3.1.1</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

@@ -65,13 +65,18 @@ Still on `main` branch:
         - Wait ~2 minutes for examples to run without errors
         - Stop the script after verification
 
-5. Commit changes:
+5. Update `docs/release-notes.md`:
+   - Add the new version entry (e.g. `## 1.1.0 (YYYY-MM-DD)`) at the top of the list
+   - Add the version to the table of contents
+   - Summarize the key changes
+
+6. Commit changes:
    ```bash
-   git add **/pom.xml **/NOTICE.txt
+   git add **/pom.xml **/NOTICE.txt docs/release-notes.md
    git commit -m "Release 1.1.0"
    ```
 
-6. Create and push tag:
+7. Create and push tag:
    ```bash
    git tag 1.1.0 -m "Release 1.1.0" -a
    git push origin 1.1.0
@@ -124,7 +129,22 @@ After the release tag is created on main:
 1. Go to GitHub -> Actions -> Monitor release workflow
 2. Ensure the build completes successfully
 
-### Step 6: Set Next Development Version
+### Step 6: Verify Release Artifacts
+
+After the build completes, verify the Docker image and Helm chart are published:
+
+```bash
+# Check Docker image tags
+skopeo list-tags docker://registry.axual.io/opensource/images/axual/ksml
+
+# Inspect the specific release image
+skopeo inspect --override-os linux docker://registry.axual.io/opensource/images/axual/ksml:1.1.0
+
+# Check Helm chart tags
+skopeo list-tags docker://registry.axual.io/opensource/charts/ksml
+```
+
+### Step 7: Set Next Development Version
 
 1. In release branch:
    ```bash
@@ -167,10 +187,13 @@ When doing a patch release (e.g., 1.0.9, 1.1.1):
 
 ### Step 2: Set Release Version
 
-```bash
-mvn versions:set -DgenerateBackupPoms=false
-# Enter version like: 1.0.9
-```
+1. Set Maven version:
+   ```bash
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter version like: 1.0.9
+   ```
+
+2. Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion to the release version, i.e. `version: 1.0.9` and `appVersion: "1.0.9"`
 
 ### Step 3: Build and Update Files
 
@@ -202,21 +225,28 @@ This script will:
     - Wait ~2 minutes for examples to run without errors
     - Stop the script after verification
 
-### Step 6: Commit Changes
+### Step 6: Update Release Notes
+
+Update `docs/release-notes.md`:
+- Add the new version entry (e.g. `## 1.0.9 (YYYY-MM-DD)`) at the top of the list
+- Add the version to the table of contents
+- Summarize the key changes
+
+### Step 7: Commit Changes
 
 ```bash
-git add pom.xml **/NOTICE.txt
+git add **/pom.xml **/NOTICE.txt packaging/helm-charts/ksml/Chart.yaml docs/release-notes.md
 git commit -m "Release 1.0.9"
 ```
 
-### Step 7: Create and Push Tag
+### Step 8: Create and Push Tag
 
 ```bash
 git tag 1.0.9 -m "Release 1.0.9" -a
 git push origin 1.0.9
 ```
 
-### Step 8: Create GitHub Release
+### Step 9: Create GitHub Release
 
 1. Go to GitHub -> Releases -> "Draft new release"
 2. Select the new tag (e.g., `1.0.9`)
@@ -228,7 +258,7 @@ git push origin 1.0.9
 6. Publish the release
 7. Upload ksml-language-spec.json
 
-### Step 9: Monitor Build and Push Branch
+### Step 10: Monitor Build and Push Branch
 
 1. Go to GitHub -> Actions -> Monitor release workflow
 2. **Only after successful build**, push the branch:
@@ -236,16 +266,49 @@ git push origin 1.0.9
    git push origin release/1.0.x
    ```
 
-### Step 10: Set Next Development Version
+### Step 11: Verify Release Artifacts
+
+After the build completes, verify the Docker image and Helm chart are published:
 
 ```bash
-mvn versions:set -DgenerateBackupPoms=false
-# Enter next patch snapshot: 1.0.10-SNAPSHOT
-mvn clean package -DskipTests # To generate NOTICE.TXT
+# Check Docker image tags
+skopeo list-tags docker://registry.axual.io/opensource/images/axual/ksml
+
+# Inspect the specific release image
+skopeo inspect --override-os linux docker://registry.axual.io/opensource/images/axual/ksml:1.0.9
+
+# Check Helm chart tags
+skopeo list-tags docker://registry.axual.io/opensource/charts/ksml
 ```
-Update `packaging/heml-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.0.10-SNAPSHOT" and "appVersion: "1.0.10-snapshot""
-Commit: `git commit -m "Prepare for next development iteration"`
-Push: `git push origin release/1.0.x`
+
+### Step 12: Set Next Development Version
+
+1. Switch to main branch:
+   ```bash
+   git checkout main
+   ```
+
+2. Set the next patch snapshot version:
+   ```bash
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter next patch snapshot, e.g.: 1.0.10-SNAPSHOT
+   ```
+
+3. Update NOTICE.txt files:
+   ```bash
+   mvn clean package -DskipTests
+   ```
+
+4. Update `packaging/helm-charts/ksml/Chart.yaml`:
+   - Set `version: 1.0.10-SNAPSHOT`
+   - Set `appVersion: "1.0.10-snapshot"`
+
+5. Commit and push to main:
+   ```bash
+   git add **/pom.xml **/NOTICE.txt packaging/helm-charts/ksml/Chart.yaml
+   git commit -m "Prepare for next development iteration"
+   git push origin main
+   ```
 
 ## Version Numbering
 

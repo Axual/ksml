@@ -14,12 +14,6 @@
     <name>Jacoco report aggregator</name>
     <description>This module aggregates Jacoco coverage reports for all submodules.</description>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.axual.ksml</groupId>

@@ -22,7 +22,6 @@ package io.axual.ksml.data.notation.vendor;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.StringDataObjectMapper;
-import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.serde.SerdeSupplier;
@@ -38,13 +37,33 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 class VendorNotationTest {
     private static class ConcreteVendorNotation extends VendorNotation {
-        ConcreteVendorNotation(String name,
-                               VendorNotationContext context,
-                               String filenameExtension,
-                               DataType defaultType,
-                               Notation.Converter converter,
-                               Notation.SchemaParser schemaParser) {
-            super(name, context, filenameExtension, defaultType, converter, schemaParser);
+        ConcreteVendorNotation(VendorNotationContext context) {
+            super(context);
+        }
+
+        @Override
+        public String notationName() {
+            return "avro";
+        }
+
+        @Override
+        public String filenameExtension() {
+            return ".avsc";
+        }
+
+        @Override
+        public DataType defaultType() {
+            return DataString.DATATYPE;
+        }
+
+        @Override
+        public Converter converter() {
+            return (v, t) -> v;
+        }
+
+        @Override
+        public SchemaParser schemaParser() {
+            return (c, n, s) -> null;
         }
     }
 
@@ -59,7 +78,7 @@ class VendorNotationTest {
     @DisplayName("serde() returns DataObjectSerde that round trips DataString via vendor String serde when type is supported")
     void serdeRoundTripsForSupportedType() {
         final var context = createContext();
-        final var notation = new ConcreteVendorNotation("avro", context, ".avsc", DataString.DATATYPE, (v, t) -> v, (c, n, s) -> null);
+        final var notation = new ConcreteVendorNotation(context);
 
         try (final var serde = notation.serde(DataString.DATATYPE, false)) {
             final var bytes = serde.serializer().serialize("t", new DataString("abc"));
@@ -74,7 +93,7 @@ class VendorNotationTest {
     @DisplayName("serde() throws DataException with helpful message when requested type not assignable from default type")
     void serdeThrowsForUnsupportedType() {
         final var context = createContext();
-        final var notation = new ConcreteVendorNotation("avro", context, ".avsc", DataString.DATATYPE, (v, t) -> v, (c, n, s) -> null);
+        final var notation = new ConcreteVendorNotation(context);
         final var wrongType = new SimpleType(Integer.class, "int");
 
         assertThatThrownBy(() -> notation.serde(wrongType, true))
