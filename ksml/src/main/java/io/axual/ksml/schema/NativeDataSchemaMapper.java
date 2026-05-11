@@ -21,6 +21,7 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
@@ -188,6 +189,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         switch (defaultValue) {
             case null -> node.put(fieldName, null);
             case DataNull unused -> node.put(fieldName, null);
+            case DataBoolean value -> node.put(fieldName, value.value());
             case DataByte value -> node.put(fieldName, value.value());
             case DataShort value -> node.put(fieldName, value.value());
             case DataInteger value -> node.put(fieldName, value.value());
@@ -197,8 +199,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
             case DataBytes value -> node.put(fieldName, value.value());
             case DataString value -> node.put(fieldName, value.value());
             default ->
-                    throw new ExecutionException(String.format(
-                        "Can not encode default value: type= %s, value= %s", defaultValue.getClass().getSimpleName(), defaultValue));
+                    throw new ExecutionException(
+                        "Can not encode default value: type=%s, value=%s".formatted(defaultValue.getClass().getSimpleName(), defaultValue));
         }
     }
 }
