@@ -49,7 +49,6 @@ COPY --chown=ksml:0 build-output/ksml-test-runner*.jar /opt/ksml/ksml-test.jar
 # Default entrypoint runs the KSML pipeline runner.
 # To run the test runner instead, override the entrypoint:
 #   docker run --entrypoint java <image> -Djava.security.manager=allow -jar /opt/ksml/ksml-test.jar /tests/my-test.yaml
-ENTRYPOINT ["java", "-Djava.security.manager=allow", "-jar", "/opt/ksml/ksml.jar"]
 COPY --chown=ksml:0 entrypoint.sh /opt/ksml/entrypoint.sh
 RUN chmod +x /opt/ksml/entrypoint.sh
 
