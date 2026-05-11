@@ -119,7 +119,6 @@ public class KSMLTestRunner {
      */
     public List<TestResult> runTestFile(Path testFile) {
         var parser = new TestDefinitionParser();
-        var suiteFallbackName = filenameWithoutExtension(testFile);
 
         TestSuiteDefinition suite;
         String definitionYaml;
@@ -127,18 +126,18 @@ public class KSMLTestRunner {
             suite = parser.parse(testFile);
             definitionYaml = readDefinitionContent(testFile, suite.definition());
         } catch (TestDefinitionException e) {
-            return List.of(TestResult.error(suiteFallbackName, "<parse>",
+            return List.of(TestResult.error(TestDefinitionParser.filenameWithoutExtension(testFile), "<parse>",
                     "Invalid test definition: " + e.getMessage()));
         } catch (Exception e) {
-            return List.of(TestResult.error(suiteFallbackName, "<parse>", describeFailure(e)));
+            return List.of(TestResult.error(TestDefinitionParser.filenameWithoutExtension(testFile), "<parse>",
+                    describeFailure(e)));
         }
 
-        var suiteName = suite.name() != null && !suite.name().isEmpty() ? suite.name() : suiteFallbackName;
         var topicTypeMap = TestDefinitionParser.buildTopicTypeMap(suite);
         var schemaDirectory = resolveDirectory(testFile, suite.schemaDirectory());
         var modulesDirectory = resolveDirectory(testFile, suite.moduleDirectory());
 
-        log.info("Running suite: {} ({} test(s))", suiteName, suite.tests().size());
+        log.info("Running suite: {} ({} test(s))", suite.name(), suite.tests().size());
 
         var results = new ArrayList<TestResult>();
         for (var entry : suite.tests().entrySet()) {
@@ -146,7 +145,7 @@ public class KSMLTestRunner {
             var testCase = entry.getValue();
             var displayLabel = testCase.description() != null && !testCase.description().isEmpty()
                     ? testCase.description() : testKey;
-            results.add(runSingleTest(suite, suiteName, testKey, displayLabel,
+            results.add(runSingleTest(suite, suite.name(), testKey, displayLabel,
                     testCase, definitionYaml, topicTypeMap, schemaDirectory, modulesDirectory));
         }
         return results;
@@ -245,14 +244,18 @@ public class KSMLTestRunner {
     }
 
     /**
-     * Expand the user-supplied paths into a flat, sorted list of YAML test files.
+     * Expand the user-supplied paths into a flat, sorted list of YAML test files. When the
+     * input is a directory, the walk is limited to {@code maxDepth=1} — only the directory's
+     * direct children are considered, never subdirectories. This keeps adjacent folders such
+     * as {@code pipelines/}, {@code schemas/}, and {@code modules/} from being scanned for
+     * test files.
      */
     static List<Path> collectTestFiles(List<File> inputs) throws IOException {
         var files = new ArrayList<Path>();
         for (var input : inputs) {
             var path = input.toPath();
             if (Files.isDirectory(path)) {
-                try (var stream = Files.walk(path)) {
+                try (var stream = Files.walk(path, 1)) {
                     stream.filter(Files::isRegularFile)
                             .filter(KSMLTestRunner::isYamlFile)
                             .forEach(files::add);
@@ -303,12 +306,6 @@ public class KSMLTestRunner {
      */
     private static String sanitizeTopologyName(String name) {
         return name.replaceAll("[^A-Za-z0-9._-]", "_");
-    }
-
-    private static String filenameWithoutExtension(Path file) {
-        var name = file.getFileName().toString();
-        var dot = name.lastIndexOf('.');
-        return dot > 0 ? name.substring(0, dot) : name;
     }
 
     private static void reportResults(List<TestResult> results) {

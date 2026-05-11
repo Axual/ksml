@@ -85,6 +85,26 @@ class TestDefinitionParserTest {
     }
 
     @Test
+    void suiteNameFallsBackToFilenameWhenYamlOmitsName() throws IOException {
+        // defaults-test.yaml declares its own name explicitly, so to test the fallback we copy
+        // its contents into a temp file with no `name:` field and parse that.
+        var original = resource("defaults-test.yaml");
+        var content = java.nio.file.Files.readString(original)
+                .lines()
+                .filter(line -> !line.startsWith("name:"))
+                .collect(java.util.stream.Collectors.joining("\n"));
+        var tmp = java.nio.file.Files.createTempFile("anonymous-suite", ".yaml");
+        try {
+            java.nio.file.Files.writeString(tmp, content);
+            var suite = parser.parse(tmp);
+            assertNotNull(suite.name(), "Parser must populate a name fallback when YAML omits it");
+            assertEquals(TestDefinitionParser.filenameWithoutExtension(tmp), suite.name());
+        } finally {
+            java.nio.file.Files.deleteIfExists(tmp);
+        }
+    }
+
+    @Test
     void parsesTestWithStoreAssertions() throws IOException {
         var suite = parser.parse(resource("valid-test-with-stores.yaml"));
 

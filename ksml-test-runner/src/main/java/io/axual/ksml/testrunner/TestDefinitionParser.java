@@ -86,24 +86,29 @@ public class TestDefinitionParser {
             throw new TestDefinitionException("Top-level YAML node must be an object in " + testFile);
         }
 
-        // Reject the legacy outer wrapper explicitly with a helpful message
-        if (root.has("test") && root.size() == 1) {
-            throw new TestDefinitionException(
-                    "Test definition must be a flat document: remove the outer 'test:' wrapper element ("
-                            + testFile + ")");
-        }
+        var fieldExtractor = new FieldExtractor(root, testFile);
 
-        var f = new FieldExtractor(root, testFile);
-
-        var name = f.optionalString("name");
-        var definition = f.requireString("definition");
-        var schemaDirectory = f.optionalString("schemaDirectory");
-        var moduleDirectory = f.optionalString("moduleDirectory");
+        var declaredName = fieldExtractor.optionalString("name");
+        var name = (declaredName != null && !declaredName.isEmpty())
+                ? declaredName
+                : filenameWithoutExtension(testFile);
+        var definition = fieldExtractor.requireString("definition");
+        var schemaDirectory = fieldExtractor.optionalString("schemaDirectory");
+        var moduleDirectory = fieldExtractor.optionalString("moduleDirectory");
 
         var streams = parseStreams(root.get("streams"), testFile);
         var tests = parseTests(root.get("tests"), streams.keySet(), testFile);
 
         return new TestSuiteDefinition(name, definition, schemaDirectory, moduleDirectory, streams, tests);
+    }
+
+    /**
+     * Return the filename portion of {@code path} without its extension.
+     */
+    public static String filenameWithoutExtension(Path path) {
+        var name = path.getFileName().toString();
+        var dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
     }
 
     /**
@@ -122,19 +127,28 @@ public class TestDefinitionParser {
         return map;
     }
 
+    /**
+     * Parse the streams map from the YAML test definition.
+     * @param streamsNode the streams node in the YAML test definition.
+     * @param testFile the path to the test suite definition file.
+     * @return a map of stream key to stream definition.
+     */
     private LinkedHashMap<String, StreamDefinition> parseStreams(JsonNode streamsNode, Path testFile) {
         var result = new LinkedHashMap<String, StreamDefinition>();
         if (streamsNode == null || streamsNode.isNull()) {
-            return result;
+            throw new TestDefinitionException("Missing required 'streams' map in " + testFile);
         }
         if (!streamsNode.isObject()) {
             throw new TestDefinitionException("'streams' must be a map in " + testFile);
         }
+        if (streamsNode.isEmpty()) {
+            throw new TestDefinitionException(
+                    "'streams' map must contain at least one entry in " + testFile);
+        }
 
         var seenTopics = new HashMap<String, String>(); // topic -> first stream key that used it
-        var fields = streamsNode.fields();
-        while (fields.hasNext()) {
-            var entry = fields.next();
+        var fields = streamsNode.properties();
+        for (var entry : fields) {
             var streamKey = entry.getKey();
             validateIdentifier("stream", streamKey, testFile);
 
@@ -167,6 +181,13 @@ public class TestDefinitionParser {
         return result;
     }
 
+    /**
+     * Parse the tests map from the YAML test definition.
+     * @param testsNode the tests node in the YAML test definition.
+     * @param streamKeys the keys of the streams map.
+     * @param testFile the path to the test suite definition file.
+     * @return a map of test key to test definition.
+     */
     private LinkedHashMap<String, TestCaseDefinition> parseTests(JsonNode testsNode,
                                                                  Set<String> streamKeys,
                                                                  Path testFile) {
@@ -182,9 +203,8 @@ public class TestDefinitionParser {
         }
 
         var result = new LinkedHashMap<String, TestCaseDefinition>();
-        var fields = testsNode.fields();
-        while (fields.hasNext()) {
-            var entry = fields.next();
+        var fields = testsNode.properties();
+        for (var entry : fields) {
             var testKey = entry.getKey();
             validateIdentifier("test", testKey, testFile);
 
@@ -231,6 +251,14 @@ public class TestDefinitionParser {
         return result;
     }
 
+    /**
+     * Parse the produce blocks from the YAML test definition.
+     * @param produceArray the produce array in the YAML test definition.
+     * @param streamKeys the keys of the streams map.
+     * @param testKey the name of the test in the YAML test definition.
+     * @param testFile the path to the test suite definition file.
+     * @return a list of {@link ProduceBlock}.
+     */
     private List<ProduceBlock> parseProduceBlocks(JsonNode produceArray, Set<String> streamKeys,
                                                   String testKey, Path testFile) {
         var blocks = new ArrayList<ProduceBlock>();
@@ -253,6 +281,14 @@ public class TestDefinitionParser {
         return blocks;
     }
 
+    /**
+     * Parse the assert blocks from the YAML test definition.
+     * @param assertArray the assert array in the YAML test definition.
+     * @param streamKeys the keys of the streams map.
+     * @param testKey the name of the test in the YAML test definition.
+     * @param testFile the path to the test suite definition file.
+     * @return a list of {@link AssertBlock}.
+     */
     private List<AssertBlock> parseAssertBlocks(JsonNode assertArray, Set<String> streamKeys,
                                                 String testKey, Path testFile) {
         var blocks = new ArrayList<AssertBlock>();
@@ -274,6 +310,11 @@ public class TestDefinitionParser {
         return blocks;
     }
 
+    /**
+     * Parse a list of messages from a YAML messages array.
+     * @param messagesNode the messages array node in the YAML test definition.
+     * @return a list of {@link TestMessage}.
+     */
     private List<TestMessage> parseMessages(JsonNode messagesNode) {
         if (messagesNode == null || !messagesNode.isArray()) {
             return null;
@@ -292,7 +333,9 @@ public class TestDefinitionParser {
     }
 
     private static String optionalText(JsonNode node) {
-        if (node == null || node.isNull()) return null;
+        if (node == null || node.isNull()) {
+            return null;
+        }
         return node.asText();
     }
 

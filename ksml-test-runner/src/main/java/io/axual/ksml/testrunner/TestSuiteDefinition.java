@@ -28,7 +28,7 @@ import java.util.LinkedHashMap;
  * or more named tests that share the suite's configuration. Each test in the suite
  * runs against a fresh {@code TopologyTestDriver} for hermetic isolation.
  *
- * @param name             optional suite-level name; falls back to the filename without extension
+ * @param name             suite-level name; either the YAML field or the filename without extension inserted by {@link TestDefinitionParser}.
  * @param definition       path to the KSML pipeline definition YAML
  * @param schemaDirectory  optional path to schema files
  * @param moduleDirectory  optional path to externalized Python modules

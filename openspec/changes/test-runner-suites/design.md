@@ -293,3 +293,23 @@ No rollback strategy needed (pre-release).
 ## Open Questions
 
 (none remaining at design time — all earlier ambiguities resolved)
+
+## Future Enhancements
+
+The following are deliberately out of scope for this change but recorded here so they can be picked up as separate work later.
+
+### True JSON Schema validation of fixture files
+
+The current `TestDefinitionSchemaGeneratorTest` covers two levels of confidence in the generated schema:
+
+- **Level 1 — structural shape:** parse the generated JSON back into a tree and assert on its shape (top-level fields present, `additionalProperties: false`, `patternProperties` keyed by the identifier regex, `minProperties: 1` on `tests`, `oneOf`/`anyOf` constraints on produce/assert items, the `assertions` → `assert` `yamlName` rename applied, etc.).
+- **Level 2 — annotation flow:** prove that selected `@JsonSchema` annotation values on the record classes appear verbatim in the generated schema. Guards against the reflective walk silently dropping descriptions or examples.
+
+Two further levels would tie the generated schema to actual YAML behavior and are worth adding next:
+
+- **Level 3 — positive validation:** every valid fixture under `src/test/resources/` (the sample tests, the parser-fixture suites, the collapsed `processor-filtering-transforming-complete-test.yaml`) is validated against the generated schema, and is expected to pass. This catches regressions where the schema becomes stricter than the parser (e.g. the generator emits a required field the parser actually treats as optional).
+- **Level 4 — negative validation:** every invalid fixture (`missing-tests.yaml`, `invalid-test-key.yaml`, `invalid-stream-key.yaml`, `duplicate-test-key.yaml`, `duplicate-stream-topic.yaml`, `undefined-stream-reference.yaml`, `bare-vendor-avro.yaml`, etc.) is validated against the generated schema, and at least the ones whose failure mode the schema *can* express (key-regex violations, missing required fields, additional properties, `oneOf`/`anyOf` violations) are expected to fail validation. Some invalid fixtures fall outside what JSON Schema can express (e.g. duplicate-key detection, cross-field reference resolution between `to:`/`on:` and `streams:` keys) and would remain parser-only failures — the negative test should mark those explicitly.
+
+**Cost:** one new test-scope Maven dependency, e.g. `com.networknt:json-schema-validator`. No production-code change.
+
+**Value:** locks in the YAML-language-server experience for authors using the schema in their editor, and makes it impossible for the generated schema to drift away from the parser's actual rules without a test catching it.

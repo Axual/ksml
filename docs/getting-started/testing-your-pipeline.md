@@ -17,7 +17,7 @@ A test definition file is a *suite* — it describes one pipeline plus one or mo
 
 ## Test Definition Format
 
-A test definition is a flat YAML document — no outer wrapper element — describing one pipeline, the streams it touches, and one or more named tests:
+A test definition is a flat YAML document referencing one KSML definition, the streams it touches, and one or more named tests:
 
 ```yaml
 name: "Filtering pipeline tests"          # optional; falls back to filename without extension
@@ -213,7 +213,7 @@ When a test fails or errors, the offending result also includes the assertion me
 
   PASS  Filtering & transforming pipeline › Valid sensor data is filtered through and transformed
   FAIL  Filtering & transforming pipeline › Out-of-range temperature is filtered out
-        AssertionError: Intentional failure: expected records on filtered_data, got 0
+        AssertionError: Expected no records on filtered_data, got 1
   PASS  Filtering & transforming pipeline › Sensor data without temperature is filtered out
   PASS  Filtering & transforming pipeline › Sensor data without humidity is filtered out
   PASS  Filtering & transforming pipeline › Malformed sensor data is routed to alerts_stream when transformation fails

@@ -14,9 +14,9 @@ tests:
       - to: sensor_source
         messages:
           - key: "sensor1"
-            value: { name: "s1", color: "blue", city: "Amsterdam" }
+            value: { name: "s1", timestamp: 1000, value: "20.0", type: "TEMPERATURE", unit: "C", color: "blue", city: "Amsterdam" }
           - key: "sensor2"
-            value: { name: "s2", color: "red", city: "Utrecht" }
+            value: { name: "s2", timestamp: 2000, value: "60.0", type: "HUMIDITY", unit: "%", color: "red", city: "Utrecht" }
 
     assert:
       - stores:
