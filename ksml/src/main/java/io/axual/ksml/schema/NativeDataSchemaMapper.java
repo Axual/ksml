@@ -21,12 +21,16 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataEnum;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataShort;
@@ -184,20 +188,35 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     }
 
     private void encodeDefaultValue(Map<String, Object> node, DataObject defaultValue) {
-        final var fieldName = DataSchemaDSL.STRUCT_SCHEMA_FIELD_DEFAULT_VALUE_FIELD;
-        switch (defaultValue) {
-            case null -> node.put(fieldName, null);
-            case DataNull unused -> node.put(fieldName, null);
-            case DataByte value -> node.put(fieldName, value.value());
-            case DataShort value -> node.put(fieldName, value.value());
-            case DataInteger value -> node.put(fieldName, value.value());
-            case DataLong value -> node.put(fieldName, value.value());
-            case DataDouble value -> node.put(fieldName, value.value());
-            case DataFloat value -> node.put(fieldName, value.value());
-            case DataBytes value -> node.put(fieldName, value.value());
-            case DataString value -> node.put(fieldName, value.value());
-            default ->
-                    throw new ExecutionException("Can not encode default value of type: " + defaultValue.getClass().getSimpleName());
-        }
+        node.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_DEFAULT_VALUE_FIELD, encodeValue(defaultValue));
+    }
+
+    private Object encodeValue(DataObject value) {
+        return switch (value) {
+            case null -> null;
+            case DataNull unused -> null;
+            case DataBoolean v -> v.value();
+            case DataByte v -> v.value();
+            case DataShort v -> v.value();
+            case DataInteger v -> v.value();
+            case DataLong v -> v.value();
+            case DataDouble v -> v.value();
+            case DataFloat v -> v.value();
+            case DataBytes v -> v.value();
+            case DataString v -> v.value();
+            case DataEnum v -> v.value();
+            case DataList v -> {
+                var list = new ArrayList<>();
+                for (var element : v) list.add(encodeValue(element));
+                yield list;
+            }
+            case DataMap v -> {
+                var map = new LinkedHashMap<String, Object>();
+                v.forEach((k, val) -> map.put(k, encodeValue(val)));
+                yield map;
+            }
+            default -> throw new ExecutionException(
+                "Can not encode default value: type=%s, value=%s".formatted(value.getClass().getSimpleName(), value));
+        };
     }
 }
