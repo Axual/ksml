@@ -21,9 +21,16 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataEnum;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.exception.ExecutionException;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NativeDataSchemaMapperTest {
@@ -59,6 +67,88 @@ class NativeDataSchemaMapperTest {
         var fields = (List<?>) result.get("fields");
         var fieldMap = (Map<?, ?>) fields.get(0);
         assertThat(fieldMap.get("defaultValue")).isEqualTo(false);
+    }
+
+    @Test
+    void emptyListDefaultValue_isEncodedAsEmptyList() {
+        var field = new StructSchema.Field("tags", new ListSchema(DataSchema.STRING_SCHEMA), null, 0, false, false, new DataList());
+        var schema = new StructSchema(null, "TestRecord", null, List.of(field));
+
+        var result = (Map<?, ?>) mapper.fromDataSchema(schema);
+
+        var fields = (List<?>) result.get("fields");
+        var fieldMap = (Map<?, ?>) fields.get(0);
+        assertThat(fieldMap.get("defaultValue")).isEqualTo(List.of());
+    }
+
+    @Test
+    void listDefaultValue_withStringElements_isEncodedCorrectly() {
+        var list = new DataList();
+        list.add(new DataString("a"));
+        list.add(new DataString("b"));
+        var field = new StructSchema.Field("tags", new ListSchema(DataSchema.STRING_SCHEMA), null, 0, false, false, list);
+        var schema = new StructSchema(null, "TestRecord", null, List.of(field));
+
+        var result = (Map<?, ?>) mapper.fromDataSchema(schema);
+
+        var fields = (List<?>) result.get("fields");
+        var fieldMap = (Map<?, ?>) fields.get(0);
+        assertThat(fieldMap.get("defaultValue")).isEqualTo(List.of("a", "b"));
+    }
+
+    @Test
+    void enumDefaultValue_isEncodedAsString() {
+        var enumSchema = new EnumSchema(null, "SensorType", null,
+                List.of(EnumSchema.Symbol.of("AREA"), EnumSchema.Symbol.of("TEMPERATURE")));
+        var enumType = new EnumType(enumSchema);
+        var field = new StructSchema.Field("kind", enumSchema, null, 0, false, false, new DataEnum(enumType, "AREA"));
+        var schema = new StructSchema(null, "TestRecord", null, List.of(field));
+
+        var result = (Map<?, ?>) mapper.fromDataSchema(schema);
+
+        var fields = (List<?>) result.get("fields");
+        var fieldMap = (Map<?, ?>) fields.get(0);
+        assertThat(fieldMap.get("defaultValue")).isEqualTo("AREA");
+    }
+
+    @Test
+    void emptyMapDefaultValue_isEncodedAsEmptyMap() {
+        var field = new StructSchema.Field("props", DataSchema.STRING_SCHEMA, null, 0, false, false, new DataMap());
+        var schema = new StructSchema(null, "TestRecord", null, List.of(field));
+
+        var result = (Map<?, ?>) mapper.fromDataSchema(schema);
+
+        var fields = (List<?>) result.get("fields");
+        var fieldMap = (Map<?, ?>) fields.get(0);
+        assertThat(fieldMap.get("defaultValue")).isEqualTo(Map.of());
+    }
+
+    @Test
+    void mapDefaultValue_withStringValues_isEncodedCorrectly() {
+        var map = new DataMap();
+        map.put("key1", new DataString("val1"));
+        map.put("key2", new DataString("val2"));
+        var field = new StructSchema.Field("props", DataSchema.STRING_SCHEMA, null, 0, false, false, map);
+        var schema = new StructSchema(null, "TestRecord", null, List.of(field));
+
+        var result = (Map<?, ?>) mapper.fromDataSchema(schema);
+
+        var fields = (List<?>) result.get("fields");
+        var fieldMap = (Map<?, ?>) fields.get(0);
+        assertThat(fieldMap.get("defaultValue")).isEqualTo(Map.of("key1", "val1", "key2", "val2"));
+    }
+
+    @Test
+    void attributesField_withEmptyArrayDefault_doesNotThrow() {
+        // Regression test: Avro schema with "Attributes": { "type": "array", "default": [] } crashed with DataList
+        var attributeSchema = new StructSchema(null, "Attribute", null, List.of(
+                new StructSchema.Field("AttributeName", DataSchema.STRING_SCHEMA, null, 0, false, false, null),
+                new StructSchema.Field("AttributeValue", DataSchema.STRING_SCHEMA, null, 0, false, false, null)));
+        var attributesField = new StructSchema.Field("Attributes", new ListSchema(attributeSchema),
+                null, 0, false, false, new DataList());
+        var schema = new StructSchema(null, "Asset", null, List.of(attributesField));
+
+        assertThatNoException().isThrownBy(() -> mapper.fromDataSchema(schema));
     }
 
     @Test
