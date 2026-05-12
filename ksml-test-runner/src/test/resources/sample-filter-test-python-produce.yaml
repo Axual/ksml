@@ -1,0 +1,40 @@
+name: "Simple passthrough with Python produce block"
+definition: pipelines/test-passthrough.yaml
+
+streams:
+  input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tests:
+  passthrough:
+    produce:
+      - to: input
+        generator:
+          name: generate_test_data
+          globalCode: |
+            CITIES = ["Amsterdam", "Utrecht", "Rotterdam"]
+          code: |
+            result = []
+            for i in range(len(CITIES)):
+              key = f"sensor-{i}"
+              value = CITIES[i]
+              result.append((key, value))
+          expression: result
+        count: 1
+
+    assert:
+      - on: output
+        code: |
+          assert len(records) == 3, f"Expected 3 records, got {len(records)}"
+          assert records[0]["key"] == "sensor-0", f"Expected key 'sensor-0', got {records[0]['key']}"
+          assert records[0]["value"] == "Amsterdam", f"Expected value 'Amsterdam', got {records[0]['value']}"
+          assert records[1]["key"] == "sensor-1"
+          assert records[1]["value"] == "Utrecht"
+          assert records[2]["key"] == "sensor-2"
+          assert records[2]["value"] == "Rotterdam"

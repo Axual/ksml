@@ -1,0 +1,22 @@
+# Uses test-passthrough.yaml (string-typed pipeline) so the pipeline parse doesn't
+# need a populated mock registry. The bare `confluent_avro` valueType on the test
+# stream below then fails at serde-construction time (TestDataProducer.resolveSerde),
+# which is the path this fixture is meant to exercise.
+name: "Stream with bare confluent_avro (no schema name)"
+definition: pipelines/test-passthrough.yaml
+streams:
+  source:
+    topic: input_topic
+    keyType: string
+    valueType: confluent_avro
+tests:
+  bare_notation_rejected:
+    produce:
+      - to: source
+        messages:
+          - key: "k1"
+            value: "ignored"
+    assert:
+      - on: source
+        code: |
+          assert True

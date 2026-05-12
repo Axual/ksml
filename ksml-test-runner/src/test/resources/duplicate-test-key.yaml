@@ -1,0 +1,28 @@
+name: "Duplicate keys in tests map"
+definition: pipelines/test-filter.yaml
+streams:
+  source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+tests:
+  same_key:
+    produce:
+      - to: source
+        messages:
+          - key: "k1"
+            value: { color: "blue" }
+    assert:
+      - on: source
+        code: |
+          assert True
+  same_key:
+    produce:
+      - to: source
+        messages:
+          - key: "k2"
+            value: { color: "red" }
+    assert:
+      - on: source
+        code: |
+          assert True

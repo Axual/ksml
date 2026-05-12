@@ -1,0 +1,18 @@
+name: "Stream key violates identifier regex"
+definition: pipelines/test-filter.yaml
+streams:
+  "with-dash":
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+tests:
+  trivial:
+    produce:
+      - to: with-dash
+        messages:
+          - key: "k1"
+            value: { color: "blue" }
+    assert:
+      - on: with-dash
+        code: |
+          assert True

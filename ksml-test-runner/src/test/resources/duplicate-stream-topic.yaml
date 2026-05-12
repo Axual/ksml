@@ -1,0 +1,22 @@
+name: "Two streams with the same topic"
+definition: pipelines/test-filter.yaml
+streams:
+  source_one:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+  source_two:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+tests:
+  trivial:
+    produce:
+      - to: source_one
+        messages:
+          - key: "k1"
+            value: { color: "blue" }
+    assert:
+      - on: source_one
+        code: |
+          assert True
