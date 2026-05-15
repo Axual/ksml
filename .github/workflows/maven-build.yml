@@ -28,48 +28,43 @@ jobs:
           java-version: '23'
           cache: 'maven'
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and run all tests (unit + integration)
-        run: |
-          # Sonar disabled
-          # # Determine SonarQube arguments based on build type
-          # # Reference: https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/branches/branch-analysis/
-          # SONAR_ADDITION=""
-
-          # # Scenario 1: Tag builds - analyze as a branch with the tag name
-          # if [[ "${{ github.ref_type }}" == "tag" ]]; then
-          #   SONAR_ADDITION="-Dsonar.branch.name=${{ github.ref_name }}"
-          #   echo "SonarQube: Analyzing tag build '${{ github.ref_name }}'"
-
-          # # Scenario 2: Pull request builds - analyze as a pull request
-          # elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          #   SONAR_ADDITION="-Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-          #     -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-          #     -Dsonar.pullrequest.base=${{ github.base_ref }}"
-          #   echo "SonarQube: Analyzing PR #${{ github.event.pull_request.number }} (${{ github.head_ref }} -> ${{ github.base_ref }})"
-
-          # # Scenario 3: Branch builds - analyze as a branch
-          # elif [[ "${{ github.ref_type }}" == "branch" ]]; then
-          #   SONAR_ADDITION="-Dsonar.branch.name=${{ github.ref_name }}"
-          #   echo "SonarQube: Analyzing branch '${{ github.ref_name }}'"
-
-          #   # If not the default branch, set target to default branch for comparison
-          #   if [[ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]]; then
-          #     SONAR_ADDITION="${SONAR_ADDITION} -Dsonar.branch.target=${{ github.event.repository.default_branch }}"
-          #     echo "SonarQube: Branch target set to '${{ github.event.repository.default_branch }}'"
-          #   fi
-          # fi
-
-          # Run Maven build with SonarQube arguments
-          # mvn clean verify -DskipITs=false --no-transfer-progress ${SONAR_ADDITION}
-
-          # Run Maven build without SonarQube
-          mvn clean verify -DskipITs=false --no-transfer-progress
+        timeout-minutes: 25
+        run: mvn clean verify --no-transfer-progress
         env:
-          # TestContainers configuration for GitHub Actions
           TESTCONTAINERS_RYUK_DISABLED: false
-          # SonarQube token - Maven profile auto-activates when set
-          # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          # GitHub token for SonarCloud PR decoration
+
+      - name: SonarCloud analysis
+        timeout-minutes: 15
+        run: |
+          # Determine SonarQube arguments based on build type
+          # Reference: https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/branches/branch-analysis/
+          SONAR_ARGS=""
+
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            SONAR_ARGS="-Dsonar.branch.name=${{ github.ref_name }}"
+
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            SONAR_ARGS="-Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+              -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+              -Dsonar.pullrequest.base=${{ github.base_ref }}"
+
+          elif [[ "${{ github.ref_type }}" == "branch" ]]; then
+            SONAR_ARGS="-Dsonar.branch.name=${{ github.ref_name }}"
+            if [[ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]]; then
+              SONAR_ARGS="${SONAR_ARGS} -Dsonar.branch.target=${{ github.event.repository.default_branch }}"
+            fi
+          fi
+
+          mvn sonar:sonar --no-transfer-progress ${SONAR_ARGS}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish test results
