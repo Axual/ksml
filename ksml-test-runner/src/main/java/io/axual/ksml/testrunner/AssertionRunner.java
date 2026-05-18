@@ -65,14 +65,15 @@ public class AssertionRunner {
      * @return the test result
      */
     public TestResult runAssertions(List<AssertBlock> assertBlocks, String suiteName, String testName) {
-        var pythonContext = new PythonContext(PythonContextConfig.builder().build());
+        // cache records per topic so repeated assert blocks on the same stream see the same records instead of a drained stream
+        var recordCache = new HashMap<String, List<Map<String, Object>>>();
 
-        try {
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
             for (int i = 0; i < assertBlocks.size(); i++) {
                 var block = assertBlocks.get(i);
                 log.debug("Running assertion block {}/{}", i + 1, assertBlocks.size());
 
-                var result = runSingleAssertion(pythonContext, block, suiteName, testName);
+                var result = runSingleAssertion(pythonContext, block, recordCache, suiteName, testName);
                 if (result.status() != TestResult.Status.PASS) {
                     return result;
                 }
@@ -86,6 +87,7 @@ public class AssertionRunner {
     }
 
     private TestResult runSingleAssertion(PythonContext pythonContext, AssertBlock block,
+                                          Map<String, List<Map<String, Object>>> recordCache,
                                           String suiteName, String testName) {
         try {
             // Collect variables to inject
@@ -98,7 +100,7 @@ public class AssertionRunner {
                     return TestResult.error(suiteName, testName,
                             "Assert block references undeclared stream '" + block.on() + "'");
                 }
-                var records = collectOutputRecords(stream);
+                var records = recordCache.computeIfAbsent(stream.topic(), k -> collectOutputRecords(stream));
                 args.add(Pair.of("records", ProxyUtil.toPython(records)));
             }
 

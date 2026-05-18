@@ -75,9 +75,16 @@ The `streams:` map declares every Kafka topic the test suite produces to or asse
 
 Type strings follow KSML's standard type grammar — the same one `StreamDefinitionParser` uses in pipeline yamls:
 
-- **Schema-less notations** (`string`, `long`, `int`, `boolean`, `bytes`, `json`, `binary`, `xml`, etc.) may appear unqualified.
-- **Schema-bearing notations** (`avro`, `confluent_avro`, `apicurio_avro`, `protobuf`, `json_schema`, `csv`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is loaded from `schemaDirectory` and registered in an in-memory mock registry under `<topic>-key` / `<topic>-value`. 
+- **Schema-less notations** (`string`, `long`, `int`, `boolean`, `bytes`, `json`, `binary`) may appear unqualified.
+- **Schema-bearing notations** (`avro`, `confluent_avro`, `apicurio_avro`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is loaded from `schemaDirectory` and registered in an in-memory mock registry under `<topic>-key` / `<topic>-value`.
 - **Bare schema-bearing notations** (e.g., `confluent_avro` without `:Schema`) are rejected — the test runner has no real registry to resolve them against.
+
+**Note:** The test runner supports: `string`, `int`, `long`, `boolean`, `bytes`, `json`, `binary`, `avro`, `confluent_avro`, `apicurio_avro`.
+
+`apicurio_avro` is backed by a Confluent-compatible mock registry. It works for logic-level tests, but uses 
+Confluent wire format rather than Apicurio's.
+
+The following notations are **not yet supported** and will produce a runtime error if used: `xml`, `soap`, `csv`, `protobuf`, `json_schema`.
 
 ### Tests
 
@@ -115,6 +122,11 @@ Each assert block runs Python code with injected variables. At least one of `on`
 | `code` | yes | Python assertion code using `assert` statements. |
 
 When `on:` is set, `records` is a list of dicts with `key`, `value`, and `timestamp` fields. When `stores:` is set, each store is available as a Python variable with the same API as in pipeline functions (e.g. `store.get(key)`, `store.put(key, value)`).
+
+**Note:**  Avro output streams must declare the correct `valueType`"
+`records[i]["value"]` is a dict only when the stream's `valueType` in `streams:` matches what the pipeline actually writes. If the pipeline writes Avro but the stream is declared as `valueType: string` (or the field is omitted), the runner falls back to `StringDeserializer`. The raw Confluent wire bytes — magic byte + 4-byte schema ID + Avro payload — are returned as a string, and indexing into `records[i]["value"]` with a field name fails with `TypeError: string indices must be integers`.
+
+    Always declare `valueType: "avro:SchemaName"` (or `confluent_avro:SchemaName`) in `streams:` for any output topic that your pipeline serializes as Avro, and provide the matching `.avsc` file via `schemaDirectory`.
 
 ### Reporting
 

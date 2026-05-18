@@ -122,9 +122,16 @@ public class KSMLTestRunner {
 
         TestSuiteDefinition suite;
         String definitionYaml;
+        Map<String, StreamDefinition> topicTypeMap;
+        String schemaDirectory;
+        String modulesDirectory;
         try {
             suite = parser.parse(testFile);
             definitionYaml = readDefinitionContent(testFile, suite.definition());
+            topicTypeMap = TestDefinitionParser.buildTopicTypeMap(suite);
+            schemaDirectory = resolveDirectory(testFile, suite.schemaDirectory());
+            modulesDirectory = resolveDirectory(testFile, suite.moduleDirectory());
+
         } catch (TestDefinitionException e) {
             return List.of(TestResult.error(TestDefinitionParser.filenameWithoutExtension(testFile), "<parse>",
                     "Invalid test definition: " + e.getMessage()));
@@ -133,9 +140,6 @@ public class KSMLTestRunner {
                     describeFailure(e)));
         }
 
-        var topicTypeMap = TestDefinitionParser.buildTopicTypeMap(suite);
-        var schemaDirectory = resolveDirectory(testFile, suite.schemaDirectory());
-        var modulesDirectory = resolveDirectory(testFile, suite.moduleDirectory());
 
         log.info("Running suite: {} ({} test(s))", suite.name(), suite.tests().size());
 
@@ -223,7 +227,7 @@ public class KSMLTestRunner {
         if (Files.isDirectory(absolute)) {
             return absolute.toAbsolutePath().toString();
         }
-        return directoryName;
+        throw new TestDefinitionException("Directory '" + directoryName + "' not found (resolved from '" + testFile + "'");
     }
 
     private String readDefinitionContent(Path testFile, String definitionPath) throws java.io.IOException {

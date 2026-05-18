@@ -139,7 +139,7 @@ class TestDefinitionParserTest {
     void rejectsAssertWithoutOnOrStores() {
         var ex = assertThrows(TestDefinitionException.class,
                 () -> parser.parse(resource("assert-no-topic-no-stores.yaml")));
-        assertTrue(ex.getMessage().contains("must have at least 'on' or 'stores'"),
+        assertTrue(ex.getMessage().contains("must have at least 'on' or non-empty 'stores'"),
                 "expected on-or-stores message but got: " + ex.getMessage());
     }
 

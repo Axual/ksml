@@ -110,10 +110,10 @@ public class TestDataProducer {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void produceGeneratedMessages(ProduceBlock block, StreamDefinition stream, long count) {
         var generatorMap = block.generator();
-        var generatorName = (String) generatorMap.getOrDefault("name", "test_generator");
-        var globalCode = (String) generatorMap.getOrDefault("globalCode", "");
-        var code = (String) generatorMap.getOrDefault("code", "");
-        var expression = (String) generatorMap.getOrDefault("expression", "result");
+        var generatorName = getStringOrDefault(generatorMap,"name", "test_generator");
+        var globalCode = getStringOrDefault(generatorMap, "globalCode", "");
+        var code = getStringOrDefault(generatorMap, "code", "");
+        var expression = getStringOrDefault(generatorMap, "expression", "result");
 
         // Use a concrete ListType result type rather than GeneratorDefinition's UnionType default.
         // PythonDataObjectMapper cannot convert a polyglot Value when the expected type is a UnionType,
@@ -126,27 +126,30 @@ public class TestDataProducer {
                 globalCode, code, expression, resultType, null);
 
         // Create a PythonContext and register the generator function
-        var pythonContext = new PythonContext(PythonContextConfig.builder().build());
-        var pythonFunction = PythonFunction.forGenerator(
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            var pythonFunction = PythonFunction.forGenerator(
                 pythonContext, GENERATOR_NAMESPACE, generatorName, functionDef);
 
-        // Set up the input topic with proper serdes
-        var keySerde = resolveSerde(stream.keyType(), true);
-        var valueSerde = resolveSerde(stream.valueType(), false);
-        TestInputTopic inputTopic = driver.createInputTopic(
+            // Set up the input topic with proper serdes
+            var keySerde = resolveSerde(stream.keyType(), true);
+            var valueSerde = resolveSerde(stream.valueType(), false);
+            TestInputTopic inputTopic = driver.createInputTopic(
                 stream.topic(), keySerde.serializer(), valueSerde.serializer());
 
-        // Invoke the generator 'count' times and pipe results
-        int totalMessages = 0;
-        for (long i = 0; i < count; i++) {
-            var generated = pythonFunction.call();
-            var messages = extractKeyValuePairs(generated);
-            for (var pair : messages) {
-                inputTopic.pipeInput(pair[0], pair[1]);
-                totalMessages++;
+            // Invoke the generator 'count' times and pipe results
+            int totalMessages = 0;
+            for (long i = 0; i < count; i++) {
+                var generated = pythonFunction.call();
+                var messages = extractKeyValuePairs(generated);
+                for (var pair : messages) {
+                    inputTopic.pipeInput(pair[0], pair[1]);
+                    totalMessages++;
+                }
             }
+            log.debug("Generator produced {} messages to topic '{}'", totalMessages, stream.topic());
+        } catch (Exception e) {
+            log.warn("PythonContext close error producing generated messages", e);
         }
-        log.debug("Generator produced {} messages to topic '{}'", totalMessages, stream.topic());
     }
 
     /**
@@ -225,5 +228,15 @@ public class TestDataProducer {
         public org.apache.kafka.common.serialization.Deserializer<Object> deserializer() {
             return deserializer::deserialize;
         }
+    }
+
+    private static String getStringOrDefault(Map<String, Object> map, String key, String defaultValue) {
+        var val = map.get(key);
+        if (val == null) return defaultValue;
+        if (!(val instanceof String)) {
+            throw new TestDefinitionException(
+                "Generator field '" + key + "' must be a string, got: " + val.getClass().getSimpleName());
+        }
+        return (String) val;
     }
 }

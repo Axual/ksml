@@ -82,14 +82,19 @@ and binds it to a topic plus key/value types.
 Type strings follow KSML's standard type grammar (the same one `StreamDefinitionParser` uses
 in pipeline yamls):
 
-- Schema-less notations (`string`, `long`, `int`, `boolean`, `bytes`, `json`, `binary`, `xml`, etc.)
+- Schema-less notations (`string`, `long`, `int`, `boolean`, `bytes`, `json`, `binary`)
   may appear unqualified.
-- Schema-bearing notations (`avro`, `confluent_avro`, `apicurio_avro`, `protobuf`, `json_schema`,
-  `csv`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is
+- Schema-bearing notations (`avro`, `confluent_avro`, `apicurio_avro`) **must** be qualified with a schema name (e.g., `avro:SensorData`). The named schema is
   loaded from `schemaDirectory` and registered in the in-memory mock registry under
   `<topic>-key` / `<topic>-value`.
 - Bare schema-bearing notations (e.g., `confluent_avro` without `:Schema`) are rejected — the
   test runner has no real registry to resolve them against.
+
+#### Supported notations
+
+The test runner supports: `string`, `int`, `long`, `boolean`, `bytes`, `json`, `binary`, `avro`, `confluent_avro`, `apicurio_avro`.
+`apicurio_avro` is backed by a Confluent-compatible mock registry. It works for logic-level tests, but uses Confluent wire format rather than Apicurio's.
+The following notations are **not yet supported** and will produce a runtime error if used: `xml`, `soap`, `csv`, `protobuf`, `json_schema`.
 
 ### Tests
 
@@ -139,6 +144,10 @@ available as a Python variable with the same API as in pipeline code (e.g. `stor
 Inline `topic` fields on an assert block are not permitted — declare the stream under
 `streams:` and reference it via `on:`.
 
+_Note:_ When the output topic's value type is `avro:…` or `confluent_avro:…`, you must declare the output stream in `streams:` with the correct `valueType` and provide a `schemaDirectory` containing the matching `.avsc` file. 
+If the stream is declared as `valueType: string` (or the field is omitted), `records[i]["value"]` will be a raw byte string (Confluent wire format: magic byte + schema ID + Avro body), 
+and subfield indexing will fail with `TypeError: string indices must be integers`.
+
 ### Reporting
 
 Each test result is labeled `<suite> › <test>` where `<suite>` is the file's `name:` (or
@@ -154,8 +163,8 @@ Build the project first:
 mvn clean package
 ```
 
-Then run one or more test files, directories, or a mix of both. When a directory is given,
-the runner walks it recursively and picks up every `*.yaml` / `*.yml` file inside:
+the runner collects `*.yaml` / `*.yml` files from its **direct children only** (not subdirectories). 
+To test files in nested folders, pass each subdirectory explicitly:
 
 ```bash
 java -Djava.security.manager=allow \

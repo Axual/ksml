@@ -41,12 +41,6 @@ class KSMLTestRunnerTest {
         return Version.getCurrent().isRelease();
     }
 
-    private Path resource(String name) {
-        var url = getClass().getClassLoader().getResource(name);
-        assertNotNull(url, "Test resource not found: " + name);
-        return Path.of(url.getPath());
-    }
-
     @Test
     void confluentAvroFilterTestPasses() {
         var runner = new KSMLTestRunner();
@@ -71,7 +65,8 @@ class KSMLTestRunnerTest {
             "duplicate-test-key.yaml",
             "duplicate-stream-topic.yaml",
             "undefined-stream-reference.yaml",
-            "bare-vendor-avro.yaml"
+            "bare-vendor-avro.yaml",
+            "generator-bad-field-type-test.yaml"
     })
     void invalidDefinitionsReturnNonPass(String testFile) {
         var runner = new KSMLTestRunner();
@@ -135,6 +130,20 @@ class KSMLTestRunnerTest {
                 () -> "Expected FAIL message to mention AssertionError, got: " + failed.message());
     }
 
+    @Test
+    void testCanHaveMultipleAssertBlocks() {
+        var runner = new KSMLTestRunner();
+        var results = runner.runTestFile(resource("two-assert-blocks.yaml"));
+        assertAllPass(results, "two-assert-blocks.yaml");
+    }
+
+    @Test
+    void emptyStoresBlockTestIsRefused() {
+        var runner = new KSMLTestRunner();
+        var results = runner.runTestFile(resource("empty-stores-block.yaml"));
+        assertEquals(TestResult.Status.ERROR, results.getFirst().status());
+    }
+
     private static void assertAllPass(List<TestResult> results, String testFile) {
         assertFalse(results.isEmpty(), () -> "Expected at least one result for '" + testFile + "'");
         for (var result : results) {
@@ -143,4 +152,11 @@ class KSMLTestRunnerTest {
                             + result.status() + ": " + result.message());
         }
     }
+
+    private Path resource(String name) {
+        var url = getClass().getClassLoader().getResource(name);
+        assertNotNull(url, "Test resource not found: " + name);
+        return Path.of(url.getPath());
+    }
+
 }

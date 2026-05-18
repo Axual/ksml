@@ -42,7 +42,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
-public class PythonContext {
+public class PythonContext implements AutoCloseable {
+
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
     private static final ValuePrinter VALUE_PRINTER = new PythonValuePrinter();
@@ -255,5 +256,10 @@ public class PythonContext {
         } catch (Exception e) {
             log.warn("Could not read Python sys.path", e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        context.close();
     }
 }

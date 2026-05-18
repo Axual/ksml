@@ -51,8 +51,10 @@ public record AssertBlock(
      * Validate that the assert block has at least an {@code on} reference or {@code stores}.
      */
     public void validate() {
-        if (on == null && stores == null) {
-            throw new TestDefinitionException("Assert block must have at least 'on' or 'stores'");
+        var hasOnBlock = on != null;
+        var hasStoresBlock = stores != null && !stores.isEmpty();
+        if (!hasOnBlock && !hasStoresBlock) {
+            throw new TestDefinitionException("Assert block must have at least 'on' or non-empty 'stores'");
         }
     }
 }
