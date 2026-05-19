@@ -216,7 +216,10 @@ public class ConvertUtil {
                 throw new DataException("Can not convert DataByte value to " + targetType);
             }
             case DataShort val -> {
-                if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
+                if (targetType == DataByte.DATATYPE) {
+                    NumericRangeChecker.requireByteRange(val.value().longValue());
+                    yield new DataByte(val.value().byteValue());
+                }
                 if (targetType == DataType.UNKNOWN || targetType == DataShort.DATATYPE) yield val;
                 if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
                 if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
@@ -225,8 +228,14 @@ public class ConvertUtil {
                 throw new DataException("Can not convert DataShort value to " + targetType);
             }
             case DataInteger val -> {
-                if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
-                if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
+                if (targetType == DataByte.DATATYPE) {
+                    NumericRangeChecker.requireByteRange(val.value().longValue());
+                    yield new DataByte(val.value().byteValue());
+                }
+                if (targetType == DataShort.DATATYPE) {
+                    NumericRangeChecker.requireShortRange(val.value().longValue());
+                    yield new DataShort(val.value().shortValue());
+                }
                 if (targetType == DataType.UNKNOWN || targetType == DataInteger.DATATYPE) yield val;
                 if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
                 if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
@@ -234,28 +243,64 @@ public class ConvertUtil {
                 throw new DataException("Can not convert DataInteger value to " + targetType);
             }
             case DataLong val -> {
-                if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
-                if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
-                if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
+                if (targetType == DataByte.DATATYPE) {
+                    NumericRangeChecker.requireByteRange(val.value());
+                    yield new DataByte(val.value().byteValue());
+                }
+                if (targetType == DataShort.DATATYPE) {
+                    NumericRangeChecker.requireShortRange(val.value());
+                    yield new DataShort(val.value().shortValue());
+                }
+                if (targetType == DataInteger.DATATYPE) {
+                    NumericRangeChecker.requireIntRange(val.value());
+                    yield new DataInteger(val.value().intValue());
+                }
                 if (targetType == DataType.UNKNOWN || targetType == DataLong.DATATYPE) yield val;
                 if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
                 if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
                 throw new DataException("Can not convert DataLong value to " + targetType);
             }
             case DataDouble val -> {
-                if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
-                if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
-                if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
-                if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
+                if (targetType == DataByte.DATATYPE) {
+                    NumericRangeChecker.requireByteRange(val.value());
+                    yield new DataByte(val.value().byteValue());
+                }
+                if (targetType == DataShort.DATATYPE) {
+                    NumericRangeChecker.requireShortRange(val.value());
+                    yield new DataShort(val.value().shortValue());
+                }
+                if (targetType == DataInteger.DATATYPE) {
+                    NumericRangeChecker.requireIntRange(val.value());
+                    yield new DataInteger(val.value().intValue());
+                }
+                if (targetType == DataLong.DATATYPE) {
+                    NumericRangeChecker.requireLongRange(val.value());
+                    yield new DataLong(val.value().longValue());
+                }
                 if (targetType == DataType.UNKNOWN || targetType == DataDouble.DATATYPE) yield val;
-                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
+                if (targetType == DataFloat.DATATYPE) {
+                    NumericRangeChecker.requireFloatRange(val.value());
+                    yield new DataFloat(val.value().floatValue());
+                }
                 throw new DataException("Can not convert DataDouble value to " + targetType);
             }
             case DataFloat val -> {
-                if (targetType == DataByte.DATATYPE) yield new DataByte(val.value().byteValue());
-                if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
-                if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
-                if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
+                if (targetType == DataByte.DATATYPE) {
+                    NumericRangeChecker.requireByteRange(val.value().doubleValue());
+                    yield new DataByte(val.value().byteValue());
+                }
+                if (targetType == DataShort.DATATYPE) {
+                    NumericRangeChecker.requireShortRange(val.value().doubleValue());
+                    yield new DataShort(val.value().shortValue());
+                }
+                if (targetType == DataInteger.DATATYPE) {
+                    NumericRangeChecker.requireIntRange(val.value().doubleValue());
+                    yield new DataInteger(val.value().intValue());
+                }
+                if (targetType == DataLong.DATATYPE) {
+                    NumericRangeChecker.requireLongRange(val.value().doubleValue());
+                    yield new DataLong(val.value().longValue());
+                }
                 if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
                 if (targetType == DataType.UNKNOWN || targetType == DataFloat.DATATYPE) yield val;
                 throw new DataException("Can not convert DataDouble value to " + targetType);

@@ -320,11 +320,79 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                 case DataByte val -> val.value() != null ? val.value().intValue() : null;
                 case DataShort val -> val.value() != null ? val.value().intValue() : null;
                 case DataInteger val -> val.value();
+                case DataLong val -> {
+                    if (val.value() == null) yield null;
+                    long longVal = val.value();
+                    if (longVal < Integer.MIN_VALUE || longVal > Integer.MAX_VALUE) {
+                        throw new DataException(("Value %d exceeds INT range [%d, %d]. Use 'long' type in schema "
+                                + "or ensure values fit in INT range.")
+                                .formatted(longVal, Integer.MIN_VALUE, Integer.MAX_VALUE));
+                    }
+                    yield (int) longVal;
+                }
+                case DataFloat val -> {
+                    if (val.value() == null) yield null;
+                    float floatVal = val.value();
+                    if (!Float.isFinite(floatVal) || floatVal < Integer.MIN_VALUE || floatVal > Integer.MAX_VALUE) {
+                        throw new DataException(
+                                "Value %s cannot be converted to INT (out of range or not finite)".formatted(floatVal));
+                    }
+                    yield (int) floatVal;
+                }
+                case DataDouble val -> {
+                    if (val.value() == null) yield null;
+                    double doubleVal = val.value();
+                    if (!Double.isFinite(doubleVal) || doubleVal < Integer.MIN_VALUE || doubleVal > Integer.MAX_VALUE) {
+                        throw new DataException(
+                                "Value %s cannot be converted to INT (out of range or not finite)".formatted(doubleVal));
+                    }
+                    yield (int) doubleVal;
+                }
                 default -> fromDataObject(value);
             };
-            case LONG -> value instanceof DataLong val ? val.value() : fromDataObject(value);
+            case LONG -> switch (value) {
+                case DataByte val -> val.value() != null ? val.value().longValue() : null;
+                case DataShort val -> val.value() != null ? val.value().longValue() : null;
+                case DataInteger val -> val.value() != null ? val.value().longValue() : null;
+                case DataLong val -> val.value();
+                case DataFloat val -> {
+                    if (val.value() == null) yield null;
+                    float floatVal = val.value();
+                    if (!Float.isFinite(floatVal) || floatVal >= 0x1.0p63f || floatVal < -0x1.0p63f) {
+                        throw new DataException(
+                                "Value %s cannot be converted to LONG (out of range or not finite)".formatted(floatVal));
+                    }
+                    yield (long) floatVal;
+                }
+                case DataDouble val -> {
+                    if (val.value() == null) yield null;
+                    double doubleVal = val.value();
+                    if (!Double.isFinite(doubleVal) || doubleVal >= 0x1.0p63 || doubleVal < -0x1.0p63) {
+                        throw new DataException("Value %s cannot be converted to LONG (out of range or not finite)"
+                                .formatted(doubleVal));
+                    }
+                    yield (long) doubleVal;
+                }
+                default -> fromDataObject(value);
+            };
             case DOUBLE -> value instanceof DataDouble val ? val.value() : fromDataObject(value);
-            case FLOAT -> value instanceof DataFloat val ? val.value() : fromDataObject(value);
+            // Catches overflow and non-finite only. We deliberately do not reject finite in-range doubles that
+            // lose bit-exact precision when cast to float (e.g. 0.1 → 0.10000000149...), because that would
+            // reject very common pipeline values and diverge from Java's standard (float) cast semantics used
+            // by other JVM serialization frameworks (Avro, Jackson, Protobuf).
+            case FLOAT -> switch (value) {
+                case DataFloat val -> val.value();
+                case DataDouble val -> {
+                    if (val.value() == null) yield null;
+                    double doubleVal = val.value();
+                    if (!Double.isFinite(doubleVal) || Math.abs(doubleVal) > Float.MAX_VALUE) {
+                        throw new DataException(
+                                "Value %s exceeds FLOAT range or is not finite".formatted(doubleVal));
+                    }
+                    yield (float) doubleVal;
+                }
+                default -> fromDataObject(value);
+            };
             case BYTES -> value instanceof DataBytes val ? val.value() : fromDataObject(value);
             case FIXED -> value instanceof DataBytes val ? new GenericData.Fixed(schema, val.value()) : null;
             case STRING -> value instanceof DataString val ? val.value() : fromDataObject(value);
