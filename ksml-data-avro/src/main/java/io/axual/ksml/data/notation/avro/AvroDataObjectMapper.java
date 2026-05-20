@@ -313,9 +313,21 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Object convertDataObjectToAvroBySchema(DataObject value, Schema schema) {
         if (value == null) return null;
+        // TODO: Avro logical types are not validated. KSML treats them as their underlying primitive
+        //       and round-trips them without checking the input contract:
+        //         * uuid          — any string is accepted, even non-UUID strings
+        //         * time-millis   — any int is accepted, even values outside [0, 86_400_000)
+        //         * time-micros   — any long is accepted, even values outside [0, 86_400_000_000)
+        //         * date          — any int (days since epoch) — accepting any int is technically
+        //                           valid by the spec, but no semantic bounds are enforced
+        //         * timestamp-*   — same as date — any long passes
+        //         * decimal       — bytes/fixed; needs precision/scale-aware BigDecimal encoding/
+        //                           decoding (the bytes are big-endian two's-complement integer
+        //                           scaled by `scale`). KSML currently exposes the raw bytes only.
+        //       Adding first-class handling for these types is a separate feature.
         return switch (schema.getType()) {
             case NULL -> null;
-            case BOOLEAN -> value instanceof DataBoolean val ? val.value() : fromDataObject(value);
+            case BOOLEAN -> value instanceof DataBoolean val ? val.value() : schemaMismatch(value, schema);
             case INT -> switch (value) {
                 case DataByte val -> val.value() != null ? val.value().intValue() : null;
                 case DataShort val -> val.value() != null ? val.value().intValue() : null;
@@ -348,7 +360,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                     }
                     yield (int) doubleVal;
                 }
-                default -> fromDataObject(value);
+                default -> schemaMismatch(value, schema);
             };
             case LONG -> switch (value) {
                 case DataByte val -> val.value() != null ? val.value().longValue() : null;
@@ -373,14 +385,34 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                     }
                     yield (long) doubleVal;
                 }
-                default -> fromDataObject(value);
+                default -> schemaMismatch(value, schema);
             };
-            case DOUBLE -> value instanceof DataDouble val ? val.value() : fromDataObject(value);
-            // Catches overflow and non-finite only. We deliberately do not reject finite in-range doubles that
-            // lose bit-exact precision when cast to float (e.g. 0.1 → 0.10000000149...), because that would
-            // reject very common pipeline values and diverge from Java's standard (float) cast semantics used
-            // by other JVM serialization frameworks (Avro, Jackson, Protobuf).
+            // Accept every numeric DataObject that widens losslessly (or with Java's standard cast
+            // semantics) to a double. Without these explicit arms, a perfectly valid pipeline like
+            // DataInteger(42) → Avro DOUBLE field would fall through to schemaMismatch and throw —
+            // even though the conversion is safe. DataLong → double can lose precision above 2^53
+            // (the double mantissa width); we accept that loss explicitly because it matches Java's
+            // (double) cast semantics and is the same trade-off other JVM frameworks make.
+            case DOUBLE -> switch (value) {
+                case DataByte val -> val.value() != null ? val.value().doubleValue() : null;
+                case DataShort val -> val.value() != null ? val.value().doubleValue() : null;
+                case DataInteger val -> val.value() != null ? val.value().doubleValue() : null;
+                case DataLong val -> val.value() != null ? val.value().doubleValue() : null;
+                case DataFloat val -> val.value() != null ? val.value().doubleValue() : null;
+                case DataDouble val -> val.value();
+                default -> schemaMismatch(value, schema);
+            };
+            // FLOAT accepts every narrower or equal-width numeric source. The DataDouble path is
+            // range/finiteness-checked because that is a true narrowing. The DataInteger/DataLong
+            // paths can lose bit-exact precision (int values above 2^24, long values above 2^24)
+            // but we deliberately do not reject that — see requireFloatRange's Javadoc for the same
+            // reasoning applied to DataDouble. If we rejected here, common pipeline values like
+            // DataInteger(1_000_000) → FLOAT would fail.
             case FLOAT -> switch (value) {
+                case DataByte val -> val.value() != null ? val.value().floatValue() : null;
+                case DataShort val -> val.value() != null ? val.value().floatValue() : null;
+                case DataInteger val -> val.value() != null ? val.value().floatValue() : null;
+                case DataLong val -> val.value() != null ? val.value().floatValue() : null;
                 case DataFloat val -> val.value();
                 case DataDouble val -> {
                     if (val.value() == null) yield null;
@@ -391,34 +423,115 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                     }
                     yield (float) doubleVal;
                 }
-                default -> fromDataObject(value);
+                default -> schemaMismatch(value, schema);
             };
-            case BYTES -> value instanceof DataBytes val ? val.value() : fromDataObject(value);
-            case FIXED -> value instanceof DataBytes val ? new GenericData.Fixed(schema, val.value()) : null;
-            case STRING -> value instanceof DataString val ? val.value() : fromDataObject(value);
+            case BYTES -> value instanceof DataBytes val ? val.value() : schemaMismatch(value, schema);
+            case FIXED -> value instanceof DataBytes val ? new GenericData.Fixed(schema, val.value()) : schemaMismatch(value, schema);
+            case STRING -> value instanceof DataString val ? val.value() : schemaMismatch(value, schema);
             case ENUM -> {
-                if (value instanceof DataString s)
-                    yield new GenericData.EnumSymbol(schema, s.value());
-                if (value instanceof DataEnum e)
-                    yield new GenericData.EnumSymbol(schema, e.value());
-                yield null;
+                // Validate two things up front: (1) the value is a DataString or DataEnum (anything
+                // else previously yielded null and failed downstream with a generic "value cannot be
+                // null" error), and (2) the symbol is actually declared in the schema (Avro's
+                // GenericData.EnumSymbol does not validate that itself).
+                final String symbol;
+                if (value instanceof DataString s) {
+                    symbol = s.value();
+                } else if (value instanceof DataEnum e) {
+                    symbol = e.value();
+                } else {
+                    throw new DataException("Can not convert " + value.getClass().getSimpleName()
+                            + " to Avro ENUM '" + schema.getFullName() + "'");
+                }
+                if (symbol == null) yield null;
+                if (!schema.hasEnumSymbol(symbol)) {
+                    throw new DataException("Value \"" + symbol + "\" is not a valid symbol of Avro ENUM '"
+                            + schema.getFullName() + "' (allowed: " + schema.getEnumSymbols() + ")");
+                }
+                yield new GenericData.EnumSymbol(schema, symbol);
             }
-            case ARRAY ->
-                    value instanceof DataList val ? convertDataListToAvroList(val, schema.getElementType()) : null;
-            case MAP -> value instanceof DataMap val ? convertDataMapToAvroMap(val, schema.getValueType()) : null;
-            case RECORD -> value instanceof DataStruct val ? convertDataStructToAvroRecord(val) : null;
+            case ARRAY -> value instanceof DataList val
+                    ? convertDataListToAvroList(val, schema.getElementType())
+                    : schemaMismatch(value, schema);
+            case MAP -> value instanceof DataMap val
+                    ? convertDataMapToAvroMap(val, schema.getValueType())
+                    : schemaMismatch(value, schema);
+            case RECORD -> value instanceof DataStruct val
+                    ? convertDataStructToAvroRecord(val)
+                    : schemaMismatch(value, schema);
             case UNION -> {
                 if (value instanceof DataNull) yield null;
-                // Try to match one of the union branches
+                // Pick the union branch that natively matches the DataObject type first; only fall back
+                // to attempting a conversion if no branch is a native match. The previous behaviour was
+                // "first non-null candidate wins", which routed e.g. DataLong(5) into a [DOUBLE,LONG]
+                // union as Long-into-DOUBLE — Avro then failed later with a confusing class-cast error.
+                final var nativeMatch = matchUnionBranchByNativeType(schema, value);
+                if (nativeMatch != null) yield convertDataObjectToAvroBySchema(value, nativeMatch);
                 for (var branch : schema.getTypes()) {
                     if (branch.getType() == Schema.Type.NULL) continue;
                     var candidate = convertDataObjectToAvroBySchema(value, branch);
                     if (candidate != null) yield candidate;
                 }
-                // Last resort
-                yield fromDataObject(value);
+                throw new DataException("No union branch in '" + schema + "' is compatible with "
+                        + value.getClass().getSimpleName());
             }
         };
+    }
+
+    /**
+     * Handles a mismatch between a {@link DataObject} and the target Avro {@link Schema} during
+     * serialization.
+     *
+     * <p>Replaces the previous {@code default → fromDataObject(value)} fallback arms which silently
+     * produced a native Java value that did not match the Avro field type (e.g. a {@link DataString}
+     * sent to an INT field passed through as a Java {@code String} and then failed deep inside Avro
+     * with a generic class-cast error). {@link DataNull} is preserved as {@code null} so nullable
+     * fields keep working.</p>
+     *
+     * @param value  the offending DataObject
+     * @param schema the target Avro schema
+     * @return {@code null} if {@code value} is a {@link DataNull}
+     * @throws DataException for any other DataObject type
+     */
+    private Object schemaMismatch(DataObject value, Schema schema) {
+        if (value instanceof DataNull) return null;
+        throw new DataException("Cannot convert " + value.getClass().getSimpleName()
+                + " to Avro " + schema.getType() + " field");
+    }
+
+    /**
+     * Picks the union branch whose Avro type natively matches the runtime {@link DataObject} type.
+     *
+     * <p>Used to disambiguate unions before falling back to attempting value coercion through every
+     * branch. Without this step, the previous "first non-null candidate wins" behaviour routed e.g.
+     * a {@link DataLong} into a {@code [DOUBLE, LONG]} union as a Long-in-the-DOUBLE-slot, which
+     * Avro then rejected later with a confusing class-cast error.</p>
+     *
+     * @param unionSchema the Avro UNION schema being targeted
+     * @param value       the runtime DataObject to place
+     * @return the matching branch schema, or {@code null} when no branch has a native type match
+     */
+    private Schema matchUnionBranchByNativeType(Schema unionSchema, DataObject value) {
+        final var preferred = switch (value) {
+            case DataBoolean ignored -> Schema.Type.BOOLEAN;
+            case DataByte ignored -> Schema.Type.INT;
+            case DataShort ignored -> Schema.Type.INT;
+            case DataInteger ignored -> Schema.Type.INT;
+            case DataLong ignored -> Schema.Type.LONG;
+            case DataFloat ignored -> Schema.Type.FLOAT;
+            case DataDouble ignored -> Schema.Type.DOUBLE;
+            case DataString ignored -> Schema.Type.STRING;
+            case DataBytes ignored -> Schema.Type.BYTES;
+            case DataList ignored -> Schema.Type.ARRAY;
+            case DataMap ignored -> Schema.Type.MAP;
+            case DataStruct ignored -> Schema.Type.RECORD;
+            case DataEnum ignored -> Schema.Type.ENUM;
+            default -> null;
+        };
+        if (preferred == null) return null;
+        for (var branch : unionSchema.getTypes()) {
+            if (branch.getType() == preferred) return branch;
+        }
+        return null;
     }
 
     @Nullable

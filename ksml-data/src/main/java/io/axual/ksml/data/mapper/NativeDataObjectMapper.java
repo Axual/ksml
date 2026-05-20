@@ -355,21 +355,60 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return new DataBytes(result);
     }
 
+    /**
+     * Converts a numeric Java value into a {@code byte} for the {@code List → DataBytes} (raw byte
+     * array) path.
+     *
+     * <p>Raw byte arrays are conventionally written with either signed ({@code -128..127}) or
+     * unsigned ({@code 0..255}) representation by Python / JSON sources, so the allowed range is
+     * {@code [-128, 255]}. The common case {@code 255} ({@code == 0xFF}) round-trips to {@code
+     * (byte) -1} as expected, while truly out-of-range inputs (like {@code 300}) fail loudly
+     * instead of silently truncating.</p>
+     *
+     * <p><b>Why unsigned-byte range here but strict signed range elsewhere?</b> The unsigned
+     * acceptance is a pre-existing project contract — verified by
+     * {@code PythonDataObjectMapperTest.toDataObjectBytes} on {@code main}, which asserts that the
+     * Python literal {@code [1, 2, 3, 255]} round-trips to the byte array {@code [1, 2, 3, -1]}.
+     * That convention matches how Python's {@code bytes([255])}, JSON byte-array encodings, and
+     * Avro {@code BYTES} payloads represent raw bytes, so the byte-array path uses
+     * {@link #checkUnsignedByte(long)} rather than the strict
+     * {@link io.axual.ksml.data.util.NumericRangeChecker#requireByteRange(long)} that all other
+     * numeric narrowings use. If the team ever wants strict signed-byte semantics everywhere, both
+     * this helper and the pre-existing test must change together.</p>
+     *
+     * @param object a {@link Byte}, {@link Short}, {@link Integer} or {@link Long} value
+     * @return the equivalent {@code byte}
+     * @throws DataException if the value is out of range or the type is not supported
+     */
     protected byte convertToByte(Object object) {
         if (object instanceof Byte value) return value;
-        if (object instanceof Short value) {
-            NumericRangeChecker.requireByteRange(value.longValue());
-            return value.byteValue();
-        }
-        if (object instanceof Integer value) {
-            NumericRangeChecker.requireByteRange(value.longValue());
-            return value.byteValue();
-        }
-        if (object instanceof Long value) {
-            NumericRangeChecker.requireByteRange(value);
-            return value.byteValue();
-        }
+        if (object instanceof Short value) return checkUnsignedByte(value.longValue());
+        if (object instanceof Integer value) return checkUnsignedByte(value.longValue());
+        if (object instanceof Long value) return checkUnsignedByte(value);
         throw new DataException("Can not convert value to byte: " + object.getClass().getSimpleName());
+    }
+
+    /**
+     * Validates that {@code value} fits within the unsigned-byte window {@code [-128, 255]} used by
+     * the raw byte-array path, then narrows it to a {@code byte}.
+     *
+     * <p>This is intentionally <b>wider</b> than the standard signed-byte range used by
+     * {@link io.axual.ksml.data.util.NumericRangeChecker#requireByteRange(long)}: unsigned values
+     * {@code 128..255} are accepted so that the common byte-array convention {@code 255 → 0xFF →
+     * (byte) -1} round-trips correctly. See {@link #convertToByte(Object)} for the rationale and
+     * the pre-existing test that documents this contract.</p>
+     *
+     * @param value the candidate value, widened to {@code long}
+     * @return the equivalent {@code byte} (with {@code 128..255} reinterpreted as their signed form)
+     * @throws DataException if {@code value} is outside {@code [-128, 255]}
+     */
+    private byte checkUnsignedByte(long value) {
+        if (value < Byte.MIN_VALUE || value > NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE) {
+            throw new DataException(
+                    "Value %d does not fit in a byte (allowed range: %d..%d)"
+                            .formatted(value, (int) Byte.MIN_VALUE, NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE));
+        }
+        return (byte) value;
     }
 
     protected DataTuple convertTupleToDataTuple(Tuple<?> tuple, TupleType expected) {

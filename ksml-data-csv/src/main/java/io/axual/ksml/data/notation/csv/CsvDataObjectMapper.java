@@ -82,15 +82,27 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
     private DataStruct convertLineToDataStruct(String[] line, StructSchema schema) {
         // Convert the line to a DataStruct with given schema
         final var result = new DataStruct(schema);
+        // Detect rows shorter than the schema declares — silently padding with nulls would mask
+        // truncated CSV input.
+        if (line.length < schema.fields().size()) {
+            throw new DataException(
+                    "CSV row has %d columns but schema '%s' declares %d fields"
+                            .formatted(line.length, schema.name(), schema.fields().size()));
+        }
         for (int index = 0; index < schema.fields().size(); index++) {
             final var field = schema.field(index);
             final var lineValue = index < line.length ? line[index] : null;
-            final var value = lineValue != null && !lineValue.isEmpty()
-                    ? lineValue
-                    : field.required()
-                    ? ""
-                    : null;
-            if (value != null) result.putIfNotNull(field.name(), convertStringToDataObject(field.schema(), value));
+            // Required fields must have a value; passing "" through convertStringToDataObject and
+            // then dropping the result via putIfNotNull would silently produce a struct missing the
+            // required field.
+            if (lineValue == null || lineValue.isEmpty()) {
+                if (field.required()) {
+                    throw new DataException(
+                            "Required CSV field '%s' is missing or empty".formatted(field.name()));
+                }
+                continue;
+            }
+            result.putIfNotNull(field.name(), convertStringToDataObject(field.schema(), lineValue));
         }
         return result;
     }

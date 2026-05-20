@@ -337,12 +337,13 @@ public class ConvertUtil {
     public DataObject convertStringToDataObject(DataType expected, String value, boolean allowFail) {
         if (expected == null) return new DataString(value);
         if (expected == DataNull.DATATYPE || value == null) return DataNull.INSTANCE;
-        if (expected == DataByte.DATATYPE) return parseOrNull(() -> new DataByte(Byte.parseByte(value)));
-        if (expected == DataShort.DATATYPE) return parseOrNull(() -> new DataShort(Short.parseShort(value)));
-        if (expected == DataInteger.DATATYPE) return parseOrNull(() -> new DataInteger(Integer.parseInt(value)));
-        if (expected == DataLong.DATATYPE) return parseOrNull(() -> new DataLong(Long.parseLong(value)));
-        if (expected == DataDouble.DATATYPE) return parseOrNull(() -> new DataDouble(Double.parseDouble(value)));
-        if (expected == DataFloat.DATATYPE) return parseOrNull(() -> new DataFloat(Float.parseFloat(value)));
+        if (expected == DataByte.DATATYPE) return parseOrFail(() -> new DataByte(Byte.parseByte(value)), value, expected, allowFail);
+        if (expected == DataShort.DATATYPE) return parseOrFail(() -> new DataShort(Short.parseShort(value)), value, expected, allowFail);
+        if (expected == DataInteger.DATATYPE) return parseOrFail(() -> new DataInteger(Integer.parseInt(value)), value, expected, allowFail);
+        if (expected == DataLong.DATATYPE) return parseOrFail(() -> new DataLong(Long.parseLong(value)), value, expected, allowFail);
+        if (expected == DataDouble.DATATYPE) return parseOrFail(() -> new DataDouble(Double.parseDouble(value)), value, expected, allowFail);
+        if (expected == DataFloat.DATATYPE) return parseOrFail(() -> new DataFloat(Float.parseFloat(value)), value, expected, allowFail);
+        if (expected == DataBoolean.DATATYPE) return parseDataBoolean(value, allowFail);
         if (expected == DataString.DATATYPE) return new DataString(value);
         return switch (expected) {
             case EnumType enumType -> new DataEnum(enumType, value);
@@ -355,12 +356,48 @@ public class ConvertUtil {
         };
     }
 
-    private DataObject parseOrNull(Supplier<DataObject> supplier) {
+    /**
+     * Invokes a numeric parser and honours the {@code allowFail} contract.
+     *
+     * <p>Previously a {@link NumberFormatException} was silently swallowed and the method returned
+     * {@code null} even when {@code allowFail=false}, which caused CSV/JSON required fields with
+     * bad input (e.g. {@code "abc"} for an int) to disappear instead of failing.</p>
+     *
+     * @param supplier the parsing callable that may throw {@link NumberFormatException}
+     * @param value    the original string value (used only for the error message)
+     * @param expected the target {@link DataType} (used only for the error message)
+     * @param allowFail when {@code true}, return {@code null} on parse failure; otherwise rethrow
+     *                  as {@link DataException}
+     * @return the parsed {@link DataObject}, or {@code null} if {@code allowFail=true} and parsing failed
+     * @throws DataException if {@code allowFail=false} and the input cannot be parsed
+     */
+    private DataObject parseOrFail(Supplier<DataObject> supplier, String value, DataType expected, boolean allowFail) {
         try {
             return supplier.get();
         } catch (NumberFormatException e) {
-            return null;
+            if (allowFail) return null;
+            throw new DataException("Can not parse \"" + value + "\" as " + expected, e);
         }
+    }
+
+    /**
+     * Parses the canonical {@code "true"}/{@code "false"} string forms (case-insensitive) into a
+     * {@link DataBoolean}.
+     *
+     * <p>Without this branch, {@code convertStringToDataObject} fell through to the generic switch
+     * and threw an unhelpful {@code "Can not convert string to data type"} error for legitimate
+     * boolean strings produced by CSV / JSON sources.</p>
+     *
+     * @param value     the candidate boolean string
+     * @param allowFail when {@code true}, return {@code null} on unrecognised input; otherwise throw
+     * @return the parsed {@link DataBoolean}, or {@code null} if {@code allowFail=true} and unrecognised
+     * @throws DataException if {@code allowFail=false} and {@code value} is not {@code "true"}/{@code "false"}
+     */
+    private DataObject parseDataBoolean(String value, boolean allowFail) {
+        if ("true".equalsIgnoreCase(value)) return new DataBoolean(true);
+        if ("false".equalsIgnoreCase(value)) return new DataBoolean(false);
+        if (allowFail) return null;
+        throw new DataException("Can not parse \"" + value + "\" as BOOLEAN");
     }
 
     private DataList convertStringToDataList(ListType listType, String value, boolean allowFail) {

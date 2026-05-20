@@ -27,6 +27,7 @@ import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataShort;
 import org.junit.jupiter.api.DisplayName;
@@ -203,5 +204,55 @@ class ConvertUtilTest {
         assertThatCode(() -> converter.convert(DataInteger.DATATYPE, overflow))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("INT");
+    }
+
+    // ---- convertStringToDataObject: parseOrFail honours allowFail ----
+
+    @Test
+    @DisplayName("convertStringToDataObject: malformed numeric string with allowFail=false throws")
+    void convertStringToDataObject_malformedNumeric_failsLoudly() {
+        assertThatCode(() -> converter.convertStringToDataObject(DataInteger.DATATYPE, "abc", false))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Can not parse");
+        assertThatCode(() -> converter.convertStringToDataObject(DataLong.DATATYPE, "not-a-number", false))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Can not parse");
+        assertThatCode(() -> converter.convertStringToDataObject(DataDouble.DATATYPE, "nope", false))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Can not parse");
+    }
+
+    @Test
+    @DisplayName("convertStringToDataObject: malformed numeric string with allowFail=true returns null")
+    void convertStringToDataObject_malformedNumeric_allowFail_returnsNull() {
+        assertThat(converter.convertStringToDataObject(DataInteger.DATATYPE, "abc", true)).isNull();
+        assertThat(converter.convertStringToDataObject(DataLong.DATATYPE, "not-a-number", true)).isNull();
+    }
+
+    @Test
+    @DisplayName("convertStringToDataObject: valid numeric string parses to the requested type")
+    void convertStringToDataObject_validNumeric_parses() {
+        assertThat(converter.convertStringToDataObject(DataInteger.DATATYPE, "42", false)).isEqualTo(new DataInteger(42));
+        assertThat(converter.convertStringToDataObject(DataLong.DATATYPE, "9999999999", false)).isEqualTo(new DataLong(9_999_999_999L));
+    }
+
+    // ---- convertStringToDataObject: DataBoolean parsing ----
+
+    @Test
+    @DisplayName("convertStringToDataObject: \"true\"/\"false\" (case-insensitive) parses to DataBoolean")
+    void convertStringToDataObject_parsesBoolean() {
+        assertThat(converter.convertStringToDataObject(DataBoolean.DATATYPE, "true", false)).isEqualTo(new DataBoolean(true));
+        assertThat(converter.convertStringToDataObject(DataBoolean.DATATYPE, "TRUE", false)).isEqualTo(new DataBoolean(true));
+        assertThat(converter.convertStringToDataObject(DataBoolean.DATATYPE, "false", false)).isEqualTo(new DataBoolean(false));
+        assertThat(converter.convertStringToDataObject(DataBoolean.DATATYPE, "False", false)).isEqualTo(new DataBoolean(false));
+    }
+
+    @Test
+    @DisplayName("convertStringToDataObject: non-boolean string to DataBoolean honours allowFail")
+    void convertStringToDataObject_invalidBoolean_honoursAllowFail() {
+        assertThatCode(() -> converter.convertStringToDataObject(DataBoolean.DATATYPE, "yes", false))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("BOOLEAN");
+        assertThat(converter.convertStringToDataObject(DataBoolean.DATATYPE, "yes", true)).isNull();
     }
 }

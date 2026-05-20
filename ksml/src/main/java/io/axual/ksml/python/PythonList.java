@@ -20,6 +20,7 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.util.ValuePrinter;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
@@ -44,12 +45,12 @@ public class PythonList implements ProxyArray {
 
     @Override
     public Object get(long index) {
-        return list.get((int) index);
+        return list.get(toIntIndex(index));
     }
 
     @Override
     public void set(long index, Value value) {
-        list.set((int) index, value);
+        list.set(toIntIndex(index), value);
     }
 
     @Override
@@ -59,8 +60,28 @@ public class PythonList implements ProxyArray {
 
     @Override
     public boolean remove(long index) {
-        list.remove((int) index);
+        list.remove(toIntIndex(index));
         return true;
+    }
+
+    /**
+     * Converts a GraalVM {@link ProxyArray} {@code long} index into a Java {@link List} {@code int}
+     * index, validating the range to avoid a silent narrowing cast.
+     *
+     * <p>GraalVM's {@code ProxyArray} uses {@code long} indices while {@link List} uses {@code int}.
+     * A plain {@code (int)} cast would truncate indices above {@link Integer#MAX_VALUE} and return
+     * the wrong element. Surfacing the range violation as a {@link DataException} keeps the failure
+     * loud even though, in practice, no in-process list ever reaches that size.</p>
+     *
+     * @param index the long-valued index supplied by the Polyglot bridge
+     * @return the equivalent {@code int} index
+     * @throws DataException if {@code index} is negative or larger than {@link Integer#MAX_VALUE}
+     */
+    private static int toIntIndex(long index) {
+        if (index < 0 || index > Integer.MAX_VALUE) {
+            throw new DataException("Python list index " + index + " is out of range for a Java List");
+        }
+        return (int) index;
     }
 
     /**

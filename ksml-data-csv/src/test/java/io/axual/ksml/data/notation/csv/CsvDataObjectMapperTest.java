@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -36,6 +37,7 @@ import java.io.StringReader;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Tests for {@link CsvDataObjectMapper} verifying CSV <-> DataObject conversions.
@@ -191,26 +193,20 @@ class CsvDataObjectMapperTest {
     }
 
     @Test
-    @DisplayName("Handles missing fields gracefully - fewer fields than schema expects")
+    @DisplayName("Throws on truncated CSV rows that have fewer columns than the schema declares")
     void missingFieldsHandling() {
-        // Given: schema with 3 fields
+        // Given: schema with 3 required fields
         var schema = createSimpleSchema("name", "age", "city");
         var structType = new StructType(schema);
 
-        // And: CSV with only 2 fields
+        // And: CSV with only 2 fields (truncated row)
         var csvLine = "\"Alice\",\"30\"";
 
-        // When: parsing CSV
-        var dataObject = mapper.toDataObject(structType, csvLine);
-
-        // Then: should handle missing field
-        assertThat(dataObject).isInstanceOf(DataStruct.class);
-        var struct = (DataStruct) dataObject;
-
-        assertThat(struct.get("name").toString()).isEqualTo("Alice");
-        assertThat(struct.get("age").toString()).isEqualTo("30");
-        // Missing field should be handled (empty string for required field)
-        assertThat(struct.get("city")).isNotNull();
+        // Then: parsing must fail loudly rather than silently padding the missing column with null/empty.
+        assertThatCode(() -> mapper.toDataObject(structType, csvLine))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("CSV row")
+                .hasMessageContaining("columns");
     }
 
     @Test
@@ -236,25 +232,19 @@ class CsvDataObjectMapperTest {
     }
 
     @Test
-    @DisplayName("Handles empty values in CSV")
+    @DisplayName("Throws when a required CSV cell is empty")
     void emptyValueHandling() {
-        // Given: schema
+        // Given: schema with all-required fields
         var schema = createSimpleSchema("name", "age", "city");
         var structType = new StructType(schema);
 
-        // And: CSV with empty value in middle
+        // And: CSV with an empty value in the middle
         var csvLine = "\"Alice\",\"\",\"Amsterdam\"";
 
-        // When: parsing CSV
-        var dataObject = mapper.toDataObject(structType, csvLine);
-
-        // Then: empty value should be preserved as empty string
-        assertThat(dataObject).isInstanceOf(DataStruct.class);
-        var struct = (DataStruct) dataObject;
-
-        assertThat(struct.get("name").toString()).isEqualTo("Alice");
-        assertThat(struct.get("age").toString()).isEmpty();
-        assertThat(struct.get("city").toString()).isEqualTo("Amsterdam");
+        // Then: must fail loudly rather than silently dropping the field from the resulting struct.
+        assertThatCode(() -> mapper.toDataObject(structType, csvLine))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Required CSV field 'age'");
     }
 
     @Test

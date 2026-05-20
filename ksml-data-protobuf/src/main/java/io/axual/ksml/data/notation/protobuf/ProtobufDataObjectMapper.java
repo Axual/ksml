@@ -147,6 +147,13 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
                         }
                         index++;
                     }
+                    // Fail loudly if no union branch matched. Previously the loop ended silently with
+                    // `assigned == false`, dropping the oneOf field from the message entirely and
+                    // making schema/value mismatches invisible to producers.
+                    if (!assigned) {
+                        throw new DataException("Value of type " + fieldValue.getClass().getSimpleName()
+                                + " does not match any branch of PROTOBUF oneOf '" + fieldName + "'");
+                    }
                 } else {
                     throw new SchemaException("PROTOBUF oneOf does not match data field: schema=" + (fieldSchema != null ? fieldSchema.type() : "null"));
                 }
@@ -156,7 +163,22 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         return msg.build();
     }
 
-    private void setMessageFieldValue(DynamicMessage.Builder msg, Descriptors.FieldDescriptor field, Object value) {
+    /**
+     * Sets a protobuf field value on a {@link DynamicMessage.Builder}, validating enum symbols and
+     * wrapping low-level protobuf type errors with field-level context.
+     *
+     * <p>Package-private to enable focused unit testing of the wrap behaviour. Without the wrap a
+     * type mismatch (e.g. a Java {@code Long} sent to an {@code INT32} field) bubbles up from deep
+     * inside the protobuf library as a generic {@link ClassCastException} at build time, far from
+     * the actual conversion site.</p>
+     *
+     * @param msg   the message builder being populated
+     * @param field the target field descriptor
+     * @param value the native Java value to assign
+     * @throws io.axual.ksml.data.exception.SchemaException if {@code field} is an enum and {@code value} is not a declared symbol
+     * @throws DataException if the protobuf library rejects {@code value} for {@code field}
+     */
+    void setMessageFieldValue(DynamicMessage.Builder msg, Descriptors.FieldDescriptor field, Object value) {
         if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
             final var evd = field.getEnumType().findValueByName(value.toString());
             if (evd == null) {
@@ -164,7 +186,18 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             }
             msg.setField(field, evd);
         } else {
-            msg.setField(field, value);
+            // Wrap protobuf's setField so type mismatches (e.g. DataLong → INT32 field with a value
+            // that doesn't fit, or a Java String into a BYTES field) surface with a clear message
+            // naming the field and types involved. Without this wrapping the error comes from deep
+            // inside protobuf as a generic ClassCastException at build time, far from the conversion
+            // site.
+            try {
+                msg.setField(field, value);
+            } catch (RuntimeException e) {
+                throw new DataException("Failed to set Protobuf field '" + field.getFullName()
+                        + "' (type=" + field.getType() + ") with value of type "
+                        + (value != null ? value.getClass().getSimpleName() : "null"), e);
+            }
         }
     }
 }

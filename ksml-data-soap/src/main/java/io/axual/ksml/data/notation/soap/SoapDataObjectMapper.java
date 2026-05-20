@@ -25,7 +25,9 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
@@ -286,20 +288,46 @@ public class SoapDataObjectMapper implements DataObjectMapper<SOAPMessage> {
         }
     }
 
-    private void addChildToElement(SOAPElement element, DataObject value) throws SOAPException {
+    /**
+     * Adds a child node to the given {@link SOAPElement} based on the {@link DataObject} type.
+     *
+     * <p>Package-private to enable focused unit testing without having to build a full SOAP
+     * envelope. The dispatch covers every {@link DataObject} subtype deliberately so that no
+     * branch silently drops the value (scalars are stringified, {@link DataNull} leaves the
+     * element empty, unsupported types throw).</p>
+     *
+     * @param element the parent SOAP element to populate
+     * @param value   the DataObject to render into the element
+     * @throws SOAPException if the underlying SAAJ API rejects the operation
+     * @throws DataException if {@code value} is of a type that has no SOAP rendering
+     */
+    void addChildToElement(SOAPElement element, DataObject value) throws SOAPException {
+        // Use if/else-if + an explicit else to make every DataObject type a deliberate decision.
+        // The previous chain of independent ifs silently dropped DataInteger/DataLong/DataDouble/
+        // DataFloat/DataBoolean/DataBytes/DataNull values — a numeric field would just disappear
+        // from the SOAP body. We now stringify scalars (matching how Avro/JSON would render them)
+        // and throw for anything else so the mismatch is loud.
         if (value instanceof DataList list) {
             for (final var listElement : list) {
                 addChildToElement(element, listElement);
             }
-        }
-        if (value instanceof DataStruct struct) {
+        } else if (value instanceof DataStruct struct) {
             for (final var structEntry : struct.entrySet()) {
                 final var childElement = element.addChildElement(new QName(structEntry.getKey()));
                 addChildToElement(childElement, structEntry.getValue());
             }
-        }
-        if (value instanceof DataString str) {
+        } else if (value instanceof DataString str) {
             element.setTextContent(str.value());
+        } else if (value instanceof DataNull) {
+            // Leave the element empty; SOAP has no native null representation.
+        } else if (value instanceof DataPrimitive<?> primitive) {
+            // Scalar primitives (Boolean, Byte, Short, Integer, Long, Float, Double, Bytes) are
+            // rendered as their string form so the value survives into the SOAP body.
+            final var primitiveValue = primitive.value();
+            if (primitiveValue != null) element.setTextContent(primitiveValue.toString());
+        } else {
+            throw new DataException("Unsupported DataObject type for SOAP element: "
+                    + (value != null ? value.getClass().getSimpleName() : "null"));
         }
     }
 

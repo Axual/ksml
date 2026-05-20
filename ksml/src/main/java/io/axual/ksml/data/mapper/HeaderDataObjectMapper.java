@@ -32,6 +32,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.util.NumericRangeChecker;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
@@ -78,17 +79,23 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
             final var bytes = new byte[list.size()];
             for (var index = 0; index < list.size(); index++) {
                 final var element = list.get(index);
+                // Range-check before each narrowing cast to a byte. Without these checks, a wider
+                // numeric value (e.g. DataInteger(300), DataLong(5_000_000_000)) would silently
+                // truncate to a wrong byte.
                 switch (element) {
                     case DataByte val:
                         bytes[index] = val.value();
                         break;
                     case DataShort val:
+                        NumericRangeChecker.requireByteRange(val.value().longValue());
                         bytes[index] = val.value().byteValue();
                         break;
                     case DataInteger val:
+                        NumericRangeChecker.requireByteRange(val.value().longValue());
                         bytes[index] = val.value().byteValue();
                         break;
                     case DataLong val:
+                        NumericRangeChecker.requireByteRange(val.value());
                         bytes[index] = val.value().byteValue();
                         break;
                     default:
