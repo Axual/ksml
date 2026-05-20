@@ -144,6 +144,15 @@ class KSMLTestRunnerTest {
         assertEquals(TestResult.Status.ERROR, results.getFirst().status());
     }
 
+    @Test
+    void pythonErrorShowsCorrectCause() {
+        var runner = new KSMLTestRunner();
+        var results = runner.runTestFile(resource("generator-with-python-error.yaml"));
+        var testResult = results.getFirst();
+        assertEquals(TestResult.Status.ERROR, testResult.status(), "Python produce runtime error should result in status ERROR");
+        assertTrue(testResult.message().contains("Error while executing function"));
+    }
+
     private static void assertAllPass(List<TestResult> results, String testFile) {
         assertFalse(results.isEmpty(), () -> "Expected at least one result for '" + testFile + "'");
         for (var result : results) {

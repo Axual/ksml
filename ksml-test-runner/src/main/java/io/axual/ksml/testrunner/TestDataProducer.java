@@ -147,8 +147,6 @@ public class TestDataProducer {
                 }
             }
             log.debug("Generator produced {} messages to topic '{}'", totalMessages, stream.topic());
-        } catch (Exception e) {
-            log.warn("PythonContext close error producing generated messages", e);
         }
     }
 

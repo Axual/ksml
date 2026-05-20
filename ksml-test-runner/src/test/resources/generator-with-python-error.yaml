@@ -1,0 +1,28 @@
+name: "Generator with a Python error"
+definition: pipelines/test-passthrough.yaml
+
+streams:
+  input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tests:
+  undefined_variable:
+    description: "Generator references an undefined variable"
+    produce:
+      - to: input
+        generator:
+          name: bad_gen
+          code: |
+            result = [("k", str(1 / 0))]
+          expression: result
+        count: 1
+    assert:
+      - on: output
+        code: |
+          assert len(records) == 1

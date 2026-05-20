@@ -46,7 +46,6 @@ public class PythonContext implements AutoCloseable {
 
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
-    private static final ValuePrinter VALUE_PRINTER = new PythonValuePrinter();
     private static final String PYTHON = "python";
 
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
@@ -259,7 +258,7 @@ public class PythonContext implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         context.close();
     }
 }
