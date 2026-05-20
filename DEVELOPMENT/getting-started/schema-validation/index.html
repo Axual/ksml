@@ -13,7 +13,7 @@
       
       
       
-        <link rel="prev" href="../editing-python-code/">
+        <link rel="prev" href="../testing-your-pipeline/">
       
       
         <link rel="next" href="../../tutorials/">
@@ -363,6 +363,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-your-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Your Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -460,6 +488,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#3-ksml-test-definition-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. KSML Test Definition Schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#schema-benefits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -515,6 +554,17 @@
     <span class="md-ellipsis">
       
         For KSML Runner Configuration Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-ksml-test-definition-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For KSML Test Definition Files
       
     </span>
   </a>
@@ -770,6 +820,17 @@
     <span class="md-ellipsis">
       
         KSML Runner Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ksml-test-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KSML Test Definition
       
     </span>
   </a>
@@ -2158,6 +2219,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#3-ksml-test-definition-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. KSML Test Definition Schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#schema-benefits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2213,6 +2285,17 @@
     <span class="md-ellipsis">
       
         For KSML Runner Configuration Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-ksml-test-definition-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For KSML Test Definition Files
       
     </span>
   </a>
@@ -2475,6 +2558,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ksml-test-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KSML Test Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#schema-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2519,10 +2613,10 @@
 
 
 <h1 id="ksml-schema-validation">KSML Schema Validation</h1>
-<p>KSML provides two JSON Schema specification files that enable IDE validation, autocompletion, and error checking for your KSML files. These schemas help you write correct syntax and catch errors early in development.</p>
+<p>KSML provides three JSON Schema specification files that enable IDE validation, autocompletion, and error checking for your KSML files. These schemas help you write correct syntax and catch errors early in development.</p>
 <p>The KSML project is available at: <a href="https://github.com/Axual/ksml">https://github.com/Axual/ksml</a></p>
 <h2 id="understanding-ksml-schemas">Understanding KSML Schemas</h2>
-<p>KSML provides <strong>two separate JSON schemas</strong> for different types of configuration files:</p>
+<p>KSML provides <strong>three separate JSON schemas</strong> for different types of configuration files:</p>
 <h3 id="1-ksml-language-specification-schema">1. KSML Language Specification Schema</h3>
 <p><strong>File:</strong> <code>docs/ksml-language-spec.json</code><br />
 <strong>Validates:</strong> KSML definition files (e.g., <code>processor.yaml</code>, <code>producer.yaml</code>, <code>pipeline.yaml</code>)</p>
@@ -2608,6 +2702,71 @@
 <a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="nt">acks</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span>
 </code></pre></div>
 </details>
+<h3 id="3-ksml-test-definition-schema">3. KSML Test Definition Schema</h3>
+<p><strong>File:</strong> <code>docs/ksml-test-spec.json</code>
+<strong>Validates:</strong> KSML test definition files used by the <a href="../testing-your-pipeline/">test runner</a></p>
+<p>This schema validates test definitions that describe how to test your pipelines:</p>
+<ul>
+<li>Test metadata (<code>name</code>, <code>pipeline</code>, <code>schemaDirectory</code>)</li>
+<li>Produce blocks with topic, key/value types, and inline messages</li>
+<li>Assert blocks with output topic, state store, and Python assertion code</li>
+<li>Required vs optional fields and default values (e.g. <code>keyType</code> defaults to <code>string</code>)</li>
+</ul>
+<details class="info">
+<summary>Example KSML test definition file</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Filter</span><span class="nv"> </span><span class="s">pipeline</span><span class="nv"> </span><span class="s">passes</span><span class="nv"> </span><span class="s">blue</span><span class="nv"> </span><span class="s">sensors&quot;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">definition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pipelines/test-filter.yaml</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">schemaDirectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">schemas</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">sensor_source</span><span class="p">:</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_avro</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;avro:SensorData&quot;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nt">sensor_filtered</span><span class="p">:</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ksml_sensordata_filtered</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;avro:SensorData&quot;</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="nt">tests</span><span class="p">:</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="nt">blue_sensors_pass</span><span class="p">:</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Blue</span><span class="nv"> </span><span class="s">sensors</span><span class="nv"> </span><span class="s">pass</span><span class="nv"> </span><span class="s">through,</span><span class="nv"> </span><span class="s">red</span><span class="nv"> </span><span class="s">ones</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">filtered</span><span class="nv"> </span><span class="s">out&quot;</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="nt">produce</span><span class="p">:</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_source</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">        </span><span class="nt">messages</span><span class="p">:</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sensor-1&quot;</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">            </span><span class="nt">value</span><span class="p">:</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sensor-1&quot;</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">              </span><span class="nt">timestamp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">              </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;25.0&quot;</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;TEMPERATURE&quot;</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">              </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;celsius&quot;</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">              </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sensor-2&quot;</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">            </span><span class="nt">value</span><span class="p">:</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sensor-2&quot;</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">              </span><span class="nt">timestamp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2000</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">              </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;60.0&quot;</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;HUMIDITY&quot;</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">              </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;percent&quot;</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">              </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sensor-3&quot;</span>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">            </span><span class="nt">value</span><span class="p">:</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sensor-3&quot;</span>
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">              </span><span class="nt">timestamp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">              </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10.0&quot;</span>
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;LENGTH&quot;</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">              </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;meters&quot;</span>
+<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="w">              </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span>
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a>
+<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">    </span><span class="nt">assert</span><span class="p">:</span>
+<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_filtered</span>
+<a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">        </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="w">          </span><span class="no">assert len(records) == 2, f&quot;Expected 2 filtered records, got {len(records)}&quot;</span>
+<a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="w">          </span><span class="no">assert records[0][&quot;key&quot;] == &quot;sensor-1&quot;, f&quot;Expected key &#39;sensor-1&#39;, got {records[0][&#39;key&#39;]}&quot;</span>
+<a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a><span class="w">          </span><span class="no">assert records[1][&quot;key&quot;] == &quot;sensor-3&quot;, f&quot;Expected key &#39;sensor-3&#39;, got {records[1][&#39;key&#39;]}&quot;</span>
+</code></pre></div>
+</details>
 <h3 id="schema-benefits">Schema Benefits</h3>
 <p>Using KSML schemas in your IDE provides:</p>
 <ol>
@@ -2629,20 +2788,29 @@
 <p>Add a schema declaration comment at the <strong>top</strong> of your YAML files. This method works across IDEs without configuration.</p>
 <h4 id="for-ksml-definition-files">For KSML Definition Files</h4>
 <p>Add this line at the top of your pipeline/processor/producer files:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-language-spec.json</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">my-stream</span><span class="p">:</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-topic&quot;</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="c1"># ... rest of your definition</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-language-spec.json</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">my-stream</span><span class="p">:</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-topic&quot;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="c1"># ... rest of your definition</span>
 </code></pre></div>
 <h4 id="for-ksml-runner-configuration-files">For KSML Runner Configuration Files</h4>
 <p>Add this line at the top of your <code>ksml-runner.yaml</code> file:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-runner-spec.json</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nt">kafka</span><span class="p">:</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost:9092</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="c1"># ... rest of your configuration</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-runner-spec.json</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nt">kafka</span><span class="p">:</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost:9092</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="c1"># ... rest of your configuration</span>
+</code></pre></div>
+<h4 id="for-ksml-test-definition-files">For KSML Test Definition Files</h4>
+<p>Add this line at the top of your test YAML files:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># yaml-language-server: $schema=https://axual.github.io/ksml/latest/ksml-test-spec.json</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">test</span><span class="p">:</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;My</span><span class="nv"> </span><span class="s">pipeline</span><span class="nv"> </span><span class="s">test&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">pipeline</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-pipeline.yaml</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="c1"># ... rest of your test definition</span>
 </code></pre></div>
 <h4 id="how-inline-schemas-work">How Inline Schemas Work</h4>
 <p>The special comment <code># yaml-language-server: $schema=URL</code> tells your IDE:</p>
@@ -2659,7 +2827,7 @@
 - Public URL means always up-to-date schemas</p>
 <p><strong>Note:</strong> The schemas are published to GitHub Pages at <code>https://axual.github.io/ksml/latest/</code>, so an internet connection is required for initial download. IDEs typically cache schemas locally after the first fetch.</p>
 <p><strong>For local development</strong> without internet access, you can use relative paths:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># yaml-language-server: $schema=../../docs/ksml-language-spec.json</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># yaml-language-server: $schema=../../docs/ksml-language-spec.json</span>
 </code></pre></div></p>
 <hr />
 <h3 id="method-2-ide-configuration">Method 2: IDE Configuration</h3>
@@ -2704,7 +2872,22 @@
 <li><strong>For specific files</strong>: <code>ksml-runner.yaml</code>, <code>application.yaml</code></li>
 <li><strong>For file patterns</strong>: <code>ksml-runner*.yaml</code>, <code>*-runner.yaml</code></li>
 </ol>
-<p><strong>Important</strong>: Make sure the file patterns for each schema don't overlap. KSML definition files should map to the Language Specification schema, while runner configuration files should map to the Runner Configuration schema.</p>
+<p><strong>Step 4: Add KSML Test Definition Schema</strong></p>
+<p>Configure validation for KSML test definition files:</p>
+<ol>
+<li>Click the <strong>+</strong> (plus) button again to add another schema mapping</li>
+<li>Configure the mapping:</li>
+<li><strong>Name</strong>: <code>KSML Test Definition</code></li>
+<li><strong>Schema file or URL</strong>: Browse to <code>docs/ksml-test-spec.json</code> in your KSML project directory</li>
+<li>
+<p><strong>Schema version</strong>: Select <strong>JSON Schema version 7</strong></p>
+</li>
+<li>
+<p>Add file mappings by clicking <strong>+</strong> in the mappings section:</p>
+</li>
+<li><strong>For file patterns</strong>: <code>*-test.yaml</code>, <code>test-*.yaml</code></li>
+</ol>
+<p><strong>Important</strong>: Make sure the file patterns for each schema don't overlap. KSML definition files should map to the Language Specification schema, runner configuration files to the Runner Configuration schema, and test files to the Test Definition schema.</p>
 <h4 id="visual-studio-code-setup">Visual Studio Code Setup</h4>
 <p><strong>Note:</strong> If you're using the inline schema declaration method (recommended), no configuration is needed in VS Code. The YAML extension automatically recognizes the <code># yaml-language-server: $schema=URL</code> comments.</p>
 <p>For workspace-wide configuration without inline declarations:</p>
@@ -2720,39 +2903,47 @@
 <li>Search for "yaml schemas"</li>
 <li>Add the following to your <code>settings.json</code>:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">      </span><span class="s2">&quot;**/definitions/**/*.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">      </span><span class="s2">&quot;**/pipelines/**/*.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="s2">&quot;*-pipeline.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">      </span><span class="s2">&quot;*-processor.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">      </span><span class="s2">&quot;*-producer.yaml&quot;</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="p">],</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-runner-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="s2">&quot;**/ksml-runner.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">      </span><span class="s2">&quot;**/*-runner.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">      </span><span class="s2">&quot;**/application.yaml&quot;</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="s2">&quot;**/definitions/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">      </span><span class="s2">&quot;**/pipelines/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">      </span><span class="s2">&quot;*-pipeline.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">      </span><span class="s2">&quot;*-processor.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">      </span><span class="s2">&quot;*-producer.yaml&quot;</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-runner-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="s2">&quot;**/ksml-runner.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">      </span><span class="s2">&quot;**/*-runner.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">      </span><span class="s2">&quot;**/application.yaml&quot;</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="nt">&quot;file:///path/to/ksml/docs/ksml-test-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">      </span><span class="s2">&quot;**/*-test.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">      </span><span class="s2">&quot;**/test-*.yaml&quot;</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="p">}</span>
 </code></pre></div>
 <h4 id="option-b-workspace-configuration">Option B: Workspace Configuration</h4>
 <p>Create a <code>.vscode/settings.json</code> file in your project root for project-specific configuration:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="s2">&quot;definitions/**/*.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">      </span><span class="s2">&quot;pipelines/**/*.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">      </span><span class="s2">&quot;examples/**/processor.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">      </span><span class="s2">&quot;examples/**/producer.yaml&quot;</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="p">],</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-runner-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">      </span><span class="s2">&quot;**/ksml-runner.yaml&quot;</span><span class="p">,</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">      </span><span class="s2">&quot;examples/**/ksml-runner.yaml&quot;</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;yaml.schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-language-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">      </span><span class="s2">&quot;definitions/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">      </span><span class="s2">&quot;pipelines/**/*.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">      </span><span class="s2">&quot;examples/**/processor.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">      </span><span class="s2">&quot;examples/**/producer.yaml&quot;</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-runner-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">      </span><span class="s2">&quot;**/ksml-runner.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">      </span><span class="s2">&quot;examples/**/ksml-runner.yaml&quot;</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="nt">&quot;./docs/ksml-test-spec.json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">      </span><span class="s2">&quot;**/*-test.yaml&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">      </span><span class="s2">&quot;**/test-*.yaml&quot;</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="p">}</span>
 </code></pre></div>
 <p><strong>Note</strong>: Workspace configuration (Option B) is recommended as it's portable and version-controlled with your project.</p>
 <h2 id="verifying-schema-validation">Verifying Schema Validation</h2>
@@ -2773,19 +2964,19 @@
 </ul>
 <h3 id="example-1-testing-ksml-definition-validation">Example 1: Testing KSML Definition Validation</h3>
 <p>Create a test KSML definition file (<code>test-pipeline.yaml</code>) with an intentional error:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">streams</span><span class="p">:</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">input</span><span class="p">:</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input-topic&quot;</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input&quot;</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invalidOperation&quot;</span><span class="w">  </span><span class="c1"># This should show an error</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;output-topic&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">streams</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">input</span><span class="p">:</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input-topic&quot;</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;input&quot;</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invalidOperation&quot;</span><span class="w">  </span><span class="c1"># This should show an error</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;output-topic&quot;</span>
 </code></pre></div>
 <p>The schema validator will:</p>
 <ul>
@@ -2795,17 +2986,17 @@
 </ul>
 <h3 id="example-2-testing-ksml-runner-configuration-validation">Example 2: Testing KSML Runner Configuration Validation</h3>
 <p>Create a test runner configuration file (<code>test-runner.yaml</code>) with intentional errors:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">kafka</span><span class="p">:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost:9092</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="c1"># Missing required field: application.id</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nt">ksml</span><span class="p">:</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">applicationServer</span><span class="p">:</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">99999</span><span class="w">  </span><span class="c1"># Invalid port (exceeds maximum 65535)</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="nt">errorHandling</span><span class="p">:</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="nt">consume</span><span class="p">:</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">      </span><span class="nt">handler</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invalidHandler&quot;</span><span class="w">  </span><span class="c1"># Invalid enum value</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">kafka</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost:9092</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="c1"># Missing required field: application.id</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nt">ksml</span><span class="p">:</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="nt">applicationServer</span><span class="p">:</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">99999</span><span class="w">  </span><span class="c1"># Invalid port (exceeds maximum 65535)</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span><span class="nt">errorHandling</span><span class="p">:</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="nt">consume</span><span class="p">:</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">      </span><span class="nt">handler</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invalidHandler&quot;</span><span class="w">  </span><span class="c1"># Invalid enum value</span>
 </code></pre></div>
 <p>The schema validator will:</p>
 <ul>
@@ -2818,45 +3009,58 @@
 <p>KSML schemas are automatically generated during the build process, but you can also generate them manually when needed.</p>
 <h3 id="generating-both-schemas">Generating Both Schemas</h3>
 <p>To generate both the KSML Language Specification and Runner Configuration schemas:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mvn<span class="w"> </span>package<span class="w"> </span>-DskipTests<span class="w"> </span>-pl<span class="w"> </span>ksml-runner<span class="w"> </span>-am
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>mvn<span class="w"> </span>package<span class="w"> </span>-DskipTests<span class="w"> </span>-pl<span class="w"> </span>ksml-runner<span class="w"> </span>-am
 </code></pre></div>
-<p>This builds the module with its dependencies and generates both schema files:</p>
+<p>This builds the module with its dependencies and generates the pipeline and runner schema files:</p>
 <ul>
 <li><code>docs/ksml-language-spec.json</code> for KSML definitions</li>
 <li><code>docs/ksml-runner-spec.json</code> for runner configuration</li>
+</ul>
+<p>To also generate the test definition schema:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>mvn<span class="w"> </span>package<span class="w"> </span>-DskipTests<span class="w"> </span>-pl<span class="w"> </span>ksml-test-runner<span class="w"> </span>-am
+</code></pre></div>
+<p>This generates:</p>
+<ul>
+<li><code>docs/ksml-test-spec.json</code> for test definitions</li>
 </ul>
 <p><strong>Note:</strong> The <code>-am</code> (also-make) flag is required to build all dependencies needed for schema generation.</p>
 <h3 id="generating-individual-schemas">Generating Individual Schemas</h3>
 <p>If you've already built the project and want to generate schemas individually, you can run the JAR directly:</p>
 <p>To generate only the KSML Language Specification schema:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>ksml-runner/target/ksml-runner-*.jar<span class="w"> </span>--schema<span class="w"> </span>docs/ksml-language-spec.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>ksml-runner/target/ksml-runner-*.jar<span class="w"> </span>--schema<span class="w"> </span>docs/ksml-language-spec.json
 </code></pre></div>
 <p>To generate only the KSML Runner Configuration schema:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>ksml-runner/target/ksml-runner-*.jar<span class="w"> </span>--runner-schema<span class="w"> </span>docs/ksml-runner-spec.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>ksml-runner/target/ksml-runner-*.jar<span class="w"> </span>--runner-schema<span class="w"> </span>docs/ksml-runner-spec.json
 </code></pre></div>
 <p><strong>Note:</strong> These commands require the project to be built first with <code>mvn clean package</code>.</p>
 <h3 id="build-integration">Build Integration</h3>
 <p>Schemas are automatically regenerated when running:</p>
 <ul>
-<li><code>mvn clean package</code> for a full build (recommended)</li>
-<li><code>mvn package -DskipTests -pl ksml-runner -am</code> for quick schema generation without tests</li>
-<li>Any Maven build that includes the <code>process-classes</code> phase for <code>ksml-runner</code></li>
+<li><code>mvn clean package</code> for a full build (recommended, generates all three schemas)</li>
+<li><code>mvn package -DskipTests -pl ksml-runner -am</code> for pipeline and runner schemas</li>
+<li><code>mvn package -DskipTests -pl ksml-test-runner -am</code> for the test definition schema</li>
+<li>Any Maven build that includes the <code>process-classes</code> phase for <code>ksml-runner</code> or <code>ksml-test-runner</code></li>
 </ul>
 <p>The schemas are always kept in sync with the codebase, ensuring your IDE validation matches the current KSML version.</p>
 <h2 id="schema-file-locations">Schema File Locations</h2>
 <p>Both KSML schemas are located in the <code>docs/</code> directory:</p>
 <h3 id="ksml-language-specification">KSML Language Specification</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>docs/ksml-language-spec.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>docs/ksml-language-spec.json
 </code></pre></div>
 <p><strong>Purpose:</strong> Validates KSML definition files (streams, pipelines, functions, producers)
 <strong>Schema Version:</strong> JSON Schema Draft 2019-09</p>
 <h3 id="ksml-runner-configuration">KSML Runner Configuration</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docs/ksml-runner-spec.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>docs/ksml-runner-spec.json
 </code></pre></div>
 <p><strong>Purpose:</strong> Validates KSML Runner configuration files (Kafka settings, error handling, observability)
 <strong>Schema Version:</strong> JSON Schema Draft 2019-09</p>
+<h3 id="ksml-test-definition">KSML Test Definition</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>docs/ksml-test-spec.json
+</code></pre></div>
+<p><strong>Purpose:</strong> Validates KSML test definition files (test data, assertions, pipeline references)
+<strong>Schema Version:</strong> JSON Schema Draft-07</p>
 <h3 id="schema-characteristics">Schema Characteristics</h3>
-<p>Both schema files share these characteristics:</p>
+<p>All schema files share these characteristics:</p>
 <ul>
 <li>Updated and version-controlled with each KSML release</li>
 <li>Comprehensive coverage of all features and configuration options</li>
