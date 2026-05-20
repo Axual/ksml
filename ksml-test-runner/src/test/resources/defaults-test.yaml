@@ -1,0 +1,21 @@
+name: "Defaults test - keyType and valueType default to string"
+definition: pipelines/test-passthrough.yaml
+
+streams:
+  input:
+    topic: input_topic
+  output:
+    topic: output_topic
+
+tests:
+  defaults_apply:
+    produce:
+      - to: input
+        messages:
+          - key: "sensor1"
+            value: "some-value"
+
+    assert:
+      - on: output
+        code: |
+          assert True

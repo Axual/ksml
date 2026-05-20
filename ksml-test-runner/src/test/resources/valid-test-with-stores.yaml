@@ -1,0 +1,26 @@
+name: "State store tracks last sensor reading"
+definition: pipelines/test-state-store.yaml
+schemaDirectory: schemas
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+
+tests:
+  store_holds_last_value:
+    produce:
+      - to: sensor_source
+        messages:
+          - key: "sensor1"
+            value: { name: "s1", timestamp: 1000, value: "20.0", type: "TEMPERATURE", unit: "C", color: "blue", city: "Amsterdam" }
+          - key: "sensor2"
+            value: { name: "s2", timestamp: 2000, value: "60.0", type: "HUMIDITY", unit: "%", color: "red", city: "Utrecht" }
+
+    assert:
+      - stores:
+          - last_sensor_data_store
+        code: |
+          sensor1 = last_sensor_data_store.get("sensor1")
+          assert sensor1["city"] == "Amsterdam"

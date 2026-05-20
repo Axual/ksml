@@ -35,6 +35,7 @@ markdown_extensions:
         - docs                                            # the default docs dir
         - ksml/src/test/resources                        # unit test resources
         - ksml-integration-tests/src/test/resources      # integration test resources
+        - ksml-test-runner/src/test/resources             # test runner resources
       check_paths: true
   - pymdownx.superfences
   - pymdownx.details
@@ -53,6 +54,7 @@ nav:
       - Quick Start: getting-started/quick-start.md
       - Understanding KSML: getting-started/introduction.md
       - Editing Python Code: getting-started/editing-python-code.md
+      - Testing Your Pipeline: getting-started/testing-your-pipeline.md
       - Schema Validation: getting-started/schema-validation.md
   - Tutorials:
       - Overview: tutorials/index.md

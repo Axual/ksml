@@ -1,0 +1,29 @@
+name: "Generator with wrong field type"
+definition: pipelines/test-passthrough.yaml
+
+streams:
+  input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tests:
+  wrong_name_type:
+    description: "name field is a number instead of a string"
+    produce:
+      - to: input
+        generator:
+          name: 42              # <-- number instead of a string
+          code: |
+            result = [("key-1", "value-1")]
+          expression: result
+        count: 1
+
+    assert:
+      - on: output
+        code: |
+          assert len(records) == 1

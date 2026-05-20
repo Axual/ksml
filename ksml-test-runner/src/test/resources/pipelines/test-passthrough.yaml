@@ -1,0 +1,17 @@
+# Simple passthrough pipeline for testing Python produce blocks
+# Takes messages from input_topic and sends them directly to output_topic
+
+streams:
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+pipelines:
+  passthrough_pipeline:
+    from: input_stream
+    to: output_stream

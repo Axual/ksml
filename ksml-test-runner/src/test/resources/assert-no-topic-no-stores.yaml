@@ -1,0 +1,17 @@
+name: "Assert block without on or stores"
+definition: pipelines/test-filter.yaml
+streams:
+  source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+tests:
+  empty_assert:
+    produce:
+      - to: source
+        messages:
+          - key: "k1"
+            value: { color: "blue" }
+    assert:
+      - code: |
+          assert True

@@ -1,0 +1,53 @@
+name: "Filter pipeline using a Python module import"
+definition: pipelines/test-filter-module-import.yaml
+schemaDirectory: schemas
+moduleDirectory: modules
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: "avro:SensorData"
+  sensor_filtered:
+    topic: ksml_sensordata_filtered
+    keyType: string
+    valueType: "avro:SensorData"
+
+tests:
+  blue_sensors_pass:
+    produce:
+      - to: sensor_source
+        messages:
+          - key: "sensor-1"
+            value:
+              name: "sensor-1"
+              timestamp: 1000
+              value: "25.0"
+              type: "TEMPERATURE"
+              unit: "celsius"
+              color: "blue"
+          - key: "sensor-2"
+            value:
+              name: "sensor-2"
+              timestamp: 2000
+              value: "60.0"
+              type: "HUMIDITY"
+              unit: "percent"
+              color: "red"
+          - key: "sensor-3"
+            value:
+              name: "sensor-3"
+              timestamp: 3000
+              value: "10.0"
+              type: "LENGTH"
+              unit: "meters"
+              color: "blue"
+
+    assert:
+      - on: sensor_filtered
+        code: |
+          assert len(records) == 2, f"Expected 2 filtered records, got {len(records)}"
+          assert records[0]["key"] == "sensor-1", f"Expected key 'sensor-1', got {records[0]['key']}"
+          assert records[1]["key"] == "sensor-3", f"Expected key 'sensor-3', got {records[1]['key']}"
+          assert records[0]["value"]["color"] == "blue"
+          assert records[1]["value"]["color"] == "blue"

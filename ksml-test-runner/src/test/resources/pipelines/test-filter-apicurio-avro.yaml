@@ -1,0 +1,23 @@
+functions:
+  sensor_is_blue:
+    type: predicate
+    code: |
+      if value == None:
+        return False
+      if value["color"] != "blue":
+        return False
+    expression: True
+
+pipelines:
+  filter_pipeline:
+    from:
+      topic: ksml_sensordata_avro
+      keyType: string
+      valueType: apicurio_avro
+    via:
+      - type: filter
+        if: sensor_is_blue
+    to:
+      topic: ksml_sensordata_filtered
+      keyType: string
+      valueType: apicurio_avro

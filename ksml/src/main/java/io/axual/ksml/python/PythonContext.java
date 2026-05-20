@@ -42,10 +42,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
-public class PythonContext {
+public class PythonContext implements AutoCloseable {
+
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
-    private static final ValuePrinter VALUE_PRINTER = new PythonValuePrinter();
     private static final String PYTHON = "python";
 
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
@@ -255,5 +255,10 @@ public class PythonContext {
         } catch (Exception e) {
             log.warn("Could not read Python sys.path", e);
         }
+    }
+
+    @Override
+    public void close() {
+        context.close();
     }
 }
