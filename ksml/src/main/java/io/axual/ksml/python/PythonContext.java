@@ -21,7 +21,6 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.util.ValuePrinter;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.proxy.log.LoggerBridge;
@@ -187,6 +186,10 @@ public class PythonContext implements AutoCloseable {
 
     /**
      * Create an FileSystem object that allows read-only access to Python's home, and the given path and everything below it.
+     * <p>
+     * The selector predicate normalizes both the candidate path and the two allowed prefixes
+     * (the configured {@code modulePath} and Python's {@code sys.prefix}) before doing the
+     * element-wise {@link Path#startsWith(Path)} check, to prevent any literal {@code ../..} chain in the candidate path from escaping.
      *
      * @param modulePath the path where customer Python modules are located.
      * @return an FileSystem for Python module access that allows read-only access to the given path and everything below it.
@@ -195,12 +198,20 @@ public class PythonContext implements AutoCloseable {
         log.debug("createReadOnlyFileSystem({})", modulePath);
         FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
         FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
-        String sysPrefix = getPythonSysPrefix();
+        // Pre-normalize the allowed prefixes once - the per-call selector then only has to
+        // normalize the candidate path and run two startsWith checks.
+        final Path modulePathNormalized = Path.of(modulePath).toAbsolutePath().normalize();
+        final Path sysPrefixNormalized = Path.of(getPythonSysPrefix()).toAbsolutePath().normalize();
         FileSystem restricted = FileSystem.newCompositeFileSystem(
                 // the default/fallback file system is: deny access
                 denyAllAccess,
-                // add a selector that returns the modulesFileSystem only if the path matches modulePath or sys.prefix
-                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath) || path.startsWith(sysPrefix))
+                // add a selector that returns the modulesFileSystem only if the normalized path
+                // is within modulePath or sys.prefix
+                FileSystem.Selector.of(modulesFileSystem, path -> {
+                    Path normalized = path.toAbsolutePath().normalize();
+                    return normalized.startsWith(modulePathNormalized)
+                            || normalized.startsWith(sysPrefixNormalized);
+                })
         );
 
         return FileSystem.newReadOnlyFileSystem(restricted);
