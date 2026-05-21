@@ -140,20 +140,14 @@ class ConvertUtilTest {
     }
 
     @Test
-    @DisplayName("convert: DataDouble non-finite to DataFloat -> DataException")
-    void convertDataDoubleNonFiniteToFloat() {
-        final var nan = new DataDouble(Double.NaN);
-        final var positiveInfinity = new DataDouble(Double.POSITIVE_INFINITY);
-        final var negativeInfinity = new DataDouble(Double.NEGATIVE_INFINITY);
-        assertThatCode(() -> converter.convert(DataFloat.DATATYPE, nan))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("FLOAT");
-        assertThatCode(() -> converter.convert(DataFloat.DATATYPE, positiveInfinity))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("FLOAT");
-        assertThatCode(() -> converter.convert(DataFloat.DATATYPE, negativeInfinity))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("FLOAT");
+    @DisplayName("convert: DataDouble non-finite to DataFloat -> passes through (cast preserves NaN/Infinity)")
+    void convertDataDoubleNonFiniteToFloatPassesThrough() {
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataDouble(Double.NaN)))
+                .isEqualTo(new DataFloat(Float.NaN));
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataDouble(Double.POSITIVE_INFINITY)))
+                .isEqualTo(new DataFloat(Float.POSITIVE_INFINITY));
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataDouble(Double.NEGATIVE_INFINITY)))
+                .isEqualTo(new DataFloat(Float.NEGATIVE_INFINITY));
     }
 
     @Test

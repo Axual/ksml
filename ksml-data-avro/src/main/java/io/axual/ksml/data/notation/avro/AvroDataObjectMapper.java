@@ -403,11 +403,13 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                 default -> schemaMismatch(value, schema);
             };
             // FLOAT accepts every narrower or equal-width numeric source. The DataDouble path is
-            // range/finiteness-checked because that is a true narrowing. The DataInteger/DataLong
-            // paths can lose bit-exact precision (int values above 2^24, long values above 2^24)
-            // but we deliberately do not reject that — see requireFloatRange's Javadoc for the same
-            // reasoning applied to DataDouble. If we rejected here, common pipeline values like
-            // DataInteger(1_000_000) → FLOAT would fail.
+            // overflow-checked because a finite double larger than Float.MAX_VALUE would silently
+            // clamp to Float.POSITIVE_INFINITY under a plain Java cast. NaN and ±Infinity pass
+            // through because the cast preserves them — they are legitimate IEEE-754 values.
+            // The DataInteger/DataLong paths can lose bit-exact precision (int values above 2^24,
+            // long values above 2^24) but we deliberately do not reject that — see
+            // requireFloatRange's Javadoc for the same reasoning applied to DataDouble. If we
+            // rejected here, common pipeline values like DataInteger(1_000_000) → FLOAT would fail.
             case FLOAT -> switch (value) {
                 case DataByte val -> val.value() != null ? val.value().floatValue() : null;
                 case DataShort val -> val.value() != null ? val.value().floatValue() : null;
@@ -417,9 +419,9 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
                 case DataDouble val -> {
                     if (val.value() == null) yield null;
                     double doubleVal = val.value();
-                    if (!Double.isFinite(doubleVal) || Math.abs(doubleVal) > Float.MAX_VALUE) {
+                    if (Double.isFinite(doubleVal) && Math.abs(doubleVal) > Float.MAX_VALUE) {
                         throw new DataException(
-                                "Value %s exceeds FLOAT range or is not finite".formatted(doubleVal));
+                                "Value %s exceeds FLOAT range".formatted(doubleVal));
                     }
                     yield (float) doubleVal;
                 }

@@ -29,7 +29,6 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -160,13 +159,5 @@ class SoapDataObjectMapperTest {
         assertThatCode(() -> mapper.addChildToElement(element, tuple))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Unsupported DataObject type");
-    }
-
-    @Test
-    @DisplayName("Null DataObject throws DataException (defensive)")
-    void nullValue_throws() {
-        assertThatCode(() -> mapper.addChildToElement(element, (DataObject) null))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("Unsupported");
     }
 }

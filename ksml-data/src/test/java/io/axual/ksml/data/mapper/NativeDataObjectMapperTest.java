@@ -756,17 +756,13 @@ class NativeDataObjectMapperTest {
     }
 
     @Test
-    @DisplayName("toDataObject: Non-finite Double with DataFloat expected -> DataException")
-    void toDataObjectNonFiniteDoubleToFloat() {
-        assertThatCode(() -> mapper.toDataObject(DataFloat.DATATYPE, Double.NaN))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("FLOAT");
-        assertThatCode(() -> mapper.toDataObject(DataFloat.DATATYPE, Double.POSITIVE_INFINITY))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("FLOAT");
-        assertThatCode(() -> mapper.toDataObject(DataFloat.DATATYPE, Double.NEGATIVE_INFINITY))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("FLOAT");
+    @DisplayName("toDataObject: Non-finite Double with DataFloat expected -> passes through (cast preserves NaN/Infinity)")
+    void toDataObjectNonFiniteDoubleToFloatPassesThrough() {
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, Double.NaN)).isEqualTo(new DataFloat(Float.NaN));
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, Double.POSITIVE_INFINITY))
+                .isEqualTo(new DataFloat(Float.POSITIVE_INFINITY));
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, Double.NEGATIVE_INFINITY))
+                .isEqualTo(new DataFloat(Float.NEGATIVE_INFINITY));
     }
 
     @Test

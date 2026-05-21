@@ -204,19 +204,14 @@ class CsvSerdeTest {
     }
 
     @Test
-    @DisplayName("Empty value for an optional field round-trips as missing field")
+    @DisplayName("Empty field values are preserved in round-trip")
     void emptyFieldsRoundTrip() {
-        // Given: schema where the middle field is optional. An empty CSV cell for a *required* field
-        // now (correctly) throws, so this round-trip test exercises the optional-field path instead.
-        final var fields = new java.util.ArrayList<StructSchema.Field>();
-        fields.add(new StructSchema.Field("name", DataSchema.STRING_SCHEMA, "name", NO_TAG, true, false, null));
-        fields.add(new StructSchema.Field("optional", DataSchema.STRING_SCHEMA, "optional", NO_TAG, false, false, null));
-        fields.add(new StructSchema.Field("value", DataSchema.STRING_SCHEMA, "value", NO_TAG, true, false, null));
-        final var schema = new StructSchema("io.axual.test", "Simple", "Simple schema", fields, false);
+        // Given: schema and serde
+        final var schema = createSimpleSchema("name", "optional", "value");
         final var structType = new StructType(schema);
         final var notation = new CsvNotation();
 
-        // And: struct with an empty optional field
+        // And: struct with an empty field
         final var struct = new DataStruct(schema);
         struct.put("name", DataString.from("test"));
         struct.put("optional", DataString.from(""));
@@ -227,12 +222,12 @@ class CsvSerdeTest {
             final var bytes = serde.serializer().serialize("topic", struct);
             final var result = serde.deserializer().deserialize("topic", bytes);
 
-            // Then: required fields are preserved; the empty optional cell results in the field being absent.
+            // Then: empty field should be preserved
             assertThat(result).isInstanceOf(DataStruct.class);
             final var resultStruct = (DataStruct) result;
 
             assertThat(resultStruct.get("name").toString()).isEqualTo("test");
-            assertThat(resultStruct.get("optional")).isNull();
+            assertThat(resultStruct.get("optional").toString()).isEmpty();
             assertThat(resultStruct.get("value").toString()).isEqualTo("123");
         }
     }

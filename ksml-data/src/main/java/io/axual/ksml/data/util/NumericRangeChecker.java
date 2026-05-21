@@ -129,18 +129,24 @@ public final class NumericRangeChecker {
     /**
      * Validates that a {@code double} value can be cast to {@code float} without overflow.
      *
-     * <p>Catches overflow and non-finite values only. We deliberately do <b>not</b> reject finite,
-     * in-range doubles that lose bit-exact precision when cast to float (e.g. {@code 0.1} becomes
-     * {@code 0.10000000149...}), because that would reject very common pipeline values and diverge
-     * from Java's standard {@code (float)} cast semantics used by other JVM serialization
-     * frameworks (Avro, Jackson, Protobuf).</p>
+     * <p>Catches finite-overflow only — finite values whose magnitude exceeds {@link Float#MAX_VALUE}
+     * (e.g. {@code 1.0e40}) would silently clamp to {@code Float.POSITIVE_INFINITY} under a plain
+     * Java cast and are therefore rejected. {@code NaN} and {@code ±Infinity} pass through unchanged
+     * because the cast preserves them ({@code (float) Double.NaN == Float.NaN},
+     * {@code (float) Double.POSITIVE_INFINITY == Float.POSITIVE_INFINITY}) — they are legitimate
+     * IEEE-754 values, not corruption.</p>
+     *
+     * <p>We also deliberately do <b>not</b> reject finite, in-range doubles that lose bit-exact
+     * precision when cast to float (e.g. {@code 0.1} becomes {@code 0.10000000149...}), because
+     * that would reject very common pipeline values and diverge from Java's standard {@code (float)}
+     * cast semantics used by other JVM serialization frameworks (Avro, Jackson, Protobuf).</p>
      *
      * @param value the candidate value
-     * @throws DataException if {@code value} is non-finite or its magnitude exceeds {@link Float#MAX_VALUE}
+     * @throws DataException if {@code value} is finite and its magnitude exceeds {@link Float#MAX_VALUE}
      */
     public static void requireFloatRange(double value) {
-        if (!Double.isFinite(value) || Math.abs(value) > Float.MAX_VALUE) {
-            throw new DataException("Value %s exceeds FLOAT range or is not finite".formatted(value));
+        if (Double.isFinite(value) && Math.abs(value) > Float.MAX_VALUE) {
+            throw new DataException("Value %s exceeds FLOAT range".formatted(value));
         }
     }
 }

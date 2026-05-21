@@ -805,8 +805,8 @@ class AvroDataObjectMapperTest {
     }
 
     @Test
-    @DisplayName("fromDataObject: non-finite DataDouble targeting Avro FLOAT field -> DataException")
-    void fromDataObject_nonFiniteDouble_toAvroFloat_throwsDataException() {
+    @DisplayName("fromDataObject: non-finite DataDouble targeting Avro FLOAT field -> passes through (cast preserves NaN/Infinity)")
+    void fromDataObject_nonFiniteDouble_toAvroFloat_passesThrough() {
         var structSchema = StructSchema.builder()
                 .namespace("io.axual.test").name("NaNToFloat").doc("d")
                 .field(new StructSchema.Field("v", DataSchema.FLOAT_SCHEMA))
@@ -814,9 +814,9 @@ class AvroDataObjectMapperTest {
         var struct = new DataStruct(structSchema);
         struct.put("v", new DataDouble(Double.NaN));
 
-        assertThatCode(() -> mapper.fromDataObject(struct))
-                .isInstanceOf(DataException.class)
-                .hasMessageContaining("FLOAT");
+        var record = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(record.get("v")).isInstanceOf(Float.class);
+        assertThat(((Float) record.get("v")).isNaN()).isTrue();
     }
 
     @Test

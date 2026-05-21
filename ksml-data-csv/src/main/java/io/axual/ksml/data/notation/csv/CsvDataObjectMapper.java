@@ -80,29 +80,30 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
     }
 
     private DataStruct convertLineToDataStruct(String[] line, StructSchema schema) {
-        // Convert the line to a DataStruct with given schema
+        // Convert the line to a DataStruct with given schema.
+        //
+        // Design choice — lenient CSV parsing:
+        // 1. If the row is SHORTER than the schema (e.g. schema has 3 fields, row has 2),
+        //    trailing missing columns are silently treated as "" for required fields and
+        //    null for optional fields. The row is NOT rejected.
+        // 2. If a required column is EMPTY in the row, it is stored as the empty string ""
+        //    rather than rejected.
+        //
+        // This is intentional: CSV is a notoriously fuzzy format and many real-world feeds
+        // ship truncated or partially-empty rows. Throwing here would break pipelines that
+        // currently tolerate these inputs. Callers that need strict-schema enforcement should
+        // validate the DataStruct downstream (e.g. with a custom filter step) rather than
+        // relying on the CSV mapper to do it.
         final var result = new DataStruct(schema);
-        // Detect rows shorter than the schema declares — silently padding with nulls would mask
-        // truncated CSV input.
-        if (line.length < schema.fields().size()) {
-            throw new DataException(
-                    "CSV row has %d columns but schema '%s' declares %d fields"
-                            .formatted(line.length, schema.name(), schema.fields().size()));
-        }
         for (int index = 0; index < schema.fields().size(); index++) {
             final var field = schema.field(index);
             final var lineValue = index < line.length ? line[index] : null;
-            // Required fields must have a value; passing "" through convertStringToDataObject and
-            // then dropping the result via putIfNotNull would silently produce a struct missing the
-            // required field.
-            if (lineValue == null || lineValue.isEmpty()) {
-                if (field.required()) {
-                    throw new DataException(
-                            "Required CSV field '%s' is missing or empty".formatted(field.name()));
-                }
-                continue;
-            }
-            result.putIfNotNull(field.name(), convertStringToDataObject(field.schema(), lineValue));
+            final var value = lineValue != null && !lineValue.isEmpty()
+                    ? lineValue
+                    : field.required()
+                    ? ""
+                    : null;
+            if (value != null) result.putIfNotNull(field.name(), convertStringToDataObject(field.schema(), value));
         }
         return result;
     }
