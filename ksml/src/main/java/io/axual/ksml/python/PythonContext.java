@@ -21,7 +21,6 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.util.ValuePrinter;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.proxy.log.LoggerBridge;
@@ -92,19 +91,25 @@ public class PythonContext implements AutoCloseable {
                     .allowHostAccess(HostAccess.EXPLICIT)
                     .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains);
 
+            // Canonicalize the configured modulePath once, up front. toRealPath() resolves
+            // symlinks (notably macOS /var -> /private/var) so the same canonical string
+            // flows into both the sys.path injection below and the FileSystem selector
+            // prefix in createReadOnlyFileSystem. Without this, the two would disagree and
+            // legitimate module imports would be denied on platforms where the configured
+            // path traverses a symlink.
+            final String canonicalModulePath = StringUtils.isEmpty(config.modulePath())
+                    ? config.modulePath()
+                    : Path.of(config.modulePath()).toRealPath().toString();
+
             // set up configured I/O access
-            IOAccess ioAccess = createIOAccess(config.allowHostFileAccess(), config.allowHostSocketAccess(), config.modulePath());
+            IOAccess ioAccess = createIOAccess(config.allowHostFileAccess(), config.allowHostSocketAccess(), canonicalModulePath);
 
             context = contextBuilder
                     .allowIO(ioAccess)
                     .build();
 
-            if (!StringUtils.isEmpty(config.modulePath())) {
-//                if (!Files.isDirectory( Path.of(config.pythonModulePath()))) {
-//                    log.error("Configured Python module path {} does not exist or is not a directory", config.pythonModulePath());
-//                    throw new ExecutionException("Configured Python module path does not exist or is not a directory");
-//                }
-                addModulePathToSysPath(Path.of(config.modulePath()));
+            if (!StringUtils.isEmpty(canonicalModulePath)) {
+                addModulePathToSysPath(Path.of(canonicalModulePath));
             }
 
             registerGlobalCode();
@@ -170,7 +175,7 @@ public class PythonContext implements AutoCloseable {
         log.debug("createIOAccess({}, {}, {})", allowHostFileAccess, allowHostSocketAccess, modulePath);
 
         if (allowHostFileAccess || StringUtils.isEmpty(modulePath)) {
-            // if host file access is allowed, then we don't need to set up a restricted file system for module access
+            // if host file access is allowed or no module path configured, then we don't need to set up an extra restricted file system for module access
             return IOAccess.newBuilder()
                     .allowHostFileAccess(allowHostFileAccess)
                     .allowHostSocketAccess(allowHostSocketAccess)
@@ -187,20 +192,51 @@ public class PythonContext implements AutoCloseable {
 
     /**
      * Create an FileSystem object that allows read-only access to Python's home, and the given path and everything below it.
+     * <p>
+     * The selector predicate normalizes both the candidate path and the two allowed prefixes
+     * (the configured {@code modulePath} and Python's {@code sys.prefix}) before doing the
+     * element-wise {@link Path#startsWith(Path)} check, to prevent any literal {@code ../..}
+     * chain in the candidate path from escaping.
+     * <p>
+     * Normalization is purely lexical ({@link Path#normalize()}), not symlink-resolving
+     * ({@code toRealPath}). That is safe under the threat model "untrusted Python in the
+     * KSML definition" because the wrapping {@link FileSystem#newReadOnlyFileSystem} denies
+     * the guest any write capability - in particular it cannot create symlinks inside the
+     * allowed region to point outwards. Any symlinks that do exist in {@code modulePath} or
+     * {@code sys.prefix} were placed there by the operator/image author and are considered
+     * intentional. If write access to the allowed region is ever granted to the guest, this
+     * predicate needs to be upgraded to symlink-resolving canonicalization.
+     * <p>
+     * The {@code modulePath} string passed in is expected to already be canonical
+     * (resolved via {@link Path#toRealPath()} in the constructor).
      *
-     * @param modulePath the path where customer Python modules are located.
+     * @param modulePath the canonical path where customer Python modules are located.
      * @return an FileSystem for Python module access that allows read-only access to the given path and everything below it.
      */
     private FileSystem createReadOnlyFileSystem(String modulePath) {
         log.debug("createReadOnlyFileSystem({})", modulePath);
         FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
         FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
-        String sysPrefix = getPythonSysPrefix();
+        // Pre-normalize the allowed prefixes once - the per-call selector then only has to
+        // normalize the candidate path and run two startsWith checks.
+        final Path modulePathNormalized = Path.of(modulePath).toAbsolutePath().normalize();
+        final Path sysPrefixNormalized = Path.of(getPythonSysPrefix()).toAbsolutePath().normalize();
         FileSystem restricted = FileSystem.newCompositeFileSystem(
                 // the default/fallback file system is: deny access
                 denyAllAccess,
-                // add a selector that returns the modulesFileSystem only if the path matches modulePath or sys.prefix
-                FileSystem.Selector.of(modulesFileSystem, path -> path.startsWith(modulePath) || path.startsWith(sysPrefix))
+                // add a selector that returns the modulesFileSystem only if the normalized path
+                // is within modulePath or sys.prefix
+                FileSystem.Selector.of(modulesFileSystem, path -> {
+                    if (path == null || !path.isAbsolute()) {
+                        return false;
+                    }
+                    Path normalized = path.toAbsolutePath().normalize();
+                    if (!normalized.startsWith(modulePathNormalized) && !normalized.startsWith(sysPrefixNormalized)) {
+                        log.warn("Refusing path {} which is outside of modulePath {} or sys.prefix {}", normalized, modulePathNormalized, sysPrefixNormalized);
+                        return false;
+                    }
+                    return true;
+                })
         );
 
         return FileSystem.newReadOnlyFileSystem(restricted);

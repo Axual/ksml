@@ -23,6 +23,7 @@ package io.axual.ksml.python;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -230,6 +231,100 @@ class PythonContextTest {
         assertThatThrownBy(fn::execute)
                 .isInstanceOf(PolyglotException.class)
                 .hasMessageContaining("Operation not permitted");
+    }
+
+    /**
+     * Path-traversal sandbox check: with {@code allowHostFileAccess = false} and a configured
+     * {@code modulePath}, Python must not be able to read directories outside the module path by
+     * appending {@code ../..} to the supplied base path.
+     * <p>
+     * The Python function receives the absolute module path, appends {@code /..} ten times
+     * (so the resolved target sits at or above the filesystem root), and calls {@link java.io.File}'s
+     * listdir equivalent. A successful listing means the GraalVM read-only FileSystem failed to
+     * contain the guest; the test fails in that case because no {@link PolyglotException} is thrown.
+     */
+    @Test
+    @DisplayName("Python cannot escape modulePath via ../.. traversal when host file access is disabled")
+    void pythonCannotEscapeModulePathViaDotDot(@TempDir Path moduleDir) {
+        var config = PythonContextConfig.builder()
+                .allowHostFileAccess(false)
+                .modulePath(moduleDir.toString())
+                .build();
+        var pythonContext = new PythonContext(config);
+
+        String pyCode = """
+            import polyglot
+            @polyglot.export_value
+            def try_escape(base):
+                import os
+                target = base
+                for _ in range(5):
+                    target = target + '/..'
+                # If the sandbox holds, this raises; if it leaks, listdir returns
+                # the contents of the filesystem root.
+                return os.listdir(target)
+            """;
+        Value fn = pythonContext.registerFunction(pyCode, "try_escape");
+
+        // Test fails (no exception) if Python successfully listed a directory
+        // outside the configured modulePath - i.e. the sandbox was escapable.
+        assertThatThrownBy(() -> fn.execute(moduleDir.toString()))
+                .isInstanceOf(PolyglotException.class);
+    }
+
+    /**
+     * Companion to {@link #pythonCannotEscapeModulePathViaDotDot}: the read-only FileSystem
+     * built in {@link PythonContext} permits any path whose elements start with either
+     * {@code modulePath} or {@code sys.prefix}. The {@code sys.prefix} branch is the
+     * interesting one because GraalPy's python-home lives at a canonical, predictable
+     * location. A literal target like
+     * <pre>{@code <sys.prefix>/../../../../../}</pre>
+     * passes the element-wise {@code Path.startsWith} check (its leading elements <em>are</em>
+     * the elements of {@code sys.prefix}), so the only thing standing between the guest and
+     * the host filesystem is whether GraalVM normalizes the path before the selector predicate
+     * fires.
+     * <p>
+     * The {@code ..} chain is appended directly to {@code sys.prefix} - no intermediate
+     * directories - so the test has no dependency on the installed GraalPy version layout.
+     * The test fails (with the leaked directory listing) if the guest successfully read
+     * outside the sandbox.
+     */
+    @Test
+    @DisplayName("Python cannot escape via sys.prefix prefix + ../.. when host file access is disabled")
+    void pythonCannotEscapeViaSysPrefixDotDot(@TempDir Path moduleDir) {
+        var config = PythonContextConfig.builder()
+                .allowHostFileAccess(false)
+                .modulePath(moduleDir.toString())
+                .build();
+        var pythonContext = new PythonContext(config);
+
+        // The Python guest itself constructs the target from sys.prefix. It returns a
+        // diagnostic string on success so we can see exactly what leaked.
+        String pyCode = """
+            import polyglot
+            @polyglot.export_value
+            def try_escape_via_sys_prefix():
+                import sys, os
+                print("sys.prefix = " + sys.prefix)
+                target = sys.prefix + "/../../../../../"
+                resolved = os.path.realpath(target)
+                files = sorted(os.listdir(target))
+                return "path=" + target + " resolved=" + resolved \
+                    + " file_count=" + str(len(files)) \
+                    + " files_preview=" + str(files[:20])
+            """;
+        Value fn = pythonContext.registerFunction(pyCode, "try_escape_via_sys_prefix");
+
+        // If the call returns at all, the sandbox has been escaped - fail loudly with
+        // the diagnostic from the guest. If a PolyglotException is thrown, the sandbox
+        // contained the guest and the test passes.
+        try {
+            String result = fn.execute().asString();
+            Assertions.fail(
+                    "Sandbox escape via sys.prefix succeeded - Python returned: " + result);
+        } catch (PolyglotException expected) {
+            log.debug("Sandbox correctly blocked sys.prefix traversal: {}", expected.getMessage());
+        }
     }
 
     @Test
