@@ -206,105 +206,12 @@ public class ConvertUtil {
             case null -> convertNullToDataObject(targetType);
             case DataNull ignored -> convertNullToDataObject(targetType);
             // Convert numbers to their proper specific type
-            case DataByte val -> {
-                if (targetType == DataType.UNKNOWN || targetType == DataByte.DATATYPE) yield val;
-                if (targetType == DataShort.DATATYPE) yield new DataShort(val.value().shortValue());
-                if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
-                if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
-                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
-                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
-                throw new DataException("Can not convert DataByte value to " + targetType);
-            }
-            case DataShort val -> {
-                if (targetType == DataByte.DATATYPE) {
-                    NumericRangeChecker.requireByteRange(val.value().longValue());
-                    yield new DataByte(val.value().byteValue());
-                }
-                if (targetType == DataType.UNKNOWN || targetType == DataShort.DATATYPE) yield val;
-                if (targetType == DataInteger.DATATYPE) yield new DataInteger(val.value().intValue());
-                if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
-                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
-                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
-                throw new DataException("Can not convert DataShort value to " + targetType);
-            }
-            case DataInteger val -> {
-                if (targetType == DataByte.DATATYPE) {
-                    NumericRangeChecker.requireByteRange(val.value().longValue());
-                    yield new DataByte(val.value().byteValue());
-                }
-                if (targetType == DataShort.DATATYPE) {
-                    NumericRangeChecker.requireShortRange(val.value().longValue());
-                    yield new DataShort(val.value().shortValue());
-                }
-                if (targetType == DataType.UNKNOWN || targetType == DataInteger.DATATYPE) yield val;
-                if (targetType == DataLong.DATATYPE) yield new DataLong(val.value().longValue());
-                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
-                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
-                throw new DataException("Can not convert DataInteger value to " + targetType);
-            }
-            case DataLong val -> {
-                if (targetType == DataByte.DATATYPE) {
-                    NumericRangeChecker.requireByteRange(val.value());
-                    yield new DataByte(val.value().byteValue());
-                }
-                if (targetType == DataShort.DATATYPE) {
-                    NumericRangeChecker.requireShortRange(val.value());
-                    yield new DataShort(val.value().shortValue());
-                }
-                if (targetType == DataInteger.DATATYPE) {
-                    NumericRangeChecker.requireIntRange(val.value());
-                    yield new DataInteger(val.value().intValue());
-                }
-                if (targetType == DataType.UNKNOWN || targetType == DataLong.DATATYPE) yield val;
-                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
-                if (targetType == DataFloat.DATATYPE) yield new DataFloat(val.value().floatValue());
-                throw new DataException("Can not convert DataLong value to " + targetType);
-            }
-            case DataDouble val -> {
-                if (targetType == DataByte.DATATYPE) {
-                    NumericRangeChecker.requireByteRange(val.value());
-                    yield new DataByte(val.value().byteValue());
-                }
-                if (targetType == DataShort.DATATYPE) {
-                    NumericRangeChecker.requireShortRange(val.value());
-                    yield new DataShort(val.value().shortValue());
-                }
-                if (targetType == DataInteger.DATATYPE) {
-                    NumericRangeChecker.requireIntRange(val.value());
-                    yield new DataInteger(val.value().intValue());
-                }
-                if (targetType == DataLong.DATATYPE) {
-                    NumericRangeChecker.requireLongRange(val.value());
-                    yield new DataLong(val.value().longValue());
-                }
-                if (targetType == DataType.UNKNOWN || targetType == DataDouble.DATATYPE) yield val;
-                if (targetType == DataFloat.DATATYPE) {
-                    NumericRangeChecker.requireFloatRange(val.value());
-                    yield new DataFloat(val.value().floatValue());
-                }
-                throw new DataException("Can not convert DataDouble value to " + targetType);
-            }
-            case DataFloat val -> {
-                if (targetType == DataByte.DATATYPE) {
-                    NumericRangeChecker.requireByteRange(val.value().doubleValue());
-                    yield new DataByte(val.value().byteValue());
-                }
-                if (targetType == DataShort.DATATYPE) {
-                    NumericRangeChecker.requireShortRange(val.value().doubleValue());
-                    yield new DataShort(val.value().shortValue());
-                }
-                if (targetType == DataInteger.DATATYPE) {
-                    NumericRangeChecker.requireIntRange(val.value().doubleValue());
-                    yield new DataInteger(val.value().intValue());
-                }
-                if (targetType == DataLong.DATATYPE) {
-                    NumericRangeChecker.requireLongRange(val.value().doubleValue());
-                    yield new DataLong(val.value().longValue());
-                }
-                if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
-                if (targetType == DataType.UNKNOWN || targetType == DataFloat.DATATYPE) yield val;
-                throw new DataException("Can not convert DataDouble value to " + targetType);
-            }
+            case DataByte val -> convertByteToTargetType(val, targetType);
+            case DataShort val -> convertShortToTargetType(val, targetType);
+            case DataInteger val -> convertIntegerToTargetType(val, targetType);
+            case DataLong val -> convertLongToTargetType(val, targetType);
+            case DataDouble val -> convertDoubleToTargetType(val, targetType);
+            case DataFloat val -> convertFloatToTargetType(val, targetType);
             // Convert from String to anything through recursion using the same target type
             case DataString stringValue -> convertStringToDataObject(targetType, stringValue.value(), allowFail);
             // Convert a list without a value type to a list with a specific value type
@@ -333,6 +240,111 @@ public class ConvertUtil {
         return result;
     }
 
+    private DataObject convertByteToTargetType(DataByte val, DataType targetType) {
+        if (targetType == DataType.UNKNOWN || targetType == DataByte.DATATYPE) return val;
+        if (targetType == DataShort.DATATYPE) return new DataShort(val.value().shortValue());
+        if (targetType == DataInteger.DATATYPE) return new DataInteger(val.value().intValue());
+        if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
+        if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
+        if (targetType == DataFloat.DATATYPE) return new DataFloat(val.value().floatValue());
+        throw new DataException("Can not convert DataByte value to " + targetType);
+    }
+
+    private DataObject convertShortToTargetType(DataShort val, DataType targetType) {
+        if (targetType == DataByte.DATATYPE) {
+            NumericRangeChecker.requireByteRange(val.value().longValue());
+            return new DataByte(val.value().byteValue());
+        }
+        if (targetType == DataType.UNKNOWN || targetType == DataShort.DATATYPE) return val;
+        if (targetType == DataInteger.DATATYPE) return new DataInteger(val.value().intValue());
+        if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
+        if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
+        if (targetType == DataFloat.DATATYPE) return new DataFloat(val.value().floatValue());
+        throw new DataException("Can not convert DataShort value to " + targetType);
+    }
+
+    private DataObject convertIntegerToTargetType(DataInteger val, DataType targetType) {
+        if (targetType == DataByte.DATATYPE) {
+            NumericRangeChecker.requireByteRange(val.value().longValue());
+            return new DataByte(val.value().byteValue());
+        }
+        if (targetType == DataShort.DATATYPE) {
+            NumericRangeChecker.requireShortRange(val.value().longValue());
+            return new DataShort(val.value().shortValue());
+        }
+        if (targetType == DataType.UNKNOWN || targetType == DataInteger.DATATYPE) return val;
+        if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
+        if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
+        if (targetType == DataFloat.DATATYPE) return new DataFloat(val.value().floatValue());
+        throw new DataException("Can not convert DataInteger value to " + targetType);
+    }
+
+    private DataObject convertLongToTargetType(DataLong val, DataType targetType) {
+        if (targetType == DataByte.DATATYPE) {
+            NumericRangeChecker.requireByteRange(val.value());
+            return new DataByte(val.value().byteValue());
+        }
+        if (targetType == DataShort.DATATYPE) {
+            NumericRangeChecker.requireShortRange(val.value());
+            return new DataShort(val.value().shortValue());
+        }
+        if (targetType == DataInteger.DATATYPE) {
+            NumericRangeChecker.requireIntRange(val.value());
+            return new DataInteger(val.value().intValue());
+        }
+        if (targetType == DataType.UNKNOWN || targetType == DataLong.DATATYPE) return val;
+        if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
+        if (targetType == DataFloat.DATATYPE) return new DataFloat(val.value().floatValue());
+        throw new DataException("Can not convert DataLong value to " + targetType);
+    }
+
+    private DataObject convertDoubleToTargetType(DataDouble val, DataType targetType) {
+        if (targetType == DataByte.DATATYPE) {
+            NumericRangeChecker.requireByteRange(val.value());
+            return new DataByte(val.value().byteValue());
+        }
+        if (targetType == DataShort.DATATYPE) {
+            NumericRangeChecker.requireShortRange(val.value());
+            return new DataShort(val.value().shortValue());
+        }
+        if (targetType == DataInteger.DATATYPE) {
+            NumericRangeChecker.requireIntRange(val.value());
+            return new DataInteger(val.value().intValue());
+        }
+        if (targetType == DataLong.DATATYPE) {
+            NumericRangeChecker.requireLongRange(val.value());
+            return new DataLong(val.value().longValue());
+        }
+        if (targetType == DataType.UNKNOWN || targetType == DataDouble.DATATYPE) return val;
+        if (targetType == DataFloat.DATATYPE) {
+            NumericRangeChecker.requireFloatRange(val.value());
+            return new DataFloat(val.value().floatValue());
+        }
+        throw new DataException("Can not convert DataDouble value to " + targetType);
+    }
+
+    private DataObject convertFloatToTargetType(DataFloat val, DataType targetType) {
+        if (targetType == DataByte.DATATYPE) {
+            NumericRangeChecker.requireByteRange(val.value().doubleValue());
+            return new DataByte(val.value().byteValue());
+        }
+        if (targetType == DataShort.DATATYPE) {
+            NumericRangeChecker.requireShortRange(val.value().doubleValue());
+            return new DataShort(val.value().shortValue());
+        }
+        if (targetType == DataInteger.DATATYPE) {
+            NumericRangeChecker.requireIntRange(val.value().doubleValue());
+            return new DataInteger(val.value().intValue());
+        }
+        if (targetType == DataLong.DATATYPE) {
+            NumericRangeChecker.requireLongRange(val.value().doubleValue());
+            return new DataLong(val.value().longValue());
+        }
+        if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
+        if (targetType == DataType.UNKNOWN || targetType == DataFloat.DATATYPE) return val;
+        throw new DataException("Can not convert DataDouble value to " + targetType);
+    }
+
     @Nullable
     public DataObject convertStringToDataObject(DataType expected, String value, boolean allowFail) {
         if (expected == null) return new DataString(value);
@@ -356,21 +368,6 @@ public class ConvertUtil {
         };
     }
 
-    /**
-     * Invokes a numeric parser and honours the {@code allowFail} contract.
-     *
-     * <p>Previously a {@link NumberFormatException} was silently swallowed and the method returned
-     * {@code null} even when {@code allowFail=false}, which caused CSV/JSON required fields with
-     * bad input (e.g. {@code "abc"} for an int) to disappear instead of failing.</p>
-     *
-     * @param supplier the parsing callable that may throw {@link NumberFormatException}
-     * @param value    the original string value (used only for the error message)
-     * @param expected the target {@link DataType} (used only for the error message)
-     * @param allowFail when {@code true}, return {@code null} on parse failure; otherwise rethrow
-     *                  as {@link DataException}
-     * @return the parsed {@link DataObject}, or {@code null} if {@code allowFail=true} and parsing failed
-     * @throws DataException if {@code allowFail=false} and the input cannot be parsed
-     */
     private DataObject parseOrFail(Supplier<DataObject> supplier, String value, DataType expected, boolean allowFail) {
         try {
             return supplier.get();
@@ -380,19 +377,6 @@ public class ConvertUtil {
         }
     }
 
-    /**
-     * Parses the canonical {@code "true"}/{@code "false"} string forms (case-insensitive) into a
-     * {@link DataBoolean}.
-     *
-     * <p>Without this branch, {@code convertStringToDataObject} fell through to the generic switch
-     * and threw an unhelpful {@code "Can not convert string to data type"} error for legitimate
-     * boolean strings produced by CSV / JSON sources.</p>
-     *
-     * @param value     the candidate boolean string
-     * @param allowFail when {@code true}, return {@code null} on unrecognised input; otherwise throw
-     * @return the parsed {@link DataBoolean}, or {@code null} if {@code allowFail=true} and unrecognised
-     * @throws DataException if {@code allowFail=false} and {@code value} is not {@code "true"}/{@code "false"}
-     */
     private DataObject parseDataBoolean(String value, boolean allowFail) {
         if ("true".equalsIgnoreCase(value)) return new DataBoolean(true);
         if ("false".equalsIgnoreCase(value)) return new DataBoolean(false);
@@ -503,56 +487,39 @@ public class ConvertUtil {
     }
 
     private DataObject convertList(ListType expected, DataList value, boolean allowFail) {
-        // Create a new List with the given value type
         final var result = new DataList(expected.valueType(), value.isNull());
-        // Copy all list elements into the new list, possibly making sub-elements compatible
         value.forEach(element -> result.add(convertDataObject(expected.valueType(), element, allowFail)));
-        // Return the List with made-compatible elements
         return result;
     }
 
     private DataMap convertMap(MapType expected, DataMap value, boolean allowFail) {
-        // Create a new Map with the given value type
         final var result = new DataMap(expected.valueType(), value.isNull());
-        // Copy all map elements into the new map, possibly making sub-elements compatible
         value.forEach((key, val) -> result.put(key, convertDataObject(expected.valueType(), val, allowFail)));
-        // Return the Map with made-compatible elements
         return result;
     }
 
     private DataStruct convertMapToStruct(StructType expected, DataMap value, boolean allowFail) {
-        // Create a new Struct with the expected schema type
         final var result = new DataStruct(expected.schema(), value.isNull());
-        // Copy all struct fields into the new struct, possibly making sub-elements compatible
         value.forEach(structFiller(expected, result, allowFail));
-        // Return the Struct with compatible fields
         return result;
     }
 
     private DataMap convertStructToMap(MapType expected, DataStruct value, boolean allowFail) {
-        // Create a new Map with the given value type
         final var result = new DataMap(expected.valueType(), value.isNull());
-        // Copy all map elements into the new map, possibly making sub-elements compatible
         value.forEach((key, val) -> result.put(key, convertDataObject(expected.valueType(), val, allowFail)));
-        // Return the Map with made-compatible elements
         return result;
     }
 
     private DataStruct convertStruct(StructType expected, DataStruct value, boolean allowFail) {
-        // Create a new Struct with the expected schema type
         final var result = new DataStruct(expected.schema(), value.isNull());
-        // Copy all struct fields into the new struct, possibly making sub-elements compatible
         value.forEach(structFiller(expected, result, allowFail));
-        // Return the Struct with compatible fields
         return result;
     }
 
     private BiConsumer<String, Object> structFiller(StructType expected, DataStruct result, boolean allowFail) {
         return (key, value) -> {
-            // If the expected struct type contains a schema, then extract a target type
             final var field = expected.schema() != null ? expected.schema().field(key) : null;
             final var fieldType = field != null ? dataSchemaMapper.fromDataSchema(field.schema()) : null;
-            // If there is an explicit target value, then recurse conversion using that, otherwise simply copy value
             final var convertedValue = fieldType != null
                     ? convertDataObject(fieldType, dataObjectMapper.toDataObject(value), allowFail)
                     : dataObjectMapper.toDataObject(value);

@@ -45,6 +45,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
+import io.axual.ksml.data.util.NumericRangeChecker;
 import io.axual.ksml.data.value.Struct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.JsonProperties;
@@ -313,144 +314,22 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Object convertDataObjectToAvroBySchema(DataObject value, Schema schema) {
         if (value == null) return null;
-        // TODO: Avro logical types are not validated. KSML treats them as their underlying primitive
-        //       and round-trips them without checking the input contract:
-        //         * uuid          — any string is accepted, even non-UUID strings
-        //         * time-millis   — any int is accepted, even values outside [0, 86_400_000)
-        //         * time-micros   — any long is accepted, even values outside [0, 86_400_000_000)
-        //         * date          — any int (days since epoch) — accepting any int is technically
-        //                           valid by the spec, but no semantic bounds are enforced
-        //         * timestamp-*   — same as date — any long passes
-        //         * decimal       — bytes/fixed; needs precision/scale-aware BigDecimal encoding/
-        //                           decoding (the bytes are big-endian two's-complement integer
-        //                           scaled by `scale`). KSML currently exposes the raw bytes only.
-        //       Adding first-class handling for these types is a separate feature.
+        // TODO: Avro logical types (uuid, time-millis, time-micros, date, timestamp-*, decimal)
+        //       are passed through without validation. Add first-class handling as a separate feature.
         return switch (schema.getType()) {
             case NULL -> null;
             case BOOLEAN -> value instanceof DataBoolean val ? val.value() : schemaMismatch(value, schema);
-            case INT -> switch (value) {
-                case DataByte val -> val.value() != null ? val.value().intValue() : null;
-                case DataShort val -> val.value() != null ? val.value().intValue() : null;
-                case DataInteger val -> val.value();
-                case DataLong val -> {
-                    if (val.value() == null) yield null;
-                    long longVal = val.value();
-                    if (longVal < Integer.MIN_VALUE || longVal > Integer.MAX_VALUE) {
-                        throw new DataException(("Value %d exceeds INT range [%d, %d]. Use 'long' type in schema "
-                                + "or ensure values fit in INT range.")
-                                .formatted(longVal, Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    }
-                    yield (int) longVal;
-                }
-                case DataFloat val -> {
-                    if (val.value() == null) yield null;
-                    float floatVal = val.value();
-                    if (!Float.isFinite(floatVal) || floatVal < Integer.MIN_VALUE || floatVal > Integer.MAX_VALUE) {
-                        throw new DataException(
-                                "Value %s cannot be converted to INT (out of range or not finite)".formatted(floatVal));
-                    }
-                    yield (int) floatVal;
-                }
-                case DataDouble val -> {
-                    if (val.value() == null) yield null;
-                    double doubleVal = val.value();
-                    if (!Double.isFinite(doubleVal) || doubleVal < Integer.MIN_VALUE || doubleVal > Integer.MAX_VALUE) {
-                        throw new DataException(
-                                "Value %s cannot be converted to INT (out of range or not finite)".formatted(doubleVal));
-                    }
-                    yield (int) doubleVal;
-                }
-                default -> schemaMismatch(value, schema);
-            };
-            case LONG -> switch (value) {
-                case DataByte val -> val.value() != null ? val.value().longValue() : null;
-                case DataShort val -> val.value() != null ? val.value().longValue() : null;
-                case DataInteger val -> val.value() != null ? val.value().longValue() : null;
-                case DataLong val -> val.value();
-                case DataFloat val -> {
-                    if (val.value() == null) yield null;
-                    float floatVal = val.value();
-                    if (!Float.isFinite(floatVal) || floatVal >= 0x1.0p63f || floatVal < -0x1.0p63f) {
-                        throw new DataException(
-                                "Value %s cannot be converted to LONG (out of range or not finite)".formatted(floatVal));
-                    }
-                    yield (long) floatVal;
-                }
-                case DataDouble val -> {
-                    if (val.value() == null) yield null;
-                    double doubleVal = val.value();
-                    if (!Double.isFinite(doubleVal) || doubleVal >= 0x1.0p63 || doubleVal < -0x1.0p63) {
-                        throw new DataException("Value %s cannot be converted to LONG (out of range or not finite)"
-                                .formatted(doubleVal));
-                    }
-                    yield (long) doubleVal;
-                }
-                default -> schemaMismatch(value, schema);
-            };
-            // Accept every numeric DataObject that widens losslessly (or with Java's standard cast
-            // semantics) to a double. Without these explicit arms, a perfectly valid pipeline like
-            // DataInteger(42) → Avro DOUBLE field would fall through to schemaMismatch and throw —
-            // even though the conversion is safe. DataLong → double can lose precision above 2^53
-            // (the double mantissa width); we accept that loss explicitly because it matches Java's
-            // (double) cast semantics and is the same trade-off other JVM frameworks make.
-            case DOUBLE -> switch (value) {
-                case DataByte val -> val.value() != null ? val.value().doubleValue() : null;
-                case DataShort val -> val.value() != null ? val.value().doubleValue() : null;
-                case DataInteger val -> val.value() != null ? val.value().doubleValue() : null;
-                case DataLong val -> val.value() != null ? val.value().doubleValue() : null;
-                case DataFloat val -> val.value() != null ? val.value().doubleValue() : null;
-                case DataDouble val -> val.value();
-                default -> schemaMismatch(value, schema);
-            };
-            // FLOAT accepts every narrower or equal-width numeric source. The DataDouble path is
-            // overflow-checked because a finite double larger than Float.MAX_VALUE would silently
-            // clamp to Float.POSITIVE_INFINITY under a plain Java cast. NaN and ±Infinity pass
-            // through because the cast preserves them — they are legitimate IEEE-754 values.
-            // The DataInteger/DataLong paths can lose bit-exact precision (int values above 2^24,
-            // long values above 2^24) but we deliberately do not reject that — see
-            // requireFloatRange's Javadoc for the same reasoning applied to DataDouble. If we
-            // rejected here, common pipeline values like DataInteger(1_000_000) → FLOAT would fail.
-            case FLOAT -> switch (value) {
-                case DataByte val -> val.value() != null ? val.value().floatValue() : null;
-                case DataShort val -> val.value() != null ? val.value().floatValue() : null;
-                case DataInteger val -> val.value() != null ? val.value().floatValue() : null;
-                case DataLong val -> val.value() != null ? val.value().floatValue() : null;
-                case DataFloat val -> val.value();
-                case DataDouble val -> {
-                    if (val.value() == null) yield null;
-                    double doubleVal = val.value();
-                    if (Double.isFinite(doubleVal) && Math.abs(doubleVal) > Float.MAX_VALUE) {
-                        throw new DataException(
-                                "Value %s exceeds FLOAT range".formatted(doubleVal));
-                    }
-                    yield (float) doubleVal;
-                }
-                default -> schemaMismatch(value, schema);
-            };
+            case INT -> convertNumericToAvroInt(value, schema);
+            case LONG -> convertNumericToAvroLong(value, schema);
+            // DataLong → double can lose precision above 2^53; accepted to match Java's (double) cast semantics.
+            case DOUBLE -> convertNumericToAvroDouble(value, schema);
+            // DataDouble → float is range-checked (finite overflow would clamp to ±Infinity).
+            // Int/long precision loss is accepted to match Java's (float) cast semantics.
+            case FLOAT -> convertNumericToAvroFloat(value, schema);
             case BYTES -> value instanceof DataBytes val ? val.value() : schemaMismatch(value, schema);
             case FIXED -> value instanceof DataBytes val ? new GenericData.Fixed(schema, val.value()) : schemaMismatch(value, schema);
             case STRING -> value instanceof DataString val ? val.value() : schemaMismatch(value, schema);
-            case ENUM -> {
-                // Validate two things up front: (1) the value is a DataString or DataEnum (anything
-                // else previously yielded null and failed downstream with a generic "value cannot be
-                // null" error), and (2) the symbol is actually declared in the schema (Avro's
-                // GenericData.EnumSymbol does not validate that itself).
-                final String symbol;
-                if (value instanceof DataString s) {
-                    symbol = s.value();
-                } else if (value instanceof DataEnum e) {
-                    symbol = e.value();
-                } else {
-                    throw new DataException("Can not convert " + value.getClass().getSimpleName()
-                            + " to Avro ENUM '" + schema.getFullName() + "'");
-                }
-                if (symbol == null) yield null;
-                if (!schema.hasEnumSymbol(symbol)) {
-                    throw new DataException("Value \"" + symbol + "\" is not a valid symbol of Avro ENUM '"
-                            + schema.getFullName() + "' (allowed: " + schema.getEnumSymbols() + ")");
-                }
-                yield new GenericData.EnumSymbol(schema, symbol);
-            }
+            case ENUM -> convertDataObjectToAvroEnum(value, schema);
             case ARRAY -> value instanceof DataList val
                     ? convertDataListToAvroList(val, schema.getElementType())
                     : schemaMismatch(value, schema);
@@ -460,58 +339,117 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case RECORD -> value instanceof DataStruct val
                     ? convertDataStructToAvroRecord(val)
                     : schemaMismatch(value, schema);
-            case UNION -> {
-                if (value instanceof DataNull) yield null;
-                // Pick the union branch that natively matches the DataObject type first; only fall back
-                // to attempting a conversion if no branch is a native match. The previous behaviour was
-                // "first non-null candidate wins", which routed e.g. DataLong(5) into a [DOUBLE,LONG]
-                // union as Long-into-DOUBLE — Avro then failed later with a confusing class-cast error.
-                final var nativeMatch = matchUnionBranchByNativeType(schema, value);
-                if (nativeMatch != null) yield convertDataObjectToAvroBySchema(value, nativeMatch);
-                for (var branch : schema.getTypes()) {
-                    if (branch.getType() == Schema.Type.NULL) continue;
-                    var candidate = convertDataObjectToAvroBySchema(value, branch);
-                    if (candidate != null) yield candidate;
-                }
-                throw new DataException("No union branch in '" + schema + "' is compatible with "
-                        + value.getClass().getSimpleName());
-            }
+            case UNION -> convertDataObjectToAvroUnion(value, schema);
         };
     }
 
-    /**
-     * Handles a mismatch between a {@link DataObject} and the target Avro {@link Schema} during
-     * serialization.
-     *
-     * <p>Replaces the previous {@code default → fromDataObject(value)} fallback arms which silently
-     * produced a native Java value that did not match the Avro field type (e.g. a {@link DataString}
-     * sent to an INT field passed through as a Java {@code String} and then failed deep inside Avro
-     * with a generic class-cast error). {@link DataNull} is preserved as {@code null} so nullable
-     * fields keep working.</p>
-     *
-     * @param value  the offending DataObject
-     * @param schema the target Avro schema
-     * @return {@code null} if {@code value} is a {@link DataNull}
-     * @throws DataException for any other DataObject type
-     */
+    private Object convertNumericToAvroInt(DataObject value, Schema schema) {
+        return switch (value) {
+            case DataByte val -> val.value() == null ? null : val.value().intValue();
+            case DataShort val -> val.value() == null ? null : val.value().intValue();
+            case DataInteger val -> val.value();
+            case DataLong val -> val.value() == null ? null : NumericRangeChecker.convertLongToInt(val.value());
+            case DataFloat val -> {
+                if (val.value() == null) yield null;
+                NumericRangeChecker.requireIntRange(val.value().doubleValue());
+                yield val.value().intValue();
+            }
+            case DataDouble val -> {
+                if (val.value() == null) yield null;
+                NumericRangeChecker.requireIntRange(val.value());
+                yield val.value().intValue();
+            }
+            default -> schemaMismatch(value, schema);
+        };
+    }
+
+    private Object convertNumericToAvroLong(DataObject value, Schema schema) {
+        return switch (value) {
+            case DataByte val -> val.value() == null ? null : val.value().longValue();
+            case DataShort val -> val.value() == null ? null : val.value().longValue();
+            case DataInteger val -> val.value() == null ? null : val.value().longValue();
+            case DataLong val -> val.value();
+            case DataFloat val -> {
+                if (val.value() == null) yield null;
+                NumericRangeChecker.requireLongRange(val.value().doubleValue());
+                yield val.value().longValue();
+            }
+            case DataDouble val -> {
+                if (val.value() == null) yield null;
+                NumericRangeChecker.requireLongRange(val.value());
+                yield val.value().longValue();
+            }
+            default -> schemaMismatch(value, schema);
+        };
+    }
+
+    private Object convertNumericToAvroDouble(DataObject value, Schema schema) {
+        return switch (value) {
+            case DataByte val -> val.value() == null ? null : val.value().doubleValue();
+            case DataShort val -> val.value() == null ? null : val.value().doubleValue();
+            case DataInteger val -> val.value() == null ? null : val.value().doubleValue();
+            case DataLong val -> val.value() == null ? null : val.value().doubleValue();
+            case DataFloat val -> val.value() == null ? null : val.value().doubleValue();
+            case DataDouble val -> val.value();
+            default -> schemaMismatch(value, schema);
+        };
+    }
+
+    private Object convertNumericToAvroFloat(DataObject value, Schema schema) {
+        return switch (value) {
+            case DataByte val -> val.value() == null ? null : val.value().floatValue();
+            case DataShort val -> val.value() == null ? null : val.value().floatValue();
+            case DataInteger val -> val.value() == null ? null : val.value().floatValue();
+            case DataLong val -> val.value() == null ? null : val.value().floatValue();
+            case DataFloat val -> val.value();
+            case DataDouble val -> {
+                if (val.value() == null) yield null;
+                NumericRangeChecker.requireFloatRange(val.value());
+                yield val.value().floatValue();
+            }
+            default -> schemaMismatch(value, schema);
+        };
+    }
+
+    private Object convertDataObjectToAvroEnum(DataObject value, Schema schema) {
+        // Validate that the symbol is declared in the schema — GenericData.EnumSymbol does not check this itself.
+        final String symbol;
+        if (value instanceof DataString s) {
+            symbol = s.value();
+        } else if (value instanceof DataEnum e) {
+            symbol = e.value();
+        } else {
+            throw new DataException("Can not convert " + value.getClass().getSimpleName()
+                    + " to Avro ENUM '" + schema.getFullName() + "'");
+        }
+        if (symbol == null) return null;
+        if (!schema.hasEnumSymbol(symbol)) {
+            throw new DataException("Value \"" + symbol + "\" is not a valid symbol of Avro ENUM '"
+                    + schema.getFullName() + "' (allowed: " + schema.getEnumSymbols() + ")");
+        }
+        return new GenericData.EnumSymbol(schema, symbol);
+    }
+
+    private Object convertDataObjectToAvroUnion(DataObject value, Schema schema) {
+        if (value instanceof DataNull) return null;
+        // Native-type match first to avoid routing e.g. DataLong into the DOUBLE branch of [DOUBLE,LONG].
+        final var nativeMatch = matchUnionBranchByNativeType(schema, value);
+        if (nativeMatch != null) return convertDataObjectToAvroBySchema(value, nativeMatch);
+        for (var branch : schema.getTypes()) {
+            if (branch.getType() == Schema.Type.NULL) continue;
+            var candidate = convertDataObjectToAvroBySchema(value, branch);
+            if (candidate != null) return candidate;
+        }
+        throw new DataException("No union branch in '" + schema + "' is compatible with "
+                + value.getClass().getSimpleName());
+    }
+
     private Object schemaMismatch(DataObject value, Schema schema) {
         if (value instanceof DataNull) return null;
         throw new DataException("Cannot convert " + value.getClass().getSimpleName()
                 + " to Avro " + schema.getType() + " field");
     }
 
-    /**
-     * Picks the union branch whose Avro type natively matches the runtime {@link DataObject} type.
-     *
-     * <p>Used to disambiguate unions before falling back to attempting value coercion through every
-     * branch. Without this step, the previous "first non-null candidate wins" behaviour routed e.g.
-     * a {@link DataLong} into a {@code [DOUBLE, LONG]} union as a Long-in-the-DOUBLE-slot, which
-     * Avro then rejected later with a confusing class-cast error.</p>
-     *
-     * @param unionSchema the Avro UNION schema being targeted
-     * @param value       the runtime DataObject to place
-     * @return the matching branch schema, or {@code null} when no branch has a native type match
-     */
     private Schema matchUnionBranchByNativeType(Schema unionSchema, DataObject value) {
         final var preferred = switch (value) {
             case DataBoolean ignored -> Schema.Type.BOOLEAN;

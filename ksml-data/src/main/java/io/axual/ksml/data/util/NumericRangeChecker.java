@@ -25,93 +25,67 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * Internal range-check helpers for narrowing numeric conversions.
+ * Range-check helpers for narrowing numeric conversions used by {@code NativeDataObjectMapper}
+ * and {@code ConvertUtil}. Each type has a {@code long} overload for integral sources and a
+ * {@code double} overload for floating-point sources (which also checks finiteness).
  *
- * <p>Used by {@code NativeDataObjectMapper} (native Java → DataObject) and {@code ConvertUtil}
- * (DataObject → DataObject). Both perform the same set of narrowing casts and need the same
- * pre-cast validation.</p>
- *
- * <h2>Overload design</h2>
- *
- * <p>Each byte/short/int check has two overloads: a {@code long} variant for integral sources and
- * a {@code double} variant for floating-point sources. Callers select the right one by widening
- * the source to a {@code long} or {@code double} at the call site. For example:</p>
- *
- * <pre>
- *   // integral path (DataShort/DataInteger/DataLong → DataByte):
- *   NumericRangeChecker.requireByteRange(val.value().longValue());
- *
- *   // floating-point path (DataFloat/DataDouble → DataByte) — also checks NaN/Infinity:
- *   NumericRangeChecker.requireByteRange(val.value().doubleValue());
- * </pre>
- *
- * <p>Every integral source widens to {@code long} losslessly, so one {@code long}-based helper
- * covers {@code Short→byte}, {@code Integer→byte}, {@code Integer→short}, {@code Long→byte},
- * {@code Long→short} and {@code Long→int}. The {@code double} overload exists separately because
- * float / double sources need an extra {@link Double#isFinite(double)} check that does not apply
- * to integers.</p>
- *
- * <p>Calling {@code .longValue()} / {@code .doubleValue()} at the call site is technically
- * redundant when the boxed source is itself a {@code Short}/{@code Integer}/{@code Long} (Java's
- * overload resolution would pick the same overload via auto-unboxing + widening), but it makes
- * the chosen path explicit and avoids surprises when a future caller passes a different boxed
- * type.</p>
- *
- * <p><b>Internal API.</b> The methods are {@code public} only because the two call sites live in
- * different packages. Do not call from outside the {@code ksml-data} numeric conversion paths.</p>
+ * <p><b>Internal API.</b> Public only because the two call sites live in different packages.</p>
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class NumericRangeChecker {
-    /**
-     * Upper bound of an <b>unsigned</b> byte ({@code 255}, or {@code 0xFF}).
-     *
-     * <p>Java's {@link Byte#MAX_VALUE} only covers the signed range up to {@code 127}; this
-     * constant names the unsigned upper bound used by raw byte-array paths (where {@code 255}
-     * legitimately reinterprets as {@code (byte) -1}). See
-     * {@link io.axual.ksml.data.mapper.NativeDataObjectMapper#convertToByte(Object)} for the
-     * project-wide unsigned-byte contract.</p>
-     */
+    /** Upper bound for raw byte-array paths: 255 (0xFF) legitimately maps to (byte) -1. */
     public static final int UNSIGNED_BYTE_MAX_VALUE = 0xFF;
+
+    // Long.MAX_VALUE = 2^63 - 1 is not exactly representable as a double; the nearest
+    // representable double is 2^63 itself, which already overflows a long. Using 2^63
+    // as the exclusive upper bound is therefore the correct boundary for range checks.
+    private static final double LONG_OVERFLOW_THRESHOLD = 0x1.0p63;
 
     public static void requireByteRange(long value) {
         if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
             throw new DataException(
-                    "Value %d exceeds BYTE range [%d, %d]".formatted(value, Byte.MIN_VALUE, Byte.MAX_VALUE));
+                    "Value %d exceeds BYTE range [%d, %d]; use 'short', 'int' or 'long' type in schema or ensure values fit in BYTE range"
+                            .formatted(value, Byte.MIN_VALUE, Byte.MAX_VALUE));
         }
     }
 
     public static void requireShortRange(long value) {
         if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
             throw new DataException(
-                    "Value %d exceeds SHORT range [%d, %d]".formatted(value, Short.MIN_VALUE, Short.MAX_VALUE));
+                    "Value %d exceeds SHORT range [%d, %d]; use 'int' or 'long' type in schema or ensure values fit in SHORT range"
+                            .formatted(value, Short.MIN_VALUE, Short.MAX_VALUE));
         }
     }
 
     public static void requireIntRange(long value) {
         if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
             throw new DataException(
-                    "Value %d exceeds INT range [%d, %d]".formatted(value, Integer.MIN_VALUE, Integer.MAX_VALUE));
+                    "Value %d exceeds INT range [%d, %d]; use 'long' type in schema or ensure values fit in INT range"
+                            .formatted(value, Integer.MIN_VALUE, Integer.MAX_VALUE));
         }
     }
 
     public static void requireByteRange(double value) {
         if (!Double.isFinite(value) || value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
             throw new DataException(
-                    "Value %s cannot be converted to BYTE (out of range or not finite)".formatted(value));
+                    "Value %s cannot be converted to BYTE (out of range or not finite); use 'short', 'int' or 'long' type in schema or ensure values fit in BYTE range"
+                            .formatted(value));
         }
     }
 
     public static void requireShortRange(double value) {
         if (!Double.isFinite(value) || value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
             throw new DataException(
-                    "Value %s cannot be converted to SHORT (out of range or not finite)".formatted(value));
+                    "Value %s cannot be converted to SHORT (out of range or not finite); use 'int' or 'long' type in schema or ensure values fit in SHORT range"
+                            .formatted(value));
         }
     }
 
     public static void requireIntRange(double value) {
         if (!Double.isFinite(value) || value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
             throw new DataException(
-                    "Value %s cannot be converted to INT (out of range or not finite)".formatted(value));
+                    "Value %s cannot be converted to INT (out of range or not finite); use 'long' type in schema or ensure values fit in INT range"
+                            .formatted(value));
         }
     }
 
@@ -119,34 +93,24 @@ public final class NumericRangeChecker {
         if (!Double.isFinite(value)) {
             throw new DataException("Value %s cannot be converted to LONG (not finite)".formatted(value));
         }
-        // 2^63 is exactly representable as a double; Long.MAX_VALUE = 2^63 - 1 is not, so use the 2^63 boundary
-        if (value >= 0x1.0p63 || value < -0x1.0p63) {
+        if (value >= LONG_OVERFLOW_THRESHOLD || value < -LONG_OVERFLOW_THRESHOLD) {
             throw new DataException(
-                    "Value %s exceeds LONG range [%d, %d]".formatted(value, Long.MIN_VALUE, Long.MAX_VALUE));
+                    "Value %s exceeds LONG range [%d, %d]; ensure values fit in LONG range or use 'double' type in schema"
+                            .formatted(value, Long.MIN_VALUE, Long.MAX_VALUE));
         }
     }
 
-    /**
-     * Validates that a {@code double} value can be cast to {@code float} without overflow.
-     *
-     * <p>Catches finite-overflow only — finite values whose magnitude exceeds {@link Float#MAX_VALUE}
-     * (e.g. {@code 1.0e40}) would silently clamp to {@code Float.POSITIVE_INFINITY} under a plain
-     * Java cast and are therefore rejected. {@code NaN} and {@code ±Infinity} pass through unchanged
-     * because the cast preserves them ({@code (float) Double.NaN == Float.NaN},
-     * {@code (float) Double.POSITIVE_INFINITY == Float.POSITIVE_INFINITY}) — they are legitimate
-     * IEEE-754 values, not corruption.</p>
-     *
-     * <p>We also deliberately do <b>not</b> reject finite, in-range doubles that lose bit-exact
-     * precision when cast to float (e.g. {@code 0.1} becomes {@code 0.10000000149...}), because
-     * that would reject very common pipeline values and diverge from Java's standard {@code (float)}
-     * cast semantics used by other JVM serialization frameworks (Avro, Jackson, Protobuf).</p>
-     *
-     * @param value the candidate value
-     * @throws DataException if {@code value} is finite and its magnitude exceeds {@link Float#MAX_VALUE}
-     */
+    // Rejects finite values whose magnitude exceeds Float.MAX_VALUE — those would silently clamp to
+    // ±Infinity under a plain Java cast. NaN and ±Infinity pass through because the cast preserves them.
+    // Precision loss for in-range doubles is accepted to match Java's (float) cast semantics.
     public static void requireFloatRange(double value) {
         if (Double.isFinite(value) && Math.abs(value) > Float.MAX_VALUE) {
-            throw new DataException("Value %s exceeds FLOAT range".formatted(value));
+            throw new DataException("Value %s exceeds FLOAT range [%s, %s]".formatted(value, -Float.MAX_VALUE, Float.MAX_VALUE));
         }
+    }
+
+    public static int convertLongToInt(long value) {
+        requireIntRange(value);
+        return (int) value;
     }
 }

@@ -195,31 +195,20 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return new FieldParser<>(childName, false, schema.doc(), enumParser);
     }
 
-    /**
-     * Builds a parser for an integer-valued YAML field.
-     *
-     * <p>TODO: silently narrows oversized YAML literals. {@link ParseNode#asInt()} calls Jackson's
-     * {@code node.intValue()}, which truncates a {@code LongNode} → {@code int} without error
-     * (e.g. YAML value {@code 9999999999} silently becomes {@code 1410065407}). Gating with
-     * {@code node.isInt()} and throwing on mismatch would catch misconfigured KSML definitions,
-     * but changes startup behaviour for any existing YAML that currently relies on this silent
-     * narrowing — apply with care.</p>
-     */
     protected StructsParser<Integer> integerField(String childName, String doc) {
-        return freeField(childName, doc, ParserWithSchemas.of(ParseNode::asInt, DataSchema.INTEGER_SCHEMA));
+        return freeField(childName, doc, ParserWithSchemas.of(node -> {
+            if (!node.isInt())
+                throw new ParseException(node, "YAML value for '" + childName + "' is out of INT range: " + node.asString());
+            return node.asInt();
+        }, DataSchema.INTEGER_SCHEMA));
     }
 
-    /**
-     * Builds a parser for a long-valued YAML field.
-     *
-     * <p>TODO: silently narrows oversized YAML literals. {@link ParseNode#asLong()} calls Jackson's
-     * {@code node.longValue()}, which truncates a {@code DoubleNode} or {@code BigInteger} → {@code
-     * long} without error. Gating with {@code node.isLong()} and throwing on mismatch would catch
-     * misconfigured KSML definitions, but changes startup behaviour for any existing YAML that
-     * currently relies on this silent narrowing — apply with care.</p>
-     */
     protected StructsParser<Long> longField(String childName, String doc) {
-        return freeField(childName, doc, ParserWithSchemas.of(ParseNode::asLong, DataSchema.LONG_SCHEMA));
+        return freeField(childName, doc, ParserWithSchemas.of(node -> {
+            if (!node.isInt() && !node.isLong())
+                throw new ParseException(node, "YAML value for '" + childName + "' is not a valid long integer: " + node.asString());
+            return node.asLong();
+        }, DataSchema.LONG_SCHEMA));
     }
 
     protected StructsParser<String> stringField(String childName, String doc) {
