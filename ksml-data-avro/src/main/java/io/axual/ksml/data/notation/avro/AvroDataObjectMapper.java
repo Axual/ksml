@@ -349,16 +349,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case DataShort val -> val.value() == null ? null : val.value().intValue();
             case DataInteger val -> val.value();
             case DataLong val -> val.value() == null ? null : NumericRangeChecker.convertLongToInt(val.value());
-            case DataFloat val -> {
-                if (val.value() == null) yield null;
-                NumericRangeChecker.requireIntRange(val.value().doubleValue());
-                yield val.value().intValue();
-            }
-            case DataDouble val -> {
-                if (val.value() == null) yield null;
-                NumericRangeChecker.requireIntRange(val.value());
-                yield val.value().intValue();
-            }
+            case DataFloat val -> val.value() == null ? null : NumericRangeChecker.convertDoubleToInt(val.value().doubleValue());
+            case DataDouble val -> val.value() == null ? null : NumericRangeChecker.convertDoubleToInt(val.value());
             default -> schemaMismatch(value, schema);
         };
     }
@@ -369,16 +361,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case DataShort val -> val.value() == null ? null : val.value().longValue();
             case DataInteger val -> val.value() == null ? null : val.value().longValue();
             case DataLong val -> val.value();
-            case DataFloat val -> {
-                if (val.value() == null) yield null;
-                NumericRangeChecker.requireLongRange(val.value().doubleValue());
-                yield val.value().longValue();
-            }
-            case DataDouble val -> {
-                if (val.value() == null) yield null;
-                NumericRangeChecker.requireLongRange(val.value());
-                yield val.value().longValue();
-            }
+            case DataFloat val -> val.value() == null ? null : NumericRangeChecker.convertDoubleToLong(val.value().doubleValue());
+            case DataDouble val -> val.value() == null ? null : NumericRangeChecker.convertDoubleToLong(val.value());
             default -> schemaMismatch(value, schema);
         };
     }
@@ -402,11 +386,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case DataInteger val -> val.value() == null ? null : val.value().floatValue();
             case DataLong val -> val.value() == null ? null : val.value().floatValue();
             case DataFloat val -> val.value();
-            case DataDouble val -> {
-                if (val.value() == null) yield null;
-                NumericRangeChecker.requireFloatRange(val.value());
-                yield val.value().floatValue();
-            }
+            case DataDouble val -> val.value() == null ? null : NumericRangeChecker.convertDoubleToFloat(val.value());
             default -> schemaMismatch(value, schema);
         };
     }

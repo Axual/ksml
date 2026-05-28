@@ -251,10 +251,7 @@ public class ConvertUtil {
     }
 
     private DataObject convertShortToTargetType(DataShort val, DataType targetType) {
-        if (targetType == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.value().longValue());
-            return new DataByte(val.value().byteValue());
-        }
+        if (targetType == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertLongToByte(val.value().longValue()));
         if (targetType == DataType.UNKNOWN || targetType == DataShort.DATATYPE) return val;
         if (targetType == DataInteger.DATATYPE) return new DataInteger(val.value().intValue());
         if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
@@ -264,14 +261,8 @@ public class ConvertUtil {
     }
 
     private DataObject convertIntegerToTargetType(DataInteger val, DataType targetType) {
-        if (targetType == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.value().longValue());
-            return new DataByte(val.value().byteValue());
-        }
-        if (targetType == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val.value().longValue());
-            return new DataShort(val.value().shortValue());
-        }
+        if (targetType == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertLongToByte(val.value().longValue()));
+        if (targetType == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertLongToShort(val.value().longValue()));
         if (targetType == DataType.UNKNOWN || targetType == DataInteger.DATATYPE) return val;
         if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
         if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
@@ -280,18 +271,9 @@ public class ConvertUtil {
     }
 
     private DataObject convertLongToTargetType(DataLong val, DataType targetType) {
-        if (targetType == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.value());
-            return new DataByte(val.value().byteValue());
-        }
-        if (targetType == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val.value());
-            return new DataShort(val.value().shortValue());
-        }
-        if (targetType == DataInteger.DATATYPE) {
-            NumericRangeChecker.requireIntRange(val.value());
-            return new DataInteger(val.value().intValue());
-        }
+        if (targetType == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertLongToByte(val.value()));
+        if (targetType == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertLongToShort(val.value()));
+        if (targetType == DataInteger.DATATYPE) return new DataInteger(NumericRangeChecker.convertLongToInt(val.value()));
         if (targetType == DataType.UNKNOWN || targetType == DataLong.DATATYPE) return val;
         if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
         if (targetType == DataFloat.DATATYPE) return new DataFloat(val.value().floatValue());
@@ -299,47 +281,20 @@ public class ConvertUtil {
     }
 
     private DataObject convertDoubleToTargetType(DataDouble val, DataType targetType) {
-        if (targetType == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.value());
-            return new DataByte(val.value().byteValue());
-        }
-        if (targetType == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val.value());
-            return new DataShort(val.value().shortValue());
-        }
-        if (targetType == DataInteger.DATATYPE) {
-            NumericRangeChecker.requireIntRange(val.value());
-            return new DataInteger(val.value().intValue());
-        }
-        if (targetType == DataLong.DATATYPE) {
-            NumericRangeChecker.requireLongRange(val.value());
-            return new DataLong(val.value().longValue());
-        }
+        if (targetType == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertDoubleToByte(val.value()));
+        if (targetType == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertDoubleToShort(val.value()));
+        if (targetType == DataInteger.DATATYPE) return new DataInteger(NumericRangeChecker.convertDoubleToInt(val.value()));
+        if (targetType == DataLong.DATATYPE) return new DataLong(NumericRangeChecker.convertDoubleToLong(val.value()));
         if (targetType == DataType.UNKNOWN || targetType == DataDouble.DATATYPE) return val;
-        if (targetType == DataFloat.DATATYPE) {
-            NumericRangeChecker.requireFloatRange(val.value());
-            return new DataFloat(val.value().floatValue());
-        }
+        if (targetType == DataFloat.DATATYPE) return new DataFloat(NumericRangeChecker.convertDoubleToFloat(val.value()));
         throw new DataException("Can not convert DataDouble value to " + targetType);
     }
 
     private DataObject convertFloatToTargetType(DataFloat val, DataType targetType) {
-        if (targetType == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.value().doubleValue());
-            return new DataByte(val.value().byteValue());
-        }
-        if (targetType == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val.value().doubleValue());
-            return new DataShort(val.value().shortValue());
-        }
-        if (targetType == DataInteger.DATATYPE) {
-            NumericRangeChecker.requireIntRange(val.value().doubleValue());
-            return new DataInteger(val.value().intValue());
-        }
-        if (targetType == DataLong.DATATYPE) {
-            NumericRangeChecker.requireLongRange(val.value().doubleValue());
-            return new DataLong(val.value().longValue());
-        }
+        if (targetType == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertDoubleToByte(val.value().doubleValue()));
+        if (targetType == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertDoubleToShort(val.value().doubleValue()));
+        if (targetType == DataInteger.DATATYPE) return new DataInteger(NumericRangeChecker.convertDoubleToInt(val.value().doubleValue()));
+        if (targetType == DataLong.DATATYPE) return new DataLong(NumericRangeChecker.convertDoubleToLong(val.value().doubleValue()));
         if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
         if (targetType == DataType.UNKNOWN || targetType == DataFloat.DATATYPE) return val;
         throw new DataException("Can not convert DataDouble value to " + targetType);

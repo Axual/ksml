@@ -109,8 +109,43 @@ public final class NumericRangeChecker {
         }
     }
 
+    public static byte convertLongToByte(long value) {
+        requireByteRange(value);
+        return (byte) value;
+    }
+
+    public static short convertLongToShort(long value) {
+        requireShortRange(value);
+        return (short) value;
+    }
+
     public static int convertLongToInt(long value) {
         requireIntRange(value);
         return (int) value;
+    }
+
+    public static byte convertDoubleToByte(double value) {
+        requireByteRange(value);
+        return (byte) value;
+    }
+
+    public static short convertDoubleToShort(double value) {
+        requireShortRange(value);
+        return (short) value;
+    }
+
+    public static int convertDoubleToInt(double value) {
+        requireIntRange(value);
+        return (int) value;
+    }
+
+    public static long convertDoubleToLong(double value) {
+        requireLongRange(value);
+        return (long) value;
+    }
+
+    public static float convertDoubleToFloat(double value) {
+        requireFloatRange(value);
+        return (float) value;
     }
 }

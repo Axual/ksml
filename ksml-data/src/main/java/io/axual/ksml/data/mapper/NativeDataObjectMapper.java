@@ -146,10 +146,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private DataObject convertShortToDataObject(Short val, DataType expected) {
-        if (expected == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.longValue());
-            return new DataByte(val.byteValue());
-        }
+        if (expected == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertLongToByte(val.longValue()));
         if (expected == null || expected == DataType.UNKNOWN || expected == DataShort.DATATYPE)
             return new DataShort(val);
         if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
@@ -160,14 +157,8 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private DataObject convertIntegerToDataObject(Integer val, DataType expected) {
-        if (expected == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.longValue());
-            return new DataByte(val.byteValue());
-        }
-        if (expected == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val.longValue());
-            return new DataShort(val.shortValue());
-        }
+        if (expected == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertLongToByte(val.longValue()));
+        if (expected == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertLongToShort(val.longValue()));
         if (expected == null || expected == DataType.UNKNOWN || expected == DataInteger.DATATYPE)
             return new DataInteger(val);
         if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
@@ -177,18 +168,9 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private DataObject convertLongToDataObject(Long val, DataType expected) {
-        if (expected == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val);
-            return new DataByte(val.byteValue());
-        }
-        if (expected == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val);
-            return new DataShort(val.shortValue());
-        }
-        if (expected == DataInteger.DATATYPE) {
-            NumericRangeChecker.requireIntRange(val);
-            return new DataInteger(val.intValue());
-        }
+        if (expected == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertLongToByte(val));
+        if (expected == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertLongToShort(val));
+        if (expected == DataInteger.DATATYPE) return new DataInteger(NumericRangeChecker.convertLongToInt(val));
         if (expected == null || expected == DataType.UNKNOWN || expected == DataLong.DATATYPE)
             return new DataLong(val);
         if (expected == DataFloat.DATATYPE) return new DataFloat(val.floatValue());
@@ -197,48 +179,21 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private DataObject convertDoubleToDataObject(Double val, DataType expected) {
-        if (expected == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val);
-            return new DataByte(val.byteValue());
-        }
-        if (expected == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val);
-            return new DataShort(val.shortValue());
-        }
-        if (expected == DataInteger.DATATYPE) {
-            NumericRangeChecker.requireIntRange(val);
-            return new DataInteger(val.intValue());
-        }
-        if (expected == DataLong.DATATYPE) {
-            NumericRangeChecker.requireLongRange(val);
-            return new DataLong(val.longValue());
-        }
+        if (expected == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertDoubleToByte(val));
+        if (expected == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertDoubleToShort(val));
+        if (expected == DataInteger.DATATYPE) return new DataInteger(NumericRangeChecker.convertDoubleToInt(val));
+        if (expected == DataLong.DATATYPE) return new DataLong(NumericRangeChecker.convertDoubleToLong(val));
         if (expected == null || expected == DataType.UNKNOWN || expected == DataDouble.DATATYPE)
             return new DataDouble(val);
-        if (expected == DataFloat.DATATYPE) {
-            NumericRangeChecker.requireFloatRange(val);
-            return new DataFloat(val.floatValue());
-        }
+        if (expected == DataFloat.DATATYPE) return new DataFloat(NumericRangeChecker.convertDoubleToFloat(val));
         return new DataDouble(val);
     }
 
     private DataObject convertFloatToDataObject(Float val, DataType expected) {
-        if (expected == DataByte.DATATYPE) {
-            NumericRangeChecker.requireByteRange(val.doubleValue());
-            return new DataByte(val.byteValue());
-        }
-        if (expected == DataShort.DATATYPE) {
-            NumericRangeChecker.requireShortRange(val.doubleValue());
-            return new DataShort(val.shortValue());
-        }
-        if (expected == DataInteger.DATATYPE) {
-            NumericRangeChecker.requireIntRange(val.doubleValue());
-            return new DataInteger(val.intValue());
-        }
-        if (expected == DataLong.DATATYPE) {
-            NumericRangeChecker.requireLongRange(val.doubleValue());
-            return new DataLong(val.longValue());
-        }
+        if (expected == DataByte.DATATYPE) return new DataByte(NumericRangeChecker.convertDoubleToByte(val.doubleValue()));
+        if (expected == DataShort.DATATYPE) return new DataShort(NumericRangeChecker.convertDoubleToShort(val.doubleValue()));
+        if (expected == DataInteger.DATATYPE) return new DataInteger(NumericRangeChecker.convertDoubleToInt(val.doubleValue()));
+        if (expected == DataLong.DATATYPE) return new DataLong(NumericRangeChecker.convertDoubleToLong(val.doubleValue()));
         if (expected == DataDouble.DATATYPE) return new DataDouble(val.doubleValue());
         if (expected == null || expected == DataType.UNKNOWN || expected == DataFloat.DATATYPE)
             return new DataFloat(val);

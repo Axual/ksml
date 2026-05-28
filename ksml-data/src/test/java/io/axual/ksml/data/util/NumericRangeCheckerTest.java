@@ -127,4 +127,85 @@ class NumericRangeCheckerTest {
         assertThatCode(() -> NumericRangeChecker.requireFloatRange(Float.MAX_VALUE)).doesNotThrowAnyException();
         assertThatCode(() -> NumericRangeChecker.requireFloatRange(-Float.MAX_VALUE)).doesNotThrowAnyException();
     }
+
+    // --- convert methods ---
+
+    @Test
+    void convertLongToByte_returnsCorrectValue() {
+        assert NumericRangeChecker.convertLongToByte(42L) == (byte) 42;
+        assert NumericRangeChecker.convertLongToByte((long) Byte.MIN_VALUE) == Byte.MIN_VALUE;
+        assert NumericRangeChecker.convertLongToByte((long) Byte.MAX_VALUE) == Byte.MAX_VALUE;
+    }
+
+    @Test
+    void convertLongToByte_throwsForOutOfRange() {
+        assertThatThrownBy(() -> NumericRangeChecker.convertLongToByte(200L)).isInstanceOf(DataException.class);
+    }
+
+    @Test
+    void convertLongToShort_returnsCorrectValue() {
+        assert NumericRangeChecker.convertLongToShort(1000L) == (short) 1000;
+        assert NumericRangeChecker.convertLongToShort((long) Short.MIN_VALUE) == Short.MIN_VALUE;
+        assert NumericRangeChecker.convertLongToShort((long) Short.MAX_VALUE) == Short.MAX_VALUE;
+    }
+
+    @Test
+    void convertLongToShort_throwsForOutOfRange() {
+        assertThatThrownBy(() -> NumericRangeChecker.convertLongToShort(100_000L)).isInstanceOf(DataException.class);
+    }
+
+    @Test
+    void convertDoubleToByte_returnsCorrectValue() {
+        assert NumericRangeChecker.convertDoubleToByte(42.9) == (byte) 42;
+    }
+
+    @Test
+    void convertDoubleToByte_throwsForOutOfRange() {
+        assertThatThrownBy(() -> NumericRangeChecker.convertDoubleToByte(200.0)).isInstanceOf(DataException.class);
+    }
+
+    @Test
+    void convertDoubleToShort_returnsCorrectValue() {
+        assert NumericRangeChecker.convertDoubleToShort(1000.5) == (short) 1000;
+    }
+
+    @Test
+    void convertDoubleToShort_throwsForOutOfRange() {
+        assertThatThrownBy(() -> NumericRangeChecker.convertDoubleToShort(100_000.0)).isInstanceOf(DataException.class);
+    }
+
+    @Test
+    void convertDoubleToInt_returnsCorrectValue() {
+        assert NumericRangeChecker.convertDoubleToInt(42.9) == 42;
+        assert NumericRangeChecker.convertDoubleToInt((double) Integer.MIN_VALUE) == Integer.MIN_VALUE;
+        assert NumericRangeChecker.convertDoubleToInt((double) Integer.MAX_VALUE) == Integer.MAX_VALUE;
+    }
+
+    @Test
+    void convertDoubleToInt_throwsForOutOfRange() {
+        assertThatThrownBy(() -> NumericRangeChecker.convertDoubleToInt(9_999_999_999.0)).isInstanceOf(DataException.class);
+    }
+
+    @Test
+    void convertDoubleToLong_returnsCorrectValue() {
+        assert NumericRangeChecker.convertDoubleToLong(1.0e18) == (long) 1.0e18;
+        assert NumericRangeChecker.convertDoubleToLong(0.0) == 0L;
+    }
+
+    @Test
+    void convertDoubleToLong_throwsForOutOfRange() {
+        assertThatThrownBy(() -> NumericRangeChecker.convertDoubleToLong(1.0e20)).isInstanceOf(DataException.class);
+        assertThatThrownBy(() -> NumericRangeChecker.convertDoubleToLong(Double.NaN)).isInstanceOf(DataException.class);
+    }
+
+    @Test
+    void convertDoubleToFloat_returnsCorrectValue() {
+        assert NumericRangeChecker.convertDoubleToFloat(1.5) == 1.5f;
+        assert NumericRangeChecker.convertDoubleToFloat(0.0) == 0.0f;
+    }
+
+    @Test
+    void convertDoubleToFloat_throwsForOutOfRange() {
+        assertThatThrownBy(() -> NumericRangeChecker.convertDoubleToFloat(1.0e40)).isInstanceOf(DataException.class);
+    }
 }
