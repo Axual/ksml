@@ -34,7 +34,7 @@ import java.util.List;
  */
 @JsonSchema(
         description = "A block that defines assertions to run against pipeline output",
-        anyOfRequired = {"on", "stores"})
+        anyOfRequired = {KSMLTestDSL.Assert.ON, KSMLTestDSL.Assert.STORES})
 public record AssertBlock(
         @JsonSchema(description = "Key into the suite's streams: map identifying the output stream to read records from",
                 examples = {"sensor_filtered", "alerts"})
@@ -54,7 +54,9 @@ public record AssertBlock(
         var hasOnBlock = on != null;
         var hasStoresBlock = stores != null && !stores.isEmpty();
         if (!hasOnBlock && !hasStoresBlock) {
-            throw new TestDefinitionException("Assert block must have at least 'on' or non-empty 'stores'");
+            throw new TestDefinitionException(
+                    "Assert block must have at least '" + KSMLTestDSL.Assert.ON
+                            + "' or non-empty '" + KSMLTestDSL.Assert.STORES + "'");
         }
     }
 }

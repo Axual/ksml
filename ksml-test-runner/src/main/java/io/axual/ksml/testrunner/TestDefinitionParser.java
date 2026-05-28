@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Parses a YAML test suite definition file into a {@link TestSuiteDefinition}.
@@ -50,12 +49,10 @@ import java.util.regex.Pattern;
 @Slf4j
 public class TestDefinitionParser {
 
-    /** Regex enforced for both stream-map keys and test-map keys. */
-    public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]*$");
-
     /** Top-level fields permitted at the suite level. Anything else triggers a "did you misplace this?" error when it appears under a test entry. */
     private static final Set<String> SUITE_LEVEL_FIELDS = Set.of(
-            "name", "definition", "schemaDirectory", "moduleDirectory", "streams", "tests");
+            KSMLTestDSL.NAME, KSMLTestDSL.DEFINITION, KSMLTestDSL.SCHEMA_DIRECTORY,
+            KSMLTestDSL.MODULE_DIRECTORY, KSMLTestDSL.STREAMS, KSMLTestDSL.TESTS);
 
     // STRICT_DUPLICATE_DETECTION makes Jackson throw on duplicate keys at any nesting level
     // instead of silently keeping one of them. The thrown JsonParseException carries line/column
@@ -88,16 +85,16 @@ public class TestDefinitionParser {
 
         var fieldExtractor = new FieldExtractor(root, testFile);
 
-        var declaredName = fieldExtractor.optionalString("name");
+        var declaredName = fieldExtractor.optionalString(KSMLTestDSL.NAME);
         var name = (declaredName != null && !declaredName.isEmpty())
                 ? declaredName
                 : filenameWithoutExtension(testFile);
-        var definition = fieldExtractor.requireString("definition");
-        var schemaDirectory = fieldExtractor.optionalString("schemaDirectory");
-        var moduleDirectory = fieldExtractor.optionalString("moduleDirectory");
+        var definition = fieldExtractor.requireString(KSMLTestDSL.DEFINITION);
+        var schemaDirectory = fieldExtractor.optionalString(KSMLTestDSL.SCHEMA_DIRECTORY);
+        var moduleDirectory = fieldExtractor.optionalString(KSMLTestDSL.MODULE_DIRECTORY);
 
-        var streams = parseStreams(root.get("streams"), testFile);
-        var tests = parseTests(root.get("tests"), streams.keySet(), testFile);
+        var streams = parseStreams(root.get(KSMLTestDSL.STREAMS), testFile);
+        var tests = parseTests(root.get(KSMLTestDSL.TESTS), streams.keySet(), testFile);
 
         return new TestSuiteDefinition(name, definition, schemaDirectory, moduleDirectory, streams, tests);
     }
@@ -136,14 +133,14 @@ public class TestDefinitionParser {
     private LinkedHashMap<String, StreamDefinition> parseStreams(JsonNode streamsNode, Path testFile) {
         var result = new LinkedHashMap<String, StreamDefinition>();
         if (streamsNode == null || streamsNode.isNull()) {
-            throw new TestDefinitionException("Missing required 'streams' map in " + testFile);
+            throw new TestDefinitionException("Missing required '" + KSMLTestDSL.STREAMS + "' map in " + testFile);
         }
         if (!streamsNode.isObject()) {
-            throw new TestDefinitionException("'streams' must be a map in " + testFile);
+            throw new TestDefinitionException("'" + KSMLTestDSL.STREAMS + "' must be a map in " + testFile);
         }
         if (streamsNode.isEmpty()) {
             throw new TestDefinitionException(
-                    "'streams' map must contain at least one entry in " + testFile);
+                    "'" + KSMLTestDSL.STREAMS + "' map must contain at least one entry in " + testFile);
         }
 
         var seenTopics = new HashMap<String, String>(); // topic -> first stream key that used it
@@ -158,9 +155,9 @@ public class TestDefinitionParser {
                         "Stream entry '" + streamKey + "' must be an object in " + testFile);
             }
             var ef = new FieldExtractor(entryNode, testFile);
-            var topic = ef.requireString("topic");
-            var keyType = ef.optionalString("keyType", "string");
-            var valueType = ef.optionalString("valueType", "string");
+            var topic = ef.requireString(KSMLTestDSL.Streams.TOPIC);
+            var keyType = ef.optionalString(KSMLTestDSL.Streams.KEY_TYPE, "string");
+            var valueType = ef.optionalString(KSMLTestDSL.Streams.VALUE_TYPE, "string");
 
             // Note: type-string validation (e.g., rejection of bare 'confluent_avro' or 'json:Foo')
             // is deferred to runtime. UserTypeParser depends on the global notation library, which
@@ -192,14 +189,14 @@ public class TestDefinitionParser {
                                                                  Set<String> streamKeys,
                                                                  Path testFile) {
         if (testsNode == null || testsNode.isNull()) {
-            throw new TestDefinitionException("Missing required 'tests' map in " + testFile);
+            throw new TestDefinitionException("Missing required '" + KSMLTestDSL.TESTS + "' map in " + testFile);
         }
         if (!testsNode.isObject()) {
-            throw new TestDefinitionException("'tests' must be a map in " + testFile);
+            throw new TestDefinitionException("'" + KSMLTestDSL.TESTS + "' must be a map in " + testFile);
         }
         if (testsNode.isEmpty()) {
             throw new TestDefinitionException(
-                    "'tests' map must contain at least one entry in " + testFile);
+                    "'" + KSMLTestDSL.TESTS + "' map must contain at least one entry in " + testFile);
         }
 
         var result = new LinkedHashMap<String, TestCaseDefinition>();
@@ -223,24 +220,24 @@ public class TestDefinitionParser {
                 }
             });
 
-            var description = optionalText(entryNode.get("description"));
-            var produceNode = entryNode.get("produce");
+            var description = optionalText(entryNode.get(KSMLTestDSL.Tests.DESCRIPTION));
+            var produceNode = entryNode.get(KSMLTestDSL.Tests.PRODUCE);
             if (produceNode == null) {
                 throw new TestDefinitionException(
-                        "Test '" + testKey + "' is missing required field 'produce' in " + testFile);
+                        "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.PRODUCE + "' in " + testFile);
             }
             if (!produceNode.isArray()) {
                 throw new TestDefinitionException(
-                        "Test '" + testKey + "' field 'produce' must be an array in " + testFile);
+                        "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.PRODUCE + "' must be an array in " + testFile);
             }
-            var assertNode = entryNode.get("assert");
+            var assertNode = entryNode.get(KSMLTestDSL.Tests.ASSERT);
             if (assertNode == null) {
                 throw new TestDefinitionException(
-                        "Test '" + testKey + "' is missing required field 'assert' in " + testFile);
+                        "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.ASSERT + "' in " + testFile);
             }
             if (!assertNode.isArray()) {
                 throw new TestDefinitionException(
-                        "Test '" + testKey + "' field 'assert' must be an array in " + testFile);
+                        "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.ASSERT + "' must be an array in " + testFile);
             }
 
             var produceBlocks = parseProduceBlocks(produceNode, streamKeys, testKey, testFile);
@@ -264,15 +261,15 @@ public class TestDefinitionParser {
         var blocks = new ArrayList<ProduceBlock>();
         for (var blockNode : produceArray) {
             var f = new FieldExtractor(blockNode, testFile);
-            var to = f.requireString("to");
+            var to = f.requireString(KSMLTestDSL.Produce.TO);
             if (!streamKeys.contains(to)) {
                 throw new TestDefinitionException(
                         "Produce block in test '" + testKey + "' references stream '" + to
-                                + "' that is not declared in 'streams:' (" + testFile + ")");
+                                + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            var messages = parseMessages(blockNode.get("messages"));
-            var generator = f.optionalMap("generator");
-            var count = f.optionalLong("count");
+            var messages = parseMessages(blockNode.get(KSMLTestDSL.Produce.MESSAGES));
+            var generator = f.optionalMap(KSMLTestDSL.Produce.GENERATOR);
+            var count = f.optionalLong(KSMLTestDSL.Produce.COUNT);
 
             var block = new ProduceBlock(to, messages, generator, count);
             block.validate();
@@ -294,14 +291,14 @@ public class TestDefinitionParser {
         var blocks = new ArrayList<AssertBlock>();
         for (var blockNode : assertArray) {
             var f = new FieldExtractor(blockNode, testFile);
-            var on = f.optionalString("on");
+            var on = f.optionalString(KSMLTestDSL.Assert.ON);
             if (on != null && !streamKeys.contains(on)) {
                 throw new TestDefinitionException(
                         "Assert block in test '" + testKey + "' references stream '" + on
-                                + "' that is not declared in 'streams:' (" + testFile + ")");
+                                + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            var stores = f.optionalStringList("stores");
-            var code = f.requireString("code");
+            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES);
+            var code = f.requireString(KSMLTestDSL.Assert.CODE);
 
             var block = new AssertBlock(on, stores, code);
             block.validate();
@@ -321,11 +318,11 @@ public class TestDefinitionParser {
         }
         var messages = new ArrayList<TestMessage>();
         for (var msgNode : messagesNode) {
-            var key = FieldExtractor.nodeToObject(msgNode.get("key"));
-            var value = FieldExtractor.nodeToObject(msgNode.get("value"));
+            var key = FieldExtractor.nodeToObject(msgNode.get(KSMLTestDSL.Message.KEY));
+            var value = FieldExtractor.nodeToObject(msgNode.get(KSMLTestDSL.Message.VALUE));
             Long timestamp = null;
-            if (msgNode.has("timestamp")) {
-                timestamp = msgNode.get("timestamp").asLong();
+            if (msgNode.has(KSMLTestDSL.Message.TIMESTAMP)) {
+                timestamp = msgNode.get(KSMLTestDSL.Message.TIMESTAMP).asLong();
             }
             messages.add(new TestMessage(key, value, timestamp));
         }
@@ -340,10 +337,10 @@ public class TestDefinitionParser {
     }
 
     private static void validateIdentifier(String kind, String key, Path testFile) {
-        if (!IDENTIFIER_PATTERN.matcher(key).matches()) {
+        if (!KSMLTestDSL.IDENTIFIER_PATTERN.matcher(key).matches()) {
             throw new TestDefinitionException(
                     "Invalid " + kind + " key '" + key + "': must match "
-                            + IDENTIFIER_PATTERN.pattern()
+                            + KSMLTestDSL.IDENTIFIER_PATTERN.pattern()
                             + " (alphanumeric and underscore, starting with a letter) in " + testFile);
         }
     }

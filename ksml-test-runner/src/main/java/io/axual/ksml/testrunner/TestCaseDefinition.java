@@ -42,7 +42,7 @@ public record TestCaseDefinition(
         List<ProduceBlock> produce,
 
         @JsonSchema(description = "Assertion blocks defining expected outcomes for this test",
-                required = true, yamlName = "assert")
+                required = true, yamlName = KSMLTestDSL.Tests.ASSERT)
         List<AssertBlock> assertions
 ) {
 }

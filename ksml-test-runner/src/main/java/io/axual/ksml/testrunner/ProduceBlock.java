@@ -34,7 +34,7 @@ import java.util.Map;
  */
 @JsonSchema(
         description = "A block that defines test data to be produced into a stream",
-        oneOfRequired = {"messages", "generator"})
+        oneOfRequired = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR})
 public record ProduceBlock(
         @JsonSchema(description = "Key into the suite's streams: map identifying the target stream",
                 required = true,
@@ -56,11 +56,13 @@ public record ProduceBlock(
     public void validate() {
         if (messages == null && generator == null) {
             throw new TestDefinitionException(
-                    "Produce block targeting stream '" + to + "' must have either 'messages' or 'generator'");
+                    "Produce block targeting stream '" + to + "' must have either '"
+                            + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "'");
         }
         if (messages != null && generator != null) {
             throw new TestDefinitionException(
-                    "Produce block targeting stream '" + to + "' must have either 'messages' or 'generator', not both");
+                    "Produce block targeting stream '" + to + "' must have either '"
+                            + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "', not both");
         }
     }
 }
