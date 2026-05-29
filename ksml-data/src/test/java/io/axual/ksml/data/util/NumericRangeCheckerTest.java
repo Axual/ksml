@@ -23,6 +23,7 @@ package io.axual.ksml.data.util;
 import io.axual.ksml.data.exception.DataException;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -132,9 +133,9 @@ class NumericRangeCheckerTest {
 
     @Test
     void convertLongToByte_returnsCorrectValue() {
-        assert NumericRangeChecker.convertLongToByte(42L) == (byte) 42;
-        assert NumericRangeChecker.convertLongToByte((long) Byte.MIN_VALUE) == Byte.MIN_VALUE;
-        assert NumericRangeChecker.convertLongToByte((long) Byte.MAX_VALUE) == Byte.MAX_VALUE;
+        assertThat(NumericRangeChecker.convertLongToByte(42L)).isEqualTo((byte) 42);
+        assertThat(NumericRangeChecker.convertLongToByte((long) Byte.MIN_VALUE)).isEqualTo(Byte.MIN_VALUE);
+        assertThat(NumericRangeChecker.convertLongToByte((long) Byte.MAX_VALUE)).isEqualTo(Byte.MAX_VALUE);
     }
 
     @Test
@@ -144,9 +145,9 @@ class NumericRangeCheckerTest {
 
     @Test
     void convertLongToShort_returnsCorrectValue() {
-        assert NumericRangeChecker.convertLongToShort(1000L) == (short) 1000;
-        assert NumericRangeChecker.convertLongToShort((long) Short.MIN_VALUE) == Short.MIN_VALUE;
-        assert NumericRangeChecker.convertLongToShort((long) Short.MAX_VALUE) == Short.MAX_VALUE;
+        assertThat(NumericRangeChecker.convertLongToShort(1000L)).isEqualTo((short) 1000);
+        assertThat(NumericRangeChecker.convertLongToShort((long) Short.MIN_VALUE)).isEqualTo(Short.MIN_VALUE);
+        assertThat(NumericRangeChecker.convertLongToShort((long) Short.MAX_VALUE)).isEqualTo(Short.MAX_VALUE);
     }
 
     @Test
@@ -156,7 +157,7 @@ class NumericRangeCheckerTest {
 
     @Test
     void convertDoubleToByte_returnsCorrectValue() {
-        assert NumericRangeChecker.convertDoubleToByte(42.9) == (byte) 42;
+        assertThat(NumericRangeChecker.convertDoubleToByte(42.9)).isEqualTo((byte) 42);
     }
 
     @Test
@@ -166,7 +167,7 @@ class NumericRangeCheckerTest {
 
     @Test
     void convertDoubleToShort_returnsCorrectValue() {
-        assert NumericRangeChecker.convertDoubleToShort(1000.5) == (short) 1000;
+        assertThat(NumericRangeChecker.convertDoubleToShort(1000.5)).isEqualTo((short) 1000);
     }
 
     @Test
@@ -176,9 +177,9 @@ class NumericRangeCheckerTest {
 
     @Test
     void convertDoubleToInt_returnsCorrectValue() {
-        assert NumericRangeChecker.convertDoubleToInt(42.9) == 42;
-        assert NumericRangeChecker.convertDoubleToInt((double) Integer.MIN_VALUE) == Integer.MIN_VALUE;
-        assert NumericRangeChecker.convertDoubleToInt((double) Integer.MAX_VALUE) == Integer.MAX_VALUE;
+        assertThat(NumericRangeChecker.convertDoubleToInt(42.9)).isEqualTo(42);
+        assertThat(NumericRangeChecker.convertDoubleToInt((double) Integer.MIN_VALUE)).isEqualTo(Integer.MIN_VALUE);
+        assertThat(NumericRangeChecker.convertDoubleToInt((double) Integer.MAX_VALUE)).isEqualTo(Integer.MAX_VALUE);
     }
 
     @Test
@@ -188,8 +189,8 @@ class NumericRangeCheckerTest {
 
     @Test
     void convertDoubleToLong_returnsCorrectValue() {
-        assert NumericRangeChecker.convertDoubleToLong(1.0e18) == (long) 1.0e18;
-        assert NumericRangeChecker.convertDoubleToLong(0.0) == 0L;
+        assertThat(NumericRangeChecker.convertDoubleToLong(1.0e18)).isEqualTo((long) 1.0e18);
+        assertThat(NumericRangeChecker.convertDoubleToLong(0.0)).isEqualTo(0L);
     }
 
     @Test
@@ -200,8 +201,8 @@ class NumericRangeCheckerTest {
 
     @Test
     void convertDoubleToFloat_returnsCorrectValue() {
-        assert NumericRangeChecker.convertDoubleToFloat(1.5) == 1.5f;
-        assert NumericRangeChecker.convertDoubleToFloat(0.0) == 0.0f;
+        assertThat(NumericRangeChecker.convertDoubleToFloat(1.5)).isEqualTo(1.5f);
+        assertThat(NumericRangeChecker.convertDoubleToFloat(0.0)).isEqualTo(0.0f);
     }
 
     @Test
