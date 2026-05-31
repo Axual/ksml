@@ -25,7 +25,9 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
@@ -286,20 +288,27 @@ public class SoapDataObjectMapper implements DataObjectMapper<SOAPMessage> {
         }
     }
 
-    private void addChildToElement(SOAPElement element, DataObject value) throws SOAPException {
+    // Package-private to allow unit testing without building a full SOAP envelope.
+    void addChildToElement(SOAPElement element, DataObject value) throws SOAPException {
         if (value instanceof DataList list) {
             for (final var listElement : list) {
                 addChildToElement(element, listElement);
             }
-        }
-        if (value instanceof DataStruct struct) {
+        } else if (value instanceof DataStruct struct) {
             for (final var structEntry : struct.entrySet()) {
                 final var childElement = element.addChildElement(new QName(structEntry.getKey()));
                 addChildToElement(childElement, structEntry.getValue());
             }
-        }
-        if (value instanceof DataString str) {
+        } else if (value instanceof DataString str) {
             element.setTextContent(str.value());
+        } else if (value instanceof DataNull) {
+            // Leave the element empty; SOAP has no native null representation.
+        } else if (value instanceof DataPrimitive<?> primitive) {
+            final var primitiveValue = primitive.value();
+            if (primitiveValue != null) element.setTextContent(primitiveValue.toString());
+        } else {
+            throw new DataException("Unsupported DataObject type for SOAP element: "
+                    + (value != null ? value.getClass().getSimpleName() : "null"));
         }
     }
 

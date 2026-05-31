@@ -80,7 +80,20 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
     }
 
     private DataStruct convertLineToDataStruct(String[] line, StructSchema schema) {
-        // Convert the line to a DataStruct with given schema
+        // Convert the line to a DataStruct with given schema.
+        //
+        // Design choice — lenient CSV parsing:
+        // 1. If the row is SHORTER than the schema (e.g. schema has 3 fields, row has 2),
+        //    trailing missing columns are silently treated as "" for required fields and
+        //    null for optional fields. The row is NOT rejected.
+        // 2. If a required column is EMPTY in the row, it is stored as the empty string ""
+        //    rather than rejected.
+        //
+        // This is intentional: CSV is a notoriously fuzzy format and many real-world feeds
+        // ship truncated or partially-empty rows. Throwing here would break pipelines that
+        // currently tolerate these inputs. Callers that need strict-schema enforcement should
+        // validate the DataStruct downstream (e.g. with a custom filter step) rather than
+        // relying on the CSV mapper to do it.
         final var result = new DataStruct(schema);
         for (int index = 0; index < schema.fields().size(); index++) {
             final var field = schema.field(index);

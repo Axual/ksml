@@ -664,6 +664,397 @@ class AvroDataObjectMapperTest {
     }
 
 
+    @Test
+    @DisplayName("fromDataObject should throw DataException when DataLong exceeds INT range in Avro INT schema field")
+    void fromDataObject_longValueExceedingIntRange_throwsDataException() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test")
+                .name("LongOverflowTest")
+                .doc("overflow test")
+                .field(new StructSchema.Field("sequence", DataSchema.INTEGER_SCHEMA))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        var struct = new DataStruct(structSchema);
+        struct.put("sequence", new DataLong(3_000_000_001L)); // exceeds Integer.MAX_VALUE
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds INT range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: GenericRecord written with LONG, expected reader schema has INT, value exceeds INT range -> DataException")
+    void toDataObject_writerLongReaderInt_overflowValue_throwsDataException() {
+        // Writer schema: produced messages declare 'sequence' as LONG (e.g. 3_000_000_010)
+        var writerAvroSchema = SchemaBuilder.record("SensorData")
+                .namespace("io.axual.ksml.example")
+                .fields()
+                .requiredString("name")
+                .name("sequence").type().longType().noDefault()
+                .endRecord();
+
+        var genericRecord = new GenericData.Record(writerAvroSchema);
+        genericRecord.put("name", "sensor9");
+        genericRecord.put("sequence", 3_000_000_010L);
+
+        // Reader/expected KSML schema: definition was demoted to INT after publishing
+        var readerStructSchema = StructSchema.builder()
+                .namespace("io.axual.ksml.example")
+                .name("SensorData")
+                .doc("doc")
+                .field(new StructSchema.Field("name", DataSchema.STRING_SCHEMA))
+                .field(new StructSchema.Field("sequence", DataSchema.INTEGER_SCHEMA))
+                .additionalFieldsAllowed(false)
+                .build();
+        var readerDataType = new io.axual.ksml.data.type.StructType(readerStructSchema);
+
+        assertThatCode(() -> mapper.toDataObject(readerDataType, genericRecord))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds INT range");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataDouble exceeding INT range targeting Avro INT field -> DataException")
+    void fromDataObject_doubleExceedingIntRange_toAvroInt_throwsDataException() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("DoubleToIntOverflow").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.INTEGER_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataDouble(3_000_000_000.0));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("INT");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataFloat exceeding INT range targeting Avro INT field -> DataException")
+    void fromDataObject_floatExceedingIntRange_toAvroInt_throwsDataException() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("FloatToIntOverflow").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.INTEGER_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataFloat(3_000_000_000f));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("INT");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: non-finite DataDouble targeting Avro INT field -> DataException")
+    void fromDataObject_nonFiniteDouble_toAvroInt_throwsDataException() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("NaNToInt").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.INTEGER_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataDouble(Double.NaN));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("INT");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataDouble exceeding LONG range targeting Avro LONG field -> DataException")
+    void fromDataObject_doubleExceedingLongRange_toAvroLong_throwsDataException() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("DoubleToLongOverflow").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.LONG_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataDouble(Double.MAX_VALUE));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("LONG");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: non-finite DataDouble targeting Avro LONG field -> DataException")
+    void fromDataObject_nonFiniteDouble_toAvroLong_throwsDataException() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("InfToLong").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.LONG_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataDouble(Double.POSITIVE_INFINITY));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("LONG");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataDouble exceeding Float range targeting Avro FLOAT field -> DataException")
+    void fromDataObject_doubleOverflow_toAvroFloat_throwsDataException() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("DoubleToFloatOverflow").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.FLOAT_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataDouble(Double.MAX_VALUE));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("FLOAT");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: non-finite DataDouble targeting Avro FLOAT field -> passes through (cast preserves NaN/Infinity)")
+    void fromDataObject_nonFiniteDouble_toAvroFloat_passesThrough() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("NaNToFloat").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.FLOAT_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataDouble(Double.NaN));
+
+        var record = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(record.get("v")).isInstanceOf(Float.class);
+        assertThat(((Float) record.get("v")).isNaN()).isTrue();
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataDouble within Float range -> accepted even with precision loss")
+    void fromDataObject_doubleWithinFloatRange_acceptedWithPrecisionLoss() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("DoubleInFloatRange").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.FLOAT_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        // 0.1 is not exactly representable as float; the conversion still succeeds (matches Java cast semantics).
+        struct.put("v", new DataDouble(0.1));
+
+        var genericRecord = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(genericRecord.get("v")).isEqualTo(0.1f);
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataInteger widens safely to Avro LONG field")
+    void fromDataObject_integerWidens_toAvroLong() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("IntToLong").doc("d")
+                .field(new StructSchema.Field("v", DataSchema.LONG_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataInteger(42));
+
+        var genericRecord = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(genericRecord.get("v")).isEqualTo(42L);
+    }
+
+    @Test
+    @DisplayName("fromDataObject should accept DataLong within INT range when Avro schema field is INT")
+    void fromDataObject_longValueWithinIntRange_convertsToInt() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test")
+                .name("LongRangeTest")
+                .doc("in-range test")
+                .field(new StructSchema.Field("sequence", DataSchema.INTEGER_SCHEMA))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        var struct = new DataStruct(structSchema);
+        struct.put("sequence", new DataLong(42L));
+
+        var genericRecord = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(genericRecord.get("sequence")).isEqualTo(42);
+    }
+
+    // ========== Avro DOUBLE / FLOAT: safe-widening source types ==========
+
+    @Test
+    @DisplayName("Avro DOUBLE accepts DataByte/Short/Integer/Long/Float widenings")
+    void avroDouble_acceptsNumericWidenings() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("WideToDouble").doc("d")
+                .field(new StructSchema.Field("b", DataSchema.DOUBLE_SCHEMA))
+                .field(new StructSchema.Field("s", DataSchema.DOUBLE_SCHEMA))
+                .field(new StructSchema.Field("i", DataSchema.DOUBLE_SCHEMA))
+                .field(new StructSchema.Field("l", DataSchema.DOUBLE_SCHEMA))
+                .field(new StructSchema.Field("f", DataSchema.DOUBLE_SCHEMA))
+                .field(new StructSchema.Field("d", DataSchema.DOUBLE_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("b", new DataByte((byte) 1));
+        struct.put("s", new DataShort((short) 2));
+        struct.put("i", new DataInteger(3));
+        struct.put("l", new DataLong(4L));
+        struct.put("f", new DataFloat(5.5f));
+        struct.put("d", new DataDouble(6.25));
+
+        var record = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(record.get("b")).isEqualTo(1.0);
+        assertThat(record.get("s")).isEqualTo(2.0);
+        assertThat(record.get("i")).isEqualTo(3.0);
+        assertThat(record.get("l")).isEqualTo(4.0);
+        assertThat((double) record.get("f")).isEqualTo(5.5, org.assertj.core.api.Assertions.within(0.001));
+        assertThat(record.get("d")).isEqualTo(6.25);
+    }
+
+    @Test
+    @DisplayName("Avro FLOAT accepts DataByte/Short/Integer/Long widenings (precision loss allowed for huge ints)")
+    void avroFloat_acceptsNumericWidenings() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("WideToFloat").doc("d")
+                .field(new StructSchema.Field("b", DataSchema.FLOAT_SCHEMA))
+                .field(new StructSchema.Field("s", DataSchema.FLOAT_SCHEMA))
+                .field(new StructSchema.Field("i", DataSchema.FLOAT_SCHEMA))
+                .field(new StructSchema.Field("l", DataSchema.FLOAT_SCHEMA))
+                .field(new StructSchema.Field("f", DataSchema.FLOAT_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("b", new DataByte((byte) 1));
+        struct.put("s", new DataShort((short) 2));
+        struct.put("i", new DataInteger(3));
+        struct.put("l", new DataLong(4L));
+        struct.put("f", new DataFloat(5.5f));
+
+        var record = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(record.get("b")).isEqualTo(1.0f);
+        assertThat(record.get("s")).isEqualTo(2.0f);
+        assertThat(record.get("i")).isEqualTo(3.0f);
+        assertThat(record.get("l")).isEqualTo(4.0f);
+        assertThat(record.get("f")).isEqualTo(5.5f);
+    }
+
+    // ========== Avro UNION branch resolution ==========
+    // The mapper must pick the union branch whose native Avro type matches the runtime DataObject
+    // type rather than the first branch whose conversion happens to return a non-null candidate.
+
+    @Test
+    @DisplayName("Avro UNION { long, double }: DataLong routes through the LONG branch")
+    void avroUnion_dataLongPicksLongBranch() {
+        var union = new io.axual.ksml.data.schema.UnionSchema(
+                new io.axual.ksml.data.schema.UnionSchema.Member(DataSchema.LONG_SCHEMA),
+                new io.axual.ksml.data.schema.UnionSchema.Member(DataSchema.DOUBLE_SCHEMA));
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("UnionPick").doc("d")
+                .field(new StructSchema.Field("v", union))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataLong(5L));
+
+        var result = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(result.get("v")).isInstanceOf(Long.class).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("Avro UNION { long, double }: DataDouble routes through the DOUBLE branch")
+    void avroUnion_dataDoublePicksDoubleBranch() {
+        var union = new io.axual.ksml.data.schema.UnionSchema(
+                new io.axual.ksml.data.schema.UnionSchema.Member(DataSchema.LONG_SCHEMA),
+                new io.axual.ksml.data.schema.UnionSchema.Member(DataSchema.DOUBLE_SCHEMA));
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("UnionPick2").doc("d")
+                .field(new StructSchema.Field("v", union))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("v", new DataDouble(3.14));
+
+        var result = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(result.get("v")).isInstanceOf(Double.class).isEqualTo(3.14);
+    }
+
+    // ========== Avro ENUM validation ==========
+
+    @Test
+    @DisplayName("Avro ENUM rejects strings that are not declared symbols of the schema")
+    void avroEnum_rejectsUnknownSymbol() {
+        var enumSchema = new io.axual.ksml.data.schema.EnumSchema(
+                "io.axual.test", "Color", "color",
+                java.util.List.of(
+                        new io.axual.ksml.data.schema.EnumSchema.Symbol("RED"),
+                        new io.axual.ksml.data.schema.EnumSchema.Symbol("GREEN"),
+                        new io.axual.ksml.data.schema.EnumSchema.Symbol("BLUE")));
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("HasEnum").doc("d")
+                .field(new StructSchema.Field("color", enumSchema))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("color", new DataString("PURPLE"));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("PURPLE")
+                .hasMessageContaining("not a valid symbol");
+    }
+
+    @Test
+    @DisplayName("Avro ENUM accepts a declared symbol")
+    void avroEnum_acceptsValidSymbol() {
+        var enumSchema = new io.axual.ksml.data.schema.EnumSchema(
+                "io.axual.test", "Color", "color",
+                java.util.List.of(
+                        new io.axual.ksml.data.schema.EnumSchema.Symbol("RED"),
+                        new io.axual.ksml.data.schema.EnumSchema.Symbol("GREEN")));
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("HasEnum2").doc("d")
+                .field(new StructSchema.Field("color", enumSchema))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("color", new DataString("GREEN"));
+
+        var result = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(result.get("color").toString()).isEqualTo("GREEN");
+    }
+
+    // ========== Avro schemaMismatch (item 6) ==========
+
+    @Test
+    @DisplayName("Avro: DataString sent to an INT field throws a clear DataException")
+    void avro_stringToIntField_throwsLoudly() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("MismatchInt").doc("d")
+                .field(new StructSchema.Field("n", DataSchema.INTEGER_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("n", new DataString("not an int"));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Cannot convert")
+                .hasMessageContaining("INT");
+    }
+
+    @Test
+    @DisplayName("Avro: DataInteger sent to a STRING field throws a clear DataException")
+    void avro_integerToStringField_throwsLoudly() {
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("MismatchString").doc("d")
+                .field(new StructSchema.Field("s", DataSchema.STRING_SCHEMA))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("s", new DataInteger(42));
+
+        assertThatCode(() -> mapper.fromDataObject(struct))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Cannot convert")
+                .hasMessageContaining("STRING");
+    }
+
+    @Test
+    @DisplayName("Avro: DataNull preserves null even on the schemaMismatch fallback path")
+    void avro_nullPreservedOnMismatchPath() {
+        // A DataStruct with a DataNull value for an INT field is valid for nullable schemas.
+        // The schemaMismatch helper must short-circuit DataNull → null instead of throwing.
+        var structSchema = StructSchema.builder()
+                .namespace("io.axual.test").name("NullablePath").doc("d")
+                .field(new StructSchema.Field("n", DataSchema.INTEGER_SCHEMA, null,
+                        io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG, false))
+                .additionalFieldsAllowed(false).build();
+        var struct = new DataStruct(structSchema);
+        struct.put("n", DataNull.INSTANCE);
+
+        var record = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(record.get("n")).isNull();
+    }
+
     static class UnsupportedDataObject implements DataObject {
         @Override
         public DataType type() {
