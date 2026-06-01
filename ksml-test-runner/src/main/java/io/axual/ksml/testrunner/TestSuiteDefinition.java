@@ -37,24 +37,30 @@ import java.util.LinkedHashMap;
  */
 @JsonSchema(description = "KSML test suite definition")
 public record TestSuiteDefinition(
-        @JsonSchema(description = "Optional suite-level name; falls back to filename without extension",
+        @JsonSchema(yamlName = KSMLTestDSL.NAME,
+                description = "Optional suite-level name; falls back to filename without extension",
                 examples = {"Filtering & transforming pipeline"})
         String name,
 
-        @JsonSchema(description = "Path to the KSML pipeline definition YAML", required = true,
+        @JsonSchema(yamlName = KSMLTestDSL.DEFINITION,
+                description = "Path to the KSML pipeline definition YAML", required = true,
                 examples = {"definitions/my-pipeline.yaml"})
         String definition,
 
-        @JsonSchema(description = "Path to schema files directory", examples = {"schemas"})
+        @JsonSchema(yamlName = KSMLTestDSL.SCHEMA_DIRECTORY,
+                description = "Path to schema files directory", examples = {"schemas"})
         String schemaDirectory,
 
-        @JsonSchema(description = "Path to externalized Python modules", examples = {"modules"})
+        @JsonSchema(yamlName = KSMLTestDSL.MODULE_DIRECTORY,
+                description = "Path to externalized Python modules", examples = {"modules"})
         String moduleDirectory,
 
-        @JsonSchema(description = "Named topic+type bindings, referenced from to:/on: in produce/assert blocks")
+        @JsonSchema(yamlName = KSMLTestDSL.STREAMS,
+                description = "Named topic+type bindings, referenced from to:/on: in produce/assert blocks")
         LinkedHashMap<String, StreamDefinition> streams,
 
-        @JsonSchema(description = "Named tests in the suite; at least one entry required",
+        @JsonSchema(yamlName = KSMLTestDSL.TESTS,
+                description = "Named tests in the suite; at least one entry required",
                 required = true, minProperties = 1)
         LinkedHashMap<String, TestCaseDefinition> tests
 ) {

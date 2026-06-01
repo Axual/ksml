@@ -52,3 +52,19 @@
 ## 7. Document
 
 - [x] 7.1 Add a one-line class-level javadoc on `KSMLTestDSL` referencing the `ksml` module's `io.axual.ksml.dsl.KSMLDSL` as the design model, so the parallel pattern is discoverable. Included in the initial class javadoc: *"This class mirrors the design of `io.axual.ksml.dsl.KSMLDSL` in the `ksml` module, which serves the same role for the KSML pipeline DSL."*
+
+## 8. Close the schema-side gap: make KSMLTestDSL the single authority (fix (a))
+
+The Open Questions section in design.md documented that for record components whose Java identifier happens to equal the YAML name, the schema generator picks up the YAML name via reflection (`component.getName()`) — leaving two unlinked authorities. This section applies fix (a): annotate every component with an explicit `yamlName = KSMLTestDSL.X.Y` so the constant is the only source the schema generator consults. After this work, `TestDefinitionSchemaGenerator.yamlNameOf(...)` always finds an explicit `yamlName` and never falls through to the Java field name.
+
+- [x] 8.1 Capture the generated schema as a pre-edit baseline at `/tmp/ksml-schema-snapshot/before.json` for a byte-identical comparison after the rewrite.
+- [x] 8.2 `TestSuiteDefinition` — add `yamlName = KSMLTestDSL.NAME`, `KSMLTestDSL.DEFINITION`, `KSMLTestDSL.SCHEMA_DIRECTORY`, `KSMLTestDSL.MODULE_DIRECTORY`, `KSMLTestDSL.STREAMS`, `KSMLTestDSL.TESTS` to the six component annotations.
+- [x] 8.3 `TestCaseDefinition` — add `yamlName = KSMLTestDSL.Tests.DESCRIPTION`, `KSMLTestDSL.Tests.PRODUCE` to the two components that don't have an explicit `yamlName` yet (the `assertions` component already carries `yamlName = KSMLTestDSL.Tests.ASSERT`).
+- [x] 8.4 `StreamDefinition` — add `yamlName = KSMLTestDSL.Streams.TOPIC`, `KSMLTestDSL.Streams.KEY_TYPE`, `KSMLTestDSL.Streams.VALUE_TYPE` to its three components.
+- [x] 8.5 `TestMessage` — add `yamlName = KSMLTestDSL.Message.KEY`, `KSMLTestDSL.Message.VALUE`, `KSMLTestDSL.Message.TIMESTAMP` to its three components.
+- [x] 8.6 `ProduceBlock` — add `yamlName = KSMLTestDSL.Produce.TO`, `KSMLTestDSL.Produce.MESSAGES`, `KSMLTestDSL.Produce.GENERATOR`, `KSMLTestDSL.Produce.COUNT` to its four components.
+- [x] 8.7 `AssertBlock` — add `yamlName = KSMLTestDSL.Assert.ON`, `KSMLTestDSL.Assert.STORES`, `KSMLTestDSL.Assert.CODE` to its three components.
+- [x] 8.8 Regenerate the schema; diff against the pre-edit baseline; assert byte-identical output. `diff -u before.json after.json` produced no output — schema is byte-identical.
+- [x] 8.9 `mvn -pl ksml-test-runner test` — confirm all 103 tests still pass (the assertions encode the expected YAML field names as literals, so any drift would be loud). **103/103 pass.**
+- [x] 8.10 Update the Open Questions section of `design.md` to record that fix (a) has been applied and what remains open (the silent-drift window for cosmetic-optional parser-only constants like `Tests.DESCRIPTION`, which only fix (b) would close).
+- [x] 8.11 Sanity-check that fix (a) actually closed the schema-side gap: re-run Experiment 1's perturbation (`Produce.COUNT = "countXYZ"`) and regenerate the schema. The generated schema now reflects the rename (`"countXYZ"` appears as the property key under produce-block properties), whereas before fix (a) the schema retained `"count"` because the schema generator picked it up from the Java field name. Confirms that `KSMLTestDSL.Produce.COUNT` is now the only authority the schema generator consults for that field. Reverted after the check.

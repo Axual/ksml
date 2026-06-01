@@ -34,15 +34,18 @@ import java.util.List;
  */
 @JsonSchema(description = "One hermetic test entry in a test suite")
 public record TestCaseDefinition(
-        @JsonSchema(description = "Optional human-readable description; falls back to the test key when absent",
+        @JsonSchema(yamlName = KSMLTestDSL.Tests.DESCRIPTION,
+                description = "Optional human-readable description; falls back to the test key when absent",
                 examples = {"Valid sensor data is transformed"})
         String description,
 
-        @JsonSchema(description = "Produce blocks defining test data for this test", required = true)
+        @JsonSchema(yamlName = KSMLTestDSL.Tests.PRODUCE,
+                description = "Produce blocks defining test data for this test", required = true)
         List<ProduceBlock> produce,
 
-        @JsonSchema(description = "Assertion blocks defining expected outcomes for this test",
-                required = true, yamlName = KSMLTestDSL.Tests.ASSERT)
+        @JsonSchema(yamlName = KSMLTestDSL.Tests.ASSERT,
+                description = "Assertion blocks defining expected outcomes for this test",
+                required = true)
         List<AssertBlock> assertions
 ) {
 }

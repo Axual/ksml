@@ -31,15 +31,18 @@ package io.axual.ksml.testrunner;
  */
 @JsonSchema(description = "A named binding from a logical stream identifier to a Kafka topic and its key/value types")
 public record StreamDefinition(
-        @JsonSchema(description = "Kafka topic name", required = true,
+        @JsonSchema(yamlName = KSMLTestDSL.Streams.TOPIC,
+                description = "Kafka topic name", required = true,
                 examples = {"my-topic", "sensor-data"})
         String topic,
 
-        @JsonSchema(description = "Key serialization type", defaultValue = "string",
+        @JsonSchema(yamlName = KSMLTestDSL.Streams.KEY_TYPE,
+                description = "Key serialization type", defaultValue = "string",
                 examples = {"string", "avro:MyKeySchema"})
         String keyType,
 
-        @JsonSchema(description = "Value serialization type", defaultValue = "string",
+        @JsonSchema(yamlName = KSMLTestDSL.Streams.VALUE_TYPE,
+                description = "Value serialization type", defaultValue = "string",
                 examples = {"string", "avro:SensorData", "json"})
         String valueType
 ) {
