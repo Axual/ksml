@@ -49,9 +49,9 @@ class TestDefinitionSchemaGeneratorTest {
     // respective patternProperties maps. The identifier regex contains no `/` or `~` so it
     // is safe to use as a JSON Pointer path segment as-is.
     private static final String STREAM_SCHEMA_POINTER =
-            "/properties/streams/patternProperties/" + TestDefinitionSchemaGenerator.IDENTIFIER_REGEX;
+            "/properties/streams/patternProperties/" + KSMLTestDSL.IDENTIFIER_REGEX;
     private static final String TEST_SCHEMA_POINTER =
-            "/properties/tests/patternProperties/" + TestDefinitionSchemaGenerator.IDENTIFIER_REGEX;
+            "/properties/tests/patternProperties/" + KSMLTestDSL.IDENTIFIER_REGEX;
 
     private static JsonNode root;
 
@@ -97,7 +97,7 @@ class TestDefinitionSchemaGeneratorTest {
         assertEquals("object", streams.get("type").asText());
         assertFalse(streams.get("additionalProperties").asBoolean());
         var pattern = streams.path("patternProperties");
-        assertTrue(pattern.has(TestDefinitionSchemaGenerator.IDENTIFIER_REGEX),
+        assertTrue(pattern.has(KSMLTestDSL.IDENTIFIER_REGEX),
                 "streams.patternProperties must be keyed by the identifier regex");
     }
 
@@ -108,7 +108,7 @@ class TestDefinitionSchemaGeneratorTest {
         assertFalse(tests.get("additionalProperties").asBoolean());
         assertEquals(1, tests.get("minProperties").asInt(),
                 "tests map must require at least one entry");
-        assertTrue(tests.path("patternProperties").has(TestDefinitionSchemaGenerator.IDENTIFIER_REGEX));
+        assertTrue(tests.path("patternProperties").has(KSMLTestDSL.IDENTIFIER_REGEX));
     }
 
     @Test

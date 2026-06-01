@@ -110,10 +110,10 @@ public class TestDataProducer {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void produceGeneratedMessages(ProduceBlock block, StreamDefinition stream, long count) {
         var generatorMap = block.generator();
-        var generatorName = getStringOrDefault(generatorMap,"name", "test_generator");
-        var globalCode = getStringOrDefault(generatorMap, "globalCode", "");
-        var code = getStringOrDefault(generatorMap, "code", "");
-        var expression = getStringOrDefault(generatorMap, "expression", "result");
+        var generatorName = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.NAME, "test_generator");
+        var globalCode = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.GLOBAL_CODE, "");
+        var code = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.CODE, "");
+        var expression = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.EXPRESSION, "result");
 
         // Use a concrete ListType result type rather than GeneratorDefinition's UnionType default.
         // PythonDataObjectMapper cannot convert a polyglot Value when the expected type is a UnionType,

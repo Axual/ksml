@@ -135,10 +135,20 @@ tests:
         messages:
           - key: "sensor4"
             value:
-              invalid_field: "malformed"
+              sensors:
+                temperature:
+                  value: 75
+                  unit: "F"
+                humidity:
+                  value: 50
+                  unit: "%"
+                location: "kitchen"
+              metadata:
+                timestamp: 1700000000000
     assert:
       - on: alerts_stream
         code: |
+          assert len(records) == 1, f"Expected 1 record on alerts_stream, got {len(records)}"
           if len(records) > 0:
               error = records[0]["value"]
               assert "error" in error, "Expected 'error' field in alert record"
