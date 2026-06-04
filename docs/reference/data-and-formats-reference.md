@@ -593,7 +593,6 @@ namely when you say `keyType: xml` you refer to a schemaless XML type. See the t
 | json       | No         | Never       | Schemaless JSON                      | n/a                          |
 | jsonschema | No         | Always      | Loads latest JSON Schema from SR     | Loads Schema.json from disk  |
 | protobuf   | No         | Always      | Loads latest Protobuf schema from SR | Loads Schema.proto from disk |
-| soap       | No         | Never       | Schemaless SOAP                      | n/a                          |
 | xml        | No         | Optional    | Schemaless XML                       | Loads Schema.xsd from disk   |
 
 ### Format Selection Guide
@@ -604,7 +603,7 @@ The choice of notation depends on your specific requirements:
 |---------------------------------------------|-------------------------------|
 | Schema evolution and backward compatibility | Avro, JSON Schema or Protobuf |
 | Human-readable data for debugging           | JSON or JSON Schema           |
-| Integration with legacy systems             | XML or SOAP                   |
+| Integration with legacy systems             | XML                           |
 | Simple tabular data                         | CSV                           |
 | Compact binary format                       | Avro or Protobuf              |
 | Raw binary data handling                    | Binary                        |
@@ -842,26 +841,6 @@ streams:
     topic: orders
     keyType: string
     valueType: protobuf
-```
-
-### SOAP (deprecated, scheduled for removal in 1.4.0)
-
-SOAP (Simple Object Access Protocol) is an XML-based messaging protocol.
-
-**Syntax:**
-
-```yaml
-valueType: soap
-```
-
-**Example:**
-
-```yaml
-streams:
-  service_requests:
-    topic: service-requests
-    keyType: string
-    valueType: soap
 ```
 
 ### XML

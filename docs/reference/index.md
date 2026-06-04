@@ -33,7 +33,7 @@ Comprehensive guide to data types and notation formats in KSML:
 
 - Primitive data types (boolean, int, string, etc.)
 - Complex data types (enum, list, struct, tuple, union, windowed)
-- Notation formats (JSON, Avro, CSV, XML, Binary, SOAP, Protobuf)
+- Notation formats (JSON, Avro, CSV, XML, Binary, Protobuf)
 - Schema management (local files vs schema registry)
 - Type conversion and format conversion
 - Best practices for data handling

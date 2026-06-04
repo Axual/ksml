@@ -315,7 +315,6 @@ Built-in serializers (no configuration needed):
 - `json`: Schemaless JSON
 - `csv`: Comma-separated values
 - `xml`: XML format
-- `soap`: SOAP messages (deprecated)
 
 ### KSML Definition Loading
 

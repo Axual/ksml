@@ -17,7 +17,6 @@ For comprehensive syntax reference and format details, see the [Data Types and F
 - **CSV**: Tabular data with optional schema
 - **XML**: Hierarchical data with XSD schema support
 - **Binary**: Raw bytes for custom protocols
-- **SOAP**: Web service messaging format
 
 ## Specifying Data Formats
 
@@ -405,30 +404,6 @@ This processor demonstrates binary data manipulation (increments first byte) whi
     %}
     ```
 
-## Working with SOAP Data
-
-SOAP provides structured web service messaging with envelope/body format and no WSDL requirements.
-
-### Setup Requirements
-
-SOAP data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
-
-This producer creates SOAP request messages with envelope/body structure (no WSDL files required):
-
-??? info "Producer definition for SOAP messages (click to expand)"
-
-    ```yaml
-    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/producer-soap.yaml" %}
-    ```
-
-This processor transforms SOAP requests into SOAP responses (extracts request data and creates response with sensor values):
-
-??? info "Processor definition for SOAP messages (click to expand)"
-
-    ```yaml
-    {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/processor-soap.yaml" %}
-    ```
-
 ## Converting Between Data Formats
 
 Use the `convertValue` operation to transform data between formats within a single pipeline.
@@ -460,7 +435,7 @@ For comprehensive information on format conversion requirements, chaining conver
 
 ## Conclusion
 
-You've learned to work with KSML's data formats through practical examples: JSON, Avro, CSV, XML, Binary, and SOAP. Key concepts covered include format specification, schema usage, conversion operations, and multi-format pipelines.
+You've learned to work with KSML's data formats through practical examples: JSON, Avro, CSV, XML and Binary. Key concepts covered include format specification, schema usage, conversion operations, and multi-format pipelines.
 
 For complete syntax reference, type definitions, and advanced format features, refer to the [Data Types and Formats Reference](../../reference/data-and-formats-reference.md).
 

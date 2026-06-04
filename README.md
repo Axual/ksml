@@ -64,7 +64,6 @@ The submodules are as follows:
 | [`ksml-data-csv`](ksml-data-csv/)           | extension to the data library for CSV support.                                                               |
 | [`ksml-data-json`](ksml-data-json/)         | extension to the data library for JSON support.                                                              |
 | [`ksml-data-protobuf`](ksml-data-protobuf/) | extension to the data library for PROTOBUF support.                                                          |
-| [`ksml-data-soap`](ksml-data-soap/)         | extension to the data library for SOAP support.                                                              |
 | [`ksml-data-xml`](ksml-data-xml/)           | extension to the data library for XML support.                                                               |
 | [`ksml`](ksml/)                             | the core component that parses KSML definitions and converts them to a Kafka Streams topology.               |
 | [`ksml-kafka-clients`](ksml-kafka-clients/) | the set of Kafka clients for KSML, injected into Kafka Streams, allowing for namespaced Kafka installations. |
