@@ -114,6 +114,13 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
         final var msg = DynamicMessage.newBuilder(msgDescriptor);
 
+        setRegularFields(msg, struct, msgDescriptor, dataSchema);
+        setOneOfFields(msg, struct, msgDescriptor, dataSchema);
+
+        return msg.build();
+    }
+
+    private void setRegularFields(DynamicMessage.Builder msg, DataStruct struct, Descriptors.Descriptor msgDescriptor, StructSchema dataSchema) {
         // Copy all regular field values (ie. not part of a oneOf)
         for (final var field : msgDescriptor.getFields()) {
             final var parentOneOf = field.getContainingOneof();
@@ -128,7 +135,9 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
                 }
             }
         }
+    }
 
+    private void setOneOfFields(DynamicMessage.Builder msg, DataStruct struct, Descriptors.Descriptor msgDescriptor, StructSchema dataSchema) {
         // Copy all oneOf fields by assigning it explicitly to the field with right type
         for (final var oneOf : msgDescriptor.getOneofs()) {
             final var fieldName = oneOf.getName();
@@ -147,16 +156,20 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
                         }
                         index++;
                     }
+                    if (!assigned) {
+                        throw new DataException("Value of type " + fieldValue.getClass().getSimpleName()
+                                + " does not match any branch of PROTOBUF oneOf '" + fieldName + "'");
+                    }
                 } else {
                     throw new SchemaException("PROTOBUF oneOf does not match data field: schema=" + (fieldSchema != null ? fieldSchema.type() : "null"));
                 }
             }
         }
-
-        return msg.build();
     }
 
-    private void setMessageFieldValue(DynamicMessage.Builder msg, Descriptors.FieldDescriptor field, Object value) {
+    // Package-private to allow unit testing. Wraps setField so type mismatches surface with
+    // field-level context instead of a generic ClassCastException from inside the library.
+    void setMessageFieldValue(DynamicMessage.Builder msg, Descriptors.FieldDescriptor field, Object value) {
         if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
             final var evd = field.getEnumType().findValueByName(value.toString());
             if (evd == null) {
@@ -164,7 +177,13 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             }
             msg.setField(field, evd);
         } else {
-            msg.setField(field, value);
+            try {
+                msg.setField(field, value);
+            } catch (RuntimeException e) {
+                throw new DataException("Failed to set Protobuf field '" + field.getFullName()
+                        + "' (type=" + field.getType() + ") with value of type "
+                        + (value != null ? value.getClass().getSimpleName() : "null"), e);
+            }
         }
     }
 }

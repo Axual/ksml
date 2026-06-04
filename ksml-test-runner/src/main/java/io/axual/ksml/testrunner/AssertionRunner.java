@@ -171,10 +171,12 @@ public class AssertionRunner {
         var records = new ArrayList<Map<String, Object>>();
         var keyValues = outputTopic.readRecordsToList();
         for (var record : keyValues) {
+            // Keys match the YAML produce-message vocabulary so user assertion code
+            // sees the same field names for output records that they wrote for input.
             var map = new HashMap<String, Object>();
-            map.put("key", toNativeValue(record.key()));
-            map.put("value", toNativeValue(record.value()));
-            map.put("timestamp", record.timestamp());
+            map.put(KSMLTestDSL.Message.KEY, toNativeValue(record.key()));
+            map.put(KSMLTestDSL.Message.VALUE, toNativeValue(record.value()));
+            map.put(KSMLTestDSL.Message.TIMESTAMP, record.timestamp());
             records.add(map);
         }
         return records;

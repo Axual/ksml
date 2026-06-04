@@ -53,6 +53,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
@@ -699,7 +700,8 @@ class KafkaStreamsRunnerTest {
         // start returning state running
         streamState.set(KafkaStreams.State.RUNNING);
 
-        try (final var executor = Executors.newSingleThreadExecutor()) {
+        final var executor = Executors.newSingleThreadExecutor();
+        try {
 
             // Start runner, is blocked so check with async
             var future = CompletableFuture.runAsync(runner, executor);
@@ -718,6 +720,9 @@ class KafkaStreamsRunnerTest {
             Awaitility.await("Wait for runner to stop")
                     .atMost(Duration.ofSeconds(1))
                     .until(future::isDone);
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
         }
     }
 

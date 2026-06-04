@@ -34,20 +34,24 @@ import java.util.Map;
  */
 @JsonSchema(
         description = "A block that defines test data to be produced into a stream",
-        oneOfRequired = {"messages", "generator"})
+        oneOfRequired = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR})
 public record ProduceBlock(
-        @JsonSchema(description = "Key into the suite's streams: map identifying the target stream",
+        @JsonSchema(yamlName = KSMLTestDSL.Produce.TO,
+                description = "Key into the suite's streams: map identifying the target stream",
                 required = true,
                 examples = {"sensor_source", "raw_input"})
         String to,
 
-        @JsonSchema(description = "Inline test messages to produce")
+        @JsonSchema(yamlName = KSMLTestDSL.Produce.MESSAGES,
+                description = "Inline test messages to produce")
         List<TestMessage> messages,
 
-        @JsonSchema(description = "Generator function definition (KSML generator syntax)")
+        @JsonSchema(yamlName = KSMLTestDSL.Produce.GENERATOR,
+                description = "Generator function definition (KSML generator syntax)")
         Map<String, Object> generator,
 
-        @JsonSchema(description = "Number of times to invoke the generator function")
+        @JsonSchema(yamlName = KSMLTestDSL.Produce.COUNT,
+                description = "Number of times to invoke the generator function")
         Long count
 ) {
     /**
@@ -56,11 +60,13 @@ public record ProduceBlock(
     public void validate() {
         if (messages == null && generator == null) {
             throw new TestDefinitionException(
-                    "Produce block targeting stream '" + to + "' must have either 'messages' or 'generator'");
+                    "Produce block targeting stream '" + to + "' must have either '"
+                            + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "'");
         }
         if (messages != null && generator != null) {
             throw new TestDefinitionException(
-                    "Produce block targeting stream '" + to + "' must have either 'messages' or 'generator', not both");
+                    "Produce block targeting stream '" + to + "' must have either '"
+                            + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "', not both");
         }
     }
 }

@@ -20,6 +20,7 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.DataTypeFlattener;
@@ -27,7 +28,9 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
@@ -75,6 +78,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PythonDataObjectMapperTest {
@@ -169,6 +173,62 @@ class PythonDataObjectMapperTest {
         DataObject result = MAPPER.toDataObject(DataBytes.DATATYPE, val);
         assertThat(result).isInstanceOf(DataBytes.class);
         assertThat(((DataBytes) result).value()).containsExactly(1, 2, 3, -1);
+    }
+
+    @Test
+    @DisplayName("toDataObject - Bytes: Python int outside the byte range fails loudly")
+    void toDataObjectBytes_outOfRangeFailsLoudly() {
+        // 300 does not fit in [-128, 255]; previously this silently truncated to (byte) 44.
+        Value val = context.eval("python", "[1, 2, 300]");
+        assertThatCode(() -> MAPPER.toDataObject(DataBytes.DATATYPE, val))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("does not fit");
+    }
+
+    @Test
+    @DisplayName("toDataObject - Bytes: accepts both signed (-128..127) and unsigned (0..255) values")
+    void toDataObjectBytes_acceptsSignedAndUnsignedRange() {
+        Value val = context.eval("python", "[-128, -1, 0, 127, 128, 255]");
+        DataObject result = MAPPER.toDataObject(DataBytes.DATATYPE, val);
+        assertThat(((DataBytes) result).value())
+                .containsExactly((byte) -128, (byte) -1, (byte) 0, (byte) 127, (byte) -128, (byte) -1);
+    }
+
+    @Test
+    @DisplayName("PythonNativeMapper.fromPython(DataType, Value): GraalVM overflow wrapped as DataException")
+    void fromPython_typedNumeric_overflowFailsLoudly() {
+        // Python int 300 does not fit in a Java byte; GraalVM's Value.asByte() throws
+        // UnsupportedOperationException which is now wrapped as DataException naming the expected
+        // KSML type and the offending value.
+        Value val = context.eval("python", "300");
+        final var native_ = new PythonNativeMapper();
+        assertThatCode(() -> native_.fromPython(DataByte.DATATYPE, val))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("does not fit in expected type")
+                .hasMessageContaining("300");
+    }
+
+    @Test
+    @DisplayName("PythonNativeMapper.fromPython(DataType, Value): Python int that fits in the expected primitive returns the native value")
+    void fromPython_typedNumeric_inRangeReturnsNative() {
+        Value val = context.eval("python", "42");
+        final var native_ = new PythonNativeMapper();
+        assertThat(native_.fromPython(DataByte.DATATYPE, val)).isEqualTo((byte) 42);
+        assertThat(native_.fromPython(DataShort.DATATYPE, val)).isEqualTo((short) 42);
+        assertThat(native_.fromPython(DataInteger.DATATYPE, val)).isEqualTo(42);
+        assertThat(native_.fromPython(DataLong.DATATYPE, val)).isEqualTo(42L);
+    }
+
+    @Test
+    @DisplayName("PythonDataObjectMapper.toDataObject(DataByte, Value(300)) is caught by the Native narrowing check")
+    void toDataObject_overflowCaughtAtNarrowingLayer() {
+        // The PythonDataObjectMapper path discards the expected type when calling fromPython, so a
+        // Python int 300 → Long(300) survives that step but is then rejected by
+        // NativeDataObjectMapper's narrowing check when constructing a DataByte.
+        Value val = context.eval("python", "300");
+        assertThatCode(() -> MAPPER.toDataObject(DataByte.DATATYPE, val))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds BYTE range");
     }
 
     @Test

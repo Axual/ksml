@@ -655,6 +655,160 @@ class NativeDataObjectMapperTest {
     }
 
     @Test
+    @DisplayName("toDataObject: Long exceeding Integer range with DataInteger expected -> DataException")
+    void toDataObjectLongOverflowToInteger() {
+        assertThatCode(() -> mapper.toDataObject(DataInteger.DATATYPE, 3_000_000_001L))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds INT range");
+        assertThatCode(() -> mapper.toDataObject(DataInteger.DATATYPE, (long) Integer.MIN_VALUE - 1))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds INT range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Long within Integer range with DataInteger expected -> DataInteger")
+    void toDataObjectLongWithinIntegerRange() {
+        assertThat(mapper.toDataObject(DataInteger.DATATYPE, 42L)).isEqualTo(new DataInteger(42));
+        assertThat(mapper.toDataObject(DataInteger.DATATYPE, (long) Integer.MAX_VALUE)).isEqualTo(new DataInteger(Integer.MAX_VALUE));
+        assertThat(mapper.toDataObject(DataInteger.DATATYPE, (long) Integer.MIN_VALUE)).isEqualTo(new DataInteger(Integer.MIN_VALUE));
+    }
+
+    // ---- BYTE target: overflow + in-range coverage ----
+
+    @Test
+    @DisplayName("toDataObject: Short exceeding Byte range with DataByte expected -> DataException")
+    void toDataObjectShortOverflowToByte() {
+        assertThatCode(() -> mapper.toDataObject(DataByte.DATATYPE, (short) 200))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds BYTE range");
+        assertThatCode(() -> mapper.toDataObject(DataByte.DATATYPE, (short) -200))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds BYTE range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Integer exceeding Byte range with DataByte expected -> DataException")
+    void toDataObjectIntegerOverflowToByte() {
+        assertThatCode(() -> mapper.toDataObject(DataByte.DATATYPE, 200))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds BYTE range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Long exceeding Byte range with DataByte expected -> DataException")
+    void toDataObjectLongOverflowToByte() {
+        assertThatCode(() -> mapper.toDataObject(DataByte.DATATYPE, 200L))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds BYTE range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Short/Integer/Long within Byte range -> DataByte accepted")
+    void toDataObjectWithinByteRange() {
+        assertThat(mapper.toDataObject(DataByte.DATATYPE, (short) 42)).isEqualTo(new DataByte((byte) 42));
+        assertThat(mapper.toDataObject(DataByte.DATATYPE, 42)).isEqualTo(new DataByte((byte) 42));
+        assertThat(mapper.toDataObject(DataByte.DATATYPE, 42L)).isEqualTo(new DataByte((byte) 42));
+        assertThat(mapper.toDataObject(DataByte.DATATYPE, (long) Byte.MAX_VALUE)).isEqualTo(new DataByte(Byte.MAX_VALUE));
+        assertThat(mapper.toDataObject(DataByte.DATATYPE, (long) Byte.MIN_VALUE)).isEqualTo(new DataByte(Byte.MIN_VALUE));
+    }
+
+    // ---- SHORT target: overflow + in-range coverage ----
+
+    @Test
+    @DisplayName("toDataObject: Integer exceeding Short range with DataShort expected -> DataException")
+    void toDataObjectIntegerOverflowToShort() {
+        assertThatCode(() -> mapper.toDataObject(DataShort.DATATYPE, 40_000))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds SHORT range");
+        assertThatCode(() -> mapper.toDataObject(DataShort.DATATYPE, -40_000))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds SHORT range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Long exceeding Short range with DataShort expected -> DataException")
+    void toDataObjectLongOverflowToShort() {
+        assertThatCode(() -> mapper.toDataObject(DataShort.DATATYPE, 40_000L))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("exceeds SHORT range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Integer/Long within Short range -> DataShort accepted")
+    void toDataObjectWithinShortRange() {
+        assertThat(mapper.toDataObject(DataShort.DATATYPE, 1000)).isEqualTo(new DataShort((short) 1000));
+        assertThat(mapper.toDataObject(DataShort.DATATYPE, 1000L)).isEqualTo(new DataShort((short) 1000));
+        assertThat(mapper.toDataObject(DataShort.DATATYPE, (long) Short.MAX_VALUE)).isEqualTo(new DataShort(Short.MAX_VALUE));
+        assertThat(mapper.toDataObject(DataShort.DATATYPE, (long) Short.MIN_VALUE)).isEqualTo(new DataShort(Short.MIN_VALUE));
+    }
+
+    // ---- FLOAT target: overflow + non-finite caught; precision loss within range accepted ----
+
+    @Test
+    @DisplayName("toDataObject: Double exceeding Float range with DataFloat expected -> DataException")
+    void toDataObjectDoubleOverflowToFloat() {
+        assertThatCode(() -> mapper.toDataObject(DataFloat.DATATYPE, (double) Float.MAX_VALUE * 10))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("FLOAT range");
+        assertThatCode(() -> mapper.toDataObject(DataFloat.DATATYPE, -(double) Float.MAX_VALUE * 10))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("FLOAT range");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Non-finite Double with DataFloat expected -> passes through (cast preserves NaN/Infinity)")
+    void toDataObjectNonFiniteDoubleToFloatPassesThrough() {
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, Double.NaN)).isEqualTo(new DataFloat(Float.NaN));
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, Double.POSITIVE_INFINITY))
+                .isEqualTo(new DataFloat(Float.POSITIVE_INFINITY));
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, Double.NEGATIVE_INFINITY))
+                .isEqualTo(new DataFloat(Float.NEGATIVE_INFINITY));
+    }
+
+    @Test
+    @DisplayName("toDataObject: Double within Float range -> DataFloat accepted, even when bit-exact precision is lost")
+    void toDataObjectDoubleWithinFloatRangeAccepted() {
+        // 0.1 is not exactly representable as float; conversion is still accepted (matches Java cast semantics).
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, 0.1)).isEqualTo(new DataFloat(0.1f));
+        // Float.MAX_VALUE as a double round-trips cleanly to float.
+        assertThat(mapper.toDataObject(DataFloat.DATATYPE, (double) Float.MAX_VALUE)).isEqualTo(new DataFloat(Float.MAX_VALUE));
+    }
+
+    @Test
+    @DisplayName("toDataObject: Non-finite Double with DataLong expected -> DataException")
+    void toDataObjectNonFiniteDoubleToLong() {
+        assertThatCode(() -> mapper.toDataObject(DataLong.DATATYPE, Double.NaN))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("LONG");
+        assertThatCode(() -> mapper.toDataObject(DataLong.DATATYPE, Double.POSITIVE_INFINITY))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("LONG");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Finite Double exceeding LONG range -> DataException (no silent clamp to Long.MAX_VALUE)")
+    void toDataObjectFiniteDoubleExceedingLongRange() {
+        assertThatCode(() -> mapper.toDataObject(DataLong.DATATYPE, Double.MAX_VALUE))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("LONG");
+        assertThatCode(() -> mapper.toDataObject(DataLong.DATATYPE, -Double.MAX_VALUE))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("LONG");
+        // 2^63 is the first double that does not fit in a signed long
+        assertThatCode(() -> mapper.toDataObject(DataLong.DATATYPE, 0x1.0p63))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("LONG");
+    }
+
+    @Test
+    @DisplayName("toDataObject: Double exceeding Integer range with DataInteger expected -> DataException")
+    void toDataObjectDoubleOverflowToInteger() {
+        assertThatCode(() -> mapper.toDataObject(DataInteger.DATATYPE, 3_000_000_000.0))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("INT");
+    }
+
+    @Test
     @DisplayName("toDataObject: Class<?> throws DataException")
     void toDataObjectWithUnknownValue() {
         final var failingValue = getClass();

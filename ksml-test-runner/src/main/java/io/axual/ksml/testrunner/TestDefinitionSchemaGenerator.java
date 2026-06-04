@@ -47,9 +47,6 @@ import java.util.Map;
  */
 public class TestDefinitionSchemaGenerator {
 
-    /** Identifier regex shared with {@link TestDefinitionParser}. */
-    static final String IDENTIFIER_REGEX = "^[a-zA-Z][a-zA-Z0-9_]*$";
-
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
 
@@ -167,10 +164,10 @@ public class TestDefinitionSchemaGenerator {
             var schema = MAPPER.createObjectNode().put("type", "object");
             var valueType = resolveMapValueType(genericType);
             if (valueType instanceof Class<?> valueClass && valueClass.isRecord()) {
-                // Map<String, SomeRecord> → patternProperties keyed by IDENTIFIER_REGEX
+                // Map<String, SomeRecord> → patternProperties keyed by the shared identifier regex
                 schema.put("additionalProperties", false);
                 schema.putObject("patternProperties")
-                        .set(IDENTIFIER_REGEX, buildRecordSchema(valueClass));
+                        .set(KSMLTestDSL.IDENTIFIER_REGEX, buildRecordSchema(valueClass));
             }
             // Otherwise Map<String, Object> — leave as plain object with no constraints
             return schema;

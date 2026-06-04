@@ -29,13 +29,16 @@ package io.axual.ksml.testrunner;
  */
 @JsonSchema(description = "A single test message with key, value, and optional timestamp")
 public record TestMessage(
-        @JsonSchema(description = "Message key", required = true, examples = {"sensor-1", "user-42"})
+        @JsonSchema(yamlName = KSMLTestDSL.Message.KEY,
+                description = "Message key", required = true, examples = {"sensor-1", "user-42"})
         Object key,
 
-        @JsonSchema(description = "Message value (string or structured data)", required = true)
+        @JsonSchema(yamlName = KSMLTestDSL.Message.VALUE,
+                description = "Message value (string or structured data)", required = true)
         Object value,
 
-        @JsonSchema(description = "Optional timestamp in epoch milliseconds", examples = {"1709200000000"})
+        @JsonSchema(yamlName = KSMLTestDSL.Message.TIMESTAMP,
+                description = "Optional timestamp in epoch milliseconds", examples = {"1709200000000"})
         Long timestamp
 ) {
 }

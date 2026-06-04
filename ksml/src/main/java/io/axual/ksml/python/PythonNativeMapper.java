@@ -33,6 +33,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.util.MapUtil;
+import io.axual.ksml.data.util.NumericRangeChecker;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.proxy.base.AbstractProxy;
 import io.axual.ksml.util.ExecutionUtil;
@@ -83,23 +84,43 @@ public class PythonNativeMapper {
     }
 
     private Object polyglotNumberToNative(DataType expected, Value object) {
-        if (expected != null) {
-            if (expected == DataByte.DATATYPE) return object.asByte();
-            if (expected == DataShort.DATATYPE) return object.asShort();
-            if (expected == DataInteger.DATATYPE) return object.asInt();
-            if (expected == DataLong.DATATYPE) return object.asLong();
-            if (expected == DataFloat.DATATYPE) return object.asFloat();
-            if (expected == DataDouble.DATATYPE) return object.asDouble();
+        // GraalVM's Value.asByte()/asShort()/asInt()/asLong()/asFloat()/asDouble() throw when the
+        // Python value does not fit in the requested Java primitive (e.g. asByte() on Python int 300).
+        // The library raises ClassCastException with a generic message ("Invalid or lossy primitive
+        // coercion") that does not name the expected KSML type, and on some paths
+        // UnsupportedOperationException is raised instead. Catch both and rethrow as DataException
+        // so the producer sees a pointed, actionable error.
+        try {
+            if (expected != null) {
+                if (expected == DataByte.DATATYPE) return object.asByte();
+                if (expected == DataShort.DATATYPE) return object.asShort();
+                if (expected == DataInteger.DATATYPE) return object.asInt();
+                if (expected == DataLong.DATATYPE) return object.asLong();
+                if (expected == DataFloat.DATATYPE) return object.asFloat();
+                if (expected == DataDouble.DATATYPE) return object.asDouble();
+            }
+            // Return a long by default
+            return object.asLong();
+        } catch (ClassCastException | UnsupportedOperationException e) {
+            throw new DataException("Python value " + object + " does not fit in expected type "
+                    + (expected != null ? expected : DataLong.DATATYPE), e);
         }
-        // Return a long by default
-        return object.asLong();
     }
 
     private Object polyglotArrayToNative(DataType expected, Value object) {
         if (expected == DataBytes.DATATYPE) {
             final var bytes = new byte[(int) object.getArraySize()];
             for (var index = 0; index < object.getArraySize(); index++) {
-                bytes[index] = (byte) object.getArrayElement(index).asInt();
+                // Raw byte arrays are conventionally written using either signed (-128..127) or
+                // unsigned (0..255) representation in Python, so we accept both. Out-of-range values
+                // (e.g. 300) would otherwise silently truncate to a wrong byte (300 → 44).
+                final var element = object.getArrayElement(index).asInt();
+                if (element < Byte.MIN_VALUE || element > NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE) {
+                    throw new DataException("Python value " + element + " at index " + index
+                            + " does not fit in a byte (allowed range: " + (int) Byte.MIN_VALUE + ".."
+                            + NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE + ")");
+                }
+                bytes[index] = (byte) element;
             }
             return bytes;
         }

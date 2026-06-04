@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.value.Tuple;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.Map;
  * Utility methods for converting between Jackson JsonNode trees and native Java structures
  * (List, Map, primitives), as well as simple KSML value helpers.
  */
+@Slf4j
 public class JsonNodeUtil {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -77,7 +79,10 @@ public class JsonNodeUtil {
         try {
             return OBJECT_MAPPER.readTree(value);
         } catch (Exception mapException) {
-            // Ignore
+            // Returning null is the documented contract (callers in ConvertUtil decide whether to
+            // throw based on their `allowFail` flag). Log the cause at debug level so malformed JSON
+            // in pipelines is at least diagnosable instead of silently swallowed.
+            log.debug("Failed to parse string as JSON: {}", mapException.getMessage());
         }
         return null;
     }
