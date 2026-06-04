@@ -97,11 +97,6 @@
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-data-soap</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-data-xml</artifactId>
             <version>${project.version}</version>
         </dependency>

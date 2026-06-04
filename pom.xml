@@ -60,7 +60,6 @@
         <module>ksml-data-protobuf</module>
         <module>ksml-data-protobuf-apicurio</module>
         <module>ksml-data-protobuf-confluent</module>
-        <module>ksml-data-soap</module>
         <module>ksml-data-xml</module>
         <module>ksml</module>
         <module>ksml-query</module>
@@ -89,7 +88,6 @@
         <graalvm.version>25.0.3</graalvm.version>
         <guava.version>33.6.0-jre</guava.version>
         <jackson.version>2.21.3</jackson.version>
-        <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
@@ -225,11 +223,6 @@
             <dependency>
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data-protobuf-confluent</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.axual.ksml</groupId>
-                <artifactId>ksml-data-soap</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -429,11 +422,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>jakarta.xml.soap</groupId>
-                <artifactId>jakarta.xml.soap-api</artifactId>
-                <version>${jakarta.soap.version}</version>
-            </dependency>
             <dependency>
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>

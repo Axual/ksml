@@ -1,6 +1,6 @@
 
 Lists of 24 third-party dependencies.
-     (Apache License, Version 2.0) LZ4 Java Compression (at.yawk.lz4:lz4-java:1.10.1 - https://github.com/yawkat/lz4-java)
+     (Apache License, Version 2.0) LZ4 Java Compression (at.yawk.lz4:lz4-java:1.10.2 - https://github.com/yawkat/lz4-java)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.21 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.21.3 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.21.3 - https://github.com/FasterXML/jackson)
@@ -18,7 +18,7 @@ Lists of 24 third-party dependencies.
      (Apache-2.0) Apache Avro (org.apache.avro:avro:1.12.1 - https://avro.apache.org)
      (Apache-2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.28.0 - https://commons.apache.org/proper/commons-compress/)
      (Apache-2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.18.0 - https://commons.apache.org/proper/commons-lang/)
-     (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.2.0 - https://kafka.apache.org)
+     (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.3.0 - https://kafka.apache.org)
      (The Apache License, Version 2.0) JSpecify annotations (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)
      (The MIT License) Project Lombok (org.projectlombok:lombok:1.18.46 - https://projectlombok.org)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.1.0-alpha1 - http://www.slf4j.org)

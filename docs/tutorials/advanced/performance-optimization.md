@@ -366,7 +366,6 @@ valueType: json        # Easy to work with, good for Kowl UI
 
 # Slower - Use only when necessary
 valueType: xml         # XML processing overhead
-valueType: soap        # SOAP envelope overhead
 ```
 
 #### Python Data Structure Guidelines
@@ -456,7 +455,7 @@ timestamp = str(time.time())      # ~20 bytes + overhead
 | **avro**                  | Fast | Excellent | Excellent | Complex schemas, production systems |
 | **json**                  | Moderate | Good | Good | Development, debugging, flexible data |
 | **protobuf(coming soon)** | Fast | Excellent | Good | High-performance, cross-language |
-| **xml/soap**              | Slow | Poor | Limited | Legacy systems, specific protocols |
+| **xml**                   | Slow | Poor | Limited | Legacy systems, specific protocols |
 
 ## Monitoring Performance
 

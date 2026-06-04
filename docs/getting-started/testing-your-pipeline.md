@@ -84,7 +84,7 @@ Type strings follow KSML's standard type grammar — the same one `StreamDefinit
 `apicurio_avro` is backed by a Confluent-compatible mock registry. It works for logic-level tests, but uses 
 Confluent wire format rather than Apicurio's.
 
-The following notations are **not yet supported** and will produce a runtime error if used: `xml`, `soap`, `csv`, `protobuf`, `json_schema`.
+The following notations are **not yet supported** and will produce a runtime error if used: `xml`, `csv`, `protobuf`, `json_schema`.
 
 ### Tests
 
