@@ -83,20 +83,20 @@
         <axual.utils.version>1.0.0</axual.utils.version>
         <commons.io.version>2.22.0</commons.io.version>
         <confluent.version>8.2.1</confluent.version>
-        <dropwizard.version>4.2.38</dropwizard.version>
+        <dropwizard.version>4.2.39</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>25.0.3</graalvm.version>
         <guava.version>33.6.0-jre</guava.version>
-        <jackson.version>2.21.3</jackson.version>
+        <jackson.version>2.22.0</jackson.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
-        <logback.version>1.5.32</logback.version>
+        <logback.version>1.5.34</logback.version>
         <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <lombok.version>1.18.46</lombok.version>
         <picocli.version>4.7.7</picocli.version>
         <prometheus.version>1.0.1</prometheus.version>
-        <prometheus-instrumentation.version>1.6.1</prometheus-instrumentation.version>
+        <prometheus-instrumentation.version>1.7.0</prometheus-instrumentation.version>
         <protobuf.version>3.25.9</protobuf.version>
         <saaj.version>3.0.5</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
@@ -125,17 +125,17 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Maven plugin versions -->
-        <maven.dependency.plugin.version>3.10.0</maven.dependency.plugin.version>
+        <maven.dependency.plugin.version>3.11.0</maven.dependency.plugin.version>
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
         <maven.enforcer.plugin.version>3.6.3</maven.enforcer.plugin.version>
         <maven.exec.plugin.version>3.6.3</maven.exec.plugin.version>
-        <maven.failsafe.plugin.version>3.5.5</maven.failsafe.plugin.version>
+        <maven.failsafe.plugin.version>3.5.6</maven.failsafe.plugin.version>
         <maven.install.plugin.version>3.1.4</maven.install.plugin.version>
         <maven.jacoco.plugin.version>0.8.14</maven.jacoco.plugin.version>
         <maven.jar.plugin.version>3.5.0</maven.jar.plugin.version>
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <maven.license.plugin.version>2.7.1</maven.license.plugin.version>
-        <maven.surefire.plugin.version>3.5.5</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.5.6</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.5.0</maven.resources.plugin.version>
         <maven.versions.plugin.version>2.21.0</maven.versions.plugin.version>
 
