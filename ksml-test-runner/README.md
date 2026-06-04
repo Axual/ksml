@@ -94,7 +94,7 @@ in pipeline yamls):
 
 The test runner supports: `string`, `int`, `long`, `boolean`, `bytes`, `json`, `binary`, `avro`, `confluent_avro`, `apicurio_avro`.
 `apicurio_avro` is backed by a Confluent-compatible mock registry. It works for logic-level tests, but uses Confluent wire format rather than Apicurio's.
-The following notations are **not yet supported** and will produce a runtime error if used: `xml`, `soap`, `csv`, `protobuf`, `json_schema`.
+The following notations are **not yet supported** and will produce a runtime error if used: `xml`, `csv`, `protobuf`, `json_schema`.
 
 ### Tests
 

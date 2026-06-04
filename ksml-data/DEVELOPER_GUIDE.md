@@ -620,7 +620,7 @@ This section documents the Notation layer: how KSML models concrete data formats
 - ksml-data-protobuf: ProtobufNotation + ProtobufSerdeSupplier; vendor flavors:
   - ksml-data-protobuf-confluent and -apicurio with corresponding providers/suppliers.
 - ksml-data-jsonschema: JsonSchemaNotation and vendor flavors (confluent/apicurio) for schema registry backed serdes.
-- ksml-data-xml, ksml-data-csv, ksml-data-binary, ksml-data-soap: additional notations following the same patterns.
+- ksml-data-xml, ksml-data-csv, ksml-data-binary: additional notations following the same patterns.
 
 6.4 ServiceLoader discovery: plug-in notations
 - KSML discovers NotationProvider implementations via Java’s ServiceLoader in each module’s JAR.
@@ -742,7 +742,7 @@ Checklist:
 - ksml-data-avro, ksml-data-avro-*: Avro notation and vendor-specific providers.
 - ksml-data-protobuf, ksml-data-protobuf-*: Protobuf notation and vendor-specific providers.
 - ksml-data-jsonschema, ksml-data-jsonschema-*: JSON Schema notation and vendor-specific providers.
-- ksml-data-xml, ksml-data-csv, ksml-data-binary, ksml-data-soap: additional notations following BaseNotation patterns.
+- ksml-data-xml, ksml-data-csv, ksml-data-binary: additional notations following BaseNotation patterns.
 
 
 ## 10. Glossary
