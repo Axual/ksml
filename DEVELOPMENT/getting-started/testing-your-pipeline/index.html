@@ -2506,7 +2506,7 @@
 <p><strong>Note:</strong> The test runner supports: <code>string</code>, <code>int</code>, <code>long</code>, <code>boolean</code>, <code>bytes</code>, <code>json</code>, <code>binary</code>, <code>avro</code>, <code>confluent_avro</code>, <code>apicurio_avro</code>.</p>
 <p><code>apicurio_avro</code> is backed by a Confluent-compatible mock registry. It works for logic-level tests, but uses 
 Confluent wire format rather than Apicurio's.</p>
-<p>The following notations are <strong>not yet supported</strong> and will produce a runtime error if used: <code>xml</code>, <code>soap</code>, <code>csv</code>, <code>protobuf</code>, <code>json_schema</code>.</p>
+<p>The following notations are <strong>not yet supported</strong> and will produce a runtime error if used: <code>xml</code>, <code>csv</code>, <code>protobuf</code>, <code>json_schema</code>.</p>
 <h3 id="tests">Tests</h3>
 <p>The <code>tests:</code> map carries one or more test entries. Each key is a stable test identifier matching the same regex as stream keys; the value contains that test's produce data and assertions. Tests run in YAML-defined order; failure in one test does not stop later tests.</p>
 <table>
