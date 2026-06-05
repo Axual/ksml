@@ -36,6 +36,7 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserGenerator;
 import io.axual.ksml.user.UserStreamPartitioner;
 import io.axual.ksml.util.Pair;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
@@ -95,7 +96,13 @@ public class ExecutableProducer {
         this.valueSerializer = valueSerializer;
     }
 
-    private record GeneratedMessage(Headers headers, byte[] key, byte[] value) {
+    // Use class instead of record to prevent Sonar warning about equals() and hashCode() overrides
+    @AllArgsConstructor
+    @Getter
+    private static class GeneratedMessage {
+        private Headers headers;
+        private byte[] key;
+        private byte[] value;
     }
 
     /**
