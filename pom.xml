@@ -149,7 +149,7 @@
         <!-- SonarCloud properties -->
         <sonar.organization>axual</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.version>5.6.0.6792</sonar.version>
+        <sonar.version>5.7.0.6970</sonar.version>
 
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
