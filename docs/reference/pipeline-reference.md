@@ -107,7 +107,7 @@ via:
       expression: value.get('amount') > 100
   - type: mapValues
     mapper:
-      expression: '{"user": key, "amount": value.get("amount"), "currency": "USD"}'
+      expression: {"user": key, "amount": value.get("amount"), "currency": "USD"}
 ```
 
 Each operation:
@@ -298,7 +298,7 @@ pipelines:
     via:
       - type: transformValue
         mapper:
-          expression: '{"orderId": value.get("id"), "amount": value.get("total"), "priority": "high"}'
+          expression: {"orderId": value.get("id"), "amount": value.get("total"), "priority": "high"}
     to: priority_orders_stream
 ```
 

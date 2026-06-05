@@ -785,7 +785,7 @@ Python functions can return JSON by returning a dictionary:
 functions:
   merge_key_value_data:
     type: valueTransformer
-    expression: '{"key": key, "value": value}'
+    expression: {"key": key, "value": value}
     resultType: json
 ```
 

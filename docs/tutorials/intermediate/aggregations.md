@@ -102,7 +102,7 @@ store:
 Creates the initial state value when a key is seen for the first time.
 ```yaml
 initializer:
-  expression: '{"count": 0, "sum": 0}'
+  expression: {"count": 0, "sum": 0}
   resultType: json
 ```
 

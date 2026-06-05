@@ -113,27 +113,29 @@ functions:
     expression: value.get("status") == "ACTIVE"
 ```
 
-The `expression` field must be a **Python expression written as a YAML string**. It is evaluated and its result is returned by the function.
+The `expression` field is always a Python expression that is evaluated and its result returned by the function.
 
-A common pitfall is using a YAML mapping (object) where a Python dict is intended:
+A common pitfall when returning a Python dict is using a YAML block mapping instead of a Python expression:
 
 ```yaml
-# Wrong: YAML parses this as an object, not a string — schema validation will reject it
+# Wrong: YAML interprets this as a mapping, not a Python expression
 initializer:
   expression:
     count: 0
     sum: 0
 
-# Also wrong: YAML flow mapping syntax is still an object, not a string
+# Correct: inline Python dict expression
 initializer:
-  expression: {count: 0, sum: 0}
-
-# Correct: quote the expression so YAML treats it as a string
-initializer:
-  expression: '{"count": 0, "sum": 0}'
+  expression: {"count": 0, "sum": 0}
   resultType: json
 
-# Also correct: use a code block and assign to a variable, then reference it
+# Also correct: multiline using a block scalar
+initializer:
+  expression: |
+    {"count": 0, "sum": 0}
+  resultType: json
+
+# Also correct: use a code block and reference a variable
 initializer:
   code: |
     result = {"count": 0, "sum": 0}
