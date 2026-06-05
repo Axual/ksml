@@ -113,6 +113,36 @@ functions:
     expression: value.get("status") == "ACTIVE"
 ```
 
+The `expression` field is always a Python expression that is evaluated and its result returned by the function.
+
+A common pitfall when returning a Python dict is using a YAML block mapping instead of a Python expression:
+
+```yaml
+# Wrong: YAML interprets this as a mapping, not a Python expression
+initializer:
+  expression:
+    count: 0
+    sum: 0
+
+# Correct: inline Python dict expression
+initializer:
+  expression: {"count": 0, "sum": 0}
+  resultType: json
+
+# Also correct: multiline using a block scalar
+initializer:
+  expression: |
+    {"count": 0, "sum": 0}
+  resultType: json
+
+# Also correct: use a code block and reference a variable
+initializer:
+  code: |
+    result = {"count": 0, "sum": 0}
+  expression: result
+  resultType: json
+```
+
 ### Code Block Format
 
 For more complex functions:
