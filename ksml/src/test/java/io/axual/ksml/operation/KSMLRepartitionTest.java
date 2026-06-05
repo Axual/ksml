@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class KSMLRepartitionTest {
 
     @KSMLTopic(topic = "user_activities")

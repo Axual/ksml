@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class KSMLAggregateStoreTest {
 
     @KSMLTopic(topic = "transactions")

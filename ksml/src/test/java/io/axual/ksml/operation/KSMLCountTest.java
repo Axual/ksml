@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
+@SuppressWarnings("java:S2187")
 class KSMLCountTest {
 
     @KSMLTopic(topic = "input_topic")

@@ -34,6 +34,7 @@ import static io.axual.ksml.testutil.JsonVerifier.verifyJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class KSMLJoinTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)

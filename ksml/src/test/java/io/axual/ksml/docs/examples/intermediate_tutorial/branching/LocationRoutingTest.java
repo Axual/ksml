@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class LocationRoutingTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

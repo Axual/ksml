@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.offset;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class FilteringTransformingCompleteTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

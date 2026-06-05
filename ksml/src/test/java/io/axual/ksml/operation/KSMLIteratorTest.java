@@ -29,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class KSMLIteratorTest {
 
     @KSMLTopic(topic = "sensor_ownership_data")

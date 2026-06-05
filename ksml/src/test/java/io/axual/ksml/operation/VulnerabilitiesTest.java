@@ -64,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
 @Disabled("With a correct Python environment, this test should throw an exception.")
+@SuppressWarnings("java:S2187")
 public class VulnerabilitiesTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
