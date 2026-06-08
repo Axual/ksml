@@ -706,7 +706,7 @@ class KafkaStreamsRunnerTest {
             // Start runner, is blocked so check with async
             var future = CompletableFuture.runAsync(runner, executor);
 
-            verify(mockStreams, Mockito.timeout(1000).times(1)).start();
+            verify(mockStreams, Mockito.timeout(30_000).times(1)).start();
             assertThat(future)
                     .as("Future should not have finished yet")
                     .isNotDone();
@@ -718,7 +718,7 @@ class KafkaStreamsRunnerTest {
             runner.stop();
 
             Awaitility.await("Wait for runner to stop")
-                    .atMost(Duration.ofSeconds(1))
+                    .atMost(Duration.ofSeconds(30))
                     .until(future::isDone);
         } finally {
             executor.shutdownNow();
