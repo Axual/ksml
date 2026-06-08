@@ -46,7 +46,7 @@ class StructSchemaFieldTest {
     }
 
     @Test
-    @DisplayName("Constructor with required=false marks field optional and keeps tag")
+    @DisplayName("Constructor with required=false marks field optional and defaults to DataNull.INSTANCE")
     void optionalFieldConstructor() {
         assertThat(new StructSchema.Field("age", DataSchema.INTEGER_SCHEMA, "Age of user", 42, false))
                 .returns("age", StructSchema.Field::name)
@@ -54,7 +54,7 @@ class StructSchemaFieldTest {
                 .returns(42, StructSchema.Field::tag)
                 .returns(false, StructSchema.Field::required)
                 .returns(false, StructSchema.Field::constant)
-                .returns(null, StructSchema.Field::defaultValue)
+                .returns(DataNull.INSTANCE, StructSchema.Field::defaultValue)
                 .returns(StructSchema.Field.Order.ASCENDING, StructSchema.Field::order)
                 .hasToString("age: integer (42, optional)");
     }
@@ -90,9 +90,9 @@ class StructSchemaFieldTest {
     @DisplayName("isAssignableFrom delegates to underlying schema")
     void isAssignableFromBehavior() {
         final var target = new StructSchema.Field("i", DataSchema.INTEGER_SCHEMA, null, 0);
-        // other with long type is compatible (integer group)
+        // long → int is narrowing (FAIL)
         final var otherInt = new StructSchema.Field("l", DataSchema.LONG_SCHEMA, null, 0);
-        assertThat(target.isAssignableFrom(otherInt).isAssignable()).isTrue();
+        assertThat(target.isAssignableFrom(otherInt).isAssignable()).isFalse();
         // float is not compatible with integer
         final var otherFloat = new StructSchema.Field("f", DataSchema.FLOAT_SCHEMA, null, 0);
         assertThat(target.isAssignableFrom(otherFloat).isAssignable()).isFalse();

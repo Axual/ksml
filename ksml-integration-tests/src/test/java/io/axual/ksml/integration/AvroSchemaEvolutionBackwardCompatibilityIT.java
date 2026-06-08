@@ -49,14 +49,17 @@ import java.util.Properties;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration test that validates AVRO schema evolution backward compatibility fix.
- * <p>
- * This test reproduces the bug scenario that was fixed:
- * 1. Phase 1: Produce 10 messages with schema v1 (8 fields)
- * 2. Stop KSML
- * 3. Evolve schema to v2 (10 fields with optional location and accuracy)
- * 4. Phase 2: Process v1 messages with v2 schema
+ * Integration tests for AVRO schema evolution compatibility scenarios.
  *
+ * <p>These tests verify end-to-end behavior that unit tests cannot cover: actual Avro binary
+ * serialization/deserialization with schema evolution via a running Apicurio registry. All
+ * KSML-internal schema checks are already covered by AvroSchemaEvolutionCompatibilityTest.
+ *
+ * <p>Scenarios tested here:
+ * <ol>
+ *   <li>Backward compat — add optional field (matrix scenario 1): new schema reads old data.</li>
+ *   <li>Backward compat — type promotion int→long (matrix scenario 5): Avro wire promotion.</li>
+ * </ol>
  */
 @Slf4j
 @Testcontainers
@@ -81,11 +84,9 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         log.info("AVRO SCHEMA EVOLUTION BACKWARD COMPATIBILITY TEST");
         log.info("=".repeat(80));
 
-        // Phase 1: Produce messages with schema v1 (8 fields)
         log.info("PHASE 1: Producing 10 messages with schema v1 (8 fields)");
         runPhase1_ProduceWithSchemaV1();
 
-        // Phase 2: Process v1 messages with schema v2 (10 fields)
         log.info("PHASE 2: Processing v1 messages with schema v2 (10 fields)");
         runPhase2_ProcessWithSchemaV2();
 
@@ -94,11 +95,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         log.info("=".repeat(80));
     }
 
-    /**
-     * Phase 1: Produce 10 messages with schema v1 (8 fields)
-     */
     private void runPhase1_ProduceWithSchemaV1() {
-        // Create KSML container with v1 schema
         final KSMLContainer ksmlPhase1 = new KSMLContainer()
                 .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-tests-phase1",
                         "phase1-producer.yaml", "SensorData.avsc")
@@ -111,7 +108,6 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
             ksmlPhase1.start();
             log.info("Phase 1 KSML started successfully");
 
-            // Wait for 10 messages to be produced using Awaitility
             log.info("Waiting for 10 messages to be produced with schema v1...");
             Awaitility.await("Wait for 10 messages in sensor_data_evolution_test")
                     .atMost(Duration.ofSeconds(30))
@@ -122,7 +118,6 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                         return count >= 10;
                     });
 
-            // Verify we have exactly 10 messages
             final Properties consumerProps = new Properties();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -135,9 +130,8 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                 ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
                 assertThat(records.count()).as("Should have produced exactly 10 messages").isEqualTo(10);
-                log.info("✓ Phase 1 complete: Produced {} messages with schema v1 (8 fields)", records.count());
+                log.info("Phase 1 complete: Produced {} messages with schema v1 (8 fields)", records.count());
 
-                // Log sample keys
                 records.forEach(record -> log.debug("  Phase 1 message: key={}", record.key()));
             }
         } finally {
@@ -146,13 +140,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         }
     }
 
-    /**
-     * Phase 2: Process v1 messages (8 fields) with schema v2 (10 fields)
-     * This tests backward compatibility: new consumer reading old data
-     */
     private void runPhase2_ProcessWithSchemaV2() {
-        // Create KSML container with v2 schema
-        // Topics were already created in Phase 1, so we don't call withTopics() here
         final KSMLContainer ksmlPhase2 = new KSMLContainer()
                 .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-tests-phase2",
                         "phase2-processor.yaml", "SensorData.avsc")
@@ -164,7 +152,6 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
             ksmlPhase2.start();
             log.info("Phase 2 KSML started successfully");
 
-            // Wait for messages to be processed using Awaitility
             log.info("Waiting for v1 messages to be processed with v2 schema...");
             Awaitility.await("Wait for 10 messages in sensor_data_evolution_processed")
                     .atMost(Duration.ofSeconds(30))
@@ -175,7 +162,6 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                         return count >= 10;
                     });
 
-            // Verify all 10 messages were processed
             final Properties consumerProps = new Properties();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -190,7 +176,6 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                 assertThat(records.count()).as("Should have processed all 10 messages").isEqualTo(10);
                 log.info("Phase 2 complete: Processed {} messages with schema v2 (10 fields)", records.count());
 
-                // Verify all messages were processed successfully
                 records.forEach(record -> {
                     log.debug("  Phase 2 processed message: key={}", record.key());
                     assertThat(record.key()).as("Key should match sensor pattern")
@@ -198,21 +183,127 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                 });
             }
 
-            log.info("✓ SUCCESS: All v1 messages (8 fields) processed successfully with v2 schema (10 fields)");
-            log.info("✓ Backward compatibility verified: Optional field addition works correctly");
+            log.info("SUCCESS: All v1 messages (8 fields) processed successfully with v2 schema (10 fields)");
+            log.info("Backward compatibility verified: Optional field addition works correctly");
         } finally {
             ksmlPhase2.stop();
             log.info("Phase 2 KSML stopped");
         }
     }
 
-    /**
-     * Gets the total message count in a topic by summing up the end offsets of all partitions.
-     *
-     * @param bootstrapServers Kafka bootstrap servers
-     * @param topicName        the topic to check
-     * @return total message count across all partitions
-     */
+    @Test
+    void testBackwardCompatibility_TypePromotion_IntToLong() {
+        log.info("=".repeat(80));
+        log.info("AVRO SCHEMA EVOLUTION TYPE PROMOTION TEST (int -> long)");
+        log.info("=".repeat(80));
+
+        log.info("PHASE 1: Producing 10 messages with int reading field");
+        runTypePromoPhase1_ProduceWithIntSchema();
+
+        log.info("PHASE 2: Processing int-schema messages with long reading field schema");
+        runTypePromoPhase2_ProcessWithLongSchema();
+
+        log.info("=".repeat(80));
+        log.info("TEST PASSED: Type promotion int->long works correctly!");
+        log.info("=".repeat(80));
+    }
+
+    private void runTypePromoPhase1_ProduceWithIntSchema() {
+        final KSMLContainer ksmlPhase1 = new KSMLContainer()
+                .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-type-promo-tests-phase1",
+                        "phase1-type-promo-producer.yaml", "SensorData.avsc")
+                .withKafka(kafka)
+                .withApicurioAvroRegistry(schemaRegistry)
+                .withTopics("sensor_data_avro_type_promo_test", "sensor_data_avro_type_promo_processed")
+                .dependsOn(kafka, schemaRegistry);
+
+        try {
+            ksmlPhase1.start();
+            log.info("Type-promo Phase 1 KSML started successfully");
+
+            log.info("Waiting for 10 messages to be produced with int reading...");
+            Awaitility.await("Wait for 10 messages in sensor_data_avro_type_promo_test")
+                    .atMost(Duration.ofSeconds(30))
+                    .pollInterval(Duration.ofSeconds(1))
+                    .until(() -> {
+                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_avro_type_promo_test");
+                        log.debug("Found {} messages in topic sensor_data_avro_type_promo_test", count);
+                        return count >= 10;
+                    });
+
+            final Properties consumerProps = new Properties();
+            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+            consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+            consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-type-promo-phase1-verifier");
+            consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+            try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
+                consumer.subscribe(Collections.singletonList("sensor_data_avro_type_promo_test"));
+                ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
+
+                assertThat(records.count()).as("Should have produced exactly 10 messages").isEqualTo(10);
+                log.info("Type-promo Phase 1 complete: Produced {} messages with int reading", records.count());
+
+                records.forEach(record -> log.debug("  Type-promo Phase 1 message: key={}", record.key()));
+            }
+        } finally {
+            ksmlPhase1.stop();
+            log.info("Type-promo Phase 1 KSML stopped");
+        }
+    }
+
+    private void runTypePromoPhase2_ProcessWithLongSchema() {
+        final KSMLContainer ksmlPhase2 = new KSMLContainer()
+                .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-type-promo-tests-phase2",
+                        "phase2-type-promo-processor.yaml", "SensorData.avsc")
+                .withKafka(kafka)
+                .withApicurioAvroRegistry(schemaRegistry)
+                .dependsOn(kafka, schemaRegistry);
+
+        try {
+            ksmlPhase2.start();
+            log.info("Type-promo Phase 2 KSML started successfully");
+
+            log.info("Waiting for int-schema messages to be processed with long schema...");
+            Awaitility.await("Wait for 10 messages in sensor_data_avro_type_promo_processed")
+                    .atMost(Duration.ofSeconds(30))
+                    .pollInterval(Duration.ofSeconds(1))
+                    .until(() -> {
+                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_avro_type_promo_processed");
+                        log.debug("Found {} messages in topic sensor_data_avro_type_promo_processed", count);
+                        return count >= 10;
+                    });
+
+            final Properties consumerProps = new Properties();
+            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+            consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+            consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-type-promo-phase2-verifier");
+            consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+            try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
+                consumer.subscribe(Collections.singletonList("sensor_data_avro_type_promo_processed"));
+                ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
+
+                assertThat(records.count()).as("Should have processed all 10 messages").isEqualTo(10);
+                log.info("Type-promo Phase 2 complete: Processed {} messages with long reading schema", records.count());
+
+                records.forEach(record -> {
+                    log.debug("  Type-promo Phase 2 processed message: key={}", record.key());
+                    assertThat(record.key()).as("Key should match sensor pattern")
+                            .matches("sensor[0-9]");
+                });
+            }
+
+            log.info("SUCCESS: All int-reading messages processed successfully with long-reading schema");
+            log.info("Type promotion int->long backward compatibility verified");
+        } finally {
+            ksmlPhase2.stop();
+            log.info("Type-promo Phase 2 KSML stopped");
+        }
+    }
+
     private long getTopicMessageCount(String bootstrapServers, String topicName) {
         Properties adminProps = new Properties();
         adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);

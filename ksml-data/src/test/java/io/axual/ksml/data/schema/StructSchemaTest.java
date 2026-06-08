@@ -62,11 +62,17 @@ class StructSchemaTest {
                 optionalStringWithDefault("name")
         ));
 
-        // Other has id as long (compatible) and omits name (allowed due to default)
+        // Other has id as short (widening: int←short) and omits name (allowed due to default)
         final var other1 = new StructSchema("ns", "PersonOther", null, List.of(
-                new StructSchema.Field("id", DataSchema.LONG_SCHEMA, null, 0)
+                new StructSchema.Field("id", DataSchema.SHORT_SCHEMA, null, 0)
         ));
         assertThat(target.isAssignableFrom(other1).isAssignable()).isTrue();
+
+        // Other has id as long (narrowing: int←long is not allowed)
+        final var other1Long = new StructSchema("ns", "PersonOther", null, List.of(
+                new StructSchema.Field("id", DataSchema.LONG_SCHEMA, null, 0)
+        ));
+        assertThat(target.isAssignableFrom(other1Long).isAssignable()).isFalse();
 
         // Missing required id -> not assignable
         final var other2 = new StructSchema("ns", "PersonOther", null, List.of(

@@ -25,6 +25,7 @@ import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.Builder;
@@ -177,7 +178,7 @@ public class StructSchema extends NamedSchema {
          * @param constant Whether the field is constant and unmodifiable.
          */
         public Field(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant) {
-            this(name, schema, doc, tag, required, constant, null);
+            this(name, schema, doc, tag, required, constant, required ? null : DataNull.INSTANCE);
         }
 
         /**
@@ -459,6 +460,10 @@ public class StructSchema extends NamedSchema {
             final var thatField = that.field(field.name());
             // If the field exists in the other schema, then validate its compatibility
             if (thatField != null) {
+                // if this field is required but other provides it as optional, old producers may not have included it
+                if (field.defaultValue() == null && thatField.defaultValue() != null) {
+                    return Assignable.notAssignable("Field \"" + field.name() + "\" is required in this schema but optional in other schema");
+                }
                 final var fieldAssignable = field.isAssignableFrom(thatField);
                 if (fieldAssignable.isNotAssignable())
                     return fieldNotAssignable(field.name(), this, field, that, thatField, fieldAssignable);

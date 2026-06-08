@@ -72,37 +72,57 @@ class DataSchemaTest {
         );
     }
 
-    @ParameterizedTest(name = "{index}: {0} accepts all integer types")
+    @ParameterizedTest(name = "{index}: {0} accepts only widening integer sources")
     @MethodSource("integerSchemas")
-    void integerSchemasAreAssignableFromAllIntegerTypes(DataSchema target) {
-        for (var candidate : new DataSchema[]{
-                DataSchema.BYTE_SCHEMA,
-                DataSchema.SHORT_SCHEMA,
-                DataSchema.INTEGER_SCHEMA,
-                DataSchema.LONG_SCHEMA
-        }) {
-            assertThat(target.isAssignableFrom(candidate).isAssignable())
-                    .as(target + " should accept from " + candidate)
-                    .isTrue();
+    void integerSchemasFollowWideningOnly(DataSchema target) {
+        // byte accepts only byte
+        if (target == DataSchema.BYTE_SCHEMA) {
+            assertThat(target.isAssignableFrom(DataSchema.BYTE_SCHEMA).isAssignable()).as("byte←byte").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.SHORT_SCHEMA).isAssignable()).as("byte←short (narrowing)").isFalse();
+            assertThat(target.isAssignableFrom(DataSchema.INTEGER_SCHEMA).isAssignable()).as("byte←int (narrowing)").isFalse();
+            assertThat(target.isAssignableFrom(DataSchema.LONG_SCHEMA).isAssignable()).as("byte←long (narrowing)").isFalse();
         }
-        // But should not accept from floating or string
+        // short accepts byte and short
+        if (target == DataSchema.SHORT_SCHEMA) {
+            assertThat(target.isAssignableFrom(DataSchema.BYTE_SCHEMA).isAssignable()).as("short←byte").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.SHORT_SCHEMA).isAssignable()).as("short←short").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.INTEGER_SCHEMA).isAssignable()).as("short←int (narrowing)").isFalse();
+            assertThat(target.isAssignableFrom(DataSchema.LONG_SCHEMA).isAssignable()).as("short←long (narrowing)").isFalse();
+        }
+        // int accepts byte, short, int
+        if (target == DataSchema.INTEGER_SCHEMA) {
+            assertThat(target.isAssignableFrom(DataSchema.BYTE_SCHEMA).isAssignable()).as("int←byte").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.SHORT_SCHEMA).isAssignable()).as("int←short").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.INTEGER_SCHEMA).isAssignable()).as("int←int").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.LONG_SCHEMA).isAssignable()).as("int←long (narrowing)").isFalse();
+        }
+        // long accepts byte, short, int, long
+        if (target == DataSchema.LONG_SCHEMA) {
+            assertThat(target.isAssignableFrom(DataSchema.BYTE_SCHEMA).isAssignable()).as("long←byte").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.SHORT_SCHEMA).isAssignable()).as("long←short").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.INTEGER_SCHEMA).isAssignable()).as("long←int").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.LONG_SCHEMA).isAssignable()).as("long←long").isTrue();
+        }
+        // No integer type accepts floating or string
         assertThat(target.isAssignableFrom(DataSchema.FLOAT_SCHEMA).isAssignable()).isFalse();
         assertThat(target.isAssignableFrom(DataSchema.DOUBLE_SCHEMA).isAssignable()).isFalse();
         assertThat(target.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isFalse();
     }
 
-    @ParameterizedTest(name = "{index}: {0} accepts all floating-point types")
+    @ParameterizedTest(name = "{index}: {0} accepts only widening floating-point sources")
     @MethodSource("floatingSchemas")
-    void floatingSchemasAreAssignableFromAllFloatingTypes(DataSchema target) {
-        for (var candidate : new DataSchema[]{
-                DataSchema.FLOAT_SCHEMA,
-                DataSchema.DOUBLE_SCHEMA
-        }) {
-            assertThat(target.isAssignableFrom(candidate).isAssignable())
-                    .as(target + " should accept from " + candidate)
-                    .isTrue();
+    void floatingSchemasFollowWideningOnly(DataSchema target) {
+        // float accepts only float
+        if (target == DataSchema.FLOAT_SCHEMA) {
+            assertThat(target.isAssignableFrom(DataSchema.FLOAT_SCHEMA).isAssignable()).as("float←float").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.DOUBLE_SCHEMA).isAssignable()).as("float←double (narrowing)").isFalse();
         }
-        // But should not accept from integer or string
+        // double accepts float and double
+        if (target == DataSchema.DOUBLE_SCHEMA) {
+            assertThat(target.isAssignableFrom(DataSchema.FLOAT_SCHEMA).isAssignable()).as("double←float").isTrue();
+            assertThat(target.isAssignableFrom(DataSchema.DOUBLE_SCHEMA).isAssignable()).as("double←double").isTrue();
+        }
+        // No floating type accepts integer or string
         assertThat(target.isAssignableFrom(DataSchema.BYTE_SCHEMA).isAssignable()).isFalse();
         assertThat(target.isAssignableFrom(DataSchema.LONG_SCHEMA).isAssignable()).isFalse();
         assertThat(target.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isFalse();

@@ -190,7 +190,8 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             var spec = entry.getValue();
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
-                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, requiredProperties.contains(name));
+                boolean required = requiredProperties.contains(name);
+                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, required);
                 result.add(field);
             }
         }

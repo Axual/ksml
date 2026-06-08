@@ -1,0 +1,22 @@
+ksml:
+  definitions:
+    processor: phase2-json-processor.yaml
+  schemaRegistries:
+    my_schema_registry:
+      config:
+        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
+        apicurio.registry.dereference-schema: true
+        apicurio.registry.auto-register: true
+        apicurio.registry.auto-register.if-exists: RETURN
+  notations:
+    jsonschema:
+      type: apicurio_jsonschema
+      schemaRegistry: my_schema_registry
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.json.schema.evolution.test.phase2
+  security.protocol: PLAINTEXT
+  acks: all
