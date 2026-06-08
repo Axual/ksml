@@ -12,6 +12,10 @@ jobs:
   build:
     name: Build and test with GraalVM
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      statuses: write
+      checks: write
     outputs:
       artifact-name: build-artifacts-${{ github.sha }}
 
