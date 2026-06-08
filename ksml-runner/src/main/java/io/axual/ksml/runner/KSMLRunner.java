@@ -370,6 +370,7 @@ public class KSMLRunner {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             executorService.shutdownNow();
             throw new ExecutionException("Exception caught while shutting down", e);
         }

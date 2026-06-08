@@ -20,6 +20,7 @@ package io.axual.ksml.data.compare;
  * =========================LICENSE_END==================================
  */
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -35,6 +36,7 @@ import lombok.NonNull;
  * To optimize for the common success case, the OK state is implemented as a singleton instance (message is {@code null}).
  */
 @Getter
+@EqualsAndHashCode
 public class Equality {
     private static final Equality EQUAL = new Equality(null, null);
     private final String message;

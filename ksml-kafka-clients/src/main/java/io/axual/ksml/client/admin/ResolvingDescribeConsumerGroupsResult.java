@@ -79,7 +79,8 @@ public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeCon
                         }
                         return allDescriptions;
                     } catch (InterruptedException e) {
-                        throw new ClientException("Interrupted while waiting for DescribeConsumerGroups", e.getCause());
+                        Thread.currentThread().interrupt();
+                        throw new ClientException("Interrupted while waiting for DescribeConsumerGroups", e);
                     } catch (ExecutionException e) {
                         // Should be unreachable because of allOf statement
                         throw new ClientException("Interrupted while waiting for DescribeConsumerGroups", e);

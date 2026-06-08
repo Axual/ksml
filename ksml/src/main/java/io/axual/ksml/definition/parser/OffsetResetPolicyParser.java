@@ -42,8 +42,10 @@ public class OffsetResetPolicyParser {
             return AutoOffsetReset.latest();
         if (strategy.type() == AutoOffsetResetStrategy.StrategyType.NONE)
             return AutoOffsetReset.none();
-        if (strategy.type() == AutoOffsetResetStrategy.StrategyType.BY_DURATION && strategy.duration().isPresent())
-            return AutoOffsetReset.byDuration(strategy.duration().get());
+        if (strategy.type() == AutoOffsetResetStrategy.StrategyType.BY_DURATION) {
+            final var duration = strategy.duration();
+            if (duration.isPresent()) return AutoOffsetReset.byDuration(duration.get());
+        }
         throw new TopologyException("Unknown offset reset policy: " + resetPolicy);
     }
 
