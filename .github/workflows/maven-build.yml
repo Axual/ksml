@@ -49,18 +49,18 @@ jobs:
         run: |
           SONAR_ARGS=""
 
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            SONAR_ARGS="-Dsonar.branch.name=${{ github.ref_name }}"
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            SONAR_ARGS="-Dsonar.branch.name=$GITHUB_REF_NAME"
 
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            SONAR_ARGS="-Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-              -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-              -Dsonar.pullrequest.base=${{ github.base_ref }}"
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            SONAR_ARGS="-Dsonar.pullrequest.key=$PR_NUMBER \
+              -Dsonar.pullrequest.branch=$GITHUB_HEAD_REF \
+              -Dsonar.pullrequest.base=$GITHUB_BASE_REF"
 
-          elif [[ "${{ github.ref_type }}" == "branch" ]]; then
-            SONAR_ARGS="-Dsonar.branch.name=${{ github.ref_name }}"
-            if [[ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]]; then
-              SONAR_ARGS="${SONAR_ARGS} -Dsonar.branch.target=${{ github.event.repository.default_branch }}"
+          elif [[ "$GITHUB_REF_TYPE" == "branch" ]]; then
+            SONAR_ARGS="-Dsonar.branch.name=$GITHUB_REF_NAME"
+            if [[ "$GITHUB_REF_NAME" != "$DEFAULT_BRANCH" ]]; then
+              SONAR_ARGS="${SONAR_ARGS} -Dsonar.branch.target=$DEFAULT_BRANCH"
             fi
           fi
 
@@ -68,6 +68,8 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
