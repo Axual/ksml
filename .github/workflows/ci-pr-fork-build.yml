@@ -1,0 +1,60 @@
+name: CI - Fork PR Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: fork-build-${{ github.event.pull_request.head.repo.full_name }}-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.fork == true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: actions/setup-java@v5
+        with:
+          distribution: graalvm
+          java-version: '25'
+          cache: maven
+
+      - name: Build and test
+        timeout-minutes: 60
+        run: mvn clean verify -DskipITs=false --no-transfer-progress
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: false
+
+      - name: Save PR metadata
+        env:
+          REPO_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          mkdir -p pr-metadata
+          printf '%s' "$REPO_NAME" > pr-metadata/repo-name
+          printf '%s' "$HEAD_REF"  > pr-metadata/head-ref
+          printf '%s' "$HEAD_SHA"  > pr-metadata/head-sha
+          printf '%s' "$PR_NUMBER" > pr-metadata/pr-number
+          printf '%s' "$BASE_REF"  > pr-metadata/base-ref
+
+      - name: Upload Sonar inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-inputs-${{ github.event.pull_request.head.sha }}
+          retention-days: 1
+          path: |
+            pr-metadata/
+            ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
+            **/target/classes/
+            **/target/generated-sources/
+            **/target/failsafe-reports/
+            **/src/main/java/
+            **/src/test/java/
