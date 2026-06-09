@@ -12,12 +12,14 @@ on:
 jobs:
   maven-build-test:
     name: Maven Build and Test (Unit + Integration)
+    if: github.event.pull_request.head.repo.fork == false || github.event_name != 'pull_request'
     uses: ./.github/workflows/maven-build.yml
     secrets: inherit
 
   docker-build-test:
     name: Docker build test on local registry
     needs: maven-build-test
+    if: github.event.pull_request.head.repo.fork == false || github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     services:
       registry:
