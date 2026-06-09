@@ -147,7 +147,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     public Object fromDataObject(DataObject value) {
         return switch (value) {
             case null -> null;
-            case DataNull ignored -> null;
+            case DataNull _ -> null;
             case DataBoolean val -> val.value();
             case DataByte val -> val.value() == null ? null : val.value().intValue();
             case DataShort val -> val.value() == null ? null : val.value().intValue();
@@ -432,19 +432,19 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Schema matchUnionBranchByNativeType(Schema unionSchema, DataObject value) {
         final var preferred = switch (value) {
-            case DataBoolean ignored -> Schema.Type.BOOLEAN;
-            case DataByte ignored -> Schema.Type.INT;
-            case DataShort ignored -> Schema.Type.INT;
-            case DataInteger ignored -> Schema.Type.INT;
-            case DataLong ignored -> Schema.Type.LONG;
-            case DataFloat ignored -> Schema.Type.FLOAT;
-            case DataDouble ignored -> Schema.Type.DOUBLE;
-            case DataString ignored -> Schema.Type.STRING;
-            case DataBytes ignored -> Schema.Type.BYTES;
-            case DataList ignored -> Schema.Type.ARRAY;
-            case DataMap ignored -> Schema.Type.MAP;
-            case DataStruct ignored -> Schema.Type.RECORD;
-            case DataEnum ignored -> Schema.Type.ENUM;
+            case DataBoolean _ -> Schema.Type.BOOLEAN;
+            case DataByte _ -> Schema.Type.INT;
+            case DataShort _ -> Schema.Type.INT;
+            case DataInteger _ -> Schema.Type.INT;
+            case DataLong _ -> Schema.Type.LONG;
+            case DataFloat _ -> Schema.Type.FLOAT;
+            case DataDouble _ -> Schema.Type.DOUBLE;
+            case DataString _ -> Schema.Type.STRING;
+            case DataBytes _ -> Schema.Type.BYTES;
+            case DataList _ -> Schema.Type.ARRAY;
+            case DataMap _ -> Schema.Type.MAP;
+            case DataStruct _ -> Schema.Type.RECORD;
+            case DataEnum _ -> Schema.Type.ENUM;
             default -> null;
         };
         if (preferred == null) return null;
