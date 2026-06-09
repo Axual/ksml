@@ -23,6 +23,11 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
     steps:
+      - name: Checkout base repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Download Sonar inputs
         uses: actions/download-artifact@v4
         with:
@@ -36,14 +41,6 @@ jobs:
           echo "HEAD_REF=$(cat pr-metadata/head-ref)"     >> $GITHUB_ENV
           echo "BASE_REF=$(cat pr-metadata/base-ref)"     >> $GITHUB_ENV
           echo "HEAD_SHA=$(cat pr-metadata/head-sha)"     >> $GITHUB_ENV
-          echo "REPO_NAME=$(cat pr-metadata/repo-name)"   >> $GITHUB_ENV
-
-      - name: Checkout fork source (for Sonar line mapping only)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.REPO_NAME }}
-          ref: ${{ env.HEAD_SHA }}
-          fetch-depth: 0
 
       - name: Discover build output paths
         run: |

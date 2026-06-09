@@ -62,3 +62,5 @@ jobs:
             **/target/classes/
             **/target/generated-sources/
             **/target/failsafe-reports/
+            **/src/main/java/
+            **/src/test/java/
