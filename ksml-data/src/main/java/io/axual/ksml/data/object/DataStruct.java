@@ -334,7 +334,7 @@ public class DataStruct implements DataObject {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.equal();
+        if (this == other) return Equality.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
@@ -354,7 +354,7 @@ public class DataStruct implements DataObject {
             if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Equality.equal();
+        return Equality.ok();
     }
 
     private static Equality equalContents(DataStruct left, DataStruct right, EqualityFlags flags) {
@@ -372,6 +372,6 @@ public class DataStruct implements DataObject {
             }
         }
 
-        return Equality.equal();
+        return Equality.ok();
     }
 }

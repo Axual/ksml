@@ -66,7 +66,7 @@ public class EnumType extends SimpleType {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.equal();
+        if (this == other) return Equality.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
@@ -84,6 +84,6 @@ public class EnumType extends SimpleType {
                 return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
         }
 
-        return Equality.equal();
+        return Equality.ok();
     }
 }

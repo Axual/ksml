@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface ParserWithSchemas<T> extends Parser<T> {
+    @SuppressWarnings("java:S1452") // wildcard is required: implementations return List<StructSchema>, a covariant subtype
     List<? extends DataSchema> schemas();
 
     static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, DataSchema schema) {

@@ -190,6 +190,6 @@ public abstract class NamedSchema extends DataSchema {
         if (!flags.isSet(IGNORE_NAMED_SCHEMA_DOC) && !Objects.equals(doc, that.doc))
             return fieldNotEqual("doc", this, doc, that, that.doc);
 
-        return Equality.equal();
+        return Equality.ok();
     }
 }

@@ -162,13 +162,13 @@ public class HoppingWindowTest {
         Map<String, Double> firstReadings = new HashMap<>();
 
         while (!outputTopic.isEmpty()) {
-            var record = outputTopic.readRecord();
-            JsonNode json = objectMapper.readTree(record.getValue());
+            var outputRecord = outputTopic.readRecord();
+            JsonNode json = objectMapper.readTree(outputRecord.getValue());
 
             // Store first reading for each sensor
             if (json.get("sample_count").asInt() == 1) {
                 double sum = json.get("total_sum").asDouble();
-                firstReadings.put(record.getKey(), sum);
+                firstReadings.put(outputRecord.getKey(), sum);
             }
         }
 

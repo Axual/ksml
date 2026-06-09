@@ -58,7 +58,7 @@ public class Equality {
      *
      * @return the OK Equal instance
      */
-    public static Equality equal() {
+    public static Equality ok() {
         return EQUAL;
     }
 

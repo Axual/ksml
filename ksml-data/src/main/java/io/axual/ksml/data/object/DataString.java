@@ -87,8 +87,8 @@ public class DataString extends DataPrimitive<String> {
 
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (other instanceof String str && str.equals(value())) return Equality.equal();
-        if (other instanceof DataEnum enm && enm.value().equals(value())) return Equality.equal();
+        if (other instanceof String str && str.equals(value())) return Equality.ok();
+        if (other instanceof DataEnum enm && enm.value().equals(value())) return Equality.ok();
         return super.equals(other, flags);
     }
 }

@@ -65,7 +65,7 @@ public class UnionSchema extends DataSchema {
 
         @Override
         public Equality equals(Object obj, EqualityFlags flags) {
-            if (this == obj) return Equality.equal();
+            if (this == obj) return Equality.ok();
             if (obj == null) return otherIsNull(this);
             if (!getClass().equals(obj.getClass()))
                 return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
@@ -91,7 +91,7 @@ public class UnionSchema extends DataSchema {
             if (!flags.isSet(IGNORE_UNION_SCHEMA_MEMBER_TAG) && !Objects.equals(tag, that.tag))
                 return fieldNotEqual("tag", this, tag, that, that.tag);
 
-            return Equality.equal();
+            return Equality.ok();
         }
 
         @Override
@@ -245,6 +245,6 @@ public class UnionSchema extends DataSchema {
             }
         }
 
-        return Equality.equal();
+        return Equality.ok();
     }
 }

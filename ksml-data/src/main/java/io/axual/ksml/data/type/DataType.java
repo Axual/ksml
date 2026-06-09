@@ -103,7 +103,7 @@ public interface DataType extends DataEquals {
 
         @Override
         public Equality equals(Object obj, EqualityFlags flags) {
-            if (this == obj) return Equality.equal();
+            if (this == obj) return Equality.ok();
             return Equality.notEqual("Type \"" + this + "\" is not type \"" + (obj != null ? obj : "null") + "\"");
         }
 

@@ -814,9 +814,9 @@ class AvroDataObjectMapperTest {
         var struct = new DataStruct(structSchema);
         struct.put("v", new DataDouble(Double.NaN));
 
-        var record = (GenericRecord) mapper.fromDataObject(struct);
-        assertThat(record.get("v")).isInstanceOf(Float.class);
-        assertThat(((Float) record.get("v")).isNaN()).isTrue();
+        var genericRecord = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(genericRecord.get("v")).isInstanceOf(Float.class);
+        assertThat(((Float) genericRecord.get("v")).isNaN()).isTrue();
     }
 
     @Test
@@ -888,13 +888,13 @@ class AvroDataObjectMapperTest {
         struct.put("f", new DataFloat(5.5f));
         struct.put("d", new DataDouble(6.25));
 
-        var record = (GenericRecord) mapper.fromDataObject(struct);
-        assertThat(record.get("b")).isEqualTo(1.0);
-        assertThat(record.get("s")).isEqualTo(2.0);
-        assertThat(record.get("i")).isEqualTo(3.0);
-        assertThat(record.get("l")).isEqualTo(4.0);
-        assertThat((double) record.get("f")).isEqualTo(5.5, org.assertj.core.api.Assertions.within(0.001));
-        assertThat(record.get("d")).isEqualTo(6.25);
+        var genericRecord = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(genericRecord.get("b")).isEqualTo(1.0);
+        assertThat(genericRecord.get("s")).isEqualTo(2.0);
+        assertThat(genericRecord.get("i")).isEqualTo(3.0);
+        assertThat(genericRecord.get("l")).isEqualTo(4.0);
+        assertThat((double) genericRecord.get("f")).isEqualTo(5.5, org.assertj.core.api.Assertions.within(0.001));
+        assertThat(genericRecord.get("d")).isEqualTo(6.25);
     }
 
     @Test
@@ -915,12 +915,12 @@ class AvroDataObjectMapperTest {
         struct.put("l", new DataLong(4L));
         struct.put("f", new DataFloat(5.5f));
 
-        var record = (GenericRecord) mapper.fromDataObject(struct);
-        assertThat(record.get("b")).isEqualTo(1.0f);
-        assertThat(record.get("s")).isEqualTo(2.0f);
-        assertThat(record.get("i")).isEqualTo(3.0f);
-        assertThat(record.get("l")).isEqualTo(4.0f);
-        assertThat(record.get("f")).isEqualTo(5.5f);
+        var genericRecord = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(genericRecord.get("b")).isEqualTo(1.0f);
+        assertThat(genericRecord.get("s")).isEqualTo(2.0f);
+        assertThat(genericRecord.get("i")).isEqualTo(3.0f);
+        assertThat(genericRecord.get("l")).isEqualTo(4.0f);
+        assertThat(genericRecord.get("f")).isEqualTo(5.5f);
     }
 
     // ========== Avro UNION branch resolution ==========
@@ -1051,8 +1051,8 @@ class AvroDataObjectMapperTest {
         var struct = new DataStruct(structSchema);
         struct.put("n", DataNull.INSTANCE);
 
-        var record = (GenericRecord) mapper.fromDataObject(struct);
-        assertThat(record.get("n")).isNull();
+        var genericRecord = (GenericRecord) mapper.fromDataObject(struct);
+        assertThat(genericRecord.get("n")).isNull();
     }
 
     static class UnsupportedDataObject implements DataObject {

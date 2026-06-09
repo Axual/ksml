@@ -97,12 +97,12 @@ class ConfluentAvroSchemaRegistryIT {
             log.info("Found {} transformed sensor messages", records.count());
 
             // Validate that we received transformed AVRO messages
-            records.forEach(record -> {
-                log.info("Transformed AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
-                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+            records.forEach(consumerRecord -> {
+                log.info("Transformed AVRO Sensor: key={}, value size={} bytes", consumerRecord.key(), consumerRecord.value().length());
+                assertThat(consumerRecord.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // The value is AVRO binary data, but we can verify the transformation worked via KSML logs
-                assertThat(record.value()).as("AVRO message should have content").isNotEmpty();
+                assertThat(consumerRecord.value()).as("AVRO message should have content").isNotEmpty();
             });
         }
 

@@ -81,7 +81,7 @@ public class SimpleType implements DataType {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.equal();
+        if (this == other) return Equality.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -92,6 +92,6 @@ public class SimpleType implements DataType {
         if (!flags.isSet(IGNORE_DATA_TYPE_CONTAINER_CLASS) && !containerClass.equals(that.containerClass))
             return EqualUtil.containerClassNotEqual(containerClass, that.containerClass);
 
-        return Equality.equal();
+        return Equality.ok();
     }
 }

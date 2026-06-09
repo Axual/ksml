@@ -193,7 +193,7 @@ public class DataSchema implements DataEquals {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.equal();
+        if (this == other) return Equality.ok();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -204,7 +204,7 @@ public class DataSchema implements DataEquals {
         if (!flags.isSet(IGNORE_DATA_SCHEMA_TYPE) && !Objects.equals(type, that.type))
             return fieldNotEqual("type", this, type, that, that.type);
 
-        return Equality.equal();
+        return Equality.ok();
     }
 
     /**

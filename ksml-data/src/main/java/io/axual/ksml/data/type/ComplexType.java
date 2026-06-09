@@ -120,7 +120,7 @@ public abstract class ComplexType implements DataType {
 
     @Override
     public Equality equals(Object obj, EqualityFlags flags) {
-        if (this == obj) return Equality.equal();
+        if (this == obj) return Equality.ok();
         if (obj == null) return otherIsNull(this);
         if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
         final var that = (ComplexType) obj;
@@ -136,7 +136,7 @@ public abstract class ComplexType implements DataType {
             final var subTypeEqual = subTypes[i].equals(other.subTypes[i], flags);
             if (subTypeEqual.isNotEqual()) return subTypeEqual;
         }
-        return Equality.equal();
+        return Equality.ok();
     }
 
     @Override

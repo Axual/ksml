@@ -102,9 +102,9 @@ class ApicurioAvroSchemaRegistryIT {
             log.info("Found {} Apicurio AVRO sensor messages", records.count());
 
             // Log some sample sensor data keys (values will be binary AVRO)
-            records.forEach(record -> {
-                log.info("🔬 Apicurio AVRO Sensor: key={}, value size={} bytes", record.key(), record.value().length());
-                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+            records.forEach(consumerRecord -> {
+                log.info("🔬 Apicurio AVRO Sensor: key={}, value size={} bytes", consumerRecord.key(), consumerRecord.value().length());
+                assertThat(consumerRecord.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
             });
         }
 
@@ -119,12 +119,12 @@ class ApicurioAvroSchemaRegistryIT {
 
             // Validate JSON structure and content using Jackson ObjectMapper and SoftAssertions
             final SoftAssertions softly = new SoftAssertions();
-            records.forEach(record -> {
-                log.info("JSON Sensor: key={}, value={}", record.key(), record.value());
-                softly.assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+            records.forEach(consumerRecord -> {
+                log.info("JSON Sensor: key={}, value={}", consumerRecord.key(), consumerRecord.value());
+                softly.assertThat(consumerRecord.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // Use Jackson ObjectMapper for structured JSON validation
-                final JsonNode jsonNode = SensorDataTestUtil.validateSensorJsonStructure(record.value(), softly);
+                final JsonNode jsonNode = SensorDataTestUtil.validateSensorJsonStructure(consumerRecord.value(), softly);
 
                 // Validate sensor type enum using JsonNode path access
                 if (jsonNode != null) {
