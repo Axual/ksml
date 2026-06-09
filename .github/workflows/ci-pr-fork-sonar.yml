@@ -26,6 +26,7 @@ jobs:
       - name: Checkout base repo
         uses: actions/checkout@v4
         with:
+          repository: ${{ github.repository }}
           fetch-depth: 0
 
       - name: Download Sonar inputs
@@ -69,7 +70,7 @@ jobs:
             -Dsonar.sources=${{ env.SONAR_SOURCES }}
             -Dsonar.tests=${{ env.SONAR_TESTS }}
             -Dsonar.java.binaries=${{ env.SONAR_BINARIES }}
-            -Dsonar.generatedSources=${{ env.SONAR_GENERATED }}
+            -Dsonar.java.generatedSources=${{ env.SONAR_GENERATED }}
             -Dsonar.coverage.jacoco.xmlReportPaths=ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
             -Dsonar.qualitygate.wait=true
 
