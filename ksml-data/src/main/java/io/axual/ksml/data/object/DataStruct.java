@@ -90,9 +90,8 @@ public class DataStruct implements DataObject {
          * Applies the operation to the specified value.
          *
          * @param value the value to be processed.
-         * @throws Exception if the operation fails.
          */
-        void apply(T value) throws Exception;
+        void apply(T value);
     }
 
     /**
@@ -184,11 +183,7 @@ public class DataStruct implements DataObject {
     public <T> void getIfPresent(String key, Class<T> clazz, DataStructApplier<T> applier) {
         final var value = get(key);
         if (value != null && clazz.isAssignableFrom(value.getClass())) {
-            try {
-                applier.apply((T) value);
-            } catch (Exception e) {
-                throw new DataException("Exception thrown while getting and applying DataStruct value for key \"" + key + "\"", e);
-            }
+            applier.apply((T) value);
         }
     }
 

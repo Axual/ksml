@@ -69,7 +69,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
         }
         if (url != null) {
             try {
-                System.err.printf("Using URL to config %s%n", url);
+                addInfo("Using URL to config " + url);
                 configureByResource(url);
             } catch (JoranException e) {
                 context.getStatusManager().add(new WarnStatus("Could not configure KSML logging", this, e));

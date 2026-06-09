@@ -712,16 +712,6 @@ class AvroSchemaMapperTest {
     @Test
     @DisplayName("End-to-end: a deep schema like the original Enexis report survives the round-trip")
     void recordDefault_roundTrips() {
-        // A trimmed copy of the schema from the original bug report. It combines
-        // everything the previous tests cover, in one realistic shape:
-        //   - top-level record field with default {}
-        //   - record inside that with its own default {}
-        //   - a named-type reference (OpenIDType) used twice, also with default {}
-        //   - a union field "typeCode" with default null
-        //   - an array-of-records field with default []
-        //
-        // If any one piece of the fix breaks, this test will fail too. Think of
-        // it as the "does the real-world case work end-to-end" check.
         final var schemaJson = """
                 {
                   "type": "record",

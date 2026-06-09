@@ -28,6 +28,7 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.string.StringNotation;
+import lombok.extern.slf4j.Slf4j;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.util.JsonNodeUtil;
@@ -39,6 +40,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Slf4j
 class NotationTestRunner {
     public interface Tester<T> {
         void test(T input, T output);
@@ -49,12 +51,12 @@ class NotationTestRunner {
             final var inputSchema = TestData.testSchema();
             final var nativeSchema = new NativeDataSchemaMapper().fromDataSchema(inputSchema);
             final var jsonSchema = JsonNodeUtil.convertNativeToJsonNode(nativeSchema).toPrettyString();
-            System.out.println("INPUT SCHEMA: " + jsonSchema);
+            log.info("INPUT SCHEMA: {}", jsonSchema);
             final var typeSchema = schemaMapper.fromDataSchema(inputSchema);
-            System.out.println(type.toUpperCase() + " SCHEMA: " + typeSchema);
+            log.info("{} SCHEMA: {}", type.toUpperCase(), typeSchema);
             final var outputSchema = schemaMapper.toDataSchema(inputSchema.namespace(), inputSchema.name(), typeSchema);
             final var outputSchema2 = schemaMapper.fromDataSchema(outputSchema);
-            System.out.println("OUTPUT SCHEMA: " + outputSchema2);
+            log.info("OUTPUT SCHEMA: {}", outputSchema2);
             tester.test(inputSchema, outputSchema);
         } catch (Exception e) {
             throw new SchemaException("Test failed", e);
@@ -65,11 +67,11 @@ class NotationTestRunner {
         schemaTest(type, schemaMapper, (input, output) -> {
             final var inputEqualsOutput = input.equals(output, flags);
             if (!inputEqualsOutput.isEqual()) {
-                System.out.println("INPUT NOT EQUAL TO OUTPUT: \n" + inputEqualsOutput.toString("  ", true));
+                log.info("INPUT NOT EQUAL TO OUTPUT: \n{}", inputEqualsOutput.toString("  ", true));
             }
             final var outputEqualsInput = output.equals(input, flags);
             if (!outputEqualsInput.isEqual()) {
-                System.out.println("OUTPUT NOT EQUAL TO INPUT: \n" + outputEqualsInput.toString("  ", true));
+                log.info("OUTPUT NOT EQUAL TO INPUT: \n{}", outputEqualsInput.toString("  ", true));
             }
 
             assertThat(input)
@@ -82,11 +84,11 @@ class NotationTestRunner {
     static <T> void dataTest(String type, DataObjectMapper<T> objectMapper, EqualityFlags flags) {
         try {
             final var inputData = TestData.testStruct();
-            System.out.println("INPUT DATA: " + inputData);
+            log.info("INPUT DATA: {}", inputData);
             final var nativeObject = objectMapper.fromDataObject(inputData);
-            System.out.println(type.toUpperCase() + " DATA: " + nativeObject);
+            log.info("{} DATA: {}", type.toUpperCase(), nativeObject);
             final var outputData = objectMapper.toDataObject(inputData.type(), nativeObject);
-            System.out.println("OUTPUT DATA: " + outputData);
+            log.info("OUTPUT DATA: {}", outputData);
             final var equal = inputData.equals(outputData, flags);
             assertTrue(equal.isEqual(), "Input data should match output data:\n" + equal.toString(true));
         } catch (Exception e) {
@@ -97,22 +99,22 @@ class NotationTestRunner {
     static void serdeTest(Notation notation, boolean strictTypeChecking, EqualityFlags flags) {
         try {
             final var inputData = TestData.testStruct();
-            System.out.println("INPUT DATA: " + inputData);
+            log.info("INPUT DATA: {}", inputData);
             final var serde = notation.serde(inputData.type(), false);
             final var headers = new RecordHeaders();
             final var serialized = serde.serializer().serialize("topic", headers, inputData);
             if (notation instanceof StringNotation) {
                 final var serializedString = new StringDeserializer().deserialize("topic", serialized);
-                System.out.println("SERIALIZED " + notation.name().toUpperCase() + " STRING: " + (serializedString != null ? serializedString : "null"));
+                log.info("SERIALIZED {} STRING: {}", notation.name().toUpperCase(), serializedString);
             } else {
-                System.out.println("SERIALIZED " + notation.name().toUpperCase() + " BYTES: " + new NativeDataObjectMapper().toDataObject(serialized).toString());
+                log.info("SERIALIZED {} BYTES: {}", notation.name().toUpperCase(), new NativeDataObjectMapper().toDataObject(serialized));
             }
-            System.out.println("HEADERS: " + headers);
+            log.info("HEADERS: {}", headers);
             var outputData = (DataObject) serde.deserializer().deserialize("topic", headers, serialized);
-            System.out.println("OUTPUT DATA: " + outputData);
+            log.info("OUTPUT DATA: {}", outputData);
             if (!strictTypeChecking) {
                 outputData = new DataObjectConverter().convert(null, outputData, new UserType(null, inputData.type()));
-                System.out.println("CONVERTED OUTPUT DATA: " + outputData);
+                log.info("CONVERTED OUTPUT DATA: {}", outputData);
             }
             final var equal = inputData.equals(outputData, flags);
             assertTrue(equal.isEqual(), "Input data should match output data\n" + equal.toString(true));

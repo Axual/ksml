@@ -393,15 +393,12 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Object convertDataObjectToAvroEnum(DataObject value, Schema schema) {
         // Validate that the symbol is declared in the schema — GenericData.EnumSymbol does not check this itself.
-        final String symbol;
-        if (value instanceof DataString s) {
-            symbol = s.value();
-        } else if (value instanceof DataEnum e) {
-            symbol = e.value();
-        } else {
-            throw new DataException("Can not convert " + value.getClass().getSimpleName()
+        final String symbol = switch (value) {
+            case DataString s -> s.value();
+            case DataEnum e -> e.value();
+            default -> throw new DataException("Can not convert " + value.getClass().getSimpleName()
                     + " to Avro ENUM '" + schema.getFullName() + "'");
-        }
+        };
         if (symbol == null) return null;
         if (!schema.hasEnumSymbol(symbol)) {
             throw new DataException("Value \"" + symbol + "\" is not a valid symbol of Avro ENUM '"

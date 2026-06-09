@@ -61,7 +61,6 @@ import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.NO_DOCUMENT
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFileElement> {
-    private static final int PROTOBUF_ENUM_DEFAULT_VALUE_INDEX = 0;
     private final NativeDataObjectMapper nativeMapper;
     private final DataTypeDataSchemaMapper typeSchemaMapper;
 
@@ -228,9 +227,15 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         final var required = field.required();
         final var list = field.schema() instanceof ListSchema;
         final var defaultValue = field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE ? field.defaultValue().toString() : null;
+        final Field.Label fieldLabel;
+        if (required) {
+            fieldLabel = Field.Label.REQUIRED;
+        } else {
+            fieldLabel = list ? Field.Label.REPEATED : Field.Label.OPTIONAL;
+        }
         return new FieldElement(
                 DEFAULT_LOCATION,
-                required ? Field.Label.REQUIRED : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
+                fieldLabel,
                 type,
                 field.name(),
                 defaultValue,

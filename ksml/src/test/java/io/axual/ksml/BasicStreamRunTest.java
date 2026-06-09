@@ -46,6 +46,7 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyDescription;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.graalvm.home.Version;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -60,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Basic stream run test.
  * See {@link io.axual.ksml.testutil.KSMLTestExtension} for a solution that abstracts away the boilerplate code.
  */
+@Slf4j
 @EnabledIf(value = "onGraalVM", disabledReason = "This test needs GraalVM to run")
 class BasicStreamRunTest {
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
@@ -75,7 +77,7 @@ class BasicStreamRunTest {
         try {
             final var schemaDirectoryURI = ClassLoader.getSystemResource("schemas").toURI();
             final var schemaDirectory = schemaDirectoryURI.getPath();
-            System.out.println("schemaDirectory = " + schemaDirectory);
+            log.info("schemaDirectory = {}", schemaDirectory);
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);
         } catch (URISyntaxException e) {
             // Ignore
@@ -92,7 +94,7 @@ class BasicStreamRunTest {
         var topologyGenerator = new TopologyGenerator("some.app.id");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final TopologyDescription description = topology.describe();
-        System.out.println(description);
+        log.info("{}", description);
 
         try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
             TestInputTopic<String, String> inputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), new StringSerializer());
@@ -120,7 +122,7 @@ class BasicStreamRunTest {
         var topologyGenerator = new TopologyGenerator("some.app.id");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final TopologyDescription description = topology.describe();
-        System.out.println(description);
+        log.info("{}", description);
 
         try (final var driver = new TopologyTestDriver(topology);
              final var serde = avroNotation.serde(new StructType(), false)) {
@@ -134,7 +136,7 @@ class BasicStreamRunTest {
             if (!outputTopic.isEmpty()) {
                 var keyValue = outputTopic.readKeyValue();
                 assertEquals("key1", keyValue.key);
-                System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
+                log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
             }
         }
     }

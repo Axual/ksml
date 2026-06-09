@@ -23,7 +23,6 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.serde.Legacy4ByteIdHandler;
 import io.apicurio.registry.serde.SerdeConfig;
-import io.apicurio.registry.serde.SerdeHeaders;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
 import io.apicurio.registry.serde.strategy.TopicIdStrategy;
@@ -70,13 +69,6 @@ public class ApicurioProtobufSerdeSupplier implements SerdeSupplier {
 
         @Override
         protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
-            // Configure header filtering
-            final String messageTypeHeaderName;
-            if (isKey) {
-                messageTypeHeaderName = configs.getOrDefault(SerdeConfig.HEADER_KEY_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_KEY_MESSAGE_TYPE).toString();
-            } else {
-                messageTypeHeaderName = configs.getOrDefault(SerdeConfig.HEADER_VALUE_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_VALUE_MESSAGE_TYPE).toString();
-            }
             delegate.filteredHeaders(Set.of());
 
             if (configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||

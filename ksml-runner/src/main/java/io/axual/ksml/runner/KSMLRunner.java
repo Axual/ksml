@@ -484,7 +484,7 @@ public class KSMLRunner {
                 writer.close();
                 log.info("KSML JSON schema written to file: {}", filename);
             } else {
-                System.out.println(schema);
+                log.info("{}", schema);
             }
         } catch (Exception e) {
             log.atError()
@@ -511,7 +511,6 @@ public class KSMLRunner {
                 writer.close();
                 log.info("KSML JSON schema written to file: {}", filename);
             } catch (Exception e) {
-                // Ignore
                 log.atError()
                         .setMessage("""
                                 Error writing KSML JSON schema to file: {}
@@ -522,7 +521,7 @@ public class KSMLRunner {
                         .log();
             }
         } else {
-            System.out.println(schema);
+            log.info("{}", schema);
         }
     }
 

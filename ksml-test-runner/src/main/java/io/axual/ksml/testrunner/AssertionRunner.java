@@ -120,31 +120,34 @@ public class AssertionRunner {
             // Inject variables one at a time using prefixed parameter names
             injectVariables(pythonContext, args);
 
-            // Execute the assertion code
-            try {
-                pythonContext.registerFunction(
-                        "def _run_assertions():\n" +
-                                block.code().lines()
-                                        .map(line -> "  " + line)
-                                        .reduce((a, b) -> a + "\n" + b)
-                                        .orElse("  pass") +
-                                "\n\nimport polyglot\n@polyglot.export_value\ndef _exec_assertions():\n  _run_assertions()\n",
-                        "_exec_assertions"
-                ).execute();
-            } catch (org.graalvm.polyglot.PolyglotException e) {
-                if (e.getMessage() != null && e.getMessage().contains(ASSERTION_ERROR)) {
-                    var msg = extractAssertionMessage(e);
-                    return TestResult.fail(suiteName, testName, msg);
-                }
-                return TestResult.error(suiteName, testName, e.getMessage());
-            }
-
-            return TestResult.pass(suiteName, testName);
+            return executeAssertionCode(pythonContext, block, suiteName, testName);
         } catch (Exception e) {
             // Log at debug — the exception is preserved in the returned TestResult.message
             log.debug("Error running assertion for test '{} › {}'", suiteName, testName, e);
             return TestResult.error(suiteName, testName, e.getMessage());
         }
+    }
+
+    private TestResult executeAssertionCode(PythonContext pythonContext, AssertBlock block,
+                                             String suiteName, String testName) {
+        try {
+            pythonContext.registerFunction(
+                    "def _run_assertions():\n" +
+                            block.code().lines()
+                                    .map(line -> "  " + line)
+                                    .reduce((a, b) -> a + "\n" + b)
+                                    .orElse("  pass") +
+                            "\n\nimport polyglot\n@polyglot.export_value\ndef _exec_assertions():\n  _run_assertions()\n",
+                    "_exec_assertions"
+            ).execute();
+        } catch (org.graalvm.polyglot.PolyglotException e) {
+            if (e.getMessage() != null && e.getMessage().contains(ASSERTION_ERROR)) {
+                var msg = extractAssertionMessage(e);
+                return TestResult.fail(suiteName, testName, msg);
+            }
+            return TestResult.error(suiteName, testName, e.getMessage());
+        }
+        return TestResult.pass(suiteName, testName);
     }
 
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();

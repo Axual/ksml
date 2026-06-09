@@ -20,6 +20,7 @@ package io.axual.ksml.docs.examples;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -54,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * TopologyDefinitionParser and JsonSchemaMapper that the KSML
  * runner uses when invoked with the --schema flag.
  */
+@Slf4j
 public class AllDefinitionsSchemaValidationTest {
 
     private static JsonSchema ksmlSchema;
@@ -131,7 +133,7 @@ public class AllDefinitionsSchemaValidationTest {
     @ParameterizedTest(name = "Validate {0} against KSML JSON Schema")
     @MethodSource("provideYamlFiles")
     void validateYamlFileAgainstSchema(Path yamlFile) throws Exception {
-        System.out.println("Validating: " + yamlFile.getFileName());
+        log.info("Validating: {}", yamlFile.getFileName());
 
         // Load the KSML schema
         JsonSchema schema = getKsmlSchema();

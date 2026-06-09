@@ -76,7 +76,7 @@ class TopologyGeneratorBasicTest {
         final var topologyGenerator = new TopologyGenerator("some.app.id");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final TopologyDescription description = topology.describe();
-        System.out.println(description);
+        log.info("{}", description);
 
         URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
         // Get the reference and clean the newlines
@@ -100,7 +100,7 @@ class TopologyGeneratorBasicTest {
             "leave short@123 alone,leave short@123 alone"
     })
     void cleanDescriptionTest(String input, String expected) {
-        System.out.println("input='" + input + "',expected='" + expected + "'");
+        log.info("input='{}',expected='{}'", input, expected);
         assertThat(cleanDescription(input), is(expected));
     }
 

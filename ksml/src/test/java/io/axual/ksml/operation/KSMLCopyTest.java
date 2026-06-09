@@ -48,6 +48,6 @@ class KSMLCopyTest {
         inputTopic.pipeInput("key1", "value1");
         assertFalse(outputTopic.isEmpty(), "record should be copied");
         var keyValue = outputTopic.readKeyValue();
-        System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
+        log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
     }
 }

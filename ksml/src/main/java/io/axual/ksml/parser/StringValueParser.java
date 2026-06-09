@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.data.schema.DataSchema;
 
 import java.util.List;
+import java.util.Objects;
 
 public class StringValueParser implements ParserWithSchemas<String> {
     public interface BooleanToStringConverter {
@@ -36,9 +37,7 @@ public class StringValueParser implements ParserWithSchemas<String> {
     }
 
     public StringValueParser(BooleanToStringConverter converter) {
-        this.converter = converter != null
-                ? converter
-                : value -> value ? "true" : "false";
+        this.converter = Objects.requireNonNullElseGet(converter, () -> value -> value ? "true" : "false");
     }
 
     @Override

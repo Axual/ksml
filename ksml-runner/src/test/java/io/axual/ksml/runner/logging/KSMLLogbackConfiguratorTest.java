@@ -22,6 +22,7 @@ package io.axual.ksml.runner.logging;
 
 import ch.qos.logback.classic.LoggerContext;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Slf4j
 class KSMLLogbackConfiguratorTest {
 
     LoggerContext spiedContext = new LoggerContext();
@@ -107,7 +109,7 @@ class KSMLLogbackConfiguratorTest {
         KSMLLogbackConfigurator configurator = new KSMLLogbackConfigurator();
         configurator.setContext(spiedContext);
         configurator.configure(spiedContext);
-        System.out.println(MockAppender.APPENDERS);
+        log.info("{}", MockAppender.APPENDERS);
 
         // This id comes from the logback-test.xml, which should be loaded now and is hardcoded
         Collection<MockAppender> appenders = MockAppender.APPENDERS.get("fixed-from-standard-joran-lookup");

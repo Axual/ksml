@@ -115,9 +115,8 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private DataObject convertObjectToDataObject(DataType expected, Object value) {
         if (value == null) return ConvertUtil.convertNullToDataObject(expected);
         if (value instanceof DataObject val) return val;
-        if (value instanceof Boolean val) {
-            if (expected == null || expected == DataType.UNKNOWN || expected == DataBoolean.DATATYPE)
-                return new DataBoolean(val);
+        if (value instanceof Boolean val && (expected == null || expected == DataType.UNKNOWN || expected == DataBoolean.DATATYPE)) {
+            return new DataBoolean(val);
         }
         if (value instanceof Byte val) return convertByteToDataObject(val, expected);
         if (value instanceof Short val) return convertShortToDataObject(val, expected);

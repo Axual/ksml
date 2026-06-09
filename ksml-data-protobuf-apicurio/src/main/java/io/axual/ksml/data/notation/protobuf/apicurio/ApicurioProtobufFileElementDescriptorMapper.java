@@ -74,15 +74,11 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
 
             // Convert all top-level messages and enums
             for (final var type : fileElement.getTypes()) {
-                if (type instanceof MessageElement messageElement) {
-                    if (notDuplicateType(namespace, messageElement)) {
-                        result.addMessageDefinition(toMessageDefinition(namespace, messageElement));
-                    }
+                if (type instanceof MessageElement messageElement && notDuplicateType(namespace, messageElement)) {
+                    result.addMessageDefinition(toMessageDefinition(namespace, messageElement));
                 }
-                if (type instanceof EnumElement enumElement) {
-                    if (notDuplicateType(namespace, enumElement)) {
-                        result.addEnumDefinition(toEnumDefinition(namespace, enumElement));
-                    }
+                if (type instanceof EnumElement enumElement && notDuplicateType(namespace, enumElement)) {
+                    result.addEnumDefinition(toEnumDefinition(namespace, enumElement));
                 }
             }
 
@@ -102,13 +98,11 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
             // Convert nested types
             final var msgBuilder = MessageDefinition.newBuilder(messageElement.getName());
             for (final var nestedType : messageElement.getNestedTypes()) {
-                if (notDuplicateType(fullName, nestedType)) {
-                    if (nestedType instanceof MessageElement nestedMessage) {
-                        msgBuilder.addMessageDefinition(toMessageDefinition(fullName, nestedMessage));
-                    }
-                    if (nestedType instanceof EnumElement nestedEnum) {
-                        msgBuilder.addEnumDefinition(toEnumDefinition(fullName, nestedEnum));
-                    }
+                if (notDuplicateType(fullName, nestedType) && nestedType instanceof MessageElement nestedMessage) {
+                    msgBuilder.addMessageDefinition(toMessageDefinition(fullName, nestedMessage));
+                }
+                if (notDuplicateType(fullName, nestedType) && nestedType instanceof EnumElement nestedEnum) {
+                    msgBuilder.addEnumDefinition(toEnumDefinition(fullName, nestedEnum));
                 }
             }
 
@@ -124,7 +118,12 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
             for (final var field : messageElement.getFields()) {
                 final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
                 final var repeated = field.getLabel() == Field.Label.REPEATED;
-                final var label = required ? null : repeated ? "repeated" : "optional";
+                final String label;
+                if (required) {
+                    label = null;
+                } else {
+                    label = repeated ? "repeated" : "optional";
+                }
                 msgBuilder.addField(label, field.getType(), field.getName(), field.getTag(), null);
             }
 
@@ -178,7 +177,12 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
             for (final var oneOf : messageDescriptor.getOneofs()) {
                 final var oneOfFields = new ArrayList<FieldElement>();
                 for (final var oneOfField : oneOf.getFields()) {
-                    final var label = oneOfField.isRequired() ? Field.Label.REQUIRED : oneOfField.isRepeated() ? Field.Label.REPEATED : Field.Label.OPTIONAL;
+                    final Field.Label label;
+                    if (oneOfField.isRequired()) {
+                        label = Field.Label.REQUIRED;
+                    } else {
+                        label = oneOfField.isRepeated() ? Field.Label.REPEATED : Field.Label.OPTIONAL;
+                    }
                     final var type = convertType(oneOfField);
                     oneOfFields.add(new FieldElement(DEFAULT_LOCATION, label, type, oneOfField.getName(), defaultValue(oneOfField), null, oneOfField.getNumber(), NO_DOCUMENTATION, Collections.emptyList()));
                 }
@@ -222,9 +226,15 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
         private static FieldElement convertToFieldElement(Descriptors.FieldDescriptor field, String type) {
             final var required = field.isRequired();
             final var list = field.isRepeated();
+            final Field.Label fieldLabel;
+            if (required) {
+                fieldLabel = null;
+            } else {
+                fieldLabel = list ? Field.Label.REPEATED : Field.Label.OPTIONAL;
+            }
             return new FieldElement(
                     DEFAULT_LOCATION,
-                    required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
+                    fieldLabel,
                     type,
                     field.getName(),
                     defaultValue(field),

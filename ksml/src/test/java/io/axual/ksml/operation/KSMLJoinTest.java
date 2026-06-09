@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -33,6 +34,7 @@ import java.util.List;
 import static io.axual.ksml.testutil.JsonVerifier.verifyJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Slf4j
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
 public class KSMLJoinTest {
@@ -79,7 +81,7 @@ public class KSMLJoinTest {
         assertEquals(2, sensorAlerts.getQueueSize());
         List<String> valuesList = sensorAlerts.readValuesToList();
         String alert1 = valuesList.getFirst();
-        System.out.println("alert1 = " + alert1);
+        log.info("alert1 = {}", alert1);
         verifyJson(alert1)
                 .hasNode("alert").withChild("type").withTextValue("HUMIDITY")
                 .hasNode("alert").withChild("alertAbove").withTextValue("50")
