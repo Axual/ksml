@@ -105,6 +105,11 @@
             <artifactId>ksml-kafka-clients</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-test-runner</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

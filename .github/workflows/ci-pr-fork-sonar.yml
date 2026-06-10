@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  actions: read
+  actions: write
   checks: write
   contents: read
   pull-requests: write
@@ -42,6 +42,12 @@ jobs:
           echo "HEAD_REF=$(cat pr-metadata/head-ref)"     >> $GITHUB_ENV
           echo "BASE_REF=$(cat pr-metadata/base-ref)"     >> $GITHUB_ENV
           echo "HEAD_SHA=$(cat pr-metadata/head-sha)"     >> $GITHUB_ENV
+          echo "FORK_REPO=$(cat pr-metadata/repo-name)"   >> $GITHUB_ENV
+
+      - name: Fetch fork commits for SCM context
+        run: |
+          git remote add fork https://github.com/${{ env.FORK_REPO }}
+          git fetch fork ${{ env.HEAD_REF }}
 
       - name: Discover build output paths
         run: |
