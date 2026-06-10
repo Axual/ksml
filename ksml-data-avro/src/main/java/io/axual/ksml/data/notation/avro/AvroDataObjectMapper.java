@@ -305,7 +305,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         };
     }
 
-    private String buildDebugLabel(DataObject value, String prefix, boolean verbose) {
+    private String buildDebugLabel(DataObject value, String prefix, boolean verbose, boolean verbose2) {
         return prefix + ": " + value.getClass().getSimpleName();
     }
 
