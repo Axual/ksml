@@ -55,12 +55,14 @@ jobs:
           echo "SONAR_TESTS=$TESTS"         >> $GITHUB_ENV
 
       - name: SonarCloud analysis
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: >
+            -Dsonar.projectKey=ksml
+            -Dsonar.organization=axual-github
             -Dsonar.pullrequest.key=${{ env.PR_NUMBER }}
             -Dsonar.pullrequest.branch=${{ env.HEAD_REF }}
             -Dsonar.pullrequest.base=${{ env.BASE_REF }}
