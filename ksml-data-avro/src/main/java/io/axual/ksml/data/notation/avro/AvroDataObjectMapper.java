@@ -305,6 +305,10 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         };
     }
 
+    private String buildDebugLabel(DataObject value, String prefix, boolean verbose) {
+        return prefix + ": " + value.getClass().getSimpleName();
+    }
+
     @Nullable
     private Map<String, Object> convertDataStructToPlainMap(DataStruct struct) {
         if (struct.isNull()) return null;
