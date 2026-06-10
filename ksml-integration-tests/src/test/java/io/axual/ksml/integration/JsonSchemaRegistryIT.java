@@ -30,7 +30,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.utils.Utils;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Network;
@@ -157,6 +156,7 @@ class JsonSchemaRegistryIT {
         log.info("Sensor data has been generated and verified");
     }
 
+    @SuppressWarnings("java:S2925")
     private static void registerJsonSchema() throws Exception {
         log.info("Registering JsonSchema with Apicurio Schema Registry...");
 
@@ -189,7 +189,7 @@ class JsonSchemaRegistryIT {
             log.info("JsonSchema successfully registered for both topics");
 
             // Wait a bit for registration to propagate
-            Utils.sleep(2000);
+            Thread.sleep(2000);
 
         } catch (Exception e) {
             log.error("Failed to register JsonSchema", e);

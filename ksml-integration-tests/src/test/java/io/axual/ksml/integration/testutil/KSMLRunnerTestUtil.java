@@ -26,8 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartitionInfo;
-import org.apache.kafka.common.utils.Utils;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -48,6 +46,7 @@ import java.util.Properties;
  * This allows for faster test execution and easier debugging.
  */
 @Slf4j
+@SuppressWarnings("java:S2925")
 public class KSMLRunnerTestUtil {
 
     /**
@@ -168,11 +167,11 @@ public class KSMLRunnerTestUtil {
                 if (System.currentTimeMillis() - startTime > 3000) {
                     log.info("KSMLRunner process should be ready now");
                     // Give it a bit more time to ensure everything is running
-                    Utils.sleep(1000);
+                    Thread.sleep(1000);
                     return;
                 }
 
-                Utils.sleep(1000);
+                Thread.sleep(1000);
             }
 
             throw new RuntimeException("KSMLRunner did not become ready within " + (timeoutMillis / 1000) + " seconds");
@@ -369,7 +368,7 @@ public class KSMLRunnerTestUtil {
                     log.debug("Error checking topic messages: {}", e.getMessage());
                 }
 
-                Utils.sleep(1000); // Check every second
+                Thread.sleep(1000); // Check every second
             }
 
             throw new RuntimeException("Timeout waiting for " + minMessages + " messages in topic " + topicName +
@@ -467,7 +466,7 @@ public class KSMLRunnerTestUtil {
                 return;
             }
 
-            Utils.sleep(2000); // Check every 2 seconds
+            Thread.sleep(2000); // Check every 2 seconds
         }
 
         throw new RuntimeException("Schema registry did not become ready within " + timeout.toSeconds() + " seconds");
