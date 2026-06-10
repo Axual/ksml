@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("java:S2095")
 class UnionSerdeTest {
     private static final String TOPIC = "topic";
 
@@ -145,8 +146,7 @@ class UnionSerdeTest {
         SerdeSupplier supplier = (type, isKey) -> new ByteSerde();
         var serde = new UnionSerde(union, false, supplier);
 
-        var serializer = serde.serializer();
-        assertThatThrownBy(() -> serializer.serialize(TOPIC, "notByte"))
+        assertThatThrownBy(() -> serde.serializer().serialize(TOPIC, "notByte"))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Can not serialize value as union alternative");
     }
@@ -219,9 +219,7 @@ class UnionSerdeTest {
         final SerdeSupplier supplier = (type, isKey) -> throwingSerde;
         final var serde = new UnionSerde(union, false, supplier);
 
-        var deserializer = serde.deserializer();
-        var data = "data".getBytes();
-        assertThatThrownBy(() -> deserializer.deserialize(TOPIC, data))
+        assertThatThrownBy(() -> serde.deserializer().deserialize(TOPIC, "data".getBytes()))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Can not deserialize data as union");
     }

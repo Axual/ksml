@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("java:S2095")
 class NullSerdeTest {
     private static final String TOPIC = "topic";
 
@@ -47,8 +48,7 @@ class NullSerdeTest {
             assertThat(serde.deserializer().deserialize(TOPIC, null)).isNull();
             assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isNull();
 
-            var deserializer = serde.deserializer();
-            assertThatThrownBy(() -> deserializer.deserialize(TOPIC, new byte[]{1}))
+            assertThatThrownBy(() -> serde.deserializer().deserialize(TOPIC, new byte[]{1}))
                     .isInstanceOf(DataException.class)
                     .hasMessageEndingWith("Can only deserialize empty byte arrays as DataNull");
         } catch (Exception _) {

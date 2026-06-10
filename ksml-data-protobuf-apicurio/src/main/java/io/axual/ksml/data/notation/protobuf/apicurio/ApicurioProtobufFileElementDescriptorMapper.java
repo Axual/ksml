@@ -89,7 +89,7 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
                 throw new SchemaException("Can not generate dynamic PROTOBUF schema" + name + ": " + e.getMessage(), e);
             }
         }
-
+        @SuppressWarnings("java:S3776")
         private MessageDefinition toMessageDefinition(String namespace, MessageElement messageElement) {
             // Mark the namespace + message name as done
             final var fullName = (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + messageElement.getName();
@@ -98,10 +98,13 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
             // Convert nested types
             final var msgBuilder = MessageDefinition.newBuilder(messageElement.getName());
             for (final var nestedType : messageElement.getNestedTypes()) {
-                if (notDuplicateType(fullName, nestedType) && nestedType instanceof MessageElement nestedMessage) {
+                if (!notDuplicateType(fullName, nestedType)) {
+                    continue;
+                }
+                if (nestedType instanceof MessageElement nestedMessage) {
                     msgBuilder.addMessageDefinition(toMessageDefinition(fullName, nestedMessage));
                 }
-                if (notDuplicateType(fullName, nestedType) && nestedType instanceof EnumElement nestedEnum) {
+                if (nestedType instanceof EnumElement nestedEnum) {
                     msgBuilder.addEnumDefinition(toEnumDefinition(fullName, nestedEnum));
                 }
             }

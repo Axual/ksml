@@ -41,6 +41,7 @@ import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("java:S2095")
 class DataObjectSerdeTest {
     private static final String TOPIC = "myTopic";
 

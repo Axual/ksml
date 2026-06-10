@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("java:S2095")
 class StringSerdeTest {
     private static final String TOPIC = "topic";
 
@@ -70,9 +71,7 @@ class StringSerdeTest {
         var nativeMapper = new NativeDataObjectMapper();
         var serde = new StringSerde(nativeMapper);
 
-        var serializer = serde.serializer();
-        var wrongInput = new Exception("test");
-        assertThatThrownBy(() -> serializer.serialize(TOPIC, wrongInput))
+        assertThatThrownBy(() -> serde.serializer().serialize(TOPIC, new Exception("test")))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Can not convert value to DataObject: Exception");
     }
@@ -91,8 +90,7 @@ class StringSerdeTest {
         var serde = new StringSerde(nativeMapper, badStringMapper, DataString.DATATYPE);
 
         var bytes = new StringSerializer().serialize(TOPIC, "oops");
-        var deserializer = serde.deserializer();
-        assertThatThrownBy(() -> deserializer.deserialize(TOPIC, bytes))
+        assertThatThrownBy(() -> serde.deserializer().deserialize(TOPIC, bytes))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Wrong type retrieved from state store")
                 .hasMessageContaining(DataString.DATATYPE.toString())

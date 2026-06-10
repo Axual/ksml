@@ -100,10 +100,13 @@ public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFil
             // Convert nested types
             final var msgBuilder = MessageDefinition.newBuilder(messageElement.getName());
             for (final var nestedType : messageElement.getNestedTypes()) {
-                if (notDuplicateType(fullName, nestedType) && nestedType instanceof MessageElement nestedMessage) {
+                if (!notDuplicateType(fullName, nestedType)) {
+                    continue;
+                }
+                if (nestedType instanceof MessageElement nestedMessage){
                     msgBuilder.addMessageDefinition(toMessageDefinition(fullName, nestedMessage));
                 }
-                if (notDuplicateType(fullName, nestedType) && nestedType instanceof EnumElement nestedEnum) {
+                if (nestedType instanceof EnumElement nestedEnum) {
                     msgBuilder.addEnumDefinition(toEnumDefinition(fullName, nestedEnum));
                 }
             }

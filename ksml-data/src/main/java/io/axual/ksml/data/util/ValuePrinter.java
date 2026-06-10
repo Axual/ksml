@@ -38,11 +38,12 @@ public abstract class ValuePrinter {
         this.dict = dict;
     }
 
+    @SuppressWarnings("java:S5411")
     public String print(Object value, boolean quoted) {
         final var quote = quoted && (value instanceof String || value instanceof DataString) ? dict.quoteStr() : "";
         return switch (value) {
             case null -> dict.nullStr();
-            case Boolean val -> Boolean.TRUE.equals(val) ? dict.trueStr() : dict.falseStr();
+            case Boolean val -> val ? dict.trueStr() : dict.falseStr();
             default -> quote + value + quote;
         };
     }
