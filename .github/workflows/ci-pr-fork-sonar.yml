@@ -47,7 +47,7 @@ jobs:
       - name: Fetch fork commits for SCM context
         run: |
           git remote add fork https://github.com/${{ env.FORK_REPO }}
-          git fetch fork ${{ env.HEAD_REF }}
+          git fetch fork ${{ env.HEAD_REF }}:${{ env.HEAD_REF }}
 
       - name: Discover build output paths
         run: |
