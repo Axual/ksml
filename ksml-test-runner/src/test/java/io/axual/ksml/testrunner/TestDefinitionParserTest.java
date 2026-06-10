@@ -120,8 +120,9 @@ class TestDefinitionParserTest {
 
     @Test
     void rejectsMissingTests() {
+        var path = resource("missing-tests.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("missing-tests.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("Missing required 'tests' map")
                         || ex.getMessage().contains("at least one entry"),
                 "expected missing-tests message but got: " + ex.getMessage());
@@ -129,56 +130,63 @@ class TestDefinitionParserTest {
 
     @Test
     void rejectsMissingProduce() {
+        var path = resource("missing-produce.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("missing-produce.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("missing required field 'produce'"),
                 "expected missing-produce message but got: " + ex.getMessage());
     }
 
     @Test
     void rejectsAssertWithoutOnOrStores() {
+        var path = resource("assert-no-topic-no-stores.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("assert-no-topic-no-stores.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("must have at least 'on' or non-empty 'stores'"),
                 "expected on-or-stores message but got: " + ex.getMessage());
     }
 
     @Test
     void rejectsInvalidTestKey() {
+        var path = resource("invalid-test-key.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("invalid-test-key.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("Invalid test key"),
                 "expected invalid-test-key message but got: " + ex.getMessage());
     }
 
     @Test
     void rejectsInvalidStreamKey() {
+        var path = resource("invalid-stream-key.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("invalid-stream-key.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("Invalid stream key"),
                 "expected invalid-stream-key message but got: " + ex.getMessage());
     }
 
     @Test
     void rejectsDuplicateTestKey() {
+        var path = resource("duplicate-test-key.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("duplicate-test-key.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("Duplicate"),
                 "expected Duplicate message but got: " + ex.getMessage());
     }
 
     @Test
     void rejectsDuplicateStreamTopic() {
+        var path = resource("duplicate-stream-topic.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("duplicate-stream-topic.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("both reference topic"),
                 "expected duplicate-topic message but got: " + ex.getMessage());
     }
 
     @Test
     void rejectsUndefinedStreamReference() {
+        var path = resource("undefined-stream-reference.yaml");
         var ex = assertThrows(TestDefinitionException.class,
-                () -> parser.parse(resource("undefined-stream-reference.yaml")));
+                () -> parser.parse(path));
         assertTrue(ex.getMessage().contains("not declared in 'streams:'"),
                 "expected undefined-reference message but got: " + ex.getMessage());
     }

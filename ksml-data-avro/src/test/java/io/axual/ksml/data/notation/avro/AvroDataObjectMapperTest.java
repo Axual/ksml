@@ -1001,7 +1001,7 @@ class AvroDataObjectMapperTest {
         struct.put("color", new DataString("GREEN"));
 
         var result = (GenericRecord) mapper.fromDataObject(struct);
-        assertThat(result.get("color").toString()).isEqualTo("GREEN");
+        assertThat(result.get("color")).hasToString("GREEN");
     }
 
     // ========== Avro schemaMismatch (item 6) ==========

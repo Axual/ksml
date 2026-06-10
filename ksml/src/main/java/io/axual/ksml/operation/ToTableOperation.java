@@ -44,13 +44,16 @@ public class ToTableOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Object, Object> output = named != null
-                ? mat != null
-                ? input.stream.toTable(named, mat)
-                : input.stream.toTable(named)
-                : mat != null
-                ? input.stream.toTable(mat)
-                : input.stream.toTable();
+        final KTable<Object, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.stream.toTable(named, mat)
+                    : input.stream.toTable(named);
+        } else {
+            output = mat != null
+                    ? input.stream.toTable(mat)
+                    : input.stream.toTable();
+        }
         return new KTableWrapper(output, k, v);
     }
 }

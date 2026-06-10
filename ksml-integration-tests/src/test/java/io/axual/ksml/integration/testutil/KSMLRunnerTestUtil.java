@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartitionInfo;
+import org.apache.kafka.common.utils.Utils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -135,7 +136,7 @@ public class KSMLRunnerTestUtil {
                     log.warn("KSMLRunner didn't exit gracefully, forcing termination");
                     ksmlProcess.destroyForcibly();
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException _) {
                 Thread.currentThread().interrupt();
                 log.warn("Interrupted while waiting for KSMLRunner to stop");
                 ksmlProcess.destroyForcibly();
@@ -167,11 +168,11 @@ public class KSMLRunnerTestUtil {
                 if (System.currentTimeMillis() - startTime > 3000) {
                     log.info("KSMLRunner process should be ready now");
                     // Give it a bit more time to ensure everything is running
-                    Thread.sleep(1000);
+                    Utils.sleep(1000);
                     return;
                 }
 
-                Thread.sleep(1000);
+                Utils.sleep(1000);
             }
 
             throw new RuntimeException("KSMLRunner did not become ready within " + (timeoutMillis / 1000) + " seconds");
@@ -368,7 +369,7 @@ public class KSMLRunnerTestUtil {
                     log.debug("Error checking topic messages: {}", e.getMessage());
                 }
 
-                Thread.sleep(1000); // Check every second
+                Utils.sleep(1000); // Check every second
             }
 
             throw new RuntimeException("Timeout waiting for " + minMessages + " messages in topic " + topicName +
@@ -466,7 +467,7 @@ public class KSMLRunnerTestUtil {
                 return;
             }
 
-            Thread.sleep(2000); // Check every 2 seconds
+            Utils.sleep(2000); // Check every 2 seconds
         }
 
         throw new RuntimeException("Schema registry did not become ready within " + timeout.toSeconds() + " seconds");

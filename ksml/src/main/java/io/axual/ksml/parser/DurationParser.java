@@ -74,7 +74,7 @@ public class DurationParser implements ParserWithSchemas<Duration> {
             }
             // If the duration does not contain a valid unit string, parse it as a whole number of milliseconds
             return Duration.ofMillis(Long.parseLong(durationStr));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             if (allowFail) return null;
             throw new TopologyException(
                     String.format(

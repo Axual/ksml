@@ -106,9 +106,9 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
         return result;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------
     // End of public interface of KafkaProducer
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------
 
     private ProducerRecord<K, V> convertProducerRecord(ProducerRecord<K, V> producerRecord) {
         final TopicResolver resolver = config.topicResolver();

@@ -192,7 +192,7 @@ public class KSMLConfig {
                         log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
                         final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
                         result.put(namespace, def);
-                    } catch (IOException e) {
+                    } catch (IOException _) {
                         log.error("Could not read KSML definition from file: {}", definitionFilePath);
                     }
                 }

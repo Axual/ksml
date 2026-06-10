@@ -60,7 +60,7 @@ public class IntervalSchedule {
     public ScheduledProducer getScheduledItem() {
         try {
             return scheduledProducers.poll(10, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             return null;
         }

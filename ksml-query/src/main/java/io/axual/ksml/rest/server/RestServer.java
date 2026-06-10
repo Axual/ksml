@@ -75,7 +75,7 @@ public class RestServer implements AutoCloseable {
         try {
             server.start();
             return Utils.getHostIPForDiscovery();
-        } catch (IOException e) {
+        } catch (IOException _) {
             return null;
         }
     }

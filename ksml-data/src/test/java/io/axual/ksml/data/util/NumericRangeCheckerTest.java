@@ -190,7 +190,7 @@ class NumericRangeCheckerTest {
     @Test
     void convertDoubleToLong_returnsCorrectValue() {
         assertThat(NumericRangeChecker.convertDoubleToLong(1.0e18)).isEqualTo((long) 1.0e18);
-        assertThat(NumericRangeChecker.convertDoubleToLong(0.0)).isEqualTo(0L);
+        assertThat(NumericRangeChecker.convertDoubleToLong(0.0)).isZero();
     }
 
     @Test

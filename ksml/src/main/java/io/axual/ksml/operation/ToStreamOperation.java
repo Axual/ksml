@@ -46,13 +46,16 @@ public class ToStreamOperation extends BaseOperation {
         final var map = mapper != null ? userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v)) : null;
         final var userMap = map != null ? new UserKeyTransformer(map, tags) : null;
         final var named = namedOf();
-        final KStream<Object, Object> output = userMap != null
-                ? named != null
-                ? input.table.toStream(userMap, named)
-                : input.table.toStream(userMap)
-                : named != null
-                ? input.table.toStream(named)
-                : input.table.toStream();
+        final KStream<Object, Object> output;
+        if (userMap != null) {
+            output = named != null
+                    ? input.table.toStream(userMap, named)
+                    : input.table.toStream(userMap);
+        } else {
+            output = named != null
+                    ? input.table.toStream(named)
+                    : input.table.toStream();
+        }
         return new KStreamWrapper(output, kr, v);
     }
 }

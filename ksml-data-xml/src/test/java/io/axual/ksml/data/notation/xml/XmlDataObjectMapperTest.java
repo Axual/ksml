@@ -78,14 +78,14 @@ class XmlDataObjectMapperTest {
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
 
-        assertThat(struct.get("name").toString()).isEqualTo("sensor001");
-        assertThat(struct.get("timestamp").toString()).isEqualTo("1234567890");
-        assertThat(struct.get("value").toString()).isEqualTo("23.5");
-        assertThat(struct.get("type").toString()).isEqualTo("temperature");
-        assertThat(struct.get("unit").toString()).isEqualTo("celsius");
-        assertThat(struct.get("color").toString()).isEqualTo("red");
-        assertThat(struct.get("city").toString()).isEqualTo("Amsterdam");
-        assertThat(struct.get("owner").toString()).isEqualTo("alice");
+        assertThat(struct.get("name")).hasToString("sensor001");
+        assertThat(struct.get("timestamp")).hasToString("1234567890");
+        assertThat(struct.get("value")).hasToString("23.5");
+        assertThat(struct.get("type")).hasToString("temperature");
+        assertThat(struct.get("unit")).hasToString("celsius");
+        assertThat(struct.get("color")).hasToString("red");
+        assertThat(struct.get("city")).hasToString("Amsterdam");
+        assertThat(struct.get("owner")).hasToString("alice");
 
         // When: converting back to XML
         var resultXml = mapper.fromDataObject(struct);
@@ -144,7 +144,7 @@ class XmlDataObjectMapperTest {
 
         // Then: should be valid, well-formed single-line XML
         assertThat(compactXml).isNotNull();
-        assertThat(compactXml.split("\n").length).as("Compact XML should be single line").isEqualTo(1);
+        assertThat(compactXml.split("\n")).as("Compact XML should be single line").hasSize(1);
 
         try {
             // Parse the XML using DOM parser to verify it's valid and well-formed
@@ -182,8 +182,8 @@ class XmlDataObjectMapperTest {
         var struct = (DataStruct) dataObject;
 
         // Verify exact decoded values after XML parsing
-        assertThat(struct.get("name").toString()).isEqualTo("test & example");
-        assertThat(struct.get("description").toString()).isEqualTo("<value> with \"quotes\"");
+        assertThat(struct.get("name")).hasToString("test & example");
+        assertThat(struct.get("description")).hasToString("<value> with \"quotes\"");
     }
 
     @Test
@@ -202,7 +202,7 @@ class XmlDataObjectMapperTest {
         // Then: values should be preserved
         assertThat(result).isInstanceOf(DataStruct.class);
         var resultStruct = (DataStruct) result;
-        assertThat(resultStruct.get("name").toString()).isEqualTo("test & example");
+        assertThat(resultStruct.get("name")).hasToString("test & example");
         assertThat(resultStruct.get("description").toString()).contains("<value>");
         assertThat(resultStruct.get("description").toString()).contains("\"quotes\"");
     }
@@ -226,7 +226,7 @@ class XmlDataObjectMapperTest {
         // Then: empty element should be represented
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
-        assertThat(struct.get("name").toString()).isEqualTo("test");
+        assertThat(struct.get("name")).hasToString("test");
         assertThat(struct.get("value").toString()).isEmpty();
     }
 
@@ -253,14 +253,14 @@ class XmlDataObjectMapperTest {
         assertThat(result).isInstanceOf(DataStruct.class);
         var resultStruct = (DataStruct) result;
 
-        assertThat(resultStruct.get("name").toString()).isEqualTo("sensor001");
-        assertThat(resultStruct.get("timestamp").toString()).isEqualTo("1234567890");
-        assertThat(resultStruct.get("value").toString()).isEqualTo("23.5");
-        assertThat(resultStruct.get("type").toString()).isEqualTo("temperature");
-        assertThat(resultStruct.get("unit").toString()).isEqualTo("celsius");
-        assertThat(resultStruct.get("color").toString()).isEqualTo("red");
-        assertThat(resultStruct.get("city").toString()).isEqualTo("Amsterdam");
-        assertThat(resultStruct.get("owner").toString()).isEqualTo("alice");
+        assertThat(resultStruct.get("name")).hasToString("sensor001");
+        assertThat(resultStruct.get("timestamp")).hasToString("1234567890");
+        assertThat(resultStruct.get("value")).hasToString("23.5");
+        assertThat(resultStruct.get("type")).hasToString("temperature");
+        assertThat(resultStruct.get("unit")).hasToString("celsius");
+        assertThat(resultStruct.get("color")).hasToString("red");
+        assertThat(resultStruct.get("city")).hasToString("Amsterdam");
+        assertThat(resultStruct.get("owner")).hasToString("alice");
     }
 
     @Test
@@ -288,8 +288,8 @@ class XmlDataObjectMapperTest {
         // Then: numeric value should be parsed correctly
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
-        assertThat(struct.get("name").toString()).isEqualTo("test");
-        assertThat(struct.get("count").toString()).isEqualTo("42");
+        assertThat(struct.get("name")).hasToString("test");
+        assertThat(struct.get("count")).hasToString("42");
     }
 
     // Helper methods

@@ -182,8 +182,9 @@ class TestDataProducerTest {
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
 
+        var blocks = List.of(block);
         assertThrows(TestDefinitionException.class,
-                () -> producer.produce(List.of(block)));
+                () -> producer.produce(blocks));
     }
 
     @Test
@@ -193,7 +194,8 @@ class TestDataProducerTest {
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
 
+        var blocks2 = List.of(block);
         assertThrows(TestDefinitionException.class,
-                () -> producer.produce(List.of(block)));
+                () -> producer.produce(blocks2));
     }
 }

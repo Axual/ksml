@@ -173,7 +173,7 @@ public class HoppingWindowTest {
         }
 
         // Verify both sensors had independent first readings
-        assertThat(firstReadings.size()).isGreaterThanOrEqualTo(1);
+        assertThat(firstReadings).hasSizeGreaterThanOrEqualTo(1);
     }
 
     private String createSensorJson(String sensorId, double value) throws Exception {

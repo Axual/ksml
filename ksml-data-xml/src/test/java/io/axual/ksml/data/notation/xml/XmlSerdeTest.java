@@ -71,14 +71,14 @@ class XmlSerdeTest {
             assertThat(result).isInstanceOf(DataStruct.class);
             final var resultStruct = (DataStruct) result;
 
-            assertThat(resultStruct.get("name").toString()).isEqualTo("sensor001");
-            assertThat(resultStruct.get("timestamp").toString()).isEqualTo("1234567890");
-            assertThat(resultStruct.get("value").toString()).isEqualTo("23.5");
-            assertThat(resultStruct.get("type").toString()).isEqualTo("TEMPERATURE");
-            assertThat(resultStruct.get("unit").toString()).isEqualTo("C");
-            assertThat(resultStruct.get("color").toString()).isEqualTo("red");
-            assertThat(resultStruct.get("city").toString()).isEqualTo("Amsterdam");
-            assertThat(resultStruct.get("owner").toString()).isEqualTo("Alice");
+            assertThat(resultStruct.get("name")).hasToString("sensor001");
+            assertThat(resultStruct.get("timestamp")).hasToString("1234567890");
+            assertThat(resultStruct.get("value")).hasToString("23.5");
+            assertThat(resultStruct.get("type")).hasToString("TEMPERATURE");
+            assertThat(resultStruct.get("unit")).hasToString("C");
+            assertThat(resultStruct.get("color")).hasToString("red");
+            assertThat(resultStruct.get("city")).hasToString("Amsterdam");
+            assertThat(resultStruct.get("owner")).hasToString("Alice");
         }
     }
 
@@ -122,8 +122,8 @@ class XmlSerdeTest {
             final var result = (DataStruct) serde.deserializer().deserialize("topic", transformedBytes);
 
             // And: verify transformation persisted
-            assertThat(result.get("city").toString()).isEqualTo("ROTTERDAM");
-            assertThat(result.get("name").toString()).isEqualTo("sensor6");
+            assertThat(result.get("city")).hasToString("ROTTERDAM");
+            assertThat(result.get("name")).hasToString("sensor6");
         }
     }
 
@@ -150,8 +150,8 @@ class XmlSerdeTest {
             final var resultStruct = (DataStruct) result;
 
             // Verify exact values are preserved through round-trip with special XML characters
-            assertThat(resultStruct.get("name").toString()).isEqualTo("test & example");
-            assertThat(resultStruct.get("description").toString()).isEqualTo("<value> with \"quotes\" and 'apostrophes'");
+            assertThat(resultStruct.get("name")).hasToString("test & example");
+            assertThat(resultStruct.get("description")).hasToString("<value> with \"quotes\" and 'apostrophes'");
         }
     }
 
@@ -178,9 +178,9 @@ class XmlSerdeTest {
             assertThat(result).isInstanceOf(DataStruct.class);
             final var resultStruct = (DataStruct) result;
 
-            assertThat(resultStruct.get("name").toString()).isEqualTo("test");
+            assertThat(resultStruct.get("name")).hasToString("test");
             assertThat(resultStruct.get("optional").toString()).isEmpty();
-            assertThat(resultStruct.get("value").toString()).isEqualTo("123");
+            assertThat(resultStruct.get("value")).hasToString("123");
         }
     }
 
@@ -202,7 +202,7 @@ class XmlSerdeTest {
 
             // Then: should work correctly
             assertThat(result).isInstanceOf(DataStruct.class);
-            assertThat(((DataStruct) result).get("id").toString()).isEqualTo("key123");
+            assertThat(((DataStruct) result).get("id")).hasToString("key123");
         }
     }
 
@@ -254,7 +254,7 @@ class XmlSerdeTest {
             // Then: numeric value should be preserved
             assertThat(result).isInstanceOf(DataStruct.class);
             final var resultStruct = (DataStruct) result;
-            assertThat(resultStruct.get("timestamp").toString()).isEqualTo("1754376106863");
+            assertThat(resultStruct.get("timestamp")).hasToString("1754376106863");
         }
     }
 
@@ -347,8 +347,8 @@ class XmlSerdeTest {
             // Then: should work without optional fields
             assertThat(result).isInstanceOf(DataStruct.class);
             final var resultStruct = (DataStruct) result;
-            assertThat(resultStruct.get("name").toString()).isEqualTo("sensor1");
-            assertThat(resultStruct.get("value").toString()).isEqualTo("42");
+            assertThat(resultStruct.get("name")).hasToString("sensor1");
+            assertThat(resultStruct.get("value")).hasToString("42");
         }
     }
 

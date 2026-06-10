@@ -85,7 +85,7 @@ public class ResolvingClientConfig {
         final Object configuredValue = configs.get(key);
         try {
             return getConfiguredInstance(configuredValue, expectedClass, allowNull);
-        } catch (ConfigException e) {
+        } catch (ConfigException _) {
             throw new ConfigException(key, configuredValue, "Property not set or contains illegal value");
         }
     }

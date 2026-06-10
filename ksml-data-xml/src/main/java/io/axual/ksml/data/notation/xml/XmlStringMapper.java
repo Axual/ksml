@@ -58,7 +58,7 @@ public class XmlStringMapper implements StringMapper<Object> {
         try {
             var tree = mapper.readTree(value);
             return JsonNodeUtil.convertJsonNodeToNative(tree);
-        } catch (Exception mapException) {
+        } catch (Exception _) {
             throw new DataException("Could not parse string to object: " + value);
         }
     }

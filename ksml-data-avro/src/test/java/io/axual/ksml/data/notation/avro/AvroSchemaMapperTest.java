@@ -639,13 +639,9 @@ class AvroSchemaMapperTest {
         @SuppressWarnings("unchecked")
         final var defaultMap = (java.util.Map<String, Object>) back.getField("id").defaultVal();
 
-        // Plain string default — should be the string "x".
-        assertThat(defaultMap.get("content")).isEqualTo("x");
-
-        // The important assertion: the null inside the default must be Avro's
-        // null sentinel, NOT a raw Java null. A raw null here is what makes
-        // Avro crash when it tries to JSON-encode the default.
-        assertThat(defaultMap.get("typeCode")).isEqualTo(JsonProperties.NULL_VALUE);
+        assertThat(defaultMap)
+                .containsEntry("content", "x")
+                .containsEntry("typeCode", JsonProperties.NULL_VALUE);
     }
 
     @Test
@@ -706,7 +702,7 @@ class AvroSchemaMapperTest {
         // rule as the previous test, but reached through the list branch.
         @SuppressWarnings("unchecked")
         final var first = (java.util.Map<String, Object>) items.getFirst();
-        assertThat(first.get("v")).isEqualTo(JsonProperties.NULL_VALUE);
+        assertThat(first).containsEntry("v", JsonProperties.NULL_VALUE);
     }
 
     @Test

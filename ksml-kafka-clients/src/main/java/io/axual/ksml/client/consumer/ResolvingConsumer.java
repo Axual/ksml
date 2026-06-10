@@ -274,9 +274,9 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
         return super.currentLag(topicResolver.resolve(topicPartition));
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------
     // End of public interface of KafkaConsumer
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------
 
     private ConsumerRebalanceListener convertListener(ConsumerRebalanceListener listener) {
         return listener != null ? new ProxyConsumerRebalanceListener(listener) : null;

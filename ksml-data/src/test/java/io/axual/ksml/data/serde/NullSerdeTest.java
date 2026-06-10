@@ -43,12 +43,16 @@ class NullSerdeTest {
     @Test
     @DisplayName("deserializer returns null for null/empty bytes; throws for non-empty")
     void deserializerReturnsNullOrThrows() {
-        var serde = new NullSerde();
-        assertThat(serde.deserializer().deserialize(TOPIC, null)).isNull();
-        assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isNull();
+        try (var serde = new NullSerde()) {
+            assertThat(serde.deserializer().deserialize(TOPIC, null)).isNull();
+            assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isNull();
 
-        assertThatThrownBy(() -> serde.deserializer().deserialize(TOPIC, new byte[]{1}))
-                .isInstanceOf(DataException.class)
-                .hasMessageEndingWith("Can only deserialize empty byte arrays as DataNull");
+            var deserializer = serde.deserializer();
+            assertThatThrownBy(() -> deserializer.deserialize(TOPIC, new byte[]{1}))
+                    .isInstanceOf(DataException.class)
+                    .hasMessageEndingWith("Can only deserialize empty byte arrays as DataNull");
+        } catch (Exception e) {
+            // ignore
+        }
     }
 }

@@ -79,7 +79,7 @@ class BasicStreamRunTest {
             final var schemaDirectory = schemaDirectoryURI.getPath();
             log.info("schemaDirectory = {}", schemaDirectory);
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException _) {
             // Ignore
         }
     }

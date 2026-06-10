@@ -268,7 +268,8 @@ class PythonContextTest {
 
         // Test fails (no exception) if Python successfully listed a directory
         // outside the configured modulePath - i.e. the sandbox was escapable.
-        assertThatThrownBy(() -> fn.execute(moduleDir.toString()))
+        var moduleDirStr = moduleDir.toString();
+        assertThatThrownBy(() -> fn.execute(moduleDirStr))
                 .isInstanceOf(PolyglotException.class);
     }
 
@@ -319,7 +320,8 @@ class PythonContextTest {
         // the diagnostic from the guest. If a PolyglotException is thrown, the sandbox
         // contained the guest and the test passes.
         try {
-            String result = fn.execute().asString();
+            var fnResult = fn.execute();
+            String result = fnResult.asString();
             Assertions.fail(
                     "Sandbox escape via sys.prefix succeeded - Python returned: " + result);
         } catch (PolyglotException expected) {

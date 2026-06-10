@@ -145,7 +145,8 @@ class UnionSerdeTest {
         SerdeSupplier supplier = (type, isKey) -> new ByteSerde();
         var serde = new UnionSerde(union, false, supplier);
 
-        assertThatThrownBy(() -> serde.serializer().serialize(TOPIC, "notByte"))
+        var serializer = serde.serializer();
+        assertThatThrownBy(() -> serializer.serialize(TOPIC, "notByte"))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Can not serialize value as union alternative");
     }
@@ -218,7 +219,9 @@ class UnionSerdeTest {
         final SerdeSupplier supplier = (type, isKey) -> throwingSerde;
         final var serde = new UnionSerde(union, false, supplier);
 
-        assertThatThrownBy(() -> serde.deserializer().deserialize(TOPIC, "data".getBytes()))
+        var deserializer = serde.deserializer();
+        var data = "data".getBytes();
+        assertThatThrownBy(() -> deserializer.deserialize(TOPIC, data))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Can not deserialize data as union");
     }

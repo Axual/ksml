@@ -43,7 +43,7 @@ class PythonFunctionTest {
         // field initializer below always runs against a warm libgraal isolate.
         try {
             new PythonContext(PythonContextConfig.builder().build());
-        } catch (Exception ignored) {
+        } catch (Exception _) {
             // Warmup only — the real assertions happen in the @Test methods.
         }
     }

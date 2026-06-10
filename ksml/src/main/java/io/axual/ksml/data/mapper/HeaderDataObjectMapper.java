@@ -63,7 +63,7 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
             final var result = STRING_SERDE.deserializer().deserialize(null, value);
             if (result == null) return DataNull.INSTANCE;
             return isRealString(result.toString()) ? new DataString(result.toString()) : new DataBytes(value);
-        } catch (Exception e) {
+        } catch (Exception _) {
             return new DataBytes(value);
         }
     }

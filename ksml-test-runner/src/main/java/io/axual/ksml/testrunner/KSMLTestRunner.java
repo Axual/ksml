@@ -60,12 +60,13 @@ public class KSMLTestRunner {
         List<File> testPaths;
     }
 
+    @SuppressWarnings("java:S106")
     public static void main(String[] args) {
         var arguments = new Arguments();
         var cmd = new CommandLine(arguments);
         try {
             cmd.parseArgs(args);
-        } catch (CommandLine.ParameterException e) {
+        } catch (CommandLine.ParameterException _) {
             cmd.usage(System.out);
             System.exit(1);
             return;
@@ -308,6 +309,7 @@ public class KSMLTestRunner {
         return name.replaceAll("[^A-Za-z0-9._-]", "_");
     }
 
+    @SuppressWarnings("java:S106")
     private static void reportResults(List<TestResult> results) {
         System.out.println();
         System.out.println("=== KSML Test Results ===");

@@ -74,14 +74,14 @@ class CsvSerdeTest {
             assertThat(result).isInstanceOf(DataStruct.class);
             final var resultStruct = (DataStruct) result;
 
-            assertThat(resultStruct.get("name").toString()).isEqualTo("sensor001");
-            assertThat(resultStruct.get("timestamp").toString()).isEqualTo("1234567890");
-            assertThat(resultStruct.get("value").toString()).isEqualTo("23.5");
-            assertThat(resultStruct.get("type").toString()).isEqualTo("temperature");
-            assertThat(resultStruct.get("unit").toString()).isEqualTo("celsius");
-            assertThat(resultStruct.get("color").toString()).isEqualTo("red");
-            assertThat(resultStruct.get("city").toString()).isEqualTo("Amsterdam");
-            assertThat(resultStruct.get("owner").toString()).isEqualTo("alice");
+            assertThat(resultStruct.get("name")).hasToString("sensor001");
+            assertThat(resultStruct.get("timestamp")).hasToString("1234567890");
+            assertThat(resultStruct.get("value")).hasToString("23.5");
+            assertThat(resultStruct.get("type")).hasToString("temperature");
+            assertThat(resultStruct.get("unit")).hasToString("celsius");
+            assertThat(resultStruct.get("color")).hasToString("red");
+            assertThat(resultStruct.get("city")).hasToString("Amsterdam");
+            assertThat(resultStruct.get("owner")).hasToString("alice");
         }
     }
 
@@ -108,9 +108,9 @@ class CsvSerdeTest {
             final var resultList = (DataList) result;
 
             assertThat(resultList.size()).isEqualTo(3);
-            assertThat(resultList.get(0).toString()).isEqualTo("sensor001");
-            assertThat(resultList.get(1).toString()).isEqualTo("1234567890");
-            assertThat(resultList.get(2).toString()).isEqualTo("23.5");
+            assertThat(resultList.get(0)).hasToString("sensor001");
+            assertThat(resultList.get(1)).hasToString("1234567890");
+            assertThat(resultList.get(2)).hasToString("23.5");
         }
     }
 
@@ -176,8 +176,8 @@ class CsvSerdeTest {
             final var resultStruct = (DataStruct) result;
 
             // Verify exact values are preserved through round-trip with special characters
-            assertThat(resultStruct.get("name").toString()).isEqualTo("sensor, type A");
-            assertThat(resultStruct.get("description").toString()).isEqualTo("temperature \"high\"");
+            assertThat(resultStruct.get("name")).hasToString("sensor, type A");
+            assertThat(resultStruct.get("description")).hasToString("temperature \"high\"");
         }
     }
 
@@ -199,7 +199,7 @@ class CsvSerdeTest {
 
             // Then: should work correctly
             assertThat(result).isInstanceOf(DataStruct.class);
-            assertThat(((DataStruct) result).get("id").toString()).isEqualTo("key123");
+            assertThat(((DataStruct) result).get("id")).hasToString("key123");
         }
     }
 
@@ -226,9 +226,9 @@ class CsvSerdeTest {
             assertThat(result).isInstanceOf(DataStruct.class);
             final var resultStruct = (DataStruct) result;
 
-            assertThat(resultStruct.get("name").toString()).isEqualTo("test");
+            assertThat(resultStruct.get("name")).hasToString("test");
             assertThat(resultStruct.get("optional").toString()).isEmpty();
-            assertThat(resultStruct.get("value").toString()).isEqualTo("123");
+            assertThat(resultStruct.get("value")).hasToString("123");
         }
     }
 

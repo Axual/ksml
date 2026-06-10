@@ -56,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * runner uses when invoked with the --schema flag.
  */
 @Slf4j
-public class AllDefinitionsSchemaValidationTest {
+class AllDefinitionsSchemaValidationTest {
 
     private static JsonSchema ksmlSchema;
 

@@ -76,7 +76,7 @@ public class JsonStringMapper implements StringMapper<Object> {
         try {
             var tree = MAPPER.readTree(value);
             return JsonNodeUtil.convertJsonNodeToNative(tree);
-        } catch (Exception mapException) {
+        } catch (Exception _) {
             // Keep message compact to avoid logging the full value in noisy environments
             throw new DataException("Could not parse string to object: " + value);
         }

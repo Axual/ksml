@@ -70,7 +70,9 @@ class StringSerdeTest {
         var nativeMapper = new NativeDataObjectMapper();
         var serde = new StringSerde(nativeMapper);
 
-        assertThatThrownBy(() -> serde.serializer().serialize(TOPIC, new Exception("test")))
+        var serializer = serde.serializer();
+        var wrongInput = new Exception("test");
+        assertThatThrownBy(() -> serializer.serialize(TOPIC, wrongInput))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Can not convert value to DataObject: Exception");
     }
@@ -89,7 +91,8 @@ class StringSerdeTest {
         var serde = new StringSerde(nativeMapper, badStringMapper, DataString.DATATYPE);
 
         var bytes = new StringSerializer().serialize(TOPIC, "oops");
-        assertThatThrownBy(() -> serde.deserializer().deserialize(TOPIC, bytes))
+        var deserializer = serde.deserializer();
+        assertThatThrownBy(() -> deserializer.deserialize(TOPIC, bytes))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Wrong type retrieved from state store")
                 .hasMessageContaining(DataString.DATATYPE.toString())

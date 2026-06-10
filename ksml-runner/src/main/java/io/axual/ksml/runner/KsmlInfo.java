@@ -59,7 +59,7 @@ public class KsmlInfo {
                 buildTime = ksmlInfo.getProperty("buildTime", DEFAULT_BUILD_TIME);
             }
 
-        } catch (IOException e) {
+        } catch (IOException _) {
             log.info("Could not load manifest file, using default values");
             appName = DEFAULT_APP_NAME;
             appVersion = DEFAULT_APP_VERSION;

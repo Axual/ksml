@@ -239,6 +239,7 @@ public class KSMLDSL {
 
         public static final String TO_TOPIC_NAME_EXTRACTOR = "toTopicNameExtractor";
 
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class ToTopicNameExtractor {
             public static final String TOPIC_NAME_EXTRACTOR = "topicNameExtractor";
             public static final String PARTITIONER = "partitioner";

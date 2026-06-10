@@ -127,7 +127,7 @@ public class PrometheusConfig {
                 } else {
                     log.warn("Could not load prometheus config from {}", DEFAULT_CONFIG_RESOURCE);
                 }
-            } catch (IOException e) {
+            } catch (IOException _) {
                 log.info("Could not create temporary prometheus config file");
             }
             defaultConfigFile = tmpFile;

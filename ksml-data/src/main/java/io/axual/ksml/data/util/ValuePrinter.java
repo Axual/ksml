@@ -42,7 +42,7 @@ public abstract class ValuePrinter {
         final var quote = quoted && (value instanceof String || value instanceof DataString) ? dict.quoteStr() : "";
         return switch (value) {
             case null -> dict.nullStr();
-            case Boolean val -> val ? dict.trueStr() : dict.falseStr();
+            case Boolean val -> Boolean.TRUE.equals(val) ? dict.trueStr() : dict.falseStr();
             default -> quote + value + quote;
         };
     }

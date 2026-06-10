@@ -37,6 +37,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -96,7 +97,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
             try {
                 url = new URI(logbackConfigFile.trim()).toURL();
                 return url;
-            } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
+            } catch (URISyntaxException | MalformedURLException | IllegalArgumentException _) {
                 // so, resource is not a URL:
                 // attempt to get the resource from the class path
                 url = Loader.getResource(logbackConfigFile, classLoader);
@@ -109,7 +110,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
                     try {
                         url = f.toURI().toURL();
                         return url;
-                    } catch (MalformedURLException e1) {
+                    } catch (MalformedURLException _) {
                         // Eat exception
                     }
                 }
