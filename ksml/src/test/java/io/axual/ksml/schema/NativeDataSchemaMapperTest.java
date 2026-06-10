@@ -32,12 +32,11 @@ import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.exception.ExecutionException;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
-
-import org.assertj.core.api.InstanceOfAssertFactories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -55,7 +54,7 @@ class NativeDataSchemaMapperTest {
         var result = (Map<?, ?>) mapper.fromDataSchema(schema);
 
         var fields = (List<?>) result.get("fields");
-        var fieldMap = (Map<?, ?>) fields.get(0);
+        var fieldMap = (Map<?, ?>) fields.getFirst();
         assertThat((Boolean) fieldMap.get("defaultValue")).isTrue();
     }
 
@@ -67,7 +66,7 @@ class NativeDataSchemaMapperTest {
         var result = (Map<?, ?>) mapper.fromDataSchema(schema);
 
         var fields = (List<?>) result.get("fields");
-        var fieldMap = (Map<?, ?>) fields.get(0);
+        var fieldMap = (Map<?, ?>) fields.getFirst();
         assertThat((Boolean) fieldMap.get("defaultValue")).isFalse();
     }
 
@@ -95,7 +94,7 @@ class NativeDataSchemaMapperTest {
         var result = (Map<?, ?>) mapper.fromDataSchema(schema);
 
         var fields = (List<?>) result.get("fields");
-        var fieldMap = (Map<?, ?>) fields.get(0);
+        var fieldMap = (Map<?, ?>) fields.getFirst();
         assertThat(fieldMap).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
                 .containsEntry("defaultValue", List.of("a", "b"));
     }
@@ -111,7 +110,7 @@ class NativeDataSchemaMapperTest {
         var result = (Map<?, ?>) mapper.fromDataSchema(schema);
 
         var fields = (List<?>) result.get("fields");
-        var fieldMap = (Map<?, ?>) fields.get(0);
+        var fieldMap = (Map<?, ?>) fields.getFirst();
         assertThat(fieldMap).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
                 .containsEntry("defaultValue", "AREA");
     }
@@ -124,7 +123,7 @@ class NativeDataSchemaMapperTest {
         var result = (Map<?, ?>) mapper.fromDataSchema(schema);
 
         var fields = (List<?>) result.get("fields");
-        var fieldMap = (Map<?, ?>) fields.get(0);
+        var fieldMap = (Map<?, ?>) fields.getFirst();
         assertThat(fieldMap).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
                 .containsEntry("defaultValue", Map.of());
     }
@@ -140,7 +139,7 @@ class NativeDataSchemaMapperTest {
         var result = (Map<?, ?>) mapper.fromDataSchema(schema);
 
         var fields = (List<?>) result.get("fields");
-        var fieldMap = (Map<?, ?>) fields.get(0);
+        var fieldMap = (Map<?, ?>) fields.getFirst();
         assertThat(fieldMap).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
                 .containsEntry("defaultValue", Map.of("key1", "val1", "key2", "val2"));
     }
