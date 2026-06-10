@@ -284,7 +284,7 @@ public class DataMap implements DataObject {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.equalResult();
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -305,7 +305,7 @@ public class DataMap implements DataObject {
             if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Equality.equalResult();
+        return Equality.equal();
     }
 
     private static Equality equalContents(DataMap left, DataMap right, EqualityFlags flags) {
@@ -323,6 +323,6 @@ public class DataMap implements DataObject {
             }
         }
 
-        return Equality.equalResult();
+        return Equality.equal();
     }
 }

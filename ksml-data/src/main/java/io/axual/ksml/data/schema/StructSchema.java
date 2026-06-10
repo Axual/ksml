@@ -235,7 +235,7 @@ public class StructSchema extends NamedSchema {
          */
         @Override
         public Equality equals(Object obj, EqualityFlags flags) {
-            if (this == obj) return Equality.equalResult();
+            if (this == obj) return Equality.equal();
             if (obj == null) return otherIsNull(this);
             if (!getClass().equals(obj.getClass())) return EqualUtil.containerClassNotEqual(getClass(), obj.getClass());
 
@@ -276,7 +276,7 @@ public class StructSchema extends NamedSchema {
             if (!flags.isSet(IGNORE_STRUCT_FIELD_ORDER) && !Objects.equals(order, that.order))
                 return fieldNotEqual("order", this, order, that, that.order);
 
-            return Equality.equalResult();
+            return Equality.equal();
         }
     }
 
@@ -511,6 +511,6 @@ public class StructSchema extends NamedSchema {
             }
         }
 
-        return Equality.equalResult();
+        return Equality.equal();
     }
 }

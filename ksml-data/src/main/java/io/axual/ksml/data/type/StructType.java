@@ -125,7 +125,7 @@ public class StructType extends ComplexType {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.equalResult();
+        if (this == other) return Equality.equal();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -144,6 +144,6 @@ public class StructType extends ComplexType {
                 return fieldNotEqual(SCHEMA_FIELD, this, schema, that, that.schema, schemaEqual);
         }
 
-        return Equality.equalResult();
+        return Equality.equal();
     }
 }

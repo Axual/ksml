@@ -87,7 +87,7 @@ public class EnumSchema extends NamedSchema {
 
         @Override
         public Equality equals(Object other, EqualityFlags flags) {
-            if (this == other) return Equality.equalResult();
+            if (this == other) return Equality.equal();
             if (other == null) return otherIsNull(this);
             if (!getClass().equals(other.getClass()))
                 return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -106,7 +106,7 @@ public class EnumSchema extends NamedSchema {
             if (!flags.isSet(IGNORE_ENUM_SCHEMA_SYMBOL_TAG) && !Objects.equals(tag, that.tag))
                 return fieldNotEqual("tag", this, tag, that, that.tag);
 
-            return Equality.equalResult();
+            return Equality.equal();
         }
     }
 
@@ -223,6 +223,6 @@ public class EnumSchema extends NamedSchema {
         if (!flags.isSet(IGNORE_ENUM_SCHEMA_DEFAULT_VALUE) && !Objects.equals(defaultValue, that.defaultValue))
             return fieldNotEqual("defaultValue", this, defaultValue, that, that.defaultValue);
 
-        return Equality.equalResult();
+        return Equality.equal();
     }
 }

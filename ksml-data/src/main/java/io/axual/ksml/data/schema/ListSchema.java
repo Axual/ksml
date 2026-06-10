@@ -158,7 +158,7 @@ public class ListSchema extends DataSchema {
                 return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
         }
 
-        return Equality.equalResult();
+        return Equality.equal();
     }
 
     /**

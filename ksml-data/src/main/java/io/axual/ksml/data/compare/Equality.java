@@ -37,6 +37,7 @@ import lombok.NonNull;
  */
 @Getter
 @EqualsAndHashCode
+@SuppressWarnings("java:S2176")
 public class Equality {
     private static final Equality EQUAL = new Equality(null, null);
     private final String message;
@@ -58,7 +59,7 @@ public class Equality {
      *
      * @return the OK Equal instance
      */
-    public static Equality equalResult() {
+    public static Equality equal() {
         return EQUAL;
     }
 
@@ -68,8 +69,8 @@ public class Equality {
      * @param message explanation of why the objects are not equal
      * @return a new Equal instance representing inequality
      */
-    public static Equality notEqualResult(String message) {
-        return notEqualResult(message, null);
+    public static Equality notEqual(String message) {
+        return notEqual(message, null);
     }
 
     /**
@@ -80,7 +81,7 @@ public class Equality {
      * @return a new Equal instance representing inequality
      * @throws NullPointerException if {@code message} is {@code null}
      */
-    public static Equality notEqualResult(@NonNull String message, Equality cause) {
+    public static Equality notEqual(@NonNull String message, Equality cause) {
         return new Equality(message, cause);
     }
 

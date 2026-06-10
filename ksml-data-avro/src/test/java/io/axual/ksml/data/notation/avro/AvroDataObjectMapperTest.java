@@ -1068,7 +1068,7 @@ class AvroDataObjectMapperTest {
 
         @Override
         public Equality equals(Object obj, EqualityFlags flags) {
-            return Equality.notEqualResult("Fake error");
+            return Equality.notEqual("Fake error");
         }
     }
 

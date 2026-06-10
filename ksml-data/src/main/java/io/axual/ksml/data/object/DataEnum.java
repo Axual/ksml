@@ -46,7 +46,7 @@ public class DataEnum extends DataPrimitive<String> {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (other instanceof DataString dataString && value().equals(dataString.value())) return Equality.equalResult();
+        if (other instanceof DataString dataString && value().equals(dataString.value())) return Equality.equal();
         return super.equals(other, flags);
     }
 }
