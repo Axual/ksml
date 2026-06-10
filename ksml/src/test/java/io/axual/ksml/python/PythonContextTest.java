@@ -319,14 +319,14 @@ class PythonContextTest {
         // If the call returns at all, the sandbox has been escaped - fail loudly with
         // the diagnostic from the guest. If a PolyglotException is thrown, the sandbox
         // contained the guest and the test passes.
+        Value fnResult;
         try {
-            var fnResult = fn.execute();
-            String result = fnResult.asString();
-            Assertions.fail(
-                    "Sandbox escape via sys.prefix succeeded - Python returned: " + result);
+            fnResult = fn.execute();
         } catch (PolyglotException expected) {
             log.debug("Sandbox correctly blocked sys.prefix traversal: {}", expected.getMessage());
+            return;
         }
+        Assertions.fail("Sandbox escape via sys.prefix succeeded - Python returned: " + fnResult.asString());
     }
 
     @Test

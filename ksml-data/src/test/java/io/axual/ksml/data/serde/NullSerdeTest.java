@@ -51,7 +51,7 @@ class NullSerdeTest {
             assertThatThrownBy(() -> deserializer.deserialize(TOPIC, new byte[]{1}))
                     .isInstanceOf(DataException.class)
                     .hasMessageEndingWith("Can only deserialize empty byte arrays as DataNull");
-        } catch (Exception e) {
+        } catch (Exception _) {
             // ignore
         }
     }
