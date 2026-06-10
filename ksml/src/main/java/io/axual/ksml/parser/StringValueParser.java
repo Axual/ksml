@@ -37,7 +37,7 @@ public class StringValueParser implements ParserWithSchemas<String> {
     }
 
     public StringValueParser(BooleanToStringConverter converter) {
-        this.converter = Objects.requireNonNullElseGet(converter, () -> value -> value ? "true" : "false");
+        this.converter = Objects.requireNonNullElseGet(converter, () -> Boolean::toString);
     }
 
     @Override
