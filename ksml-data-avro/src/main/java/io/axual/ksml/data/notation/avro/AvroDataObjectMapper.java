@@ -145,6 +145,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
      */
     @Override
     public Object fromDataObject(DataObject value) {
+        System.out.println("fromDataObject called with: " + value);
         return switch (value) {
             case null -> null;
             case DataNull _ -> null;
