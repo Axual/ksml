@@ -111,6 +111,6 @@ public class FixedSchema extends NamedSchema {
         if (!flags.isSet(IGNORE_FIXED_SCHEMA_SIZE) && !Objects.equals(size, that.size))
             return fieldNotEqual("size", this, size, that, that.size);
 
-        return Equality.ok();
+        return Equality.equalResult();
     }
 }

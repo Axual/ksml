@@ -238,7 +238,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.ok();
+        if (this == other) return Equality.equalResult();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -259,7 +259,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
             if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
-        return Equality.ok();
+        return Equality.equalResult();
     }
 
     private static Equality equalContents(DataList left, DataList right, EqualityFlags flags) {
@@ -278,6 +278,6 @@ public class DataList implements DataObject, Iterable<DataObject> {
             }
             index++;
         }
-        return Equality.ok();
+        return Equality.equalResult();
     }
 }

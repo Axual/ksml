@@ -90,7 +90,7 @@ public class DataPrimitive<T> implements DataObject {
 
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.ok();
+        if (this == other) return Equality.equalResult();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass())) return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
 
@@ -115,6 +115,6 @@ public class DataPrimitive<T> implements DataObject {
             }
         }
 
-        return Equality.ok();
+        return Equality.equalResult();
     }
 }

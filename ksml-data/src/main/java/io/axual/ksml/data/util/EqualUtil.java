@@ -50,7 +50,7 @@ public class EqualUtil {
     public static Equality otherIsNull(Object thisObject) {
         if (thisObject == null)
             throw new DataException("Can not handle NULL object, this is a bug in KSML");
-        return Equality.notEqual("Cannot compare " + strOf(thisObject) + " to null");
+        return Equality.notEqualResult("Cannot compare " + strOf(thisObject) + " to null");
     }
 
     /**
@@ -125,11 +125,11 @@ public class EqualUtil {
      * @return a non-equal result describing the field mismatch with cause
      */
     public static Equality fieldNotEqual(String fieldName, Object thisType, Object thisValue, Object thatType, Object thatValue, Equality cause) {
-        return Equality.notEqual(strOf(thisType) + " differs from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
+        return Equality.notEqualResult(strOf(thisType) + " differs from " + strOf(thatType) + ": this." + fieldName + "=" + strOf(thisValue) + ", that." + fieldName + "=" + strOf(thatValue), cause);
     }
 
     private static Equality notEqual(String type, Object thisType, Object thatType, Equality cause) {
-        return Equality.notEqual(type + " \"" + strOf(thisType) + "\" is not equal to \"" + strOf(thatType) + "\"", cause);
+        return Equality.notEqualResult(type + " \"" + strOf(thisType) + "\" is not equal to \"" + strOf(thatType) + "\"", cause);
     }
 
     private static String strOf(Object obj) {

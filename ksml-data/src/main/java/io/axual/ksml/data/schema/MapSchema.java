@@ -113,6 +113,6 @@ public class MapSchema extends DataSchema {
                 return fieldNotEqual("valueSchema", this, valueSchema, that, that.valueSchema, valueSchemaEqual);
         }
 
-        return Equality.ok();
+        return Equality.equalResult();
     }
 }

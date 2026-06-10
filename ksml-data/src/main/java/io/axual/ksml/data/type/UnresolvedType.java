@@ -62,8 +62,8 @@ public class UnresolvedType implements DataType {
 
     @Override
     public Equality equals(Object obj, EqualityFlags flags) {
-        if (this == obj) return Equality.ok();
-        return Equality.notEqual("UnresolvedType is not equal to " + (obj != null ? obj : "null"));
+        if (this == obj) return Equality.equalResult();
+        return Equality.notEqualResult("UnresolvedType is not equal to " + (obj != null ? obj : "null"));
     }
 
     @Override

@@ -66,7 +66,7 @@ public class UnionType extends ComplexType {
 
         @Override
         public Equality equals(Object other, EqualityFlags flags) {
-            if (this == other) return Equality.ok();
+            if (this == other) return Equality.equalResult();
             if (other == null) return otherIsNull(this);
             if (!getClass().equals(other.getClass()))
                 return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -92,7 +92,7 @@ public class UnionType extends ComplexType {
             if (!flags.isSet(IGNORE_UNION_TYPE_MEMBER_TAG) && !Objects.equals(tag, that.tag))
                 return fieldNotEqual("tag", this, tag, that, that.tag);
 
-            return Equality.ok();
+            return Equality.equalResult();
         }
 
         public boolean hasDoc() {
@@ -166,7 +166,7 @@ public class UnionType extends ComplexType {
      */
     @Override
     public Equality equals(Object other, EqualityFlags flags) {
-        if (this == other) return Equality.ok();
+        if (this == other) return Equality.equalResult();
         if (other == null) return otherIsNull(this);
         if (!getClass().equals(other.getClass()))
             return EqualUtil.containerClassNotEqual(getClass(), other.getClass());
@@ -187,6 +187,6 @@ public class UnionType extends ComplexType {
             }
         }
 
-        return Equality.ok();
+        return Equality.equalResult();
     }
 }
