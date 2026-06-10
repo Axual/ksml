@@ -498,6 +498,7 @@ public class KSMLRunner {
         }
     }
 
+    @SuppressWarnings("java:S106")
     private static void printKsmlDefinitionSchema(String filename) {
         // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
         // KSML definitions with on stdout and exit
@@ -521,7 +522,7 @@ public class KSMLRunner {
                         .log();
             }
         } else {
-            log.info("{}", schema);
+            System.out.println(schema);
         }
     }
 

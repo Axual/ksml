@@ -80,7 +80,7 @@ public class KSMLTestRunner {
 
         // Check GraalVM availability
         if (!Version.getCurrent().isRelease()) {
-            log.error("KSML Test Runner requires GraalVM to run.");
+            System.err.println("ERROR: KSML Test Runner requires GraalVM to run.");
             System.exit(1);
             return;
         }
@@ -89,13 +89,13 @@ public class KSMLTestRunner {
         try {
             testFiles = collectTestFiles(arguments.testPaths);
         } catch (IOException | TestDefinitionException e) {
-            log.error("Error collecting test files: {}", e.getMessage());
+            System.err.println("ERROR: " + e.getMessage());
             System.exit(1);
             return;
         }
 
         if (testFiles.isEmpty()) {
-            log.error("No test files (*.yaml, *.yml) found in: {}", arguments.testPaths);
+            System.err.println("ERROR: No test files (*.yaml, *.yml) found in: " + arguments.testPaths);
             System.exit(1);
             return;
         }

@@ -23,8 +23,6 @@ package io.axual.ksml.testrunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
@@ -46,7 +44,6 @@ import java.util.Map;
  * where X is a record means a regex-keyed object" — which is the convention KSML test files
  * use for the {@code streams:} and {@code tests:} maps.
  */
-@Slf4j
 public class TestDefinitionSchemaGenerator {
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -55,6 +52,7 @@ public class TestDefinitionSchemaGenerator {
     private static final String TYPE_OBJECT = "object";
     private static final String REQUIRED = "required";
 
+    @SuppressWarnings("java:S106")
     public static void main(String[] args) throws IOException {
         var schema = generateSchema();
         var outputPath = args.length > 0
@@ -62,7 +60,7 @@ public class TestDefinitionSchemaGenerator {
                 : Path.of("src/main/resources/schemas/test-definition.schema.json");
         Files.createDirectories(outputPath.getParent());
         Files.writeString(outputPath, schema);
-        log.info("Generated schema: {}", outputPath);
+        System.out.println("Generated schema: " + outputPath);
     }
 
     static String generateSchema() throws IOException {
