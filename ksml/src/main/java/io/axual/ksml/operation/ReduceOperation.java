@@ -65,12 +65,12 @@ public class ReduceOperation extends StoreOperation {
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output;
-        if (mat != null) {
-            output = named != null
-                    ? input.groupedStream.reduce(userRed, named, mat)
-                    : input.groupedStream.reduce(userRed, mat);
+        if (named != null && mat != null) {
+            output = input.groupedStream.reduce(userRed, named, mat);
         } else {
-            output = input.groupedStream.reduce(userRed);
+            output = mat != null
+                    ? input.groupedStream.reduce(userRed, mat)
+                    : input.groupedStream.reduce(userRed);
         }
         return new KTableWrapper(output, k, v);
     }
@@ -95,12 +95,12 @@ public class ReduceOperation extends StoreOperation {
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output;
-        if (mat != null) {
-            output = named != null
-                    ? input.groupedTable.reduce(userAdd, userSub, named, mat)
-                    : input.groupedTable.reduce(userAdd, userSub, mat);
+        if (named != null && mat != null) {
+            output = input.groupedTable.reduce(userAdd, userSub, named, mat);
         } else {
-            output = input.groupedTable.reduce(userAdd, userSub);
+            output = mat != null
+                    ? input.groupedTable.reduce(userAdd, userSub, mat)
+                    : input.groupedTable.reduce(userAdd, userSub);
         }
         return new KTableWrapper(output, k, v);
     }
@@ -122,12 +122,14 @@ public class ReduceOperation extends StoreOperation {
         final var mat = materializedOf(context, sessionStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output;
-        if (mat != null) {
-            output = named != null
+        if (named != null) {
+            output = mat != null
                     ? input.sessionWindowedKStream.reduce(userRed, named, mat)
-                    : input.sessionWindowedKStream.reduce(userRed, mat);
+                    : input.sessionWindowedKStream.reduce(userRed, named);
         } else {
-            output = input.sessionWindowedKStream.reduce(userRed);
+            output = mat != null
+                    ? input.sessionWindowedKStream.reduce(userRed, mat)
+                    : input.sessionWindowedKStream.reduce(userRed);
         }
         return new KTableWrapper((KTable) output, windowed(k), v);
     }
@@ -149,12 +151,14 @@ public class ReduceOperation extends StoreOperation {
         final var mat = materializedOf(context, windowStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output;
-        if (mat != null) {
-            output = named != null
+        if (named != null) {
+            output = mat != null
                     ? input.timeWindowedKStream.reduce(userRed, named, mat)
-                    : input.timeWindowedKStream.reduce(userRed, mat);
+                    : input.timeWindowedKStream.reduce(userRed, named);
         } else {
-            output = input.timeWindowedKStream.reduce(userRed);
+            output = mat != null
+                    ? input.timeWindowedKStream.reduce(userRed, mat)
+                    : input.timeWindowedKStream.reduce(userRed);
         }
         return new KTableWrapper((KTable) output, windowed(k), v);
     }
