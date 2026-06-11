@@ -75,12 +75,12 @@ public class KSMLConfig {
 
     @NotBlank
     @JsonProperty(value = "schemaDirectory", required = false)
-    @JsonPropertyDescription("Directory containing schema files. Defaults to the value of configDirectory")
+    @JsonPropertyDescription("Directory containing schema files. Defaults to the working directory")
     private String schemaDirectory = DEFAULT_LOCATION;
 
     @NotBlank
     @JsonProperty(value = "storageDirectory", required = false)
-    @JsonPropertyDescription("Directory for Kafka Streams state stores. Defaults to the System temp directory")
+    @JsonPropertyDescription("Directory for Kafka Streams state stores. Defaults to the working directory")
     private String storageDirectory = DEFAULT_LOCATION;
 
     @JsonProperty(value = "createStorageDirectory", required = false)
