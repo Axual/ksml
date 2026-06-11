@@ -83,15 +83,15 @@ public class KSMLConfig {
     @JsonPropertyDescription("Directory for Kafka Streams state stores. Defaults to the working directory")
     private String storageDirectory = DEFAULT_LOCATION;
 
-    @JsonProperty(value = "createStorageDirectory", required = false)
+    @JsonProperty(value = "createStorageDirectory", required = false, defaultValue = "false")
     @JsonPropertyDescription("Create storage directory if it doesn't exist. Default value is false")
     private boolean createStorageDirectory = false;
 
-    @JsonProperty(value = "enableProducers", required = false)
+    @JsonProperty(value = "enableProducers", required = false, defaultValue = "true")
     @JsonPropertyDescription("Toggle to enable or disable the creation of producers in the KSML definitions. Default value is true")
     private boolean enableProducers = true;
 
-    @JsonProperty(value = "enablePipelines", required = false)
+    @JsonProperty(value = "enablePipelines", required = false, defaultValue = "true")
     @JsonPropertyDescription("Toggle to enable or disable the creation of pipelines in the KSML definitions. Default value is true")
     private boolean enablePipelines = true;
 

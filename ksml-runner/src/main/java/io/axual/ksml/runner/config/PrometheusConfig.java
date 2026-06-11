@@ -68,18 +68,18 @@ public class PrometheusConfig {
         this.configFile = config.configFile;
     }
 
-    @JsonProperty(value = "enabled", required = true)
+    @JsonProperty(value = "enabled", required = true, defaultValue = "false")
     @JsonPropertyDescription("Toggle to activate the creation Prometheus metrics exporter. Default is false")
     private boolean enabled = false;
 
     @NotBlank
-    @JsonProperty(value = "host", required = false)
+    @JsonProperty(value = "host", required = false, defaultValue = "0.0.0.0")
     @JsonPropertyDescription("Determines on which hostname/ip address the Prometheus metrics exporter listener is created. Default is IP address for all networks '0.0.0.0'")
     private String host = DEFAULT_HOSTNAME;
 
     @Min(1)
     @Max(65535)
-    @JsonProperty(value = "port", required = false)
+    @JsonProperty(value = "port", required = false, defaultValue = "9999")
     @JsonPropertyDescription("Determines on which port the Prometheus metrics exporter is listening. Default is 9999")
     private Integer port = DEFAULT_PORT;
 
