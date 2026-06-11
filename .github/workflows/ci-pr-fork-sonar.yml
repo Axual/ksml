@@ -85,7 +85,7 @@ jobs:
 
       - name: Delete artifacts after analysis
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
