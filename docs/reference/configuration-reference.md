@@ -99,6 +99,10 @@ ksml:
   createStorageDirectory: true
 ```
 
+!!! note
+    `schemaDirectory` is mainly intended for scenarios where your pipeline uses schemas but no schema
+    server is present. In production using a schema server is preferred.
+
 ### Application Server Configuration
 
 Enables a REST API for state store queries and health checks:
