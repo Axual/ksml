@@ -431,10 +431,12 @@ public class ConvertUtil {
         if (expected == DataBytes.DATATYPE) return new DataBytes();
         if (expected == DataString.DATATYPE) return new DataString();
         return switch (expected) {
+            case EnumType _-> DataNull.INSTANCE;
             case ListType listType -> new DataList(listType.valueType(), true);
             case MapType mapType -> new DataMap(mapType.valueType(), true);
             case StructType structType -> new DataStruct(structType.schema(), true);
-            case EnumType _, TupleType _, UnionType _ -> DataNull.INSTANCE;
+            case TupleType _ -> DataNull.INSTANCE;
+            case UnionType _ -> DataNull.INSTANCE;
             default -> throw new DataException("Can not convert NULL to " + expected);
         };
     }
