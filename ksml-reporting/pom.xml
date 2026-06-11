@@ -121,10 +121,15 @@
                 <executions>
                     <execution>
                         <id>report-aggregate</id>
-                        <phase>test</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report-aggregate</goal>
                         </goals>
+                        <configuration>
+                            <dataFileIncludes>
+                                <dataFileInclude>**/target/jacoco.exec</dataFileInclude>
+                            </dataFileIncludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
