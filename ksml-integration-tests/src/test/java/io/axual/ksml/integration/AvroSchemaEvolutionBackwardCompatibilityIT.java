@@ -23,7 +23,9 @@ package io.axual.ksml.integration;
 import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
@@ -162,16 +164,18 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                         return count >= 10;
                     });
 
+            final String registryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2";
             final Properties consumerProps = new Properties();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-phase2-verifier");
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-            consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, AvroKafkaDeserializer.class.getName());
+            consumerProps.put("apicurio.registry.url", registryUrl);
 
-            try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
+            try (KafkaConsumer<String, Object> consumer = new KafkaConsumer<>(consumerProps)) {
                 consumer.subscribe(Collections.singletonList("sensor_data_evolution_processed"));
-                ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
+                ConsumerRecords<String, Object> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
                 assertThat(records.count()).as("Should have processed all 10 messages").isEqualTo(10);
                 log.info("Phase 2 complete: Processed {} messages with schema v2 (10 fields)", records.count());
@@ -180,6 +184,10 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     log.debug("  Phase 2 processed message: key={}", record.key());
                     assertThat(record.key()).as("Key should match sensor pattern")
                             .matches("sensor[0-9]");
+
+                    GenericRecord value = (GenericRecord) record.value();
+                    assertThat(value.get("location")).as("location field should be null (v2 default)").isNull();
+                    assertThat(value.get("accuracy")).as("accuracy field should be null (v2 default)").isNull();
                 });
             }
 
@@ -275,16 +283,18 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                         return count >= 10;
                     });
 
+            final String registryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2";
             final Properties consumerProps = new Properties();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-type-promo-phase2-verifier");
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-            consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, AvroKafkaDeserializer.class.getName());
+            consumerProps.put("apicurio.registry.url", registryUrl);
 
-            try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
+            try (KafkaConsumer<String, Object> consumer = new KafkaConsumer<>(consumerProps)) {
                 consumer.subscribe(Collections.singletonList("sensor_data_avro_type_promo_processed"));
-                ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
+                ConsumerRecords<String, Object> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
                 assertThat(records.count()).as("Should have processed all 10 messages").isEqualTo(10);
                 log.info("Type-promo Phase 2 complete: Processed {} messages with long reading schema", records.count());
@@ -293,6 +303,11 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     log.debug("  Type-promo Phase 2 processed message: key={}", record.key());
                     assertThat(record.key()).as("Key should match sensor pattern")
                             .matches("sensor[0-9]");
+
+                    GenericRecord value = (GenericRecord) record.value();
+                    Object readingObj = value.get("reading");
+                    assertThat(readingObj).as("reading field should be a Long after type promotion").isInstanceOf(Long.class);
+                    assertThat((Long) readingObj).as("reading value should be between 1 and 10").isBetween(1L, 10L);
                 });
             }
 
