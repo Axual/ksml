@@ -89,6 +89,38 @@ mvn clean test
   - `@KSMLTopic(topic = "xxx")`
   - `@KSMLTest(topology = "pipelines/xxx.yaml")`
 
+### Checking Coverage Locally (same numbers as SonarCloud)
+
+`mvn clean test` only generates per-module reports, which show lower numbers because each module only counts its own unit tests. To get the full aggregate report that matches what SonarCloud sees, run:
+
+```shell
+mvn clean verify --no-transfer-progress
+```
+
+This runs all tests across all modules and then generates the aggregate coverage report at:
+
+```
+ksml-reporting/target/site/jacoco-aggregate/index.html
+```
+
+Open that file in a browser to see the project-wide numbers.
+
+The `Cov.` percentage shown at the top of that page is **instruction coverage** (bytecode-level), which as of this moment reads around 66%. That is not the number SonarCloud shows. To get the numbers that match SonarCloud, look at the **Total** row at the bottom of the table and read the `Lines` and `Missed` columns:
+
+- **Line coverage** = (Lines - Missed Lines) / Lines
+- **Branch coverage** = (Branches - Missed Branches) / Branches
+
+For example, if the Total row shows 4,125 missed out of 12,679 lines and 2,787 missed out of 6,676 branches:
+
+```
+Line coverage:   (12679 - 4125) / 12679 = 67.5%
+Branch coverage: (6676  - 2787) / 6676  = 58.3%
+```
+
+Those two numbers will match what SonarCloud reports.
+
+Per-module reports (lower numbers, own tests only) are still at `<module>/target/site/jacoco/index.html` if you need them.
+
 ## Next Steps
 
 Explore examples and advanced use cases in [`ksml-blog.md`](ksml-blog.md).
