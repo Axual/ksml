@@ -161,7 +161,7 @@ public class AssertionRunner {
 
         var records = new ArrayList<Map<String, Object>>();
         var keyValues = outputTopic.readRecordsToList();
-        for (var keyValue : keyValues) {
+        for (final var keyValue : keyValues) {
             // Keys match the YAML produce-message vocabulary so user assertion code
             // sees the same field names for output records that they wrote for input.
             var map = new HashMap<String, Object>();
@@ -214,7 +214,7 @@ public class AssertionRunner {
     }
 
     private void injectVariables(PythonContext pythonContext, List<Pair<String, Object>> args) {
-        for (var nameValue : args) {
+        for (final var nameValue : args) {
             var code = """
                     VARNAME = None
                     import polyglot

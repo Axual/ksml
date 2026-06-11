@@ -36,7 +36,6 @@ import lombok.NonNull;
  * To optimize for the common success case, the OK state is implemented as a singleton instance (message is {@code null}).
  */
 @Getter
-@EqualsAndHashCode
 @SuppressWarnings("java:S2176")
 public class Equality {
     private static final Equality EQUAL = new Equality(null, null);

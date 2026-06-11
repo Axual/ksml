@@ -428,8 +428,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // native mapper unwrap the KSML wrapper to its underlying Java value
         // (DataString -> String, DataInteger -> Integer, etc.). If unwrapping
         // produces a raw Java null, swap it for Avro's null sentinel.
-        final var nativeDataObject = NATIVE_MAPPER.fromDataObject(value);
-        return nativeDataObject == null ? JsonProperties.NULL_VALUE : nativeDataObject;
+        final var object = NATIVE_MAPPER.fromDataObject(value);
+        return object == null ? JsonProperties.NULL_VALUE : object;
     }
 
     private Schema.Field.Order convertStructFieldOrderToAvroFieldOrder(StructSchema.Field.Order order) {

@@ -92,6 +92,7 @@ public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFil
             }
         }
 
+        @SuppressWarnings("java:S3358")
         private MessageDefinition toMessageDefinition(String namespace, MessageElement messageElement) {
             // Mark the namespace + message name as done
             final var fullName = (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + messageElement.getName();
@@ -124,12 +125,8 @@ public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFil
             for (final var field : messageElement.getFields()) {
                 final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
                 final var repeated = field.getLabel() == Field.Label.REPEATED;
-                final String label;
-                if (required) {
-                    label = null;
-                } else {
-                    label = repeated ? "repeated" : "optional";
-                }
+                final var label = required ? null
+                        : repeated ? "repeated" : "optional";
                 final var fldBuilder = FieldDefinition.newBuilder(new Context(), field.getName(), field.getTag(), field.getType());
                 msgBuilder.addField(label != null ? fldBuilder.setLabel(label).build() : fldBuilder.build());
             }
@@ -230,18 +227,13 @@ public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFil
                     Collections.emptyList());
         }
 
+        @SuppressWarnings("java:S3358")
         private static FieldElement convertToFieldElement(Descriptors.FieldDescriptor field, String type) {
             final var required = field.isRequired();
             final var list = field.isRepeated();
-            final Field.Label fieldLabel;
-            if (required) {
-                fieldLabel = null;
-            } else {
-                fieldLabel = list ? Field.Label.REPEATED : Field.Label.OPTIONAL;
-            }
             return new FieldElement(
                     DEFAULT_LOCATION,
-                    fieldLabel,
+                    required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
                     type,
                     field.getName(),
                     defaultValue(field),

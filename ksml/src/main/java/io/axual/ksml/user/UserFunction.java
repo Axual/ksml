@@ -71,8 +71,9 @@ public class UserFunction {
     @Override
     public String toString() {
         String[] params = Arrays.stream(parameters).map(p -> p.name() + ":" + (p.type() != null ? p.type() : "?")).toArray(String[]::new);
+        final var plural = storeNames.length > 1 ? "s" : "";
         final var storeSuffix = storeNames.length > 0
-                ? " using store" + (storeNames.length > 1 ? "s" : "") + " " + String.join(",", storeNames)
+                ? " using store" + plural + " " + String.join(",", storeNames)
                 : "";
         return namespace + "." + name
                 + "(" + String.join(", ", params) + ")"

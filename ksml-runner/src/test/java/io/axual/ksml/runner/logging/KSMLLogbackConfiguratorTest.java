@@ -105,11 +105,12 @@ class KSMLLogbackConfiguratorTest {
     @DisplayName("The configuration file should not be loaded, but fall back to the default setting")
     @ClearEnvironmentVariable(key = "LOGBACK_CONFIGURATION_FILE")
     @SetSystemProperty(key = "logback.test.id", value = "shouldNotAppear")
+    @SuppressWarnings("java:S106")
     void configureWithoutEnvironmentVariable() {
         KSMLLogbackConfigurator configurator = new KSMLLogbackConfigurator();
         configurator.setContext(spiedContext);
         configurator.configure(spiedContext);
-        log.info("{}", MockAppender.APPENDERS);
+        System.out.println(MockAppender.APPENDERS);
 
         // This id comes from the logback-test.xml, which should be loaded now and is hardcoded
         Collection<MockAppender> appenders = MockAppender.APPENDERS.get("fixed-from-standard-joran-lookup");

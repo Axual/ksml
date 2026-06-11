@@ -31,18 +31,28 @@ import io.axual.ksml.data.type.UnionType;
 
 import static io.axual.ksml.data.notation.csv.CsvNotation.DEFAULT_TYPE;
 
+@SuppressWarnings("java:S1066")
 public class CsvDataObjectConverter implements Notation.Converter {
     private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
 
     @Override
     public DataObject convert(DataObject value, DataType targetType) {
-        if (value instanceof DataList valueList && DEFAULT_TYPE.equals(valueList.type()) && targetType == DataString.DATATYPE) {
-            return new DataString(MAPPER.fromDataObject(value));
+        // Convert from structured CSV
+        if (value instanceof DataList valueList && DEFAULT_TYPE.equals(valueList.type())) {
+            // Convert to String
+            if (targetType == DataString.DATATYPE) {
+                return new DataString(MAPPER.fromDataObject(value));
+            }
         }
 
-        if (value instanceof DataString csvString &&
-            (targetType instanceof ListType || targetType instanceof StructType || targetType instanceof UnionType)) {
-            return MAPPER.toDataObject(targetType, csvString.value());
+        // Convert from String
+        if (value instanceof DataString csvString) {
+            // Convert to structured CSV
+            if (targetType instanceof ListType
+                    || targetType instanceof StructType
+                    || targetType instanceof UnionType) {
+                return MAPPER.toDataObject(targetType, csvString.value());
+            }
         }
 
         // Return null if there is no conversion possible

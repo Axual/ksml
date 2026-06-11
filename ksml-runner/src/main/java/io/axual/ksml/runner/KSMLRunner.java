@@ -445,6 +445,7 @@ public class KSMLRunner {
         return titleBuilder.toString();
     }
 
+    @SuppressWarnings("java:S106")
     private static void printRunnerSchema(String filename) {
         JacksonModule moduleJackson = new JacksonModule(
                 JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
@@ -484,7 +485,7 @@ public class KSMLRunner {
                 writer.close();
                 log.info("KSML JSON schema written to file: {}", filename);
             } else {
-                log.info("{}", schema);
+                System.out.println(schema);
             }
         } catch (Exception e) {
             log.atError()
