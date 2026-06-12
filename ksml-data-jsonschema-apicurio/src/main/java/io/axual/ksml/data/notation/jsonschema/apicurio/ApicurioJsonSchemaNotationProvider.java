@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaDataObjectMapper;
@@ -40,13 +40,13 @@ import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
  * {@link NotationContext}.</p>
  */
 public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioJsonSchemaNotationProvider() {
         this(null);
     }
 
-    public ApicurioJsonSchemaNotationProvider(RegistryClient registryClient) {
+    public ApicurioJsonSchemaNotationProvider(RegistryClientFacade registryClient) {
         super(JsonSchemaNotation.NOTATION_NAME, "apicurio");
         this.registryClient = registryClient;
     }

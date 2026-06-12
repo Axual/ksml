@@ -20,9 +20,9 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.internal.KsmlFilePath;
 import io.axual.ksml.runner.config.internal.KsmlInlineDefinition;

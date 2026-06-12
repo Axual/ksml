@@ -20,14 +20,13 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.MetricTags;
 import lombok.Getter;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,10 +97,8 @@ public class ParseNode {
             result.add(new ParseNode(this, field.getValue(), childTagValue, childTagKey != null ? tags.append(childTagKey, childTagValue) : tags));
         }
 
-        Iterator<JsonNode> elementIterator = node.elements();
         int index = 1;
-        while (elementIterator.hasNext()) {
-            JsonNode element = elementIterator.next();
+        for (var element : node) {
             if (!seen.contains(element)) {
                 final var childTagValue = elementPrefix + index++;
                 result.add(new ParseNode(this, element, childTagValue, childTagKey != null ? tags.append(childTagKey, childTagValue) : tags));
@@ -175,11 +172,11 @@ public class ParseNode {
     }
 
     public boolean isString() {
-        return node.isTextual();
+        return node.isString();
     }
 
     public String asString() {
-        return node.asText();
+        return node.asString();
     }
 
     public boolean isArray() {

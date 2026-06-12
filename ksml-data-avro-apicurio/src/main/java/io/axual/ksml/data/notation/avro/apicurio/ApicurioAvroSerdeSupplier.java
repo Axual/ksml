@@ -20,63 +20,26 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.Legacy4ByteIdHandler;
-import io.apicurio.registry.serde.SerdeConfig;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
-import io.apicurio.registry.serde.strategy.TopicIdStrategy;
 import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
-import io.axual.ksml.data.serde.ConfigInjectionSerde;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 
-import java.util.Map;
-
 public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
     // Registry Client is mocked by tests
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
-    public ApicurioAvroSerdeSupplier(RegistryClient registryClient) {
+    public ApicurioAvroSerdeSupplier(RegistryClientFacade registryClient) {
         this.registryClient = registryClient;
     }
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new ApicurioAvroSerde(registryClient);
-    }
-
-    static class ApicurioAvroSerde extends ConfigInjectionSerde {
-        public ApicurioAvroSerde(RegistryClient registryClient) {
-            this(Serdes.serdeFrom(
-                    registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>(),
-                    registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>()));
-        }
-
-        public ApicurioAvroSerde(Serde<Object> delegate) {
-            super(delegate);
-        }
-
-        @Override
-        protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
-            if (configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
-                    configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
-                // Enable payload encoding in a Confluent compatible way
-                configs.putIfAbsent(SerdeConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
-                configs.putIfAbsent(SerdeConfig.ENABLE_HEADERS, false);
-                configs.putIfAbsent(SerdeConfig.ENABLE_CONFLUENT_ID_HANDLER, true);
-                configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");
-                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getCanonicalName());
-            }
-            // Default to resolving the latest registered artifact version by coordinates instead of
-            // by content. When auto-register is false (and the user has not opted into find-latest),
-            // Apicurio otherwise performs a content-based lookup whose canonical key renders nested
-            // named types (e.g. an inline enum) as bare references; that never matches a schema
-            // registered in inline form, causing serialization to fail with ArtifactNotFoundException.
-            // See https://github.com/Axual/ksml/issues/290 . Users can still override this explicitly.
-            configs.putIfAbsent(SerdeConfig.FIND_LATEST_ARTIFACT, true);
-            return configs;
-        }
+        return Serdes.serdeFrom(
+                registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>(),
+                registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>());
     }
 }

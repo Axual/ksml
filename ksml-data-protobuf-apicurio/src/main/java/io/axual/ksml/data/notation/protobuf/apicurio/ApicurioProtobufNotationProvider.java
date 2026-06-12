@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
@@ -32,13 +32,13 @@ import lombok.Getter;
 public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     // Registry Client is mocked by tests
     @Getter
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioProtobufNotationProvider() {
         this(null);
     }
 
-    public ApicurioProtobufNotationProvider(RegistryClient registryClient) {
+    public ApicurioProtobufNotationProvider(RegistryClientFacade registryClient) {
         super(ProtobufNotation.NOTATION_NAME, "apicurio");
         this.registryClient = registryClient;
     }

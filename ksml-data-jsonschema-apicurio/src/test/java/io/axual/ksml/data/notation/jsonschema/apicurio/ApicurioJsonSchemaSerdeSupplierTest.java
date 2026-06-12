@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.serde.HeaderFilterSerde;
 import io.axual.ksml.data.type.StructType;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -124,7 +125,7 @@ class ApicurioJsonSchemaSerdeSupplierTest {
 
     @Test
     void testSupplierRegistryClientGetter() {
-        final var client = mock(io.apicurio.registry.rest.client.RegistryClient.class);
+        final var client = mock(RegistryClientFacade.class);
         final var supplier = new ApicurioJsonSchemaSerdeSupplier(client);
         assertSame(client, supplier.registryClient());
     }

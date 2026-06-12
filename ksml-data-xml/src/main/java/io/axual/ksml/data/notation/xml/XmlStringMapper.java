@@ -22,13 +22,13 @@ package io.axual.ksml.data.notation.xml;
 
 import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlFactory;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.string.StringMapper;
 import io.axual.ksml.data.util.JsonNodeUtil;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.dataformat.xml.XmlFactory;
+import tools.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.XmlWriteFeature;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -45,10 +45,10 @@ public class XmlStringMapper implements StringMapper<Object> {
         inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         final var outputFactory = new WstxOutputFactory();
         outputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
-        mapper = new XmlMapper(new XmlFactory(new WstxInputFactory(), outputFactory));
+        var builder = XmlMapper.builder(new XmlFactory(inputFactory, outputFactory)).enable(XmlWriteFeature.WRITE_XML_1_1);
+        if (prettyPrint) builder = builder.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper = builder.build();
         this.rootName = rootName;
-        if (prettyPrint) mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        mapper.configure(ToXmlGenerator.Feature.WRITE_XML_1_1, true);
         this.prettyPrint = prettyPrint;
     }
 
@@ -66,7 +66,7 @@ public class XmlStringMapper implements StringMapper<Object> {
     @Override
     public String toString(Object value) {
         if (value == null) return null; // Allow null as native input, return null string as output
-        try (final var stringWriter = new StringWriter()) {
+        try (var stringWriter = new StringWriter()) {
             final var objectWriter = prettyPrint ? mapper.writerWithDefaultPrettyPrinter() : mapper.writer();
             objectWriter
                     .withRootName(rootName)

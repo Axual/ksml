@@ -20,13 +20,12 @@ package io.axual.ksml.runner.config.internal;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Jackson deserializer for {@link KsmlFileOrDefinition}.
@@ -41,19 +40,19 @@ public class KsmlFileOrDefinitionDeserializer extends StdDeserializer<KsmlFileOr
     }
 
     @Override
-    public KsmlFileOrDefinition deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public KsmlFileOrDefinition deserialize(JsonParser p, DeserializationContext context) throws JacksonException {
         // Read the current JSON token tree to inspect its kind (string vs object)
-        JsonNode node = p.getCodec().readTree(p);
+        JsonNode node = context.readTree(p);
 
-        if (node.isTextual()) {
+        if (node.isString()) {
             // String -> file path variant
-            return new KsmlFilePath(node.asText());
+            return new KsmlFilePath(node.asString());
         } else if (node instanceof ObjectNode objectNode) {
             // Object -> inline JSON definition variant
             return new KsmlInlineDefinition(objectNode);
         }
 
         // Any other JSON kind is invalid for this union type
-        throw ctxt.instantiationException(KsmlFileOrDefinition.class, "Expected String or Object, got: " + node.getNodeType());
+        throw context.instantiationException(KsmlFileOrDefinition.class, "Expected String or Object, got: " + node.getNodeType());
     }
 }

@@ -20,11 +20,13 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.Legacy4ByteIdHandler;
-import io.apicurio.registry.serde.SerdeConfig;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.apicurio.registry.serde.Default4ByteIdHandler;
+import io.apicurio.registry.serde.config.SerdeConfig;
 import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaDeserializer;
 import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaSerializer;
+import io.apicurio.registry.serde.kafka.config.KafkaSerdeConfig;
 import io.apicurio.registry.serde.strategy.TopicIdStrategy;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
@@ -40,7 +42,7 @@ import java.util.Map;
  *
  * <p>This class implements {@link JsonSchemaSerdeSupplier} and produces a Kafka {@link Serde}
  * backed by Apicurio's JsonSchema serializer/deserializer. It optionally accepts a
- * {@link RegistryClient} (useful for testing) and defaults to constructing
+ * {@link RegistryClientFacade} (useful for testing) and defaults to constructing
  * serializer/deserializer instances without an explicit client when null.</p>
  *
  * <p>The returned Serde is wrapped in a {@link ConfigInjectionSerde} to apply sensible default
@@ -52,13 +54,13 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
      * Optional Apicurio registry client; primarily used by tests.
      */
     @Getter
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioJsonSchemaSerdeSupplier() {
         this(null);
     }
 
-    public ApicurioJsonSchemaSerdeSupplier(RegistryClient registryClient) {
+    public ApicurioJsonSchemaSerdeSupplier(RegistryClientFacade registryClient) {
         this.registryClient = registryClient;
     }
 
@@ -72,7 +74,7 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
      * Serde wrapper that injects the default Apicurio configuration where not provided by the user.
      */
     static class ApicurioJsonSchemaSerde extends ConfigInjectionSerde {
-        public ApicurioJsonSchemaSerde(RegistryClient registryClient) {
+        public ApicurioJsonSchemaSerde(RegistryClientFacade registryClient) {
             this(Serdes.serdeFrom(
                     registryClient != null ? new JsonSchemaKafkaSerializer<>(registryClient) : new JsonSchemaKafkaSerializer<>(),
                     registryClient != null ? new JsonSchemaKafkaDeserializer<>(registryClient) : new JsonSchemaKafkaDeserializer<>()));
@@ -84,14 +86,13 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
 
         @Override
         protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
-            if (configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
-                    configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
+            if (configs.getOrDefault(KafkaSerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
+                    configs.getOrDefault(KafkaSerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
                 // Enable payload encoding in a Confluent compatible way
-                configs.putIfAbsent(SerdeConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
-                configs.putIfAbsent(SerdeConfig.ENABLE_HEADERS, false);
-                configs.putIfAbsent(SerdeConfig.ENABLE_CONFLUENT_ID_HANDLER, true);
+                configs.putIfAbsent(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
+                configs.putIfAbsent(KafkaSerdeConfig.ENABLE_HEADERS, false);
                 configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");
-                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getCanonicalName());
+                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Default4ByteIdHandler.class.getCanonicalName());
                 configs.putIfAbsent("apicurio.registry.serdes.json-schema.validation-enabled", true);
             }
             return configs;
