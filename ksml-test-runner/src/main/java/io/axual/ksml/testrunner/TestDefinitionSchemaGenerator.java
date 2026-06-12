@@ -20,10 +20,10 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
+
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
@@ -63,7 +63,7 @@ public class TestDefinitionSchemaGenerator {
         System.out.println("Generated schema: " + outputPath);
     }
 
-    static String generateSchema() throws IOException {
+    static String generateSchema() throws JacksonException {
         var root = buildRecordSchema(TestSuiteDefinition.class);
         root.put("$schema", "http://json-schema.org/draft-07/schema#");
         root.put("title", "KSML Test Suite Definition");
@@ -224,7 +224,8 @@ public class TestDefinitionSchemaGenerator {
     private static Type resolveSingleTypeArg(Type genericType) {
         if (genericType instanceof ParameterizedType pt) {
             var args = pt.getActualTypeArguments();
-            if (args.length == 1) return args[0];
+            if (args.length == 1)
+                return args[0];
         }
         return null;
     }
@@ -232,7 +233,8 @@ public class TestDefinitionSchemaGenerator {
     private static Type resolveMapValueType(Type genericType) {
         if (genericType instanceof ParameterizedType pt) {
             var args = pt.getActualTypeArguments();
-            if (args.length == 2) return args[1];
+            if (args.length == 2)
+                return args[1];
         }
         return null;
     }

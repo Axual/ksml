@@ -20,7 +20,7 @@ package io.axual.ksml.integration.testutil;
  * =========================LICENSE_END==================================
  */
 
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.assertj.core.api.SoftAssertions;
@@ -54,7 +54,7 @@ public class SensorDataTestUtil {
 
             return node;
 
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             softly.fail("Invalid JSON structure: " + e.getMessage());
             return null;
         }
