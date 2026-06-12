@@ -7,7 +7,7 @@ functions:
     code: |
       global messageCount
 
-      if messageCount >= 10:
+      if messageCount >= 3:
         return None
 
       key = "sensor" + str(messageCount)

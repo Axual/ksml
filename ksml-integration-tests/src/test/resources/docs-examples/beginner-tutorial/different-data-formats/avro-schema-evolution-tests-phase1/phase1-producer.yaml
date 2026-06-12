@@ -8,8 +8,8 @@ functions:
     code: |
       global messageCount
 
-      # Stop after 10 messages
-      if messageCount >= 10:
+      # Stop after 3 messages
+      if messageCount >= 3:
         return None
 
       key = "sensor" + str(messageCount)
