@@ -37,7 +37,7 @@ class StructSchemaTest {
     }
 
     private static StructSchema.Field optionalStringWithDefault(String name) {
-        return new StructSchema.Field(name, DataSchema.STRING_SCHEMA, null, 0, true, false, new DataString("n/a"));
+        return new StructSchema.Field(name, DataSchema.STRING_SCHEMA, null, 0, false, false, new DataString("n/a"));
     }
 
     @Test

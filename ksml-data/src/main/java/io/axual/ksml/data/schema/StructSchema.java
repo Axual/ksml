@@ -461,15 +461,15 @@ public class StructSchema extends NamedSchema {
             // If the field exists in the other schema, then validate its compatibility
             if (thatField != null) {
                 // if this field is required but other provides it as optional, old producers may not have included it
-                if (field.defaultValue() == null && thatField.defaultValue() != null) {
+                if (field.required() && !thatField.required()) {
                     return Assignable.notAssignable("Field \"" + field.name() + "\" is required in this schema but optional in other schema");
                 }
                 final var fieldAssignable = field.isAssignableFrom(thatField);
                 if (fieldAssignable.isNotAssignable())
                     return fieldNotAssignable(field.name(), this, field, that, thatField, fieldAssignable);
             }
-            // If this field has no default value, then the field should exist in the other schema
-            if (field.defaultValue() == null && thatField == null) {
+            // If this field is required, then it should exist in the other schema
+            if (field.required() && thatField == null) {
                 return Assignable.notAssignable("Other schema does not contain required field \"" + field.name() + "\"");
             }
         }

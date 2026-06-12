@@ -38,25 +38,26 @@ class ProtobufTests {
             IGNORE_ENUM_SCHEMA_DEFAULT_VALUE,
             IGNORE_STRUCT_SCHEMA_DOC
     );
+    private final NotationTestRunner runner = new NotationTestRunner(TestData.Variant.PROTOBUF);
 
     @Test
     void apicurioSchemaTest() {
-        NotationTestRunner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ApicurioProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
+        runner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ApicurioProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test
     void confluentSchemaTest() {
-        NotationTestRunner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ConfluentProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
+        runner.schemaTest(ProtobufNotation.NOTATION_NAME, new ProtobufSchemaMapper(new ConfluentProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test
     void apicurioDataTest() {
-        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ApicurioProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
+        runner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ApicurioProtobufFileElementDescriptorMapper()), PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test
     void confluentDataTest() {
-//        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper()));
+//        runner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper()));
     }
 
     @Test
@@ -65,7 +66,7 @@ class ProtobufTests {
         final var provider = new ApicurioProtobufNotationProvider(registryClient);
         final var notationContext = new NotationContext(registryClient.configs());
         final var notation = provider.createNotation(notationContext);
-        NotationTestRunner.serdeTest(notation, true, PROTOBUF_EQUALITY_FLAGS);
+        runner.serdeTest(notation, true, PROTOBUF_EQUALITY_FLAGS);
     }
 
     @Test
