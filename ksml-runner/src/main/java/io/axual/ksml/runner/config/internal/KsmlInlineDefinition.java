@@ -20,7 +20,7 @@ package io.axual.ksml.runner.config.internal;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Concrete {@link KsmlFileOrDefinition} representing an inline KSML definition.

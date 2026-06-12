@@ -20,12 +20,9 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.resolver.config.DefaultSchemaResolverConfig;
-import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.rest.client.RegistryClientFactory;
-import io.apicurio.registry.serde.SerdeConfig;
-import io.apicurio.rest.client.auth.Auth;
-import io.apicurio.rest.client.auth.BasicAuth;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.client.RegistryClientFacadeFactory;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
@@ -39,13 +36,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ApicurioAvroNotationProvider extends VendorNotationProvider {
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioAvroNotationProvider() {
         this(null);
     }
 
-    public ApicurioAvroNotationProvider(RegistryClient registryClient) {
+    public ApicurioAvroNotationProvider(RegistryClientFacade registryClient) {
         super(AvroNotation.NOTATION_NAME, "apicurio");
         this.registryClient = registryClient;
     }
@@ -54,36 +51,16 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
     public Notation createNotation(NotationContext context) {
         final Map<String, Object> serdeConfigs = context != null ? MapUtil.stringKeys(context.serdeConfigs()) : new HashMap<>();
         final var clientConfig = new ResolvingClientConfig(serdeConfigs);
-        final var srClient = this.registryClient != null ? this.registryClient : createSrClient(serdeConfigs);
+        final var srClient = this.registryClient != null ? registryClient : createSrClient(serdeConfigs);
         return new ApicurioAvroNotation(
                 new VendorNotationContext(vendorName(), context, new ApicurioAvroSerdeSupplier(srClient), new AvroDataObjectMapper()),
                 srClient,
                 clientConfig.topicResolver());
     }
 
-    // Package-private so it can be unit-tested directly.
-    RegistryClient createSrClient(Map<String, Object> serdeConfigs) {
-        if (!serdeConfigs.containsKey(SerdeConfig.REGISTRY_URL)) return null;
-        final var url = MapUtil.stringValues(serdeConfigs).get(SerdeConfig.REGISTRY_URL);
-        // We build the client here and give it to the serde. When we do that, the Apicurio serde does
-        // not add the username and password itself (it only does that when we do not give it a client).
-        // So we must add them here. If we do not, calls to a registry that needs a login fail with 401.
-        // create(url, configs) sets the URL and SSL, but not the login, so we pass the login as 'auth'.
-        final var auth = buildAuth(serdeConfigs);
-        return auth != null
-                ? RegistryClientFactory.create(url, serdeConfigs, auth)
-                : RegistryClientFactory.create(url, serdeConfigs);
-    }
-
-    // Reads the login from the config and returns it as an 'auth' object, or null when no login is set.
-    // We read the keys with Apicurio's own config class, so the key names are the same as the serde uses.
-    // For now this supports username and password (apicurio.auth.username / apicurio.auth.password).
-    // Token-based (OIDC) login can be added here in the same way later.
-    // Package-private so it can be unit-tested directly.
-    Auth buildAuth(Map<String, Object> serdeConfigs) {
-        final var config = new DefaultSchemaResolverConfig(serdeConfigs);
-        final var username = config.getAuthUsername();
-        if (username == null) return null;
-        return new BasicAuth(username, config.getAuthPassword());
+    private RegistryClientFacade createSrClient(Map<String, Object> serdeConfigs) {
+        if (!serdeConfigs.containsKey(SchemaResolverConfig.REGISTRY_URL))
+            return null;
+        return RegistryClientFacadeFactory.create(new SchemaResolverConfig(serdeConfigs));
     }
 }

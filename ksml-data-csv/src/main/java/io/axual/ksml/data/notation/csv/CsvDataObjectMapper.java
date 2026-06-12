@@ -20,12 +20,6 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
@@ -39,21 +33,25 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.dataformat.csv.CsvMapper;
+import tools.jackson.dataformat.csv.CsvReadFeature;
+import tools.jackson.dataformat.csv.CsvWriteFeature;
 
 public class CsvDataObjectMapper implements DataObjectMapper<String> {
     private static final ObjectReader CSV_READER = new CsvMapper()
             .readerForArrayOf(String.class)
-            .with(CsvParser.Feature.WRAP_AS_ARRAY)
-            .with(CsvParser.Feature.SKIP_EMPTY_LINES)
-            .with(CsvParser.Feature.ALLOW_COMMENTS);
+            .with(CsvReadFeature.WRAP_AS_ARRAY)
+            .with(CsvReadFeature.SKIP_EMPTY_LINES)
+            .with(CsvReadFeature.ALLOW_COMMENTS);
     private static final ObjectWriter CSV_WRITER = new CsvMapper()
             .writerFor(String[].class)
-            .with(CsvGenerator.Feature.ESCAPE_CONTROL_CHARS_WITH_ESCAPE_CHAR)
-            .with(CsvGenerator.Feature.ESCAPE_QUOTE_CHAR_WITH_ESCAPE_CHAR)
-            .with(CsvGenerator.Feature.ALWAYS_QUOTE_STRINGS)
-            .without(CsvGenerator.Feature.WRITE_LINEFEED_AFTER_LAST_ROW);
+            .with(CsvWriteFeature.ESCAPE_CONTROL_CHARS_WITH_ESCAPE_CHAR)
+            .with(CsvWriteFeature.ESCAPE_QUOTE_CHAR_WITH_ESCAPE_CHAR)
+            .with(CsvWriteFeature.ALWAYS_QUOTE_STRINGS)
+            .without(CsvWriteFeature.WRITE_LINEFEED_AFTER_LAST_ROW);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final DataTypeDataSchemaMapper SCHEMA_TO_TYPE_MAPPER = new DataTypeDataSchemaMapper();
     private final ConvertUtil convertUtil;
@@ -73,7 +71,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
                     return convertLineToDataList(values);
                 }
             }
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new DataException("Could not parse CSV", e);
         }
         return new DataList(DataString.DATATYPE);
@@ -160,7 +158,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
     private String convertStringsToLine(String[] line) {
         try {
             return CSV_WRITER.writeValueAsString(line);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new DataException("Could not write CSV", e);
         }
     }

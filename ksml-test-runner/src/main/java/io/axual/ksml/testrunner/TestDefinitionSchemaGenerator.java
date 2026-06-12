@@ -20,9 +20,10 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
@@ -46,8 +47,7 @@ import java.util.Map;
  */
 public class TestDefinitionSchemaGenerator {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    private static final JsonMapper MAPPER = JsonMapper.builder().build();
     private static final String DESCRIPTION = "description";
     private static final String TYPE_OBJECT = "object";
     private static final String REQUIRED = "required";

@@ -20,67 +20,30 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.Legacy4ByteIdHandler;
-import io.apicurio.registry.serde.SerdeConfig;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
-import io.apicurio.registry.serde.strategy.TopicIdStrategy;
-import io.axual.ksml.data.serde.ConfigInjectionSerde;
-import io.axual.ksml.data.serde.HeaderFilterSerde;
 import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 
-import java.util.Map;
-import java.util.Set;
-
 public class ApicurioProtobufSerdeSupplier implements SerdeSupplier {
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioProtobufSerdeSupplier() {
-        this( null);
+        this(null);
     }
 
-    public ApicurioProtobufSerdeSupplier(RegistryClient registryClient) {
+    public ApicurioProtobufSerdeSupplier(RegistryClientFacade registryClient) {
         this.registryClient = registryClient;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new ApicurioProtobufSerde(registryClient);
-    }
-
-    static class ApicurioProtobufSerde extends ConfigInjectionSerde {
-        private final HeaderFilterSerde delegate;
-
-        @SuppressWarnings("unchecked")
-        public ApicurioProtobufSerde(RegistryClient registryClient) {
-            this(new HeaderFilterSerde((Serde) Serdes.serdeFrom(
-                    registryClient != null ? new ProtobufKafkaSerializer<>(registryClient) : new ProtobufKafkaSerializer<>(),
-                    registryClient != null ? new ProtobufKafkaDeserializer<>(registryClient) : new ProtobufKafkaDeserializer<>())));
-        }
-
-        public ApicurioProtobufSerde(HeaderFilterSerde delegate) {
-            super(delegate);
-            this.delegate = delegate;
-        }
-
-        @Override
-        protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
-            delegate.filteredHeaders(Set.of());
-
-            if (configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
-                    configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
-                // Enable payload encoding in a Confluent compatible way
-                configs.putIfAbsent(SerdeConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
-                configs.putIfAbsent(SerdeConfig.ENABLE_HEADERS, false);
-                configs.putIfAbsent(SerdeConfig.ENABLE_CONFLUENT_ID_HANDLER, true);
-                configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");
-                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getCanonicalName());
-            }
-            return configs;
-        }
+        return (Serde) Serdes.serdeFrom(
+                registryClient != null ? new ProtobufKafkaSerializer<>(registryClient) : new ProtobufKafkaSerializer<>(),
+                registryClient != null ? new ProtobufKafkaDeserializer<>(registryClient) : new ProtobufKafkaDeserializer<>());
     }
 }

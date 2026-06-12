@@ -20,7 +20,7 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.data.notation.binary.BinaryNotation;

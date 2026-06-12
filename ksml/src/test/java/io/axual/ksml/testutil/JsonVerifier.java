@@ -20,9 +20,9 @@ package io.axual.ksml.testutil;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -33,13 +33,13 @@ public class JsonVerifier {
 
     private JsonNode cursor;
 
-    private JsonVerifier(final String json) throws JsonProcessingException {
+    private JsonVerifier(final String json) throws JacksonException {
         final var mapper = new ObjectMapper();
         this.rootNode = mapper.readTree(json);
         this.cursor = rootNode;
     }
 
-    public static JsonVerifier verifyJson(final String json) throws JsonProcessingException {
+    public static JsonVerifier verifyJson(final String json) throws JacksonException {
         return new JsonVerifier(json);
     }
 
@@ -74,7 +74,7 @@ public class JsonVerifier {
     }
 
     public JsonVerifier withTextValue(final String expectedText) {
-        assertEquals(expectedText, cursor.textValue(), String.format("Node value does not match in %s", cursor));
+        assertEquals(expectedText, cursor.asString(), String.format("Node value does not match in %s", cursor));
         return this;
     }
 }

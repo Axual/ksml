@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.client.resolving.Resolver;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.avro.AvroNotation;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ApicurioAvroNotation extends AvroNotation {
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
     private final Resolver topicResolver;
 
     /**
@@ -44,7 +44,7 @@ public class ApicurioAvroNotation extends AvroNotation {
      *
      * @param context the vendor notation context providing serde supplier, native mapper, and configs
      */
-    public ApicurioAvroNotation(VendorNotationContext context, RegistryClient registryClient, Resolver topicResolver) {
+    public ApicurioAvroNotation(VendorNotationContext context, RegistryClientFacade registryClient, Resolver topicResolver) {
         super(context);
         this.registryClient = registryClient;
         this.topicResolver = topicResolver;
@@ -52,7 +52,8 @@ public class ApicurioAvroNotation extends AvroNotation {
 
     @Override
     public boolean supportsRemoteSchema() {
-        if (registryClient != null) return true;
+        if (registryClient != null)
+            return true;
         log.warn("Apicurio registry not configured, remote schema resolution is disabled");
         return false;
     }
@@ -66,8 +67,7 @@ public class ApicurioAvroNotation extends AvroNotation {
         final var subject = topicResolver.resolve(topic) + (isKey ? "-key" : "-value");
         try {
             log.info("Fetching latest schema for subject '{}' from schema registry", subject);
-            final var schemaStream = registryClient.getLatestArtifact(null, subject);
-            final var schema = new String(schemaStream.readAllBytes());
+            final var schema = registryClient.getSchemaByGAV(null, subject, null);
             return schemaParser().parse(subject, subject, schema);
         } catch (Exception e) {
             throw new SchemaException("Failed to fetch schema for subject '" + subject + "' from schema registry", e);

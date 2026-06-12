@@ -21,7 +21,7 @@ package io.axual.ksml.data.notation;
  */
 
 import io.axual.ksml.data.compare.EqualityFlags;
-import io.axual.ksml.data.notation.jsonschema.apicurio.MockApicurioSchemaRegistryClient;
+import io.axual.ksml.notation.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;

@@ -20,15 +20,15 @@ package io.axual.ksml.runner.config.internal;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
  * Jackson serializer for {@link KsmlFileOrDefinition}.
- *
+ * <p>
  * It writes the union as either a JSON string (for {@link KsmlFilePath}) or a JSON object (for {@link KsmlInlineDefinition}).
  */
 public class KsmlFileOrDefinitionSerializer extends StdSerializer<KsmlFileOrDefinition> {
@@ -37,12 +37,12 @@ public class KsmlFileOrDefinitionSerializer extends StdSerializer<KsmlFileOrDefi
     }
 
     @Override
-    public void serialize(KsmlFileOrDefinition value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(KsmlFileOrDefinition value, JsonGenerator gen, SerializationContext context) throws JacksonException {
         // Delegate to specific output depending on the concrete implementation
         if (value instanceof KsmlFilePath sv) {
             gen.writeString(sv.getValue());
         } else if (value instanceof KsmlInlineDefinition ov) {
-            provider.defaultSerializeValue(ov.getValue(), gen);
+            context.findValueSerializer(ObjectNode.class).serialize(ov.getValue(), gen, context);
         }
     }
 }
