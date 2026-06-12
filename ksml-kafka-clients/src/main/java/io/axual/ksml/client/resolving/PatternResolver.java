@@ -189,6 +189,7 @@ public class PatternResolver implements Resolver {
         for (int index = 0; index < literal.length(); index++) {
             switch (literal.charAt(index)) {
                 case '$', '#', '.', '{', '}' -> result.append("\\");
+                default -> { /* no escaping needed for other characters */ }
             }
             result.append(literal.charAt(index));
         }

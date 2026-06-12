@@ -204,7 +204,7 @@ public class ConvertUtil {
         final var result = switch (value) {
             // Come up with default values if we convert from Null
             case null -> convertNullToDataObject(targetType);
-            case DataNull ignored -> convertNullToDataObject(targetType);
+            case DataNull _ -> convertNullToDataObject(targetType);
             // Convert numbers to their proper specific type
             case DataByte val -> convertByteToTargetType(val, targetType);
             case DataShort val -> convertShortToTargetType(val, targetType);
@@ -431,12 +431,12 @@ public class ConvertUtil {
         if (expected == DataBytes.DATATYPE) return new DataBytes();
         if (expected == DataString.DATATYPE) return new DataString();
         return switch (expected) {
-            case EnumType ignored -> DataNull.INSTANCE;
+            case EnumType _-> DataNull.INSTANCE;
             case ListType listType -> new DataList(listType.valueType(), true);
             case MapType mapType -> new DataMap(mapType.valueType(), true);
             case StructType structType -> new DataStruct(structType.schema(), true);
-            case TupleType ignored -> DataNull.INSTANCE;
-            case UnionType ignored -> DataNull.INSTANCE;
+            case TupleType _ -> DataNull.INSTANCE;
+            case UnionType _ -> DataNull.INSTANCE;
             default -> throw new DataException("Can not convert NULL to " + expected);
         };
     }

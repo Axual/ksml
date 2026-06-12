@@ -118,41 +118,9 @@ public class AssertionRunner {
             }
 
             // Inject variables one at a time using prefixed parameter names
-            for (var nameValue : args) {
-                var code = """
-                        VARNAME = None
-                        import polyglot
-                        @polyglot.export_value
-                        def _set_VARNAME(_val):
-                            global VARNAME
-                            VARNAME = _val
-                        """.replace("VARNAME", nameValue.left());
-                var setter = pythonContext.registerFunction(code, "_set_" + nameValue.left());
-                if (setter != null) {
-                    setter.execute(nameValue.right());
-                }
-            }
+            injectVariables(pythonContext, args);
 
-            // Execute the assertion code
-            try {
-                pythonContext.registerFunction(
-                        "def _run_assertions():\n" +
-                                block.code().lines()
-                                        .map(line -> "  " + line)
-                                        .reduce((a, b) -> a + "\n" + b)
-                                        .orElse("  pass") +
-                                "\n\nimport polyglot\n@polyglot.export_value\ndef _exec_assertions():\n  _run_assertions()\n",
-                        "_exec_assertions"
-                ).execute();
-            } catch (org.graalvm.polyglot.PolyglotException e) {
-                if (e.getMessage() != null && e.getMessage().contains("AssertionError")) {
-                    var msg = extractAssertionMessage(e);
-                    return TestResult.fail(suiteName, testName, msg);
-                }
-                return TestResult.error(suiteName, testName, e.getMessage());
-            }
-
-            return TestResult.pass(suiteName, testName);
+            return executeAssertionCode(pythonContext, block, suiteName, testName);
         } catch (Exception e) {
             // Log at debug — the exception is preserved in the returned TestResult.message
             log.debug("Error running assertion for test '{} › {}'", suiteName, testName, e);
@@ -160,7 +128,30 @@ public class AssertionRunner {
         }
     }
 
+    private TestResult executeAssertionCode(PythonContext pythonContext, AssertBlock block,
+                                             String suiteName, String testName) {
+        try {
+            pythonContext.registerFunction(
+                    "def _run_assertions():\n" +
+                            block.code().lines()
+                                    .map(line -> "  " + line)
+                                    .reduce((a, b) -> a + "\n" + b)
+                                    .orElse("  pass") +
+                            "\n\nimport polyglot\n@polyglot.export_value\ndef _exec_assertions():\n  _run_assertions()\n",
+                    "_exec_assertions"
+            ).execute();
+        } catch (org.graalvm.polyglot.PolyglotException e) {
+            if (e.getMessage() != null && e.getMessage().contains(ASSERTION_ERROR)) {
+                var msg = extractAssertionMessage(e);
+                return TestResult.fail(suiteName, testName, msg);
+            }
+            return TestResult.error(suiteName, testName, e.getMessage());
+        }
+        return TestResult.pass(suiteName, testName);
+    }
+
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private static final String ASSERTION_ERROR = "AssertionError";
 
     private List<Map<String, Object>> collectOutputRecords(StreamDefinition stream) {
         var keyDeserializer = resolveDeserializer(stream.keyType(), true);
@@ -170,13 +161,13 @@ public class AssertionRunner {
 
         var records = new ArrayList<Map<String, Object>>();
         var keyValues = outputTopic.readRecordsToList();
-        for (var record : keyValues) {
+        for (final var keyValue : keyValues) {
             // Keys match the YAML produce-message vocabulary so user assertion code
             // sees the same field names for output records that they wrote for input.
             var map = new HashMap<String, Object>();
-            map.put(KSMLTestDSL.Message.KEY, toNativeValue(record.key()));
-            map.put(KSMLTestDSL.Message.VALUE, toNativeValue(record.value()));
-            map.put(KSMLTestDSL.Message.TIMESTAMP, record.timestamp());
+            map.put(KSMLTestDSL.Message.KEY, toNativeValue(keyValue.key()));
+            map.put(KSMLTestDSL.Message.VALUE, toNativeValue(keyValue.value()));
+            map.put(KSMLTestDSL.Message.TIMESTAMP, keyValue.timestamp());
             records.add(map);
         }
         return records;
@@ -222,15 +213,32 @@ public class AssertionRunner {
         return value;
     }
 
+    private void injectVariables(PythonContext pythonContext, List<Pair<String, Object>> args) {
+        for (final var nameValue : args) {
+            var code = """
+                    VARNAME = None
+                    import polyglot
+                    @polyglot.export_value
+                    def _set_VARNAME(_val):
+                        global VARNAME
+                        VARNAME = _val
+                    """.replace("VARNAME", nameValue.left());
+            var setter = pythonContext.registerFunction(code, "_set_" + nameValue.left());
+            if (setter != null) {
+                setter.execute(nameValue.right());
+            }
+        }
+    }
+
     private String extractAssertionMessage(org.graalvm.polyglot.PolyglotException e) {
         var message = e.getMessage();
-        if (message != null && message.contains("AssertionError")) {
+        if (message != null && message.contains(ASSERTION_ERROR)) {
             // Try to extract the user-provided assertion message
-            var idx = message.indexOf("AssertionError:");
+            var idx = message.indexOf(ASSERTION_ERROR + ":");
             if (idx >= 0) {
                 return message.substring(idx);
             }
-            idx = message.indexOf("AssertionError");
+            idx = message.indexOf(ASSERTION_ERROR);
             if (idx >= 0) {
                 return message.substring(idx);
             }

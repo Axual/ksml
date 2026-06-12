@@ -182,18 +182,20 @@ class TestDataProducerTest {
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
 
+        var blocks = List.of(block);
         assertThrows(TestDefinitionException.class,
-                () -> producer.produce(List.of(block)));
+                () -> producer.produce(blocks));
     }
 
     @Test
     void undefinedStreamReferenceThrows() {
-        var producer = new TestDataProducer(driver, streams);
-        var block = new ProduceBlock("nonexistent",
+        final var producer = new TestDataProducer(driver, streams);
+        final var block = new ProduceBlock("nonexistent",
                 List.of(new TestMessage("k1", "v1", null)),
                 null, null);
 
+        final var blockList = List.of(block);
         assertThrows(TestDefinitionException.class,
-                () -> producer.produce(List.of(block)));
+                () -> producer.produce(blockList));
     }
 }

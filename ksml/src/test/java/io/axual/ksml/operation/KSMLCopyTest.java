@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
+@SuppressWarnings("java:S2187")
 class KSMLCopyTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro")
@@ -47,6 +48,6 @@ class KSMLCopyTest {
         inputTopic.pipeInput("key1", "value1");
         assertFalse(outputTopic.isEmpty(), "record should be copied");
         var keyValue = outputTopic.readKeyValue();
-        System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
+        log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
     }
 }

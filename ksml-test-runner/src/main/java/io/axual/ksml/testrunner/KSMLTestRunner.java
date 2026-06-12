@@ -60,12 +60,13 @@ public class KSMLTestRunner {
         List<File> testPaths;
     }
 
+    @SuppressWarnings("java:S106")
     public static void main(String[] args) {
         var arguments = new Arguments();
         var cmd = new CommandLine(arguments);
         try {
             cmd.parseArgs(args);
-        } catch (CommandLine.ParameterException e) {
+        } catch (CommandLine.ParameterException _) {
             cmd.usage(System.out);
             System.exit(1);
             return;
@@ -160,7 +161,6 @@ public class KSMLTestRunner {
                                      String definitionYaml, Map<String, StreamDefinition> topicTypeMap,
                                      String schemaDirectory, String modulesDirectory) {
         var executionContext = new TestExecutionContext();
-        TopologyTestDriver driver = null;
         try {
             log.info("  Running test: {} › {}", suiteName, displayLabel);
 
@@ -184,13 +184,13 @@ public class KSMLTestRunner {
                     ImmutableMap.of("definition", topologyDefinition));
             log.debug("Topology:\n{}", topology.describe());
 
-            driver = new TopologyTestDriver(topology);
+            try (var driver = new TopologyTestDriver(topology)) {
+                var producer = new TestDataProducer(driver, suite.streams());
+                producer.produce(testCase.produce());
 
-            var producer = new TestDataProducer(driver, suite.streams());
-            producer.produce(testCase.produce());
-
-            var assertionRunner = new AssertionRunner(driver, suite.streams());
-            return assertionRunner.runAssertions(testCase.assertions(), suiteName, displayLabel);
+                var assertionRunner = new AssertionRunner(driver, suite.streams());
+                return assertionRunner.runAssertions(testCase.assertions(), suiteName, displayLabel);
+            }
 
         } catch (TestDefinitionException e) {
             return TestResult.error(suiteName, displayLabel,
@@ -201,9 +201,6 @@ public class KSMLTestRunner {
             log.debug("Error running test '{} › {}'", suiteName, displayLabel, e);
             return TestResult.error(suiteName, displayLabel, describeFailure(e));
         } finally {
-            if (driver != null) {
-                driver.close();
-            }
             executionContext.cleanup();
         }
     }
@@ -312,6 +309,7 @@ public class KSMLTestRunner {
         return name.replaceAll("[^A-Za-z0-9._-]", "_");
     }
 
+    @SuppressWarnings("java:S106")
     private static void reportResults(List<TestResult> results) {
         System.out.println();
         System.out.println("=== KSML Test Results ===");

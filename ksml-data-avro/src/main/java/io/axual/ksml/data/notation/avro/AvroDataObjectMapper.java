@@ -147,7 +147,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     public Object fromDataObject(DataObject value) {
         return switch (value) {
             case null -> null;
-            case DataNull ignored -> null;
+            case DataNull _ -> null;
             case DataBoolean val -> val.value();
             case DataByte val -> val.value() == null ? null : val.value().intValue();
             case DataShort val -> val.value() == null ? null : val.value().intValue();
@@ -393,15 +393,12 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Object convertDataObjectToAvroEnum(DataObject value, Schema schema) {
         // Validate that the symbol is declared in the schema — GenericData.EnumSymbol does not check this itself.
-        final String symbol;
-        if (value instanceof DataString s) {
-            symbol = s.value();
-        } else if (value instanceof DataEnum e) {
-            symbol = e.value();
-        } else {
-            throw new DataException("Can not convert " + value.getClass().getSimpleName()
+        final String symbol = switch (value) {
+            case DataString s -> s.value();
+            case DataEnum e -> e.value();
+            default -> throw new DataException("Can not convert " + value.getClass().getSimpleName()
                     + " to Avro ENUM '" + schema.getFullName() + "'");
-        }
+        };
         if (symbol == null) return null;
         if (!schema.hasEnumSymbol(symbol)) {
             throw new DataException("Value \"" + symbol + "\" is not a valid symbol of Avro ENUM '"
@@ -432,19 +429,17 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Schema matchUnionBranchByNativeType(Schema unionSchema, DataObject value) {
         final var preferred = switch (value) {
-            case DataBoolean ignored -> Schema.Type.BOOLEAN;
-            case DataByte ignored -> Schema.Type.INT;
-            case DataShort ignored -> Schema.Type.INT;
-            case DataInteger ignored -> Schema.Type.INT;
-            case DataLong ignored -> Schema.Type.LONG;
-            case DataFloat ignored -> Schema.Type.FLOAT;
-            case DataDouble ignored -> Schema.Type.DOUBLE;
-            case DataString ignored -> Schema.Type.STRING;
-            case DataBytes ignored -> Schema.Type.BYTES;
-            case DataList ignored -> Schema.Type.ARRAY;
-            case DataMap ignored -> Schema.Type.MAP;
-            case DataStruct ignored -> Schema.Type.RECORD;
-            case DataEnum ignored -> Schema.Type.ENUM;
+            case DataBoolean _ -> Schema.Type.BOOLEAN;
+            case DataByte _, DataShort _, DataInteger _ -> Schema.Type.INT;
+            case DataLong _ -> Schema.Type.LONG;
+            case DataFloat _ -> Schema.Type.FLOAT;
+            case DataDouble _ -> Schema.Type.DOUBLE;
+            case DataString _ -> Schema.Type.STRING;
+            case DataBytes _ -> Schema.Type.BYTES;
+            case DataList _ -> Schema.Type.ARRAY;
+            case DataMap _ -> Schema.Type.MAP;
+            case DataStruct _ -> Schema.Type.RECORD;
+            case DataEnum _ -> Schema.Type.ENUM;
             default -> null;
         };
         if (preferred == null) return null;

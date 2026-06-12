@@ -194,7 +194,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private Object encodeValue(DataObject value) {
         return switch (value) {
             case null -> null;
-            case DataNull unused -> null;
+            case DataNull _ -> null;
             case DataBoolean v -> v.value();
             case DataByte v -> v.value();
             case DataShort v -> v.value();

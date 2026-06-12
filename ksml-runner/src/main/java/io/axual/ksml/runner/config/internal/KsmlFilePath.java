@@ -23,19 +23,10 @@ package io.axual.ksml.runner.config.internal;
 /**
  * Concrete {@link KsmlFileOrDefinition} representing a reference to a KSML file on disk.
  * The JSON representation is a simple string containing the (relative or absolute) file path.
+ *
+ * @param value path to the file (relative or absolute)
  */
-public final class KsmlFilePath implements KsmlFileOrDefinition {
-    /** The file path as provided in the configuration. */
-    private final String value;
-
-    /**
-     * Create a file-path variant for a KSML definition reference.
-     * @param value path to the file (relative or absolute)
-     */
-    public KsmlFilePath(String value) {
-        this.value = value;
-    }
-
+public record KsmlFilePath(String value) implements KsmlFileOrDefinition {
     @Override
     public String getValue() {
         return value;

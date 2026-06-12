@@ -167,7 +167,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
                     newPartitionsByHost,
                     newStandbyPartitionsByHost,
                     info.errCode()).encode();
-        } catch (Exception e) {
+        } catch (Exception _) {
             // Ignore decoding exceptions
         }
 

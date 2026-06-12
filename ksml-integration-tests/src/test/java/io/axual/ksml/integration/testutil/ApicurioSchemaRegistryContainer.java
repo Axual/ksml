@@ -70,6 +70,7 @@ public class ApicurioSchemaRegistryContainer extends GenericContainer<ApicurioSc
      * @param network The network to connect to
      * @return this container for method chaining
      */
+    @Override
     public ApicurioSchemaRegistryContainer withNetwork(Network network) {
         super.withNetwork(network);
         super.withNetworkAliases("schema-registry");

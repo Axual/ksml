@@ -297,7 +297,8 @@ public class ForwardingConsumer<K, V> implements Consumer<K, V> {
         delegate.close();
     }
 
-    @Deprecated
+    /** @deprecated Use {@link #close(CloseOptions)} instead. */
+    @Deprecated(since = "4.0", forRemoval = true)
     @Override
     public void close(Duration timeout) {
         delegate.close(timeout);

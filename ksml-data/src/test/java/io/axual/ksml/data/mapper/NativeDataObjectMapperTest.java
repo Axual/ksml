@@ -174,8 +174,9 @@ class NativeDataObjectMapperTest {
         final var unwrappedMap = mapper.fromDataObject(map);
         assertThat(unwrappedMap).isInstanceOf(Map.class);
         final var asMap = (Map<?, ?>) unwrappedMap;
-        assertThat(asMap).hasSize(1);
-        assertThat(asMap.get("k")).isEqualTo(1);
+        assertThat(asMap).asInstanceOf(InstanceOfAssertFactories.map(Object.class, Object.class))
+                .hasSize(1)
+                .containsEntry("k", 1);
         log.info("end: fromDataObjectPrimitiveAndCollections");
     }
 

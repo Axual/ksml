@@ -63,13 +63,16 @@ public class OuterJoinWithTableOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Object, Object> output = named != null
-                ? mat != null
-                ? input.table.outerJoin(otherTable.table, userJoiner, named, mat)
-                : input.table.outerJoin(otherTable.table, userJoiner, named)
-                : mat != null
-                ? input.table.outerJoin(otherTable.table, userJoiner, mat)
-                : input.table.outerJoin(otherTable.table, userJoiner);
+        final KTable<Object, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.table.outerJoin(otherTable.table, userJoiner, named, mat)
+                    : input.table.outerJoin(otherTable.table, userJoiner, named);
+        } else {
+            output = mat != null
+                    ? input.table.outerJoin(otherTable.table, userJoiner, mat)
+                    : input.table.outerJoin(otherTable.table, userJoiner);
+        }
         return new KTableWrapper(output, k, vr);
     }
 }

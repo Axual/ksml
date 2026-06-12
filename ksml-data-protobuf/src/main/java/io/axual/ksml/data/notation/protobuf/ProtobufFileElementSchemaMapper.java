@@ -61,7 +61,6 @@ import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.NO_DOCUMENT
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
 public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFileElement> {
-    private static final int PROTOBUF_ENUM_DEFAULT_VALUE_INDEX = 0;
     private final NativeDataObjectMapper nativeMapper;
     private final DataTypeDataSchemaMapper typeSchemaMapper;
 
@@ -224,13 +223,14 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 Collections.emptyList());
     }
 
+    @SuppressWarnings("java:S3358")
     private static FieldElement convertStructFieldToFieldElement(StructSchema.Field field, String type) {
         final var required = field.required();
         final var list = field.schema() instanceof ListSchema;
         final var defaultValue = field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE ? field.defaultValue().toString() : null;
         return new FieldElement(
                 DEFAULT_LOCATION,
-                required ? Field.Label.REQUIRED : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
+                required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
                 type,
                 field.name(),
                 defaultValue,

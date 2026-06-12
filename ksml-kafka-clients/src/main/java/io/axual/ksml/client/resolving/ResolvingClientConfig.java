@@ -85,7 +85,7 @@ public class ResolvingClientConfig {
         final Object configuredValue = configs.get(key);
         try {
             return getConfiguredInstance(configuredValue, expectedClass, allowNull);
-        } catch (ConfigException e) {
+        } catch (ConfigException _) {
             throw new ConfigException(key, configuredValue, "Property not set or contains illegal value");
         }
     }
@@ -107,17 +107,13 @@ public class ResolvingClientConfig {
             return result;
         }
 
-        // Check if the value is an instance of Class
-        if (value instanceof Class<?> valueClass) {
-            // If expectedClass is (superclass of) configuredClass, then create an instance of the
-            // configuredClass and return it casted as the expectedClass
-            if (expectedClass.isAssignableFrom(valueClass)) {
-                T result = Utils.newInstance((valueClass).asSubclass(expectedClass));
-                if (result instanceof Configurable configurableResult) {
-                    configurableResult.configure(downstreamConfigs);
-                }
-                return result;
+        // Check if the value is an instance of Class that expectedClass can be assigned from
+        if (value instanceof Class<?> valueClass && expectedClass.isAssignableFrom(valueClass)) {
+            T result = Utils.newInstance((valueClass).asSubclass(expectedClass));
+            if (result instanceof Configurable configurableResult) {
+                configurableResult.configure(downstreamConfigs);
             }
+            return result;
         }
 
         if (allowNull) {

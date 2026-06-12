@@ -108,15 +108,15 @@ class RepartitionIT {
             log.info("Found {} repartitioned messages across {} partitions", records.count(), records.partitions().size());
 
             // Collect all records with partition information
-            records.forEach(record -> {
-                allRecords.add(record);
-                String userId = record.key();
-                int partition = record.partition();
+            records.forEach(consumerRecord -> {
+                allRecords.add(consumerRecord);
+                String userId = consumerRecord.key();
+                int partition = consumerRecord.partition();
 
                 userPartitions.computeIfAbsent(userId, k -> new ArrayList<>()).add(partition);
 
                 log.info("Record: key={}, partition={}, value preview={}",
-                         userId, partition, record.value().substring(0, Math.min(100, record.value().length())));
+                         userId, partition, consumerRecord.value().substring(0, Math.min(100, consumerRecord.value().length())));
             });
         }
 
@@ -181,14 +181,14 @@ class RepartitionIT {
      * - Key matches the user_id in the value
      */
     private void verifyKeyTransformationAndValueEnrichment(List<ConsumerRecord<String, String>> allRecords) throws Exception {
-        for (ConsumerRecord<String, String> record : allRecords) {
-            String userId = record.key();
+        for (ConsumerRecord<String, String> consumerRecord : allRecords) {
+            String userId = consumerRecord.key();
 
             // Key should be user_id (transformed from region)
             assertThat(userId).as("Key should be user_id").startsWith("user_");
 
             // Parse and validate value
-            JsonNode value = objectMapper.readTree(record.value());
+            JsonNode value = objectMapper.readTree(consumerRecord.value());
 
             // Validate required fields
             assertThat(value.has("user_id")).as("Should have user_id field").isTrue();

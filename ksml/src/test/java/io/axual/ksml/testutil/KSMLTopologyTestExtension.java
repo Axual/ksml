@@ -148,9 +148,9 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         if (!KSMLTopologyTestInvocationContext.NO_SCHEMAS.equals(schemaDirectory)) {
             log.debug("Annotated schema directory variable: `{}`", schemaDirectory);
             final var schemaDirectoryURI = ClassLoader.getSystemResource(schemaDirectory).toURI();
-            final var schemaDirectory = schemaDirectoryURI.getPath();
-            ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);
-            log.debug("Registered schema directory: {}", schemaDirectory);
+            final var schemaDirectoryAbsolute = schemaDirectoryURI.getPath();
+            ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectoryAbsolute);
+            log.debug("Registered schema directory: {}", schemaDirectoryAbsolute);
         } else {
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(KSMLTest.NO_SCHEMAS);
         }

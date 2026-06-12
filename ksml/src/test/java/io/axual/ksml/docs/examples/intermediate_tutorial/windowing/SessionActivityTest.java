@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class SessionActivityTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

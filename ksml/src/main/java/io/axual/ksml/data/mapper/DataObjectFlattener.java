@@ -73,18 +73,16 @@ public class DataObjectFlattener extends NativeDataObjectMapper {
     }
 
     public Object unflatten(DataType expected, DataObject value) {
-        if (expected instanceof WindowedType && value instanceof DataStruct struct) {
-            if (struct.containsKey(WINDOWED_SCHEMA_START_FIELD) && struct.containsKey(WINDOWED_SCHEMA_END_FIELD)) {
-                if (struct.containsKey(WINDOWED_SCHEMA_KEY_FIELD)) {
-                    final var start = fromDataObject(struct.get(WINDOWED_SCHEMA_START_FIELD));
-                    final var end = fromDataObject(struct.get(WINDOWED_SCHEMA_END_FIELD));
-                    final var key = fromDataObject(struct.get(WINDOWED_SCHEMA_KEY_FIELD));
-                    if (start instanceof Long startTs && end instanceof Long endTs && key != null) {
-                        if (startTs >= endTs)
-                            throw new IllegalArgumentException("Invalid window: startTs=" + startTs + " endTs=" + endTs + ", end needs to be greater than start");
-                        return new Windowed<>(key, new TimeWindow(startTs, endTs));
-                    }
-                }
+        if (expected instanceof WindowedType && value instanceof DataStruct struct
+                && struct.containsKey(WINDOWED_SCHEMA_START_FIELD) && struct.containsKey(WINDOWED_SCHEMA_END_FIELD)
+                && struct.containsKey(WINDOWED_SCHEMA_KEY_FIELD)) {
+            final var start = fromDataObject(struct.get(WINDOWED_SCHEMA_START_FIELD));
+            final var end = fromDataObject(struct.get(WINDOWED_SCHEMA_END_FIELD));
+            final var key = fromDataObject(struct.get(WINDOWED_SCHEMA_KEY_FIELD));
+            if (start instanceof Long startTs && end instanceof Long endTs && key != null) {
+                if (startTs >= endTs)
+                    throw new IllegalArgumentException("Invalid window: startTs=" + startTs + " endTs=" + endTs + ", end needs to be greater than start");
+                return new Windowed<>(key, new TimeWindow(startTs, endTs));
             }
         }
         return value;

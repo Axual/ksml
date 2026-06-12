@@ -71,7 +71,7 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
                     (stores, rec) -> userMap.apply(stores, rec.key(), rec.value()),
                     storeNames);
             final var named = namedOf();
-            final var output = name != null
+            final var output = named != null
                     ? input.stream.process(supplier, named, storeNames)
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);

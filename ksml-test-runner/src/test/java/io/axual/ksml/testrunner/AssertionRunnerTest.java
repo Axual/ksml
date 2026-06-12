@@ -84,9 +84,9 @@ class AssertionRunnerTest {
                     }
 
                     @Override
-                    public void process(Record<String, String> record) {
-                        store.put(record.key(), record.value());
-                        ctx.forward(record);
+                    public void process(Record<String, String> msg) {
+                        store.put(msg.key(), msg.value());
+                        ctx.forward(msg);
                     }
                 }, STORE_NAME)
                 .to(OUTPUT_TOPIC, Produced.with(stringSerde, stringSerde));

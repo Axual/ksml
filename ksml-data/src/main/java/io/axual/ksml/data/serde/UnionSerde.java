@@ -140,7 +140,7 @@ public class UnionSerde implements Serde<Object> {
                     if (result instanceof DataObject dataObject && memberSerde.type.isAssignableFrom(dataObject).isAssignable())
                         return result;
                     if (memberSerde.type.isAssignableFrom(result).isAssignable()) return result;
-                } catch (Exception e) {
+                } catch (Exception _) {
                     // Not properly deserialized, so ignore and try the next alternative
                 }
             }

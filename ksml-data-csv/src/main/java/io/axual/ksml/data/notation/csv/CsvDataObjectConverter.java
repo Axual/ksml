@@ -31,6 +31,7 @@ import io.axual.ksml.data.type.UnionType;
 
 import static io.axual.ksml.data.notation.csv.CsvNotation.DEFAULT_TYPE;
 
+@SuppressWarnings("java:S1066")
 public class CsvDataObjectConverter implements Notation.Converter {
     private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
 

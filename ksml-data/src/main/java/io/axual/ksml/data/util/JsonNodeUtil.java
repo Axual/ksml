@@ -98,7 +98,7 @@ public class JsonNodeUtil {
         if (value == null) return NullNode.getInstance();
         if (value instanceof List<?> list) return convertListToJsonNode(list);
         if (value instanceof Map<?, ?> map) return convertMapToJsonNode(map);
-        throw new DataException("Can not convert to JsonNode: " + (value != null ? value.getClass().getSimpleName() : "null"));
+        throw new DataException("Can not convert to JsonNode: " + value.getClass().getSimpleName());
     }
 
     private static JsonNode convertListToJsonNode(List<?> list) {

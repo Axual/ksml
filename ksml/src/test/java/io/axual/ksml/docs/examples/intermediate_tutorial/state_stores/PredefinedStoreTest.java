@@ -52,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class PredefinedStoreTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -76,10 +77,10 @@ public class PredefinedStoreTest {
 
         // Verify we get outputs grouped by owner "alice"
         while (!outputTopic.isEmpty()) {
-            var record = outputTopic.readRecord();
-            log.info("Got key: '{}', value: '{}'", record.getKey(), record.getValue());
-            assertThat(record.getKey()).isEqualTo("alice");
-            assertThat(record.getValue()).isNotNull();
+            var outputRecord = outputTopic.readRecord();
+            log.info("Got key: '{}', value: '{}'", outputRecord.getKey(), outputRecord.getValue());
+            assertThat(outputRecord.getKey()).isEqualTo("alice");
+            assertThat(outputRecord.getValue()).isNotNull();
         }
     }
 
@@ -96,10 +97,10 @@ public class PredefinedStoreTest {
 
         // Verify we get outputs
         while (!outputTopic.isEmpty()) {
-            var record = outputTopic.readRecord();
-            log.info("Got key: '{}', value: '{}'", record.getKey(), record.getValue());
-            assertThat(record.getKey()).isEqualTo("bob");
-            assertThat(record.getValue()).isNotNull();
+            var outputRecord = outputTopic.readRecord();
+            log.info("Got key: '{}', value: '{}'", outputRecord.getKey(), outputRecord.getValue());
+            assertThat(outputRecord.getKey()).isEqualTo("bob");
+            assertThat(outputRecord.getValue()).isNotNull();
         }
     }
 
@@ -120,10 +121,10 @@ public class PredefinedStoreTest {
 
         // All should be grouped under "unknown"
         while (!outputTopic.isEmpty()) {
-            var record = outputTopic.readRecord();
-            log.info("Got key: '{}', value: '{}'", record.getKey(), record.getValue());
-            assertThat(record.getKey()).isEqualTo("unknown");
-            assertThat(record.getValue()).isNotNull();
+            var outputRecord = outputTopic.readRecord();
+            log.info("Got key: '{}', value: '{}'", outputRecord.getKey(), outputRecord.getValue());
+            assertThat(outputRecord.getKey()).isEqualTo("unknown");
+            assertThat(outputRecord.getValue()).isNotNull();
         }
     }
 
@@ -148,10 +149,10 @@ public class PredefinedStoreTest {
         // Verify each owner has independent grouping
         java.util.Set<String> seenOwners = new java.util.HashSet<>();
         while (!outputTopic.isEmpty()) {
-            var record = outputTopic.readRecord();
-            log.info("Got key: '{}', value: '{}'", record.getKey(), record.getValue());
-            seenOwners.add(record.getKey());
-            assertThat(record.getValue()).isNotNull();
+            var outputRecord = outputTopic.readRecord();
+            log.info("Got key: '{}', value: '{}'", outputRecord.getKey(), outputRecord.getValue());
+            seenOwners.add(outputRecord.getKey());
+            assertThat(outputRecord.getValue()).isNotNull();
         }
 
         // Verify all three owners produced output

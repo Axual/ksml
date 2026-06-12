@@ -32,7 +32,7 @@ public class StructSchemaFieldOrderParser extends BaseParser<StructSchema.Field.
         if (order != null) order = order.toUpperCase();
         try {
             return StructSchema.Field.Order.valueOf(order);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             return StructSchema.Field.Order.ASCENDING;
         }
     }

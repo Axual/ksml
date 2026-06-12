@@ -38,6 +38,7 @@ public abstract class ValuePrinter {
         this.dict = dict;
     }
 
+    @SuppressWarnings("java:S5411")
     public String print(Object value, boolean quoted) {
         final var quote = quoted && (value instanceof String || value instanceof DataString) ? dict.quoteStr() : "";
         return switch (value) {

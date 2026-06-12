@@ -370,6 +370,7 @@ public class KSMLRunner {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             executorService.shutdownNow();
             throw new ExecutionException("Exception caught while shutting down", e);
         }
@@ -444,6 +445,7 @@ public class KSMLRunner {
         return titleBuilder.toString();
     }
 
+    @SuppressWarnings("java:S106")
     private static void printRunnerSchema(String filename) {
         JacksonModule moduleJackson = new JacksonModule(
                 JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
@@ -497,6 +499,7 @@ public class KSMLRunner {
         }
     }
 
+    @SuppressWarnings("java:S106")
     private static void printKsmlDefinitionSchema(String filename) {
         // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
         // KSML definitions with on stdout and exit
@@ -510,7 +513,6 @@ public class KSMLRunner {
                 writer.close();
                 log.info("KSML JSON schema written to file: {}", filename);
             } catch (Exception e) {
-                // Ignore
                 log.atError()
                         .setMessage("""
                                 Error writing KSML JSON schema to file: {}

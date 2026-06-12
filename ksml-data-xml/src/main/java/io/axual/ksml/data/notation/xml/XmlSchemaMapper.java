@@ -206,12 +206,10 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                 return new UnionSchema(members.toArray(UnionSchema.Member[]::new));
             }
         }
-        if (type instanceof XmlSchemaComplexType complexType) {
-            if (complexType.getParticle() instanceof XmlSchemaSequence sequence) {
-                final var fields = convertToFields(context, sequence);
-                final var namespace = getNamespaceFromComplexType(complexType);
-                return new StructSchema(namespace, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
-            }
+        if (type instanceof XmlSchemaComplexType complexType && complexType.getParticle() instanceof XmlSchemaSequence sequence) {
+            final var fields = convertToFields(context, sequence);
+            final var namespace = getNamespaceFromComplexType(complexType);
+            return new StructSchema(namespace, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
         }
         throw new SchemaException("Could not convert XSD type to DataSchema: " + type);
     }

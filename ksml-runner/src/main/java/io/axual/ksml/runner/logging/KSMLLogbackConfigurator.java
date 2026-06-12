@@ -69,7 +69,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
         }
         if (url != null) {
             try {
-                System.err.printf("Using URL to config %s%n", url);
+                addInfo("Using URL to config " + url);
                 configureByResource(url);
             } catch (JoranException e) {
                 context.getStatusManager().add(new WarnStatus("Could not configure KSML logging", this, e));
@@ -96,7 +96,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
             try {
                 url = new URI(logbackConfigFile.trim()).toURL();
                 return url;
-            } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
+            } catch (URISyntaxException | MalformedURLException | IllegalArgumentException _) {
                 // so, resource is not a URL:
                 // attempt to get the resource from the class path
                 url = Loader.getResource(logbackConfigFile, classLoader);
@@ -109,7 +109,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
                     try {
                         url = f.toURI().toURL();
                         return url;
-                    } catch (MalformedURLException e1) {
+                    } catch (MalformedURLException _) {
                         // Eat exception
                     }
                 }

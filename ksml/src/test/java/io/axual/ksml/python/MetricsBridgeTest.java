@@ -30,6 +30,10 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
 @ExtendWith(MockitoExtension.class)
 class MetricsBridgeTest {
 
@@ -45,17 +49,29 @@ class MetricsBridgeTest {
 
     @Test
     void close() {
+        var counterBridge = metricsBridge.counter("close-test");
+        assertNotNull(counterBridge);
+        counterBridge.close();
+        var recreated = metricsBridge.counter("close-test");
+        assertNotSame(counterBridge, recreated);
     }
 
     @Test
     void createAndRecreateTimer() {
+        var first = metricsBridge.timer("timer-test");
+        var second = metricsBridge.timer("timer-test");
+        assertSame(first, second);
     }
 
     @Test
     void counter() {
+        var counter = metricsBridge.counter("counter-test");
+        assertNotNull(counter);
     }
 
     @Test
     void meter() {
+        var meter = metricsBridge.meter("meter-test");
+        assertNotNull(meter);
     }
 }
