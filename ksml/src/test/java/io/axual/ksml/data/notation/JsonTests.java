@@ -29,9 +29,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonTests {
+    private final NotationTestRunner runner = new NotationTestRunner(TestData.Variant.JSON);
+
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest(JsonNotation.NOTATION_NAME, new JsonSchemaMapper(false), (input, output) -> {
+        runner.schemaTest(JsonNotation.NOTATION_NAME, new JsonSchemaMapper(false), (input, output) -> {
             assertTrue(input.isAssignableFrom(output).isAssignable(), "Input is not assignable from the output");
             assertTrue(output.isAssignableFrom(input).isAssignable(), "Output is not assignable from the input");
         });
@@ -39,12 +41,12 @@ class JsonTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(JsonNotation.NOTATION_NAME, new JsonDataObjectMapper(false), EqualityFlags.EMPTY);
+        runner.dataTest(JsonNotation.NOTATION_NAME, new JsonDataObjectMapper(false), EqualityFlags.EMPTY);
     }
 
     @Test
     void serdeTest() {
         final var notation = new JsonNotation();
-        NotationTestRunner.serdeTest(notation, true, new EqualityFlags());
+        runner.serdeTest(notation, true, new EqualityFlags());
     }
 }

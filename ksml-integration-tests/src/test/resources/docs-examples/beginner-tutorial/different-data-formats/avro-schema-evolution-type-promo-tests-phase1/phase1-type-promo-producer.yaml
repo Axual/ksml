@@ -1,0 +1,31 @@
+functions:
+  generate_sensordata_int_reading:
+    type: generator
+    globalCode: |
+      import time
+      messageCount = 0
+    code: |
+      global messageCount
+
+      if messageCount >= 3:
+        return None
+
+      key = "sensor" + str(messageCount)
+      messageCount += 1
+
+      value = {
+        "name": key,
+        "timestamp": round(time.time()*1000),
+        "reading": messageCount
+      }
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  phase1_type_promo_producer:
+    generator: generate_sensordata_int_reading
+    interval: 1s
+    to:
+      topic: sensor_data_avro_type_promo_test
+      keyType: string
+      valueType: avro:SensorData

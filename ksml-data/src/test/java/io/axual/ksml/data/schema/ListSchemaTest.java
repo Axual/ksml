@@ -55,13 +55,15 @@ class ListSchemaTest {
         final var listOfFloat = new ListSchema(DataSchema.FLOAT_SCHEMA);
         final var listOfDouble = new ListSchema(DataSchema.DOUBLE_SCHEMA);
 
-        // Integers: integer accepts from long
+        // Integers: long accepts int (widening), but int does not accept long (narrowing)
         assertThat(listOfInt.isAssignableFrom(listOfInt).isAssignable()).isTrue();
-        assertThat(listOfInt.isAssignableFrom(listOfLong).isAssignable()).isTrue();
+        assertThat(listOfInt.isAssignableFrom(listOfLong).isAssignable()).isFalse();
+        // widening direction: long accepts int
+        assertThat(listOfLong.isAssignableFrom(listOfInt).isAssignable()).isTrue();
         assertThat(listOfInt.isAssignableFrom(listOfString).isAssignable()).isFalse();
 
-        // Floating: float and double accept from each other
-        assertThat(listOfFloat.isAssignableFrom(listOfDouble).isAssignable()).isTrue();
+        // Floating: double accepts float (widening), float does not accept double (narrowing)
+        assertThat(listOfFloat.isAssignableFrom(listOfDouble).isAssignable()).isFalse();
         assertThat(listOfDouble.isAssignableFrom(listOfFloat).isAssignable()).isTrue();
 
         // Non-list should not be assignable

@@ -56,23 +56,23 @@ class UnionSchemaTest {
         assertThat(union.isAssignableFrom(DataSchema.INTEGER_SCHEMA).isAssignable()).isTrue();
         assertThat(union.isAssignableFrom(DataSchema.FLOAT_SCHEMA).isAssignable()).isFalse();
 
-        // Other union with matching names/tags
+        // Other union with matching names/tags; short widens to int
         final var other = new UnionSchema(
-                new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, "Long", 1), // compatible by integer group and tag/name match
+                new UnionSchema.Member("i", DataSchema.SHORT_SCHEMA, "Short", 1), // short widens to int
                 new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2)
         );
         assertThat(union.isAssignableFrom(other).isAssignable()).isTrue();
 
         // Mismatched tag prevents assignment
         final var wrongTag = new UnionSchema(
-                new UnionSchema.Member("i", DataSchema.LONG_SCHEMA, "Long", 99),
+                new UnionSchema.Member("i", DataSchema.SHORT_SCHEMA, "Short", 99),
                 new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2)
         );
         assertThat(union.isAssignableFrom(wrongTag).isAssignable()).isFalse();
 
         // Anonymous fields or NO_TAG allow assignment regardless of mismatch
         final var anonymous = new UnionSchema(
-                new UnionSchema.Member(null, DataSchema.LONG_SCHEMA, "Long", NO_TAG),
+                new UnionSchema.Member(null, DataSchema.SHORT_SCHEMA, "Short", NO_TAG),
                 new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2)
         );
         assertThat(union.isAssignableFrom(anonymous).isAssignable()).isTrue();

@@ -99,8 +99,9 @@ public class PythonFunction extends UserFunction {
         for (int index = 0; index < parameters.length; index++) {
             final var declaredParameter = this.parameters[index];
             final var actualParameter = parameters[index];
-            if (declaredParameter.type().isAssignableFrom(actualParameter).isNotAssignable()) {
-                throw new TopologyException("Function %s.%s expects parameter #%d (\"%s\") to be %s but %s was passed in ".formatted(namespace, name, index + 1, declaredParameter.name(), declaredParameter.type(), actualParameter.type()));
+            final var assignable = declaredParameter.type().isAssignableFrom(actualParameter);
+            if (assignable.isNotAssignable()) {
+                throw new TopologyException("Function %s.%s expects parameter #%d (\"%s\") to be %s but %s was passed in: %s".formatted(namespace, name, index + 1, declaredParameter.name(), declaredParameter.type(), actualParameter.type(), assignable));
             }
         }
 
