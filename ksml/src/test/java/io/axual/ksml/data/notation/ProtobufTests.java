@@ -57,7 +57,8 @@ class ProtobufTests {
 
     @Test
     void confluentDataTest() {
-//        runner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper()));
+        // Not yet implemented: ConfluentProtobufFileElementDescriptorMapper.toFileElement produces field names
+        // that diverge from the schema used by ProtobufDataObjectMapper, causing a null field lookup at runtime.
     }
 
     @Test

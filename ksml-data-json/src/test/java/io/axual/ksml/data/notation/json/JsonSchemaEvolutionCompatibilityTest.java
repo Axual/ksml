@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.json;
  */
 
 import io.axual.ksml.data.schema.StructSchema;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -642,23 +641,4 @@ class JsonSchemaEvolutionCompatibilityTest {
                 .isTrue();
     }
 
-    // ===== UNION (oneOf/anyOf): NOT DIRECTLY TESTABLE =====
-
-    @Test
-    @Disabled("JSON Schema union (oneOf/anyOf) evolution is not directly testable via isAssignableFrom — "
-            + "add separate tests when JSON Schema union support matures")
-    @DisplayName("Add type to oneOf/anyOf union — not testable via isAssignableFrom for JSON Schema unions")
-    void addUnionType_notApplicable() {
-        // JSON Schema unions via oneOf/anyOf are mapped differently from AVRO unions.
-        // This test is a placeholder documenting the limitation.
-    }
-
-    @Test
-    @Disabled("JSON Schema union (oneOf/anyOf) evolution is not directly testable via isAssignableFrom — "
-            + "add separate tests when JSON Schema union support matures")
-    @DisplayName("Remove type from oneOf/anyOf union — not testable via isAssignableFrom for JSON Schema unions")
-    void removeUnionType_notApplicable() {
-        // JSON Schema unions via oneOf/anyOf are mapped differently from AVRO unions.
-        // This test is a placeholder documenting the limitation.
-    }
 }

@@ -261,7 +261,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                 assertThat(records.count()).as("Should have produced exactly 3 messages").isEqualTo(3);
                 log.info("Type-promo Phase 1 complete: Produced {} messages with int reading", records.count());
 
-                records.forEach(record -> log.debug("  Type-promo Phase 1 message: key={}", record.key()));
+                records.forEach(entry -> log.debug("  Type-promo Phase 1 message: key={}", entry.key()));
             }
         } finally {
             ksmlPhase1.stop();
@@ -313,15 +313,15 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                 assertThat(records.count()).as("Should have processed exactly 3 messages").isEqualTo(3);
                 log.info("Type-promo Phase 2 complete: Processed {} messages with long reading schema", records.count());
 
-                records.forEach(record -> {
-                    log.debug("  Type-promo Phase 2 processed message: key={}", record.key());
-                    assertThat(record.key()).as("Key should match sensor pattern")
+                records.forEach(entry -> {
+                    log.debug("  Type-promo Phase 2 processed message: key={}", entry.key());
+                    assertThat(entry.key()).as("Key should match sensor pattern")
                             .matches("sensor[0-9]");
 
-                    GenericRecord value = (GenericRecord) record.value();
+                    GenericRecord value = (GenericRecord) entry.value();
                     Object readingObj = value.get("reading");
                     assertThat(readingObj).as("reading field should be a Long after type promotion").isInstanceOf(Long.class);
-                    int sensorIndex = Integer.parseInt(record.key().substring("sensor".length()));
+                    int sensorIndex = Integer.parseInt(entry.key().substring("sensor".length()));
                     long expectedReading = sensorIndex + 1L;
                     assertThat((Long) readingObj)
                             .as("int reading must survive promotion to long unchanged")
