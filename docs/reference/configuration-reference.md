@@ -318,6 +318,7 @@ Available serializer types:
 
 Built-in serializers (no configuration needed):
 
+- `binary`: Raw binary data. This is the default notation used when a type does not specify one.
 - `json`: Schemaless JSON
 - `csv`: Comma-separated values
 - `xml`: XML format
