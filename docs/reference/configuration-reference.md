@@ -312,9 +312,7 @@ Available serializer types:
 | `apicurio_avro`        | avro       | Apicurio        | Avro with Apicurio SR         |
 | `confluent_avro`       | avro       | Confluent       | Avro with Confluent SR        |
 | `apicurio_jsonschema`  | jsonschema | Apicurio        | JSON Schema with Apicurio SR  |
-| `confluent_jsonschema` | jsonschema | Confluent       | JSON Schema with Confluent SR |
 | `apicurio_protobuf`    | protobuf   | Apicurio        | Protobuf with Apicurio SR     |
-| `confluent_protobuf`   | protobuf   | Confluent       | Protobuf with Confluent SR    |
 
 Built-in serializers (no configuration needed):
 

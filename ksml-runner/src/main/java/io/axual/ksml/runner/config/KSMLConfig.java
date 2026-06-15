@@ -142,15 +142,15 @@ public class KSMLConfig {
     }
 
     public String configDirectory() {
-        return getDirectory("configDirectory", configDirectory != null ? configDirectory : System.getProperty("user.dir"));
+        return getDirectory("configDirectory", configDirectory);
     }
 
     public String schemaDirectory() {
-        return getDirectory("schemaDirectory", schemaDirectory != null ? schemaDirectory : configDirectory());
+        return getDirectory("schemaDirectory", schemaDirectory);
     }
 
     public String storageDirectory() {
-        return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"), createStorageDirectory);
+        return getDirectory("storageDirectory", storageDirectory, createStorageDirectory);
     }
 
     public ApplicationServerConfig applicationServerConfig() {
