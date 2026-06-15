@@ -467,9 +467,10 @@ class AvroSchemaMapperTest {
     }
 
     @Test
-    @DisplayName("Optional AVRO field without explicit null default")
+    @DisplayName("Optional AVRO field without explicit null default normalises to DataNull.INSTANCE")
     void testOptionalFieldWithoutNullDefault() {
-        // Test optional field with no default value, using JSON to create a union type without specifying a default
+        // Optional fields always carry DataNull.INSTANCE as their default regardless of whether
+        // the Avro schema had an explicit "default": null or no default at all.
         String schemaJson = """
                 {
                   "type": "record",
@@ -493,8 +494,8 @@ class AvroSchemaMapperTest {
                     .as("Field should not be required")
                     .isFalse();
             softly.assertThat(field.defaultValue())
-                    .as("Default value should be null (no default specified)")
-                    .isNull();
+                    .as("Default value should be DataNull.INSTANCE for any optional field")
+                    .isEqualTo(DataNull.INSTANCE);
         });
     }
 

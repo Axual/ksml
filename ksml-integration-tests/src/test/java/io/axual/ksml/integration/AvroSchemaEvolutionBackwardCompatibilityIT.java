@@ -321,7 +321,11 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     GenericRecord value = (GenericRecord) record.value();
                     Object readingObj = value.get("reading");
                     assertThat(readingObj).as("reading field should be a Long after type promotion").isInstanceOf(Long.class);
-                    assertThat((Long) readingObj).as("reading value should be between 1 and 10").isBetween(1L, 10L);
+                    int sensorIndex = Integer.parseInt(record.key().substring("sensor".length()));
+                    long expectedReading = sensorIndex + 1L;
+                    assertThat((Long) readingObj)
+                            .as("int reading must survive promotion to long unchanged")
+                            .isEqualTo(expectedReading);
                 });
             }
 

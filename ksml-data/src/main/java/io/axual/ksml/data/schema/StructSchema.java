@@ -108,7 +108,7 @@ public class StructSchema extends NamedSchema {
             this.tag = schema instanceof UnionSchema ? NO_TAG : tag;
             this.required = required;
             this.constant = constant;
-            this.defaultValue = defaultValue;
+            this.defaultValue = (defaultValue == null && !required) ? DataNull.INSTANCE : defaultValue;
             this.order = order;
         }
 
@@ -178,7 +178,7 @@ public class StructSchema extends NamedSchema {
          * @param constant Whether the field is constant and unmodifiable.
          */
         public Field(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant) {
-            this(name, schema, doc, tag, required, constant, required ? null : DataNull.INSTANCE);
+            this(name, schema, doc, tag, required, constant, null);
         }
 
         /**
