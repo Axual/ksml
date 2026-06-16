@@ -38,7 +38,7 @@ class DataListTest {
     @Test
     @DisplayName("Default constructor uses UNKNOWN value type; printers and emptiness")
     void defaultConstructorAndPrinters() {
-        var list = new DataList();
+        final var list = new DataList();
         assertThat(list.isNull()).isFalse();
         assertThat(list.type().valueType()).isEqualTo(DataType.UNKNOWN);
         assertThat(list.size()).isZero();
@@ -51,12 +51,12 @@ class DataListTest {
     @Test
     @DisplayName("Explicit valueType enforces element type on add; addIfNotNull skips null")
     void addAndTypeVerification() {
-        var list = new DataList(DataString.DATATYPE);
+        final var list = new DataList(DataString.DATATYPE);
         list.add(new DataString("a"));
         list.addIfNotNull(null);
         assertThat(list.size()).isEqualTo(1);
 
-        var dataInteger = new DataInteger(1);
+        final var dataInteger = new DataInteger(1);
 
         assertThatThrownBy(() -> list.add(dataInteger))
                 .isInstanceOf(IllegalArgumentException.class)
