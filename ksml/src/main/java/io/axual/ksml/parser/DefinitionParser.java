@@ -72,10 +72,6 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return parser.schemas();
     }
 
-    protected static <V> StructsParser<V> optional(StructsParser<V> parser) {
-        return optional(parser, null);
-    }
-
     protected static <V> StructsParser<V> withDefault(StructsParser<V> parser, V defaultValue) {
         return new StructsParser<>() {
             @Override
@@ -91,19 +87,28 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         };
     }
 
+    private static StructSchema.Field optional(StructSchema.Field field) {
+        return field.required()
+                ? new StructSchema.Field(field.name(), field.schema(), "*(optional)* " + field.doc(), field.tag(), false, field.constant(), field.defaultValue())
+                : field;
+    }
+
+    private static List<StructSchema.Field> optional(List<StructSchema.Field> fields) {
+        return fields.stream().map(DefinitionParser::optional).toList();
+    }
+
+    private static StructSchema optional(StructSchema schema) {
+        if (schema.fields().isEmpty()) return schema;
+        return new StructSchema(schema.namespace(), schema.name(), schema.doc(), optional(schema.fields()), false);
+    }
+
     protected static <V> StructsParser<V> optional(StructsParser<V> parser, V valueIfMissing) {
-        final var newSchemas = new ArrayList<StructSchema>();
-        for (final var schema : parser.schemas()) {
-            if (!schema.fields().isEmpty()) {
-                final var newFields = schema.fields().stream()
-                        .map(field -> field.required() ? new StructSchema.Field(field.name(), field.schema(), "*(optional)* " + field.doc(), field.tag(), false, field.constant(), field.defaultValue()) : field)
-                        .toList();
-                newSchemas.add(new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields, false));
-            } else {
-                newSchemas.add(schema);
-            }
-        }
+        final var newSchemas = parser.schemas().stream().map(DefinitionParser::optional).toList();
         return StructsParser.of(node -> node != null ? parser.parse(node) : valueIfMissing, newSchemas);
+    }
+
+    protected static <V> StructsParser<V> optional(StructsParser<V> parser) {
+        return optional(parser, null);
     }
 
     protected static StructSchema structSchema(Class<?> clazz, String doc, List<StructSchema.Field> fields) {
