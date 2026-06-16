@@ -32,6 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,6 +108,8 @@ public class StructSchema extends NamedSchema {
             this.tag = schema instanceof UnionSchema ? NO_TAG : tag;
             this.required = required;
             this.constant = constant;
+            // Default value "null" means "this field has no default value", ie. the schema does not define a default value for this field.
+            // Any non-null value, including DataNull.INSTANCE, means "this field has a default value, namely..."
             this.defaultValue = defaultValue;
             this.order = order;
         }
@@ -222,6 +225,7 @@ public class StructSchema extends NamedSchema {
          *
          * @return A string summarizing the field's details.
          */
+        @Nonnull
         @Override
         public String toString() {
             return (name != null ? name : "<anonymous>") + ": " + schema + " (" + tag + (required ? "" : ", optional") + ")";
