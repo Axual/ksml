@@ -153,14 +153,6 @@
 
         <!-- Sonar for JACOCO-->
         <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-
-        <!-- Suppress S125 (commented-out code) false positives from Apache License headers -->
-        <sonar.issue.ignore.block>licenseHeader,kafkaStreamsSignature</sonar.issue.ignore.block>
-        <sonar.issue.ignore.block.licenseHeader.beginBlockRegexp>.*LICENSE_START.*</sonar.issue.ignore.block.licenseHeader.beginBlockRegexp>
-        <sonar.issue.ignore.block.licenseHeader.endBlockRegexp>.*LICENSE_END.*</sonar.issue.ignore.block.licenseHeader.endBlockRegexp>
-        <!-- Suppress S125 false positives from Kafka Streams method signature reference comments -->
-        <sonar.issue.ignore.block.kafkaStreamsSignature.beginBlockRegexp>.*Kafka Streams method signature.*</sonar.issue.ignore.block.kafkaStreamsSignature.beginBlockRegexp>
-        <sonar.issue.ignore.block.kafkaStreamsSignature.endBlockRegexp>.*\*/.*</sonar.issue.ignore.block.kafkaStreamsSignature.endBlockRegexp>
     </properties>
 
     <dependencyManagement>
