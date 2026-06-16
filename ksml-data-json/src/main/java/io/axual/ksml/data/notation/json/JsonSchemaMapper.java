@@ -357,17 +357,13 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             target.put(TYPE_NAME, new DataString(NUMBER_TYPE));
         if (schema == DataSchema.STRING_SCHEMA) {
             if (constant && defaultValue != null) {
-                var enumList = new DataList();
-                enumList.add(new DataString(defaultValue.toString()));
-                target.put(ENUM_NAME, enumList);
+                target.put(ENUM_NAME, DataList.of(new DataString(defaultValue.toString())));
             } else {
                 target.put(TYPE_NAME, new DataString(STRING_TYPE));
             }
         }
         if (schema instanceof EnumSchema enumSchema) {
-            var enumList = new DataList();
-            enumSchema.symbols().forEach(symbol -> enumList.add(new DataString(symbol.name())));
-            target.put(ENUM_NAME, enumList);
+            target.put(ENUM_NAME, DataList.of(enumSchema.symbols().stream().map(s -> new DataString(s.name())).toArray(DataString[]::new)));
         }
         if (schema instanceof ListSchema listSchema) {
             target.put(TYPE_NAME, new DataString(ARRAY_TYPE));
