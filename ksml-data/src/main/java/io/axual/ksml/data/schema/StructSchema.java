@@ -25,7 +25,6 @@ import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.DataEquals;
 import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.compare.EqualityFlags;
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.util.EqualUtil;
 import lombok.Builder;
@@ -108,7 +107,9 @@ public class StructSchema extends NamedSchema {
             this.tag = schema instanceof UnionSchema ? NO_TAG : tag;
             this.required = required;
             this.constant = constant;
-            this.defaultValue = (defaultValue == null && !required) ? DataNull.INSTANCE : defaultValue;
+            // Default value "null" means "this field has no default value", ie. the schema does not define a default value for this field.
+            // Any non-null value, including DataNull.INSTANCE, means "this field has a default value, namely..."
+            this.defaultValue = defaultValue;
             this.order = order;
         }
 

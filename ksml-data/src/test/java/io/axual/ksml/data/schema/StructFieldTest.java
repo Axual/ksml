@@ -46,7 +46,7 @@ class StructSchemaFieldTest {
     }
 
     @Test
-    @DisplayName("Constructor with required=false marks field optional and defaults to DataNull.INSTANCE")
+    @DisplayName("Constructor with required=false marks field optional with no default value")
     void optionalFieldConstructor() {
         assertThat(new StructSchema.Field("age", DataSchema.INTEGER_SCHEMA, "Age of user", 42, false))
                 .returns("age", StructSchema.Field::name)
@@ -54,7 +54,7 @@ class StructSchemaFieldTest {
                 .returns(42, StructSchema.Field::tag)
                 .returns(false, StructSchema.Field::required)
                 .returns(false, StructSchema.Field::constant)
-                .returns(DataNull.INSTANCE, StructSchema.Field::defaultValue)
+                .returns(null, StructSchema.Field::defaultValue)
                 .returns(StructSchema.Field.Order.ASCENDING, StructSchema.Field::order)
                 .hasToString("age: integer (42, optional)");
     }

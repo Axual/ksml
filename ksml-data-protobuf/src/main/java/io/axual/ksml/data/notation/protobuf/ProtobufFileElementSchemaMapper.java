@@ -130,11 +130,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         final var required = field.getLabel() == Field.Label.REQUIRED;
         final var type = convertFieldElementToDataSchema(context, field);
         if (type == null) throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
-        final var explicitDefault = convertDefaultValueToDataObject(type, field.getDefaultValue());
-        // Non-required fields without an explicit schema default get DataNull.INSTANCE so that
-        // StructSchema.isAssignableFrom() recognises them as optional (defaultValue==null → mandatory).
-        final var optionalValue = explicitDefault != null ? explicitDefault : DataNull.INSTANCE;
-        final var defaultValue = required ? explicitDefault : optionalValue;
+        final var defaultValue = convertDefaultValueToDataObject(type, field.getDefaultValue());
         return new StructSchema.Field(name, type, field.getDocumentation(), field.getTag(), required, false, defaultValue);
     }
 

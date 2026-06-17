@@ -173,7 +173,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_CONSTANT_FIELD, field.constant());
         result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_TAG_FIELD, field.tag());
         result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
-        if (field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE) encodeDefaultValue(result, field.defaultValue());
+        if (field.defaultValue() != null) encodeDefaultValue(result, field.defaultValue());
         result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELD_ORDER_FIELD, field.order().toString());
         return result;
     }
