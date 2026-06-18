@@ -24,7 +24,6 @@ import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
@@ -43,7 +42,7 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Reproduction attempt for GitHub issue Axual/ksml#290.
+ * Regression test for GitHub issue Axual/ksml#290.
  *
  * <p>Scenario: an AVRO record schema ({@code SensorData}) contains a NESTED named type
  * (an inline {@code enum SensorType}). The Apicurio AVRO SerDe is configured with
@@ -57,27 +56,25 @@ import static org.assertj.core.api.Assertions.assertThat;
  * that serializes {@code avro:SensorData} to that topic with auto-register disabled, and
  * checks whether messages actually land on the topic.
  *
- * <p><b>Status: this test currently FAILS, reproducing #290.</b> With the issue-faithful
- * config (only {@code auto-register: false} + {@code auto-register.if-exists: RETURN}) the
- * Apicurio content-based lookup represents the nested enum as a bare reference, which never
- * matches the inline-registered schema, so serialization fails with
- * {@code ArtifactNotFoundException}. Setting {@code apicurio.registry.find-latest: true}
- * works around it. It is therefore {@link Disabled} so CI stays green.
+ * <p><b>Status: passes, guarding the fix.</b> Without the fix this test FAILS: with the
+ * issue-faithful config (only {@code auto-register: false} + {@code auto-register.if-exists:
+ * RETURN}) Apicurio's content-based lookup represents the nested enum as a bare reference,
+ * which never matches the inline-registered schema, so serialization fails with
+ * {@code ArtifactNotFoundException}. The fix in {@code ApicurioAvroSerdeSupplier} defaults
+ * {@code apicurio.registry.find-latest=true}, so the serializer resolves the artifact's
+ * latest version by coordinates instead of by content. If this test starts failing again,
+ * #290 has regressed.
  *
- * <p><b>To run it:</b> temporarily remove (or comment out) the {@link Disabled} annotation
- * below, then:
+ * <p>Runs under maven-failsafe in the {@code integration-tests} profile (requires a running
+ * Docker daemon for Testcontainers), or on its own via:
  * <pre>
  * mvn -pl ksml-integration-tests -am verify \
  *     -Dit.test=Issue290ApicurioNestedEnumNoAutoRegisterIT \
  *     -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false
  * </pre>
- * Requires a running Docker daemon (Testcontainers). When #290 is fixed, this test should
- * pass and the annotation can be removed permanently.
  */
 @Slf4j
 @Testcontainers
-@Disabled("Reproduces open issue #290: Apicurio nested-enum schema + auto-register=false. "
-        + "Currently fails by design; remove this annotation to run (see class Javadoc).")
 class Issue290ApicurioNestedEnumNoAutoRegisterIT {
 
     private static final String TOPIC = "sensor_data_avro_290";
