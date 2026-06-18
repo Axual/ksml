@@ -84,12 +84,12 @@ The `ksml` section contains all configuration specific to the KSML Runner applic
 
 ### Directory Configuration
 
-| Property                 | Type    | Default                 | Description                                  |
-|--------------------------|---------|-------------------------|----------------------------------------------|
-| `configDirectory`        | String  | Working directory       | Directory containing KSML definition files   |
-| `schemaDirectory`        | String  | Same as configDirectory | Directory containing schema files            |
-| `storageDirectory`       | String  | System temp directory   | Directory for Kafka Streams state stores     |
-| `createStorageDirectory` | Boolean | false                   | Create storage directory if it doesn't exist |
+| Property                 | Type    | Default           | Description                                  |
+|--------------------------|---------|-------------------|----------------------------------------------|
+| `configDirectory`        | String  | Working directory | Directory containing KSML definition files   |
+| `schemaDirectory`        | String  | Working directory | Directory containing schema files            |
+| `storageDirectory`       | String  | Working directory | Directory for Kafka Streams state stores     |
+| `createStorageDirectory` | Boolean | false             | Create storage directory if it doesn't exist |
 
 ```yaml
 ksml:
@@ -98,6 +98,10 @@ ksml:
   storageDirectory: /tmp/kafka-streams
   createStorageDirectory: true
 ```
+
+!!! note
+    `schemaDirectory` is mainly intended for scenarios where your pipeline uses schemas but no schema
+    server is present. In production using a schema server is preferred.
 
 ### Application Server Configuration
 
@@ -121,11 +125,12 @@ ksml:
 
 Enables Prometheus metrics endpoint:
 
-| Property  | Type    | Default | Description                              |
-|-----------|---------|---------|------------------------------------------|
-| `enabled` | Boolean | false   | Enable/disable Prometheus metrics        |
-| `host`    | String  | 0.0.0.0 | IP address to bind the metrics server to |
-| `port`    | Integer | 9999    | Port number for metrics endpoint         |
+| Property     | Type    | Default  | Description                                                                         |
+|--------------|---------|----------|-------------------------------------------------------------------------------------|
+| `enabled`    | Boolean | false    | Enable/disable Prometheus metrics                                                   |
+| `host`       | String  | 0.0.0.0  | IP address to bind the metrics server to                                            |
+| `port`       | Integer | 9999     | Port number for metrics endpoint                                                    |
+| `configFile` | String  | internal | Path to a Prometheus JMX Exporter configuration file. If unset, a built-in default is used. |
 
 ```yaml
 ksml:
@@ -133,6 +138,7 @@ ksml:
     enabled: true
     host: 0.0.0.0
     port: 9999
+    configFile: /path/to/prometheus-exporter.yaml  # optional; built-in default used if omitted
 ```
 
 ### Error Handling Configuration
@@ -195,7 +201,7 @@ Control Python execution security and permissions:
 | `allowCreateProcess`          | Boolean | false   | Allow Python code to execute external processes   |
 | `allowCreateThread`           | Boolean | false   | Allow Python code to create new Java threads      |
 | `inheritEnvironmentVariables` | Boolean | false   | Inherit JVM process environment in Python context |
-| `pythonModulePath`            | String  | empty   | Path to customer defined Python modules           |
+| `modulePath`                  | String  | empty   | Path to customer defined Python modules           |
 
 ```yaml
 ksml:
@@ -206,7 +212,7 @@ ksml:
     allowCreateProcess: false
     allowCreateThread: false
     inheritEnvironmentVariables: false
-    pythonModulePath: /ksml
+    modulePath: /ksml
 ```
 
 ### Schema Registry Configuration
@@ -306,12 +312,11 @@ Available serializer types:
 | `apicurio_avro`        | avro       | Apicurio        | Avro with Apicurio SR         |
 | `confluent_avro`       | avro       | Confluent       | Avro with Confluent SR        |
 | `apicurio_jsonschema`  | jsonschema | Apicurio        | JSON Schema with Apicurio SR  |
-| `confluent_jsonschema` | jsonschema | Confluent       | JSON Schema with Confluent SR |
 | `apicurio_protobuf`    | protobuf   | Apicurio        | Protobuf with Apicurio SR     |
-| `confluent_protobuf`   | protobuf   | Confluent       | Protobuf with Confluent SR    |
 
 Built-in serializers (no configuration needed):
 
+- `binary`: Raw binary data. This is the default notation used when a type does not specify one.
 - `json`: Schemaless JSON
 - `csv`: Comma-separated values
 - `xml`: XML format
@@ -329,20 +334,6 @@ ksml:
     order_pipeline: order-processing.yaml
 ```
 
-### Schema File Loading
-
-Specify schema files to load (Avro, JSON Schema, XSD, CSV schemas):
-
-```yaml
-ksml:
-  schemas:
-    # Format: <name>: <filename>
-    SensorData.avsc: SensorData.avsc
-    SensorData.json: SensorData.json
-    SensorData.xsd: SensorData.xsd
-    SensorData.csv: SensorData.csv
-```
-
 ## Kafka Configuration Section
 
 The `kafka` section contains standard Kafka client configuration properties. All Kafka Streams and Kafka client
@@ -355,12 +346,8 @@ properties are supported.
 | `bootstrap.servers` | String | Yes      | Comma-separated list of Kafka brokers       |
 | `application.id`    | String | Yes      | Unique identifier for the Kafka Streams app |
 
-!!! note "Application ID Aliases"
-You can use any of these property names for the application ID:
-
-- `application.id` (standard Kafka property)
-- `applicationId` (camelCase variant)
-- `app.id` (KSML shorthand)
+!!! note "Application ID"
+    Matches the standard Kafka property name `application.id`. 
 
 ### Common Properties
 
@@ -516,10 +503,6 @@ ksml:
   definitions:
     order_processor: order-processing.yaml
     user_events: user-event-pipeline.yaml
-
-  schemas:
-    UserProfile.avsc: UserProfile.avsc
-    OrderSchema.json: OrderSchema.json
 
 kafka:
   bootstrap.servers: "${KAFKA_BROKERS}"

@@ -26,9 +26,14 @@ import io.axual.ksml.runner.exception.ConfigException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KSMLRunnerKSMLConfigTest {
 
@@ -61,5 +66,28 @@ class KSMLRunnerKSMLConfigTest {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-no-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
         assertEquals(System.getProperty("user.dir"), ksmlConfig.configDirectory(), "config dir should default to working dir");
+    }
+
+    @Test
+    @DisplayName("schemaDirectory and storageDirectory resolve from a valid config")
+    void shouldResolveSchemaAndStorageDirectories() throws Exception {
+        final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config.yaml");
+        final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
+        // schemaDirectory is not set in the yaml, so it defaults to the working directory
+        assertEquals(System.getProperty("user.dir"), ksmlConfig.schemaDirectory(), "schema dir should default to working dir");
+        // storageDirectory is set to "." in the yaml, which resolves to the working directory
+        assertEquals(System.getProperty("user.dir"), ksmlConfig.storageDirectory(), "storage dir '.' should resolve to working dir");
+    }
+
+    @Test
+    @DisplayName("storageDirectory is created when createStorageDirectory is true")
+    void shouldCreateStorageDirectory(@TempDir Path tempDir) {
+        final var newDir = tempDir.resolve("state-store");
+        final var ksmlConfig = new KSMLConfig();
+        ksmlConfig.storageDirectory(newDir.toString());
+        ksmlConfig.createStorageDirectory(true);
+
+        assertEquals(newDir.toAbsolutePath().normalize().toString(), ksmlConfig.storageDirectory());
+        assertTrue(Files.isDirectory(newDir), "storage directory should have been created");
     }
 }

@@ -36,32 +36,32 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = false)
 @JsonClassDescription("Control Python execution security and permissions")
 public class PythonContextConfig {
-    @JsonProperty(value = "allowHostFileAccess", required = false)
+    @JsonProperty(value = "allowHostFileAccess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to access host file system. Default is false.")
     @Builder.Default
     private boolean allowHostFileAccess = false;
 
-    @JsonProperty(value = "allowHostSocketAccess", required = false)
+    @JsonProperty(value = "allowHostSocketAccess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to open network sockets. Default is false.")
     @Builder.Default
     private boolean allowHostSocketAccess = false;
 
-    @JsonProperty(value = "allowNativeAccess", required = false)
+    @JsonProperty(value = "allowNativeAccess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Graal native access / JNI. Default is false.")
     @Builder.Default
     private boolean allowNativeAccess = false;
 
-    @JsonProperty(value = "allowCreateProcess", required = false)
+    @JsonProperty(value = "allowCreateProcess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to execute external processes. Default is false.")
     @Builder.Default
     private boolean allowCreateProcess = false;
 
-    @JsonProperty(value = "allowCreateThread", required = false)
+    @JsonProperty(value = "allowCreateThread", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to create new Java threads. Default is false.")
     @Builder.Default
     private boolean allowCreateThread = false;
 
-    @JsonProperty(value = "inheritEnvironmentVariables", required = false)
+    @JsonProperty(value = "inheritEnvironmentVariables", required = false, defaultValue = "false")
     @JsonPropertyDescription("Inherit JVM process environment in Python context. Default is false.")
     @Builder.Default
     private boolean inheritEnvironmentVariables = false;

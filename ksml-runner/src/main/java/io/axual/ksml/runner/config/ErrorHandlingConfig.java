@@ -88,10 +88,10 @@ public class ErrorHandlingConfig {
     @JsonClassDescription("Contains the configuration on how to handle Errors.")
     @Data
     public static class ErrorTypeHandlingConfig {
-        @JsonProperty(value = "log", required = false)
+        @JsonProperty(value = "log", required = false, defaultValue = "true")
         @JsonPropertyDescription("Toggle to enable logging the error. Defaults to true.")
         private boolean log = true;
-        @JsonProperty(value = "logPayload", required = false)
+        @JsonProperty(value = "logPayload", required = false, defaultValue = "false")
         @JsonPropertyDescription("Toggle to add the payload which caused the error to the logged output. Defaults to false.")
         private boolean logPayload = false;
         @JsonProperty(value = "loggerName", required = false)
