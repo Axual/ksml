@@ -134,6 +134,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "aggregator" ]
         }
@@ -640,6 +641,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "forEach" ]
         }
@@ -772,6 +774,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "foreignKeyExtractor" ]
         }
@@ -897,6 +900,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "generator" ]
         }
@@ -1022,6 +1026,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "generic" ]
         }
@@ -1238,6 +1243,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "initializer" ]
         }
@@ -1562,6 +1568,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "keyTransformer" ]
         }
@@ -1694,6 +1701,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "keyValueMapper" ]
         }
@@ -1819,6 +1827,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "keyValuePrinter" ]
         }
@@ -2117,6 +2126,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "keyValueToKeyValueListTransformer" ]
         }
@@ -2256,6 +2266,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "keyValueToValueListTransformer" ]
         }
@@ -2395,6 +2406,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "keyValueTransformer" ]
         }
@@ -2745,6 +2757,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "merger" ]
         }
@@ -2877,6 +2890,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "metadataTransformer" ]
         }
@@ -3360,6 +3374,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "predicate" ]
         }
@@ -3667,6 +3682,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "reducer" ]
         }
@@ -3976,6 +3992,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "streamPartitioner" ]
         }
@@ -4283,6 +4300,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "timestampExtractor" ]
         }
@@ -4581,6 +4599,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "topicNameExtractor" ]
         }
@@ -4871,6 +4890,7 @@
           "type" : "string"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "valueJoiner" ]
         }
@@ -5003,6 +5023,7 @@
           "type" : "array"
         },
         "type" : {
+          "default" : "generic",
           "description" : "The type of the function",
           "enum" : [ "valueTransformer" ]
         }

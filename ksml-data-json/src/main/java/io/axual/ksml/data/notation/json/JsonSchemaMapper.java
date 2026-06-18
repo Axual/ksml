@@ -24,6 +24,7 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -70,6 +71,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
     private static final String DEFINITIONS_NAME = "$defs";
     private static final String REF_NAME = "$ref";
+    private static final String DEFAULT_NAME = "default";
     private static final String ANY_OF_NAME = "anyOf";
     private static final String ENUM_NAME = "enum";
     private static final String ARRAY_TYPE = "array";
@@ -191,11 +193,18 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
                 boolean required = requiredProperties.contains(name);
-                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, required);
+                var defaultValue = specStruct.containsKey(DEFAULT_NAME)
+                        ? jsonDefaultToDataObject(specStruct.get(DEFAULT_NAME))
+                        : null;
+                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, required, false, defaultValue);
                 result.add(field);
             }
         }
         return result;
+    }
+
+    private static DataObject jsonDefaultToDataObject(DataObject value) {
+        return value != null ? value : DataNull.INSTANCE;
     }
 
     /**
@@ -404,6 +413,9 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
                 members.add(typeStruct);
             }
             target.put(ANY_OF_NAME, members);
+        }
+        if (defaultValue != null) {
+            target.put(DEFAULT_NAME, defaultValue);
         }
     }
 }
