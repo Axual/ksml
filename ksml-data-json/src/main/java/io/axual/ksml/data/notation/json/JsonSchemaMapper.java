@@ -414,8 +414,22 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             }
             target.put(ANY_OF_NAME, members);
         }
-        if (defaultValue != null) {
+        if (defaultValue != null && defaultAllowedByEnum(target, defaultValue)) {
             target.put(DEFAULT_NAME, defaultValue);
         }
+    }
+
+    /** A default is fine when the field has no enum, or when the default is one of the enum values. */
+    private static boolean defaultAllowedByEnum(DataStruct target, DataObject defaultValue) {
+        if (!(target.get(ENUM_NAME) instanceof DataList allowedValues)) {
+            return true; // no enum -> any default is fine
+        }
+        for (final DataObject allowed : allowedValues) { // enum present -> default must be in it
+            if (allowed.equals(defaultValue)) return true;
+            // Avro/Protobuf defaults arrive as DataEnum while JSON Schema enum entries are DataString.
+            // Object.equals() returns false across types, so fall back to comparing string values.
+            if (allowed.toString().equals(defaultValue.toString())) return true;
+        }
+        return false; // default contradicts the enum -> skip it
     }
 }

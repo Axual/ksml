@@ -24,9 +24,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.axual.ksml.data.object.DataEnum;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
@@ -734,6 +736,54 @@ class JsonSchemaMapperTest {
                 .as("absent default should not appear after round-trip")
                 .returns(true, JsonNode::isMissingNode);
         softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("Default is emitted only when it is a valid enum value")
+    void enumDefaultOnlyEmittedWhenValid() throws Exception {
+        final var colorEnum = new EnumSchema(List.of(
+                EnumSchema.Symbol.of("RED"), EnumSchema.Symbol.of("GREEN"), EnumSchema.Symbol.of("BLUE")));
+
+        final var schema = StructSchema.builder()
+                .namespace("ns").name("TestEnum")
+                .field(new StructSchema.Field("validDefault", colorEnum, null, NO_TAG, false, false, new DataString("RED")))
+                .field(new StructSchema.Field("invalidDefault", colorEnum, null, NO_TAG, false, false, new DataString("PURPLE")))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        final var rootNode = assertThatObject(JACKSON.readTree(mapper.fromDataSchema(schema)))
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .actual();
+
+        final var softly = new SoftAssertions();
+        softAssertJsonStringField(softly, rootNode, "/properties/validDefault/default", "RED");
+        softly.assertThatObject(rootNode.at("/properties/invalidDefault/default"))
+                .as("default that is not a valid enum value should not be emitted")
+                .returns(true, JsonNode::isMissingNode);
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("DataEnum default matching a JSON Schema enum entry is emitted via toString fallback")
+    void enumDefaultFromDataEnumIsEmittedViaToStringFallback() throws Exception {
+        final var colorSchema = new EnumSchema(List.of(
+                EnumSchema.Symbol.of("RED"), EnumSchema.Symbol.of("GREEN"), EnumSchema.Symbol.of("BLUE")));
+        // DataEnum is what Avro/Protobuf mappers produce for enum-typed defaults;
+        // the JSON Schema enum list always holds DataString, so Object.equals() returns false
+        // across the two types and the toString fallback is the only path that matches.
+        final var dataEnumDefault = new DataEnum(new EnumType(colorSchema), "RED");
+
+        final var schema = StructSchema.builder()
+                .namespace("ns").name("TestEnumType")
+                .field(new StructSchema.Field("color", colorSchema, null, NO_TAG, false, false, dataEnumDefault))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        final var rootNode = assertThatObject(JACKSON.readTree(mapper.fromDataSchema(schema)))
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .actual();
+
+        softAssertJsonStringField(new SoftAssertions(), rootNode, "/properties/color/default", "RED");
     }
 
     private static void softAssertRequiredXOnly(final SoftAssertions softly, final ObjectNode rootNode, final String requiredPath) {
