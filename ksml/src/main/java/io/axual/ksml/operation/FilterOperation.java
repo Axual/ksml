@@ -30,6 +30,7 @@ import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserPredicate;
+import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
 
 public class FilterOperation extends StoreOperation {
@@ -80,13 +81,16 @@ public class FilterOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final var output = named != null
-                ? mat != null
-                ? input.table.filter(userPred, named, mat)
-                : input.table.filter(userPred, named)
-                : mat != null
-                ? input.table.filter(userPred, mat)
-                : input.table.filter(userPred);
+        final KTable<Object, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.table.filter(userPred, named, mat)
+                    : input.table.filter(userPred, named);
+        } else {
+            output = mat != null
+                    ? input.table.filter(userPred, mat)
+                    : input.table.filter(userPred);
+        }
         return new KTableWrapper(output, k, v);
     }
 }

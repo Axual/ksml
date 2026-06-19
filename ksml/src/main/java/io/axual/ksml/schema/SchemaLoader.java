@@ -72,14 +72,14 @@ public class SchemaLoader {
                     return new String(resource.readAllBytes(), StandardCharsets.UTF_8);
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             // Ignore
         }
 
         // Try to load the schema from file
         try {
             return Files.readString(Path.of(schemaFile));
-        } catch (IOException e) {
+        } catch (IOException _) {
             // Ignore
         }
 

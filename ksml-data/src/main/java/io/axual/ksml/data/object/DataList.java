@@ -30,6 +30,7 @@ import lombok.EqualsAndHashCode;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -68,6 +69,15 @@ public class DataList implements DataObject, Iterable<DataObject> {
      */
     @JsonIgnore
     private final ListType type;
+
+    /**
+     * Returns a new {@code DataList} of an unknown value type and add all elements to the list.
+     */
+    public static DataList of(DataObject... elements) {
+        final var result = new DataList();
+        result.add(elements);
+        return result;
+    }
 
     /**
      * Constructs an empty {@code DataList} with an unknown value type.
@@ -116,10 +126,11 @@ public class DataList implements DataObject, Iterable<DataObject> {
      *
      * <p>If the value is null, it will not be added to the list.</p>
      *
-     * @param value The {@link DataObject} to add to the list.
+     * @param values The {@link DataObject}s to add to the list.
      */
-    public void addIfNotNull(DataObject value) {
-        if (value != null) add(value);
+    public void addIfNotNull(DataObject... values) {
+        if (values == null) return;
+        for (var value : values) if (value != null) add(value);
     }
 
     /**
@@ -162,8 +173,8 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @return {@code true} if the element was successfully added, {@code false} otherwise.
      * @throws IllegalArgumentException if the value type is invalid.
      */
-    public boolean add(DataObject value) {
-        return contents.add(assignableValue(value));
+    public boolean add(DataObject... values) {
+        return contents.addAll(Arrays.stream(values).map(this::assignableValue).toList());
     }
 
     /**

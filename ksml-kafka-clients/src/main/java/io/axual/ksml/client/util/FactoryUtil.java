@@ -36,7 +36,7 @@ public class FactoryUtil {
             return Utils.newInstance(className, clazz);
         } catch (ClassNotFoundException e) {
             throw new ClientException("Class not found: " + className, e);
-        } catch (ClassCastException e) {
+        } catch (ClassCastException _) {
             throw new ClientException("Could not cast instance of " + className + " to " + clazz.getName());
         }
     }

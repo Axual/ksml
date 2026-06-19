@@ -274,10 +274,9 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
         return super.currentLag(topicResolver.resolve(topicPartition));
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------
     // End of public interface of KafkaConsumer
-
-    /// ////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------
 
     private ConsumerRebalanceListener convertListener(ConsumerRebalanceListener listener) {
         return listener != null ? new ProxyConsumerRebalanceListener(listener) : null;
@@ -339,9 +338,6 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
         return result;
     }
 
-    /**
-     * Method to unresolve TopicPartition in OffsetAndMetadataMap
-     */
     private Map<TopicPartition, OffsetAndMetadata> unresolveTopicPartitionOffsetAndMetadataMap(Map<TopicPartition, OffsetAndMetadata> topicPartitionOffsetAndMetadataMap) {
         return topicPartitionOffsetAndMetadataMap == null || topicPartitionOffsetAndMetadataMap.isEmpty() ? topicPartitionOffsetAndMetadataMap :
                 topicPartitionOffsetAndMetadataMap.keySet()

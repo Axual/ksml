@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  */
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
+@SuppressWarnings("java:S2187")
 class KSMLFieldModificationTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)

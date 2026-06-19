@@ -101,12 +101,12 @@ class CsvDataFormatIT {
             log.info("Found {} CSV sensor messages", records.count());
 
             // Validate CSV messages and store for comparison
-            records.forEach(record -> {
-                log.info("CSV Sensor: key={}, value={}", record.key(), record.value());
-                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+            records.forEach(consumerRecord -> {
+                log.info("CSV Sensor: key={}, value={}", consumerRecord.key(), consumerRecord.value());
+                assertThat(consumerRecord.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // Use proper CSV parsing to validate structure
-                String csvValue = record.value();
+                String csvValue = consumerRecord.value();
                 try {
                     CSVRecord csvRecord = parseCsvRecord(csvValue);
 
@@ -131,8 +131,8 @@ class CsvDataFormatIT {
                 }
 
                 // Store original for comparison with processed version (preserving order)
-                originalMessages.put(record.key(), csvValue);
-                originalMessageOrder.add(record.key());
+                originalMessages.put(consumerRecord.key(), csvValue);
+                originalMessageOrder.add(consumerRecord.key());
             });
         }
 
@@ -147,16 +147,16 @@ class CsvDataFormatIT {
             log.info("Found {} processed CSV messages", records.count());
 
             // Validate processed CSV messages against originals using proper CSV parsing
-            records.forEach(record -> {
+            records.forEach(consumerRecord -> {
                 // Track processing order
-                processedMessageOrder.add(record.key());
-                log.info("Processed CSV: key={}, value={}", record.key(), record.value());
-                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+                processedMessageOrder.add(consumerRecord.key());
+                log.info("Processed CSV: key={}, value={}", consumerRecord.key(), consumerRecord.value());
+                assertThat(consumerRecord.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // Use proper CSV parsing for both original and processed records
-                String processedCsvValue = record.value();
-                String originalCsvValue = originalMessages.get(record.key());
-                assertThat(originalCsvValue).as("Should have original message for key: " + record.key()).isNotNull();
+                String processedCsvValue = consumerRecord.value();
+                String originalCsvValue = originalMessages.get(consumerRecord.key());
+                assertThat(originalCsvValue).as("Should have original message for key: " + consumerRecord.key()).isNotNull();
 
                 try {
                     CSVRecord processedRecord = parseCsvRecord(processedCsvValue);
@@ -169,17 +169,19 @@ class CsvDataFormatIT {
                     String originalCity = originalRecord.get(6);
                     String processedCity = processedRecord.get(6);
 
-                    assertThat(processedCity).isEqualTo(originalCity.toUpperCase())
-                        .as("City should be uppercase: original='%s', processed='%s'", originalCity, processedCity);
+                    assertThat(processedCity)
+                        .as("City should be uppercase: original='%s', processed='%s'", originalCity, processedCity)
+                        .isEqualTo(originalCity.toUpperCase());
 
                     log.info("Verified city transformation: '{}' -> '{}'", originalCity, processedCity);
 
                     // Verify other fields remain unchanged
                     for (int i = 0; i < 8; i++) {
                         if (i != 6) { // Skip city field (index 6)
-                            assertThat(processedRecord.get(i)).isEqualTo(originalRecord.get(i))
+                            assertThat(processedRecord.get(i))
                                 .as("Field %d should remain unchanged: original='%s', processed='%s'",
-                                    i, originalRecord.get(i), processedRecord.get(i));
+                                    i, originalRecord.get(i), processedRecord.get(i))
+                                .isEqualTo(originalRecord.get(i));
                         }
                     }
                 } catch (Exception e) {

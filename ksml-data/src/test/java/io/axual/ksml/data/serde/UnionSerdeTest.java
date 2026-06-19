@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("java:S2095")
 class UnionSerdeTest {
     private static final String TOPIC = "topic";
 

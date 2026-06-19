@@ -38,6 +38,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Optional;
 
 @Slf4j
@@ -107,8 +108,10 @@ public class PrometheusConfig {
 
     /**
      * Lazily create and cache a temporary file containing the default exporter configuration
-     * from the classpath resource. This ensures downstream code can work with a File API.
+     * from the classpath resource, placed inside a private temp directory to prevent other OS
+     * users from accessing it (S5443).
      */
+    @SuppressWarnings("java:S5443") // temp file is placed inside a private (700) directory, not directly in the world-writable system temp dir
     private static synchronized File getDefaultConfigFile() {
         if (defaultConfigFile == null || !defaultConfigFile.exists()) {
             File tmpFile = null;
@@ -116,14 +119,15 @@ public class PrometheusConfig {
                 log.info("Loading default config file from internal resources: {}", DEFAULT_CONFIG_RESOURCE);
                 final var resourceUrl = PrometheusConfig.class.getClassLoader().getResource(DEFAULT_CONFIG_RESOURCE);
                 if (resourceUrl != null) {
-                    // Create a temp file and copy the resource into it so components expecting a File can use it
-                    tmpFile = File.createTempFile("KSML-Prometheus-Default-Config", ".yaml");
+                    final var secureDir = Files.createTempDirectory("KSML-Prometheus-");
+                    secureDir.toFile().deleteOnExit();
+                    tmpFile = Files.createTempFile(secureDir, "Default-Config", ".yaml").toFile();
                     tmpFile.deleteOnExit();
                     IOUtils.copy(resourceUrl, tmpFile);
                 } else {
                     log.warn("Could not load prometheus config from {}", DEFAULT_CONFIG_RESOURCE);
                 }
-            } catch (IOException e) {
+            } catch (IOException _) {
                 log.info("Could not create temporary prometheus config file");
             }
             defaultConfigFile = tmpFile;

@@ -32,6 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -224,6 +225,7 @@ public class StructSchema extends NamedSchema {
          *
          * @return A string summarizing the field's details.
          */
+        @Nonnull
         @Override
         public String toString() {
             return (name != null ? name : "<anonymous>") + ": " + schema + " (" + tag + (required ? "" : ", optional") + ")";

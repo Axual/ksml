@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,7 +50,7 @@ class KSMLRunnerKSMLConfigTest {
     void shouldValidateConfig() throws Exception {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
-        ksmlConfig.configDirectory();
+        assertNotNull(ksmlConfig.configDirectory());
     }
 
     @Test

@@ -63,7 +63,7 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
             final var result = STRING_SERDE.deserializer().deserialize(null, value);
             if (result == null) return DataNull.INSTANCE;
             return isRealString(result.toString()) ? new DataString(result.toString()) : new DataBytes(value);
-        } catch (Exception e) {
+        } catch (Exception _) {
             return new DataBytes(value);
         }
     }
@@ -82,25 +82,13 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
                 // Range-check before each narrowing cast to a byte. Without these checks, a wider
                 // numeric value (e.g. DataInteger(300), DataLong(5_000_000_000)) would silently
                 // truncate to a wrong byte.
-                switch (element) {
-                    case DataByte val:
-                        bytes[index] = val.value();
-                        break;
-                    case DataShort val:
-                        NumericRangeChecker.requireByteRange(val.value().longValue());
-                        bytes[index] = val.value().byteValue();
-                        break;
-                    case DataInteger val:
-                        NumericRangeChecker.requireByteRange(val.value().longValue());
-                        bytes[index] = val.value().byteValue();
-                        break;
-                    case DataLong val:
-                        NumericRangeChecker.requireByteRange(val.value());
-                        bytes[index] = val.value().byteValue();
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Can not convert binary header: " + value);
-                }
+                bytes[index] = switch (element) {
+                    case DataByte val -> val.value();
+                    case DataShort val -> narrowByte(val.value().longValue());
+                    case DataInteger val -> narrowByte(val.value().longValue());
+                    case DataLong val -> narrowByte(val.value());
+                    default -> throw new IllegalArgumentException("Can not convert binary header: " + value);
+                };
             }
             return bytes;
         }
@@ -113,6 +101,11 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
             if (!isPrintableChar(ch)) return false;
         }
         return true;
+    }
+
+    private static byte narrowByte(long value) {
+        NumericRangeChecker.requireByteRange(value);
+        return (byte) value;
     }
 
     // From https://stackoverflow.com/questions/220547/printable-char-in-java

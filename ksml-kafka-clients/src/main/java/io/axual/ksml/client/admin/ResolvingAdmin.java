@@ -320,10 +320,9 @@ public class ResolvingAdmin extends ForwardingAdmin {
         // Ignore superclass exception
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // --------------------------------------
     // End of public interface of AdminClient
-
-    /// ////////////////////////////////////////////////////////////////////////////////////////////
+    // --------------------------------------
 
     private Collection<NewTopic> resolveNewTopics(Collection<NewTopic> newTopics) {
         // Resolve all new topics into a new collection

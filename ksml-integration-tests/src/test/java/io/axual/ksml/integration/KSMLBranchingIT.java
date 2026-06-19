@@ -101,7 +101,7 @@ class KSMLBranchingIT {
             log.info("Found {} orders in order_input topic", records.count());
 
             // Log some sample orders
-            records.forEach(record -> log.info("Order: key={}, value={}", record.key(), record.value()));
+            records.forEach(consumerRecord -> log.info("Order: key={}, value={}", consumerRecord.key(), consumerRecord.value()));
         }
 
         // Check priority_orders topic
@@ -112,11 +112,11 @@ class KSMLBranchingIT {
 
             if (!records.isEmpty()) {
                 log.info("Found {} priority orders", records.count());
-                records.forEach(record -> {
-                    log.info("Priority order: {}", record.value());
-                    assertThat(record.value()).as("Priority orders should have priority processing tier")
+                records.forEach(consumerRecord -> {
+                    log.info("Priority order: {}", consumerRecord.value());
+                    assertThat(consumerRecord.value()).as("Priority orders should have priority processing tier")
                             .contains("\"processing_tier\":\"priority\"");
-                    assertThat(record.value()).as("Priority orders should have 4 hour SLA")
+                    assertThat(consumerRecord.value()).as("Priority orders should have 4 hour SLA")
                             .contains("\"sla_hours\":4");
                 });
             } else {
@@ -132,11 +132,11 @@ class KSMLBranchingIT {
 
             if (!records.isEmpty()) {
                 log.info("Found {} regional orders", records.count());
-                records.forEach(record -> {
-                    log.info("Regional order: {}", record.value());
-                    assertThat(record.value()).as("Regional orders should have regional processing tier")
+                records.forEach(consumerRecord -> {
+                    log.info("Regional order: {}", consumerRecord.value());
+                    assertThat(consumerRecord.value()).as("Regional orders should have regional processing tier")
                             .contains("\"processing_tier\":\"regional\"");
-                    assertThat(record.value()).as("Regional orders should have 24 hour SLA")
+                    assertThat(consumerRecord.value()).as("Regional orders should have 24 hour SLA")
                             .contains("\"sla_hours\":24");
                 });
             } else {
@@ -152,13 +152,13 @@ class KSMLBranchingIT {
 
             if (!records.isEmpty()) {
                 log.info("Found {} international orders", records.count());
-                records.forEach(record -> {
-                    log.info("International order: {}", record.value());
-                    assertThat(record.value()).as("International orders should have international processing tier")
+                records.forEach(consumerRecord -> {
+                    log.info("International order: {}", consumerRecord.value());
+                    assertThat(consumerRecord.value()).as("International orders should have international processing tier")
                             .contains("\"processing_tier\":\"international\"");
-                    assertThat(record.value()).as("International orders should have 72 hour SLA")
+                    assertThat(consumerRecord.value()).as("International orders should have 72 hour SLA")
                             .contains("\"sla_hours\":72");
-                    assertThat(record.value()).as("International orders should have customs_required flag")
+                    assertThat(consumerRecord.value()).as("International orders should have customs_required flag")
                             .contains("\"customs_required\":true");
                 });
             } else {

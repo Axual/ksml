@@ -38,7 +38,6 @@ class SchemaAssignabilityErrorMessagesTest {
     @Test
     @DisplayName("Struct schema field type mismatch provides detailed error chain")
     void structFieldTypeMismatchDetailedError() {
-        // Create source schema: Person { name: string, age: int }
         var personSchema = StructSchema.builder()
                 .name("Person")
                 .field(new StructSchema.Field("name", DataSchema.STRING_SCHEMA))
@@ -46,7 +45,6 @@ class SchemaAssignabilityErrorMessagesTest {
                 .additionalFieldsAllowed(false)
                 .build();
 
-        // Create a target schema: User { name: string, age: string } - age has wrong type!
         var userSchema = StructSchema.builder()
                 .name("User")
                 .field(new StructSchema.Field("name", DataSchema.STRING_SCHEMA))
@@ -75,7 +73,6 @@ class SchemaAssignabilityErrorMessagesTest {
     @Test
     @DisplayName("Struct schema missing required field provides clear error")
     void structMissingRequiredFieldError() {
-        // Create source schema: Person { name: string, age: int, email: string }
         var personSchema = StructSchema.builder()
                 .name("Person")
                 .field(new StructSchema.Field("name", DataSchema.STRING_SCHEMA))
@@ -84,7 +81,6 @@ class SchemaAssignabilityErrorMessagesTest {
                 .additionalFieldsAllowed(false)
                 .build();
 
-        // Create a target schema: User { name: string, age: int } - missing email!
         var userSchema = StructSchema.builder()
                 .name("User")
                 .field(new StructSchema.Field("name", DataSchema.STRING_SCHEMA))
@@ -137,7 +133,6 @@ class SchemaAssignabilityErrorMessagesTest {
     @Test
     @DisplayName("Nested struct mismatch provides multi-level error chain")
     void nestedStructMismatchMultiLevelError() {
-        // Create Address { street: string, city: string }
         var addressSchema = StructSchema.builder()
                 .name("Address")
                 .field(new StructSchema.Field("street", DataSchema.STRING_SCHEMA))
@@ -145,7 +140,6 @@ class SchemaAssignabilityErrorMessagesTest {
                 .additionalFieldsAllowed(false)
                 .build();
 
-        // Create Person { name: string, address: Address }
         var personSchema = StructSchema.builder()
                 .name("Person")
                 .field(new StructSchema.Field("name", DataSchema.STRING_SCHEMA))
@@ -153,15 +147,13 @@ class SchemaAssignabilityErrorMessagesTest {
                 .additionalFieldsAllowed(false)
                 .build();
 
-        // Create the wrong Address { street: string, city: int } - city has the wrong type!
         var wrongAddressSchema = StructSchema.builder()
                 .name("Address")
                 .field(new StructSchema.Field("street", DataSchema.STRING_SCHEMA))
-                .field(new StructSchema.Field("city", DataSchema.INTEGER_SCHEMA))  // Wrong!
+                .field(new StructSchema.Field("city", DataSchema.INTEGER_SCHEMA))  // Wrong type!
                 .additionalFieldsAllowed(false)
                 .build();
 
-        // Create User { name: string, address: WrongAddress }
         var userSchema = StructSchema.builder()
                 .name("User")
                 .field(new StructSchema.Field("name", DataSchema.STRING_SCHEMA))

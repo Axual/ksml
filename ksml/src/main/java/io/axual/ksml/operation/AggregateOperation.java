@@ -81,11 +81,14 @@ public class AggregateOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Object, Object> output = mat != null
-                ? named != null
-                ? input.groupedStream.aggregate(userInit, userAggr, named, mat)
-                : input.groupedStream.aggregate(userInit, userAggr, mat)
-                : input.groupedStream.aggregate(userInit, userAggr);
+        final KTable<Object, Object> output;
+        if (mat != null) {
+            output = named != null
+                    ? input.groupedStream.aggregate(userInit, userAggr, named, mat)
+                    : input.groupedStream.aggregate(userInit, userAggr, mat);
+        } else {
+            output = input.groupedStream.aggregate(userInit, userAggr);
+        }
         return new KTableWrapper(output, k, vr);
     }
 
@@ -115,13 +118,16 @@ public class AggregateOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Object, Object> output = named != null
-                ? mat != null
-                ? input.groupedTable.aggregate(userInit, userAdd, userSub, named, mat)
-                : input.groupedTable.aggregate(userInit, userAdd, userSub, named)
-                : mat != null
-                ? input.groupedTable.aggregate(userInit, userAdd, userSub, mat)
-                : input.groupedTable.aggregate(userInit, userAdd, userSub);
+        final KTable<Object, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.groupedTable.aggregate(userInit, userAdd, userSub, named, mat)
+                    : input.groupedTable.aggregate(userInit, userAdd, userSub, named);
+        } else {
+            output = mat != null
+                    ? input.groupedTable.aggregate(userInit, userAdd, userSub, mat)
+                    : input.groupedTable.aggregate(userInit, userAdd, userSub);
+        }
         return new KTableWrapper(output, k, vr);
     }
 
@@ -151,13 +157,16 @@ public class AggregateOperation extends StoreOperation {
         final var sessionStore = validateSessionStore(store(), k, vr);
         final var mat = materializedOf(context, sessionStore);
         final var named = namedOf();
-        final KTable<Windowed<Object>, Object> output = named != null
-                ? mat != null
-                ? input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named, mat)
-                : input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named)
-                : mat != null
-                ? input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, mat)
-                : input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg);
+        final KTable<Windowed<Object>, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named, mat)
+                    : input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named);
+        } else {
+            output = mat != null
+                    ? input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, mat)
+                    : input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg);
+        }
         return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 
@@ -184,13 +193,16 @@ public class AggregateOperation extends StoreOperation {
         final var windowStore = validateWindowStore(store(), k, vr);
         final var mat = materializedOf(context, windowStore);
         final var named = namedOf();
-        final KTable<Windowed<Object>, Object> output = named != null
-                ? mat != null
-                ? input.timeWindowedKStream.aggregate(userInit, userAggr, named, mat)
-                : input.timeWindowedKStream.aggregate(userInit, userAggr, named)
-                : mat != null
-                ? input.timeWindowedKStream.aggregate(userInit, userAggr, mat)
-                : input.timeWindowedKStream.aggregate(userInit, userAggr);
+        final KTable<Windowed<Object>, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.timeWindowedKStream.aggregate(userInit, userAggr, named, mat)
+                    : input.timeWindowedKStream.aggregate(userInit, userAggr, named);
+        } else {
+            output = mat != null
+                    ? input.timeWindowedKStream.aggregate(userInit, userAggr, mat)
+                    : input.timeWindowedKStream.aggregate(userInit, userAggr);
+        }
         return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 
@@ -212,13 +224,16 @@ public class AggregateOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, vout);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Object, Object> output = named != null
-                ? mat != null
-                ? input.cogroupedStream.aggregate(userInit, named, mat)
-                : input.cogroupedStream.aggregate(userInit, named)
-                : mat != null
-                ? input.cogroupedStream.aggregate(userInit, mat)
-                : input.cogroupedStream.aggregate(userInit);
+        final KTable<Object, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.cogroupedStream.aggregate(userInit, named, mat)
+                    : input.cogroupedStream.aggregate(userInit, named);
+        } else {
+            output = mat != null
+                    ? input.cogroupedStream.aggregate(userInit, mat)
+                    : input.cogroupedStream.aggregate(userInit);
+        }
         return new KTableWrapper(output, k, vout);
     }
 
@@ -244,13 +259,16 @@ public class AggregateOperation extends StoreOperation {
         final var sessionStore = validateSessionStore(store(), k, v);
         final var mat = materializedOf(context, sessionStore);
         final var named = namedOf();
-        final KTable<Windowed<Object>, Object> output = named != null
-                ? mat != null
-                ? input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, named, mat)
-                : input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, named)
-                : mat != null
-                ? input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, mat)
-                : input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg);
+        final KTable<Windowed<Object>, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, named, mat)
+                    : input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, named);
+        } else {
+            output = mat != null
+                    ? input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, mat)
+                    : input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg);
+        }
         return new KTableWrapper((KTable) output, windowed(k), v);
     }
 
@@ -272,13 +290,16 @@ public class AggregateOperation extends StoreOperation {
         final var kvStore = validateWindowStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Windowed<Object>, Object> output = named != null
-                ? mat != null
-                ? input.timeWindowedCogroupedKStream.aggregate(userInit, named, mat)
-                : input.timeWindowedCogroupedKStream.aggregate(userInit, named)
-                : mat != null
-                ? input.timeWindowedCogroupedKStream.aggregate(userInit, mat)
-                : input.timeWindowedCogroupedKStream.aggregate(userInit);
+        final KTable<Windowed<Object>, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.timeWindowedCogroupedKStream.aggregate(userInit, named, mat)
+                    : input.timeWindowedCogroupedKStream.aggregate(userInit, named);
+        } else {
+            output = mat != null
+                    ? input.timeWindowedCogroupedKStream.aggregate(userInit, mat)
+                    : input.timeWindowedCogroupedKStream.aggregate(userInit);
+        }
         return new KTableWrapper((KTable) output, windowed(k), v);
     }
 }

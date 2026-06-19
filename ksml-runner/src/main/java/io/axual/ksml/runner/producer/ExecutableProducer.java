@@ -95,6 +95,7 @@ public class ExecutableProducer {
         this.valueSerializer = valueSerializer;
     }
 
+    @SuppressWarnings("java:S6218")
     private record GeneratedMessage(Headers headers, byte[] key, byte[] value) {
     }
 
@@ -173,7 +174,10 @@ public class ExecutableProducer {
                     log.error("Error producing message to topic {}", topic);
                 }
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new io.axual.ksml.exception.ExecutionException("Could not produce to topic " + topic, e);
+        } catch (ExecutionException e) {
             throw new io.axual.ksml.exception.ExecutionException("Could not produce to topic " + topic, e);
         }
     }

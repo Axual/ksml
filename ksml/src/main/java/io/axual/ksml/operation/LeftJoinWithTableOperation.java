@@ -114,13 +114,16 @@ public class LeftJoinWithTableOperation extends StoreOperation {
             final var tableJoined = tableJoinedOf(userPart, userOtherPart);
             final var kvStore = validateKeyValueStore(store(), k, vr);
             final var mat = materializedOf(context, kvStore);
-            final KTable<Object, Object> output = tableJoined != null
-                    ? mat != null
-                    ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined, mat)
-                    : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined)
-                    : mat != null
-                    ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, mat)
-                    : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner);
+            final KTable<Object, Object> output;
+            if (tableJoined != null) {
+                output = mat != null
+                        ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined, mat)
+                        : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined);
+            } else {
+                output = mat != null
+                        ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, mat)
+                        : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner);
+            }
             return new KTableWrapper(output, k, vr);
         } else {
             /*    Kafka Streams method signature:
@@ -136,13 +139,16 @@ public class LeftJoinWithTableOperation extends StoreOperation {
             final var kvStore = validateKeyValueStore(store(), k, vr);
             final var mat = materializedOf(context, kvStore);
             final var named = namedOf();
-            final KTable<Object, Object> output = named != null
-                    ? mat != null
-                    ? input.table.leftJoin(otherTable.table, userJoiner, named, mat)
-                    : input.table.leftJoin(otherTable.table, userJoiner, named)
-                    : mat != null
-                    ? input.table.leftJoin(otherTable.table, userJoiner, mat)
-                    : input.table.leftJoin(otherTable.table, userJoiner);
+            final KTable<Object, Object> output;
+            if (named != null) {
+                output = mat != null
+                        ? input.table.leftJoin(otherTable.table, userJoiner, named, mat)
+                        : input.table.leftJoin(otherTable.table, userJoiner, named);
+            } else {
+                output = mat != null
+                        ? input.table.leftJoin(otherTable.table, userJoiner, mat)
+                        : input.table.leftJoin(otherTable.table, userJoiner);
+            }
             return new KTableWrapper(output, k, vr);
         }
     }

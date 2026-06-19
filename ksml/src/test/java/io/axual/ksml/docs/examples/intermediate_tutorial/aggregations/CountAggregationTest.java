@@ -53,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class CountAggregationTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -118,11 +119,11 @@ public class CountAggregationTest {
 
         inputTopic.pipeInput(userId, createActionJson(userId, "purchase"));
 
-        var record = outputTopic.readRecord();
+        var outputRecord = outputTopic.readRecord();
 
         // Verify groupByKey preserved the key
-        assertThat(record.getKey()).isEqualTo(userId);
-        assertThat(record.getValue()).isEqualTo("1");
+        assertThat(outputRecord.getKey()).isEqualTo(userId);
+        assertThat(outputRecord.getValue()).isEqualTo("1");
     }
 
     private String createActionJson(String userId, String action) throws Exception {

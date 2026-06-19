@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
+@SuppressWarnings("java:S2187")
 public class KSMLOuterJoinTest {
 
     @KSMLTopic(topic = "input1")

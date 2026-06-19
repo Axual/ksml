@@ -41,6 +41,7 @@ import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("java:S2095")
 class DataObjectSerdeTest {
     private static final String TOPIC = "myTopic";
 
@@ -127,7 +128,8 @@ class DataObjectSerdeTest {
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("TESTNAME message could not be serialized to topic " + TOPIC)
                 .hasCauseInstanceOf(RuntimeException.class);
-        assertThatThrownBy(() -> serde.serialize(TOPIC, new RecordHeaders(), "x"))
+        var headers = new RecordHeaders();
+        assertThatThrownBy(() -> serde.serialize(TOPIC, headers, "x"))
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("TESTNAME message could not be serialized to topic " + TOPIC)
                 .hasCauseInstanceOf(RuntimeException.class);
@@ -137,11 +139,14 @@ class DataObjectSerdeTest {
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("TESTNAME message could not be deserialized from topic " + TOPIC)
                 .hasCauseInstanceOf(RuntimeException.class);
-        assertThatThrownBy(() -> serde.deserialize(TOPIC, new RecordHeaders(), bytes))
+        var headers2 = new RecordHeaders();
+        assertThatThrownBy(() -> serde.deserialize(TOPIC, headers2, bytes))
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("TESTNAME message could not be deserialized from topic " + TOPIC)
                 .hasCauseInstanceOf(RuntimeException.class);
-        assertThatThrownBy(() -> serde.deserialize(TOPIC, new RecordHeaders(), ByteBuffer.wrap(bytes)))
+        var headers3 = new RecordHeaders();
+        var byteBuffer = ByteBuffer.wrap(bytes);
+        assertThatThrownBy(() -> serde.deserialize(TOPIC, headers3, byteBuffer))
                 .isInstanceOf(DataException.class)
                 .hasMessageEndingWith("TESTNAME message could not be deserialized from topic " + TOPIC)
                 .hasCauseInstanceOf(RuntimeException.class);

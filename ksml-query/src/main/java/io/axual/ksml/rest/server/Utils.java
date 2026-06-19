@@ -53,10 +53,10 @@ public final class Utils {
                     .get(KeyValueBeans.class);
 
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException _) {
             log.warn("Store data fetch from {} was interrupted", url);
             Thread.currentThread().interrupt();
-        } catch (TimeoutException e) {
+        } catch (TimeoutException _) {
             log.warn("Store data fetch from {} timed out", url);
         }
 

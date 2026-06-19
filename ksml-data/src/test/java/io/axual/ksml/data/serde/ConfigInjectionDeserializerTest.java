@@ -29,6 +29,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ConfigInjectionDeserializerTest {
@@ -74,9 +76,10 @@ class ConfigInjectionDeserializerTest {
         var inputConfig = Map.of("a", "b");
         configInjecting.configure(inputConfig, true);
         var seen = seenConfig.get();
-        assertThat(seen.get("a")).isEqualTo("b");
-        assertThat(seen.get("injected")).isEqualTo("yes");
-        assertThat(seen.get("isKey")).isEqualTo(true);
+        assertThat(seen).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+                .containsEntry("a", "b")
+                .containsEntry("injected", "yes");
+        assertThat((Boolean) seen.get("isKey")).isTrue();
 
         var headers = new RecordHeaders();
         assertThat(configInjecting.deserialize(TOPIC, "x".getBytes())).isEqualTo("x");

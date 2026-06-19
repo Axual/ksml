@@ -92,24 +92,26 @@ public class KSMLRunnerConfig {
         @Nonnull
         @JsonProperty(value = StreamsConfig.APPLICATION_ID_CONFIG, required = true)
         @JsonPropertyDescription("An identifier for the stream processing application. Must be unique within the Kafka cluster. It is used as 1) the default client-id prefix, 2) the group-id for membership management, 3) the changelog topic prefix.")
-        private String applicationId;
+        private String applicationId = "";
 
         @Nonnull
         @JsonProperty(value = StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, required = true)
         @JsonPropertyDescription("""
-                A list of host/port pairs used to establish the initial connection to the Kafka cluster. 
+                A list of host/port pairs used to establish the initial connection to the Kafka cluster.
                 Clients use this list to bootstrap and discover the full set of Kafka brokers.
-                While the order of servers in the list does not matter, we recommend including more than one server to ensure resilience if any servers are down. 
+                While the order of servers in the list does not matter, we recommend including more than one server to ensure resilience if any servers are down.
                 This list does not need to contain the entire set of brokers, as Kafka clients automatically manage and update connections to the cluster efficiently.
                 This list must be in the form 'host1:port1,host2:port2,...' """)
-        private String bootstrapServers;
+        private String bootstrapServers = "";
 
         @Override
         public String put(final String property, final String value) {
             if (StreamsConfig.APPLICATION_ID_CONFIG.equals(property)) {
+                if (value == null || value.isBlank()) throw new IllegalArgumentException("applicationId must not be blank");
                 this.applicationId = value;
             }
             if (StreamsConfig.BOOTSTRAP_SERVERS_CONFIG.equals(property)) {
+                if (value == null || value.isBlank()) throw new IllegalArgumentException("bootstrapServers must not be blank");
                 this.bootstrapServers = value;
             }
 

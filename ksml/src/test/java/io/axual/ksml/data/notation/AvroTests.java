@@ -57,15 +57,6 @@ class AvroTests {
     }
 
     @Test
-    void apicurioSerdeTest() {
-//        final var registryClient = new MockApicurioSchemaRegistryClient();
-//        final var provider = new ApicurioAvroNotationProvider(registryClient);
-//        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
-//        final var notation = provider.createNotation(context);
-//        runner.serdeTest(notation, true);
-    }
-
-    @Test
     void confluentSerdeTest() {
         final var registryClient = new MockConfluentSchemaRegistryClient();
         final var provider = new ConfluentAvroNotationProvider(registryClient);

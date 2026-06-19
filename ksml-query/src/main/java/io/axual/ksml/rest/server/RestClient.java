@@ -75,10 +75,10 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(KeyValueBeans.class);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException _) {
             log.warn(INTERRUPTED_MESSAGE, url);
             Thread.currentThread().interrupt();
-        } catch (TimeoutException e) {
+        } catch (TimeoutException _) {
             log.warn(TIMEOUT_MESSAGE, url);
         }
 
@@ -99,10 +99,10 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(WindowedKeyValueBeans.class);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException _) {
             log.warn(INTERRUPTED_MESSAGE, url);
             Thread.currentThread().interrupt();
-        } catch (TimeoutException e) {
+        } catch (TimeoutException _) {
             log.warn(TIMEOUT_MESSAGE, url);
         }
         return new WindowedKeyValueBeans();
@@ -132,10 +132,10 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(resultClass);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException _) {
             log.warn(INTERRUPTED_MESSAGE, url);
             Thread.currentThread().interrupt();
-        } catch (TimeoutException e) {
+        } catch (TimeoutException _) {
             log.warn(TIMEOUT_MESSAGE, url);
         }
         return null;

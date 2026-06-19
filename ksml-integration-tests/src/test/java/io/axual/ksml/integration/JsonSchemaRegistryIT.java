@@ -96,10 +96,10 @@ class JsonSchemaRegistryIT {
             log.info("Found {} JsonSchema sensor messages", records.count());
 
             // Validate JsonSchema messages
-            records.forEach(record -> {
-                log.info("JsonSchema Sensor: key={}, value size={} bytes", record.key(), record.value().length());
-                assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
-                assertThat(record.value()).as("JsonSchema message should have content").isNotEmpty();
+            records.forEach(consumerRecord -> {
+                log.info("JsonSchema Sensor: key={}, value size={} bytes", consumerRecord.key(), consumerRecord.value().length());
+                assertThat(consumerRecord.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+                assertThat(consumerRecord.value()).as("JsonSchema message should have content").isNotEmpty();
             });
         }
 
@@ -114,12 +114,12 @@ class JsonSchemaRegistryIT {
 
             // Validate processed JSON structure and content using Jackson ObjectMapper and SoftAssertions
             SoftAssertions softly = new SoftAssertions();
-            records.forEach(record -> {
-                log.info("Processed JSON: key={}, value={}", record.key(), record.value());
-                softly.assertThat(record.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
+            records.forEach(consumerRecord -> {
+                log.info("Processed JSON: key={}, value={}", consumerRecord.key(), consumerRecord.value());
+                softly.assertThat(consumerRecord.key()).as("Sensor key should start with 'sensor'").startsWith("sensor");
 
                 // Use Jackson ObjectMapper for structured JSON validation
-                JsonNode jsonNode = SensorDataTestUtil.validateProcessedSensorJsonStructure(record.value(), softly);
+                JsonNode jsonNode = SensorDataTestUtil.validateProcessedSensorJsonStructure(consumerRecord.value(), softly);
 
                 // Validate sensor type enum using JsonNode path access
                 if (jsonNode != null) {
@@ -156,6 +156,7 @@ class JsonSchemaRegistryIT {
         log.info("Sensor data has been generated and verified");
     }
 
+    @SuppressWarnings("java:S2925")
     private static void registerJsonSchema() throws Exception {
         log.info("Registering JsonSchema with Apicurio Schema Registry...");
 

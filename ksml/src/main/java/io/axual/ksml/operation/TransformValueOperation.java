@@ -91,13 +91,16 @@ public class TransformValueOperation extends StoreOperation {
         final var named = namedOf();
         final var mat = materializedOf(context, kvStore);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
-        final KTable<Object, Object> output = named != null
-                ? mat != null
-                ? input.table.transformValues(supplier, mat, named, storeNames)
-                : input.table.transformValues(supplier, named, storeNames)
-                : mat != null
-                ? input.table.transformValues(supplier, mat, storeNames)
-                : input.table.transformValues(supplier, storeNames);
+        final KTable<Object, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.table.transformValues(supplier, mat, named, storeNames)
+                    : input.table.transformValues(supplier, named, storeNames);
+        } else {
+            output = mat != null
+                    ? input.table.transformValues(supplier, mat, storeNames)
+                    : input.table.transformValues(supplier, storeNames);
+        }
         return new KTableWrapper(output, k, vr);
     }
 }

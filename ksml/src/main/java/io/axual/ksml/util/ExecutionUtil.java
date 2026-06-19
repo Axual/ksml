@@ -28,7 +28,7 @@ public class ExecutionUtil {
     public static <T> T tryThis(Method<T> method) {
         try {
             return method.apply();
-        } catch (Exception e) {
+        } catch (Exception _) {
             // Ignore
         }
         return null;

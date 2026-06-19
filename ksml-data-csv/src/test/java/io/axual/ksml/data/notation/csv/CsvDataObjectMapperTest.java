@@ -66,14 +66,14 @@ class CsvDataObjectMapperTest {
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
 
-        assertThat(struct.get("name").toString()).isEqualTo("sensor001");
-        assertThat(struct.get("timestamp").toString()).isEqualTo("1234567890");
-        assertThat(struct.get("value").toString()).isEqualTo("23.5");
-        assertThat(struct.get("type").toString()).isEqualTo("temperature");
-        assertThat(struct.get("unit").toString()).isEqualTo("celsius");
-        assertThat(struct.get("color").toString()).isEqualTo("red");
-        assertThat(struct.get("city").toString()).isEqualTo("Amsterdam");
-        assertThat(struct.get("owner").toString()).isEqualTo("alice");
+        assertThat(struct.get("name")).hasToString("sensor001");
+        assertThat(struct.get("timestamp")).hasToString("1234567890");
+        assertThat(struct.get("value")).hasToString("23.5");
+        assertThat(struct.get("type")).hasToString("temperature");
+        assertThat(struct.get("unit")).hasToString("celsius");
+        assertThat(struct.get("color")).hasToString("red");
+        assertThat(struct.get("city")).hasToString("Amsterdam");
+        assertThat(struct.get("owner")).hasToString("alice");
 
         // When: converting back to CSV
         var resultCsv = mapper.fromDataObject(struct);
@@ -114,9 +114,9 @@ class CsvDataObjectMapperTest {
         var list = (DataList) dataObject;
 
         assertThat(list.size()).isEqualTo(3);
-        assertThat(list.get(0).toString()).isEqualTo("value1");
-        assertThat(list.get(1).toString()).isEqualTo("value2");
-        assertThat(list.get(2).toString()).isEqualTo("value3");
+        assertThat(list.get(0)).hasToString("value1");
+        assertThat(list.get(1)).hasToString("value2");
+        assertThat(list.get(2)).hasToString("value3");
     }
 
     @Test
@@ -154,9 +154,9 @@ class CsvDataObjectMapperTest {
         assertThat(resultList).isInstanceOf(DataList.class);
         var list = (DataList) resultList;
         assertThat(list.size()).isEqualTo(3);
-        assertThat(list.get(0).toString()).isEqualTo("first");
-        assertThat(list.get(1).toString()).isEqualTo("second");
-        assertThat(list.get(2).toString()).isEqualTo("third");
+        assertThat(list.get(0)).hasToString("first");
+        assertThat(list.get(1)).hasToString("second");
+        assertThat(list.get(2)).hasToString("third");
     }
 
     @Test
@@ -171,7 +171,7 @@ class CsvDataObjectMapperTest {
         // Then: should preserve the value correctly
         assertThat(dataObject).isInstanceOf(DataList.class);
         var list = (DataList) dataObject;
-        assertThat(list.get(0).toString()).isEqualTo("value with, comma");
+        assertThat(list.get(0)).hasToString("value with, comma");
     }
 
     @Test
@@ -187,7 +187,7 @@ class CsvDataObjectMapperTest {
         assertThat(dataObject).isInstanceOf(DataList.class);
         var list = (DataList) dataObject;
         // CSV parser preserves the double-quote escaping
-        assertThat(list.get(0).toString()).contains("quotes");
+        assertThat(list.get(0)).hasToString("value with \"quotes\"");
     }
 
     @Test
@@ -207,8 +207,8 @@ class CsvDataObjectMapperTest {
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
 
-        assertThat(struct.get("name").toString()).isEqualTo("Alice");
-        assertThat(struct.get("age").toString()).isEqualTo("30");
+        assertThat(struct.get("name")).hasToString("Alice");
+        assertThat(struct.get("age")).hasToString("30");
         // Missing field should be handled (empty string for required field)
         assertThat(struct.get("city")).isNotNull();
     }
@@ -230,8 +230,8 @@ class CsvDataObjectMapperTest {
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
 
-        assertThat(struct.get("name").toString()).isEqualTo("Alice");
-        assertThat(struct.get("age").toString()).isEqualTo("30");
+        assertThat(struct.get("name")).hasToString("Alice");
+        assertThat(struct.get("age")).hasToString("30");
         assertThat(struct.size()).isEqualTo(2); // No extra field
     }
 
@@ -252,9 +252,9 @@ class CsvDataObjectMapperTest {
         assertThat(dataObject).isInstanceOf(DataStruct.class);
         var struct = (DataStruct) dataObject;
 
-        assertThat(struct.get("name").toString()).isEqualTo("Alice");
+        assertThat(struct.get("name")).hasToString("Alice");
         assertThat(struct.get("age").toString()).isEmpty();
-        assertThat(struct.get("city").toString()).isEqualTo("Amsterdam");
+        assertThat(struct.get("city")).hasToString("Amsterdam");
     }
 
     @Test

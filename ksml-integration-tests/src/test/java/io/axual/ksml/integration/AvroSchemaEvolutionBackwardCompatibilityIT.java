@@ -136,7 +136,8 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                 assertThat(records.count()).as("Should have produced exactly 3 messages").isEqualTo(3);
                 log.info("Phase 1 complete: Produced {} messages with schema v1 (8 fields)", records.count());
 
-                records.forEach(record -> log.debug("  Phase 1 message: key={}", record.key()));
+                // Log sample keys
+                records.forEach(consumerRecord -> log.debug("  Phase 1 message: key={}", consumerRecord.key()));
             }
         } finally {
             ksmlPhase1.stop();
@@ -188,12 +189,13 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                 assertThat(records.count()).as("Should have processed all 3 messages").isEqualTo(3);
                 log.info("Phase 2 complete: Processed {} messages with schema v2 (10 fields)", records.count());
 
-                records.forEach(record -> {
-                    log.debug("  Phase 2 processed message: key={}", record.key());
-                    assertThat(record.key()).as("Key should match sensor pattern")
+                // Verify all messages were processed successfully
+                records.forEach(consumerRecord -> {
+                    log.debug("  Phase 2 processed message: key={}", consumerRecord.key());
+                    assertThat(consumerRecord.key()).as("Key should match sensor pattern")
                             .matches("sensor[0-9]");
 
-                    GenericRecord value = (GenericRecord) record.value();
+                    GenericRecord value = (GenericRecord) consumerRecord.value();
                     assertThat(value.get("location")).as("location field should be null (v2 default)").isNull();
                     assertThat(value.get("accuracy")).as("accuracy field should be null (v2 default)").isNull();
                 });

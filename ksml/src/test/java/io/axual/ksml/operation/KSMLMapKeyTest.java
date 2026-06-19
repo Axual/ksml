@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
+@SuppressWarnings("java:S2187")
 public class KSMLMapKeyTest {
 
     @KSMLTopic(topic = "input_topic", valueSerde = KSMLTopic.SerdeType.AVRO)

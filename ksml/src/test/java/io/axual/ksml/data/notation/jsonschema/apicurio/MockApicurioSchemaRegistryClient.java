@@ -250,7 +250,7 @@ public class MockApicurioSchemaRegistryClient implements RegistryClient {
                     .contentId(entry.contentId)
                     .id(artifactId)
                     .build();
-        } catch (IOException e) {
+        } catch (IOException _) {
             // Ignore
             return null;
         }

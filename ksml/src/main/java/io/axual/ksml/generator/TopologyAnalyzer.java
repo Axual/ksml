@@ -76,9 +76,6 @@ public class TopologyAnalyzer {
                         if (sourceNode.topicPattern() != null)
                             inputTopics.add(sourceNode.topicPattern().pattern());
                     }
-                    if (node instanceof TopologyDescription.Processor processorNode) {
-                        // Ignore store names here
-                    }
                     if (node instanceof TopologyDescription.Sink sinkNode && sinkNode.topic() != null) {
                         outputTopics.add(sinkNode.topic());
                     }

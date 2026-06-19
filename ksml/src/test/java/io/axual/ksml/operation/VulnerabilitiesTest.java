@@ -64,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
 @Disabled("With a correct Python environment, this test should throw an exception.")
+@SuppressWarnings("java:S2187")
 public class VulnerabilitiesTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
@@ -117,7 +118,7 @@ public class VulnerabilitiesTest {
             inputTopic.pipeInput("key1", "value1");
             assertFalse(outputTopic.isEmpty(), "record should be copied");
             var keyValue = outputTopic.readKeyValue();
-            System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
+            log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
             assertEquals(oldcounter, counter.get(), "No curl request should be received");
         }, "trying to exploit log and metrics should result in RuntimeException");
 

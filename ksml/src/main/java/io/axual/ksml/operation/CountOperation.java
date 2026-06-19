@@ -56,13 +56,16 @@ public class CountOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final Materialized<Object, Long, KeyValueStore<Bytes, byte[]>> mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Object, Long> output = named != null
-                ? mat != null
-                ? input.groupedStream.count(named, mat)
-                : input.groupedStream.count(named)
-                : mat != null
-                ? input.groupedStream.count(mat)
-                : input.groupedStream.count();
+        final KTable<Object, Long> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.groupedStream.count(named, mat)
+                    : input.groupedStream.count(named);
+        } else {
+            output = mat != null
+                    ? input.groupedStream.count(mat)
+                    : input.groupedStream.count();
+        }
         return new KTableWrapper((KTable) output, k, vr);
     }
 
@@ -79,13 +82,16 @@ public class CountOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final Materialized<Object, Long, KeyValueStore<Bytes, byte[]>> mat = materializedOf(context, kvStore);
         final var named = namedOf();
-        final KTable<Object, Long> output = named != null
-                ? mat != null
-                ? input.groupedTable.count(named, mat)
-                : input.groupedTable.count(named)
-                : mat != null
-                ? input.groupedTable.count(mat)
-                : input.groupedTable.count();
+        final KTable<Object, Long> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.groupedTable.count(named, mat)
+                    : input.groupedTable.count(named);
+        } else {
+            output = mat != null
+                    ? input.groupedTable.count(mat)
+                    : input.groupedTable.count();
+        }
         return new KTableWrapper((KTable) output, k, vr);
     }
 
@@ -102,13 +108,16 @@ public class CountOperation extends StoreOperation {
         final var sessionStore = validateSessionStore(store(), k, vr);
         final Materialized<Object, Long, SessionStore<Bytes, byte[]>> mat = materializedOf(context, sessionStore);
         final var named = namedOf();
-        final KTable<Windowed<Object>, Long> output = named != null
-                ? mat != null
-                ? input.sessionWindowedKStream.count(named, mat)
-                : input.sessionWindowedKStream.count(named)
-                : mat != null
-                ? input.sessionWindowedKStream.count(mat)
-                : input.sessionWindowedKStream.count();
+        final KTable<Windowed<Object>, Long> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.sessionWindowedKStream.count(named, mat)
+                    : input.sessionWindowedKStream.count(named);
+        } else {
+            output = mat != null
+                    ? input.sessionWindowedKStream.count(mat)
+                    : input.sessionWindowedKStream.count();
+        }
         return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 
@@ -125,13 +134,16 @@ public class CountOperation extends StoreOperation {
         final var windowStore = validateWindowStore(store(), k, vr);
         final Materialized<Object, Long, WindowStore<Bytes, byte[]>> mat = materializedOf(context, windowStore);
         final var named = namedOf();
-        final KTable<Windowed<Object>, Long> output = named != null
-                ? mat != null
-                ? input.timeWindowedKStream.count(named, mat)
-                : input.timeWindowedKStream.count(named)
-                : mat != null
-                ? input.timeWindowedKStream.count(mat)
-                : input.timeWindowedKStream.count();
+        final KTable<Windowed<Object>, Long> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.timeWindowedKStream.count(named, mat)
+                    : input.timeWindowedKStream.count(named);
+        } else {
+            output = mat != null
+                    ? input.timeWindowedKStream.count(mat)
+                    : input.timeWindowedKStream.count();
+        }
         return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 }

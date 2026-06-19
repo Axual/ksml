@@ -52,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class StreamTableJoinTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -119,12 +120,12 @@ public class StreamTableJoinTest {
         assertThat(enrichedOutput.isEmpty()).isFalse();
 
         // Read with key
-        var record = enrichedOutput.readRecord();
+        var outputRecord = enrichedOutput.readRecord();
 
         // Verify key is restored to order_id (not customer_id)
-        assertThat(record.getKey()).isEqualTo("ORD0003");
+        assertThat(outputRecord.getKey()).isEqualTo("ORD0003");
 
-        JsonNode enriched = objectMapper.readTree(record.getValue());
+        JsonNode enriched = objectMapper.readTree(outputRecord.getValue());
         assertThat(enriched.get("order_id").asText()).isEqualTo("ORD0003");
     }
 

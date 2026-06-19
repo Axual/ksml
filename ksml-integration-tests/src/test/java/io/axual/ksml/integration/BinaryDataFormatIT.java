@@ -99,12 +99,12 @@ class BinaryDataFormatIT {
             log.info("Found {} binary messages", records.count());
 
             // Validate binary messages and store for comparison
-            records.forEach(record -> {
-                log.info("Binary message: key={}, bytes={}", record.key(), Arrays.toString(record.value()));
-                assertThat(record.key()).as("Message key should start with 'msg'").startsWith("msg");
+            records.forEach(consumerRecord -> {
+                log.info("Binary message: key={}, bytes={}", consumerRecord.key(), Arrays.toString(consumerRecord.value()));
+                assertThat(consumerRecord.key()).as("Message key should start with 'msg'").startsWith("msg");
 
                 // Validate binary structure - should be 7 bytes with 'KSML' pattern
-                final byte[] binaryValue = record.value();
+                final byte[] binaryValue = consumerRecord.value();
                 assertThat(binaryValue).as("Binary message should have 7 bytes").hasSize(7);
 
                 // Check that bytes 2-5 are ASCII 'KSML' (K=75, S=83, M=77, L=76)
@@ -114,8 +114,8 @@ class BinaryDataFormatIT {
                 assertThat(ksmlPortion).as("Bytes 2-5 should be ASCII 'KSML'").isEqualTo(expectedKsml);
 
                 // Store original message for later comparison (preserving order)
-                originalMessages.put(record.key(), Arrays.copyOf(binaryValue, binaryValue.length));
-                originalMessageOrder.add(record.key());
+                originalMessages.put(consumerRecord.key(), Arrays.copyOf(binaryValue, binaryValue.length));
+                originalMessageOrder.add(consumerRecord.key());
             });
         }
 
@@ -130,14 +130,14 @@ class BinaryDataFormatIT {
             log.info("Found {} processed binary messages", records.count());
 
             // Validate processed binary messages against originals
-            records.forEach(record -> {
+            records.forEach(consumerRecord -> {
                 // Track processing order
-                processedMessageOrder.add(record.key());
-                log.info("Processed binary: key={}, bytes={}", record.key(), Arrays.toString(record.value()));
-                assertThat(record.key()).as("Message key should start with 'msg'").startsWith("msg");
+                processedMessageOrder.add(consumerRecord.key());
+                log.info("Processed binary: key={}, bytes={}", consumerRecord.key(), Arrays.toString(consumerRecord.value()));
+                assertThat(consumerRecord.key()).as("Message key should start with 'msg'").startsWith("msg");
 
                 // Validate binary structure contains processed data
-                byte[] processedValue = record.value();
+                byte[] processedValue = consumerRecord.value();
                 assertThat(processedValue).as("Processed binary message should have 7 bytes").hasSize(7);
 
                 // Check that bytes 2-5 are still ASCII 'KSML' (unchanged by processor)
@@ -146,8 +146,8 @@ class BinaryDataFormatIT {
                 assertThat(processedKsmlPortion).as("Bytes 2-5 should still be ASCII 'KSML'").isEqualTo(expectedKsml);
 
                 // Verify transformation: first byte should be incremented by 1 (with wrap-around)
-                byte[] originalValue = originalMessages.get(record.key());
-                assertThat(originalValue).as("Should have original message for key: " + record.key()).isNotNull();
+                byte[] originalValue = originalMessages.get(consumerRecord.key());
+                assertThat(originalValue).as("Should have original message for key: " + consumerRecord.key()).isNotNull();
 
                 int originalFirstByte = originalValue[0] & 0xFF;
                 int processedFirstByte = processedValue[0] & 0xFF;

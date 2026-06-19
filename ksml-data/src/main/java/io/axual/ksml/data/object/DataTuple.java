@@ -125,12 +125,10 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
         }
 
         // Compare contents
-        if (!flags.isSet(IGNORE_DATA_TUPLE_CONTENTS)) {
-            if (elements() != null || that.elements() != null) {
-                if (elements() == null || that.elements() == null) return EqualUtil.objectNotEqual(this, that);
-                final var contentsEqual = equalContents(this, that, flags);
-                if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
-            }
+        if (!flags.isSet(IGNORE_DATA_TUPLE_CONTENTS) && (elements() != null || that.elements() != null)) {
+            if (elements() == null || that.elements() == null) return EqualUtil.objectNotEqual(this, that);
+            final var contentsEqual = equalContents(this, that, flags);
+            if (contentsEqual.isNotEqual()) return objectNotEqual(this, that, contentsEqual);
         }
 
         return Equality.equal();

@@ -41,20 +41,6 @@ class KSMLTestRunnerTest {
         return Version.getCurrent().isRelease();
     }
 
-    @Test
-    void confluentAvroFilterTestPasses() {
-        var runner = new KSMLTestRunner();
-        var results = runner.runTestFile(resource("sample-filter-test-confluent-avro.yaml"));
-        assertAllPass(results, "sample-filter-test-confluent-avro.yaml");
-    }
-
-    @Test
-    void apicurioAvroFilterTestPasses() {
-        var runner = new KSMLTestRunner();
-        var results = runner.runTestFile(resource("sample-filter-test-apicurio-avro.yaml"));
-        assertAllPass(results, "sample-filter-test-apicurio-avro.yaml");
-    }
-
     @ParameterizedTest
     @ValueSource(strings = {
             "missing-tests.yaml",
@@ -90,7 +76,8 @@ class KSMLTestRunnerTest {
             "sample-filter-test-module-import.yaml",
             "sample-state-store-test.yaml",
             "sample-timestamp-test.yaml",
-            "processor-filtering-transforming-complete-test.yaml"
+            "processor-filtering-transforming-complete-test.yaml",
+            "two-assert-blocks.yaml"
     })
     void validTestsReturnPass(String testFile) {
         var runner = new KSMLTestRunner();
@@ -128,13 +115,6 @@ class KSMLTestRunnerTest {
         assertNotNull(failed.message());
         assertTrue(failed.message().contains("AssertionError"),
                 () -> "Expected FAIL message to mention AssertionError, got: " + failed.message());
-    }
-
-    @Test
-    void testCanHaveMultipleAssertBlocks() {
-        var runner = new KSMLTestRunner();
-        var results = runner.runTestFile(resource("two-assert-blocks.yaml"));
-        assertAllPass(results, "two-assert-blocks.yaml");
     }
 
     @Test

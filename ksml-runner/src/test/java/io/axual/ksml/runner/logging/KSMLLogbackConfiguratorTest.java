@@ -21,6 +21,8 @@ package io.axual.ksml.runner.logging;
  */
 
 import ch.qos.logback.classic.LoggerContext;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,7 @@ import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Slf4j
 class KSMLLogbackConfiguratorTest {
 
     LoggerContext spiedContext = new LoggerContext();
@@ -94,6 +97,7 @@ class KSMLLogbackConfiguratorTest {
     @Test
     @DisplayName("The configuration file should not be loaded, but fall back to the default setting")
     @SetSystemProperty(key = "logback.test.id", value = "shouldNotAppear")
+    @SuppressWarnings("java:S106")
     void configureWithoutEnvironmentVariable() {
         KSMLLogbackConfigurator configurator = new KSMLLogbackConfigurator();
         configurator.environmentVariableLookup = _ -> null;

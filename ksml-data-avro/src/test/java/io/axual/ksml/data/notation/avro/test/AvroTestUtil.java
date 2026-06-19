@@ -231,7 +231,7 @@ public final class AvroTestUtil {
                     }
                 }
             }
-        } catch (IOException ignored) {
+        } catch (IOException _) {
             // Fall through
         }
         return files;

@@ -83,6 +83,7 @@ public class StoreUtil {
         return Stores.persistentKeyValueStore(store.name());
     }
 
+    @SuppressWarnings("java:S1452") // wildcard is unavoidable: KV/Session/Window store builders have unrelated type parameters
     public static StoreBuilder<?> getStoreBuilder(StateStoreDefinition store) {
         if (store instanceof KeyValueStateStoreDefinition kvStore) {
             return getKeyValueStateStoreBuilder(kvStore);

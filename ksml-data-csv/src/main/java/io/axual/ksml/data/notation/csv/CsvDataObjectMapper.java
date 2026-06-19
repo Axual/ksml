@@ -98,11 +98,12 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
         for (int index = 0; index < schema.fields().size(); index++) {
             final var field = schema.field(index);
             final var lineValue = index < line.length ? line[index] : null;
-            final var value = lineValue != null && !lineValue.isEmpty()
-                    ? lineValue
-                    : field.required()
-                    ? ""
-                    : null;
+            final String value;
+            if (lineValue != null && !lineValue.isEmpty()) {
+                value = lineValue;
+            } else {
+                value = field.required() ? "" : null;
+            }
             if (value != null) result.putIfNotNull(field.name(), convertStringToDataObject(field.schema(), value));
         }
         return result;

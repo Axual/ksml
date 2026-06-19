@@ -372,6 +372,7 @@ public class KSMLRunner {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             executorService.shutdownNow();
             throw new ExecutionException("Exception caught while shutting down", e);
         }
@@ -446,6 +447,7 @@ public class KSMLRunner {
         return titleBuilder.toString();
     }
 
+    @SuppressWarnings("java:S106")
     private static void printRunnerSchema(String filename) {
         JacksonModule moduleJackson = new JacksonModule(
                 JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
@@ -500,6 +502,7 @@ public class KSMLRunner {
         }
     }
 
+    @SuppressWarnings("java:S106")
     /**
      * Resolves the schema {@code default} for a field from its {@link JsonProperty#defaultValue()}.
      * <p>
@@ -536,7 +539,6 @@ public class KSMLRunner {
                 writer.close();
                 log.info("KSML JSON schema written to file: {}", filename);
             } catch (Exception e) {
-                // Ignore
                 log.atError()
                         .setMessage("""
                                 Error writing KSML JSON schema to file: {}

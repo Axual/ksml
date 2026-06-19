@@ -56,7 +56,7 @@ public class StoreResource implements AutoCloseable {
     protected <T> T getStore(StoreQueryParameters<T> storeQueryParameters) {
         try {
             return querier().store(storeQueryParameters);
-        } catch (UnknownStateStoreException uste) {
+        } catch (UnknownStateStoreException _) {
             throw new NotFoundException("Could not find store %s of type %s".formatted(storeQueryParameters.storeName(), storeQueryParameters.queryableStoreType()));
         }
     }

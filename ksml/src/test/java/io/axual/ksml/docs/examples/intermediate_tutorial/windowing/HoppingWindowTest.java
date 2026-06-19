@@ -55,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
+@SuppressWarnings("java:S2187")
 public class HoppingWindowTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -161,18 +162,18 @@ public class HoppingWindowTest {
         Map<String, Double> firstReadings = new HashMap<>();
 
         while (!outputTopic.isEmpty()) {
-            var record = outputTopic.readRecord();
-            JsonNode json = objectMapper.readTree(record.getValue());
+            var outputRecord = outputTopic.readRecord();
+            JsonNode json = objectMapper.readTree(outputRecord.getValue());
 
             // Store first reading for each sensor
             if (json.get("sample_count").asInt() == 1) {
                 double sum = json.get("total_sum").asDouble();
-                firstReadings.put(record.getKey(), sum);
+                firstReadings.put(outputRecord.getKey(), sum);
             }
         }
 
         // Verify both sensors had independent first readings
-        assertThat(firstReadings.size()).isGreaterThanOrEqualTo(1);
+        assertThat(firstReadings).hasSizeGreaterThanOrEqualTo(1);
     }
 
     private String createSensorJson(String sensorId, double value) throws Exception {

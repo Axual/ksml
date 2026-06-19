@@ -27,14 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConfluentProtobufSchemaParser implements ProtobufSchemaParser {
-//    private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper(new ConfluentProtobufDescriptorFileElementMapper());
 
     @Override
     public DataSchema parse(String contextName, String schemaName, String schemaString) {
         return null;
-//        final var schema = new io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider().parseSchema(schemaString, Collections.emptyList());
-//        schema.
-//        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaString.getBytes(), Collections.emptyMap());
-//        return MAPPER.toDataSchema(schemaName, new ProtobufSchema(proto.getFileDescriptor(), proto.getProtoFileElement()));
     }
 }

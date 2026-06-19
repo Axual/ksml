@@ -39,7 +39,7 @@ public abstract class BaseTableDefinitionParser<T> extends TopologyBaseResourceA
     protected final boolean isJoinTarget;
     protected final String tableType;
 
-    public BaseTableDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget, String tableType) {
+    protected BaseTableDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget, String tableType) {
         super(resources);
         this.isJoinTarget = isJoinTarget;
         this.tableType = tableType != null && !tableType.isEmpty() ? tableType : "";
