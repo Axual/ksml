@@ -23,6 +23,7 @@ package io.axual.ksml.data.notation.avro;
 import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
@@ -788,4 +789,40 @@ class AvroSchemaMapperTest {
         final var ksml2 = schemaMapper.toDataSchema(back.getNamespace(), back.getName(), back);
         assertThat(ksml2).isEqualTo(ksml);
     }
+
+    @Test
+    @DisplayName("Optional field with null default produces null-first union")
+    void optionalField_nullDefault_producesNullFirstUnion() {
+        final var ksml = StructSchema.builder()
+                .namespace("ns").name("Test")
+                .field(new StructSchema.Field("country", DataSchema.STRING_SCHEMA, null, NO_TAG, false, false, DataNull.INSTANCE))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        final var avro = schemaMapper.fromDataSchema(ksml);
+        final var field = avro.getField("country");
+
+        assertThat(field.schema().getType()).isEqualTo(Schema.Type.UNION);
+        assertThat(field.schema().getTypes().getFirst().getType()).isEqualTo(Schema.Type.NULL);
+        assertThat(field.defaultVal()).isEqualTo(JsonProperties.NULL_VALUE);
+    }
+
+    @Test
+    @DisplayName("Optional field with non-null default produces value-type-first union")
+    void optionalField_nonNullDefault_producesValueTypeFirstUnion() {
+        final var ksml = StructSchema.builder()
+                .namespace("ns").name("Test")
+                .field(new StructSchema.Field("country", DataSchema.STRING_SCHEMA, null, NO_TAG, false, false, new DataString("US")))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        final var avro = schemaMapper.fromDataSchema(ksml);
+        final var field = avro.getField("country");
+
+        assertThat(field.schema().getType()).isEqualTo(Schema.Type.UNION);
+        assertThat(field.schema().getTypes().getFirst().getType()).isEqualTo(Schema.Type.STRING);
+        assertThat(field.schema().getTypes().get(1).getType()).isEqualTo(Schema.Type.NULL);
+        assertThat(field.defaultVal()).isEqualTo("US");
+    }
+
 }
