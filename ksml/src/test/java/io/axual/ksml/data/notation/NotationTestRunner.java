@@ -90,10 +90,8 @@ class NotationTestRunner {
 
     <T> void dataTest(String type, DataObjectMapper<T> objectMapper, EqualityFlags flags) {
         try {
-            final var inputData = TestData.testStruct();
-            log.info("INPUT DATA: {}", inputData);
             final var inputData = TestData.testStruct(variant);
-            System.out.println("INPUT DATA: " + inputData);
+            log.info("INPUT DATA: {}", inputData);
             final var nativeObject = objectMapper.fromDataObject(inputData);
             log.info("{} DATA: {}", type.toUpperCase(), nativeObject);
             final var outputData = objectMapper.toDataObject(inputData.type(), nativeObject);
@@ -107,10 +105,8 @@ class NotationTestRunner {
 
     void serdeTest(Notation notation, boolean strictTypeChecking, EqualityFlags flags) {
         try {
-            final var inputData = TestData.testStruct();
-            log.info("INPUT DATA: {}", inputData);
             final var inputData = TestData.testStruct(variant);
-            System.out.println("INPUT DATA: " + inputData);
+            log.info("INPUT DATA: {}", inputData);
             final var serde = notation.serde(inputData.type(), false);
             final var headers = new RecordHeaders();
             final var serialized = serde.serializer().serialize("topic", headers, inputData);

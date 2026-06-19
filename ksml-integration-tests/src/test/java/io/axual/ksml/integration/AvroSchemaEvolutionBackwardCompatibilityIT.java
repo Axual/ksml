@@ -195,7 +195,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     assertThat(consumerRecord.key()).as("Key should match sensor pattern")
                             .matches("sensor[0-9]");
 
-                    GenericRecord value = (GenericRecord) record.value();
+                    GenericRecord value = (GenericRecord) consumerRecord.value();
                     assertThat(value.get("location")).as("location field should be null (v2 default)").isNull();
                     assertThat(value.get("accuracy")).as("accuracy field should be null (v2 default)").isNull();
                 });

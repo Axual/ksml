@@ -783,7 +783,9 @@ class JsonSchemaMapperTest {
                 .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
                 .actual();
 
-        softAssertJsonStringField(new SoftAssertions(), rootNode, "/properties/color/default", "RED");
+        final var softly = new SoftAssertions();
+        softAssertJsonStringField(softly, rootNode, "/properties/color/default", "RED");
+        softly.assertAll();
     }
 
     private static void softAssertRequiredXOnly(final SoftAssertions softly, final ObjectNode rootNode, final String requiredPath) {

@@ -129,7 +129,8 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * @param values The {@link DataObject}s to add to the list.
      */
     public void addIfNotNull(DataObject... values) {
-        for (var value:values) if (value != null) add(value);
+        if (values == null) return;
+        for (var value : values) if (value != null) add(value);
     }
 
     /**
