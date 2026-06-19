@@ -44,15 +44,16 @@ class AvroTests {
             IGNORE_UNION_SCHEMA_MEMBER_NAME,
             IGNORE_UNION_SCHEMA_MEMBER_TAG
     );
+    private final NotationTestRunner runner = new NotationTestRunner(TestData.Variant.FULL);
 
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest(AvroNotation.NOTATION_NAME, new AvroSchemaMapper(), AVRO_EQUALITY_FLAGS);
+        runner.schemaTest(AvroNotation.NOTATION_NAME, new AvroSchemaMapper(), AVRO_EQUALITY_FLAGS);
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper(), AVRO_EQUALITY_FLAGS);
+        runner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper(), AVRO_EQUALITY_FLAGS);
     }
 
     @Test
@@ -61,6 +62,6 @@ class AvroTests {
         final var provider = new ConfluentAvroNotationProvider(registryClient);
         final var context = new NotationContext(registryClient.configs());
         final var notation = provider.createNotation(context);
-        NotationTestRunner.serdeTest(notation, true, AVRO_EQUALITY_FLAGS);
+        runner.serdeTest(notation, true, AVRO_EQUALITY_FLAGS);
     }
 }

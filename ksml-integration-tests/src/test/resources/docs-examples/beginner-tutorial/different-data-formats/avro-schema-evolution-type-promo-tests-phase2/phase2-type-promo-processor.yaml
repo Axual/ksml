@@ -1,0 +1,27 @@
+streams:
+  sensor_type_promo_input:
+    topic: sensor_data_avro_type_promo_test
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: earliest
+
+  sensor_type_promo_output:
+    topic: sensor_data_avro_type_promo_processed
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  passthrough:
+    type: valueTransformer
+    code: |
+      result = dict(value) if value else None
+    expression: result
+    resultType: avro:SensorData
+
+pipelines:
+  type_promo_pipeline:
+    from: sensor_type_promo_input
+    via:
+      - type: transformValue
+        mapper: passthrough
+    to: sensor_type_promo_output

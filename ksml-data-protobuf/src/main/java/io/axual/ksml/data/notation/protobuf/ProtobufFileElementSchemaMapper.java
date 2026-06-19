@@ -124,7 +124,9 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
     private StructSchema.Field convertFieldElementToStructField(ProtobufReadContext context, FieldElement field) {
         final var name = field.getName();
-        final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
+        // Only proto2 `required` label makes a field mandatory; proto3 implicit fields (label==null)
+        // and proto2 `optional` fields both allow absence and are treated as optional here.
+        final var required = field.getLabel() == Field.Label.REQUIRED;
         final var type = convertFieldElementToDataSchema(context, field);
         if (type == null) throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
         final var defaultValue = convertDefaultValueToDataObject(type, field.getDefaultValue());

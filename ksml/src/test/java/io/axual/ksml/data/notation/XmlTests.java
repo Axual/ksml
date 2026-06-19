@@ -44,19 +44,20 @@ class XmlTests {
             IGNORE_UNION_SCHEMA_MEMBER_NAME,
             IGNORE_UNION_SCHEMA_MEMBER_TAG
     );
+    private final NotationTestRunner runner = new NotationTestRunner(TestData.Variant.FULL);
 
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest(XmlNotation.NOTATION_NAME, new XmlSchemaMapper(), XML_EQUALITY_FLAGS);
+        runner.schemaTest(XmlNotation.NOTATION_NAME, new XmlSchemaMapper(), XML_EQUALITY_FLAGS);
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true), XML_EQUALITY_FLAGS);
+        runner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true), XML_EQUALITY_FLAGS);
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new XmlNotation(), false, XML_EQUALITY_FLAGS);
+        runner.serdeTest(new XmlNotation(), false, XML_EQUALITY_FLAGS);
     }
 }

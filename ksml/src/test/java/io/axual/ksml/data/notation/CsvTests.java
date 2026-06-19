@@ -46,10 +46,11 @@ class CsvTests {
             IGNORE_UNION_TYPE_MEMBER_NAME,
             IGNORE_UNION_TYPE_MEMBER_TAG
     );
+    private final NotationTestRunner runner = new NotationTestRunner(TestData.Variant.FULL);
 
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest(CsvNotation.NOTATION_NAME, new CsvSchemaMapper(), (input, output) -> {
+        runner.schemaTest(CsvNotation.NOTATION_NAME, new CsvSchemaMapper(), (input, output) -> {
             // Check the conversion
             final var inputFieldNames = ((StructSchema) input).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
             final var outputFieldNames = ((StructSchema) output).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
@@ -59,11 +60,11 @@ class CsvTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper(), CSV_EQUALITY_FLAGS);
+        runner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper(), CSV_EQUALITY_FLAGS);
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(new CsvNotation(), true, CSV_EQUALITY_FLAGS);
+        runner.serdeTest(new CsvNotation(), true, CSV_EQUALITY_FLAGS);
     }
 }

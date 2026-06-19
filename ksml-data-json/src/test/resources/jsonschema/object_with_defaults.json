@@ -1,0 +1,22 @@
+{
+  "title": "ObjWithDefaults",
+  "description": "Object to verify default values are preserved",
+  "type": "object",
+  "properties": {
+    "withStringDefault": {
+      "type": "string",
+      "default": "hello"
+    },
+    "withIntDefault": {
+      "type": "integer",
+      "default": 42
+    },
+    "withNullDefault": {
+      "type": "string",
+      "default": null
+    },
+    "noDefault": {
+      "type": "string"
+    }
+  }
+}
