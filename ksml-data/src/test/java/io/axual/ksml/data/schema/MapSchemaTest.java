@@ -51,13 +51,15 @@ class MapSchemaTest {
         final var mapOfFloat = new MapSchema(DataSchema.FLOAT_SCHEMA);
         final var mapOfDouble = new MapSchema(DataSchema.DOUBLE_SCHEMA);
 
-        // integer group: integer accepts from long
+        // integer group: long accepts int (widening), int does not accept long (narrowing)
         assertThat(mapOfInt.isAssignableFrom(mapOfInt).isAssignable()).isTrue();
-        assertThat(mapOfInt.isAssignableFrom(mapOfLong).isAssignable()).isTrue();
+        assertThat(mapOfInt.isAssignableFrom(mapOfLong).isAssignable()).isFalse();
+        // widening direction: long accepts int
+        assertThat(mapOfLong.isAssignableFrom(mapOfInt).isAssignable()).isTrue();
         assertThat(mapOfInt.isAssignableFrom(mapOfString).isAssignable()).isFalse();
 
-        // floating group: float/double accept from each other
-        assertThat(mapOfFloat.isAssignableFrom(mapOfDouble).isAssignable()).isTrue();
+        // floating group: double accepts float (widening), float does not accept double (narrowing)
+        assertThat(mapOfFloat.isAssignableFrom(mapOfDouble).isAssignable()).isFalse();
         assertThat(mapOfDouble.isAssignableFrom(mapOfFloat).isAssignable()).isTrue();
 
         // Non-map should not be assignable

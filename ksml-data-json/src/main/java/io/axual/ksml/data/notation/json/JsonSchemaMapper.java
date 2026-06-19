@@ -24,6 +24,7 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -70,6 +71,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
     private static final String DEFINITIONS_NAME = "$defs";
     private static final String REF_NAME = "$ref";
+    private static final String DEFAULT_NAME = "default";
     private static final String ANY_OF_NAME = "anyOf";
     private static final String ENUM_NAME = "enum";
     private static final String ARRAY_TYPE = "array";
@@ -190,11 +192,19 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             var spec = entry.getValue();
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
-                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, requiredProperties.contains(name));
+                boolean required = requiredProperties.contains(name);
+                var defaultValue = specStruct.containsKey(DEFAULT_NAME)
+                        ? jsonDefaultToDataObject(specStruct.get(DEFAULT_NAME))
+                        : null;
+                var field = new StructSchema.Field(name, convertType(specStruct, referenceResolver), doc != null ? doc.value() : null, NO_TAG, required, false, defaultValue);
                 result.add(field);
             }
         }
         return result;
+    }
+
+    private static DataObject jsonDefaultToDataObject(DataObject value) {
+        return value != null ? value : DataNull.INSTANCE;
     }
 
     /**
@@ -404,5 +414,22 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             }
             target.put(ANY_OF_NAME, members);
         }
+        if (defaultValue != null && defaultAllowedByEnum(target, defaultValue)) {
+            target.put(DEFAULT_NAME, defaultValue);
+        }
+    }
+
+    /** A default is fine when the field has no enum, or when the default is one of the enum values. */
+    private static boolean defaultAllowedByEnum(DataStruct target, DataObject defaultValue) {
+        if (!(target.get(ENUM_NAME) instanceof DataList allowedValues)) {
+            return true; // no enum -> any default is fine
+        }
+        for (final DataObject allowed : allowedValues) { // enum present -> default must be in it
+            if (allowed.equals(defaultValue)) return true;
+            // Avro/Protobuf defaults arrive as DataEnum while JSON Schema enum entries are DataString.
+            // Object.equals() returns false across types, so fall back to comparing string values.
+            if (allowed.toString().equals(defaultValue.toString())) return true;
+        }
+        return false; // default contradicts the enum -> skip it
     }
 }

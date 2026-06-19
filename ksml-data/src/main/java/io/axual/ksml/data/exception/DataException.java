@@ -20,6 +20,7 @@ package io.axual.ksml.data.exception;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.type.DataType;
 
 /**
@@ -54,6 +55,13 @@ public class DataException extends BaseException {
      */
     public static DataException conversionFailed(DataType variableType, DataType valueType) {
         return conversionFailed(valueType.toString(), variableType.toString());
+    }
+
+    /**
+     * Convenience constructor for a failed conversion between two DataTypes with an assignability reason.
+     */
+    public static DataException conversionFailed(DataType variableType, DataType valueType, Assignable reason) {
+        return new DataException("Can not convert object from dataType \"" + valueType + "\" to \"" + variableType + "\": " + reason);
     }
 
     /**

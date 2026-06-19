@@ -57,20 +57,12 @@ public class DataSchema implements DataEquals {
         this.type = type;
     }
 
-    /**
-     * The set of schema types that represent whole numbers.
-     */
-    private static final Set<String> INTEGER_TYPES = Set.of(
-            DataSchemaConstants.BYTE_TYPE,
-            DataSchemaConstants.SHORT_TYPE,
-            DataSchemaConstants.INTEGER_TYPE,
-            DataSchemaConstants.LONG_TYPE);
-    /**
-     * The set of schema types that represent floating point numbers.
-     */
-    private static final Set<String> FLOATING_POINT_TYPES = Set.of(
-            DataSchemaConstants.FLOAT_TYPE,
-            DataSchemaConstants.DOUBLE_TYPE);
+    private static final Set<String> BYTE_WIDENS_FROM = Set.of(DataSchemaConstants.BYTE_TYPE);
+    private static final Set<String> SHORT_WIDENS_FROM = Set.of(DataSchemaConstants.BYTE_TYPE, DataSchemaConstants.SHORT_TYPE);
+    private static final Set<String> INTEGER_WIDENS_FROM = Set.of(DataSchemaConstants.BYTE_TYPE, DataSchemaConstants.SHORT_TYPE, DataSchemaConstants.INTEGER_TYPE);
+    private static final Set<String> LONG_WIDENS_FROM = Set.of(DataSchemaConstants.BYTE_TYPE, DataSchemaConstants.SHORT_TYPE, DataSchemaConstants.INTEGER_TYPE, DataSchemaConstants.LONG_TYPE);
+    private static final Set<String> FLOAT_WIDENS_FROM = Set.of(DataSchemaConstants.FLOAT_TYPE);
+    private static final Set<String> DOUBLE_WIDENS_FROM = Set.of(DataSchemaConstants.FLOAT_TYPE, DataSchemaConstants.DOUBLE_TYPE);
     /**
      * The {@link DataSchema} instance representing ANY schema.
      */
@@ -97,7 +89,7 @@ public class DataSchema implements DataEquals {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
+            return !BYTE_WIDENS_FROM.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -107,7 +99,7 @@ public class DataSchema implements DataEquals {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
+            return !SHORT_WIDENS_FROM.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -117,7 +109,7 @@ public class DataSchema implements DataEquals {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
+            return !INTEGER_WIDENS_FROM.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -127,7 +119,7 @@ public class DataSchema implements DataEquals {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !INTEGER_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
+            return !LONG_WIDENS_FROM.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -137,7 +129,7 @@ public class DataSchema implements DataEquals {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
+            return !DOUBLE_WIDENS_FROM.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**
@@ -147,7 +139,7 @@ public class DataSchema implements DataEquals {
         @Override
         public Assignable isAssignableFrom(DataSchema otherSchema) {
             Objects.requireNonNull(otherSchema, NO_SCHEMA_SPECIFIED);
-            return !FLOATING_POINT_TYPES.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
+            return !FLOAT_WIDENS_FROM.contains(otherSchema.type) ? schemaMismatch(this, otherSchema) : Assignable.assignable();
         }
     };
     /**

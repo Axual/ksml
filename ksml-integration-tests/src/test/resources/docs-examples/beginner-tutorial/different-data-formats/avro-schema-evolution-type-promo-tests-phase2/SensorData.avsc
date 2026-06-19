@@ -1,0 +1,21 @@
+{
+  "namespace": "io.axual.ksml.example",
+  "doc": "Sensor data schema v2 (reading as long)",
+  "name": "SensorData",
+  "type": "record",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "timestamp",
+      "type": "long"
+    },
+    {
+      "doc": "Sensor reading promoted to long",
+      "name": "reading",
+      "type": "long"
+    }
+  ]
+}

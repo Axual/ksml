@@ -24,7 +24,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.axual.ksml.data.object.DataEnum;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
@@ -650,6 +654,136 @@ class JsonSchemaMapperTest {
 
         softlyJson.assertAll();
 
+    }
+
+    @Test
+    @DisplayName("Default values in JSON Schema are carried into StructSchema fields")
+    void defaultValuesArePreservedOnRead() throws Exception {
+        final var json = readResource("/jsonschema/object_with_defaults.json");
+        final var struct = assertThat(mapper.toDataSchema("ns", "ObjWithDefaults", json))
+                .asInstanceOf(InstanceOfAssertFactories.type(StructSchema.class))
+                .actual();
+
+        final var softly = new SoftAssertions();
+        softly.assertThat(struct.field("withStringDefault").defaultValue())
+                .as("string default should be DataString(\"hello\")")
+                .isEqualTo(new DataString("hello"));
+        softly.assertThat(struct.field("withIntDefault").defaultValue())
+                .as("integer default should be DataInteger(42)")
+                .isEqualTo(new DataInteger(42));
+        softly.assertThat(struct.field("withNullDefault").defaultValue())
+                .as("null default should be DataNull.INSTANCE")
+                .isSameAs(DataNull.INSTANCE);
+        softly.assertThat(struct.field("noDefault").defaultValue())
+                .as("absent default should be null")
+                .isNull();
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("Default values in StructSchema fields are emitted as JSON Schema 'default' keyword")
+    void defaultValuesAreEmittedOnWrite() throws Exception {
+        final var schema = StructSchema.builder()
+                .namespace("ns").name("ObjWithDefaults")
+                .field(new StructSchema.Field("withStringDefault", STRING_SCHEMA, null, NO_TAG, false, false, new DataString("hello")))
+                .field(new StructSchema.Field("withNullDefault", STRING_SCHEMA, null, NO_TAG, false, false, DataNull.INSTANCE))
+                .field(new StructSchema.Field("noDefault", STRING_SCHEMA, null, NO_TAG, false))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        final var jsonString = assertThat(mapper.fromDataSchema(schema))
+                .isNotBlank()
+                .actual();
+        final var rootNode = assertThatObject(JACKSON.readTree(jsonString))
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .actual();
+
+        final var softly = new SoftAssertions();
+        softAssertJsonStringField(softly, rootNode, "/properties/withStringDefault/default", "hello");
+        softly.assertThatObject(rootNode.at("/properties/withNullDefault/default"))
+                .as("null default should produce JSON null node")
+                .returns(false, JsonNode::isMissingNode)
+                .returns(true, JsonNode::isNull);
+        softly.assertThatObject(rootNode.at("/properties/noDefault/default"))
+                .as("absent default should produce no 'default' key")
+                .returns(true, JsonNode::isMissingNode);
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("Default values survive a round-trip through JSON Schema")
+    void defaultValuesRoundTrip() throws Exception {
+        final var json = readResource("/jsonschema/object_with_defaults.json");
+        final var struct = (StructSchema) mapper.toDataSchema("ns", "ObjWithDefaults", json);
+        final var jsonString = mapper.fromDataSchema(struct);
+
+        final var rootNode = assertThatObject(JACKSON.readTree(jsonString))
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .actual();
+
+        final var softly = new SoftAssertions();
+        softAssertJsonStringField(softly, rootNode, "/properties/withStringDefault/default", "hello");
+        softly.assertThatObject(rootNode.at("/properties/withIntDefault/default"))
+                .as("integer default should survive round-trip as a number node")
+                .returns(false, JsonNode::isMissingNode)
+                .returns(true, JsonNode::isNumber)
+                .returns(42, JsonNode::intValue);
+        softly.assertThatObject(rootNode.at("/properties/withNullDefault/default"))
+                .as("null default should survive round-trip as JSON null")
+                .returns(false, JsonNode::isMissingNode)
+                .returns(true, JsonNode::isNull);
+        softly.assertThatObject(rootNode.at("/properties/noDefault/default"))
+                .as("absent default should not appear after round-trip")
+                .returns(true, JsonNode::isMissingNode);
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("Default is emitted only when it is a valid enum value")
+    void enumDefaultOnlyEmittedWhenValid() throws Exception {
+        final var colorEnum = new EnumSchema(List.of(
+                EnumSchema.Symbol.of("RED"), EnumSchema.Symbol.of("GREEN"), EnumSchema.Symbol.of("BLUE")));
+
+        final var schema = StructSchema.builder()
+                .namespace("ns").name("TestEnum")
+                .field(new StructSchema.Field("validDefault", colorEnum, null, NO_TAG, false, false, new DataString("RED")))
+                .field(new StructSchema.Field("invalidDefault", colorEnum, null, NO_TAG, false, false, new DataString("PURPLE")))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        final var rootNode = assertThatObject(JACKSON.readTree(mapper.fromDataSchema(schema)))
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .actual();
+
+        final var softly = new SoftAssertions();
+        softAssertJsonStringField(softly, rootNode, "/properties/validDefault/default", "RED");
+        softly.assertThatObject(rootNode.at("/properties/invalidDefault/default"))
+                .as("default that is not a valid enum value should not be emitted")
+                .returns(true, JsonNode::isMissingNode);
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("DataEnum default matching a JSON Schema enum entry is emitted via toString fallback")
+    void enumDefaultFromDataEnumIsEmittedViaToStringFallback() throws Exception {
+        final var colorSchema = new EnumSchema(List.of(
+                EnumSchema.Symbol.of("RED"), EnumSchema.Symbol.of("GREEN"), EnumSchema.Symbol.of("BLUE")));
+        // DataEnum is what Avro/Protobuf mappers produce for enum-typed defaults;
+        // the JSON Schema enum list always holds DataString, so Object.equals() returns false
+        // across the two types and the toString fallback is the only path that matches.
+        final var dataEnumDefault = new DataEnum(new EnumType(colorSchema), "RED");
+
+        final var schema = StructSchema.builder()
+                .namespace("ns").name("TestEnumType")
+                .field(new StructSchema.Field("color", colorSchema, null, NO_TAG, false, false, dataEnumDefault))
+                .additionalFieldsAllowed(false)
+                .build();
+
+        final var rootNode = assertThatObject(JACKSON.readTree(mapper.fromDataSchema(schema)))
+                .asInstanceOf(InstanceOfAssertFactories.type(ObjectNode.class))
+                .actual();
+
+        softAssertJsonStringField(new SoftAssertions(), rootNode, "/properties/color/default", "RED");
     }
 
     private static void softAssertRequiredXOnly(final SoftAssertions softly, final ObjectNode rootNode, final String requiredPath) {
