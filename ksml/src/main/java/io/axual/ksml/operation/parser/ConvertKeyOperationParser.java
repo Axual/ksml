@@ -36,7 +36,7 @@ public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperati
                 "",
                 "An operation to convert the stream key type to another type. Conversion is only syntactic, eg. from Avro to XML.",
                 operationNameField(),
-                userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream key into"),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream key into", false),
                 (name, into, tags) -> new ConvertKeyOperation(operationConfig(name, tags), into));
     }
 }

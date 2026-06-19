@@ -40,8 +40,8 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
 
     @Override
     public StructsParser<StreamDefinition> parser() {
-        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the stream");
-        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the stream");
+        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the stream", true);
+        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the stream", true);
         if (!isJoinTarget) return structsParser(
                 StreamDefinition.class,
                 "",
