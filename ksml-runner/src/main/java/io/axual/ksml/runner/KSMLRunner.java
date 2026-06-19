@@ -20,9 +20,11 @@ package io.axual.ksml.runner;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.github.victools.jsonschema.generator.FieldScope;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
@@ -464,7 +466,8 @@ public class KSMLRunner {
         // Instantiate add providers/resolved to allow the KsmlFileOrDefinition and StringMap to be processed with correct Schema types
         final var stringMapResolver = new StringMapDefinitionPropertiesResolver();
         configBuilder.forFields()
-                .withAdditionalPropertiesResolver(stringMapResolver);
+                .withAdditionalPropertiesResolver(stringMapResolver)
+                .withDefaultResolver(KSMLRunner::resolveDefaultValue);
         configBuilder.forTypesInGeneral()
                 // Add support for the KsmlFileOrDefinition
                 .withCustomDefinitionProvider(stringMapResolver)
@@ -500,6 +503,29 @@ public class KSMLRunner {
     }
 
     @SuppressWarnings("java:S106")
+    /**
+     * Resolves the schema {@code default} for a field from its {@link JsonProperty#defaultValue()}.
+     * <p>
+     * victools does not read {@code @JsonProperty(defaultValue=...)} on its own, so emit it here.
+     * The value is converted to the field's type so the schema 'default' is correctly typed
+     * (e.g. boolean false rather than the string "false") for autocomplete tooling.
+     *
+     * @param field the field whose default value should be resolved
+     * @return the typed default value, or {@code null} when the field has no {@code defaultValue}
+     */
+    private static Object resolveDefaultValue(FieldScope field) {
+        final var jsonProperty = field.getAnnotationConsideringFieldAndGetter(JsonProperty.class);
+        if (jsonProperty == null || jsonProperty.defaultValue().isEmpty()) {
+            return null;
+        }
+        final var defaultValue = jsonProperty.defaultValue();
+        final var type = field.getType().getErasedType();
+        if (type == boolean.class || type == Boolean.class) return Boolean.valueOf(defaultValue);
+        if (type == int.class || type == Integer.class) return Integer.valueOf(defaultValue);
+        if (type == long.class || type == Long.class) return Long.valueOf(defaultValue);
+        return defaultValue;
+    }
+
     private static void printKsmlDefinitionSchema(String filename) {
         // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
         // KSML definitions with on stdout and exit

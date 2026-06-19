@@ -26,15 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.ClearEnvironmentVariable;
-import org.junitpioneer.jupiter.RestoreEnvironmentVariables;
-import org.junitpioneer.jupiter.SetEnvironmentVariable;
 import org.junitpioneer.jupiter.SetSystemProperty;
 
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -52,10 +47,10 @@ class KSMLLogbackConfiguratorTest {
 
     @Test
     @DisplayName("The configuration file is loaded from an environment variable reference pointing to a resource")
-    @SetEnvironmentVariable(key = "LOGBACK_CONFIGURATION_FILE", value = "logback-custom-testing.xml")
     @SetSystemProperty(key = "logback.test.id", value = "testEnvToResource")
     void configureWithEnvironmentVariableToResource() {
         KSMLLogbackConfigurator configurator = new KSMLLogbackConfigurator();
+        configurator.environmentVariableLookup = _ -> "logback-custom-testing.xml";
         configurator.setContext(spiedContext);
         configurator.configure(spiedContext);
         Collection<MockAppender> appenders = MockAppender.APPENDERS.get("testEnvToResource");
@@ -65,16 +60,15 @@ class KSMLLogbackConfiguratorTest {
 
     @Test
     @DisplayName("The configuration file is loaded from an environment variable reference in URL format")
-    @RestoreEnvironmentVariables
     @SetSystemProperty(key = "logback.test.id", value = "testEnvToResourceUrl")
     void configureWithEnvironmentVariableToResourceURL() {
         // Get value for environment variable
         URL resourceUrl = getClass().getClassLoader().getResource("logback-custom-testing.xml");
         assertNotNull(resourceUrl);
-        setEnvVar("LOGBACK_CONFIGURATION_FILE", resourceUrl.toExternalForm());
 
         // Run test
         KSMLLogbackConfigurator configurator = new KSMLLogbackConfigurator();
+        configurator.environmentVariableLookup = _ -> resourceUrl.toExternalForm();
         configurator.setContext(spiedContext);
         configurator.configure(spiedContext);
         Collection<MockAppender> appenders = MockAppender.APPENDERS.get("testEnvToResourceUrl");
@@ -84,16 +78,15 @@ class KSMLLogbackConfiguratorTest {
 
     @Test
     @DisplayName("The configuration file is loaded from an environment variable reference as an absolute filepath")
-    @RestoreEnvironmentVariables
     @SetSystemProperty(key = "logback.test.id", value = "testEnvToFile")
     void configureWithEnvironmentVariableToFile() {
         // Get value for environment variable
         URL resourceUrl = getClass().getClassLoader().getResource("logback-custom-testing.xml");
         assertNotNull(resourceUrl);
-        setEnvVar("LOGBACK_CONFIGURATION_FILE", resourceUrl.getPath());
 
         // Run test
         KSMLLogbackConfigurator configurator = new KSMLLogbackConfigurator();
+        configurator.environmentVariableLookup = _ -> resourceUrl.getPath();
         configurator.setContext(spiedContext);
         configurator.configure(spiedContext);
         Collection<MockAppender> appenders = MockAppender.APPENDERS.get("testEnvToFile");
@@ -103,11 +96,11 @@ class KSMLLogbackConfiguratorTest {
 
     @Test
     @DisplayName("The configuration file should not be loaded, but fall back to the default setting")
-    @ClearEnvironmentVariable(key = "LOGBACK_CONFIGURATION_FILE")
     @SetSystemProperty(key = "logback.test.id", value = "shouldNotAppear")
     @SuppressWarnings("java:S106")
     void configureWithoutEnvironmentVariable() {
         KSMLLogbackConfigurator configurator = new KSMLLogbackConfigurator();
+        configurator.environmentVariableLookup = _ -> null;
         configurator.setContext(spiedContext);
         configurator.configure(spiedContext);
         System.out.println(MockAppender.APPENDERS);
@@ -121,16 +114,6 @@ class KSMLLogbackConfiguratorTest {
         appenders = MockAppender.APPENDERS.get("shouldNotAppear");
         assertNotNull(appenders);
         assertEquals(0, appenders.size());
-    }
-
-    @SneakyThrows
-    @SuppressWarnings("unchecked")
-    void setEnvVar(String key, String value) {
-        Class<?> classOfMap = System.getenv().getClass();
-        Field field = classOfMap.getDeclaredField("m");
-        field.setAccessible(true);
-        Map<String, String> writeableEnvironmentVariables = (Map<String, String>) field.get(System.getenv());
-        writeableEnvironmentVariables.put(key, value);
     }
 
 }

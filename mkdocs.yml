@@ -39,6 +39,7 @@ markdown_extensions:
       check_paths: true
   - pymdownx.superfences
   - pymdownx.details
+  - admonition
 
 extra_css:
   - stylesheets/extra.css

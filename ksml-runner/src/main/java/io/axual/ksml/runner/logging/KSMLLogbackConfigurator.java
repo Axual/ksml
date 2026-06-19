@@ -38,6 +38,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * This configurator class is used to support determining and loading the logback configuration file using
@@ -57,6 +58,13 @@ import java.util.Set;
 public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
     public static final String CONFIG_FILE_ENV_PROPERTY = "LOGBACK_CONFIGURATION_FILE";
     public static final String CONFIG_FILE_SYS_PROPERTY = ClassicConstants.CONFIG_FILE_PROPERTY;
+
+    /**
+     * Environment-variable lookup, exposed as a package-private seam for testing. Tests can supply a value
+     * without mutating the real process environment (which would otherwise require reflective access to
+     * JDK-internal classes and {@code --add-opens} JVM flags). Defaults to the real environment.
+     */
+    Function<String, String> environmentVariableLookup = OptionHelper::getEnv;
 
     @Override
     public ExecutionStatus configure(LoggerContext context) {
@@ -83,7 +91,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
     }
 
     private URL findConfigFileURLFromEnvironmentVariables(ClassLoader classLoader) {
-        return findConfigFileURL(classLoader, OptionHelper.getEnv(CONFIG_FILE_ENV_PROPERTY));
+        return findConfigFileURL(classLoader, environmentVariableLookup.apply(CONFIG_FILE_ENV_PROPERTY));
     }
 
     private URL findConfigFileURLFromSystemProperties(ClassLoader classLoader) {

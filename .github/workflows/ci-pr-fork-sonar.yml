@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  actions: read
+  actions: write
   checks: write
   contents: read
   pull-requests: write
@@ -24,7 +24,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout base repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}
           fetch-depth: 0
@@ -42,6 +42,13 @@ jobs:
           echo "HEAD_REF=$(cat pr-metadata/head-ref)"     >> $GITHUB_ENV
           echo "BASE_REF=$(cat pr-metadata/base-ref)"     >> $GITHUB_ENV
           echo "HEAD_SHA=$(cat pr-metadata/head-sha)"     >> $GITHUB_ENV
+          echo "FORK_REPO=$(cat pr-metadata/repo-name)"   >> $GITHUB_ENV
+
+      - name: Fetch fork commits for SCM context
+        run: |
+          git remote add fork https://github.com/${{ env.FORK_REPO }}
+          git fetch fork ${{ env.HEAD_REF }}:${{ env.HEAD_REF }}
+          git checkout -f ${{ env.HEAD_REF }}
 
       - name: Discover build output paths
         run: |
@@ -55,7 +62,7 @@ jobs:
           echo "SONAR_TESTS=$TESTS"         >> $GITHUB_ENV
 
       - name: SonarCloud analysis
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,7 +85,7 @@ jobs:
 
       - name: Delete artifacts after analysis
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

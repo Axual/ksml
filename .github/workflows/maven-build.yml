@@ -33,7 +33,11 @@ jobs:
           cache: 'maven'
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3.7.0
+        # Dependabot runs without access to repository secrets, so the Docker Hub
+        # credentials are empty and login would fail. Skip it for Dependabot; the
+        # integration tests then pull container images anonymously.
+        if: github.actor != 'dependabot[bot]'
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee  # v4.2.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -45,6 +49,9 @@ jobs:
           TESTCONTAINERS_RYUK_DISABLED: false
 
       - name: SonarCloud analysis
+        # SonarCloud needs SONAR_TOKEN, which is unavailable to Dependabot runs.
+        # Skip the analysis for Dependabot so the build does not fail on auth.
+        if: github.actor != 'dependabot[bot]'
         timeout-minutes: 15
         run: |
           SONAR_ARGS=""

@@ -43,13 +43,13 @@ public class ApplicationServerConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
     private static final Integer DEFAULT_PORT = 8080;
 
-    @JsonProperty(value = "enabled", required = true)
+    @JsonProperty(value = "enabled", required = true, defaultValue = "false")
     @JsonPropertyDescription("Toggle to activate the creation of the application server. Default is false")
     private boolean enabled = false;
-    @JsonProperty(value = "host", required = false)
+    @JsonProperty(value = "host", required = false, defaultValue = "0.0.0.0")
     @JsonPropertyDescription("Determines on which hostname/ip address the application server listener is created. Default is IP address for all networks '0.0.0.0'")
     private String host = DEFAULT_HOSTNAME;
-    @JsonProperty(value = "port", required = false)
+    @JsonProperty(value = "port", required = false, defaultValue = "8080")
     @JsonPropertyDescription("Determines on which port the application server is listening. Default is 8080")
     @Min(1)
     @Max(65535)

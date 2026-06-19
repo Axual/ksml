@@ -75,23 +75,23 @@ public class KSMLConfig {
 
     @NotBlank
     @JsonProperty(value = "schemaDirectory", required = false)
-    @JsonPropertyDescription("Directory containing schema files. Defaults to the value of configDirectory")
+    @JsonPropertyDescription("Directory containing schema files. Defaults to the working directory")
     private String schemaDirectory = DEFAULT_LOCATION;
 
     @NotBlank
     @JsonProperty(value = "storageDirectory", required = false)
-    @JsonPropertyDescription("Directory for Kafka Streams state stores. Defaults to the System temp directory")
+    @JsonPropertyDescription("Directory for Kafka Streams state stores. Defaults to the working directory")
     private String storageDirectory = DEFAULT_LOCATION;
 
-    @JsonProperty(value = "createStorageDirectory", required = false)
+    @JsonProperty(value = "createStorageDirectory", required = false, defaultValue = "false")
     @JsonPropertyDescription("Create storage directory if it doesn't exist. Default value is false")
     private boolean createStorageDirectory = false;
 
-    @JsonProperty(value = "enableProducers", required = false)
+    @JsonProperty(value = "enableProducers", required = false, defaultValue = "true")
     @JsonPropertyDescription("Toggle to enable or disable the creation of producers in the KSML definitions. Default value is true")
     private boolean enableProducers = true;
 
-    @JsonProperty(value = "enablePipelines", required = false)
+    @JsonProperty(value = "enablePipelines", required = false, defaultValue = "true")
     @JsonPropertyDescription("Toggle to enable or disable the creation of pipelines in the KSML definitions. Default value is true")
     private boolean enablePipelines = true;
 
@@ -142,15 +142,15 @@ public class KSMLConfig {
     }
 
     public String configDirectory() {
-        return getDirectory("configDirectory", configDirectory != null ? configDirectory : System.getProperty("user.dir"));
+        return getDirectory("configDirectory", configDirectory);
     }
 
     public String schemaDirectory() {
-        return getDirectory("schemaDirectory", schemaDirectory != null ? schemaDirectory : configDirectory());
+        return getDirectory("schemaDirectory", schemaDirectory);
     }
 
     public String storageDirectory() {
-        return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"), createStorageDirectory);
+        return getDirectory("storageDirectory", storageDirectory, createStorageDirectory);
     }
 
     public ApplicationServerConfig applicationServerConfig() {
