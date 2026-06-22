@@ -27,7 +27,7 @@ jobs:
           echo "building and tagging release: $RELEASE_TAG"
 
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download build artifacts
         uses: actions/download-artifact@v8
