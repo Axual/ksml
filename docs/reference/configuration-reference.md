@@ -312,8 +312,8 @@ ksml:
         notations:
           avro:
             type: apicurio_avro
-              config:
-                apicurio.registry.find-latest: false   # restore the old content-based lookup
+            config:
+              apicurio.registry.find-latest: false   # restore the old content-based lookup
     ```
     The default was changed due to issue [#290](https://github.com/Axual/ksml/issues/290).
 

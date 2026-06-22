@@ -88,9 +88,6 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
     @AfterAll
     static void teardown() {
         network.close();
-        schemaRegistry.stop();
-        kafka.stop();
-        ksml.stop();
     }
 
     @Container
