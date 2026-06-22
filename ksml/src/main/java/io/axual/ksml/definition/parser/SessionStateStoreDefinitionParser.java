@@ -42,8 +42,8 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
         final var persistentField = optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise"));
         final var timestampedField = optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
         final var retentionField = optional(durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the session store are retained"));
-        final var keyTypeField = userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the session store");
-        final var valueTypeField = userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the session store");
+        final var keyTypeField = userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the session store", false);
+        final var valueTypeField = userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the session store", false);
         final var cachingField = optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly"));
         final var loggingField = optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise"));
 

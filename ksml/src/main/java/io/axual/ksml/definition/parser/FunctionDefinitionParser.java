@@ -59,7 +59,7 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
         final var globalCode = optional(codeField(Functions.GLOBAL_CODE, "Global (multiline) code that gets loaded into the Python context outside of the " + description + ". Can be used for defining eg. global variables."));
         final var code = optional(codeField(Functions.CODE, "The (multiline) code of the " + description + "."));
         final var expression = optional(codeField(Functions.EXPRESSION, "The (multiline) expression returned by the " + description + ". Used as an alternative for 'return' statements in the code."));
-        final var resultType = optional(userTypeField(Functions.RESULT_TYPE, "The data type returned by the " + description + ". Only required for function types, which are not pre-defined."));
+        final var resultType = optional(userTypeField(Functions.RESULT_TYPE, "The data type returned by the " + description + ". Only required for function types, which are not pre-defined.", false));
         final var stores = includeStores
                 ? optional(listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()))
                 : new IgnoreParser<List<String>>();

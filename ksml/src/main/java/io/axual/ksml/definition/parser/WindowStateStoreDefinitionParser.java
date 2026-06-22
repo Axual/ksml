@@ -44,8 +44,8 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
         final var retentionField = optional(durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the window store are retained"));
         final var windowSizeField = optional(durationField(KSMLDSL.Stores.WINDOW_SIZE, "Size of the windows (cannot be negative)"));
         final var retainDuplicatesField = optional(booleanField(KSMLDSL.Stores.RETAIN_DUPLICATES, "Whether or not to retain duplicates"));
-        final var keyTypeField = userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the window store");
-        final var valueTypeField = userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the window store");
+        final var keyTypeField = userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the window store", false);
+        final var valueTypeField = userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the window store", false);
         final var cachingField = optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly"));
         final var loggingField = optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise"));
 

@@ -39,7 +39,7 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
                 "",
                 "An operation to convert the stream key and value types to other types. Conversion is only syntactic, eg. from Avro to XML.",
                 operationNameField(),
-                userTypeField(KSMLDSL.Operations.Convert.INTO, "The tuple type to convert the stream key/value into"),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, "The tuple type to convert the stream key/value into", false),
                 (name, into, tags) -> {
                     if (into.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
                         return new ConvertKeyValueOperation(operationConfig(name, tags), userTupleType.getUserType(0), userTupleType.getUserType(1));

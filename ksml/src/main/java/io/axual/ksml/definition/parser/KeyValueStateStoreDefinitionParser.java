@@ -44,8 +44,8 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
         final var versionedField = optional(booleanField(KSMLDSL.Stores.VERSIONED, "\"true\" if elements in the store are versioned, \"false\" otherwise"));
         final var historyRetentionField = optional(durationField(KSMLDSL.Stores.HISTORY_RETENTION, "(Versioned only) The duration for which old record versions are available for query (cannot be negative)"));
         final var segmentIntervalField = optional(durationField(KSMLDSL.Stores.SEGMENT_INTERVAL, "Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."));
-        final var keyTypeField = optional(userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the keyValue store"));
-        final var valueTypeField = optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the keyValue store"));
+        final var keyTypeField = optional(userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the keyValue store", false));
+        final var valueTypeField = optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the keyValue store", false));
         final var cachingField = optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly"));
         final var loggingField = optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise"));
 

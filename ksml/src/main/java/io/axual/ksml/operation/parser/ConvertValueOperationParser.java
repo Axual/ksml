@@ -36,7 +36,7 @@ public class ConvertValueOperationParser extends OperationParser<ConvertValueOpe
                 "",
                 "An operation to convert the stream value type to another type. Conversion is only syntactic, eg. from Avro to XML.",
                 operationNameField(),
-                userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream value into"),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream value into", false),
                 (name, into, tags) -> new ConvertValueOperation(operationConfig(name, tags), into));
     }
 }
