@@ -78,7 +78,8 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
     // We read the keys with Apicurio's own config class, so the key names are the same as the serde uses.
     // For now this supports username and password (apicurio.auth.username / apicurio.auth.password).
     // Token-based (OIDC) login can be added here in the same way later.
-    private Auth buildAuth(Map<String, Object> serdeConfigs) {
+    // Package-private so it can be unit-tested directly.
+    Auth buildAuth(Map<String, Object> serdeConfigs) {
         final var config = new DefaultSchemaResolverConfig(serdeConfigs);
         final var username = config.getAuthUsername();
         if (username == null) return null;
