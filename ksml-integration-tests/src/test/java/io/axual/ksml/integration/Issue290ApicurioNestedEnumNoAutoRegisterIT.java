@@ -24,6 +24,8 @@ import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
@@ -83,6 +85,7 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
 
     static final Network network = Network.newNetwork();
 
+    @AfterAll
     static void teardown() {
         network.close();
         schemaRegistry.stop();
