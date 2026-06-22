@@ -51,7 +51,6 @@ import java.util.Collections;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -60,10 +59,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * {@code userTypeField(...)}.
  * <p>
  * A type written without a schema name (for example {@code remote_avro}) becomes an
- * {@link UnresolvedType}: the schema is fetched from the registry at runtime. This is allowed for
- * topic-backed types and state stores (streams, tables, topics, state stores). It is not allowed in
- * places that must be fully known at parse time:
+ * {@link UnresolvedType}: the schema is fetched from the registry at runtime. This is allowed only for
+ * topic-backed types (streams, tables, topics), where the topic name is used to look the schema up. It
+ * is not allowed in places that have no input topic to resolve against, and that must be fully known
+ * at parse time:
  * <ul>
+ *   <li>state stores</li>
  *   <li>function result types and function parameter types</li>
  *   <li>the target type of a convert operation</li>
  * </ul>
@@ -115,7 +116,7 @@ class DefinitionParserUnresolvedTypeTest {
         return ParseNode.fromRoot(root, "test");
     }
 
-    // --- allowUnresolved = true: topic-backed types and state stores may omit the schema name ---
+    // --- allowUnresolved = true: a real input topic may omit the schema name ---
 
     @Test
     @DisplayName("Stream valueType may be a registry-backed notation without a schema name")
@@ -127,18 +128,17 @@ class DefinitionParserUnresolvedTypeTest {
         assertNotNull(stream);
     }
 
+    // --- allowUnresolved = false: the type must be fully known at parse time ---
+
     @Test
-    @DisplayName("KeyValue state store valueType may be a registry-backed notation without a schema name")
-    void stateStoreValueTypeWithoutSchemaNameParses() throws Exception {
+    @DisplayName("KeyValue state store valueType without a schema name is rejected with a clear error")
+    void stateStoreValueTypeWithoutSchemaNameIsRejected() throws Exception {
         final var parser = new KeyValueStateStoreDefinitionParser(false, true).parser();
         final var node = nodeOf("name: my_store\nkeyType: string\nvalueType: " + REMOTE_NOTATION);
 
-        final var store = assertDoesNotThrow(() -> parser.parse(node));
-        assertNotNull(store);
-        assertInstanceOf(UnresolvedType.class, store.valueType().dataType());
+        final var ex = assertThrows(ParseException.class, () -> parser.parse(node));
+        assertThat(ex.getMessage(), containsString(UNRESOLVED_NOT_ALLOWED));
     }
-
-    // --- allowUnresolved = false: the type must be fully known at parse time ---
 
     @Test
     @DisplayName("Function resultType without a schema name is rejected with a clear error")
