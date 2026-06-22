@@ -80,7 +80,7 @@ public class MockConfluentSchemaRegistryClient implements SchemaRegistryClient {
     }
 
     @Override
-    public synchronized RegisterSchemaResponse registerWithResponse(String subject, ParsedSchema schema, boolean normalize, boolean propagateSchemaTags) throws RestClientException {
+    public synchronized RegisterSchemaResponse registerWithResponse(String subject, ParsedSchema schema, boolean normalize, boolean propagateSchemaTags) throws IOException, RestClientException {
         return wrappedClient.registerWithResponse(subject, schema, normalize, propagateSchemaTags);
     }
 
@@ -120,7 +120,7 @@ public class MockConfluentSchemaRegistryClient implements SchemaRegistryClient {
     }
 
     @Override
-    public synchronized SchemaMetadata getSchemaMetadata(String subject, int version, boolean lookupDeletedSchema) throws RestClientException {
+    public synchronized SchemaMetadata getSchemaMetadata(String subject, int version, boolean lookupDeletedSchema) throws IOException, RestClientException {
         return wrappedClient.getSchemaMetadata(subject, version, lookupDeletedSchema);
     }
 
