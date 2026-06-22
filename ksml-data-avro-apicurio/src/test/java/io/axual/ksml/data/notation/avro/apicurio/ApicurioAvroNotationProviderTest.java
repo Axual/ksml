@@ -65,4 +65,30 @@ class ApicurioAvroNotationProviderTest {
 
         assertThat(new ApicurioAvroNotationProvider().buildAuth(config)).isNull();
     }
+
+    @Test
+    @DisplayName("createSrClient returns null when no registry URL is configured")
+    void createSrClient_withoutRegistryUrl_returnsNull() {
+        assertThat(new ApicurioAvroNotationProvider().createSrClient(new HashMap<>())).isNull();
+    }
+
+    @Test
+    @DisplayName("createSrClient builds a client when a URL is set but no login")
+    void createSrClient_withUrlNoAuth_returnsClient() {
+        final Map<String, Object> config = new HashMap<>();
+        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v2");
+
+        assertThat(new ApicurioAvroNotationProvider().createSrClient(config)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("createSrClient builds a client when a URL and a login are set")
+    void createSrClient_withUrlAndAuth_returnsClient() {
+        final Map<String, Object> config = new HashMap<>();
+        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v2");
+        config.put("apicurio.auth.username", "alice");
+        config.put("apicurio.auth.password", "secret");
+
+        assertThat(new ApicurioAvroNotationProvider().createSrClient(config)).isNotNull();
+    }
 }

@@ -61,7 +61,8 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
                 clientConfig.topicResolver());
     }
 
-    private RegistryClient createSrClient(Map<String, Object> serdeConfigs) {
+    // Package-private so it can be unit-tested directly.
+    RegistryClient createSrClient(Map<String, Object> serdeConfigs) {
         if (!serdeConfigs.containsKey(SerdeConfig.REGISTRY_URL)) return null;
         final var url = MapUtil.stringValues(serdeConfigs).get(SerdeConfig.REGISTRY_URL);
         // We build the client here and give it to the serde. When we do that, the Apicurio serde does
