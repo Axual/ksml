@@ -69,6 +69,13 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
                 configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");
                 configs.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getCanonicalName());
             }
+            // Default to resolving the latest registered artifact version by coordinates instead of
+            // by content. When auto-register is false (and the user has not opted into find-latest),
+            // Apicurio otherwise performs a content-based lookup whose canonical key renders nested
+            // named types (e.g. an inline enum) as bare references; that never matches a schema
+            // registered in inline form, causing serialization to fail with ArtifactNotFoundException.
+            // See https://github.com/Axual/ksml/issues/290 . Users can still override this explicitly.
+            configs.putIfAbsent(SerdeConfig.FIND_LATEST_ARTIFACT, true);
             return configs;
         }
     }
