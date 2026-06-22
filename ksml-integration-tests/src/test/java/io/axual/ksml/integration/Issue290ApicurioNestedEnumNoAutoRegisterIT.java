@@ -83,6 +83,13 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
 
     static final Network network = Network.newNetwork();
 
+    static void teardown() {
+        network.close();
+        schemaRegistry.stop();
+        kafka.stop();
+        ksml.stop();
+    }
+
     @Container
     static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
             .withNetwork(network)

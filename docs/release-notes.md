@@ -28,6 +28,10 @@
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
 
+## 1.3.0-SNAPSHOT
+
+* Apicurio Avro notation changed the default for `apicurio.registry.find-latest` from `false` to `true`, to fix [issue #290](https://github.com/Axual/ksml/issues/290). This setting can be overridden in the config to get the old behavior.
+
 ## 1.2.1 (2026-05-08)
 
 * Infer schema from registry and updated serde structure to prepare for more flexible schema loading

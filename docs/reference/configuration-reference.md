@@ -305,6 +305,18 @@ ksml:
         apicurio.registry.auto-register: false
 ```
 
+!!! note
+    As of release 1.3.0 Apicurio AVRO has the default for `apicurio.registry.find-latest` changed to `true` (was: `false`).
+    The previous behavior is obtained by overriding the new default as follows:
+    ```yaml
+        notations:
+          avro:
+            type: apicurio_avro
+              config:
+                apicurio.registry.find-latest: false   # restore the old content-based lookup
+    ```
+    The default was changed due to issue [#290](https://github.com/Axual/ksml/issues/290).
+
 Available serializer types:
 
 | Internal notation name | Exposed as | Schema Registry | Description                   |
