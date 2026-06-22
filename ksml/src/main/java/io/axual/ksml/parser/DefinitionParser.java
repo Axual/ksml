@@ -227,7 +227,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return userTypeField(childName, doc, allowUnresolved, null);
     }
 
-    protected StructsParser<UserType> userTypeField(String childName, String doc, boolean allowUnresolved, UserType defaultValue) {
+    private StructsParser<UserType> userTypeField(String childName, String doc, boolean allowUnresolved, UserType defaultValue) {
         final var stringParser = stringField(childName, doc);
         final var field = new StructSchema.Field(childName, DataSchema.STRING_SCHEMA, doc, NO_TAG, true, false, null);
         final var schemas = structSchema((String) null, null, List.of(field));
