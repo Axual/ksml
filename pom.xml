@@ -82,7 +82,7 @@
         <apicurio.version>2.6.13.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
         <commons.io.version>2.22.0</commons.io.version>
-        <confluent.version>8.2.1</confluent.version>
+        <confluent.version>8.3.0</confluent.version>
         <dropwizard.version>4.2.39</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>25.0.3</graalvm.version>
