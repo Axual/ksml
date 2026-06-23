@@ -229,7 +229,9 @@ public class KSMLRunner {
                 }
 
                 final var notationConfig = notationEntry.getValue();
-                final var factoryName = notationConfig != null ? notationConfig.type() : "unknown";
+                final var factoryName = notationConfig != null && notationConfig.type() != null
+                        ? notationConfig.type().jsonValue()
+                        : null;
                 if (notationConfig != null && factoryName != null) {
                     final var factory = notationFactories.notations().get(factoryName);
                     if (factory == null) {

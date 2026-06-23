@@ -183,7 +183,7 @@
           "description" : "The name of the Schema Registry configuration to use, if applicable for the type"
         },
         "type" : {
-          "type" : "string",
+          "$ref" : "#/$defs/NotationType",
           "description" : "Serializer implementation type"
         }
       },
@@ -197,6 +197,11 @@
       "additionalProperties" : {
         "$ref" : "#/$defs/NotationConfig"
       }
+    },
+    "NotationType" : {
+      "type" : "string",
+      "enum" : [ "apicurio_avro", "confluent_avro", "apicurio_jsonschema", "apicurio_protobuf", "csv", "xml", "json", "binary" ],
+      "description" : "Supported notation serializer implementations."
     },
     "PrometheusConfig" : {
       "type" : "object",
