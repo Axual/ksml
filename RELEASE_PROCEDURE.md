@@ -154,6 +154,7 @@ skopeo list-tags docker://registry.axual.io/opensource/charts/ksml
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
    Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.1.1-SNAPSHOT" and "appVersion: "1.1.1-snapshot""
+   Add: `git add **/pom.xml **/NOTICE.txt **/Chart.yaml`
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin release/1.1.x`
 
@@ -165,6 +166,7 @@ skopeo list-tags docker://registry.axual.io/opensource/charts/ksml
    mvn clean package -DskipTests # To generate NOTICE.TXT
    ```
    Update `packaging/helm-charts/ksml/Chart.yaml` version and appVersion, i.e. "version: 1.2.0-SNAPSHOT" and "appVersion: "1.2.0-snapshot""
+   Add: `git add **/pom.xml **/NOTICE.txt **/Chart.yaml`
    Commit: `git commit -m "Prepare for next development iteration"`
    Push: `git push origin main`
 
