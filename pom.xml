@@ -142,6 +142,11 @@
         <!-- Following properties filled at build time by jacoco -->
         <surefireArgLine/>
         <failsafeArgLine/>
+        <!-- JVM flags for JDK 24+: grant native access (Truffle/GraalPy load native libs) and allow
+             sun.misc.Unsafe memory access (protobuf, Truffle). Without these the JVM prints
+             "restricted method"/"terminally deprecated Unsafe" warnings at startup. The build runs on
+             GraalVM/JDK 25, so both flags are always valid here. -->
+        <jdk24PlusJvmArgs>--enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow</jdk24PlusJvmArgs>
 
         <!-- License properties -->
         <license.licensename>apache_v2</license.licensename>
@@ -646,7 +651,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.plugin.version}</version>
                     <configuration>
-                        <argLine>${surefireArgLine}</argLine>
+                        <argLine>${surefireArgLine} ${jdk24PlusJvmArgs}</argLine>
                     </configuration>
                 </plugin>
 
@@ -655,7 +660,7 @@
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven.failsafe.plugin.version}</version>
                     <configuration>
-                        <argLine>${failsafeArgLine}</argLine>
+                        <argLine>${failsafeArgLine} ${jdk24PlusJvmArgs}</argLine>
                     </configuration>
                 </plugin>
 
