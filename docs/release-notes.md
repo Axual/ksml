@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [1.3.0 (2026-06-23)](#130-2026-06-23)
         * [1.2.1 (2026-05-08)](#121-2026-05-08)
         * [1.2.0 (2026-03-25)](#120-2026-03-25)
         * [1.1.0 (2025-09-18)](#110-2025-09-18)
@@ -28,9 +29,22 @@
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
 
-## 1.3.0-SNAPSHOT
+## 1.3.0 (2026-06-23)
 
 * Apicurio Avro notation changed the default for `apicurio.registry.find-latest` from `false` to `true`, to fix [issue #290](https://github.com/Axual/ksml/issues/290). This setting can be overridden in the config to get the old behavior.
+* Removed SOAP notation support                                                                                                                   
+* Added KSML pipeline testing framework                                                                                                           
+* Added schema evolution compatibility tests for Avro, JSON Schema, and Protobuf
+* Fixed Apicurio authentication                                                                                                                   
+* Fixed nested schema handling in Apicurio serdes                                                                                                 
+* Fixed schema resolving flags in UserTypeParser                                                                                                  
+* Fixed field defaults in JSON Schema serialization and Avro union ordering for optional fields                                                 
+* Fixed silent integer overflow in Avro schema evolution
+* Fixed crash on Avro schemas with composite default values                                                                                       
+* Added path traversal safeguard in pipeline definitions
+* Bumped Confluent serdes to 8.3.0                                                                                                                
+* Improved code quality and fixed JVM warnings                                                                                                  
+* Updated to latest RedHat UBI base image and other dependencies
 
 ## 1.2.1 (2026-05-08)
 

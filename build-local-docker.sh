@@ -5,7 +5,7 @@
 
 set -e  # Exit on any error
 
-mvn clean package -DskipITs=true
+mvn clean package -DskipITs=true -P '!sonarqube'
 
 # Prepare build artifacts
 echo "  - Creating build-output/ directory"

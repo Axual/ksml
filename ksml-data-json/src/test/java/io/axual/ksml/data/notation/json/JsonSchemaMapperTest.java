@@ -768,7 +768,7 @@ class JsonSchemaMapperTest {
     void enumDefaultFromDataEnumIsEmittedViaToStringFallback() throws Exception {
         final var colorSchema = new EnumSchema(List.of(
                 EnumSchema.Symbol.of("RED"), EnumSchema.Symbol.of("GREEN"), EnumSchema.Symbol.of("BLUE")));
-        // DataEnum is what Avro/Protobuf mappers produce for enum-typed defaults;
+        // DataEnum is what Avro/Protobuf mappers produce for enum-typed defaults,
         // the JSON Schema enum list always holds DataString, so Object.equals() returns false
         // across the two types and the toString fallback is the only path that matches.
         final var dataEnumDefault = new DataEnum(new EnumType(colorSchema), "RED");

@@ -20,7 +20,7 @@ For major/minor releases (e.g., 1.1.0, 2.0.0):
    mvn versions:set -DgenerateBackupPoms=false
    # Enter version like: 1.1.0-RC1
    ```
-3. Run `mvn clean package -DskipTests` to update NOTICE.txt files
+3. Run `mvn clean package -DskipTests -P '!sonarqube'` to update NOTICE.txt files
 4. Build, test, commit with message `Release 1.1.0-RC1`
 5. Tag: `git tag 1.1.0-RC1 -m "Release 1.1.0-RC1" -a`
 6. Push tag and test RC `git push origin 1.1.0-RC1`. For example by running e2e tests in Staging Cloud.
@@ -40,7 +40,7 @@ Still on `main` branch:
 
 2. Update NOTICE.txt files:
    ```bash
-   mvn clean package -DskipTests
+   mvn clean package -DskipTests -P '!sonarqube'
    ```
 
 3. Build Docker Image Locally:
@@ -60,7 +60,7 @@ Still on `main` branch:
     - Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
     - Start environment: `docker compose up -d`
     - Verify data generator: `docker compose logs example-producer -f`
-    - Execute `./run.sh` and verify:
+    - Execute `./examples/run.sh` and verify:
         - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
         - Wait ~2 minutes for examples to run without errors
         - Stop the script after verification
