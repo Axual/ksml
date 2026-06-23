@@ -1,0 +1,36 @@
+functions:
+  generate_sensordata_message:
+    type: generator
+    globalCode: |
+      import time
+      import random
+      sensorCounter = 0
+    code: |
+      global sensorCounter
+
+      key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
+      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+
+      # Generate random sensor measurement data
+      value = {
+        "name": key,
+        "timestamp": round(time.time()*1000),     # long timestamp (not string)
+        "value": str(random.randrange(0, 100)),
+        "type": random.choice(["AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE"]),  # Valid enum values
+        "unit": random.choice(["C", "F", "%", "Pa", "m2", "m", "boolean"]),
+        "color": random.choice(["black", "blue", "red", "yellow", "white"]) if random.random() > 0.3 else None,
+        "city": random.choice(["Amsterdam", "Utrecht", "Rotterdam", "The Hague", "Eindhoven"]) if random.random() > 0.3 else None,
+        "owner": random.choice(["Alice", "Bob", "Charlie", "Dave", "Evan"]) if random.random() > 0.3 else None
+      }
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, json)                    # Indicate the type of key and value
+
+producers:
+  # Produce an Avro SensorData message every 3 seconds
+  sensordata_avro_producer:
+    generator: generate_sensordata_message
+    interval: 3s
+    to:
+      topic: sensor_data_avro
+      keyType: string
+      valueType: avro:SensorData

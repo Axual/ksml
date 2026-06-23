@@ -1,0 +1,43 @@
+streams:
+  avro_input:
+    topic: sensor_data_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+
+  transformed_output:
+    topic: sensor_data_transformed
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  uppercase_sensor_name:
+    type: valueTransformer
+    code: |
+      # Simple transformation: uppercase the sensor name
+      result = dict(value) if value else None
+      if result and result.get("name"):
+        result["name"] = result["name"].upper()
+    expression: result
+    resultType: avro:SensorData
+
+pipelines:
+  transformation_pipeline:
+    from: avro_input
+    via:
+      # Step 1: Apply transformation
+      - type: transformValue
+        mapper: uppercase_sensor_name
+
+      # Step 2: Log the transformation
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Transformed sensor: name={}, type={}, timestamp={}, value={}{}", 
+                      value.get("name"), value.get("type"), value.get("timestamp"), 
+                      value.get("value"), value.get("unit"))
+            else:
+              log.info("Transformed sensor: null")
+
+    to: transformed_output

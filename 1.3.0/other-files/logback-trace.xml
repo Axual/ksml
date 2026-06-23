@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false">
+    <!-- Define appenders directly without includes -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX", UTC} %-5level %-36logger{36} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX", UTC} %-5level %-36logger{36} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger set to TRACE to allow all logs -->
+    <root level="TRACE">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDERR"/>
+    </root>
+
+    <!-- Reduce noise from Kafka and other libraries -->
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.apache.kafka.clients.consumer.ConsumerConfig" level="ERROR"/>
+    <logger name="org.apache.kafka.clients.producer.ProducerConfig" level="ERROR"/>
+    <logger name="org.apache.kafka.clients.admin.AdminClientConfig" level="ERROR"/>
+    <logger name="org.apache.kafka.streams.StreamsConfig" level="ERROR"/>
+    <logger name="io.confluent" level="WARN"/>
+    
+    <!-- Enable TRACE logging for KSML framework -->
+    <logger name="io.axual.ksml" level="TRACE"/>
+    
+    <!-- Enable TRACE for all user functions in logging-processor.yaml -->
+    <!-- KSML automatically takes the first letter of your YAML filename as the namespace abbreviation to keep logger names short and manageable.
+    For example: logging-producer.yaml means that the namespace is "l" -->
+    <logger name="l" level="TRACE"/>  <!-- Enables TRACE for ALL functions in logging-processor.yaml -->
+</configuration>
