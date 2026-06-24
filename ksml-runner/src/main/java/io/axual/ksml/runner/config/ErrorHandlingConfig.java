@@ -26,9 +26,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = false)
 @JsonClassDescription("Controls how consume, produce and processing errors are handled")
@@ -102,26 +108,29 @@ public class ErrorHandlingConfig {
         private Handler handler = Handler.STOP;
 
         @JsonClassDescription("Enumeration controlling error handling behaviour.")
+        @Getter(onMethod_ = @JsonValue)
+        @RequiredArgsConstructor
         public enum Handler {
-            @JsonProperty("stopOnFail")
-            STOP,
-            @JsonProperty("continueOnFail")
-            CONTINUE,
-            @JsonProperty("retryOnFail")
-            RETRY;
+            STOP("stopOnFail"),
+            CONTINUE("continueOnFail"),
+            RETRY("retryOnFail");
+
+            private final String jsonValue;
 
             @JsonCreator
-            public static Handler forValues(String value) {
+            public static Handler forValue(String value) {
                 if (value == null) {
                     return null;
                 }
-
-                return switch (value) {
-                    case "continue", "continueOnFail" -> CONTINUE;
-                    case "stop", "stopOnFail" -> STOP;
-                    case "retry", "retryOnFail" -> RETRY;
-                    default -> null;
-                };
+                for (final var handler : values()) {
+                    if (handler.jsonValue.equals(value)) {
+                        return handler;
+                    }
+                }
+                throw new IllegalArgumentException("Unknown error handler: " + value +
+                        ". Valid values: " + Arrays.stream(values())
+                        .map(Handler::jsonValue)
+                        .collect(Collectors.joining(", ")));
             }
         }
     }

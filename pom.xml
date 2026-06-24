@@ -69,6 +69,7 @@
         <module>ksml-reporting</module>
         <module>ksml-integration-tests</module>
         <module>ksml-examples-test</module>
+        <module>ksml-docs-test</module>
     </modules>
 
     <properties>
