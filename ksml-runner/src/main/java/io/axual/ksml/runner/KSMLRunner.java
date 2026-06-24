@@ -57,6 +57,7 @@ import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.backend.Runner;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
+import io.axual.ksml.runner.config.NotationConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionProvider;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionSubTypeResolver;
 import io.axual.ksml.runner.config.internal.StringMapDefinitionPropertiesResolver;
@@ -229,9 +230,7 @@ public class KSMLRunner {
                 }
 
                 final var notationConfig = notationEntry.getValue();
-                final var factoryName = notationConfig != null && notationConfig.type() != null
-                        ? notationConfig.type().jsonValue()
-                        : null;
+                final var factoryName = resolveFactoryName(notationConfig);
                 if (notationConfig != null && factoryName != null) {
                     final var factory = notationFactories.notations().get(factoryName);
                     if (factory == null) {
@@ -365,6 +364,17 @@ public class KSMLRunner {
         }
         // Explicit exit, need to find out which threads are actually stopping us
         System.exit(0);
+    }
+
+    /**
+     * Returns the wire-name string for the notation factory lookup, or {@code null} when the
+     * config or its type is missing. Extracted for testability.
+     */
+    static String resolveFactoryName(NotationConfig notationConfig) {
+        if (notationConfig == null || notationConfig.type() == null) {
+            return null;
+        }
+        return notationConfig.type().jsonValue();
     }
 
     private static void closeExecutorService(final ExecutorService executorService) throws ExecutionException {
