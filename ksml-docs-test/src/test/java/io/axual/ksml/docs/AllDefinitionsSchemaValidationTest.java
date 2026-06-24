@@ -62,20 +62,19 @@ class AllDefinitionsSchemaValidationTest {
     private static JsonSchema ksmlSchema;
 
     static Stream<Path> provideYamlFiles() throws URISyntaxException, IOException {
-        Path projectRoot = projectRoot();
+        final var projectRoot = projectRoot();
 
-        Path ksmlTestResourcesDir = projectRoot.resolve("ksml/src/test/resources");
-        Path integrationTestsDir = projectRoot.resolve("ksml-integration-tests/src/test/resources/docs-examples");
+        final var ksmlTestResourcesDir = projectRoot.resolve("ksml/src/test/resources");
+        final var integrationTestsDir = projectRoot.resolve("ksml-integration-tests/src/test/resources/docs-examples");
 
-        return Stream.of(
-                        walkForDefinitionYaml(ksmlTestResourcesDir),
+        return Stream.of(walkForDefinitionYaml(ksmlTestResourcesDir),
                         walkForDefinitionYaml(integrationTestsDir))
                 .flatMap(s -> s)
                 .sorted();
     }
 
     private static Path projectRoot() throws URISyntaxException {
-        var testResourcesUrl = AllDefinitionsSchemaValidationTest.class.getResource("/");
+        final var testResourcesUrl = AllDefinitionsSchemaValidationTest.class.getResource("/");
         if (testResourcesUrl == null) {
             throw new IllegalStateException("Test resources directory not found");
         }
@@ -98,13 +97,13 @@ class AllDefinitionsSchemaValidationTest {
         final var parser = new TopologyDefinitionParser("dummy");
         final var schemaJson = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode schemaNode = objectMapper.readTree(schemaJson);
+        final var objectMapper = new ObjectMapper();
+        final var schemaNode = objectMapper.readTree(schemaJson);
         // The generated schema permits additional properties by default; tighten this at the root so
         // we catch top-level typos like "functionss:" instead of "functions:".
         ((ObjectNode) schemaNode).put("additionalProperties", false);
 
-        JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
+        final var schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
         ksmlSchema = schemaFactory.getSchema(schemaNode);
     }
 
@@ -114,15 +113,15 @@ class AllDefinitionsSchemaValidationTest {
         assertNotNull(ksmlSchema, "Schema was not generated. Check generateSchema().");
         log.info("Validating: {}", yamlFile);
 
-        String yamlContent = Files.readString(yamlFile);
-        JsonNode jsonContent = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
+        final var yamlContent = Files.readString(yamlFile);
+        final var jsonContent = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
 
-        Set<ValidationMessage> violations = ksmlSchema.validate(jsonContent);
+        final var violations = ksmlSchema.validate(jsonContent);
 
         if (!violations.isEmpty()) {
-            StringBuilder errorMessages = new StringBuilder();
+            final var errorMessages = new StringBuilder();
             errorMessages.append("Schema validation failed for ").append(yamlFile).append(":\n");
-            for (ValidationMessage msg : violations) {
+            for (final var msg : violations) {
                 errorMessages.append("  - ").append(msg.getMessage()).append("\n");
             }
             fail(errorMessages.toString());

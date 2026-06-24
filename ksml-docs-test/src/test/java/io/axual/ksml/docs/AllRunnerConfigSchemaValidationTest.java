@@ -61,14 +61,13 @@ class AllRunnerConfigSchemaValidationTest {
     private static JsonSchema runnerSchema;
 
     static Stream<Path> provideRunnerYamlFiles() throws URISyntaxException, IOException {
-        Path projectRoot = projectRoot();
+        final var projectRoot = projectRoot();
 
-        Path ksmlTestResourcesDir = projectRoot.resolve("ksml/src/test/resources/docs-examples");
-        Path integrationTestsDir = projectRoot.resolve("ksml-integration-tests/src/test/resources/docs-examples");
-        Path examplesDir = projectRoot.resolve("examples");
+        final var ksmlTestResourcesDir = projectRoot.resolve("ksml/src/test/resources/docs-examples");
+        final var integrationTestsDir = projectRoot.resolve("ksml-integration-tests/src/test/resources/docs-examples");
+        final var examplesDir = projectRoot.resolve("examples");
 
-        return Stream.of(
-                        walkForRunnerYaml(ksmlTestResourcesDir),
+        return Stream.of(walkForRunnerYaml(ksmlTestResourcesDir),
                         walkForRunnerYaml(integrationTestsDir),
                         walkForRunnerYaml(examplesDir))
                 .flatMap(s -> s)
@@ -76,7 +75,7 @@ class AllRunnerConfigSchemaValidationTest {
     }
 
     private static Path projectRoot() throws URISyntaxException {
-        var testResourcesUrl = AllRunnerConfigSchemaValidationTest.class.getResource("/");
+        final var testResourcesUrl = AllRunnerConfigSchemaValidationTest.class.getResource("/");
         if (testResourcesUrl == null) {
             throw new IllegalStateException("Test resources directory not found");
         }
@@ -95,14 +94,14 @@ class AllRunnerConfigSchemaValidationTest {
 
     @BeforeAll
     static void generateSchema(@TempDir Path tempDir) throws Exception {
-        Path schemaPath = tempDir.resolve("ksml-runner-spec.json");
+        final var schemaPath = tempDir.resolve("ksml-runner-spec.json");
         KSMLRunner.main(new String[]{"--runner-schema", schemaPath.toString()});
 
         if (!Files.exists(schemaPath)) {
             throw new IllegalStateException("Schema generation produced no file at: " + schemaPath);
         }
 
-        JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
+        final var schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
         runnerSchema = schemaFactory.getSchema(Files.newInputStream(schemaPath));
         log.info("Generated and loaded runner schema from: {}", schemaPath);
     }
@@ -113,15 +112,15 @@ class AllRunnerConfigSchemaValidationTest {
         assertNotNull(runnerSchema, "Schema was not generated. Check generateSchema().");
         log.info("Validating: {}", yamlFile);
 
-        String yamlContent = Files.readString(yamlFile);
-        JsonNode jsonContent = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
+        final var yamlContent = Files.readString(yamlFile);
+        final var jsonContent = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
 
-        Set<ValidationMessage> violations = runnerSchema.validate(jsonContent);
+        final var violations = runnerSchema.validate(jsonContent);
 
         if (!violations.isEmpty()) {
-            StringBuilder errorMessages = new StringBuilder();
+            final var errorMessages = new StringBuilder();
             errorMessages.append("Schema validation failed for ").append(yamlFile).append(":\n");
-            for (ValidationMessage msg : violations) {
+            for (final var msg : violations) {
                 errorMessages.append("  - ").append(msg.getMessage()).append("\n");
             }
             fail(errorMessages.toString());
