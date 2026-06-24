@@ -93,6 +93,16 @@ Complete documentation of KSML configuration options:
 - Logging configuration
 - Environment variables
 
+### [Metrics Reference](metrics-reference.md)
+
+Complete documentation of the Prometheus metrics exposed by KSML:
+
+- Enabling the metrics endpoint
+- Custom KSML metrics, their labels and units
+- User-defined metrics from Python functions
+- Exported series per metric type
+- Other exposed metrics (Kafka, JVM, operating system)
+
 ## How to Use This Reference
 
 You can read through these reference topics in order for a comprehensive understanding, or jump to specific topics as needed:

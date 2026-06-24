@@ -58,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 class HelpEnrichingCollectorTest {
     private static final String EXECUTION_TIME_HELP = "Execution time statistics of a KSML user function per invocation; durations are in milliseconds and rates are per second";
     private static final String COUNTER_HELP = "User-defined counter metric registered from KSML user code";
+    private static final String APP_INFO_HELP = "Build and version information for the running KSML application; the value is always 1 and the details are exposed as labels";
     private static final String DEFAULT_HELP_PREFIX = "Attribute exposed for management";
 
     /**
@@ -191,6 +192,7 @@ class HelpEnrichingCollectorTest {
         void rewritesGaugeAndCounter() {
             final var input = MetricSnapshots.builder()
                     .metricSnapshot(gauge("ksml_execution_time_count", "Attribute exposed for management ..."))
+                    .metricSnapshot(gauge("ksml_app", "ksml:name=null,type=app-info,attribute=Value"))
                     .metricSnapshot(counter("ksml_user_defined_counter_count", "Attribute exposed for management ..."))
                     .build();
             final var collector = new HelpEnrichingCollector(new StubCollector(input));
@@ -198,6 +200,7 @@ class HelpEnrichingCollectorTest {
             final var result = collector.collect();
 
             assertEquals(EXECUTION_TIME_HELP, helpOf(result, "ksml_execution_time_count"));
+            assertEquals(APP_INFO_HELP, helpOf(result, "ksml_app"));
             assertEquals(COUNTER_HELP, helpOf(result, "ksml_user_defined_counter_count"));
             // the counter must stay a counter, not be downgraded to a gauge
             assertInstanceOf(CounterSnapshot.class, byName(result, "ksml_user_defined_counter_count"));

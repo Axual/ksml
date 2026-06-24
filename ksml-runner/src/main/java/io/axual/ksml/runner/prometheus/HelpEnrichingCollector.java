@@ -48,6 +48,7 @@ public final class HelpEnrichingCollector implements MultiCollector {
     // HELP text per KSML metric name prefix; a timer/meter expands into several metrics
     // (_count, _max, percentiles, rates) that share the prefix and therefore the description.
     private static final Map<String, String> HELP_BY_NAME_PREFIX = Map.of(
+            "ksml_app", "Build and version information for the running KSML application; the value is always 1 and the details are exposed as labels",
             "ksml_execution_time", "Execution time statistics of a KSML user function per invocation; durations are in milliseconds and rates are per second",
             "ksml_record_e2e_latency_avg_ms", "Average end-to-end latency of records from the source topic to this KSML processor node, in milliseconds",
             "ksml_record_e2e_latency_min_ms", "Minimum end-to-end latency of records from the source topic to this KSML processor node, in milliseconds",
@@ -78,6 +79,9 @@ public final class HelpEnrichingCollector implements MultiCollector {
         return delegate.getPrometheusNames();
     }
 
+    // A scrape returns a MetricSnapshots collection: one immutable MetricSnapshot per metric, each
+    // holding its metadata (name + HELP) and data points. We copy them through, swapping the HELP
+    // text on the ones we recognise.
     private MetricSnapshots enrich(MetricSnapshots snapshots) {
         final var builder = MetricSnapshots.builder();
         for (final var snapshot : snapshots) {
@@ -90,12 +94,18 @@ public final class HelpEnrichingCollector implements MultiCollector {
         final var metadata = snapshot.getMetadata();
         final var name = metadata.getName();
         final var help = helpFor(name);
+        // Not a KSML metric we describe, or it already has the right text: leave it as-is.
         if (help == null || help.equals(metadata.getHelp())) {
             return snapshot;
         }
+        // Snapshots are immutable, so we cannot just set the HELP; we rebuild the snapshot with new
+        // metadata (same name/unit, new help) and the original data points (the values + labels).
         final var enriched = metadata.getUnit() != null
                 ? new MetricMetadata(name, help, metadata.getUnit())
                 : new MetricMetadata(name, help);
+        // A snapshot has a concrete type per metric kind. GaugeSnapshot = a value that goes up/down
+        // (latency, execution time); CounterSnapshot = a value that only increases. We must rebuild
+        // the same type so the metric keeps its semantics.
         if (snapshot instanceof GaugeSnapshot gauge) {
             return new GaugeSnapshot(enriched, gauge.getDataPoints());
         }
