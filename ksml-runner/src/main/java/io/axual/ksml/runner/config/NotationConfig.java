@@ -28,9 +28,14 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.axual.ksml.runner.config.internal.StringMap;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+@JsonIgnoreProperties(ignoreUnknown = false)
 @JsonClassDescription("Specify and configure a specific type of notation, or format on how to read/write data from a Kafka topic.")
 @Builder
 @Jacksonized
@@ -46,26 +51,20 @@ public record NotationConfig(
         StringMap config) {
 
     @JsonClassDescription("Supported notation serializer implementations.")
+    @Getter(onMethod_ = @JsonValue)
+    @RequiredArgsConstructor
     public enum NotationType {
         // Schema-registry-backed notations (loaded via ServiceLoader)
-        @JsonProperty("apicurio_avro")
         APICURIO_AVRO("apicurio_avro"),
-        @JsonProperty("confluent_avro")
         CONFLUENT_AVRO("confluent_avro"),
-        @JsonProperty("apicurio_jsonschema")
         APICURIO_JSONSCHEMA("apicurio_jsonschema"),
-        @JsonProperty("apicurio_protobuf")
         APICURIO_PROTOBUF("apicurio_protobuf"),
         // Built-in notations (csv, xml are loaded via ServiceLoader; json, binary are hardcoded
         // in NotationFactories). The reference docs treat these as "no configuration needed",
         // but the runtime accepts them in the notations block, so the schema mirrors that.
-        @JsonProperty("csv")
         CSV("csv"),
-        @JsonProperty("xml")
         XML("xml"),
-        @JsonProperty("json")
         JSON("json"),
-        @JsonProperty("binary")
         BINARY("binary");
         // TODO: ConfluentJsonSchemaNotationProvider and ConfluentProtobufNotationProvider exist
         // in ksml-data-jsonschema-confluent and ksml-data-protobuf-confluent but their
@@ -75,26 +74,20 @@ public record NotationConfig(
 
         private final String jsonValue;
 
-        NotationType(String jsonValue) {
-            this.jsonValue = jsonValue;
-        }
-
-        @JsonValue
-        public String jsonValue() {
-            return jsonValue;
-        }
-
         @JsonCreator
         public static NotationType forValue(String value) {
             if (value == null) {
                 return null;
             }
-            for (NotationType nt : values()) {
+            for (final var nt : values()) {
                 if (nt.jsonValue.equals(value)) {
                     return nt;
                 }
             }
-            return null;
+            throw new IllegalArgumentException("Unknown notation type: " + value +
+                    ". Valid values: " + Arrays.stream(values())
+                    .map(NotationType::jsonValue)
+                    .collect(Collectors.joining(", ")));
         }
     }
 }

@@ -21,14 +21,12 @@ package io.axual.ksml.runner;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.victools.jsonschema.generator.FieldScope;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
-import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
@@ -461,15 +459,15 @@ public class KSMLRunner {
 
     @SuppressWarnings("java:S106")
     private static void printRunnerSchema(String filename) {
-        JacksonModule moduleJackson = new JacksonModule(
+        final var moduleJackson = new JacksonModule(
                 JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
                 JacksonOption.ALWAYS_REF_SUBTYPES,
-                JacksonOption.FLATTENED_ENUMS_FROM_JSONPROPERTY);
-        JakartaValidationModule moduleJakarta = new JakartaValidationModule(
+                JacksonOption.FLATTENED_ENUMS_FROM_JSONVALUE);
+        final var moduleJakarta = new JakartaValidationModule(
                 JakartaValidationOption.INCLUDE_PATTERN_EXPRESSIONS
         );
 
-        SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(
+        final var configBuilder = new SchemaGeneratorConfigBuilder(
                 SchemaVersion.DRAFT_2019_09, OptionPreset.PLAIN_JSON)
                 .with(moduleJackson)
                 .with(moduleJakarta)
@@ -488,10 +486,10 @@ public class KSMLRunner {
         ;
 
         // Construct the real schema
-        SchemaGeneratorConfig config = configBuilder.build();
-        SchemaGenerator generator = new SchemaGenerator(config);
-        JsonNode jsonSchema = generator.generateSchema(KSMLRunnerConfig.class);
-        String schema = jsonSchema.toPrettyString();
+        final var config = configBuilder.build();
+        final var generator = new SchemaGenerator(config);
+        final var jsonSchema = generator.generateSchema(KSMLRunnerConfig.class);
+        final var schema = jsonSchema.toPrettyString();
 
         try {
             if (filename != null) {
@@ -576,11 +574,14 @@ public class KSMLRunner {
         throw new ConfigException("No configuration found");
     }
 
-    private static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config) {
+    static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config) {
         final var handlerType = switch (config.handler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
             case RETRY -> ErrorHandler.HandlerType.RETRY_ON_FAIL;
+            // An explicit "handler:" (null) in the config overrides the Handler.STOP field default,
+            // fall back to the documented default rather than throwing a NullPointerException here.
+            case null -> ErrorHandler.HandlerType.STOP_ON_FAIL;
         };
         return new ErrorHandler(
                 config.log(),

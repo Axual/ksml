@@ -29,11 +29,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class NotationTypeTest {
 
     private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     @ParameterizedTest(name = "forValue(\"{0}\") -> {1}")
     @CsvSource({
@@ -50,7 +52,7 @@ class NotationTypeTest {
         assertThat(NotationType.forValue(wireName)).isEqualTo(expected);
     }
 
-    @ParameterizedTest(name = "forValue(\"{0}\") returns null")
+    @ParameterizedTest(name = "forValue(\"{0}\") throws")
     @ValueSource(strings = {
             "confluentavro",          // typo from issue #369 demo
             "apicurio_json_schema",   // typo from issue #369 description
@@ -58,13 +60,31 @@ class NotationTypeTest {
             "apicurio_avro ",         // trailing whitespace
             ""                        // empty
     })
-    void forValueReturnsNullForUnknownInput(String input) {
-        assertThat(NotationType.forValue(input)).isNull();
+    void forValueThrowsForUnknownInput(String input) {
+        assertThatThrownBy(() -> NotationType.forValue(input))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unknown notation type: " + input)
+                .hasMessageContaining("Valid values:");
     }
 
     @Test
     void forValueReturnsNullForNullInput() {
         assertThat(NotationType.forValue(null)).isNull();
+    }
+
+    @ParameterizedTest(name = "{1} serializes to \"{0}\"")
+    @CsvSource({
+            "apicurio_avro,      APICURIO_AVRO",
+            "confluent_avro,     CONFLUENT_AVRO",
+            "apicurio_jsonschema,APICURIO_JSONSCHEMA",
+            "apicurio_protobuf,  APICURIO_PROTOBUF",
+            "csv,                CSV",
+            "xml,                XML",
+            "json,               JSON",
+            "binary,             BINARY"
+    })
+    void serializesEachConstantToWireName(String wireName, NotationType nt) throws Exception {
+        assertThat(JSON.writeValueAsString(nt)).isEqualTo("\"" + wireName + "\"");
     }
 
     @Test
@@ -88,13 +108,28 @@ class NotationTypeTest {
     }
 
     @Test
-    void unknownTypeDeserializesAsNullType() {
+    void unknownPropertyFailsDeserialization() {
+        // NotationConfig rejects unknown properties (ignoreUnknown = false), matching the
+        // schema's "additionalProperties": false, so a typo'd key fails fast instead of being
+        // silently dropped.
+        final var yaml = """
+                type: confluent_avro
+                schemaRegsitry: my_sr
+                """;
+        assertThrows(Exception.class, () -> YAML.readValue(yaml, NotationConfig.class));
+    }
+
+    @Test
+    void unknownTypeFailsDeserialization() {
         final var yaml = """
                 type: confluentavro
                 """;
-        final var cfg = assertDoesNotThrow(() -> YAML.readValue(yaml, NotationConfig.class));
-        // @JsonCreator forValue returns null for unknown -> the field is null and downstream
-        // (schema validation and KSMLRunner.resolveFactoryName) refuses to use it
-        assertThat(cfg.type()).isNull();
+        // @JsonCreator forValue throws for unknown values -> Jackson wraps it and fails the
+        // deserialization, so the runner stops at startup with a clear error instead of
+        // silently registering a broken notation.
+        final var thrown = assertThrows(Exception.class,
+                () -> YAML.readValue(yaml, NotationConfig.class));
+        assertThat(thrown).hasRootCauseInstanceOf(IllegalArgumentException.class);
+        assertThat(thrown.getMessage()).contains("Unknown notation type: confluentavro");
     }
 }
