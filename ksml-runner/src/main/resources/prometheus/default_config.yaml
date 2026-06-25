@@ -10,7 +10,7 @@ rules:
       app_id: "$1"
       name: "$2"
       version: "$3"
-      build-time: "$4"
+      build_time: "$4"
     type: GAUGE
     value: 1
     cached: true

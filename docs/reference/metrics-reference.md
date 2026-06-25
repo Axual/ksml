@@ -101,7 +101,7 @@ metric name can be reused with different tag combinations to produce distinct se
 |----------|-------|
 | Metric   | `ksml_app` |
 | Type     | Gauge |
-| Labels   | `app_id`, `name`, `version`, `build-time` |
+| Labels   | `app_id`, `name`, `version`, `build_time` |
 
 ## Exported Series per Metric Type
 
