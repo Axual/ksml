@@ -96,4 +96,5 @@ nav:
       - Data Types and Notations Reference: reference/data-and-formats-reference.md
       - State Store Reference: reference/state-store-reference.md
       - Configuration Reference: reference/configuration-reference.md
+      - Metrics Reference: reference/metrics-reference.md
   - Release Notes: release-notes.md

@@ -1,13 +1,16 @@
 lowercaseOutputName: true
 lowercaseOutputLabelNames: true
 rules:
-  - pattern: 'ksml<type=app-info, app-id=(.+), app-name=(.+), app-version=(.+), build-time=(.+)>Value:'
+  # app-name, app-version and build-time are ObjectName.quote()'d by KsmlInfo (the build timestamp
+  # contains colons), so they appear wrapped in double quotes in the bean name. Capture inside the
+  # quotes to keep the label values clean, and consume the trailing empty-attribute group (><>).
+  - pattern: 'ksml<type=app-info, app-id=(.+), app-name="(.+)", app-version="(.*)", build-time="(.*)"><>Value:'
     name: ksml_app
     labels:
       app_id: "$1"
       name: "$2"
       version: "$3"
-      build-time: "$4"
+      build_time: "$4"
     type: GAUGE
     value: 1
     cached: true

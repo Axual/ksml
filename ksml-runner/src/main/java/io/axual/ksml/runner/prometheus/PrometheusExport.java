@@ -31,7 +31,10 @@ import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.management.MalformedObjectNameException;
 import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Optional;
 
@@ -57,7 +60,7 @@ public class PrometheusExport implements Closeable {
             log.info("Prometheus export is disabled");
             return;
         }
-        var configFile = config.getConfigFile();
+        final var configFile = config.getConfigFile();
         if (configFile == null) {
             log.info("No Prometheus export config file found, export disabled");
             return;
@@ -66,10 +69,7 @@ public class PrometheusExport implements Closeable {
 
         new BuildInfoMetrics().register(PrometheusRegistry.defaultRegistry);
         JvmMetrics.builder().register(PrometheusRegistry.defaultRegistry);
-        new JmxCollector(configFile, JmxCollector.Mode.AGENT)
-                .register(PrometheusRegistry.defaultRegistry);
-
-
+        registerJmxCollectorWithHelpText(PrometheusRegistry.defaultRegistry, configFile);
 
         httpServer = new HTTPServerFactory()
                 .createHTTPServer(
@@ -77,6 +77,22 @@ public class PrometheusExport implements Closeable {
                         config.getPort(),
                         PrometheusRegistry.defaultRegistry,
                         configFile);
+    }
+
+    /**
+     * Registers the JMX exporter on the given registry with KSML metric HELP text enrichment.
+     * <p>
+     * The collector is registered first so it initializes its operational metrics
+     * (jmx_scrape_duration_seconds, jmx_config_reload_*) as separate collectors on the registry. It is
+     * then unregistered and replaced by a {@link HelpEnrichingCollector} wrapper: unregistering the
+     * MultiCollector leaves those operational metrics in place, while the wrapper exposes the JMX
+     * metrics with descriptive HELP text.
+     */
+    static void registerJmxCollectorWithHelpText(PrometheusRegistry registry, File configFile) throws IOException, MalformedObjectNameException {
+        final var jmxCollector = new JmxCollector(configFile, JmxCollector.Mode.AGENT);
+        jmxCollector.register(registry);
+        registry.unregister(jmxCollector);
+        registry.register(new HelpEnrichingCollector(jmxCollector));
     }
 
     public synchronized void stop() {
