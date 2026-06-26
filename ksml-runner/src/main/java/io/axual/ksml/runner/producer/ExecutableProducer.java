@@ -80,21 +80,29 @@ public class ExecutableProducer {
     ExecutableProducer(UserFunction generator,
                        ProducerStrategy producerStrategy,
                        MetricTags tags,
-                       String topic,
-                       UserType keyType,
-                       UserType valueType,
                        UserFunction partitioner,
-                       Serializer<Object> keySerializer,
-                       Serializer<Object> valueSerializer) {
+                       ProducerTarget target) {
         this.name = generator.name;
         this.generator = new UserGenerator(generator, tags);
         this.producerStrategy = producerStrategy;
-        this.topic = topic;
-        this.keyType = keyType;
-        this.valueType = valueType;
+        this.topic = target.topic();
+        this.keyType = target.keyType();
+        this.valueType = target.valueType();
         this.partitioner = partitioner != null ? new UserStreamPartitioner(partitioner, tags) : null;
-        this.keySerializer = keySerializer;
-        this.valueSerializer = valueSerializer;
+        this.keySerializer = target.keySerializer();
+        this.valueSerializer = target.valueSerializer();
+    }
+
+    /**
+     * Groups the destination topic together with the key/value types and their serializers. Keeping
+     * these related values in one parameter object keeps the {@link ExecutableProducer} constructor
+     * below the parameter-count threshold and documents that they describe a single producer target.
+     */
+    record ProducerTarget(String topic,
+                          UserType keyType,
+                          UserType valueType,
+                          Serializer<Object> keySerializer,
+                          Serializer<Object> valueSerializer) {
     }
 
     @SuppressWarnings("java:S6218")
@@ -139,7 +147,8 @@ public class ExecutableProducer {
         final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
 
         // Set up the producer
-        return new ExecutableProducer(generator, producerStrategy, tags, target.topic(), target.keyType(), target.valueType(), partitioner, keySerializer, valueSerializer);
+        final var producerTarget = new ProducerTarget(target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer);
+        return new ExecutableProducer(generator, producerStrategy, tags, partitioner, producerTarget);
     }
 
     public void produceMessages(Producer<byte[], byte[]> producer) {

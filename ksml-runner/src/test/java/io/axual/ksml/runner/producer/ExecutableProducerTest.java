@@ -188,16 +188,14 @@ class ExecutableProducerTest {
 
     private static ExecutableProducer executableProducerFor(DataObject generated) {
         final var tags = new MetricTags();
+        final var target = new ExecutableProducer.ProducerTarget(
+                "output-topic", STRING_TYPE, STRING_TYPE, passthroughSerializer(), passthroughSerializer());
         return new ExecutableProducer(
                 generatorReturning(generated),
                 onceStrategy(tags),
                 tags,
-                "output-topic",
-                STRING_TYPE,
-                STRING_TYPE,
                 null, // no partitioner
-                passthroughSerializer(),
-                passthroughSerializer());
+                target);
     }
 
     @Test
