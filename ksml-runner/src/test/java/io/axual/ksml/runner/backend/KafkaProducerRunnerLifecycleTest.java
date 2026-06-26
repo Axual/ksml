@@ -21,20 +21,30 @@ package io.axual.ksml.runner.backend;
  */
 
 import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.runner.producer.ExecutableProducer;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import io.axual.ksml.runner.exception.RunnerException;
+
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Lifecycle tests for {@link KafkaProducerRunner} that do not require a Python/GraalVM runtime: with no
@@ -102,5 +112,73 @@ class KafkaProducerRunnerLifecycleTest {
         runner.run();
 
         assertThat(runner.getState()).isEqualTo(Runner.State.STOPPED);
+    }
+
+    @Test
+    @DisplayName("A failing producer factory moves the runner to FAILED and reports a RunnerException")
+    void failingProducerFactoryFailsTheRunner() {
+        final Function<Map<String, Object>, Producer<byte[], byte[]>> failingFactory = config -> {
+            throw new IllegalStateException("cannot create producer");
+        };
+        final var runner = new KafkaProducerRunner(configWith(Map.of()), failingFactory);
+
+        assertThatThrownBy(runner::run)
+                .isInstanceOf(RunnerException.class)
+                .hasMessageContaining("Unhandled producer exception")
+                .hasCauseInstanceOf(IllegalStateException.class);
+
+        assertThat(runner.getState()).isEqualTo(Runner.State.FAILED);
+    }
+
+    @Test
+    @DisplayName("The public constructor wires the default resolving producer and runs with no producers")
+    void publicConstructorUsesDefaultProducerFactory() {
+        // Exercises the production constructor (default ResolvingProducer factory). With no producer
+        // definitions the real producer is created from the config but nothing is ever scheduled.
+        final var config = KafkaProducerRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(Map.of("bootstrap.servers", "localhost:9092"))
+                .pythonContextConfig(PythonContextConfig.builder().build())
+                .build();
+        final var runner = new KafkaProducerRunner(config);
+
+        runner.run();
+
+        assertThat(runner.getState()).isEqualTo(Runner.State.STOPPED);
+    }
+
+    @Test
+    @DisplayName("runScheduledProducers produces, reschedules while requested, and stops when nothing is due")
+    void runScheduledProducersReschedulesUntilDone() {
+        final var runner = new KafkaProducerRunner(configWith(Map.of()), new CapturingProducerFactory());
+        final var mockProducer = new MockProducer<>(true, null, new ByteArraySerializer(), new ByteArraySerializer());
+
+        // A stubbed producer that asks to be rescheduled once, then stops.
+        final var executableProducer = mock(ExecutableProducer.class);
+        when(executableProducer.shouldReschedule()).thenReturn(true, false);
+        when(executableProducer.interval()).thenReturn(Duration.ZERO);
+        runner.scheduler.schedule(executableProducer);
+
+        runner.runScheduledProducers(mockProducer);
+
+        // Produced on the initial run and once more after the single reschedule.
+        verify(executableProducer, times(2)).produceMessages(mockProducer);
+        assertThat(runner.scheduler.hasScheduledItems()).isFalse();
+    }
+
+    @Test
+    @DisplayName("runScheduledProducers does not reschedule a producer that is finished")
+    void runScheduledProducersStopsWhenNotRescheduling() {
+        final var runner = new KafkaProducerRunner(configWith(Map.of()), new CapturingProducerFactory());
+        final var mockProducer = new MockProducer<>(true, null, new ByteArraySerializer(), new ByteArraySerializer());
+
+        final var executableProducer = mock(ExecutableProducer.class);
+        when(executableProducer.shouldReschedule()).thenReturn(false);
+        runner.scheduler.schedule(executableProducer);
+
+        runner.runScheduledProducers(mockProducer);
+
+        verify(executableProducer, times(1)).produceMessages(mockProducer);
+        assertThat(runner.scheduler.hasScheduledItems()).isFalse();
     }
 }

@@ -53,6 +53,7 @@ public record NotationConfig(
     @JsonClassDescription("Supported notation serializer implementations.")
     @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
+    @SuppressWarnings("java:S1135")
     public enum NotationType {
         // Schema-registry-backed notations (loaded via ServiceLoader)
         APICURIO_AVRO("apicurio_avro"),

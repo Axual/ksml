@@ -68,7 +68,7 @@ class PrometheusExportTest {
         config.port(0); // bind to an ephemeral port so the test never clashes with a fixed port
 
         final var export = new PrometheusExport(config);
-        try {
+        try (export; final var httpClient = HttpClient.newHttpClient()) {
             export.start();
 
             final var server = httpServerOf(export);
@@ -77,13 +77,11 @@ class PrometheusExportTest {
             assertThat(boundPort).isPositive();
 
             // The exporter actually serves Prometheus metrics over HTTP.
-            final var response = HttpClient.newHttpClient().send(
+            final var response = httpClient.send(
                     HttpRequest.newBuilder(URI.create("http://localhost:" + boundPort + "/metrics")).build(),
                     HttpResponse.BodyHandlers.ofString());
             assertThat(response.statusCode()).isEqualTo(200);
             assertThat(response.body()).isNotEmpty();
-        } finally {
-            export.close();
         }
 
         // close() clears the server reference, and a second close() is a harmless no-op.

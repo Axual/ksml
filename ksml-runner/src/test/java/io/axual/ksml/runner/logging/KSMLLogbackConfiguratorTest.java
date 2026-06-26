@@ -116,4 +116,51 @@ class KSMLLogbackConfiguratorTest {
         assertEquals(0, appenders.size());
     }
 
+    @Test
+    @DisplayName("A blank environment variable value falls back to the default configuration")
+    @SetSystemProperty(key = "logback.test.id", value = "blankShouldNotAppear")
+    void configureWithBlankEnvironmentVariable() {
+        final var configurator = new KSMLLogbackConfigurator();
+        configurator.environmentVariableLookup = _ -> "   "; // blank value is ignored
+        configurator.setContext(spiedContext);
+        configurator.configure(spiedContext);
+
+        // Falls back to the default logback-test.xml.
+        assertEquals(1, MockAppender.APPENDERS.get("fixed-from-standard-joran-lookup").size());
+        assertEquals(0, MockAppender.APPENDERS.get("blankShouldNotAppear").size());
+    }
+
+    @Test
+    @DisplayName("A non-existent config reference that is neither URL, resource nor file falls back to the default")
+    @SetSystemProperty(key = "logback.test.id", value = "missingShouldNotAppear")
+    void configureWithUnresolvableReference() {
+        final var configurator = new KSMLLogbackConfigurator();
+        // Not a valid URL, not a classpath resource and not an existing file -> nothing is resolved.
+        configurator.environmentVariableLookup = _ -> "/does/not/exist/logback-missing.xml";
+        configurator.setContext(spiedContext);
+        configurator.configure(spiedContext);
+
+        assertEquals(1, MockAppender.APPENDERS.get("fixed-from-standard-joran-lookup").size());
+        assertEquals(0, MockAppender.APPENDERS.get("missingShouldNotAppear").size());
+    }
+
+    @Test
+    @DisplayName("A malformed configuration file is reported as a warning rather than thrown")
+    @SetSystemProperty(key = "logback.test.id", value = "malformed")
+    @SneakyThrows
+    void configureWithMalformedConfigFile(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tempDir) {
+        final var malformed = tempDir.resolve("broken-logback.xml");
+        java.nio.file.Files.writeString(malformed, "<configuration><appender"); // not well-formed XML
+
+        final var configurator = new KSMLLogbackConfigurator();
+        configurator.environmentVariableLookup = _ -> malformed.toUri().toString();
+        configurator.setContext(spiedContext);
+        // configureByResource throws a JoranException, which configure() catches and records as a warning.
+        configurator.configure(spiedContext);
+
+        final var hasWarning = spiedContext.getStatusManager().getCopyOfStatusList().stream()
+                .anyMatch(status -> status.getMessage().contains("Could not configure KSML logging"));
+        org.junit.jupiter.api.Assertions.assertTrue(hasWarning, "a warning status should be recorded for the malformed config");
+    }
+
 }

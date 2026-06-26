@@ -114,11 +114,11 @@ class KSMLRunnerKSMLConfigTest {
         notations.add("myAvro", NotationConfig.builder().type(NotationConfig.NotationType.CONFLUENT_AVRO).build());
         final var ksmlConfig = new KSMLConfig();
         ksmlConfig.notations(notations);
-
-        assertEquals(1, ksmlConfig.notations().size());
-        assertEquals(NotationConfig.NotationType.CONFLUENT_AVRO, ksmlConfig.notations().get("myAvro").type());
+        final var ksmlNotations = ksmlConfig.notations();
+        assertEquals(1, ksmlNotations.size());
+        assertEquals(NotationConfig.NotationType.CONFLUENT_AVRO, ksmlNotations.get("myAvro").type());
         assertThrows(UnsupportedOperationException.class,
-                () -> ksmlConfig.notations().clear(),
+                ksmlNotations::clear,
                 "the accessor must return a read-only view");
     }
 
@@ -129,11 +129,11 @@ class KSMLRunnerKSMLConfigTest {
         registries.add("primary", SchemaRegistryConfig.builder().build());
         final var ksmlConfig = new KSMLConfig();
         ksmlConfig.schemaRegistries(registries);
-
-        assertEquals(1, ksmlConfig.schemaRegistries().size());
-        assertTrue(ksmlConfig.schemaRegistries().containsKey("primary"));
+        final var ksmlSchemaRegistries = ksmlConfig.schemaRegistries();
+        assertEquals(1, ksmlSchemaRegistries.size());
+        assertTrue(ksmlSchemaRegistries.containsKey("primary"));
         assertThrows(UnsupportedOperationException.class,
-                () -> ksmlConfig.schemaRegistries().clear(),
+                ksmlSchemaRegistries::clear,
                 "the accessor must return a read-only view");
     }
 
@@ -169,6 +169,29 @@ class KSMLRunnerKSMLConfigTest {
     }
 
     @Test
+    @DisplayName("definitions() skips entries whose value is null")
+    void definitionsSkipNullEntries() {
+        final var defs = new KSMLConfig.KsmlDefinitionMap();
+        defs.add("nullEntry", null);
+        final var ksmlConfig = new KSMLConfig();
+        ksmlConfig.definitions(defs);
+
+        assertTrue(ksmlConfig.definitions().isEmpty(), "null definition entries must be skipped");
+    }
+
+    @Test
+    @DisplayName("A directory accessor throws when the configured path is a regular file")
+    void directoryAccessorRejectsNonDirectory(@TempDir Path tempDir) throws Exception {
+        final var file = tempDir.resolve("not-a-dir.txt");
+        Files.writeString(file, "content");
+        final var ksmlConfig = new KSMLConfig();
+        ksmlConfig.schemaDirectory(file.toString());
+
+        assertThrows(ConfigException.class, ksmlConfig::schemaDirectory,
+                "a path that is a regular file is not a valid directory");
+    }
+
+    @Test
     @DisplayName("definitions() throws when a referenced file does not exist")
     void definitionsThrowOnMissingFile() {
         final var defs = new KSMLConfig.KsmlDefinitionMap();
@@ -179,6 +202,45 @@ class KSMLRunnerKSMLConfigTest {
 
         assertThrows(ConfigException.class, ksmlConfig::definitions,
                 "a missing definition file should fail fast");
+    }
+
+    @Test
+    @DisplayName("errorHandlingConfig() returns the configured instance when present")
+    void errorHandlingConfigReturnsExistingInstance() {
+        final var ksmlConfig = new KSMLConfig(); // field is initialized with a default instance
+        final var existing = ksmlConfig.errorHandlingConfig();
+
+        assertNotNull(existing);
+        // A second call returns the same default instance (the non-null branch).
+        assertSame(existing, ksmlConfig.errorHandlingConfig());
+    }
+
+    @Test
+    @DisplayName("storageDirectory creation fails with a ConfigException when the parent is a file")
+    void storageDirectoryCreationFailsWhenParentIsAFile(@TempDir Path tempDir) throws Exception {
+        final var blocker = tempDir.resolve("blocker");
+        Files.writeString(blocker, "i am a file"); // a regular file where a directory parent is expected
+        final var ksmlConfig = new KSMLConfig();
+        ksmlConfig.storageDirectory(blocker.resolve("child").toString());
+        ksmlConfig.createStorageDirectory(true);
+
+        assertThrows(ConfigException.class, ksmlConfig::storageDirectory,
+                "creating a directory under a regular file should fail");
+    }
+
+    @Test
+    @DisplayName("definitions() skips a referenced file that cannot be parsed")
+    void definitionsSkipUnparseableFile(@TempDir Path tempDir) throws Exception {
+        final var badFile = tempDir.resolve("broken.yaml");
+        Files.writeString(badFile, "foo: [1, 2, 3"); // unterminated flow sequence -> parse error
+        final var defs = new KSMLConfig.KsmlDefinitionMap();
+        defs.add("broken", new KsmlFilePath("broken.yaml"));
+        final var ksmlConfig = new KSMLConfig();
+        ksmlConfig.configDirectory(tempDir.toString());
+        ksmlConfig.definitions(defs);
+
+        // The IOException while reading is caught and logged, so the entry is simply absent.
+        assertTrue(ksmlConfig.definitions().isEmpty(), "an unparseable definition file is skipped");
     }
 
     @Test

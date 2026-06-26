@@ -95,6 +95,29 @@ class KSMLRunnerQuerierTest {
     }
 
     @Test
+    @DisplayName("Key metadata and store queries are delegated to the underlying Kafka Streams instance")
+    void delegatesKeyMetadataAndStoreQueries() {
+        final var kafkaStreams = mock(KafkaStreams.class);
+        final var streamsRunner = mock(KafkaStreamsRunner.class);
+        when(streamsRunner.kafkaStreams()).thenReturn(kafkaStreams);
+
+        final var keyMetadata = mock(org.apache.kafka.streams.KeyQueryMetadata.class);
+        final var serializer = new org.apache.kafka.common.serialization.StringSerializer();
+        when(kafkaStreams.queryMetadataForKey("store", "key", serializer)).thenReturn(keyMetadata);
+
+        final var querier = KSMLRunner.getQuerier(streamsRunner, null);
+
+        assertThat(querier.queryMetadataForKey("store", "key", serializer)).isSameAs(keyMetadata);
+
+        // store() simply forwards the StoreQueryParameters to Kafka Streams.
+        final var params = org.apache.kafka.streams.StoreQueryParameters
+                .fromNameAndType("store", org.apache.kafka.streams.state.QueryableStoreTypes.<String, String>keyValueStore());
+        final org.apache.kafka.streams.state.ReadOnlyKeyValueStore<String, String> store = mock(org.apache.kafka.streams.state.ReadOnlyKeyValueStore.class);
+        when(kafkaStreams.store(params)).thenReturn(store);
+        assertThat(querier.store(params)).isSameAs(store);
+    }
+
+    @Test
     @DisplayName("populate() applies the default config file path when no arguments are supplied")
     void populateDefaultsConfigFile() {
         final var args = KSMLRunner.Arguments.populate(new String[]{});

@@ -75,15 +75,17 @@ public class ExecutableProducer {
     private boolean stopProducing = false;
     private final List<Pair<DataObject, DataObject>> messageQueue = new LinkedList<>();
 
-    private ExecutableProducer(UserFunction generator,
-                               ProducerStrategy producerStrategy,
-                               MetricTags tags,
-                               String topic,
-                               UserType keyType,
-                               UserType valueType,
-                               UserFunction partitioner,
-                               Serializer<Object> keySerializer,
-                               Serializer<Object> valueSerializer) {
+    // Package-private (instead of private) so tests can construct a producer with a stubbed generator
+    // and serializers, exercising the produce/batch logic without a Python/GraalVM runtime.
+    ExecutableProducer(UserFunction generator,
+                       ProducerStrategy producerStrategy,
+                       MetricTags tags,
+                       String topic,
+                       UserType keyType,
+                       UserType valueType,
+                       UserFunction partitioner,
+                       Serializer<Object> keySerializer,
+                       Serializer<Object> valueSerializer) {
         this.name = generator.name;
         this.generator = new UserGenerator(generator, tags);
         this.producerStrategy = producerStrategy;
@@ -231,17 +233,30 @@ public class ExecutableProducer {
     }
 
     private List<Pair<DataObject, DataObject>> generateMessages() {
+        return extractMessages(generator.apply(), keyType, valueType, producerStrategy);
+    }
+
+    /**
+     * Turns a generated {@link DataObject} into zero or more validated key/value messages. A single
+     * (key, value) tuple yields one message, while a {@link DataList} yields one message per valid
+     * tuple element; anything else is skipped. Extracted as a package-private static method for
+     * testability.
+     *
+     * @param generated        the object returned by the generator function
+     * @param keyType          the expected key type
+     * @param valueType        the expected value type
+     * @param producerStrategy the strategy used to validate and shape each message
+     * @return the list of validated, type-checked messages (possibly empty)
+     */
+    static List<Pair<DataObject, DataObject>> extractMessages(DataObject generated, UserType keyType, UserType valueType, ProducerStrategy producerStrategy) {
         final var result = new ArrayList<Pair<DataObject, DataObject>>();
-        final var generated = generator.apply();
         if (generated instanceof DataTuple tuple && tuple.elements().size() == 2) {
-            final var msg = shapeMessage(tuple);
-            if (msg != null) result.add(msg);
+            addShapedMessage(result, tuple, keyType, valueType, producerStrategy);
         }
         if (generated instanceof DataList list) {
-            for (DataObject element : list) {
+            for (final var element : list) {
                 if (element instanceof DataTuple tuple && tuple.elements().size() == 2) {
-                    final var msg = shapeMessage(tuple);
-                    if (msg != null) result.add(msg);
+                    addShapedMessage(result, tuple, keyType, valueType, producerStrategy);
                 } else {
                     log.warn("Skipping invalid message: {}", element);
                 }
@@ -250,7 +265,24 @@ public class ExecutableProducer {
         return result;
     }
 
-    private Pair<DataObject, DataObject> shapeMessage(DataTuple tuple) {
+    private static void addShapedMessage(List<Pair<DataObject, DataObject>> result, DataTuple tuple, UserType keyType, UserType valueType, ProducerStrategy producerStrategy) {
+        final var msg = shapeMessage(tuple, keyType, valueType, producerStrategy);
+        if (msg != null) result.add(msg);
+    }
+
+    /**
+     * Validates a (key, value) tuple against the producer strategy, converts both to the target types
+     * and verifies they are assignable to the configured key/value types. Returns {@code null} when the
+     * message is rejected by the strategy or has the wrong type. Extracted as a package-private static
+     * method for testability.
+     *
+     * @param tuple            the generated (key, value) tuple
+     * @param keyType          the expected key type
+     * @param valueType        the expected value type
+     * @param producerStrategy the strategy used to validate the message
+     * @return the shaped (key, value) pair, or {@code null} when the message should be skipped
+     */
+    static Pair<DataObject, DataObject> shapeMessage(DataTuple tuple, UserType keyType, UserType valueType, ProducerStrategy producerStrategy) {
         var key = tuple.elements().get(0);
         var value = tuple.elements().get(1);
 

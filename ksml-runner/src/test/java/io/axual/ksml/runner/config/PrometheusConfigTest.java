@@ -50,6 +50,17 @@ class PrometheusConfigTest {
     }
 
     @Test
+    @DisplayName("When enabled with null host/port, the defaults are substituted")
+    void enabledFallsBackToDefaultsForNullValues() {
+        final var config = new PrometheusConfig();
+        config.enabled(true);
+        config.host(null);
+        config.port(null);
+        assertEquals("0.0.0.0", config.getHost());
+        assertEquals(9999, config.getPort());
+    }
+
+    @Test
     @DisplayName("When enabled without a configFile, the internal default config is materialized")
     void enabledFallsBackToInternalDefaultConfigFile() {
         final var config = new PrometheusConfig();
