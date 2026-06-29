@@ -23,6 +23,7 @@ package io.axual.ksml.data.util;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Utility functions for working with lists.
@@ -54,6 +55,30 @@ public class ListUtil {
      */
     public static <T, R> List<R> map(List<T> list, Function<T, R> mapper) {
         return list.stream().map(mapper).toList();
+    }
+
+    /**
+     * Filter a list to only elements that match the given predicate.
+     *
+     * @param list    the list to filter
+     * @param matcher predicate used to test elements
+     * @param <V>     element type
+     * @return a new list containing only elements that matched
+     */
+    public static <V> List<V> filter(List<V> list, Predicate<V> matcher) {
+        return list.stream().filter(matcher).collect(Collectors.toList());
+    }
+
+    /**
+     * Returns true if the list contains at least one element matching the predicate.
+     *
+     * @param list    the list to check
+     * @param matcher predicate used to test elements
+     * @param <V>     element type
+     * @return true if any element matches, false otherwise
+     */
+    public static <V> boolean any(List<V> list, Predicate<V> matcher) {
+        return list.stream().anyMatch(matcher);
     }
 
     private ListUtil() {
