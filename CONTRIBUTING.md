@@ -121,6 +121,65 @@ Those two numbers will match what SonarCloud reports.
 
 Per-module reports (lower numbers, own tests only) are still at `<module>/target/site/jacoco/index.html` if you need them.
 
+### Checking Diff Coverage (coverage of changed lines only)
+
+To check test coverage only for the lines changed in your branch compared to `main`, use [diff-cover](https://github.com/Bachmann1234/diff_cover). First install it:
+
+```shell
+pip install diff-cover
+```
+
+> **Note:** On some systems `diff-cover` is installed to a user-local path (e.g. `~/Library/Python/3.9/bin/diff-cover` on macOS). If the command is not found after install, use the full path or add the directory to your `PATH`.
+
+Make sure you have run `mvn clean verify --no-transfer-progress` first to produce the per-module JaCoCo reports, then run:
+
+```shell
+diff-cover **/target/site/jacoco/jacoco.xml \
+  --compare-branch origin/main \
+  --src-roots **/src/main/java \
+  --format html:diff-coverage.html
+```
+
+Open the report:
+
+```shell
+open diff-coverage.html
+```
+
+This generates an HTML report showing test coverage for every line added or modified in your branch. Aim for **>65% coverage** on the changed code before submitting a pull request.
+
+## Sonar IDE Integration
+
+SonarCloud can analyse your branch against `main` directly inside IntelliJ IDEA, giving you instant feedback without pushing to CI.
+
+### Generating a SonarCloud token
+
+1. Sign in at [sonarcloud.io](https://sonarcloud.io).
+2. Click your avatar in the top-right corner and select **My Account**.
+3. Go to the **Security** tab.
+4. Under **Generate Tokens**, enter a name (e.g. `local-ide`) and click **Generate**.
+5. Copy the token, it is shown only once.
+
+### IntelliJ IDEA
+
+1. Install the **SonarQube for IDE** plugin (*Settings → Plugins → Marketplace*).
+2. Open *Settings → Tools → SonarQube for IDE → Settings*.
+3. Under **SonarQube / SonarCloud connections**, click **+** and set a name for the new connection and choose **SonarCloud**.
+4. Paste your token (or generate a new one through the `Generate Token` option)
+5. Proceed until the end
+6. Bind the project: in the same settings page open **Project Settings**, enable **Bind to SonarQube / SonarCloud**, and select the `ksml` project.
+7. Click `Analyze All Project Files` and then click `Show Filters`
+8. Enable `New Code` option. This will compare the current branch with the previous released version e.g. 1.3.0. As a result, the issues shown reflect only what your branch introduces relative to the base.
+
+> **Note:** To keep this happening, every issue should be resolved before merging back to the main branch. In different case, we will end up seeing issues which are not introduced by our code but from a previous commit after the latest release.
+
+## Before Sending for Review
+
+The following two steps are **mandatory** before opening a pull request:
+
+1. Run the SonarCloud analysis in your IDE and resolve any reported issues (see [Sonar IDE integration](#sonar-ide-integration) below).
+2. Run `diff-cover` as described above and confirm that coverage of your changes is above 65%.
+
 ## Next Steps
 
 Explore examples and advanced use cases in [`ksml-blog.md`](ksml-blog.md).

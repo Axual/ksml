@@ -13,6 +13,9 @@ target/
 CLAUDE.md
 .claude
 
+.vscode/
+diff-coverage.html
+
 workspace/*
 /packaging/helm-charts/**/*.tgz
 /packaging/helm-charts/workspace/*
