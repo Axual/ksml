@@ -14,6 +14,7 @@ Please also make sure to read and follow our [Code of Conduct](CODE_OF_CONDUCT.m
 6. Update the [`README.md`](README.md) when you introduce interface changes (e.g., new environment variables, file paths, etc.).
 7. Submit a pull request from your fork to the main repository.
 8. A pull request may be merged after approval from two developers. If you do not have merge permissions, ask the second reviewer to merge it for you.
+
 ## Before Sending for Review
 
 The following two steps are **mandatory** before asking someone to review:
