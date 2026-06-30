@@ -9,7 +9,7 @@ Please also make sure to read and follow our [Code of Conduct](CODE_OF_CONDUCT.m
 1. Fork the repository and create a feature or bugfix branch.
 2. Ensure your code follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 2. Document your code clearly and thoroughly.
-3. Include a unit or integration test that reproduces any bug you're fixing.
+3. Maintain at least 60% test coverage. Include a unit or integration test that reproduces any bug you're fixing.
 4. Keep changes focused and concise. Submit separate pull requests for unrelated changes, but you may combine minor bug fixes and tests.
 6. Update the [`README.md`](README.md) when you introduce interface changes (e.g., new environment variables, file paths, etc.).
 7. Submit a pull request from your fork to the main repository.
@@ -20,7 +20,8 @@ Please also make sure to read and follow our [Code of Conduct](CODE_OF_CONDUCT.m
 The following two steps are **mandatory** before asking someone to review:
 
 1. Run the SonarCloud analysis in your IDE and resolve any reported issues. See [Sonar IDE integration](#sonar-ide-integration) below.
-2. Run `diff-cover` as described above and confirm that coverage of your changes is above 60%. See [Checking Diff Coverage](#checking-diff-coverage-coverage-of-changed-lines-only) below.
+2. Run `diff-cover` and confirm that coverage of your changes is above 60%.
+   See [Checking Diff Coverage](#checking-diff-coverage-coverage-of-changed-lines-only) below.
 
 ## Setting Up the Project for Local Development
 
@@ -142,7 +143,7 @@ If you don't have `pipx`, install it first:
 brew install pipx
 ```
 
-Make sure you have run `mvn clean verify --no-transfer-progress` first to produce the per-module JaCoCo reports, then run:
+Make sure you have run `mvn clean verify --no-transfer-progress` first to generate the JaCoCo reports, then run:
 
 ```shell
 diff-cover ksml-reporting/target/site/jacoco-aggregate/jacoco.xml \
@@ -154,10 +155,13 @@ diff-cover ksml-reporting/target/site/jacoco-aggregate/jacoco.xml \
 Open the report:
 
 ```shell
-open diff-coverage.html
+open diff-coverage.html        # macOS
+xdg-open diff-coverage.html   # Linux
 ```
 
 This generates an HTML report showing test coverage for every line added or modified in your branch. Aim for **>60% coverage** on the changed code before submitting a pull request.
+
+> **Note:** Local diff-cover numbers will read roughly 5% lower than SonarCloud PR decoration. This is expected - SonarCloud excludes certain structural lines (closing braces, some declarations) from its denominator, while diff-cover counts all JaCoCo-tracked lines. Both tools read the same JaCoCo data.
 
 ## Sonar IDE Integration
 
