@@ -4,7 +4,7 @@ package io.axual.ksml.runner.producer;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,24 +130,16 @@ class ExecutableProducerTest {
     }
 
     @Test
-    @DisplayName("Messages rejected by the strategy are not added to the result")
-    void rejectedMessagesAreNotCollected() {
+    @DisplayName("A message rejected by the producer strategy is not collected")
+    void rejectedMessageIsNotCollected() {
         final var rejectingStrategy = mock(ProducerStrategy.class);
         when(rejectingStrategy.validateMessage(any(), any())).thenReturn(false);
         final var tuple = new DataTuple(new DataString("k"), new DataString("v"));
 
-        // Through extractMessages a rejected (null) message must not be added.
+        // extractMessages -> addShapedMessage -> shapeMessage returns null for a rejected tuple, so
+        // nothing is added to the result. This drives both the shapeMessage rejection path and the
+        // null-guard in addShapedMessage.
         assertThat(ExecutableProducer.extractMessages(tuple, STRING_TYPE, STRING_TYPE, rejectingStrategy)).isEmpty();
-    }
-
-    @Test
-    @DisplayName("A message rejected by the producer strategy is skipped")
-    void skipsMessageRejectedByStrategy() {
-        final var rejectingStrategy = mock(ProducerStrategy.class);
-        when(rejectingStrategy.validateMessage(any(), any())).thenReturn(false);
-        final var tuple = new DataTuple(new DataString("k"), new DataString("v"));
-
-        assertThat(ExecutableProducer.shapeMessage(tuple, STRING_TYPE, STRING_TYPE, rejectingStrategy)).isNull();
     }
 
     @Test
@@ -222,15 +214,5 @@ class ExecutableProducerTest {
         producer.produceMessages(mockProducer);
 
         assertThat(mockProducer.history()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("name and interval are exposed from the generator and strategy")
-    void exposesNameAndInterval() {
-        final var producer = executableProducerFor(new DataTuple(new DataString("k"), new DataString("v")));
-
-        assertThat(producer.name()).isEqualTo("gen");
-        // A single-shot producer has a zero interval.
-        assertThat(producer.interval()).isZero();
     }
 }

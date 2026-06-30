@@ -4,7 +4,7 @@ package io.axual.ksml.runner.streams;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,7 +68,6 @@ class KSMLClientSupplierTest {
             assertThat(config)
                     .containsEntry(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName())
                     .containsEntry(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
-            producer.close(Duration.ZERO);
         }
     }
 
@@ -88,16 +86,22 @@ class KSMLClientSupplierTest {
     @Test
     @DisplayName("getRestoreConsumer and getGlobalConsumer delegate to getConsumer")
     void restoreAndGlobalConsumersDelegateToGetConsumer() {
+        // Both delegate to getConsumer, so each must return a resolving consumer and have both
+        // byte-array deserializers injected into its config (the side effect getConsumer performs).
         final var restoreConfig = baseConfig();
         try (var restore = SUPPLIER.getRestoreConsumer(restoreConfig)) {
             assertThat(restore).isInstanceOf(ResolvingConsumer.class);
-            assertThat(restoreConfig).containsKey(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
+            assertThat(restoreConfig)
+                    .containsEntry(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName())
+                    .containsEntry(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName());
         }
 
         final var globalConfig = baseConfig();
         try (var global = SUPPLIER.getGlobalConsumer(globalConfig)) {
             assertThat(global).isInstanceOf(ResolvingConsumer.class);
-            assertThat(globalConfig).containsKey(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG);
+            assertThat(globalConfig)
+                    .containsEntry(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName())
+                    .containsEntry(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName());
         }
     }
 }

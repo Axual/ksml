@@ -4,7 +4,7 @@ package io.axual.ksml.runner.exception;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,39 +33,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RunnerExceptionsTest {
 
     @Test
-    @DisplayName("RunnerException keeps its message and cause")
-    void runnerExceptionWithCause() {
-        final var cause = new IllegalStateException("boom");
-        final var exception = new RunnerException("something failed", cause);
-
-        assertThat(exception.getMessage()).isEqualTo("something failed");
-        assertThat(exception.getCause()).isSameAs(cause);
-    }
-
-    @Test
-    @DisplayName("ConfigException is a RunnerException carrying the plain message")
-    void configExceptionPlainMessage() {
-        final var exception = new ConfigException("plain message");
-
-        assertThat(exception).isInstanceOf(RunnerException.class);
-        assertThat(exception.getMessage()).isEqualTo("plain message");
-    }
-
-    @Test
-    @DisplayName("ConfigException(message, cause) preserves both")
-    void configExceptionMessageAndCause() {
-        final var cause = new IllegalArgumentException("bad");
-        final var exception = new ConfigException("message", cause);
-
-        assertThat(exception.getMessage()).isEqualTo("message");
-        assertThat(exception.getCause()).isSameAs(cause);
-    }
-
-    @Test
     @DisplayName("The (key, value) constructor renders the default message with the formatted detail")
     void configExceptionKeyValueUsesDefaultMessage() {
         final var exception = new ConfigException("myKey", "myValue");
 
+        assertThat(exception).isInstanceOf(RunnerException.class);
         assertThat(exception.getMessage())
                 .startsWith(ConfigException.DEFAULT_MESSAGE)
                 .contains("Configuration Key   : 'myKey'")

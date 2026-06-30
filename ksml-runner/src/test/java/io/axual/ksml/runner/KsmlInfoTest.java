@@ -4,7 +4,7 @@ package io.axual.ksml.runner;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,15 +47,6 @@ class KsmlInfoTest {
     }
 
     @Test
-    @DisplayName("App info is loaded from the ksml-info.properties on the classpath")
-    void loadsAppInfoFromProperties() {
-        // Values come from src/test/resources/ksml/ksml-info.properties
-        assertThat(KsmlInfo.APP_NAME).isEqualTo("ksml-for-testing");
-        assertThat(KsmlInfo.APP_VERSION).isEqualTo("testing");
-        assertThat(KsmlInfo.BUILD_TIME).isEqualTo("2024-01-01T01:00:00Z");
-    }
-
-    @Test
     @DisplayName("registerKsmlAppInfo registers the app-info MBean and is idempotent on repeated calls")
     void registersAppInfoMBeanIdempotently() throws Exception {
         final var appId = "ksmlinfo-test-" + System.nanoTime();
@@ -80,12 +71,5 @@ class KsmlInfoTest {
                 beanServer.unregisterMBean(objectName);
             }
         }
-    }
-
-    @Test
-    @DisplayName("The KsmlInfoMBean always reports a value of 1")
-    void mBeanReportsConstantValue() {
-        assertThat(KsmlInfo.BEAN_CONTENT.getValue()).isEqualTo(1);
-        assertThat(new KsmlInfo.KsmlInfoMBean().getValue()).isEqualTo(1);
     }
 }

@@ -4,7 +4,7 @@ package io.axual.ksml.runner;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package io.axual.ksml.runner;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.victools.jsonschema.generator.FieldScope;
@@ -53,10 +54,12 @@ import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.KafkaProducerRunner;
 import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.backend.Runner;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
 import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.config.NotationConfig;
+import io.axual.ksml.runner.config.PrometheusConfig;
 import io.axual.ksml.runner.config.SchemaRegistryConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionProvider;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionSubTypeResolver;
@@ -68,6 +71,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
@@ -214,7 +218,7 @@ public class KSMLRunner {
      * @param appServer the application server configuration
      * @return a started {@link RestServer}, or {@code null} when disabled
      */
-    static RestServer createRestServer(io.axual.ksml.runner.config.ApplicationServerConfig appServer) {
+    static RestServer createRestServer(ApplicationServerConfig appServer) {
         if (!appServer.enabled()) {
             return null;
         }
@@ -278,7 +282,7 @@ public class KSMLRunner {
      * @param prometheusConfig the Prometheus exporter configuration
      * @throws Exception when the Prometheus exporter or executor shutdown fails
      */
-    static void runRunners(KafkaProducerRunner producer, KafkaStreamsRunner streams, RestServer restServer, io.axual.ksml.runner.config.PrometheusConfig prometheusConfig) throws Exception {
+    static void runRunners(KafkaProducerRunner producer, KafkaStreamsRunner streams, RestServer restServer, PrometheusConfig prometheusConfig) throws Exception {
         var shutdownHook = new Thread(() -> stopRunnersQuietly(producer, streams));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
@@ -333,7 +337,7 @@ public class KSMLRunner {
      * @param kafkaConfig the Kafka configuration used by the resolving (de)serializers
      * @return a serde whose (de)serializers resolve names according to the configuration
      */
-    static <T> org.apache.kafka.common.serialization.Serde<T> wrapSerde(org.apache.kafka.common.serialization.Serde<T> serde, Map<String, String> kafkaConfig) {
+    static <T> Serde<T> wrapSerde(Serde<T> serde, Map<String, String> kafkaConfig) {
         return new Serdes.WrapperSerde<>(
                 new ResolvingSerializer<>(serde.serializer(), kafkaConfig),
                 new ResolvingDeserializer<>(serde.deserializer(), kafkaConfig));
@@ -346,7 +350,7 @@ public class KSMLRunner {
      * @param definitions the raw definitions keyed by namespace
      * @return the parsed topology definitions keyed by namespace
      */
-    static Map<String, TopologyDefinition> parseDefinitions(Map<String, com.fasterxml.jackson.databind.JsonNode> definitions) {
+    static Map<String, TopologyDefinition> parseDefinitions(Map<String, JsonNode> definitions) {
         final Map<String, TopologyDefinition> parsedDefinitions = new HashMap<>();
         definitions.forEach((name, definition) -> {
             final var parser = new TopologyDefinitionParser(name);
@@ -484,13 +488,15 @@ public class KSMLRunner {
             final var notationStr = notationEntry.getKey() != null ? notationEntry.getKey() : "undefined";
 
             final var notationConfig = notationEntry.getValue();
+            // Resolve the schema-registry and notation configuration up front so a missing schema
+            // registry is reported even when the notation type itself is incomplete.
+            final var notationConfigs = mergeNotationConfigs(notationConfig, ksmlConfig.schemaRegistries());
             final var factoryName = resolveFactoryName(notationConfig);
             if (notationConfig != null && factoryName != null) {
                 final var factory = notationFactories.notations().get(factoryName);
                 if (factory == null) {
                     throw FatalError.report(new ConfigException("Unknown notation type: " + factoryName));
                 }
-                final var notationConfigs = mergeNotationConfigs(notationConfig, ksmlConfig.schemaRegistries());
                 ExecutionContext.INSTANCE.notationLibrary().register(notationStr, factory.create(notationConfigs));
             } else {
                 log.warn("Notation configuration incomplete: notation={}, serde={}", notationStr, factoryName);

@@ -4,7 +4,7 @@ package io.axual.ksml.runner;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KSMLRunnerTest {
 
@@ -48,14 +46,14 @@ class KSMLRunnerTest {
         // main() writes the runner configuration schema and returns (no System.exit) when --runner-schema is set
         KSMLRunner.main(new String[]{"--runner-schema", out.toString()});
 
-        assertTrue(Files.exists(out), "runner schema file should have been written");
+        assertThat(Files.exists(out)).as("runner schema file should have been written").isTrue();
         final var schema = Files.readString(out);
 
         // resolveDefaultValue converts the @JsonProperty defaultValue to the field's type:
-        assertTrue(schema.contains("\"default\" : false"), "boolean defaults should be emitted as JSON booleans");
-        assertTrue(schema.contains("\"default\" : true"), "boolean defaults should be emitted as JSON booleans");
-        assertTrue(schema.contains("\"default\" : 9999"), "integer defaults should be emitted as JSON numbers");
-        assertTrue(schema.contains("\"default\" : \"0.0.0.0\""), "string defaults should be emitted as JSON strings");
+        assertThat(schema.contains("\"default\" : false")).as("boolean defaults should be emitted as JSON booleans").isTrue();
+        assertThat(schema.contains("\"default\" : true")).as("boolean defaults should be emitted as JSON booleans").isTrue();
+        assertThat(schema.contains("\"default\" : 9999")).as("integer defaults should be emitted as JSON numbers").isTrue();
+        assertThat(schema.contains("\"default\" : \"0.0.0.0\"")).as("string defaults should be emitted as JSON strings").isTrue();
     }
 
     @Test
@@ -66,7 +64,7 @@ class KSMLRunnerTest {
         // main() writes the KSML definition schema and returns when --schema is set
         KSMLRunner.main(new String[]{"--schema", out.toString()});
 
-        assertTrue(Files.exists(out), "KSML definition schema file should have been written");
+        assertThat(Files.exists(out)).as("KSML definition schema file should have been written").isTrue();
         // The generated schema is a JSON document describing the KSML definition structure.
         assertThat(Files.readString(out)).contains("$schema");
     }
@@ -78,8 +76,8 @@ class KSMLRunnerTest {
 
         final var config = KSMLRunner.readConfiguration(configFile);
 
-        assertNotNull(config.getKsmlConfig());
-        assertNotNull(config.getKafkaConfigMap());
+        assertThat(config.getKsmlConfig()).isNotNull();
+        assertThat(config.getKafkaConfigMap()).isNotNull();
     }
 
     @Test
@@ -99,8 +97,8 @@ class KSMLRunnerTest {
 
         KSMLRunner.closeExecutorService(executor);
 
-        assertTrue(executor.isShutdown());
-        assertTrue(executor.isTerminated(), "an idle executor terminates within the grace period");
+        assertThat(executor.isShutdown()).isTrue();
+        assertThat(executor.isTerminated()).as("an idle executor terminates within the grace period").isTrue();
     }
 
     @Test
@@ -118,10 +116,10 @@ class KSMLRunnerTest {
                 Thread.currentThread().interrupt();
             }
         });
-        assertTrue(started.await(5, TimeUnit.SECONDS));
+        assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
 
         KSMLRunner.closeExecutorService(executor);
 
-        assertTrue(executor.isShutdown());
+        assertThat(executor.isShutdown()).isTrue();
     }
 }

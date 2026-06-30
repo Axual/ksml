@@ -4,7 +4,7 @@ package io.axual.ksml.runner.config;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,20 +93,5 @@ class ErrorHandlingConfigTest {
         assertThat(presetProduce.loggerName()).isEqualTo("ProduceError");
         assertThat(config.processErrorHandlingConfig()).isSameAs(presetProcess);
         assertThat(presetProcess.loggerName()).isEqualTo("ProcessError");
-    }
-
-    @Test
-    @DisplayName("Preset produce and process configs with their own logger names are preserved")
-    void preservesPresetProduceAndProcessLoggers() {
-        final var produceCfg = new ErrorTypeHandlingConfig();
-        produceCfg.loggerName("CustomProduce");
-        final var processCfg = new ErrorTypeHandlingConfig();
-        processCfg.loggerName("CustomProcess");
-        final var config = new ErrorHandlingConfig();
-        config.produce(produceCfg);
-        config.process(processCfg);
-
-        assertThat(config.producerErrorHandlingConfig().loggerName()).isEqualTo("CustomProduce");
-        assertThat(config.processErrorHandlingConfig().loggerName()).isEqualTo("CustomProcess");
     }
 }

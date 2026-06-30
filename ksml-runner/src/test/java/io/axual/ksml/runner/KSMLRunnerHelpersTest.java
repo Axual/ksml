@@ -4,7 +4,7 @@ package io.axual.ksml.runner;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,14 @@ import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.definition.PipelineDefinition;
+import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.backend.Runner;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
 import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
@@ -48,6 +51,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -127,8 +131,8 @@ class KSMLRunnerHelpersTest {
 
     private static TopologyDefinition definitionWith(boolean hasProducers, boolean hasPipelines) {
         final var def = mock(TopologyDefinition.class);
-        when(def.producers()).thenReturn(hasProducers ? Map.of("p", mock(io.axual.ksml.definition.ProducerDefinition.class)) : Map.of());
-        when(def.pipelines()).thenReturn(hasPipelines ? Map.of("l", mock(io.axual.ksml.definition.PipelineDefinition.class)) : Map.of());
+        when(def.producers()).thenReturn(hasProducers ? Map.of("p", mock(ProducerDefinition.class)) : Map.of());
+        when(def.pipelines()).thenReturn(hasPipelines ? Map.of("l", mock(PipelineDefinition.class)) : Map.of());
         return def;
     }
 
@@ -176,14 +180,6 @@ class KSMLRunnerHelpersTest {
 
         assertThat(split.producers()).isEmpty();
         assertThat(split.pipelines()).isEmpty();
-    }
-
-    // ---- setupErrorHandling --------------------------------------------------------------------
-
-    private static ErrorHandler reflectHandler(String fieldName) throws Exception {
-        final Field field = ExecutionContext.INSTANCE.errorHandling().getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        return (ErrorHandler) field.get(ExecutionContext.INSTANCE.errorHandling());
     }
 
     // ---- validateDefinitions -------------------------------------------------------------------
@@ -292,7 +288,7 @@ class KSMLRunnerHelpersTest {
     @DisplayName("stopRunnersQuietly tolerates a null runner and a failing stop")
     void stopRunnersQuietlyToleratesNullAndExceptions() {
         final var failing = mock(Runner.class);
-        org.mockito.Mockito.doThrow(new RuntimeException("stop failed")).when(failing).stop();
+        doThrow(new RuntimeException("stop failed")).when(failing).stop();
 
         // Null streams must not NPE, and an exception from stop() must be swallowed.
         assertThatCode(() -> KSMLRunner.stopRunnersQuietly(failing, null)).doesNotThrowAnyException();
@@ -351,7 +347,7 @@ class KSMLRunnerHelpersTest {
         final var runner = KSMLRunner.createProducerRunner(definitions, runnerConfig(), new KSMLConfig());
 
         assertThat(runner).isNotNull();
-        assertThat(runner.getState()).isEqualTo(io.axual.ksml.runner.backend.Runner.State.CREATED);
+        assertThat(runner.getState()).isEqualTo(Runner.State.CREATED);
     }
 
     @Test
@@ -364,10 +360,16 @@ class KSMLRunnerHelpersTest {
     @DisplayName("createRestServer returns null when the application server is disabled")
     void createRestServerNullWhenDisabled() {
         // A default ApplicationServerConfig is disabled, so no server is started.
-        assertThat(KSMLRunner.createRestServer(new io.axual.ksml.runner.config.ApplicationServerConfig())).isNull();
+        assertThat(KSMLRunner.createRestServer(new ApplicationServerConfig())).isNull();
     }
 
     // ---- setupErrorHandling --------------------------------------------------------------------
+
+    private static ErrorHandler reflectHandler(String fieldName) throws Exception {
+        final Field field = ExecutionContext.INSTANCE.errorHandling().getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (ErrorHandler) field.get(ExecutionContext.INSTANCE.errorHandling());
+    }
 
     @Test
     @DisplayName("A null error-handling config leaves the handlers untouched")

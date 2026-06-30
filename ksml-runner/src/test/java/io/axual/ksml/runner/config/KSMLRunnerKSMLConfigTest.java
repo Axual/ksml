@@ -4,7 +4,7 @@ package io.axual.ksml.runner.config;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class KSMLRunnerKSMLConfigTest {
 
@@ -56,7 +52,7 @@ class KSMLRunnerKSMLConfigTest {
     void shouldValidateConfig() throws Exception {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
-        assertNotNull(ksmlConfig.configDirectory());
+        assertThat(ksmlConfig.configDirectory()).isNotNull();
     }
 
     @Test
@@ -64,7 +60,9 @@ class KSMLRunnerKSMLConfigTest {
     void shouldThrowOnWrongConfigdir() throws Exception {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-wrong-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
-        assertThrows(ConfigException.class, ksmlConfig::configDirectory, "should throw exception for wrong configdir");
+        assertThatThrownBy(ksmlConfig::configDirectory)
+                .as("should throw exception for wrong configdir")
+                .isInstanceOf(ConfigException.class);
     }
 
     @Test
@@ -72,7 +70,7 @@ class KSMLRunnerKSMLConfigTest {
     void shouldDefaultConfigToWorkdir() throws Exception {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-no-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
-        assertEquals(System.getProperty("user.dir"), ksmlConfig.configDirectory(), "config dir should default to working dir");
+        assertThat(ksmlConfig.configDirectory()).as("config dir should default to working dir").isEqualTo(System.getProperty("user.dir"));
     }
 
     @Test
@@ -81,9 +79,9 @@ class KSMLRunnerKSMLConfigTest {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
         // schemaDirectory is not set in the yaml, so it defaults to the working directory
-        assertEquals(System.getProperty("user.dir"), ksmlConfig.schemaDirectory(), "schema dir should default to working dir");
+        assertThat(ksmlConfig.schemaDirectory()).as("schema dir should default to working dir").isEqualTo(System.getProperty("user.dir"));
         // storageDirectory is set to "." in the yaml, which resolves to the working directory
-        assertEquals(System.getProperty("user.dir"), ksmlConfig.storageDirectory(), "storage dir '.' should resolve to working dir");
+        assertThat(ksmlConfig.storageDirectory()).as("storage dir '.' should resolve to working dir").isEqualTo(System.getProperty("user.dir"));
     }
 
     @Test
@@ -94,17 +92,17 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.storageDirectory(newDir.toString());
         ksmlConfig.createStorageDirectory(true);
 
-        assertEquals(newDir.toAbsolutePath().normalize().toString(), ksmlConfig.storageDirectory());
-        assertTrue(Files.isDirectory(newDir), "storage directory should have been created");
+        assertThat(ksmlConfig.storageDirectory()).isEqualTo(newDir.toAbsolutePath().normalize().toString());
+        assertThat(Files.isDirectory(newDir)).as("storage directory should have been created").isTrue();
     }
 
     @Test
     @DisplayName("notations() and schemaRegistries() default to empty maps when nothing is configured")
     void collectionAccessorsDefaultToEmpty() {
         final var ksmlConfig = new KSMLConfig();
-        assertTrue(ksmlConfig.notations().isEmpty(), "notations should default to an empty map");
-        assertTrue(ksmlConfig.schemaRegistries().isEmpty(), "schemaRegistries should default to an empty map");
-        assertTrue(ksmlConfig.definitions().isEmpty(), "definitions should default to an empty map");
+        assertThat(ksmlConfig.notations()).as("notations should default to an empty map").isEmpty();
+        assertThat(ksmlConfig.schemaRegistries()).as("schemaRegistries should default to an empty map").isEmpty();
+        assertThat(ksmlConfig.definitions()).as("definitions should default to an empty map").isEmpty();
     }
 
     @Test
@@ -115,11 +113,11 @@ class KSMLRunnerKSMLConfigTest {
         final var ksmlConfig = new KSMLConfig();
         ksmlConfig.notations(notations);
         final var ksmlNotations = ksmlConfig.notations();
-        assertEquals(1, ksmlNotations.size());
-        assertEquals(NotationConfig.NotationType.CONFLUENT_AVRO, ksmlNotations.get("myAvro").type());
-        assertThrows(UnsupportedOperationException.class,
-                ksmlNotations::clear,
-                "the accessor must return a read-only view");
+        assertThat(ksmlNotations).hasSize(1);
+        assertThat(ksmlNotations.get("myAvro").type()).isEqualTo(NotationConfig.NotationType.CONFLUENT_AVRO);
+        assertThatThrownBy(ksmlNotations::clear)
+                .as("the accessor must return a read-only view")
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -130,11 +128,10 @@ class KSMLRunnerKSMLConfigTest {
         final var ksmlConfig = new KSMLConfig();
         ksmlConfig.schemaRegistries(registries);
         final var ksmlSchemaRegistries = ksmlConfig.schemaRegistries();
-        assertEquals(1, ksmlSchemaRegistries.size());
-        assertTrue(ksmlSchemaRegistries.containsKey("primary"));
-        assertThrows(UnsupportedOperationException.class,
-                ksmlSchemaRegistries::clear,
-                "the accessor must return a read-only view");
+        assertThat(ksmlSchemaRegistries).hasSize(1).containsKey("primary");
+        assertThatThrownBy(ksmlSchemaRegistries::clear)
+                .as("the accessor must return a read-only view")
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -147,8 +144,8 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.definitions(defs);
 
         final var result = ksmlConfig.definitions();
-        assertEquals(1, result.size());
-        assertSame(inline, result.get("inlineNamespace"));
+        assertThat(result).hasSize(1);
+        assertThat(result.get("inlineNamespace")).isSameAs(inline);
     }
 
     @Test
@@ -163,9 +160,9 @@ class KSMLRunnerKSMLConfigTest {
 
         final var result = ksmlConfig.definitions();
         final var loaded = result.get("fileNamespace");
-        assertNotNull(loaded, "the definition file should have been read");
+        assertThat(loaded).as("the definition file should have been read").isNotNull();
         // The YAML content is parsed into a JsonNode tree we can inspect.
-        assertTrue(loaded.path("streams").has("some_stream"), "the parsed definition should contain the stream");
+        assertThat(loaded.path("streams").has("some_stream")).as("the parsed definition should contain the stream").isTrue();
     }
 
     @Test
@@ -176,7 +173,7 @@ class KSMLRunnerKSMLConfigTest {
         final var ksmlConfig = new KSMLConfig();
         ksmlConfig.definitions(defs);
 
-        assertTrue(ksmlConfig.definitions().isEmpty(), "null definition entries must be skipped");
+        assertThat(ksmlConfig.definitions()).as("null definition entries must be skipped").isEmpty();
     }
 
     @Test
@@ -187,8 +184,9 @@ class KSMLRunnerKSMLConfigTest {
         final var ksmlConfig = new KSMLConfig();
         ksmlConfig.schemaDirectory(file.toString());
 
-        assertThrows(ConfigException.class, ksmlConfig::schemaDirectory,
-                "a path that is a regular file is not a valid directory");
+        assertThatThrownBy(ksmlConfig::schemaDirectory)
+                .as("a path that is a regular file is not a valid directory")
+                .isInstanceOf(ConfigException.class);
     }
 
     @Test
@@ -200,8 +198,9 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.configDirectory("src/test/resources");
         ksmlConfig.definitions(defs);
 
-        assertThrows(ConfigException.class, ksmlConfig::definitions,
-                "a missing definition file should fail fast");
+        assertThatThrownBy(ksmlConfig::definitions)
+                .as("a missing definition file should fail fast")
+                .isInstanceOf(ConfigException.class);
     }
 
     @Test
@@ -210,9 +209,9 @@ class KSMLRunnerKSMLConfigTest {
         final var ksmlConfig = new KSMLConfig(); // field is initialized with a default instance
         final var existing = ksmlConfig.errorHandlingConfig();
 
-        assertNotNull(existing);
+        assertThat(existing).isNotNull();
         // A second call returns the same default instance (the non-null branch).
-        assertSame(existing, ksmlConfig.errorHandlingConfig());
+        assertThat(ksmlConfig.errorHandlingConfig()).isSameAs(existing);
     }
 
     @Test
@@ -224,8 +223,9 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.storageDirectory(blocker.resolve("child").toString());
         ksmlConfig.createStorageDirectory(true);
 
-        assertThrows(ConfigException.class, ksmlConfig::storageDirectory,
-                "creating a directory under a regular file should fail");
+        assertThatThrownBy(ksmlConfig::storageDirectory)
+                .as("creating a directory under a regular file should fail")
+                .isInstanceOf(ConfigException.class);
     }
 
     @Test
@@ -240,18 +240,18 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.definitions(defs);
 
         // The IOException while reading is caught and logged, so the entry is simply absent.
-        assertTrue(ksmlConfig.definitions().isEmpty(), "an unparseable definition file is skipped");
+        assertThat(ksmlConfig.definitions()).as("an unparseable definition file is skipped").isEmpty();
     }
 
     @Test
     @DisplayName("pythonContextConfig() falls back to a default when none is configured")
     void pythonContextConfigDefaults() {
         final var ksmlConfig = new KSMLConfig();
-        assertNotNull(ksmlConfig.pythonContextConfig(), "a default python context config should be provided");
+        assertThat(ksmlConfig.pythonContextConfig()).as("a default python context config should be provided").isNotNull();
 
         final var explicit = PythonContextConfig.builder().build();
         ksmlConfig.pythonContextConfig(explicit);
-        assertSame(explicit, ksmlConfig.pythonContextConfig(), "an explicit config should be returned as-is");
+        assertThat(ksmlConfig.pythonContextConfig()).as("an explicit config should be returned as-is").isSameAs(explicit);
     }
 
     @Test
@@ -261,9 +261,9 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.errorHandlingConfig(null);
         ksmlConfig.applicationServerConfig(null);
 
-        assertNotNull(ksmlConfig.errorHandlingConfig(), "a fresh error handling config should be returned");
+        assertThat(ksmlConfig.errorHandlingConfig()).as("a fresh error handling config should be returned").isNotNull();
         final var appServer = ksmlConfig.applicationServerConfig();
-        assertNotNull(appServer, "a fresh application server config should be returned");
-        assertFalse(appServer.enabled(), "the recreated application server should be disabled by default");
+        assertThat(appServer).as("a fresh application server config should be returned").isNotNull();
+        assertThat(appServer.enabled()).as("the recreated application server should be disabled by default").isFalse();
     }
 }
