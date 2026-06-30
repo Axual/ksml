@@ -78,7 +78,7 @@
         <apache.commons.compress.version>1.28.0</apache.commons.compress.version>
         <apache.commons.csv.version>1.14.1</apache.commons.csv.version>
         <apache.commons.text.version>1.15.0</apache.commons.text.version>
-        <apache.kafka.version>4.3.0</apache.kafka.version>
+        <apache.kafka.version>4.3.1</apache.kafka.version>
         <apache.xmlschema.version>2.3.2</apache.xmlschema.version>
         <apicurio.version>2.6.13.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
@@ -92,7 +92,7 @@
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
-        <logback.version>1.5.34</logback.version>
+        <logback.version>1.5.37</logback.version>
         <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <lombok.version>1.18.46</lombok.version>
         <picocli.version>4.7.7</picocli.version>
@@ -113,7 +113,7 @@
         <awaitility.version>4.3.0</awaitility.version>
         <hamcrest.version>3.0</hamcrest.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
-        <junit.version>6.1.0</junit.version>
+        <junit.version>6.1.1</junit.version>
         <mockito-core.version>5.23.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
         <testcontainers.version>2.0.5</testcontainers.version>
