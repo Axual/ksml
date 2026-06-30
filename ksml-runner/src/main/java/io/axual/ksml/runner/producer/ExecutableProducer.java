@@ -60,6 +60,7 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 @Slf4j
 public class ExecutableProducer {
     private static final DataObjectConverter DATA_OBJECT_CONVERTER = new DataObjectConverter();
+    private static final int MAX_GENERATE_RETRIES = 10;
 
     @Getter
     private final String name;
@@ -156,34 +157,13 @@ public class ExecutableProducer {
         final var futures = new ArrayList<Future<RecordMetadata>>();
         try {
             for (final var message : messages) {
-                if (partitioner != null) {
-                    // If a partitioner is defined, then call the function and generate producer records for every
-                    // partition the message is sent to
-                    final var numPartitions = producer.partitionsFor(topic).size();
-                    Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.key(), message.value(), numPartitions);
-                    if (partitions.isPresent()) {
-                        for (int partition : partitions.get()) {
-                            ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, partition, message.key(), message.value(), message.headers());
-                            futures.add(producer.send(rec));
-                        }
-                    }
-                } else {
-                    // No partitioner is defined, so create just one producer record without specifying a partition
-                    ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, null, message.key(), message.value(), message.headers());
-                    futures.add(producer.send(rec));
-                }
+                sendMessage(producer, message, futures);
             }
 
             batchCount++;
 
             for (var future : futures) {
-                final var metadata = future.get();
-                if (metadata != null && metadata.hasOffset()) {
-                    producerStrategy.successfullyProducedOneMessage();
-                    log.info("Produced message: producer={}, batch #{}, message #{}, topic={}, partition={}, offset={}", name, batchCount, producerStrategy.messagesProduced(), metadata.topic(), metadata.partition(), metadata.offset());
-                } else {
-                    log.error("Error producing message to topic {}", topic);
-                }
+                logProducedMessage(future.get());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -193,44 +173,92 @@ public class ExecutableProducer {
         }
     }
 
+    /**
+     * Sends a single generated message: when a partitioner is configured the message is sent to every
+     * partition it selects, otherwise it is sent once without specifying a partition. The resulting send
+     * futures are appended to {@code futures}. Extracted from {@link #produceMessages} to keep its
+     * cognitive complexity low.
+     */
+    private void sendMessage(Producer<byte[], byte[]> producer, GeneratedMessage message, List<Future<RecordMetadata>> futures) {
+        if (partitioner == null) {
+            // No partitioner is defined, so create just one producer record without specifying a partition
+            futures.add(producer.send(new ProducerRecord<>(topic, null, message.key(), message.value(), message.headers())));
+            return;
+        }
+
+        // A partitioner is defined, so call the function and generate a producer record for every
+        // partition the message is sent to
+        final var numPartitions = producer.partitionsFor(topic).size();
+        final Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.key(), message.value(), numPartitions);
+        if (partitions.isEmpty()) {
+            return;
+        }
+        for (int partition : partitions.get()) {
+            futures.add(producer.send(new ProducerRecord<>(topic, partition, message.key(), message.value(), message.headers())));
+        }
+    }
+
+    /**
+     * Records the outcome of a single send: a message with an assigned offset counts as produced,
+     * anything else is logged as an error. Extracted from {@link #produceMessages} to keep its
+     * cognitive complexity low.
+     */
+    private void logProducedMessage(RecordMetadata metadata) {
+        if (metadata != null && metadata.hasOffset()) {
+            producerStrategy.successfullyProducedOneMessage();
+            log.info("Produced message: producer={}, batch #{}, message #{}, topic={}, partition={}, offset={}", name, batchCount, producerStrategy.messagesProduced(), metadata.topic(), metadata.partition(), metadata.offset());
+        } else {
+            log.error("Error producing message to topic {}", topic);
+        }
+    }
+
     private List<GeneratedMessage> generateBatch() {
         final var result = new ArrayList<GeneratedMessage>();
-        for (int index = 0; index < producerStrategy.batchSize(); index++) {
-            Pair<DataObject, DataObject> message = null;
-            for (int t = 0; t < 10; t++) {
-                message = generateMessage();
-                if (message != null) break;
-            }
-
-            if (message != null) {
-                final var key = message.left();
-                final var value = message.right();
-
-                // Log the generated messages
-                final var keyStr = key != null ? key.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
-                final var valueStr = value != null ? value.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
-                log.info("Message: key={}, value={}", keyStr, valueStr);
-
-                // Serialize the message
-                final var headers = new RecordHeaders();
-                final var serializedKey = keySerializer.serialize(topic, headers, key);
-                final var serializedValue = valueSerializer.serialize(topic, headers, value);
-
-                // Add the serialized message to the batch
-                result.add(new GeneratedMessage(headers, serializedKey, serializedValue));
-
-                // Check if this should be the last message produced
-                if (!producerStrategy.continueAfterMessage(key, value)) {
-                    stopProducing = true;
-                    break;
-                }
+        var keepGenerating = true;
+        for (var index = 0; index < producerStrategy.batchSize() && keepGenerating; index++) {
+            final var message = generateMessageWithRetries();
+            if (message == null) {
+                log.warn("Could not generate a valid message after {} tries, skipping...", MAX_GENERATE_RETRIES);
             } else {
-                log.warn("Could not generate a valid message after 10 tries, skipping...");
+                // Add the serialized message to the batch
+                result.add(serializeMessage(message));
+
+                // Stop after this message when the strategy says it should be the last one produced
+                if (!producerStrategy.continueAfterMessage(message.left(), message.right())) {
+                    stopProducing = true;
+                    keepGenerating = false;
+                }
             }
         }
 
         // Return the batch of messages
         return result;
+    }
+
+    /** Generates a message, retrying up to {@link #MAX_GENERATE_RETRIES} times, or {@code null} when none could be generated. */
+    private Pair<DataObject, DataObject> generateMessageWithRetries() {
+        for (int t = 0; t < MAX_GENERATE_RETRIES; t++) {
+            final var message = generateMessage();
+            if (message != null) return message;
+        }
+        return null;
+    }
+
+    /** Logs and serializes a generated (key, value) message into a {@link GeneratedMessage}. */
+    private GeneratedMessage serializeMessage(Pair<DataObject, DataObject> message) {
+        final var key = message.left();
+        final var value = message.right();
+
+        // Log the generated messages
+        final var keyStr = key != null ? key.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
+        final var valueStr = value != null ? value.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
+        log.info("Message: key={}, value={}", keyStr, valueStr);
+
+        // Serialize the message
+        final var headers = new RecordHeaders();
+        final var serializedKey = keySerializer.serialize(topic, headers, key);
+        final var serializedValue = valueSerializer.serialize(topic, headers, value);
+        return new GeneratedMessage(headers, serializedKey, serializedValue);
     }
 
     private Pair<DataObject, DataObject> generateMessage() {

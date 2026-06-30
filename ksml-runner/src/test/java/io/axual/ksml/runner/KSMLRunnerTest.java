@@ -46,14 +46,16 @@ class KSMLRunnerTest {
         // main() writes the runner configuration schema and returns (no System.exit) when --runner-schema is set
         KSMLRunner.main(new String[]{"--runner-schema", out.toString()});
 
-        assertThat(Files.exists(out)).as("runner schema file should have been written").isTrue();
+        assertThat(out).as("runner schema file should have been written").exists();
         final var schema = Files.readString(out);
 
-        // resolveDefaultValue converts the @JsonProperty defaultValue to the field's type:
-        assertThat(schema.contains("\"default\" : false")).as("boolean defaults should be emitted as JSON booleans").isTrue();
-        assertThat(schema.contains("\"default\" : true")).as("boolean defaults should be emitted as JSON booleans").isTrue();
-        assertThat(schema.contains("\"default\" : 9999")).as("integer defaults should be emitted as JSON numbers").isTrue();
-        assertThat(schema.contains("\"default\" : \"0.0.0.0\"")).as("string defaults should be emitted as JSON strings").isTrue();
+        // resolveDefaultValue converts the @JsonProperty defaultValue to the field's type, so the
+        // schema must contain each default rendered with its JSON type (boolean, integer, string).
+        assertThat(schema).as("typed defaults should be emitted with their JSON types").contains(
+                "\"default\" : false",
+                "\"default\" : true",
+                "\"default\" : 9999",
+                "\"default\" : \"0.0.0.0\"");
     }
 
     @Test
@@ -64,7 +66,7 @@ class KSMLRunnerTest {
         // main() writes the KSML definition schema and returns when --schema is set
         KSMLRunner.main(new String[]{"--schema", out.toString()});
 
-        assertThat(Files.exists(out)).as("KSML definition schema file should have been written").isTrue();
+        assertThat(out).as("KSML definition schema file should have been written").exists();
         // The generated schema is a JSON document describing the KSML definition structure.
         assertThat(Files.readString(out)).contains("$schema");
     }

@@ -93,7 +93,7 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.createStorageDirectory(true);
 
         assertThat(ksmlConfig.storageDirectory()).isEqualTo(newDir.toAbsolutePath().normalize().toString());
-        assertThat(Files.isDirectory(newDir)).as("storage directory should have been created").isTrue();
+        assertThat(newDir).as("storage directory should have been created").isDirectory();
     }
 
     @Test
