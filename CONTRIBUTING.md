@@ -4,16 +4,22 @@ Thank you for considering contributing to this project! Before making any change
 
 Please also make sure to read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) in all interactions with the project.
 
-## Merge Request Process
+## Pull Request Process
 
 1. Fork the repository and create a feature or bugfix branch.
 2. Ensure your code follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 2. Document your code clearly and thoroughly.
-3. Maintain at least 70% test coverage. Include a unit or integration test that reproduces any bug you're fixing.
+3. Include a unit or integration test that reproduces any bug you're fixing.
 4. Keep changes focused and concise. Submit separate pull requests for unrelated changes, but you may combine minor bug fixes and tests.
 6. Update the [`README.md`](README.md) when you introduce interface changes (e.g., new environment variables, file paths, etc.).
 7. Submit a pull request from your fork to the main repository.
 8. A pull request may be merged after approval from two developers. If you do not have merge permissions, ask the second reviewer to merge it for you.
+## Before Sending for Review
+
+The following two steps are **mandatory** before asking someone to review:
+
+1. Run the SonarCloud analysis in your IDE and resolve any reported issues. See [Sonar IDE integration](#sonar-ide-integration) below.
+2. Run `diff-cover` as described above and confirm that coverage of your changes is above 60%. See [Checking Diff Coverage](#checking-diff-coverage-coverage-of-changed-lines-only) below.
 
 ## Setting Up the Project for Local Development
 
@@ -83,7 +89,7 @@ To run tests and validate code coverage:
 mvn clean test
 ```
 
-- Ensure at least 70% code coverage.
+- Ensure at least 60% code coverage.
 - Use the following custom annotations when writing tests for definitions:
   - `@ExtendWith(KSMLTestExtension.class)`
   - `@KSMLTopic(topic = "xxx")`
@@ -121,20 +127,24 @@ Those two numbers will match what SonarCloud reports.
 
 Per-module reports (lower numbers, own tests only) are still at `<module>/target/site/jacoco/index.html` if you need them.
 
-### Checking Diff Coverage (coverage of changed lines only)
+#### Checking Diff Coverage (coverage of changed lines only)
 
-To check test coverage only for the lines changed in your branch compared to `main`, use [diff-cover](https://github.com/Bachmann1234/diff_cover). First install it:
+To check test coverage only for the lines changed in your branch compared to `main`, use [diff-cover](https://github.com/Bachmann1234/diff_cover). Install it with [pipx](https://pipx.pypa.io), which keeps CLI tools in isolated environments and puts them on your `PATH` automatically:
 
 ```shell
-pip install diff-cover
+pipx install diff-cover
 ```
 
-> **Note:** On some systems `diff-cover` is installed to a user-local path (e.g. `~/Library/Python/3.9/bin/diff-cover` on macOS). If the command is not found after install, use the full path or add the directory to your `PATH`.
+If you don't have `pipx`, install it first:
+
+```shell
+brew install pipx
+```
 
 Make sure you have run `mvn clean verify --no-transfer-progress` first to produce the per-module JaCoCo reports, then run:
 
 ```shell
-diff-cover **/target/site/jacoco/jacoco.xml \
+diff-cover ksml-reporting/target/site/jacoco-aggregate/jacoco.xml \
   --compare-branch origin/main \
   --src-roots **/src/main/java \
   --format html:diff-coverage.html
@@ -146,7 +156,7 @@ Open the report:
 open diff-coverage.html
 ```
 
-This generates an HTML report showing test coverage for every line added or modified in your branch. Aim for **>65% coverage** on the changed code before submitting a pull request.
+This generates an HTML report showing test coverage for every line added or modified in your branch. Aim for **>60% coverage** on the changed code before submitting a pull request.
 
 ## Sonar IDE Integration
 
@@ -172,13 +182,6 @@ SonarCloud can analyse your branch against `main` directly inside IntelliJ IDEA,
 8. Enable `New Code` option. This will compare the current branch with the previous released version e.g. 1.3.0. As a result, the issues shown reflect only what your branch introduces relative to the base.
 
 > **Note:** To keep this happening, every issue should be resolved before merging back to the main branch. In different case, we will end up seeing issues which are not introduced by our code but from a previous commit after the latest release.
-
-## Before Sending for Review
-
-The following two steps are **mandatory** before opening a pull request:
-
-1. Run the SonarCloud analysis in your IDE and resolve any reported issues (see [Sonar IDE integration](#sonar-ide-integration) below).
-2. Run `diff-cover` as described above and confirm that coverage of your changes is above 65%.
 
 ## Next Steps
 
