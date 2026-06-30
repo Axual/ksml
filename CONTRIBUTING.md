@@ -4,16 +4,24 @@ Thank you for considering contributing to this project! Before making any change
 
 Please also make sure to read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) in all interactions with the project.
 
-## Merge Request Process
+## Pull Request Process
 
 1. Fork the repository and create a feature or bugfix branch.
 2. Ensure your code follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 2. Document your code clearly and thoroughly.
-3. Maintain at least 70% test coverage. Include a unit or integration test that reproduces any bug you're fixing.
+3. Maintain at least 60% test coverage. Include a unit or integration test that reproduces any bug you're fixing.
 4. Keep changes focused and concise. Submit separate pull requests for unrelated changes, but you may combine minor bug fixes and tests.
 6. Update the [`README.md`](README.md) when you introduce interface changes (e.g., new environment variables, file paths, etc.).
 7. Submit a pull request from your fork to the main repository.
 8. A pull request may be merged after approval from two developers. If you do not have merge permissions, ask the second reviewer to merge it for you.
+
+## Before Sending for Review
+
+The following two steps are **mandatory** before asking someone to review:
+
+1. Run the SonarCloud analysis in your IDE and resolve any reported issues. See [Sonar IDE integration](#sonar-ide-integration) below.
+2. Run `diff-cover` and confirm that coverage of your changes is above 60%.
+   See [Checking Diff Coverage](#checking-diff-coverage-coverage-of-changed-lines-only) below.
 
 ## Setting Up the Project for Local Development
 
@@ -83,7 +91,7 @@ To run tests and validate code coverage:
 mvn clean test
 ```
 
-- Ensure at least 70% code coverage.
+- Ensure at least 60% code coverage.
 - Use the following custom annotations when writing tests for definitions:
   - `@ExtendWith(KSMLTestExtension.class)`
   - `@KSMLTopic(topic = "xxx")`
@@ -120,6 +128,68 @@ Branch coverage: (6676  - 2787) / 6676  = 58.3%
 Those two numbers will match what SonarCloud reports.
 
 Per-module reports (lower numbers, own tests only) are still at `<module>/target/site/jacoco/index.html` if you need them.
+
+#### Checking Diff Coverage (coverage of changed lines only)
+
+To check test coverage only for the lines changed in your branch compared to `main`, use [diff-cover](https://github.com/Bachmann1234/diff_cover). Install it with [pipx](https://pipx.pypa.io), which keeps CLI tools in isolated environments and puts them on your `PATH` automatically:
+
+```shell
+pipx install diff-cover
+```
+
+If you don't have `pipx`, install it first:
+
+```shell
+brew install pipx
+pipx ensurepath
+```
+
+Then restart your terminal (or run `source ~/.zshrc`) so the new `PATH` takes effect.
+
+Make sure you have run `mvn clean verify --no-transfer-progress` first to generate the JaCoCo reports, then run:
+
+```shell
+diff-cover ksml-reporting/target/site/jacoco-aggregate/jacoco.xml \
+  --compare-branch origin/main \
+  --src-roots **/src/main/java \
+  --format html:diff-coverage.html
+```
+
+Open the report:
+
+```shell
+open diff-coverage.html        # macOS
+xdg-open diff-coverage.html   # Linux
+```
+
+This generates an HTML report showing test coverage for every line added or modified in your branch. Aim for **>60% coverage** on the changed code before submitting a pull request.
+
+> **Note:** Local diff-cover numbers will read roughly 5% lower than SonarCloud PR decoration. This is expected - SonarCloud excludes certain structural lines (closing braces, some declarations) from its denominator, while diff-cover counts all JaCoCo-tracked lines. Both tools read the same JaCoCo data.
+
+## Sonar IDE Integration
+
+SonarCloud can analyse your branch against `main` directly inside IntelliJ IDEA, giving you instant feedback without pushing to CI.
+
+### Generating a SonarCloud token
+
+1. Sign in at [sonarcloud.io](https://sonarcloud.io).
+2. Click your avatar in the top-right corner and select **My Account**.
+3. Go to the **Security** tab.
+4. Under **Generate Tokens**, enter a name (e.g. `local-ide`) and click **Generate**.
+5. Copy the token, it is shown only once.
+
+### IntelliJ IDEA
+
+1. Install the **SonarQube for IDE** plugin (*Settings → Plugins → Marketplace*).
+2. Open *Settings → Tools → SonarQube for IDE → Settings*.
+3. Under **SonarQube / SonarCloud connections**, click **+** and set a name for the new connection and choose **SonarCloud**.
+4. Paste your token (or generate a new one through the `Generate Token` option)
+5. Proceed until the end
+6. Bind the project: in the same settings page open **Project Settings**, enable **Bind to SonarQube / SonarCloud**, and select the `ksml` project.
+7. Click `Analyze All Project Files` and then click `Show Filters`
+8. Enable `New Code` option. This will compare the current branch with the previous released version e.g. 1.3.0. As a result, the issues shown reflect only what your branch introduces relative to the base.
+
+> **Note:** To keep this happening, every issue should be resolved before merging back to the main branch. In different case, we will end up seeing issues which are not introduced by our code but from a previous commit after the latest release.
 
 ## Next Steps
 
