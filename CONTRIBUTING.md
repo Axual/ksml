@@ -141,7 +141,10 @@ If you don't have `pipx`, install it first:
 
 ```shell
 brew install pipx
+pipx ensurepath
 ```
+
+Then restart your terminal (or run `source ~/.zshrc`) so the new `PATH` takes effect.
 
 Make sure you have run `mvn clean verify --no-transfer-progress` first to generate the JaCoCo reports, then run:
 
