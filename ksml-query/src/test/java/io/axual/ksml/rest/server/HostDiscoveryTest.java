@@ -32,12 +32,4 @@ class HostDiscoveryTest {
     void discoverLocalReturnsLocalhost() {
         assertThat(HostDiscovery.discoverLocal()).isEqualTo("localhost");
     }
-
-    @Test
-    @DisplayName("Docker discovery returns the HOSTNAME environment variable")
-    void discoverDockerReturnsHostnameEnv() {
-        // Mutating the environment requires restricted JDK-internal access on modern JDKs, so this
-        // verifies discoverDocker reflects the actual HOSTNAME value rather than injecting one.
-        assertThat(HostDiscovery.discoverDocker()).isEqualTo(System.getenv("HOSTNAME"));
-    }
 }

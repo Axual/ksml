@@ -48,4 +48,13 @@ class RestServerExceptionMapperTest {
         assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
         assertThat(response.getEntity()).isEqualTo("500: boom");
     }
+
+    @Test
+    @DisplayName("A throwable without a message still maps to a 500 plain-text response")
+    void mapsThrowableWithoutMessage() {
+        final var response = mapper.toResponse(new IllegalStateException());
+
+        assertThat(response.getStatus()).isEqualTo(500);
+        assertThat(response.getEntity()).isEqualTo("500: null");
+    }
 }

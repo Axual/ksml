@@ -20,6 +20,8 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
 import org.apache.kafka.streams.state.HostInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.net.ServerSocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 @ExtendWith(MockitoExtension.class)
 class RestServerTest {
@@ -51,16 +52,35 @@ class RestServerTest {
     }
 
     @Test
-    @DisplayName("The server registers its resources, binds locally and shuts down cleanly")
-    void lifecycleStartsAndStops() throws Exception {
+    @DisplayName("initGlobalQuerier publishes the querier and host info to the shared GlobalState")
+    void publishesQuerierToGlobalState() throws Exception {
         final var hostInfo = new HostInfo("localhost", freePort());
 
-        assertThatCode(() -> {
-            try (var server = new RestServer(hostInfo)) {
-                server.initGlobalQuerier(querier);
-                assertThat(GlobalState.INSTANCE.querier()).isSameAs(querier);
-                assertThat(GlobalState.INSTANCE.hostInfo()).isSameAs(hostInfo);
-            }
-        }).doesNotThrowAnyException();
+        try (var server = new RestServer(hostInfo)) {
+            server.initGlobalQuerier(querier);
+
+            assertThat(GlobalState.INSTANCE.querier()).isSameAs(querier);
+            assertThat(GlobalState.INSTANCE.hostInfo()).isSameAs(hostInfo);
+        }
+    }
+
+    @Test
+    @DisplayName("The server binds locally, serves its registered resources and shuts down cleanly")
+    void servesRegisteredResources() throws Exception {
+        final var hostInfo = new HostInfo("localhost", freePort());
+
+        try (var server = new RestServer(hostInfo);
+             var client = ClientBuilder.newClient()) {
+            server.start();
+
+            // No querier is registered, so the startup probe resource answers 500 - which still proves
+            // the resource is wired up and the server is serving requests on its bound port.
+            final var status = client.target("http://localhost:" + hostInfo.port() + "/startup")
+                    .request()
+                    .get(Response.class)
+                    .getStatus();
+
+            assertThat(status).isEqualTo(500);
+        }
     }
 }

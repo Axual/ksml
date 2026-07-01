@@ -22,6 +22,7 @@ package io.axual.ksml.rest.server;
 
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.rest.data.WindowedKeyValueBean;
+import io.axual.ksml.rest.data.WindowedKeyValueBeans;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
@@ -35,21 +36,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class WindowedKeyValueStoreResourceTest {
 
     private static final HostInfo LOCAL = new HostInfo("localhost", 8080);
+    private static final HostInfo REMOTE = new HostInfo("other", 9090);
     private static final String STORE = "windowStore";
 
     @Mock
@@ -59,16 +63,11 @@ class WindowedKeyValueStoreResourceTest {
     @Mock
     private KeyValueIterator<Windowed<Object>, Object> iterator;
     @Mock
-    private RestClient restClient;
-    @Mock
     private StreamsMetadata streamsMetadata;
-
-    private WindowedKeyValueStoreResource resource;
 
     @BeforeEach
     void setup() {
         GlobalState.INSTANCE.set(querier, LOCAL);
-        resource = new WindowedKeyValueStoreResource();
     }
 
     @AfterEach
@@ -80,10 +79,8 @@ class WindowedKeyValueStoreResourceTest {
         return new Windowed<>(key, new TimeWindow(0L, 100L));
     }
 
-    private static void injectRestClient(StoreResource resource, RestClient client) throws Exception {
-        final Field field = StoreResource.class.getDeclaredField("restClient");
-        field.setAccessible(true);
-        field.set(resource, client);
+    private static KeyQueryMetadata metadataOnHost(HostInfo host) {
+        return new KeyQueryMetadata(host, Set.of(), 0);
     }
 
     @Test
@@ -94,13 +91,14 @@ class WindowedKeyValueStoreResourceTest {
         when(iterator.hasNext()).thenReturn(true, false);
         when(iterator.next()).thenReturn(KeyValue.pair(windowedKey("k1"), "v1"));
 
-        final List<WindowedKeyValueBean> result = resource.getAllLocal(STORE);
+        final var result = new WindowedKeyValueStoreResource().getAllLocal(STORE);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).key()).isEqualTo(new DataString("k1"));
-        assertThat(result.get(0).value()).isEqualTo(new DataString("v1"));
-        assertThat(result.get(0).window().start()).isZero();
-        assertThat(result.get(0).window().end()).isEqualTo(100L);
+        final var bean = result.get(0);
+        assertThat(bean.key()).isEqualTo(new DataString("k1"));
+        assertThat(bean.value()).isEqualTo(new DataString("v1"));
+        assertThat(bean.window().start()).isZero();
+        assertThat(bean.window().end()).isEqualTo(100L);
     }
 
     @Test
@@ -111,10 +109,11 @@ class WindowedKeyValueStoreResourceTest {
         when(iterator.hasNext()).thenReturn(true, false);
         when(iterator.next()).thenReturn(KeyValue.pair(windowedKey("k1"), "v1"));
 
-        final WindowedKeyValueBean result = resource.getKeyLocal(STORE, "k1", 50L);
+        final var result = new WindowedKeyValueStoreResource().getKeyLocal(STORE, "k1", 50L);
 
-        assertThat(result).isNotNull();
-        assertThat(result.value()).isEqualTo(new DataString("v1"));
+        assertThat(result).isNotNull()
+                .extracting(WindowedKeyValueBean::value)
+                .isEqualTo(new DataString("v1"));
     }
 
     @Test
@@ -124,19 +123,19 @@ class WindowedKeyValueStoreResourceTest {
         when(store.fetch(any(), any(), any(Instant.class), any(Instant.class))).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(false);
 
-        assertThat(resource.getKeyLocal(STORE, "k1", 50L)).isNull();
+        assertThat(new WindowedKeyValueStoreResource().getKeyLocal(STORE, "k1", 50L)).isNull();
     }
 
     @Test
     @DisplayName("getKey queries the local store when the key's active host is this instance")
     void getKeyRoutesToLocalStore() {
-        when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(new KeyQueryMetadata(LOCAL, java.util.Set.of(), 0));
+        when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(metadataOnHost(LOCAL));
         when(querier.store(any())).thenReturn(store);
         when(store.fetch(any(), any(), any(Instant.class), any(Instant.class))).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(true, false);
         when(iterator.next()).thenReturn(KeyValue.pair(windowedKey("k1"), "v1"));
 
-        final WindowedKeyValueBean result = resource.getKey(STORE, "k1", 50L);
+        final var result = new WindowedKeyValueStoreResource().getKey(STORE, "k1", 50L);
 
         assertThat(result.value()).isEqualTo(new DataString("v1"));
     }
@@ -152,19 +151,44 @@ class WindowedKeyValueStoreResourceTest {
         when(streamsMetadata.port()).thenReturn(LOCAL.port());
         when(querier.allMetadataForStore(STORE)).thenReturn(List.of(streamsMetadata));
 
-        assertThat(resource.getAll(STORE)).hasSize(1);
+        assertThat(new WindowedKeyValueStoreResource().getAll(STORE)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("getAll merges local entries with the beans fetched from each remote instance")
+    void getAllMergesRemoteEntries() {
+        when(querier.store(any())).thenReturn(store);
+        when(store.all()).thenReturn(iterator);
+        when(iterator.hasNext()).thenReturn(true, false);
+        when(iterator.next()).thenReturn(KeyValue.pair(windowedKey("k1"), "v1"));
+        when(streamsMetadata.host()).thenReturn(REMOTE.host());
+        when(streamsMetadata.port()).thenReturn(REMOTE.port());
+        when(querier.allMetadataForStore(STORE)).thenReturn(List.of(streamsMetadata));
+        final var remoteBeans = new WindowedKeyValueBeans().add(new TimeWindow(0L, 100L), new DataString("k2"), new DataString("v2"));
+        final var url = ArgumentCaptor.forClass(String.class);
+
+        try (var restClients = mockConstruction(RestClient.class,
+                (mock, ctx) -> when(mock.getRemoteWindowedKeyValueBeans(url.capture())).thenReturn(remoteBeans))) {
+            final var result = new WindowedKeyValueStoreResource().getAll(STORE);
+
+            assertThat(result).hasSize(2);
+            assertThat(url.getValue()).isEqualTo("http://other:9090/state/windowed/" + STORE + "/local/all");
+        }
     }
 
     @Test
     @DisplayName("getKey delegates to the remote REST client when the key lives on another instance")
-    void getKeyRoutesToRemoteInstance() throws Exception {
-        injectRestClient(resource, restClient);
+    void getKeyRoutesToRemoteInstance() {
         final var remoteBean = new WindowedKeyValueBean(new TimeWindow(0L, 100L), new DataString("k1"), new DataString("remote"));
-        when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(new KeyQueryMetadata(new HostInfo("other", 9090), java.util.Set.of(), 0));
-        when(restClient.getRemoteKeyValueBean(any(), any())).thenReturn(remoteBean);
+        final var url = ArgumentCaptor.forClass(String.class);
+        when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(metadataOnHost(REMOTE));
 
-        final WindowedKeyValueBean result = resource.getKey(STORE, "k1", 50L);
+        try (var restClients = mockConstruction(RestClient.class,
+                (mock, ctx) -> when(mock.getRemoteKeyValueBean(url.capture(), any())).thenReturn(remoteBean))) {
+            final var result = new WindowedKeyValueStoreResource().getKey(STORE, "k1", 50L);
 
-        assertThat(result).isSameAs(remoteBean);
+            assertThat(result).isSameAs(remoteBean);
+            assertThat(url.getValue()).isEqualTo("http://other:9090/state/windowed/" + STORE + "/local/get/k1/50");
+        }
     }
 }

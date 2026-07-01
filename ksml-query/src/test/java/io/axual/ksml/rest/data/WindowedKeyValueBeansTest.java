@@ -39,8 +39,9 @@ class WindowedKeyValueBeansTest {
         final var beans = new WindowedKeyValueBeans().add(window(), new DataString("k"), new DataString("v"));
 
         assertThat(beans.elements()).hasSize(1);
-        assertThat(beans.elements().get(0).key()).isEqualTo(new DataString("k"));
-        assertThat(beans.elements().get(0).window().end()).isEqualTo(100L);
+        final var bean = beans.elements().get(0);
+        assertThat(bean.key()).isEqualTo(new DataString("k"));
+        assertThat(bean.window().end()).isEqualTo(100L);
     }
 
     @Test
@@ -54,6 +55,13 @@ class WindowedKeyValueBeansTest {
         first.add(second);
 
         assertThat(first.elements()).hasSize(3);
-        assertThat(first.toString()).contains("StoreData");
+    }
+
+    @Test
+    @DisplayName("toString embeds the string representation of the contained elements")
+    void toStringContainsElements() {
+        final var beans = new WindowedKeyValueBeans().add(window(), new DataString("k"), new DataString("v"));
+
+        assertThat(beans.toString()).contains(beans.elements().get(0).toString());
     }
 }

@@ -34,8 +34,9 @@ class KeyValueBeansTest {
         final var beans = new KeyValueBeans().add(new DataString("k"), new DataString("v"));
 
         assertThat(beans.elements()).hasSize(1);
-        assertThat(beans.elements().get(0).key()).isEqualTo(new DataString("k"));
-        assertThat(beans.elements().get(0).value()).isEqualTo(new DataString("v"));
+        final var bean = beans.elements().get(0);
+        assertThat(bean.key()).isEqualTo(new DataString("k"));
+        assertThat(bean.value()).isEqualTo(new DataString("v"));
     }
 
     @Test
@@ -52,10 +53,10 @@ class KeyValueBeansTest {
     }
 
     @Test
-    @DisplayName("toString reports the contained elements")
+    @DisplayName("toString embeds the string representation of the contained elements")
     void toStringContainsElements() {
         final var beans = new KeyValueBeans().add(new DataString("k"), new DataString("v"));
 
-        assertThat(beans.toString()).contains("StoreData", "elements");
+        assertThat(beans.toString()).contains(beans.elements().get(0).toString());
     }
 }

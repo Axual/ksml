@@ -147,10 +147,4 @@ public class RestClient implements AutoCloseable {
             client.close();
         }
     }
-
-    public static String getHostIPForDiscovery() {
-        String host = HostDiscovery.discoverDocker();
-        log.info(" Host IP {}", host);
-        return host;
-    }
 }

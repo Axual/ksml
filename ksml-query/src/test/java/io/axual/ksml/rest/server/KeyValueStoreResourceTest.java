@@ -22,6 +22,7 @@ package io.axual.ksml.rest.server;
 
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.rest.data.KeyValueBean;
+import io.axual.ksml.rest.data.KeyValueBeans;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.ServiceUnavailableException;
 import org.apache.kafka.streams.KeyValue;
@@ -36,21 +37,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class KeyValueStoreResourceTest {
 
     private static final HostInfo LOCAL = new HostInfo("localhost", 8080);
+    private static final HostInfo REMOTE = new HostInfo("other", 9090);
     private static final String STORE = "myStore";
 
     @Mock
@@ -60,27 +64,16 @@ class KeyValueStoreResourceTest {
     @Mock
     private KeyValueIterator<Object, Object> iterator;
     @Mock
-    private RestClient restClient;
-    @Mock
     private StreamsMetadata streamsMetadata;
-
-    private KeyValueStoreResource resource;
 
     @BeforeEach
     void setup() {
         GlobalState.INSTANCE.set(querier, LOCAL);
-        resource = new KeyValueStoreResource();
     }
 
     @AfterEach
     void clearGlobalState() {
         GlobalState.INSTANCE.set(null, null);
-    }
-
-    private static void injectRestClient(StoreResource resource, RestClient client) throws Exception {
-        final Field field = StoreResource.class.getDeclaredField("restClient");
-        field.setAccessible(true);
-        field.set(resource, client);
     }
 
     @Test
@@ -91,11 +84,12 @@ class KeyValueStoreResourceTest {
         when(iterator.hasNext()).thenReturn(true, true, false);
         when(iterator.next()).thenReturn(KeyValue.pair("k1", "v1"), KeyValue.pair("k2", "v2"));
 
-        final List<KeyValueBean> result = resource.getAllLocal(STORE);
+        final var result = new KeyValueStoreResource().getAllLocal(STORE);
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).key()).isEqualTo(new DataString("k1"));
-        assertThat(result.get(0).value()).isEqualTo(new DataString("v1"));
+        final var first = result.get(0);
+        assertThat(first.key()).isEqualTo(new DataString("k1"));
+        assertThat(first.value()).isEqualTo(new DataString("v1"));
     }
 
     @Test
@@ -104,7 +98,7 @@ class KeyValueStoreResourceTest {
         when(querier.store(any())).thenReturn(store);
         when(store.get("k1")).thenReturn("v1");
 
-        final KeyValueBean result = resource.getKeyLocal(STORE, "k1");
+        final var result = new KeyValueStoreResource().getKeyLocal(STORE, "k1");
 
         assertThat(result.key()).isEqualTo(new DataString("k1"));
         assertThat(result.value()).isEqualTo(new DataString("v1"));
@@ -117,22 +111,25 @@ class KeyValueStoreResourceTest {
         when(querier.store(any())).thenReturn(store);
         when(store.get("k1")).thenReturn("v1");
 
-        final KeyValueBean result = resource.getKey(STORE, "k1");
+        final var result = new KeyValueStoreResource().getKey(STORE, "k1");
 
         assertThat(result.value()).isEqualTo(new DataString("v1"));
     }
 
     @Test
-    @DisplayName("getKey delegates to the remote REST client when the key lives on another instance")
-    void getKeyRoutesToRemoteInstance() throws Exception {
-        injectRestClient(resource, restClient);
+    @DisplayName("getKey delegates to the remote REST client, hitting the key's local endpoint on the owning instance")
+    void getKeyRoutesToRemoteInstance() {
         final var remoteBean = new KeyValueBean(new DataString("k1"), new DataString("remote"));
-        when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(metadataOnHost(new HostInfo("other", 9090)));
-        when(restClient.getRemoteKeyValueBean(any(), any())).thenReturn(remoteBean);
+        final var url = ArgumentCaptor.forClass(String.class);
+        when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(metadataOnHost(REMOTE));
 
-        final KeyValueBean result = resource.getKey(STORE, "k1");
+        try (var restClients = mockConstruction(RestClient.class,
+                (mock, ctx) -> when(mock.getRemoteKeyValueBean(url.capture(), any())).thenReturn(remoteBean))) {
+            final var result = new KeyValueStoreResource().getKey(STORE, "k1");
 
-        assertThat(result).isSameAs(remoteBean);
+            assertThat(result).isSameAs(remoteBean);
+            assertThat(url.getValue()).isEqualTo("http://other:9090/state/keyValue/" + STORE + "/local/get/k1");
+        }
     }
 
     @Test
@@ -147,9 +144,31 @@ class KeyValueStoreResourceTest {
         when(streamsMetadata.port()).thenReturn(LOCAL.port());
         when(querier.allMetadataForStore(STORE)).thenReturn(List.of(streamsMetadata));
 
-        final List<KeyValueBean> result = resource.getAll(STORE);
+        final var result = new KeyValueStoreResource().getAll(STORE);
 
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("getAll merges local entries with the beans fetched from each remote instance")
+    void getAllMergesRemoteEntries() {
+        when(querier.store(any())).thenReturn(store);
+        when(store.all()).thenReturn(iterator);
+        when(iterator.hasNext()).thenReturn(true, false);
+        when(iterator.next()).thenReturn(KeyValue.pair("k1", "v1"));
+        when(streamsMetadata.host()).thenReturn(REMOTE.host());
+        when(streamsMetadata.port()).thenReturn(REMOTE.port());
+        when(querier.allMetadataForStore(STORE)).thenReturn(List.of(streamsMetadata));
+        final var remoteBeans = new KeyValueBeans().add(new DataString("k2"), new DataString("v2"));
+        final var url = ArgumentCaptor.forClass(String.class);
+
+        try (var restClients = mockConstruction(RestClient.class,
+                (mock, ctx) -> when(mock.getRemoteKeyValueBeans(url.capture())).thenReturn(remoteBeans))) {
+            final var result = new KeyValueStoreResource().getAll(STORE);
+
+            assertThat(result).hasSize(2);
+            assertThat(url.getValue()).isEqualTo("http://other:9090/state/keyValue/" + STORE + "/local/all");
+        }
     }
 
     @Test
@@ -157,6 +176,7 @@ class KeyValueStoreResourceTest {
     void unknownStoreBecomesNotFound() {
         when(querier.store(any())).thenThrow(new UnknownStateStoreException("nope"));
 
+        final var resource = new KeyValueStoreResource();
         assertThatThrownBy(() -> resource.getAllLocal(STORE)).isInstanceOf(NotFoundException.class);
     }
 
@@ -165,10 +185,11 @@ class KeyValueStoreResourceTest {
     void noQuerierBecomesServiceUnavailable() {
         GlobalState.INSTANCE.set(null, LOCAL);
 
+        final var resource = new KeyValueStoreResource();
         assertThatThrownBy(() -> resource.getAllLocal(STORE)).isInstanceOf(ServiceUnavailableException.class);
     }
 
     private static KeyQueryMetadata metadataOnHost(HostInfo host) {
-        return new KeyQueryMetadata(host, java.util.Set.of(), 0);
+        return new KeyQueryMetadata(host, Set.of(), 0);
     }
 }

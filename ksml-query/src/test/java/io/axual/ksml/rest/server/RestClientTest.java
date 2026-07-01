@@ -20,22 +20,25 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.rest.data.KeyValueBean;
 import io.axual.ksml.rest.data.KeyValueBeans;
 import io.axual.ksml.rest.data.WindowedKeyValueBeans;
 import jakarta.ws.rs.client.AsyncInvoker;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +49,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,14 +68,19 @@ class RestClientTest {
     @Mock
     private AsyncInvoker asyncInvoker;
 
+    private MockedStatic<ClientBuilder> clientBuilder;
     private RestClient restClient;
 
     @BeforeEach
-    void setup() throws Exception {
+    void setup() {
+        clientBuilder = mockStatic(ClientBuilder.class);
+        clientBuilder.when(ClientBuilder::newClient).thenReturn(client);
         restClient = new RestClient();
-        final Field field = RestClient.class.getDeclaredField("client");
-        field.setAccessible(true);
-        field.set(restClient, client);
+    }
+
+    @AfterEach
+    void tearDown() {
+        clientBuilder.close();
     }
 
     /** Stubs the async REST chain so that {@code asyncInvoker.get(SomeClass.class)} returns the given future. */
@@ -85,7 +95,7 @@ class RestClientTest {
     @DisplayName("getRemoteKeyValueBeans returns the fetched beans on success")
     void keyValueBeansSuccess() throws Exception {
         final var beans = new KeyValueBeans();
-        final Future<KeyValueBeans> future = mockFutureReturning(beans);
+        final var future = mockFutureReturning(beans);
         stubChainReturning(future);
 
         assertThat(restClient.getRemoteKeyValueBeans(URL)).isSameAs(beans);
@@ -127,7 +137,7 @@ class RestClientTest {
     @Test
     @DisplayName("getRemoteKeyValueBean returns the fetched bean on success")
     void singleBeanSuccess() throws Exception {
-        final var bean = new KeyValueBean(null, null);
+        final var bean = new KeyValueBean(new DataString("k"), new DataString("v"));
         stubChainReturning(mockFutureReturning(bean));
 
         assertThat(restClient.getRemoteKeyValueBean(URL, KeyValueBean.class)).isSameAs(bean);
@@ -142,8 +152,11 @@ class RestClientTest {
     }
 
     @Test
-    @DisplayName("close closes the underlying REST client")
-    void closeClosesClient() {
+    @DisplayName("close closes the underlying REST client once it has been created")
+    void closeClosesClient() throws Exception {
+        stubChainReturning(mockFutureReturning(new KeyValueBeans()));
+        restClient.getRemoteKeyValueBeans(URL); // forces lazy creation of the JAX-RS client
+
         restClient.close();
 
         verify(client).close();
@@ -151,14 +164,14 @@ class RestClientTest {
 
     @SuppressWarnings("unchecked")
     private static <T> Future<T> mockFutureReturning(T value) throws Exception {
-        final Future<T> future = org.mockito.Mockito.mock(Future.class);
+        final Future<T> future = mock(Future.class);
         when(future.get(anyLong(), any(TimeUnit.class))).thenReturn(value);
         return future;
     }
 
     @SuppressWarnings("unchecked")
     private static Future<Object> mockFutureThrowing(Exception toThrow) throws Exception {
-        final Future<Object> future = org.mockito.Mockito.mock(Future.class);
+        final Future<Object> future = mock(Future.class);
         when(future.get(anyLong(), any(TimeUnit.class))).thenThrow(toThrow);
         return future;
     }
