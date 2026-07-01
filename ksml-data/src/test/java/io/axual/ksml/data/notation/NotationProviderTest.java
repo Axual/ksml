@@ -44,4 +44,49 @@ class NotationProviderTest {
         assertThat(provider.vendorName()).isNull();
         assertThat(provider.notationName()).isEqualTo("avro");
     }
+
+    @Test
+    @DisplayName("name() combines vendor and notation, uses notation alone when no vendor, and is null without a notation name")
+    void nameCombining() {
+        final var vendored = new NotationProvider() {
+            @Override
+            public String notationName() {
+                return "avro";
+            }
+
+            @Override
+            public String vendorName() {
+                return "confluent";
+            }
+
+            @Override
+            public Notation createNotation(NotationContext notationContext) {
+                return null;
+            }
+        };
+        assertThat(vendored.name()).isEqualTo("confluent_avro");
+
+        final var plain = new NotationProvider() {
+            @Override
+            public String notationName() {
+                return "json";
+            }
+
+            @Override
+            public Notation createNotation(NotationContext notationContext) {
+                return null;
+            }
+        };
+        assertThat(plain.name()).isEqualTo("json");
+
+        final var anonymous = new NotationProvider() {
+            @Override
+            public Notation createNotation(NotationContext notationContext) {
+                return null;
+            }
+        };
+        assertThat(anonymous.name()).isNull();
+        // The no-arg createNotation() default delegates to createNotation(null)
+        assertThat(anonymous.createNotation()).isNull();
+    }
 }

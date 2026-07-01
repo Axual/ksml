@@ -21,6 +21,7 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
@@ -113,5 +114,25 @@ class StructTypeTest {
         softly.assertThat(s1).isEqualTo(s2);
         softly.assertThat(s1.hashCode()).isEqualTo(s1.hashCode());
         softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("fieldType resolves field types with fallbacks, DataNull is assignable, and CompareFilter keeps tags by default")
+    void fieldTypeFallbacksAndExtras() {
+        final var schema = new StructSchema("ns", "S", null, List.of(new StructSchema.Field("id", DataSchema.INTEGER_SCHEMA, null, 0)));
+        final var type = new StructType(schema);
+
+        // Existing field -> its mapped type (neither fallback)
+        assertThat(type.fieldType("id", DataString.DATATYPE, DataString.DATATYPE)).isNotNull();
+        // Missing field -> the "no such field" fallback
+        assertThat(type.fieldType("missing", DataType.UNKNOWN, DataString.DATATYPE)).isEqualTo(DataString.DATATYPE);
+        // Schemaless struct -> the "no schema" fallback
+        assertThat(new StructType().fieldType("x", DataString.DATATYPE, DataType.UNKNOWN)).isEqualTo(DataString.DATATYPE);
+
+        // A struct type is assignable from DataNull
+        assertThat(type.isAssignableFrom(DataNull.DATATYPE).isAssignable()).isTrue();
+
+        // CompareFilter's default keeps tags (ignoreTags == false)
+        assertThat(new StructType.CompareFilter() {}.ignoreTags()).isFalse();
     }
 }

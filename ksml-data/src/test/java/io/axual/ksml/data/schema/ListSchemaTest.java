@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -70,5 +71,15 @@ class ListSchemaTest {
         assertThat(listOfInt.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isFalse();
         // Null not assignable
         assertThat(listOfInt.isAssignableFrom(null).isAssignable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deep equals compares the value schema")
+    void deepEquals() {
+        final var listOfInt = new ListSchema(DataSchema.INTEGER_SCHEMA);
+
+        assertThat(listOfInt.equals(new ListSchema(DataSchema.INTEGER_SCHEMA), EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(listOfInt.equals(new ListSchema(DataSchema.STRING_SCHEMA), EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(listOfInt.equals(DataSchema.STRING_SCHEMA, EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }
