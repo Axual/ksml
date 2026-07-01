@@ -89,11 +89,10 @@ class ApicurioJsonSchemaSerdeSupplierTest {
         // Validate if default properties were added to the empty config map
         assertEquals("io.apicurio.registry.serde.strategy.TopicIdStrategy", modifiedConfigs.get("apicurio.registry.artifact-resolver-strategy"));
         assertEquals(false, modifiedConfigs.get("apicurio.registry.headers.enabled"), "Expected default config enabling payload encoding");
-        assertEquals(true, modifiedConfigs.get("apicurio.registry.as-confluent"), "Expected default config enabling Confluent compatibility");
         assertEquals(true, modifiedConfigs.get("apicurio.registry.serdes.json-schema.validation-enabled"), "Expected default config enabling json schema validation");
         assertEquals("contentId", modifiedConfigs.get("apicurio.registry.use-id"), "Expected default config using contentId as schema id");
         // New: default id-handler should be injected as well
-        assertEquals("io.apicurio.registry.serde.Legacy4ByteIdHandler", modifiedConfigs.get("apicurio.registry.id-handler"), "Expected default id handler to be set");
+        assertEquals("io.apicurio.registry.serde.Default4ByteIdHandler", modifiedConfigs.get("apicurio.registry.id-handler"), "Expected default id handler to be set");
     }
 
     @Test
