@@ -123,7 +123,7 @@ class KeyValueStoreResourceTest {
         final var url = ArgumentCaptor.forClass(String.class);
         when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(metadataOnHost(REMOTE));
 
-        try (var restClients = mockConstruction(RestClient.class,
+        try (var _ = mockConstruction(RestClient.class,
                 (mock, ctx) -> when(mock.getRemoteKeyValueBean(url.capture(), any())).thenReturn(remoteBean))) {
             final var result = new KeyValueStoreResource().getKey(STORE, "k1");
 
@@ -162,7 +162,7 @@ class KeyValueStoreResourceTest {
         final var remoteBeans = new KeyValueBeans().add(new DataString("k2"), new DataString("v2"));
         final var url = ArgumentCaptor.forClass(String.class);
 
-        try (var restClients = mockConstruction(RestClient.class,
+        try (var _ = mockConstruction(RestClient.class,
                 (mock, ctx) -> when(mock.getRemoteKeyValueBeans(url.capture())).thenReturn(remoteBeans))) {
             final var result = new KeyValueStoreResource().getAll(STORE);
 

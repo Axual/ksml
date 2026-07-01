@@ -167,7 +167,7 @@ class WindowedKeyValueStoreResourceTest {
         final var remoteBeans = new WindowedKeyValueBeans().add(new TimeWindow(0L, 100L), new DataString("k2"), new DataString("v2"));
         final var url = ArgumentCaptor.forClass(String.class);
 
-        try (var restClients = mockConstruction(RestClient.class,
+        try (var _ = mockConstruction(RestClient.class,
                 (mock, ctx) -> when(mock.getRemoteWindowedKeyValueBeans(url.capture())).thenReturn(remoteBeans))) {
             final var result = new WindowedKeyValueStoreResource().getAll(STORE);
 
@@ -183,7 +183,7 @@ class WindowedKeyValueStoreResourceTest {
         final var url = ArgumentCaptor.forClass(String.class);
         when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(metadataOnHost(REMOTE));
 
-        try (var restClients = mockConstruction(RestClient.class,
+        try (var _ = mockConstruction(RestClient.class,
                 (mock, ctx) -> when(mock.getRemoteKeyValueBean(url.capture(), any())).thenReturn(remoteBean))) {
             final var result = new WindowedKeyValueStoreResource().getKey(STORE, "k1", 50L);
 
