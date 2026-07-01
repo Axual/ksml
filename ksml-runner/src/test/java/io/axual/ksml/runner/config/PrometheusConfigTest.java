@@ -4,7 +4,7 @@ package io.axual.ksml.runner.config;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PrometheusConfigTest {
 
@@ -35,9 +33,9 @@ class PrometheusConfigTest {
     @DisplayName("When disabled, host, port and config file are hidden (null)")
     void disabledHidesEverything() {
         final var config = new PrometheusConfig();      // enabled defaults to false
-        assertNull(config.getHost());
-        assertNull(config.getPort());
-        assertNull(config.getConfigFile());
+        assertThat(config.getHost()).isNull();
+        assertThat(config.getPort()).isNull();
+        assertThat(config.getConfigFile()).isNull();
     }
 
     @Test
@@ -45,8 +43,19 @@ class PrometheusConfigTest {
     void enabledExposesDefaults() {
         final var config = new PrometheusConfig();
         config.enabled(true);
-        assertEquals("0.0.0.0", config.getHost());
-        assertEquals(9999, config.getPort());
+        assertThat(config.getHost()).isEqualTo("0.0.0.0");
+        assertThat(config.getPort()).isEqualTo(9999);
+    }
+
+    @Test
+    @DisplayName("When enabled with null host/port, the defaults are substituted")
+    void enabledFallsBackToDefaultsForNullValues() {
+        final var config = new PrometheusConfig();
+        config.enabled(true);
+        config.host(null);
+        config.port(null);
+        assertThat(config.getHost()).isEqualTo("0.0.0.0");
+        assertThat(config.getPort()).isEqualTo(9999);
     }
 
     @Test
@@ -54,7 +63,7 @@ class PrometheusConfigTest {
     void enabledFallsBackToInternalDefaultConfigFile() {
         final var config = new PrometheusConfig();
         config.enabled(true);
-        assertNotNull(config.getConfigFile());          // lazily loaded from the classpath default
+        assertThat(config.getConfigFile()).isNotNull();          // lazily loaded from the classpath default
     }
 
     @Test
@@ -63,7 +72,7 @@ class PrometheusConfigTest {
         final var config = new PrometheusConfig();
         config.enabled(true);
         config.configFile("/tmp/custom-exporter.yaml");
-        assertEquals(new File("/tmp/custom-exporter.yaml"), config.getConfigFile());
+        assertThat(config.getConfigFile()).isEqualTo(new File("/tmp/custom-exporter.yaml"));
     }
 
     @Test
@@ -77,8 +86,8 @@ class PrometheusConfigTest {
 
         final var copy = new PrometheusConfig(original);
 
-        assertEquals("127.0.0.1", copy.getHost());
-        assertEquals(1234, copy.getPort());
-        assertEquals(new File("/tmp/x.yaml"), copy.getConfigFile());
+        assertThat(copy.getHost()).isEqualTo("127.0.0.1");
+        assertThat(copy.getPort()).isEqualTo(1234);
+        assertThat(copy.getConfigFile()).isEqualTo(new File("/tmp/x.yaml"));
     }
 }

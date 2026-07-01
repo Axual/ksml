@@ -4,7 +4,7 @@ package io.axual.ksml.runner.backend;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,8 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 @Slf4j
 public class KafkaProducerRunner implements Runner {
     private static final String UNDEFINED = "undefined";
-    private final IntervalSchedule scheduler = new IntervalSchedule();
+    // Package-private so tests can schedule producers directly when exercising the produce loop.
+    final IntervalSchedule scheduler = new IntervalSchedule();
     private final AtomicBoolean hasFailed = new AtomicBoolean(false);
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
     private final Config config;
@@ -84,6 +85,26 @@ public class KafkaProducerRunner implements Runner {
         log.info("Registering Kafka producer(s)");
         setState(State.STARTING);
 
+        registerProducers();
+
+        try (final Producer<byte[], byte[]> producer = producerFactory.apply(getProducerConfigs())) {
+            setState(State.STARTED);
+            log.info("Starting Kafka producer(s)");
+            runScheduledProducers(producer);
+        } catch (Exception e) {
+            setState(State.FAILED);
+            throw new RunnerException("Unhandled producer exception", e);
+        }
+        setState(State.STOPPED);
+        log.info("Producer(s) stopped");
+    }
+
+    /**
+     * Sets up the Python context for every definition, pre-registers its functions and schedules its
+     * producers. Extracted from {@link #run()} to separate the (Python-bound) registration phase from
+     * the produce loop.
+     */
+    private void registerProducers() {
         try {
             config.definitions.forEach((defName, definition) -> {
                 // Log the start of the producer
@@ -106,29 +127,30 @@ public class KafkaProducerRunner implements Runner {
             setState(State.FAILED);
             throw new RunnerException("Error while registering functions and producers", e);
         }
+    }
 
-        try (final Producer<byte[], byte[]> producer = producerFactory.apply(getProducerConfigs())) {
-            setState(State.STARTED);
-            log.info("Starting Kafka producer(s)");
-            while (!stopRunning.get() && !hasFailed.get() && scheduler.hasScheduledItems()) {
-                var scheduledGenerator = scheduler.getScheduledItem();
-                if (scheduledGenerator != null) {
-                    scheduledGenerator.producer().produceMessages(producer);
-                    if (scheduledGenerator.producer().shouldReschedule()) {
-                        final var interval = scheduledGenerator.producer().interval() != null
-                                ? scheduledGenerator.producer().interval().toMillis()
-                                : 0L;
-                        final long nextTime = scheduledGenerator.startTime() + interval;
-                        scheduler.schedule(scheduledGenerator.producer(), nextTime);
-                    }
+    /**
+     * Drives the scheduled producers: repeatedly takes the next due producer, produces its messages and
+     * reschedules it at {@code startTime + interval} when it asks to be rescheduled, until the runner is
+     * stopped, has failed, or nothing is scheduled anymore. Extracted from {@link #run()} so the
+     * scheduling/reschedule logic can be unit-tested with a stubbed producer.
+     *
+     * @param producer the Kafka producer the messages are sent with
+     */
+    void runScheduledProducers(Producer<byte[], byte[]> producer) {
+        while (!stopRunning.get() && !hasFailed.get() && scheduler.hasScheduledItems()) {
+            var scheduledGenerator = scheduler.getScheduledItem();
+            if (scheduledGenerator != null) {
+                scheduledGenerator.producer().produceMessages(producer);
+                if (scheduledGenerator.producer().shouldReschedule()) {
+                    final var interval = scheduledGenerator.producer().interval() != null
+                            ? scheduledGenerator.producer().interval().toMillis()
+                            : 0L;
+                    final long nextTime = scheduledGenerator.startTime() + interval;
+                    scheduler.schedule(scheduledGenerator.producer(), nextTime);
                 }
             }
-        } catch (Exception e) {
-            setState(State.FAILED);
-            throw new RunnerException("Unhandled producer exception", e);
         }
-        setState(State.STOPPED);
-        log.info("Producer(s) stopped");
     }
 
     private Map<String, Object> getProducerConfigs() {

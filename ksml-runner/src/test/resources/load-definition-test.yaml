@@ -1,0 +1,6 @@
+# Minimal KSML definition used by KSMLConfig file-loading tests.
+streams:
+  some_stream:
+    topic: some_topic
+    keyType: string
+    valueType: string

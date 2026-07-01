@@ -4,7 +4,7 @@ package io.axual.ksml.runner;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package io.axual.ksml.runner;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.victools.jsonschema.generator.FieldScope;
@@ -53,9 +54,13 @@ import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.KafkaProducerRunner;
 import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.backend.Runner;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
+import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.config.NotationConfig;
+import io.axual.ksml.runner.config.PrometheusConfig;
+import io.axual.ksml.runner.config.SchemaRegistryConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionProvider;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionSubTypeResolver;
 import io.axual.ksml.runner.config.internal.StringMapDefinitionPropertiesResolver;
@@ -66,6 +71,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
@@ -153,22 +159,7 @@ public class KSMLRunner {
             // Load name and version from manifest
             var ksmlTitle = determineTitle();
 
-            boolean shouldExit = false;
-            // Check if we need to output the KSML schema and then exit
-            if (cmd.shouldPrintKsmlSchema()) {
-                log.info("Generating KSML definitions schema");
-                shouldExit = true;
-                printKsmlDefinitionSchema(cmd.ksmlSchemaLocation());
-            }
-
-            // Check if we need to output the runner schema and then exit
-            if (cmd.shouldPrintKsmlRunnerSchema()) {
-                log.info("Generating KSML Runner Configuration Schema");
-                shouldExit = true;
-                printRunnerSchema(cmd.ksmlRunnerSchemaLocation());
-            }
-
-            if (shouldExit) {
+            if (shouldExit(cmd)) {
                 log.info("Exiting after schema");
                 return;
             }
@@ -187,174 +178,30 @@ public class KSMLRunner {
             log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.configDirectory(), ksmlConfig.schemaDirectory(), ksmlConfig.storageDirectory());
 
             final var definitions = ksmlConfig.definitions();
-            if (definitions == null || definitions.isEmpty()) {
-                throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
-            }
+            validateDefinitions(definitions);
 
             KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
 
             // Start the appserver if needed
-            final var appServer = ksmlConfig.applicationServerConfig();
-            RestServer restServer = null;
-            // Start rest server to provide service endpoints
-            if (appServer.enabled()) {
-                HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
-                restServer = new RestServer(hostInfo);
-                restServer.start();
-            }
+            final var restServer = createRestServer(ksmlConfig.applicationServerConfig());
 
             // Set up the default schema directory
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(ksmlConfig.schemaDirectory());
 
-            // Set up all default notations and register them in the NotationLibrary
-            final var notationFactories = new NotationFactories(config.getKafkaConfigMap());
-            for (final var notation : notationFactories.notations().entrySet()) {
-                ExecutionContext.INSTANCE.notationLibrary().register(notation.getKey(), notation.getValue().create(null));
-            }
+            // Set up all notations (defaults, configured overrides and the AVRO fallback)
+            registerNotations(ksmlConfig, config.getKafkaConfigMap());
 
-            // Set up all notation overrides from the KSML config
-            for (final var notationEntry : ksmlConfig.notations().entrySet()) {
-                final var notationStr = notationEntry.getKey() != null ? notationEntry.getKey() : "undefined";
+            setupErrorHandling(ksmlConfig.errorHandlingConfig());
+            ExecutionContext.INSTANCE.serdeWrapper(serde -> wrapSerde(serde, config.getKafkaConfigMap()));
 
-                final var notationConfigs = new HashMap<String, String>();
-                final var schemaRegistryName = notationEntry.getValue().schemaRegistry();
-                if (schemaRegistryName != null) {
-                    final var srConfigs = ksmlConfig.schemaRegistries().get(schemaRegistryName);
-                    if (srConfigs != null && srConfigs.config() != null) {
-                        notationConfigs.putAll(srConfigs.config());
-                    } else {
-                        log.warn("No schema registry configuration found for schema registry: {}", schemaRegistryName);
-                    }
-                }
+            final var parsedDefinitions = parseDefinitions(definitions);
+            final var definitionSplit = splitDefinitions(parsedDefinitions, ksmlConfig.enableProducers(), ksmlConfig.enablePipelines());
 
-                final var notationConfig = notationEntry.getValue();
-                final var factoryName = resolveFactoryName(notationConfig);
-                if (notationConfig != null && factoryName != null) {
-                    final var factory = notationFactories.notations().get(factoryName);
-                    if (factory == null) {
-                        throw FatalError.report(new ConfigException("Unknown notation type: " + factoryName));
-                    }
-                    if (notationConfig.config() != null) notationConfigs.putAll(notationConfig.config());
-                    ExecutionContext.INSTANCE.notationLibrary().register(notationStr, factory.create(notationConfigs));
-                } else {
-                    log.warn("Notation configuration incomplete: notation={}, serde={}", notationStr, factoryName);
-                }
-            }
-
-            // Ensure typical defaults are used for AVRO
-            // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
-            // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if (ksmlConfig.notations().isEmpty()) {
-                final var dataMapper = new DataObjectFlattener();
-                final var dataTypeMapper = new DataTypeFlattener();
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(dataMapper, dataTypeMapper, config.getKafkaConfigMap()));
-                ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
-                log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
-            }
-
-            final var errorHandling = ksmlConfig.errorHandlingConfig();
-            if (errorHandling != null) {
-                ExecutionContext.INSTANCE.errorHandling().setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.errorHandling().setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.errorHandling().setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig()));
-            }
-            ExecutionContext.INSTANCE.serdeWrapper(
-                    serde -> new Serdes.WrapperSerde<>(
-                            new ResolvingSerializer<>(serde.serializer(), config.getKafkaConfigMap()),
-                            new ResolvingDeserializer<>(serde.deserializer(), config.getKafkaConfigMap())));
-
-            final Map<String, TopologyDefinition> producerDefinitions = new HashMap<>();
-            final Map<String, TopologyDefinition> pipelineDefinitions = new HashMap<>();
-            definitions.forEach((name, definition) -> {
-                final var parser = new TopologyDefinitionParser(name);
-                final var topologyDefinition = parser.parse(ParseNode.fromRoot(definition, name));
-                if (!topologyDefinition.producers().isEmpty()) producerDefinitions.put(name, topologyDefinition);
-                if (!topologyDefinition.pipelines().isEmpty()) pipelineDefinitions.put(name, topologyDefinition);
-            });
-
-            if (!ksmlConfig.enableProducers() && !producerDefinitions.isEmpty()) {
-                log.warn("Producers are disabled for this runner. The supplied producer specifications will be ignored.");
-                producerDefinitions.clear();
-            }
-            if (!ksmlConfig.enablePipelines() && !pipelineDefinitions.isEmpty()) {
-                log.warn("Pipelines are disabled for this runner. The supplied pipeline specifications will be ignored.");
-                pipelineDefinitions.clear();
-            }
-
-            final var producer = producerDefinitions.isEmpty() ? null : new KafkaProducerRunner(
-                    KafkaProducerRunner.Config.builder()
-                            .definitions(producerDefinitions)
-                            .kafkaConfig(config.getKafkaConfigMap())
-                            .pythonContextConfig(ksmlConfig.pythonContextConfig())
-                            .build()
-            );
-            final var streams = pipelineDefinitions.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
-                    .storageDirectory(ksmlConfig.storageDirectory())
-                    .appServer(ksmlConfig.applicationServerConfig())
-                    .definitions(pipelineDefinitions)
-                    .kafkaConfig(config.getKafkaConfigMap())
-                    .pythonContextConfig(ksmlConfig.pythonContextConfig())
-                    .build());
+            final var producer = createProducerRunner(definitionSplit.producers(), config, ksmlConfig);
+            final var streams = createStreamsRunner(definitionSplit.pipelines(), config, ksmlConfig);
 
             if (producer != null || streams != null) {
-                var shutdownHook = new Thread(() -> {
-                    try {
-                        log.debug("In KSML shutdown hook");
-                        if (producer != null) producer.stop();
-                        if (streams != null) streams.stop();
-                    } catch (Exception e) {
-                        log.error("Could not properly shut down KSML", e);
-                    }
-                });
-
-                Runtime.getRuntime().addShutdownHook(shutdownHook);
-
-                try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().prometheusConfig())) {
-                    prometheusExport.start();
-                    final var executorService = Executors.newFixedThreadPool(2);
-
-                    final var producerFuture = producer == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(producer, executorService);
-                    final var streamsFuture = streams == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(streams, executorService);
-
-                    try {
-                        // Allow the runner(s) to start
-                        Utils.sleep(2000);
-
-                        if (restServer != null) {
-                            // Run with the REST server
-                            restServer.initGlobalQuerier(getQuerier(streams, producer));
-                        }
-
-                        producerFuture.whenComplete((result, exc) -> {
-                            if (exc != null) {
-                                log.info("Producer failed", exc);
-                                // Exception, always stop streams too
-                                if (streams != null) {
-                                    streams.stop();
-                                }
-                            }
-                        });
-                        streamsFuture.whenComplete((result, exc) -> {
-                            if (exc != null) {
-                                log.info("Stream processing failed", exc);
-                                // Exception, always stop producer too
-                                if (producer != null) {
-                                    producer.stop();
-                                }
-                            }
-                        });
-
-                        final var allFutures = CompletableFuture.allOf(producerFuture, streamsFuture);
-                        // wait for all futures to finish
-                        allFutures.join();
-
-                        closeExecutorService(executorService);
-                    } finally {
-                        if (restServer != null) restServer.close();
-                    }
-                } finally {
-                    Runtime.getRuntime().removeShutdownHook(shutdownHook);
-                }
+                runRunners(producer, streams, restServer, ksmlConfig.prometheusConfig());
             }
         } catch (Throwable t) {
             log.error("KSML Stopping because of unhandled exception");
@@ -362,6 +209,113 @@ public class KSMLRunner {
         }
         // Explicit exit, need to find out which threads are actually stopping us
         System.exit(0);
+    }
+
+    /**
+     * Creates and starts the REST server for state-store queries and health checks, or returns
+     * {@code null} when the application server is disabled. Extracted from {@code main} for readability.
+     *
+     * @param appServer the application server configuration
+     * @return a started {@link RestServer}, or {@code null} when disabled
+     */
+    static RestServer createRestServer(ApplicationServerConfig appServer) {
+        if (!appServer.enabled()) {
+            return null;
+        }
+        final var hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
+        final var restServer = new RestServer(hostInfo);
+        restServer.start();
+        return restServer;
+    }
+
+    /**
+     * Creates a {@link KafkaProducerRunner} for the given producer definitions, or {@code null} when
+     * there are none. Extracted from {@code main} for readability.
+     *
+     * @param producerDefinitions the producer definitions to run
+     * @param config              the runner configuration (for Kafka settings)
+     * @param ksmlConfig          the KSML configuration (for the Python context)
+     * @return a producer runner, or {@code null} when there are no producer definitions
+     */
+    static KafkaProducerRunner createProducerRunner(Map<String, TopologyDefinition> producerDefinitions, KSMLRunnerConfig config, KSMLConfig ksmlConfig) {
+        if (producerDefinitions.isEmpty()) {
+            return null;
+        }
+        return new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
+                .definitions(producerDefinitions)
+                .kafkaConfig(config.getKafkaConfigMap())
+                .pythonContextConfig(ksmlConfig.pythonContextConfig())
+                .build());
+    }
+
+    /**
+     * Creates a {@link KafkaStreamsRunner} for the given pipeline definitions, or {@code null} when
+     * there are none. Extracted from {@code main} for readability.
+     *
+     * @param pipelineDefinitions the pipeline definitions to run
+     * @param config              the runner configuration (for Kafka settings)
+     * @param ksmlConfig          the KSML configuration (storage directory, app server, Python context)
+     * @return a streams runner, or {@code null} when there are no pipeline definitions
+     */
+    static KafkaStreamsRunner createStreamsRunner(Map<String, TopologyDefinition> pipelineDefinitions, KSMLRunnerConfig config, KSMLConfig ksmlConfig) {
+        if (pipelineDefinitions.isEmpty()) {
+            return null;
+        }
+        return new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
+                .storageDirectory(ksmlConfig.storageDirectory())
+                .appServer(ksmlConfig.applicationServerConfig())
+                .definitions(pipelineDefinitions)
+                .kafkaConfig(config.getKafkaConfigMap())
+                .pythonContextConfig(ksmlConfig.pythonContextConfig())
+                .build());
+    }
+
+    /**
+     * Runs the producer and/or streams runners to completion: registers a shutdown hook, starts the
+     * Prometheus exporter, submits the runners to an executor, wires the REST querier and the
+     * cross-stop-on-failure handlers, waits for both to finish and finally cleans everything up.
+     * Extracted from {@code main} to keep the orchestration in one cohesive, readable place.
+     *
+     * @param producer         the producer runner, or {@code null}
+     * @param streams          the streams runner, or {@code null}
+     * @param restServer       the REST server, or {@code null} when disabled
+     * @param prometheusConfig the Prometheus exporter configuration
+     * @throws Exception when the Prometheus exporter or executor shutdown fails
+     */
+    static void runRunners(KafkaProducerRunner producer, KafkaStreamsRunner streams, RestServer restServer, PrometheusConfig prometheusConfig) throws Exception {
+        var shutdownHook = new Thread(() -> stopRunnersQuietly(producer, streams));
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+
+        try (var prometheusExport = new PrometheusExport(prometheusConfig)) {
+            prometheusExport.start();
+            final var executorService = Executors.newFixedThreadPool(2);
+
+            final var producerFuture = producer == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(producer, executorService);
+            final var streamsFuture = streams == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(streams, executorService);
+
+            try {
+                // Allow the runner(s) to start
+                Utils.sleep(2000);
+
+                if (restServer != null) {
+                    // Run with the REST server
+                    restServer.initGlobalQuerier(getQuerier(streams, producer));
+                }
+
+                // If one runner fails, always stop the other one too
+                producerFuture.whenComplete((result, exc) -> stopOtherOnFailure(exc, "Producer failed", streams));
+                streamsFuture.whenComplete((result, exc) -> stopOtherOnFailure(exc, "Stream processing failed", producer));
+
+                // wait for all futures to finish
+                CompletableFuture.allOf(producerFuture, streamsFuture).join();
+
+                closeExecutorService(executorService);
+            } finally {
+                if (restServer != null) restServer.close();
+            }
+        } finally {
+            Runtime.getRuntime().removeShutdownHook(shutdownHook);
+        }
     }
 
     /**
@@ -375,7 +329,232 @@ public class KSMLRunner {
         return notationConfig.type().jsonValue();
     }
 
-    private static void closeExecutorService(final ExecutorService executorService) throws ExecutionException {
+    /**
+     * Wraps a serde so that its serializer and deserializer resolve topic/group names using the runner's
+     * Kafka configuration. Extracted from {@code main} for testability.
+     *
+     * @param serde       the serde to wrap
+     * @param kafkaConfig the Kafka configuration used by the resolving (de)serializers
+     * @return a serde whose (de)serializers resolve names according to the configuration
+     */
+    static <T> Serde<T> wrapSerde(Serde<T> serde, Map<String, String> kafkaConfig) {
+        return new Serdes.WrapperSerde<>(
+                new ResolvingSerializer<>(serde.serializer(), kafkaConfig),
+                new ResolvingDeserializer<>(serde.deserializer(), kafkaConfig));
+    }
+
+    /**
+     * Parses each raw KSML definition into a {@link TopologyDefinition}. Extracted from {@code main}
+     * for testability.
+     *
+     * @param definitions the raw definitions keyed by namespace
+     * @return the parsed topology definitions keyed by namespace
+     */
+    static Map<String, TopologyDefinition> parseDefinitions(Map<String, JsonNode> definitions) {
+        final Map<String, TopologyDefinition> parsedDefinitions = new HashMap<>();
+        definitions.forEach((name, definition) -> {
+            final var parser = new TopologyDefinitionParser(name);
+            parsedDefinitions.put(name, parser.parse(ParseNode.fromRoot(definition, name)));
+        });
+        return parsedDefinitions;
+    }
+
+    /**
+     * Stops the producer and streams runners, swallowing any exception so a shutdown hook never fails.
+     * Either runner may be {@code null}. Extracted from {@code main} for testability.
+     *
+     * @param producer the producer runner, or {@code null}
+     * @param streams  the streams runner, or {@code null}
+     */
+    static void stopRunnersQuietly(Runner producer, Runner streams) {
+        try {
+            log.debug("In KSML shutdown hook");
+            if (producer != null) producer.stop();
+            if (streams != null) streams.stop();
+        } catch (Exception e) {
+            log.error("Could not properly shut down KSML", e);
+        }
+    }
+
+    /**
+     * Determines whether the runner should exit after printing a schema.
+     * 
+     * @param cmd the parsed command line arguments
+     * @return {@code true} when the runner should exit, {@code false} otherwise
+     */
+    static boolean shouldExit(Arguments cmd) {
+        var shouldExit = false;
+        // Check if we need to output the KSML schema and then exit
+        if (cmd.shouldPrintKsmlSchema()) {
+            log.info("Generating KSML definitions schema");
+            shouldExit = true;
+            printKsmlDefinitionSchema(cmd.ksmlSchemaLocation());
+        }
+
+        // Check if we need to output the runner schema and then exit
+        if (cmd.shouldPrintKsmlRunnerSchema()) {
+            log.info("Generating KSML Runner Configuration Schema");
+            shouldExit = true;
+            printRunnerSchema(cmd.ksmlRunnerSchemaLocation());
+        }
+        return shouldExit;
+    }
+
+    /**
+     * When a runner completes exceptionally, stops the other runner so the whole application winds down.
+     * Used as the completion handler for the producer and streams futures. Extracted from {@code main}
+     * for testability.
+     *
+     * @param exc        the exception the future completed with, or {@code null} on success
+     * @param logMessage the message to log when a failure occurred
+     * @param other      the other runner to stop, or {@code null}
+     */
+    static void stopOtherOnFailure(Throwable exc, String logMessage, Runner other) {
+        if (exc != null) {
+            log.info(logMessage, exc);
+            // Exception, always stop the other runner too
+            if (other != null) {
+                other.stop();
+            }
+        }
+    }
+
+    /**
+     * Result of splitting parsed KSML definitions into the ones containing producers and the ones
+     * containing pipelines. A single definition can appear in both maps.
+     */
+    record DefinitionSplit(Map<String, TopologyDefinition> producers, Map<String, TopologyDefinition> pipelines) {
+    }
+
+    /**
+     * Splits the parsed definitions into producer and pipeline definitions and applies the runner's
+     * enable toggles. When producers or pipelines are disabled, the corresponding definitions are
+     * dropped (with a warning). Extracted from {@code main} for testability.
+     *
+     * @param parsedDefinitions the parsed topology definitions keyed by namespace
+     * @param enableProducers   whether producers are enabled for this runner
+     * @param enablePipelines   whether pipelines are enabled for this runner
+     * @return the producer and pipeline definitions that should actually run
+     */
+    static DefinitionSplit splitDefinitions(Map<String, TopologyDefinition> parsedDefinitions, boolean enableProducers, boolean enablePipelines) {
+        final Map<String, TopologyDefinition> producerDefinitions = new HashMap<>();
+        final Map<String, TopologyDefinition> pipelineDefinitions = new HashMap<>();
+        parsedDefinitions.forEach((name, topologyDefinition) -> {
+            if (!topologyDefinition.producers().isEmpty()) producerDefinitions.put(name, topologyDefinition);
+            if (!topologyDefinition.pipelines().isEmpty()) pipelineDefinitions.put(name, topologyDefinition);
+        });
+
+        if (!enableProducers && !producerDefinitions.isEmpty()) {
+            log.warn("Producers are disabled for this runner. The supplied producer specifications will be ignored.");
+            producerDefinitions.clear();
+        }
+        if (!enablePipelines && !pipelineDefinitions.isEmpty()) {
+            log.warn("Pipelines are disabled for this runner. The supplied pipeline specifications will be ignored.");
+            pipelineDefinitions.clear();
+        }
+        return new DefinitionSplit(producerDefinitions, pipelineDefinitions);
+    }
+
+    /**
+     * Validates that the runner has at least one KSML definition to run. Extracted from {@code main}
+     * for testability.
+     *
+     * @param definitions the resolved KSML definitions keyed by namespace
+     * @throws ConfigException when no definitions are configured
+     */
+    static void validateDefinitions(Map<String, ?> definitions) {
+        if (definitions == null || definitions.isEmpty()) {
+            throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
+        }
+    }
+
+    /**
+     * Registers all notations in the {@link ExecutionContext}: first the built-in defaults provided by
+     * {@link NotationFactories}, then the configured notation overrides, and finally a Confluent AVRO
+     * fallback when no notations are configured at all. Extracted from {@code main} for testability.
+     *
+     * @param ksmlConfig     the KSML configuration holding notation overrides and schema registries
+     * @param kafkaConfigMap the effective Kafka configuration passed to the notation factories
+     */
+    static void registerNotations(KSMLConfig ksmlConfig, Map<String, String> kafkaConfigMap) {
+        // Set up all default notations and register them in the NotationLibrary
+        final var notationFactories = new NotationFactories(kafkaConfigMap);
+        for (final var notation : notationFactories.notations().entrySet()) {
+            ExecutionContext.INSTANCE.notationLibrary().register(notation.getKey(), notation.getValue().create(null));
+        }
+
+        // Set up all notation overrides from the KSML config
+        for (final var notationEntry : ksmlConfig.notations().entrySet()) {
+            final var notationStr = notationEntry.getKey() != null ? notationEntry.getKey() : "undefined";
+
+            final var notationConfig = notationEntry.getValue();
+            // Resolve the schema-registry and notation configuration up front so a missing schema
+            // registry is reported even when the notation type itself is incomplete.
+            final var notationConfigs = mergeNotationConfigs(notationConfig, ksmlConfig.schemaRegistries());
+            final var factoryName = resolveFactoryName(notationConfig);
+            if (notationConfig != null && factoryName != null) {
+                final var factory = notationFactories.notations().get(factoryName);
+                if (factory == null) {
+                    throw FatalError.report(new ConfigException("Unknown notation type: " + factoryName));
+                }
+                ExecutionContext.INSTANCE.notationLibrary().register(notationStr, factory.create(notationConfigs));
+            } else {
+                log.warn("Notation configuration incomplete: notation={}, serde={}", notationStr, factoryName);
+            }
+        }
+
+        // Ensure typical defaults are used for AVRO
+        // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
+        // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
+        if (ksmlConfig.notations().isEmpty()) {
+            final var dataMapper = new DataObjectFlattener();
+            final var dataTypeMapper = new DataTypeFlattener();
+            final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(dataMapper, dataTypeMapper, kafkaConfigMap));
+            ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
+            log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
+        }
+    }
+
+    /**
+     * Merges the configuration that a notation factory should receive: first the referenced schema
+     * registry configuration (when present), then the notation's own configuration overrides.
+     * Extracted from {@code main} for testability.
+     *
+     * @param notationConfig   the notation configuration entry
+     * @param schemaRegistries the configured schema registries, keyed by name
+     * @return the merged configuration map passed to the notation factory
+     */
+    static Map<String, String> mergeNotationConfigs(NotationConfig notationConfig, Map<String, SchemaRegistryConfig> schemaRegistries) {
+        final var notationConfigs = new HashMap<String, String>();
+        final var schemaRegistryName = notationConfig.schemaRegistry();
+        if (schemaRegistryName != null) {
+            final var srConfigs = schemaRegistries.get(schemaRegistryName);
+            if (srConfigs != null && srConfigs.config() != null) {
+                notationConfigs.putAll(srConfigs.config());
+            } else {
+                log.warn("No schema registry configuration found for schema registry: {}", schemaRegistryName);
+            }
+        }
+        if (notationConfig.config() != null) notationConfigs.putAll(notationConfig.config());
+        return notationConfigs;
+    }
+
+    /**
+     * Registers the consume, produce and process error handlers in the {@link ExecutionContext}.
+     * A {@code null} configuration leaves the existing handlers untouched. Extracted from {@code main}
+     * for testability.
+     *
+     * @param errorHandling the error handling configuration, or {@code null}
+     */
+    static void setupErrorHandling(ErrorHandlingConfig errorHandling) {
+        if (errorHandling != null) {
+            ExecutionContext.INSTANCE.errorHandling().setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
+            ExecutionContext.INSTANCE.errorHandling().setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
+            ExecutionContext.INSTANCE.errorHandling().setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig()));
+        }
+    }
+
+    static void closeExecutorService(final ExecutorService executorService) throws ExecutionException {
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(2000, TimeUnit.MILLISECONDS)) {
@@ -536,6 +715,7 @@ public class KSMLRunner {
         return defaultValue;
     }
 
+    @SuppressWarnings("java:S106")
     private static void printKsmlDefinitionSchema(String filename) {
         // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
         // KSML definitions with on stdout and exit
@@ -563,7 +743,7 @@ public class KSMLRunner {
         }
     }
 
-    private static KSMLRunnerConfig readConfiguration(File configFile) {
+    static KSMLRunnerConfig readConfiguration(File configFile) {
         final var mapper = new ObjectMapper(new YAMLFactory());
         try {
             final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);

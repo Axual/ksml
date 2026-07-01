@@ -4,7 +4,7 @@ package io.axual.ksml.runner.config;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ public record NotationConfig(
     @JsonClassDescription("Supported notation serializer implementations.")
     @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
+    @SuppressWarnings("java:S1135")
     public enum NotationType {
         // Schema-registry-backed notations (loaded via ServiceLoader)
         APICURIO_AVRO("apicurio_avro"),

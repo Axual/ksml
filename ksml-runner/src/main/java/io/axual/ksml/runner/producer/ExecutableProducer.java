@@ -4,7 +4,7 @@ package io.axual.ksml.runner.producer;
  * ========================LICENSE_START=================================
  * KSML Data Generator
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 @Slf4j
 public class ExecutableProducer {
     private static final DataObjectConverter DATA_OBJECT_CONVERTER = new DataObjectConverter();
+    private static final int MAX_GENERATE_RETRIES = 10;
 
     @Getter
     private final String name;
@@ -75,24 +76,34 @@ public class ExecutableProducer {
     private boolean stopProducing = false;
     private final List<Pair<DataObject, DataObject>> messageQueue = new LinkedList<>();
 
-    private ExecutableProducer(UserFunction generator,
-                               ProducerStrategy producerStrategy,
-                               MetricTags tags,
-                               String topic,
-                               UserType keyType,
-                               UserType valueType,
-                               UserFunction partitioner,
-                               Serializer<Object> keySerializer,
-                               Serializer<Object> valueSerializer) {
+    // Package-private (instead of private) so tests can construct a producer with a stubbed generator
+    // and serializers, exercising the produce/batch logic without a Python/GraalVM runtime.
+    ExecutableProducer(UserFunction generator,
+                       ProducerStrategy producerStrategy,
+                       MetricTags tags,
+                       UserFunction partitioner,
+                       ProducerTarget target) {
         this.name = generator.name;
         this.generator = new UserGenerator(generator, tags);
         this.producerStrategy = producerStrategy;
-        this.topic = topic;
-        this.keyType = keyType;
-        this.valueType = valueType;
+        this.topic = target.topic();
+        this.keyType = target.keyType();
+        this.valueType = target.valueType();
         this.partitioner = partitioner != null ? new UserStreamPartitioner(partitioner, tags) : null;
-        this.keySerializer = keySerializer;
-        this.valueSerializer = valueSerializer;
+        this.keySerializer = target.keySerializer();
+        this.valueSerializer = target.valueSerializer();
+    }
+
+    /**
+     * Groups the destination topic together with the key/value types and their serializers. Keeping
+     * these related values in one parameter object keeps the {@link ExecutableProducer} constructor
+     * below the parameter-count threshold and documents that they describe a single producer target.
+     */
+    record ProducerTarget(String topic,
+                          UserType keyType,
+                          UserType valueType,
+                          Serializer<Object> keySerializer,
+                          Serializer<Object> valueSerializer) {
     }
 
     @SuppressWarnings("java:S6218")
@@ -137,7 +148,8 @@ public class ExecutableProducer {
         final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
 
         // Set up the producer
-        return new ExecutableProducer(generator, producerStrategy, tags, target.topic(), target.keyType(), target.valueType(), partitioner, keySerializer, valueSerializer);
+        final var producerTarget = new ProducerTarget(target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer);
+        return new ExecutableProducer(generator, producerStrategy, tags, partitioner, producerTarget);
     }
 
     public void produceMessages(Producer<byte[], byte[]> producer) {
@@ -145,34 +157,13 @@ public class ExecutableProducer {
         final var futures = new ArrayList<Future<RecordMetadata>>();
         try {
             for (final var message : messages) {
-                if (partitioner != null) {
-                    // If a partitioner is defined, then call the function and generate producer records for every
-                    // partition the message is sent to
-                    final var numPartitions = producer.partitionsFor(topic).size();
-                    Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.key(), message.value(), numPartitions);
-                    if (partitions.isPresent()) {
-                        for (int partition : partitions.get()) {
-                            ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, partition, message.key(), message.value(), message.headers());
-                            futures.add(producer.send(rec));
-                        }
-                    }
-                } else {
-                    // No partitioner is defined, so create just one producer record without specifying a partition
-                    ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, null, message.key(), message.value(), message.headers());
-                    futures.add(producer.send(rec));
-                }
+                sendMessage(producer, message, futures);
             }
 
             batchCount++;
 
             for (var future : futures) {
-                final var metadata = future.get();
-                if (metadata != null && metadata.hasOffset()) {
-                    producerStrategy.successfullyProducedOneMessage();
-                    log.info("Produced message: producer={}, batch #{}, message #{}, topic={}, partition={}, offset={}", name, batchCount, producerStrategy.messagesProduced(), metadata.topic(), metadata.partition(), metadata.offset());
-                } else {
-                    log.error("Error producing message to topic {}", topic);
-                }
+                logProducedMessage(future.get());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -182,44 +173,92 @@ public class ExecutableProducer {
         }
     }
 
+    /**
+     * Sends a single generated message: when a partitioner is configured the message is sent to every
+     * partition it selects, otherwise it is sent once without specifying a partition. The resulting send
+     * futures are appended to {@code futures}. Extracted from {@link #produceMessages} to keep its
+     * cognitive complexity low.
+     */
+    private void sendMessage(Producer<byte[], byte[]> producer, GeneratedMessage message, List<Future<RecordMetadata>> futures) {
+        if (partitioner == null) {
+            // No partitioner is defined, so create just one producer record without specifying a partition
+            futures.add(producer.send(new ProducerRecord<>(topic, null, message.key(), message.value(), message.headers())));
+            return;
+        }
+
+        // A partitioner is defined, so call the function and generate a producer record for every
+        // partition the message is sent to
+        final var numPartitions = producer.partitionsFor(topic).size();
+        final Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.key(), message.value(), numPartitions);
+        if (partitions.isEmpty()) {
+            return;
+        }
+        for (int partition : partitions.get()) {
+            futures.add(producer.send(new ProducerRecord<>(topic, partition, message.key(), message.value(), message.headers())));
+        }
+    }
+
+    /**
+     * Records the outcome of a single send: a message with an assigned offset counts as produced,
+     * anything else is logged as an error. Extracted from {@link #produceMessages} to keep its
+     * cognitive complexity low.
+     */
+    private void logProducedMessage(RecordMetadata metadata) {
+        if (metadata != null && metadata.hasOffset()) {
+            producerStrategy.successfullyProducedOneMessage();
+            log.info("Produced message: producer={}, batch #{}, message #{}, topic={}, partition={}, offset={}", name, batchCount, producerStrategy.messagesProduced(), metadata.topic(), metadata.partition(), metadata.offset());
+        } else {
+            log.error("Error producing message to topic {}", topic);
+        }
+    }
+
     private List<GeneratedMessage> generateBatch() {
         final var result = new ArrayList<GeneratedMessage>();
-        for (int index = 0; index < producerStrategy.batchSize(); index++) {
-            Pair<DataObject, DataObject> message = null;
-            for (int t = 0; t < 10; t++) {
-                message = generateMessage();
-                if (message != null) break;
-            }
-
-            if (message != null) {
-                final var key = message.left();
-                final var value = message.right();
-
-                // Log the generated messages
-                final var keyStr = key != null ? key.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
-                final var valueStr = value != null ? value.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
-                log.info("Message: key={}, value={}", keyStr, valueStr);
-
-                // Serialize the message
-                final var headers = new RecordHeaders();
-                final var serializedKey = keySerializer.serialize(topic, headers, key);
-                final var serializedValue = valueSerializer.serialize(topic, headers, value);
-
-                // Add the serialized message to the batch
-                result.add(new GeneratedMessage(headers, serializedKey, serializedValue));
-
-                // Check if this should be the last message produced
-                if (!producerStrategy.continueAfterMessage(key, value)) {
-                    stopProducing = true;
-                    break;
-                }
+        var keepGenerating = true;
+        for (var index = 0; index < producerStrategy.batchSize() && keepGenerating; index++) {
+            final var message = generateMessageWithRetries();
+            if (message == null) {
+                log.warn("Could not generate a valid message after {} tries, skipping...", MAX_GENERATE_RETRIES);
             } else {
-                log.warn("Could not generate a valid message after 10 tries, skipping...");
+                // Add the serialized message to the batch
+                result.add(serializeMessage(message));
+
+                // Stop after this message when the strategy says it should be the last one produced
+                if (!producerStrategy.continueAfterMessage(message.left(), message.right())) {
+                    stopProducing = true;
+                    keepGenerating = false;
+                }
             }
         }
 
         // Return the batch of messages
         return result;
+    }
+
+    /** Generates a message, retrying up to {@link #MAX_GENERATE_RETRIES} times, or {@code null} when none could be generated. */
+    private Pair<DataObject, DataObject> generateMessageWithRetries() {
+        for (int t = 0; t < MAX_GENERATE_RETRIES; t++) {
+            final var message = generateMessage();
+            if (message != null) return message;
+        }
+        return null;
+    }
+
+    /** Logs and serializes a generated (key, value) message into a {@link GeneratedMessage}. */
+    private GeneratedMessage serializeMessage(Pair<DataObject, DataObject> message) {
+        final var key = message.left();
+        final var value = message.right();
+
+        // Log the generated messages
+        final var keyStr = key != null ? key.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
+        final var valueStr = value != null ? value.toString(DataObject.Printer.EXTERNAL_TOP_SCHEMA).replace("\n", "\\\\n") : "null";
+        log.info("Message: key={}, value={}", keyStr, valueStr);
+
+        // Serialize the message
+        final var headers = new RecordHeaders();
+        final var serializedKey = keySerializer.serialize(topic, headers, key);
+        final var serializedValue = valueSerializer.serialize(topic, headers, value);
+        return new GeneratedMessage(headers, serializedKey, serializedValue);
     }
 
     private Pair<DataObject, DataObject> generateMessage() {
@@ -231,17 +270,30 @@ public class ExecutableProducer {
     }
 
     private List<Pair<DataObject, DataObject>> generateMessages() {
+        return extractMessages(generator.apply(), keyType, valueType, producerStrategy);
+    }
+
+    /**
+     * Turns a generated {@link DataObject} into zero or more validated key/value messages. A single
+     * (key, value) tuple yields one message, while a {@link DataList} yields one message per valid
+     * tuple element; anything else is skipped. Extracted as a package-private static method for
+     * testability.
+     *
+     * @param generated        the object returned by the generator function
+     * @param keyType          the expected key type
+     * @param valueType        the expected value type
+     * @param producerStrategy the strategy used to validate and shape each message
+     * @return the list of validated, type-checked messages (possibly empty)
+     */
+    static List<Pair<DataObject, DataObject>> extractMessages(DataObject generated, UserType keyType, UserType valueType, ProducerStrategy producerStrategy) {
         final var result = new ArrayList<Pair<DataObject, DataObject>>();
-        final var generated = generator.apply();
         if (generated instanceof DataTuple tuple && tuple.elements().size() == 2) {
-            final var msg = shapeMessage(tuple);
-            if (msg != null) result.add(msg);
+            addShapedMessage(result, tuple, keyType, valueType, producerStrategy);
         }
         if (generated instanceof DataList list) {
-            for (DataObject element : list) {
+            for (final var element : list) {
                 if (element instanceof DataTuple tuple && tuple.elements().size() == 2) {
-                    final var msg = shapeMessage(tuple);
-                    if (msg != null) result.add(msg);
+                    addShapedMessage(result, tuple, keyType, valueType, producerStrategy);
                 } else {
                     log.warn("Skipping invalid message: {}", element);
                 }
@@ -250,7 +302,24 @@ public class ExecutableProducer {
         return result;
     }
 
-    private Pair<DataObject, DataObject> shapeMessage(DataTuple tuple) {
+    private static void addShapedMessage(List<Pair<DataObject, DataObject>> result, DataTuple tuple, UserType keyType, UserType valueType, ProducerStrategy producerStrategy) {
+        final var msg = shapeMessage(tuple, keyType, valueType, producerStrategy);
+        if (msg != null) result.add(msg);
+    }
+
+    /**
+     * Validates a (key, value) tuple against the producer strategy, converts both to the target types
+     * and verifies they are assignable to the configured key/value types. Returns {@code null} when the
+     * message is rejected by the strategy or has the wrong type. Extracted as a package-private static
+     * method for testability.
+     *
+     * @param tuple            the generated (key, value) tuple
+     * @param keyType          the expected key type
+     * @param valueType        the expected value type
+     * @param producerStrategy the strategy used to validate the message
+     * @return the shaped (key, value) pair, or {@code null} when the message should be skipped
+     */
+    static Pair<DataObject, DataObject> shapeMessage(DataTuple tuple, UserType keyType, UserType valueType, ProducerStrategy producerStrategy) {
         var key = tuple.elements().get(0);
         var value = tuple.elements().get(1);
 
