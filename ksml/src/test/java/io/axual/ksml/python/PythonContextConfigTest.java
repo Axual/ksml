@@ -20,15 +20,12 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
+import io.axual.ksml.generator.YAMLObjectMapper;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PythonContextConfigTest {
-
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     @Test
     @DisplayName("Builder defaults all flags to false")
@@ -68,7 +65,7 @@ class PythonContextConfigTest {
             allowCreateThread: true
             inheritEnvironmentVariables: true
             """;
-        var cfg = mapper.readValue(yaml, PythonContextConfig.class);
+        var cfg = YAMLObjectMapper.INSTANCE.readValue(yaml, PythonContextConfig.class);
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(cfg.allowHostFileAccess())
