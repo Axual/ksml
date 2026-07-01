@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.object.DataString;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -335,5 +336,29 @@ class StructSchemaTest {
 
         assertThat(schema2.additionalFieldsAllowed()).isTrue();
         assertThat(schema2.additionalFieldsSchema()).isEqualTo(DataSchema.ANY_SCHEMA);
+    }
+
+    @Test
+    @DisplayName("field(name) returns the matching field and null when absent; field(index) returns by position")
+    void fieldLookup() {
+        final var schema = new StructSchema("ns", "Person", null, List.of(requiredInt("id"), optionalStringWithDefault("name")));
+
+        assertThat(schema.field("id")).isNotNull();
+        assertThat(schema.field("id").name()).isEqualTo("id");
+        assertThat(schema.field("missing")).isNull();
+        assertThat(schema.field(1).name()).isEqualTo("name");
+    }
+
+    @Test
+    @DisplayName("Deep equals(Object, EqualityFlags): equal fields are equal; differing fields, null and foreign types are not")
+    void deepEquals() {
+        final var base = new StructSchema("ns", "Person", null, List.of(requiredInt("id")));
+        final var same = new StructSchema("ns", "Person", null, List.of(requiredInt("id")));
+        final var different = new StructSchema("ns", "Person", null, List.of(requiredInt("other")));
+
+        assertThat(base.equals(same, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(base.equals(different, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(base.equals(null, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(base.equals(DataSchema.STRING_SCHEMA, EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }

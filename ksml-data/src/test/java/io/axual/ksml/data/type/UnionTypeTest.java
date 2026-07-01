@@ -20,6 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -108,5 +109,21 @@ class UnionTypeTest {
         softly.assertThat(a.hashCode()).isEqualTo(a.hashCode());
         softly.assertThat(aDifferentTags.hashCode()).isEqualTo(aDifferentTags.hashCode());
         softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("Deep equals(Object, EqualityFlags): equal members are equal; differing members, null and foreign types are not")
+    void deepEquals() {
+        final var intType = new SimpleType(Integer.class, "integer");
+        final var strType = new SimpleType(String.class, "string");
+        final var union = new UnionType(new UnionType.Member("i", intType, "Integer", 1), new UnionType.Member("s", strType, "String", 2));
+        final var same = new UnionType(new UnionType.Member("i", intType, "Integer", 1), new UnionType.Member("s", strType, "String", 2));
+        final var different = new UnionType(new UnionType.Member("i", intType, "Integer", 1));
+
+        assertThat(union.equals(union, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(union.equals(same, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(union.equals(different, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(union.equals(null, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(union.equals("not-a-union", EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }

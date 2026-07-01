@@ -28,8 +28,16 @@ import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.TupleType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -248,5 +256,51 @@ class ConvertUtilTest {
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("BOOLEAN");
         assertThat(converter.convertStringToDataObject(DataBoolean.DATATYPE, "yes", true)).isNull();
+    }
+
+    // ---- complex (recursive) conversions ----
+
+    @Test
+    @DisplayName("convert: a list is converted element-by-element to the target value type")
+    void convertListElements() {
+        final var source = new DataList(DataInteger.DATATYPE);
+        source.add(new DataInteger(1));
+        source.add(new DataInteger(2));
+
+        final var result = (DataList) converter.convert(new ListType(DataLong.DATATYPE), source);
+
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.get(0)).isEqualTo(new DataLong(1L));
+        assertThat(result.get(1)).isEqualTo(new DataLong(2L));
+    }
+
+    @Test
+    @DisplayName("convert: a map's values are converted to the target value type")
+    void convertMapValues() {
+        final var source = new DataMap(DataInteger.DATATYPE);
+        source.put("a", new DataInteger(1));
+
+        final var result = (DataMap) converter.convert(new MapType(DataLong.DATATYPE), source);
+
+        assertThat(result.get("a")).isEqualTo(new DataLong(1L));
+    }
+
+    @Test
+    @DisplayName("convert: a tuple's elements are converted position-by-position to the target types")
+    void convertTupleElements() {
+        final var source = new DataTuple(new DataInteger(1), new DataInteger(2));
+
+        final var result = (DataTuple) converter.convert(new TupleType(DataLong.DATATYPE, DataString.DATATYPE), source);
+
+        assertThat(result.elements().get(0)).isEqualTo(new DataLong(1L));
+        assertThat(result.elements().get(1)).isEqualTo(new DataString("2"));
+    }
+
+    @Test
+    @DisplayName("convert: a DataNull becomes a (null) instance of the requested complex type")
+    void convertNullToComplexType() {
+        final var result = converter.convert(new ListType(DataLong.DATATYPE), DataNull.INSTANCE);
+
+        assertThat(result).isInstanceOf(DataList.class);
     }
 }
