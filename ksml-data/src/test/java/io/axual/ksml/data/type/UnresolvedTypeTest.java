@@ -37,7 +37,7 @@ class UnresolvedTypeTest {
         assertThat(type.name()).isEqualTo("Unresolved");
         assertThat(type.spec()).isEqualTo("unresolved");
         assertThat(type.containerClass()).isEqualTo(Object.class);
-        assertThat(type.toString()).isNotBlank();
+        assertThat(type).hasToString("unresolved");
     }
 
     @Test

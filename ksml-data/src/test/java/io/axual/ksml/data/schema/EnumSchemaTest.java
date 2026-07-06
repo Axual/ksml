@@ -67,8 +67,9 @@ class EnumSchemaTest {
     void symbolsAccessor() {
         final var colors = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN")));
 
-        assertThat(colors.symbols()).hasSize(2);
-        assertThat(colors.symbols().get(0).name()).isEqualTo("RED");
+        final var symbols = colors.symbols();
+        assertThat(symbols).hasSize(2);
+        assertThat(symbols.get(0).name()).isEqualTo("RED");
     }
 
     @Test

@@ -23,8 +23,6 @@ package io.axual.ksml.data.schema;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Constructor;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataSchemaConstantsTest {
@@ -42,15 +40,9 @@ class DataSchemaConstantsTest {
     @Test
     @DisplayName("Constants carry their documented values")
     void constants() {
-        assertThat(DataSchemaConstants.NO_TAG).isEqualTo(-1);
-        assertThat(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE).isEqualTo("io.axual.ksml.data");
-    }
-
-    @Test
-    @DisplayName("The utility class cannot meaningfully be instantiated (private constructor)")
-    void privateConstructor() throws Exception {
-        final Constructor<DataSchemaConstants> constructor = DataSchemaConstants.class.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        assertThat(constructor.newInstance()).isNotNull();
+        final int noTag = DataSchemaConstants.NO_TAG;
+        final String namespace = DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE;
+        assertThat(noTag).isEqualTo(-1);
+        assertThat(namespace).isEqualTo("io.axual.ksml.data");
     }
 }

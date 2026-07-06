@@ -46,9 +46,10 @@ class UnionTypeTest {
         assertThat(u.subTypeCount()).isEqualTo(2);
         assertThat(u.subType(0)).isEqualTo(intType);
         assertThat(u.subType(1)).isEqualTo(strType);
-        assertThat(u.members()).containsExactly(m1, m2);
-        assertThat(u.members()[0].tag()).isEqualTo(10);
-        assertThat(u.members()[1].tag()).isEqualTo(20);
+        final var members = u.members();
+        assertThat(members).containsExactly(m1, m2);
+        assertThat(members[0].tag()).isEqualTo(10);
+        assertThat(members[1].tag()).isEqualTo(20);
     }
 
     @Test

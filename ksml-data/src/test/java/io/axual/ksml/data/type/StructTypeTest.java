@@ -117,22 +117,27 @@ class StructTypeTest {
     }
 
     @Test
-    @DisplayName("fieldType resolves field types with fallbacks, DataNull is assignable, and CompareFilter keeps tags by default")
-    void fieldTypeFallbacksAndExtras() {
+    @DisplayName("fieldType: an existing field resolves to its mapped type; missing and schemaless fall back correctly")
+    void fieldTypeFallbacks() {
         final var schema = new StructSchema("ns", "S", null, List.of(new StructSchema.Field("id", DataSchema.INTEGER_SCHEMA, null, 0)));
         final var type = new StructType(schema);
 
-        // Existing field -> its mapped type (neither fallback)
-        assertThat(type.fieldType("id", DataString.DATATYPE, DataString.DATATYPE)).isNotNull();
-        // Missing field -> the "no such field" fallback
+        assertThat(type.fieldType("id", DataString.DATATYPE, DataString.DATATYPE)).isEqualTo(io.axual.ksml.data.object.DataInteger.DATATYPE);
         assertThat(type.fieldType("missing", DataType.UNKNOWN, DataString.DATATYPE)).isEqualTo(DataString.DATATYPE);
-        // Schemaless struct -> the "no schema" fallback
         assertThat(new StructType().fieldType("x", DataString.DATATYPE, DataType.UNKNOWN)).isEqualTo(DataString.DATATYPE);
+    }
 
-        // A struct type is assignable from DataNull
+    @Test
+    @DisplayName("A StructType is assignable from DataNull")
+    void isAssignableFromDataNull() {
+        final var type = new StructType(new StructSchema("ns", "S", null, List.of()));
+
         assertThat(type.isAssignableFrom(DataNull.DATATYPE).isAssignable()).isTrue();
+    }
 
-        // CompareFilter's default keeps tags (ignoreTags == false)
+    @Test
+    @DisplayName("CompareFilter.ignoreTags() defaults to false")
+    void compareFilterIgnoreTagsDefaultsFalse() {
         assertThat(new StructType.CompareFilter() {}.ignoreTags()).isFalse();
     }
 }

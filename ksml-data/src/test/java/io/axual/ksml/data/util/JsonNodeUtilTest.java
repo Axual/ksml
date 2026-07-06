@@ -20,10 +20,14 @@ package io.axual.ksml.data.util;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.axual.ksml.data.exception.DataException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,9 +57,7 @@ class JsonNodeUtilTest {
     @Test
     @DisplayName("convertStringToJsonNode yields a null node for null, a tree for valid JSON, and null for invalid")
     void convertStringToJsonNode() {
-        final var nullNode = JsonNodeUtil.convertStringToJsonNode(null);
-        assertThat(nullNode).isNotNull();
-        assertThat(nullNode.isNull()).isTrue();
+        assertThat(JsonNodeUtil.convertStringToJsonNode(null)).isNotNull().isInstanceOf(NullNode.class);
         assertThat(JsonNodeUtil.convertStringToJsonNode("[1,2]")).isNotNull();
         assertThat(JsonNodeUtil.convertStringToJsonNode("invalid{")).isNull();
     }
@@ -63,9 +65,9 @@ class JsonNodeUtilTest {
     @Test
     @DisplayName("convertNativeToJsonNode handles null, lists and maps, and rejects unsupported types")
     void convertNativeToJsonNode() {
-        assertThat(JsonNodeUtil.convertNativeToJsonNode(null).isNull()).isTrue();
-        assertThat(JsonNodeUtil.convertNativeToJsonNode(List.of(1, "x", true)).isArray()).isTrue();
-        assertThat(JsonNodeUtil.convertNativeToJsonNode(Map.of("k", "v")).isObject()).isTrue();
+        assertThat(JsonNodeUtil.convertNativeToJsonNode(null)).isInstanceOf(NullNode.class);
+        assertThat(JsonNodeUtil.convertNativeToJsonNode(List.of(1, "x", true))).isInstanceOf(ArrayNode.class);
+        assertThat(JsonNodeUtil.convertNativeToJsonNode(Map.of("k", "v"))).isInstanceOf(ObjectNode.class);
         assertThatThrownBy(() -> JsonNodeUtil.convertNativeToJsonNode("a string"))
                 .isInstanceOf(DataException.class);
     }
@@ -73,7 +75,7 @@ class JsonNodeUtilTest {
     @Test
     @DisplayName("A native map with mixed value types round-trips through JsonNode")
     void mixedMapRoundTrips() {
-        final var source = new java.util.LinkedHashMap<String, Object>();
+        final var source = new LinkedHashMap<String, Object>();
         source.put("bool", true);
         source.put("int", 1);
         source.put("long", 2L);
@@ -91,8 +93,8 @@ class JsonNodeUtilTest {
         assertThat(result)
                 .containsEntry("bool", true)
                 .containsEntry("int", 1)
-                .containsEntry("string", "text");
-        assertThat(result.get("list")).isEqualTo(List.of(10, 20));
+                .containsEntry("string", "text")
+                .containsEntry("list", List.of(10, 20));
     }
 
     @Test

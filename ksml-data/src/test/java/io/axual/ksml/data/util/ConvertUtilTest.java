@@ -24,13 +24,11 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.type.DataType;
-import org.apache.kafka.common.serialization.Serde;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataMap;
@@ -42,18 +40,21 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
-
-import java.util.List;
+import org.apache.kafka.common.serialization.Serde;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ConvertUtilTest {
     private final ConvertUtil converter = new ConvertUtil(new NativeDataObjectMapper(), new DataTypeDataSchemaMapper());
@@ -280,7 +281,7 @@ class ConvertUtilTest {
 
         final var result = (DataList) converter.convert(new ListType(DataLong.DATATYPE), source);
 
-        assertThat(result.size()).isEqualTo(2);
+        assertThat(result).hasSize(2);
         assertThat(result.get(0)).isEqualTo(new DataLong(1L));
         assertThat(result.get(1)).isEqualTo(new DataLong(2L));
     }
@@ -303,8 +304,7 @@ class ConvertUtilTest {
 
         final var result = (DataTuple) converter.convert(new TupleType(DataLong.DATATYPE, DataString.DATATYPE), source);
 
-        assertThat(result.elements().get(0)).isEqualTo(new DataLong(1L));
-        assertThat(result.elements().get(1)).isEqualTo(new DataString("2"));
+        assertThat(result.elements()).containsExactly(new DataLong(1L), new DataString("2"));
     }
 
     @Test
@@ -354,8 +354,8 @@ class ConvertUtilTest {
     @Test
     @DisplayName("convert: a DataNull maps to the target scalar type's null representation without throwing")
     void convertNullToScalarType() {
-        assertThat(converter.convert(DataString.DATATYPE, DataNull.INSTANCE)).isNotNull();
-        assertThat(converter.convert(DataLong.DATATYPE, DataNull.INSTANCE)).isNotNull();
+        assertThat(converter.convert(DataString.DATATYPE, DataNull.INSTANCE)).isEqualTo(new DataString());
+        assertThat(converter.convert(DataLong.DATATYPE, DataNull.INSTANCE)).isEqualTo(new DataLong());
     }
 
     private static StructSchema personSchema() {
@@ -399,18 +399,15 @@ class ConvertUtilTest {
     }
 
     @Test
-    @DisplayName("convert: a value is converted to a compatible member of a union type")
+    @DisplayName("convert: a value is converted to the first compatible member of a union type")
     void convertToUnionMember() {
         final var union = new UnionType(new UnionType.Member(DataLong.DATATYPE), new UnionType.Member(DataString.DATATYPE));
 
         final var result = converter.convert(union, new DataInteger(5));
 
-        // The result must be a value that fits one of the union's member types.
-        assertThat(result).isNotNull();
-        assertThat(union.isAssignableFrom(result).isAssignable()).isTrue();
+        assertThat(result).isEqualTo(new DataLong(5L));
     }
 
-    /** A Notation whose converter always returns the given fixed value (all other members are unused). */
     private static Notation notationConvertingTo(DataObject fixed) {
         return new Notation() {
             @Override
@@ -476,7 +473,7 @@ class ConvertUtilTest {
     @DisplayName("convertStringToDataObject: a JSON string is parsed into a list/map/struct/tuple of the target type")
     void convertStringToComplexTypes() {
         final var list = (DataList) converter.convertStringToDataObject(new ListType(DataInteger.DATATYPE), "[1, 2, 3]", false);
-        assertThat(list.size()).isEqualTo(3);
+        assertThat(list).hasSize(3);
 
         final var map = (DataMap) converter.convertStringToDataObject(new MapType(DataInteger.DATATYPE), "{\"a\": 1}", false);
         assertThat(map.get("a")).isEqualTo(new DataInteger(1));
@@ -485,22 +482,25 @@ class ConvertUtilTest {
         assertThat(struct.get("id")).isEqualTo(new DataInteger(1));
 
         final var tuple = (DataTuple) converter.convertStringToDataObject(new TupleType(DataInteger.DATATYPE, DataString.DATATYPE), "[1, \"x\"]", false);
-        assertThat(tuple.elements().get(0)).isEqualTo(new DataInteger(1));
+        assertThat(tuple.elements()).containsExactly(new DataInteger(1), new DataString("x"));
 
-        // A tuple may also be written with round brackets
         final var tuple2 = (DataTuple) converter.convertStringToDataObject(new TupleType(DataInteger.DATATYPE, DataString.DATATYPE), "(1, \"x\")", false);
-        assertThat(tuple2.elements()).hasSize(2);
+        assertThat(tuple2.elements()).containsExactly(new DataInteger(1), new DataString("x"));
     }
 
     @Test
     @DisplayName("convertStringToDataObject: malformed JSON returns null with allowFail and throws otherwise; wrong tuple arity always throws")
     void convertStringToComplexTypesErrors() {
-        assertThat(converter.convertStringToDataObject(new ListType(DataInteger.DATATYPE), "not-json", true)).isNull();
-        assertThatCode(() -> converter.convertStringToDataObject(new MapType(DataInteger.DATATYPE), "not-json", false))
+        final var listType = new ListType(DataInteger.DATATYPE);
+        final var mapType = new MapType(DataInteger.DATATYPE);
+        final var structType = new StructType(personSchema());
+        final var tupleType = new TupleType(DataInteger.DATATYPE, DataString.DATATYPE);
+        assertThat(converter.convertStringToDataObject(listType, "not-json", true)).isNull();
+        assertThatThrownBy(() -> converter.convertStringToDataObject(mapType, "not-json", false))
                 .isInstanceOf(DataException.class);
-        assertThatCode(() -> converter.convertStringToDataObject(new StructType(personSchema()), "not-json", false))
+        assertThatThrownBy(() -> converter.convertStringToDataObject(structType, "not-json", false))
                 .isInstanceOf(DataException.class);
-        assertThatCode(() -> converter.convertStringToDataObject(new TupleType(DataInteger.DATATYPE, DataString.DATATYPE), "[1]", false))
+        assertThatThrownBy(() -> converter.convertStringToDataObject(tupleType, "[1]", false))
                 .isInstanceOf(DataException.class);
     }
 

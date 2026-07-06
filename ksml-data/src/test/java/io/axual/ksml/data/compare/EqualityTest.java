@@ -71,7 +71,6 @@ class EqualityTest {
     void toStringRendersChain() {
         final var chained = Equality.notEqual("outer", Equality.notEqual("inner"));
 
-        assertThat(chained.toString()).contains("outer");
-        assertThat(chained.toString()).contains("caused by:").contains("inner");
+        assertThat(chained).asString().contains("outer").contains("caused by:").contains("inner");
     }
 }

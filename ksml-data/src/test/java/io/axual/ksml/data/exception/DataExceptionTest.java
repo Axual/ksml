@@ -33,22 +33,22 @@ class DataExceptionTest {
     @Test
     @DisplayName("Message and cause constructors retain their inputs")
     void messageAndCause() {
-        assertThat(new DataException("boom").getMessage()).contains("boom");
+        assertThat(new DataException("boom")).hasMessageContaining("boom");
 
         final var cause = new IllegalStateException("root");
         final var exception = new DataException("boom", cause);
-        assertThat(exception.getMessage()).contains("boom");
+        assertThat(exception).hasMessageContaining("boom");
         assertThat(exception.getCause()).isSameAs(cause);
     }
 
     @Test
     @DisplayName("conversionFailed factories describe the source and target types")
     void conversionFailedFactories() {
-        assertThat(DataException.conversionFailed(DataInteger.DATATYPE, DataLong.DATATYPE).getMessage())
-                .isNotBlank();
-        assertThat(DataException.conversionFailed(DataInteger.DATATYPE, DataLong.DATATYPE, Assignable.notAssignable("reason")).getMessage())
-                .contains("reason");
-        assertThat(DataException.conversionFailed("fromType", "toType").getMessage())
-                .contains("fromType").contains("toType");
+        assertThat(DataException.conversionFailed(DataInteger.DATATYPE, DataLong.DATATYPE))
+                .message().isNotBlank();
+        assertThat(DataException.conversionFailed(DataInteger.DATATYPE, DataLong.DATATYPE, Assignable.notAssignable("reason")))
+                .hasMessageContaining("reason");
+        assertThat(DataException.conversionFailed("fromType", "toType"))
+                .hasMessageContaining("fromType").hasMessageContaining("toType");
     }
 }

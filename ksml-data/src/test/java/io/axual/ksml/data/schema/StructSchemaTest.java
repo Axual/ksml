@@ -343,8 +343,9 @@ class StructSchemaTest {
     void fieldLookup() {
         final var schema = new StructSchema("ns", "Person", null, List.of(requiredInt("id"), optionalStringWithDefault("name")));
 
-        assertThat(schema.field("id")).isNotNull();
-        assertThat(schema.field("id").name()).isEqualTo("id");
+        final var idField = schema.field("id");
+        assertThat(idField).isNotNull();
+        assertThat(idField.name()).isEqualTo("id");
         assertThat(schema.field("missing")).isNull();
         assertThat(schema.field(1).name()).isEqualTo("name");
     }

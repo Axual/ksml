@@ -38,15 +38,16 @@ class TupleTest {
     @Test
     @DisplayName("toString renders the elements comma-separated in parentheses")
     void rendersToString() {
-        assertThat(new Tuple<>("a", "b").toString()).isEqualTo("(a, b)");
+        assertThat(new Tuple<>("a", "b")).hasToString("(a, b)");
     }
 
     @Test
     @DisplayName("Tuples with equal elements are equal and share a hash code")
     void valueEquality() {
-        assertThat(new Tuple<>("a", "b"))
+        final var tuple = new Tuple<>("a", "b");
+        assertThat(tuple)
                 .isEqualTo(new Tuple<>("a", "b"))
-                .hasSameHashCodeAs(new Tuple<>("a", "b"));
-        assertThat(new Tuple<>("a", "b")).isNotEqualTo(new Tuple<>("a", "c"));
+                .hasSameHashCodeAs(new Tuple<>("a", "b"))
+                .isNotEqualTo(new Tuple<>("a", "c"));
     }
 }
