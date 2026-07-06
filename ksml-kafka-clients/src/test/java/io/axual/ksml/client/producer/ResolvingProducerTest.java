@@ -179,8 +179,7 @@ class ResolvingProducerTest {
 
             final var future = producer.send(new ProducerRecord<>(UNRESOLVED_TOPIC, "k", "v"));
 
-            assertThat(future.isCancelled()).isFalse();
-            assertThat(future.isDone()).isTrue();
+            assertThat(future).isNotCancelled().isDone();
             assertThat(future.cancel(true)).isFalse();
             assertThat(future.get(1, TimeUnit.SECONDS).topic()).isEqualTo(UNRESOLVED_TOPIC);
         }

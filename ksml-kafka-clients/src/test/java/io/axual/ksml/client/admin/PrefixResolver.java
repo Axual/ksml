@@ -31,8 +31,8 @@ import java.util.Set;
  * topic and group names. Unknown, unprefixed names unresolve to {@code null} so the null-filtering
  * branches of the resolvers are exercised as well.
  */
-final class PrefixResolver implements TopicResolver, GroupResolver {
-    static final String PREFIX = "tenant-";
+public final class PrefixResolver implements TopicResolver, GroupResolver {
+    public static final String PREFIX = "tenant-";
 
     @Override
     public String resolve(String name) {

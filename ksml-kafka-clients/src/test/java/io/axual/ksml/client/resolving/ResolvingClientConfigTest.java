@@ -126,8 +126,11 @@ class ResolvingClientConfigTest {
 
         final var result = config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class);
 
-        assertThat(result).isInstanceOf(ConfigurableMarker.class);
-        assertThat(((ConfigurableMarker) result).configured).isTrue();
+        assertThat(result)
+                .isInstanceOf(ConfigurableMarker.class)
+                .asInstanceOf(InstanceOfAssertFactories.type(ConfigurableMarker.class))
+                .extracting(m -> m.configured)
+                .isEqualTo(true);
     }
 
     @Test
@@ -137,8 +140,11 @@ class ResolvingClientConfigTest {
 
         final var result = config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class);
 
-        assertThat(result).isInstanceOf(ConfigurableMarker.class);
-        assertThat(((ConfigurableMarker) result).configured).isTrue();
+        assertThat(result)
+                .isInstanceOf(ConfigurableMarker.class)
+                .asInstanceOf(InstanceOfAssertFactories.type(ConfigurableMarker.class))
+                .extracting(m -> m.configured)
+                .isEqualTo(true);
     }
 
     @Test
@@ -174,6 +180,26 @@ class ResolvingClientConfigTest {
         config.put("topic.pattern", TOPIC_PATTERN);
         config.put("group.id.pattern", GROUP_ID_PATTERN);
         config.put("transactional.id.pattern", TRANSACTIONAL_ID_PATTERN);
+
+        ResolvingClientConfig.replaceDeprecatedConfigKeys(config);
+
+        assertThat(config)
+                .doesNotContainKeys("topic.pattern", "group.id.pattern", "transactional.id.pattern")
+                .containsEntry(TOPIC_PATTERN_CONFIG, TOPIC_PATTERN)
+                .containsEntry(GROUP_ID_PATTERN_CONFIG, GROUP_ID_PATTERN)
+                .containsEntry(TRANSACTIONAL_ID_PATTERN_CONFIG, TRANSACTIONAL_ID_PATTERN);
+    }
+
+    @Test
+    @DisplayName("Deprecated keys do not overwrite already-present current keys")
+    void replaceDeprecatedConfigKeysDoesNotOverwriteCurrentKey() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("topic.pattern", "deprecated-topic");
+        config.put(TOPIC_PATTERN_CONFIG, TOPIC_PATTERN);
+        config.put("group.id.pattern", "deprecated-group");
+        config.put(GROUP_ID_PATTERN_CONFIG, GROUP_ID_PATTERN);
+        config.put("transactional.id.pattern", "deprecated-tx");
+        config.put(TRANSACTIONAL_ID_PATTERN_CONFIG, TRANSACTIONAL_ID_PATTERN);
 
         ResolvingClientConfig.replaceDeprecatedConfigKeys(config);
 

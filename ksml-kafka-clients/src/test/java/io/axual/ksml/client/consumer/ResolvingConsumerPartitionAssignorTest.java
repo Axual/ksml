@@ -20,7 +20,7 @@ package io.axual.ksml.client.consumer;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.resolving.TopicResolver;
+import io.axual.ksml.client.admin.PrefixResolver;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor.Assignment;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor.GroupAssignment;
@@ -51,21 +51,10 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ResolvingConsumerPartitionAssignorTest {
-    private static final String PREFIX = "tenant-";
+    private static final String PREFIX = PrefixResolver.PREFIX;
     private static final String MEMBER = "member";
 
-    private final TopicResolver topicResolver = new TopicResolver() {
-        @Override
-        public String resolve(String name) {
-            return name == null ? null : PREFIX + name;
-        }
-
-        @Override
-        public String unresolve(String name) {
-            if (name == null || !name.startsWith(PREFIX)) return null;
-            return name.substring(PREFIX.length());
-        }
-    };
+    private final PrefixResolver topicResolver = new PrefixResolver();
 
     @Mock
     private ConsumerPartitionAssignor backingAssignor;

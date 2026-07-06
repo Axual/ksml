@@ -142,8 +142,10 @@ public class ResolvingClientConfig {
     private static <T> void replaceDeprecatedConfigKeys(final Map<String, T> config, String deprecatedKey, String currentKey) {
         if (config.containsKey(deprecatedKey)) {
             log.warn("The configuration key '{}' is deprecated. Use the configuration key '{}' instead.", deprecatedKey, currentKey);
-            T value = config.remove(deprecatedKey);
-            config.put(currentKey, value);
+            final T value = config.remove(deprecatedKey);
+            if (!config.containsKey(currentKey)) {
+                config.put(currentKey, value);
+            }
         }
     }
 

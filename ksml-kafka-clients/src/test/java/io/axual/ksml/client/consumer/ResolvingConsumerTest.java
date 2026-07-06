@@ -108,7 +108,7 @@ class ResolvingConsumerTest {
     }
 
     @Test
-    @DisplayName("Subscribing to unresolved patterns is not supported")
+    @DisplayName("Subscribing to bare patterns without a listener is not supported")
     void patternSubscriptionsAreUnsupported() {
         withConsumer((consumer, delegate) -> {
             final var pattern = Pattern.compile("orders.*");
@@ -116,6 +116,32 @@ class ResolvingConsumerTest {
             assertThatThrownBy(() -> consumer.subscribe(pattern)).isInstanceOf(UnsupportedOperationException.class);
             assertThatThrownBy(() -> consumer.subscribe(subscriptionPattern)).isInstanceOf(UnsupportedOperationException.class);
             assertThatThrownBy(() -> consumer.subscribe(subscriptionPattern, null)).isInstanceOf(UnsupportedOperationException.class);
+        });
+    }
+
+    @Test
+    @DisplayName("subscribe(Pattern, listener) resolves the pattern and wraps the listener")
+    void patternWithListenerSubscriptionResolves() {
+        withConsumer((consumer, delegate) -> {
+            final var pattern = Pattern.compile("orders.*");
+            final var assigned = new java.util.ArrayList<TopicPartition>();
+            final ConsumerRebalanceListener callerListener = new ConsumerRebalanceListener() {
+                @Override
+                public void onPartitionsRevoked(java.util.Collection<TopicPartition> partitions) {}
+                @Override
+                public void onPartitionsAssigned(java.util.Collection<TopicPartition> partitions) {
+                    assigned.addAll(partitions);
+                }
+            };
+
+            consumer.subscribe(pattern, callerListener);
+
+            final ArgumentCaptor<Pattern> patternCaptor = ArgumentCaptor.captor();
+            final ArgumentCaptor<ConsumerRebalanceListener> listenerCaptor = ArgumentCaptor.captor();
+            verify(delegate).subscribe(patternCaptor.capture(), listenerCaptor.capture());
+            assertThat(patternCaptor.getValue().pattern()).isEqualTo("tenant-(orders.*)");
+            listenerCaptor.getValue().onPartitionsAssigned(List.of(RESOLVED_PARTITION));
+            assertThat(assigned).containsExactly(UNRESOLVED_PARTITION);
         });
     }
 

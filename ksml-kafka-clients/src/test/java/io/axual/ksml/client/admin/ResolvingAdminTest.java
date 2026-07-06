@@ -121,7 +121,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("Unsupported operations fail fast with a NotSupportedException")
-    void unsupportedOperationsThrow() {
+    void unsupportedOperationsThrow() throws Exception {
         withAdmin((admin, delegate) -> {
             // These operations fail fast before touching their arguments, so null arguments keep each
             // assertion lambda to the single invocation under test (Sonar S5778).
@@ -144,7 +144,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("Metric subscription calls are intentionally swallowed and not forwarded")
-    void metricSubscriptionIsSwallowed() {
+    void metricSubscriptionIsSwallowed() throws Exception {
         withAdmin((admin, delegate) -> {
             admin.registerMetricForSubscription(null);
             admin.unregisterMetricFromSubscription(null);
@@ -154,7 +154,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("createTopics resolves topic names and wraps the result")
-    void createTopicsResolves() {
+    void createTopicsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(CreateTopicsResult.class);
             when(delegateResult.values()).thenReturn(Map.of());
@@ -171,7 +171,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("deleteTopics resolves the topic collection and unresolves the result")
-    void deleteTopicsResolves() {
+    void deleteTopicsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DeleteTopicsResult.class);
             when(delegateResult.topicIdValues()).thenReturn(null);
@@ -204,7 +204,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("describeTopics resolves the topic collection and unresolves the result")
-    void describeTopicsResolves() {
+    void describeTopicsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DescribeTopicsResult.class);
             when(delegateResult.topicIdValues()).thenReturn(null);
@@ -239,7 +239,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("deleteRecords resolves the partition keys and forwards the result")
-    void deleteRecordsResolves() {
+    void deleteRecordsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DeleteRecordsResult.class);
             when(delegate.deleteRecords(any(), any())).thenReturn(delegateResult);
@@ -253,7 +253,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("describeConsumerGroups resolves the group ids and unresolves the result")
-    void describeConsumerGroupsResolves() {
+    void describeConsumerGroupsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DescribeConsumerGroupsResult.class);
             when(delegateResult.describedGroups()).thenReturn(Map.of(RESOLVED_GROUP,
@@ -298,12 +298,14 @@ class ResolvingAdminTest {
             final var result = admin.listConsumerGroupOffsets(specs, new ListConsumerGroupOffsetsOptions());
 
             assertThat(result.all().get()).containsOnlyKeys(UNRESOLVED_GROUP);
+            assertThat(result.partitionsToOffsetAndMetadata(UNRESOLVED_GROUP).get())
+                    .containsEntry(UNRESOLVED_PARTITION, new OffsetAndMetadata(1L));
         });
     }
 
     @Test
     @DisplayName("deleteConsumerGroups resolves the group ids and unresolves the result")
-    void deleteConsumerGroupsResolves() {
+    void deleteConsumerGroupsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DeleteConsumerGroupsResult.class);
             when(delegateResult.deletedGroups()).thenReturn(Map.of(RESOLVED_GROUP, KafkaFuture.completedFuture(null)));
@@ -318,7 +320,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("deleteConsumerGroupOffsets resolves the group id and partitions")
-    void deleteConsumerGroupOffsetsResolves() {
+    void deleteConsumerGroupOffsetsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             when(delegate.deleteConsumerGroupOffsets(any(), any(), any())).thenReturn(mock(DeleteConsumerGroupOffsetsResult.class));
 
@@ -331,7 +333,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("removeMembersFromConsumerGroup resolves the group id and forwards the result")
-    void removeMembersFromConsumerGroupResolves() {
+    void removeMembersFromConsumerGroupResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(RemoveMembersFromConsumerGroupResult.class);
             when(delegate.removeMembersFromConsumerGroup(any(), any())).thenReturn(delegateResult);
@@ -345,7 +347,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("alterConsumerGroupOffsets resolves the group id and offsets")
-    void alterConsumerGroupOffsetsResolves() {
+    void alterConsumerGroupOffsetsResolves() throws Exception {
         withAdmin((admin, delegate) -> {
             when(delegate.alterConsumerGroupOffsets(any(), any(), any())).thenReturn(mock(AlterConsumerGroupOffsetsResult.class));
 
@@ -374,12 +376,10 @@ class ResolvingAdminTest {
         });
     }
 
-    private void withAdmin(AdminTest test) {
+    private void withAdmin(AdminTest test) throws Exception {
         try (MockedConstruction<KafkaAdminClient> mocked = mockConstruction(KafkaAdminClient.class)) {
             final var admin = new ResolvingAdmin(CONFIGS);
             test.accept(admin, mocked.constructed().get(0));
-        } catch (Exception e) {
-            throw new IllegalStateException("Admin test body failed", e);
         }
     }
 
