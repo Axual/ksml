@@ -20,6 +20,7 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 import tools.jackson.dataformat.yaml.YAMLWriteFeature;
@@ -32,5 +33,6 @@ public class YAMLObjectMapper {
             .disable(YAMLWriteFeature.WRITE_DOC_START_MARKER)
             .enable(YAMLWriteFeature.MINIMIZE_QUOTES)
             .enable(YAMLWriteFeature.LITERAL_BLOCK_STYLE)
+            .enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY)
             .build();
 }

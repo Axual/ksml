@@ -148,7 +148,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                         return count >= 3;
                     });
 
-            final String registryUrl = "http://localhost:" + SharedKsmlInfra.schemaRegistry().getMappedPort(8081) + "/apis/registry/v2";
+            final String registryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v3";
             final Properties consumerProps = new Properties();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -274,7 +274,7 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                         return count >= 3;
                     });
 
-            final String registryUrl = "http://localhost:" + SharedKsmlInfra.schemaRegistry().getMappedPort(8081) + "/apis/registry/v2";
+            final String registryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v3";
             final Properties consumerProps = new Properties();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

@@ -110,7 +110,7 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
                 .build()) {
 
             final HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(baseUrl + "/apis/registry/v2/groups/" + GROUP + "/artifacts"))
+                    .uri(URI.create(baseUrl + "/apis/registry/v3/groups/" + GROUP + "/artifacts"))
                     .timeout(Duration.ofSeconds(30))
                     .header("Content-Type", "application/json")
                     .header("X-Registry-ArtifactId", ARTIFACT_ID)
@@ -129,7 +129,7 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
 
             // Confirm the artifact is retrievable, and log exactly what is stored.
             final HttpRequest get = HttpRequest.newBuilder()
-                    .uri(URI.create(baseUrl + "/apis/registry/v2/groups/" + GROUP
+                    .uri(URI.create(baseUrl + "/apis/registry/v3/groups/" + GROUP
                             + "/artifacts/" + ARTIFACT_ID))
                     .timeout(Duration.ofSeconds(30))
                     .GET()
