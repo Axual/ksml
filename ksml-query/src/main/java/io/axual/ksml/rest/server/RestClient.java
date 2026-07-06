@@ -23,6 +23,7 @@ package io.axual.ksml.rest.server;
 import io.axual.ksml.rest.data.KeyValueBean;
 import io.axual.ksml.rest.data.KeyValueBeans;
 import io.axual.ksml.rest.data.WindowedKeyValueBeans;
+import jakarta.ws.rs.ServiceUnavailableException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.MediaType;
@@ -132,13 +133,17 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(resultClass);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (InterruptedException | ExecutionException _) {
+        } catch (InterruptedException _) {
             log.warn(INTERRUPTED_MESSAGE, url);
             Thread.currentThread().interrupt();
+            throw new ServiceUnavailableException("Remote store query was interrupted");
+        } catch (ExecutionException _) {
+            log.warn(INTERRUPTED_MESSAGE, url);
+            throw new ServiceUnavailableException("Remote store query failed");
         } catch (TimeoutException _) {
             log.warn(TIMEOUT_MESSAGE, url);
+            throw new ServiceUnavailableException("Remote store query timed out");
         }
-        return null;
     }
 
     @Override

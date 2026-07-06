@@ -44,7 +44,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import jakarta.ws.rs.ServiceUnavailableException;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -57,7 +60,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RestClientTest {
 
-    private static final String URL = "http://remote:9090/state/keyvalue/store/local/all";
+    private static final String URL = "http://remote:9090/state/keyValue/store/local/all";
 
     @Mock
     private Client client;
@@ -118,6 +121,17 @@ class RestClientTest {
     }
 
     @Test
+    @DisplayName("getRemoteKeyValueBeans restores the interrupt flag when interrupted")
+    void keyValueBeansInterrupted() throws Exception {
+        stubChainReturning(mockFutureThrowing(new InterruptedException()));
+
+        restClient.getRemoteKeyValueBeans(URL);
+
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        Thread.interrupted(); // clear for other tests
+    }
+
+    @Test
     @DisplayName("getRemoteWindowedKeyValueBeans returns the fetched beans on success")
     void windowedBeansSuccess() throws Exception {
         final var beans = new WindowedKeyValueBeans();
@@ -135,6 +149,17 @@ class RestClientTest {
     }
 
     @Test
+    @DisplayName("getRemoteWindowedKeyValueBeans restores the interrupt flag when interrupted")
+    void windowedBeansInterrupted() throws Exception {
+        stubChainReturning(mockFutureThrowing(new InterruptedException()));
+
+        restClient.getRemoteWindowedKeyValueBeans(URL);
+
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        Thread.interrupted(); // clear for other tests
+    }
+
+    @Test
     @DisplayName("getRemoteKeyValueBean returns the fetched bean on success")
     void singleBeanSuccess() throws Exception {
         final var bean = new KeyValueBean(new DataString("k"), new DataString("v"));
@@ -144,11 +169,32 @@ class RestClientTest {
     }
 
     @Test
-    @DisplayName("getRemoteKeyValueBean returns null when the call times out")
+    @DisplayName("getRemoteKeyValueBean throws ServiceUnavailableException when the call times out")
     void singleBeanTimeout() throws Exception {
         stubChainReturning(mockFutureThrowing(new TimeoutException()));
 
-        assertThat(restClient.getRemoteKeyValueBean(URL, KeyValueBean.class)).isNull();
+        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(URL, KeyValueBean.class))
+                .isInstanceOf(ServiceUnavailableException.class);
+    }
+
+    @Test
+    @DisplayName("getRemoteKeyValueBean throws ServiceUnavailableException when the call fails")
+    void singleBeanExecutionError() throws Exception {
+        stubChainReturning(mockFutureThrowing(new ExecutionException(new RuntimeException("boom"))));
+
+        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(URL, KeyValueBean.class))
+                .isInstanceOf(ServiceUnavailableException.class);
+    }
+
+    @Test
+    @DisplayName("getRemoteKeyValueBean restores the interrupt flag and throws when interrupted")
+    void singleBeanInterrupted() throws Exception {
+        stubChainReturning(mockFutureThrowing(new InterruptedException()));
+
+        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(URL, KeyValueBean.class))
+                .isInstanceOf(ServiceUnavailableException.class);
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        Thread.interrupted(); // clear for other tests
     }
 
     @Test
