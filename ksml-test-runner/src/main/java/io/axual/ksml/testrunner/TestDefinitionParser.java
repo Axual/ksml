@@ -22,6 +22,7 @@ package io.axual.ksml.testrunner;
 
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -58,7 +59,9 @@ public class TestDefinitionParser {
     // STRICT_DUPLICATE_DETECTION makes Jackson throw on duplicate keys at any nesting level
     // instead of silently keeping one of them. The thrown JsonParseException carries line/column
     // info we surface in the error message.
-    private static final ObjectMapper YAML_MAPPER = YAMLMapper.builder().build();
+    private static final ObjectMapper YAML_MAPPER = YAMLMapper.builder()
+            .enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY)
+            .build();
 
     /**
      * Parse a test suite definition file into a {@link TestSuiteDefinition}.

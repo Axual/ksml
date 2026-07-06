@@ -50,7 +50,7 @@ ksml:
         apicurio.registry.serializer.dereference-schema: true
         apicurio.registry.deserializer.dereference-schema: true
         apicurio.registry.auto-register: true
-        apicurio.registry.auto-register.if-exists: RETURN
+        apicurio.registry.auto-register.if-exists: FIND_OR_CREATE_VERSION
         # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
         # apicurio.registry.request.ssl.keystore.type: JKS
         # apicurio.registry.request.ssl.keystore.password: password

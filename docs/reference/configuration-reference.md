@@ -232,7 +232,7 @@ ksml:
     # Apicurio Schema Registry
     apicurio:
       config:
-        apicurio.registry.url: "http://apicurio:8080/apis/registry/v2"
+        apicurio.registry.url: "http://apicurio:8080/apis/registry/v3"
 ```
 
 #### SSL-Enabled Schema Registry
@@ -253,7 +253,7 @@ ksml:
 
     apicurio_secure:
       config:
-        apicurio.registry.url: "https://apicurio:8080/apis/registry/v2"
+        apicurio.registry.url: "https://apicurio:8080/apis/registry/v3"
         apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
         apicurio.registry.request.ssl.keystore.type: JKS
         apicurio.registry.request.ssl.keystore.password: "${KEYSTORE_PASSWORD}"

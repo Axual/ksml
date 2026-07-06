@@ -81,14 +81,14 @@ public class KSMLContainer implements Startable {
 
     public enum SchemaRegistryType {
         APICURIO_AVRO("apicurio_avro",
-                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
-                     "apicurio.registry.url: http://localhost:%d/apis/registry/v2"),
+                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v3",
+                     "apicurio.registry.url: http://localhost:%d/apis/registry/v3"),
         CONFLUENT_AVRO("confluent_avro",
                       "schema.registry.url: http://schema-registry:8081/apis/ccompat/v7",
                       "schema.registry.url: http://localhost:%d/apis/ccompat/v7"),
         APICURIO_JSON("apicurio_jsonschema",
-                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
-                     "apicurio.registry.url: http://localhost:%d/apis/registry/v2");
+                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v3",
+                     "apicurio.registry.url: http://localhost:%d/apis/registry/v3");
 
         final String subdirectory;
         final String oldUrlPattern;

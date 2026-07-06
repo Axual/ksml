@@ -34,7 +34,7 @@ import java.time.Duration;
  */
 public class ApicurioSchemaRegistryContainer extends GenericContainer<ApicurioSchemaRegistryContainer> {
 
-    private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("apicurio/apicurio-registry:3.0.2");
+    private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("apicurio/apicurio-registry:3.3.0");
     private static final int APICURIO_PORT = 8081;
 
     public ApicurioSchemaRegistryContainer() {
