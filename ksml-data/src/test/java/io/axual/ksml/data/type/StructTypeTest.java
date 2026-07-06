@@ -20,6 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchema;
@@ -43,7 +44,7 @@ class StructTypeTest {
                 .returns(java.util.Map.class, StructType::containerClass)
                 .returns("Struct", StructType::toString)
                 .returns("Struct", StructType::name);
-        assertThat(t.keyType()).isEqualTo(io.axual.ksml.data.object.DataString.DATATYPE);
+        assertThat(t.keyType()).isEqualTo(DataString.DATATYPE);
         assertThat(t.valueType()).isEqualTo(DataType.UNKNOWN);
     }
 
@@ -71,8 +72,8 @@ class StructTypeTest {
         var schema = new StructSchema("ns", "S", null, List.of(f1, f2));
         var typed = new StructType(schema);
         // Existing field maps to correct DataType
-        assertThat(typed.fieldType("s", DataType.UNKNOWN, DataType.UNKNOWN)).isEqualTo(io.axual.ksml.data.object.DataString.DATATYPE);
-        assertThat(typed.fieldType("i", DataType.UNKNOWN, DataType.UNKNOWN)).isEqualTo(io.axual.ksml.data.object.DataInteger.DATATYPE);
+        assertThat(typed.fieldType("s", DataType.UNKNOWN, DataType.UNKNOWN)).isEqualTo(DataString.DATATYPE);
+        assertThat(typed.fieldType("i", DataType.UNKNOWN, DataType.UNKNOWN)).isEqualTo(DataInteger.DATATYPE);
         // Missing field returns incaseNoSuchField
         assertThat(typed.fieldType("missing", DataType.UNKNOWN, DataType.UNKNOWN)).isEqualTo(DataType.UNKNOWN);
     }
@@ -122,7 +123,7 @@ class StructTypeTest {
         final var schema = new StructSchema("ns", "S", null, List.of(new StructSchema.Field("id", DataSchema.INTEGER_SCHEMA, null, 0)));
         final var type = new StructType(schema);
 
-        assertThat(type.fieldType("id", DataString.DATATYPE, DataString.DATATYPE)).isEqualTo(io.axual.ksml.data.object.DataInteger.DATATYPE);
+        assertThat(type.fieldType("id", DataString.DATATYPE, DataString.DATATYPE)).isEqualTo(DataInteger.DATATYPE);
         assertThat(type.fieldType("missing", DataType.UNKNOWN, DataString.DATATYPE)).isEqualTo(DataString.DATATYPE);
         assertThat(new StructType().fieldType("x", DataString.DATATYPE, DataType.UNKNOWN)).isEqualTo(DataString.DATATYPE);
     }

@@ -85,7 +85,7 @@ class JsonNodeUtilTest {
         source.put("nested", Map.of("inner", 9));
 
         final var node = JsonNodeUtil.convertNativeToJsonNode(source);
-        final Object roundTripped = JsonNodeUtil.convertJsonNodeToNative(node);
+        final var roundTripped = JsonNodeUtil.convertJsonNodeToNative(node);
 
         assertThat(roundTripped).isInstanceOf(Map.class);
         @SuppressWarnings("unchecked")

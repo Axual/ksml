@@ -40,8 +40,8 @@ class DataSchemaConstantsTest {
     @Test
     @DisplayName("Constants carry their documented values")
     void constants() {
-        final int noTag = DataSchemaConstants.NO_TAG;
-        final String namespace = DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE;
+        final var noTag = DataSchemaConstants.NO_TAG;
+        final var namespace = DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE;
         assertThat(noTag).isEqualTo(-1);
         assertThat(namespace).isEqualTo("io.axual.ksml.data");
     }
