@@ -20,19 +20,24 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.exception.ClientException;
+import org.apache.kafka.common.Configurable;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ResolvingClientConfigTest {
     private static final String TOPIC_PATTERN_CONFIG = "axual.topic.pattern";
     private static final String GROUP_ID_PATTERN_CONFIG = "axual.group.id.pattern";
     private static final String TRANSACTIONAL_ID_PATTERN_CONFIG = "axual.transactional.id.pattern";
+    private static final String INSTANCE_CONFIG = "instance.config";
 
     private static final String EXTRA_PATTERN_FIELD = "instance";
     private static final String TOPIC_PATTERN = "{instance}-{topic}";
@@ -100,6 +105,99 @@ class ResolvingClientConfigTest {
                 .returns(expectedTransactionalIdPattern, CachedPatternResolver::pattern);
 
         softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("An already-instantiated value is returned as-is without being configured")
+    void getConfiguredInstanceFromInstance() {
+        final var instance = new ConfigurableMarker();
+        final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, instance));
+
+        final var result = config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class);
+
+        assertThat(result).isSameAs(instance);
+        assertThat(instance.configured).isFalse();
+    }
+
+    @Test
+    @DisplayName("A class-name value is instantiated and configured")
+    void getConfiguredInstanceFromClassName() {
+        final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, ConfigurableMarker.class.getName()));
+
+        final var result = config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class);
+
+        assertThat(result).isInstanceOf(ConfigurableMarker.class);
+        assertThat(((ConfigurableMarker) result).configured).isTrue();
+    }
+
+    @Test
+    @DisplayName("A Class value is instantiated and configured")
+    void getConfiguredInstanceFromClass() {
+        final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, ConfigurableMarker.class));
+
+        final var result = config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class);
+
+        assertThat(result).isInstanceOf(ConfigurableMarker.class);
+        assertThat(((ConfigurableMarker) result).configured).isTrue();
+    }
+
+    @Test
+    @DisplayName("An incompatible value returns null when null is allowed")
+    void getConfiguredInstanceAllowsNull() {
+        final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, 42));
+
+        assertThat(config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class, true)).isNull();
+    }
+
+    @Test
+    @DisplayName("An incompatible value throws when null is not allowed")
+    void getConfiguredInstanceThrowsOnIncompatibleValue() {
+        final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, 42));
+
+        assertThatThrownBy(() -> config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class))
+                .isInstanceOf(ClientException.class)
+                .hasMessageContaining("Marker");
+    }
+
+    @Test
+    @DisplayName("configRequiresResolving detects both current and deprecated pattern keys")
+    void configRequiresResolving() {
+        assertThat(ResolvingClientConfig.configRequiresResolving(Map.of())).isFalse();
+        assertThat(ResolvingClientConfig.configRequiresResolving(Map.of(TOPIC_PATTERN_CONFIG, TOPIC_PATTERN))).isTrue();
+        assertThat(ResolvingClientConfig.configRequiresResolving(Map.of("topic.pattern", TOPIC_PATTERN))).isTrue();
+    }
+
+    @Test
+    @DisplayName("Deprecated pattern keys are replaced by their current equivalents")
+    void replaceDeprecatedConfigKeys() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("topic.pattern", TOPIC_PATTERN);
+        config.put("group.id.pattern", GROUP_ID_PATTERN);
+        config.put("transactional.id.pattern", TRANSACTIONAL_ID_PATTERN);
+
+        ResolvingClientConfig.replaceDeprecatedConfigKeys(config);
+
+        assertThat(config)
+                .doesNotContainKeys("topic.pattern", "group.id.pattern", "transactional.id.pattern")
+                .containsEntry(TOPIC_PATTERN_CONFIG, TOPIC_PATTERN)
+                .containsEntry(GROUP_ID_PATTERN_CONFIG, GROUP_ID_PATTERN)
+                .containsEntry(TRANSACTIONAL_ID_PATTERN_CONFIG, TRANSACTIONAL_ID_PATTERN);
+    }
+
+    public interface Marker {
+    }
+
+    public static class ConfigurableMarker implements Marker, Configurable {
+        private boolean configured;
+
+        public ConfigurableMarker() {
+            // Public no-arg constructor required for reflective instantiation by Kafka's Utils.newInstance
+        }
+
+        @Override
+        public void configure(Map<String, ?> configs) {
+            configured = true;
+        }
     }
 
 }
