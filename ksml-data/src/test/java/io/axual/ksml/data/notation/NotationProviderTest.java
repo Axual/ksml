@@ -56,7 +56,7 @@ class NotationProviderTest {
 
             @Override
             public String vendorName() {
-                return "confluent";
+                return "axual";
             }
 
             @Override
@@ -64,7 +64,7 @@ class NotationProviderTest {
                 return null;
             }
         };
-        assertThat(vendored.name()).isEqualTo("confluent_avro");
+        assertThat(vendored.name()).isEqualTo("axual_avro");
 
         final var plain = new NotationProvider() {
             @Override
@@ -73,10 +73,16 @@ class NotationProviderTest {
             }
 
             @Override
+            public String vendorName() {
+                return null; // explicit: no vendor
+            }
+
+            @Override
             public Notation createNotation(NotationContext notationContext) {
                 return null;
             }
         };
+        assertThat(plain.vendorName()).isNull(); // documents the assumption name() relies on
         assertThat(plain.name()).isEqualTo("json");
 
         final var anonymous = new NotationProvider() {

@@ -24,6 +24,7 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationStub;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataDouble;
@@ -40,13 +41,11 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
-import org.apache.kafka.common.serialization.Serde;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -409,42 +408,7 @@ class ConvertUtilTest {
     }
 
     private static Notation notationConvertingTo(DataObject fixed) {
-        return new Notation() {
-            @Override
-            public Notation.SchemaUsage schemaUsage() {
-                return null;
-            }
-
-            @Override
-            public DataType defaultType() {
-                return null;
-            }
-
-            @Override
-            public String name() {
-                return "stub";
-            }
-
-            @Override
-            public String filenameExtension() {
-                return null;
-            }
-
-            @Override
-            public Serde<Object> serde(DataType type, boolean isKey) {
-                return null;
-            }
-
-            @Override
-            public Notation.Converter converter() {
-                return (value, targetType) -> fixed;
-            }
-
-            @Override
-            public Notation.SchemaParser schemaParser() {
-                return null;
-            }
-        };
+        return new NotationStub("stub", null, (value, targetType) -> fixed);
     }
 
     @Test

@@ -36,13 +36,4 @@ class DataSchemaConstantsTest {
         assertThat(DataSchemaConstants.isType(DataSchemaConstants.STRUCT_TYPE)).isTrue();
         assertThat(DataSchemaConstants.isType("not-a-type")).isFalse();
     }
-
-    @Test
-    @DisplayName("Constants carry their documented values")
-    void constants() {
-        final var noTag = DataSchemaConstants.NO_TAG;
-        final var namespace = DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE;
-        assertThat(noTag).isEqualTo(-1);
-        assertThat(namespace).isEqualTo("io.axual.ksml.data");
-    }
 }

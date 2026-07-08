@@ -20,8 +20,6 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.DataType;
-import org.apache.kafka.common.serialization.Serde;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -31,42 +29,7 @@ class NotationTest {
 
     /** A minimal Notation implementation so the interface's default methods can be exercised. */
     private static Notation minimalNotation() {
-        return new Notation() {
-            @Override
-            public Notation.SchemaUsage schemaUsage() {
-                return null;
-            }
-
-            @Override
-            public DataType defaultType() {
-                return null;
-            }
-
-            @Override
-            public String name() {
-                return "test";
-            }
-
-            @Override
-            public String filenameExtension() {
-                return ".test";
-            }
-
-            @Override
-            public Serde<Object> serde(DataType type, boolean isKey) {
-                return null;
-            }
-
-            @Override
-            public Notation.Converter converter() {
-                return null;
-            }
-
-            @Override
-            public Notation.SchemaParser schemaParser() {
-                return null;
-            }
-        };
+        return new NotationStub("test", ".test", null);
     }
 
     @Test
