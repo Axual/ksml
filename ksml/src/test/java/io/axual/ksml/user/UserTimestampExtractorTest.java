@@ -36,20 +36,20 @@ class UserTimestampExtractorTest {
 
     private static final UserType LONG = new UserType(DataLong.DATATYPE);
 
-    private static ConsumerRecord<Object, Object> record() {
+    private static ConsumerRecord<Object, Object> consumerRecord() {
         return new ConsumerRecord<>("topic", 0, 0L, "key", "value");
     }
 
     @Test
     void returnsExtractedTimestamp() {
         final var extractor = new UserTimestampExtractor(functionReturning(LONG, 2, new DataLong(999L)), tags());
-        assertThat(extractor.extract(record(), 0L)).isEqualTo(999L);
+        assertThat(extractor.extract(consumerRecord(), 0L)).isEqualTo(999L);
     }
 
     @Test
     void failsWhenResultIsNotALong() {
         final var extractor = new UserTimestampExtractor(functionReturning(LONG, 2, new DataString("nope")), tags());
-        final var rec = record();
+        final var rec = consumerRecord();
         assertThatThrownBy(() -> extractor.extract(rec, 0L))
                 .isInstanceOf(ExecutionException.class)
                 .hasMessageContaining("long");

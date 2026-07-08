@@ -40,7 +40,7 @@ class VersionedKeyValueStoreProxyTest {
     @Mock
     private VersionedKeyValueStore<Object, Object> delegate;
     @Mock
-    private VersionedRecord<Object> record;
+    private VersionedRecord<Object> versionedRecord;
 
     private VersionedKeyValueStoreProxy proxy() {
         return new VersionedKeyValueStoreProxy(delegate);
@@ -48,28 +48,28 @@ class VersionedKeyValueStoreProxyTest {
 
     @Test
     void getByKeyConvertsResult() {
-        when(record.value()).thenReturn("value");
-        when(record.timestamp()).thenReturn(100L);
-        when(record.validTo()).thenReturn(java.util.Optional.empty());
-        when(delegate.get("key")).thenReturn(record);
+        when(versionedRecord.value()).thenReturn("value");
+        when(versionedRecord.timestamp()).thenReturn(100L);
+        when(versionedRecord.validTo()).thenReturn(java.util.Optional.empty());
+        when(delegate.get("key")).thenReturn(versionedRecord);
         assertThat(proxy().get("key")).isNotNull();
     }
 
     @Test
     void getByKeyAndTimestampConvertsResult() {
-        lenient().when(record.value()).thenReturn("value");
-        lenient().when(record.timestamp()).thenReturn(100L);
-        lenient().when(record.validTo()).thenReturn(java.util.Optional.empty());
-        when(delegate.get("key", 50L)).thenReturn(record);
+        lenient().when(versionedRecord.value()).thenReturn("value");
+        lenient().when(versionedRecord.timestamp()).thenReturn(100L);
+        lenient().when(versionedRecord.validTo()).thenReturn(java.util.Optional.empty());
+        when(delegate.get("key", 50L)).thenReturn(versionedRecord);
         assertThat(proxy().get("key", 50L)).isNotNull();
     }
 
     @Test
     void deleteConvertsResult() {
-        lenient().when(record.value()).thenReturn("value");
-        lenient().when(record.timestamp()).thenReturn(100L);
-        lenient().when(record.validTo()).thenReturn(java.util.Optional.empty());
-        when(delegate.delete("key", 50L)).thenReturn(record);
+        lenient().when(versionedRecord.value()).thenReturn("value");
+        lenient().when(versionedRecord.timestamp()).thenReturn(100L);
+        lenient().when(versionedRecord.validTo()).thenReturn(java.util.Optional.empty());
+        when(delegate.delete("key", 50L)).thenReturn(versionedRecord);
         assertThat(proxy().delete("key", 50L)).isNotNull();
     }
 

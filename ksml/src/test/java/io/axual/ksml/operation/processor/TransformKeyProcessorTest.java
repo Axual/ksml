@@ -32,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +60,7 @@ class TransformKeyProcessorTest {
     @Test
     @SuppressWarnings("unchecked")
     void initConnectsToStateStore() {
-        final KeyValueStore<Object, Object> store = org.mockito.Mockito.mock(KeyValueStore.class);
+        final KeyValueStore<Object, Object> store = mock(KeyValueStore.class);
         when(context.getStateStore("store")).thenReturn(store);
 
         final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> rec.key(), new String[]{"store"});

@@ -35,7 +35,6 @@ import static io.axual.ksml.operation.OperationTestSupport.sessionWindowedCogrou
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowedCogrouped;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 class AsOperationTest {
@@ -50,7 +49,7 @@ class AsOperationTest {
         final var input = kStream();
 
         assertThat(operation().apply(input, context)).isNull();
-        verify(context).registerStreamWrapper(eq("myTarget"), eq(input));
+        verify(context).registerStreamWrapper("myTarget", input);
     }
 
     @Test

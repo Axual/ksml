@@ -40,7 +40,7 @@ class BaseOperationTest {
 
     @Test
     void rejectsInvalidName() {
-        // An invalid name fails Kafka's Named validation, after which BaseOperation nulls the name;
+        // An invalid name fails Kafka's Named validation, after which BaseOperation nulls the name,
         // appending a null metric-tag value then fails, surfacing the invalid configuration.
         final var config = storeConfig("invalid name!");
         assertThatThrownBy(() -> new CountOperation(config))

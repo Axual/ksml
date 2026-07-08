@@ -40,9 +40,15 @@ import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class OperationParsersTest {
 
@@ -61,31 +67,19 @@ class OperationParsersTest {
         return ParseNode.fromRoot(root, "test");
     }
 
-    @Test
-    void parsesTumblingTimeWindow() throws Exception {
-        final var op = new WindowByTimeOperationParser(resources).parser()
-                .parse(nodeOf("windowType: tumbling\nduration: 10s"));
-        assertThat(op).isInstanceOf(WindowByTimeOperation.class);
+    static Stream<Arguments> validTimeWindows() {
+        return Stream.of(
+                arguments("tumbling", "windowType: tumbling\nduration: 10s"),
+                arguments("hopping", "windowType: hopping\nduration: 10s\nadvanceBy: 5s"),
+                arguments("hopping with grace", "windowType: hopping\nduration: 10s\nadvanceBy: 5s\ngrace: 2s"),
+                arguments("tumbling with grace", "windowType: tumbling\nduration: 10s\ngrace: 2s"),
+                arguments("sliding", "windowType: sliding\ntimeDifference: 10s\ngrace: 5s"));
     }
 
-    @Test
-    void parsesHoppingTimeWindow() throws Exception {
-        final var op = new WindowByTimeOperationParser(resources).parser()
-                .parse(nodeOf("windowType: hopping\nduration: 10s\nadvanceBy: 5s"));
-        assertThat(op).isInstanceOf(WindowByTimeOperation.class);
-    }
-
-    @Test
-    void parsesHoppingTimeWindowWithGrace() throws Exception {
-        final var op = new WindowByTimeOperationParser(resources).parser()
-                .parse(nodeOf("windowType: hopping\nduration: 10s\nadvanceBy: 5s\ngrace: 2s"));
-        assertThat(op).isInstanceOf(WindowByTimeOperation.class);
-    }
-
-    @Test
-    void parsesTumblingTimeWindowWithGrace() throws Exception {
-        final var op = new WindowByTimeOperationParser(resources).parser()
-                .parse(nodeOf("windowType: tumbling\nduration: 10s\ngrace: 2s"));
+    @ParameterizedTest(name = "parses {0} time window")
+    @MethodSource("validTimeWindows")
+    void parsesTimeWindow(String description, String yaml) throws Exception {
+        final var op = new WindowByTimeOperationParser(resources).parser().parse(nodeOf(yaml));
         assertThat(op).isInstanceOf(WindowByTimeOperation.class);
     }
 
@@ -96,13 +90,6 @@ class OperationParsersTest {
         assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("advanceBy");
-    }
-
-    @Test
-    void parsesSlidingTimeWindow() throws Exception {
-        final var op = new WindowByTimeOperationParser(resources).parser()
-                .parse(nodeOf("windowType: sliding\ntimeDifference: 10s\ngrace: 5s"));
-        assertThat(op).isInstanceOf(WindowByTimeOperation.class);
     }
 
     @Test

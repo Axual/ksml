@@ -62,11 +62,11 @@ class ProxyUtilTest {
 
     @Test
     void versionedRecordConvertsToDict() {
-        final VersionedRecord<Object> record = mock();
-        when(record.value()).thenReturn("value");
-        when(record.timestamp()).thenReturn(100L);
-        when(record.validTo()).thenReturn(Optional.of(200L));
-        assertThat(ProxyUtil.toPython(record)).isInstanceOf(PythonDict.class);
+        final VersionedRecord<Object> versionedRecord = mock();
+        when(versionedRecord.value()).thenReturn("value");
+        when(versionedRecord.timestamp()).thenReturn(100L);
+        when(versionedRecord.validTo()).thenReturn(Optional.of(200L));
+        assertThat(ProxyUtil.toPython(versionedRecord)).isInstanceOf(PythonDict.class);
     }
 
     @Test
