@@ -127,7 +127,9 @@ class ResolvingConsumerTest {
             final var assigned = new java.util.ArrayList<TopicPartition>();
             final ConsumerRebalanceListener callerListener = new ConsumerRebalanceListener() {
                 @Override
-                public void onPartitionsRevoked(java.util.Collection<TopicPartition> partitions) {}
+                public void onPartitionsRevoked(java.util.Collection<TopicPartition> partitions) {
+                    // Skip implementation during this test
+                }
                 @Override
                 public void onPartitionsAssigned(java.util.Collection<TopicPartition> partitions) {
                     assigned.addAll(partitions);

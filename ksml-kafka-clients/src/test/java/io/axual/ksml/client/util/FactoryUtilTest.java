@@ -34,7 +34,7 @@ class FactoryUtilTest {
     @Test
     @DisplayName("A valid class name is instantiated as the requested type")
     void createInstantiatesValidClass() {
-        assertThat(FactoryUtil.create("java.lang.String", CharSequence.class)).isEqualTo("");
+        assertThat(FactoryUtil.create("java.lang.String", CharSequence.class)).isEmpty();
     }
 
     @ParameterizedTest
