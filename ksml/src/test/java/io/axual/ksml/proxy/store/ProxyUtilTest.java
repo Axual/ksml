@@ -29,12 +29,14 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStoreIterator;
+import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProxyUtilTest {
@@ -46,18 +48,21 @@ class ProxyUtilTest {
 
     @Test
     void plainValueConvertsToPythonValue() {
-        assertThat(ProxyUtil.toPython("value")).isNotNull();
+        assertThat(ProxyUtil.toPython("value")).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asString()).isEqualTo("value"));
     }
 
     @Test
     void valueAndTimestampConvertsToDict() {
         final var vat = ValueAndTimestamp.make("value", 100L);
-        assertThat(ProxyUtil.toPython(vat)).isInstanceOf(PythonDict.class);
+        assertThat(ProxyUtil.toPython(vat)).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("100");
     }
 
     @Test
     void keyValueConvertsToDict() {
-        assertThat(ProxyUtil.toPython(new KeyValue<>("key", "value"))).isInstanceOf(PythonDict.class);
+        assertThat(ProxyUtil.toPython(new KeyValue<>("key", "value"))).isInstanceOf(PythonDict.class)
+                .asString().contains("key").contains("value");
     }
 
     @Test
@@ -66,29 +71,39 @@ class ProxyUtilTest {
         when(versionedRecord.value()).thenReturn("value");
         when(versionedRecord.timestamp()).thenReturn(100L);
         when(versionedRecord.validTo()).thenReturn(Optional.of(200L));
-        assertThat(ProxyUtil.toPython(versionedRecord)).isInstanceOf(PythonDict.class);
+        assertThat(ProxyUtil.toPython(versionedRecord)).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("100").contains("200");
     }
 
     @Test
-    void keyValueIteratorWrapsInProxy() {
+    void keyValueIteratorWrapsInProxyAndDelegates() {
         final KeyValueIterator<Object, Object> iterator = mock();
-        assertThat(ProxyUtil.toPython(iterator)).isInstanceOf(KeyValueIteratorProxy.class);
+        when(iterator.hasNext()).thenReturn(true);
+        final var proxy = ProxyUtil.toPython(iterator);
+        assertThat(proxy).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(((KeyValueIteratorProxy) proxy).hasNext()).isTrue();
+        verify(iterator).hasNext();
     }
 
     @Test
-    void windowStoreIteratorWrapsInProxy() {
+    void windowStoreIteratorWrapsInProxyAndDelegates() {
         final WindowStoreIterator<Object> iterator = mock();
-        assertThat(ProxyUtil.toPython(iterator)).isInstanceOf(WindowStoreIteratorProxy.class);
+        when(iterator.hasNext()).thenReturn(true);
+        final var proxy = ProxyUtil.toPython(iterator);
+        assertThat(proxy).isInstanceOf(WindowStoreIteratorProxy.class);
+        assertThat(((WindowStoreIteratorProxy) proxy).hasNext()).isTrue();
+        verify(iterator).hasNext();
     }
 
     @Test
     void dataObjectConvertsToPython() {
-        assertThat(ProxyUtil.toPython(new DataString("value"))).isNotNull();
+        assertThat(ProxyUtil.toPython(new DataString("value"))).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asString()).isEqualTo("value"));
     }
 
     @Test
     void windowedKeyConvertsToPython() {
         final var windowed = new Windowed<>("key", new SessionWindow(0L, 10L));
-        assertThat(ProxyUtil.toPython(windowed)).isNotNull();
+        assertThat(ProxyUtil.toPython(windowed)).isInstanceOf(Value.class);
     }
 }

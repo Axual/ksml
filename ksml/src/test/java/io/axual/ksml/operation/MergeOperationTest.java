@@ -21,19 +21,30 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.KStreamWrapper;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Named;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.operation.OperationTestSupport.kStream;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static io.axual.ksml.operation.OperationTestSupport.streamDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class MergeOperationTest {
 
     @Test
-    void applyToStreamReturnsStream() {
+    @SuppressWarnings("unchecked")
+    void applyToStreamMergesWithOtherStream() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new MergeOperation(operationConfig("merge"), streamDefinition());
-        assertThat(operation.apply(kStream(), mockContext())).isInstanceOf(KStreamWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+        verify(stream).merge(any(KStream.class), any(Named.class));
     }
 }

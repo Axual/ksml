@@ -22,15 +22,24 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
+import io.axual.ksml.stream.KGroupedStreamWrapper;
+import org.apache.kafka.streams.kstream.Aggregator;
+import org.apache.kafka.streams.kstream.CogroupedKStream;
+import org.apache.kafka.streams.kstream.KGroupedStream;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.aggregator;
 import static io.axual.ksml.operation.OperationTestSupport.cogroupedStream;
-import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CogroupOperationTest {
 
@@ -39,8 +48,14 @@ class CogroupOperationTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyToGroupedStreamReturnsCogrouped() {
-        assertThat(operation().apply(groupedStream(), mockContext())).isInstanceOf(CogroupedKStreamWrapper.class);
+        final KGroupedStream<Object, Object> grouped = mock(KGroupedStream.class);
+        when(grouped.cogroup(any(Aggregator.class))).thenReturn(mock(CogroupedKStream.class));
+        final var input = new KGroupedStreamWrapper(grouped, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(CogroupedKStreamWrapper.class);
+        verify(grouped).cogroup(any(Aggregator.class));
     }
 
     @Test

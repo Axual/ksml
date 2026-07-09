@@ -21,22 +21,36 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.KStreamWrapper;
+import org.apache.kafka.streams.kstream.GlobalKTable;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.globalTableDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueMapper;
-import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class JoinWithGlobalTableOperationTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyToStreamReturnsStream() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new JoinWithGlobalTableOperation(
                 operationConfig("joinGlobal"), globalTableDefinition(), keyValueMapper(), valueJoiner());
-        assertThat(operation.apply(kStream(), mockContext())).isInstanceOf(KStreamWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+        verify(stream).join(any(GlobalKTable.class), any(KeyValueMapper.class), any(ValueJoinerWithKey.class), any(Named.class));
     }
 }

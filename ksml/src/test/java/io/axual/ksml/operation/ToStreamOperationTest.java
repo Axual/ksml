@@ -21,25 +21,49 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Named;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueMapper;
-import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ToStreamOperationTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyWithMapperReturnsStream() {
+        final KTable<Object, Object> table = mock(KTable.class);
+        final KStream<Object, Object> stream = mock(KStream.class);
+        when(table.toStream(any(KeyValueMapper.class), any(Named.class))).thenReturn(stream);
+        final var input = new KTableWrapper(table, key(), value());
         final var operation = new ToStreamOperation(operationConfig("toStream"), keyValueMapper());
-        assertThat(operation.apply(kTable(), mockContext())).isInstanceOf(KStreamWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+        verify(table).toStream(any(KeyValueMapper.class), any(Named.class));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyWithoutMapperReturnsStream() {
+        final KTable<Object, Object> table = mock(KTable.class);
+        final KStream<Object, Object> stream = mock(KStream.class);
+        when(table.toStream(any(Named.class))).thenReturn(stream);
+        final var input = new KTableWrapper(table, key(), value());
         final var operation = new ToStreamOperation(operationConfig("toStream"), null);
-        assertThat(operation.apply(kTable(), mockContext())).isInstanceOf(KStreamWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+        verify(table).toStream(any(Named.class));
     }
 }

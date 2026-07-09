@@ -20,26 +20,19 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.DataTypeFlattener;
-import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.operation.ToTopicNameExtractorOperation;
-import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static io.axual.ksml.operation.parser.OperationParserTestSupport.nodeOf;
+import static io.axual.ksml.operation.parser.OperationParserTestSupport.registerNotations;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ToOperationParsersTest {
@@ -48,18 +41,11 @@ class ToOperationParsersTest {
 
     @BeforeEach
     void setUp() {
-        final var jsonNotation = new JsonNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION,
-                new BinaryNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()), jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
+        registerNotations();
         resources.register("outStream",
                 new StreamDefinition("out_topic", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null));
         resources.register("myExtractor", FunctionDefinition.as(
                 "generic", "myExtractor", List.of(), (String) null, (String) null, "topic", new UserType(io.axual.ksml.data.object.DataString.DATATYPE), List.of()));
-    }
-
-    private static ParseNode nodeOf(String yaml) throws Exception {
-        return ParseNode.fromRoot(YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class), "test");
     }
 
     @Test

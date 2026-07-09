@@ -33,9 +33,11 @@ class FatalErrorTest {
     }
 
     @Test
-    void reportWalksCauseChain() {
+    void reportReturnsTopLevelMessageWithoutPropagatingCause() {
         final var cause = new IllegalArgumentException("root cause");
         final var reported = FatalError.report(new RuntimeException("wrapper", cause));
-        assertThat(reported).hasMessage("wrapper");
+        // report() logs the full cause chain but returns a fresh exception carrying only the
+        // top-level message and no cause.
+        assertThat(reported).hasMessage("wrapper").hasNoCause();
     }
 }

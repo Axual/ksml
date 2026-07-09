@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -66,15 +67,18 @@ class PeekProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void initConnectsToStateStore() {
+    void initExposesStateStoreToAction() {
         final KeyValueStore<Object, Object> store = mock(KeyValueStore.class);
         when(context.getStateStore("store")).thenReturn(store);
 
-        final var processor = new PeekProcessor("peek", (stores, rec) -> {
-        }, new String[]{"store"});
+        final var seenStore = new AtomicReference<Object>();
+        final var processor = new PeekProcessor("peek", (stores, rec) -> seenStore.set(stores.get("store")), new String[]{"store"});
         processor.init(context);
 
+        processor.process(fixedKeyRecord("key", "value"));
+
         verify(context).getStateStore("store");
+        assertThat(seenStore.get()).isNotNull();
     }
 
     @Test

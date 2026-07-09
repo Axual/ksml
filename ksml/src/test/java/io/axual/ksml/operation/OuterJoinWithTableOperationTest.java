@@ -21,20 +21,32 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.operation.OperationTestSupport.kTable;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.tableDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class OuterJoinWithTableOperationTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyToTableReturnsTable() {
+        final KTable<Object, Object> table = mock(KTable.class);
+        final var input = new KTableWrapper(table, key(), value());
         final var operation = new OuterJoinWithTableOperation(storeConfig("outerJoin"), tableDefinition(), valueJoiner());
-        assertThat(operation.apply(kTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(table).outerJoin(any(KTable.class), any(ValueJoiner.class), any(Named.class));
     }
 }

@@ -24,12 +24,21 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
+import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.function.Function;
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
@@ -47,28 +56,32 @@ class WindowStoreProxyTest {
         return new WindowStoreProxy(delegate);
     }
 
-    @Test
-    void fetchByKeyAndTimeRangeReturnsIteratorProxy() {
-        lenient().when(delegate.fetch("key", 0L, 10L)).thenReturn(windowIterator);
-        assertThat(proxy().fetch("key", 0L, 10L)).isInstanceOf(WindowStoreIteratorProxy.class);
+    private static Stream<Arguments> singleKeyTimeRangeFetches() {
+        return Stream.of(
+                Arguments.of("fetch", (Function<WindowStoreProxy, Object>) p -> p.fetch("key", 0L, 10L)),
+                Arguments.of("backwardFetch", (Function<WindowStoreProxy, Object>) p -> p.backwardFetch("key", 0L, 10L)));
     }
 
-    @Test
-    void fetchByKeyRangeReturnsIteratorProxy() {
-        lenient().when(delegate.fetch("from", "to", 0L, 10L)).thenReturn(keyValueIterator);
-        assertThat(proxy().fetch("from", "to", 0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
+    private static Stream<Arguments> keyRangeTimeRangeFetches() {
+        return Stream.of(
+                Arguments.of("fetch", (Function<WindowStoreProxy, Object>) p -> p.fetch("from", "to", 0L, 10L)),
+                Arguments.of("backwardFetch", (Function<WindowStoreProxy, Object>) p -> p.backwardFetch("from", "to", 0L, 10L)));
     }
 
-    @Test
-    void backwardFetchByKeyReturnsIteratorProxy() {
-        lenient().when(delegate.backwardFetch("key", 0L, 10L)).thenReturn(windowIterator);
-        assertThat(proxy().backwardFetch("key", 0L, 10L)).isInstanceOf(WindowStoreIteratorProxy.class);
+    @ParameterizedTest(name = "{0} by key and time range returns window iterator proxy")
+    @MethodSource("singleKeyTimeRangeFetches")
+    void singleKeyTimeRangeFetchReturnsWindowIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
+        lenient().when(delegate.fetch(any(), anyLong(), anyLong())).thenReturn(windowIterator);
+        lenient().when(delegate.backwardFetch(any(), anyLong(), anyLong())).thenReturn(windowIterator);
+        assertThat(operation.apply(proxy())).isInstanceOf(WindowStoreIteratorProxy.class);
     }
 
-    @Test
-    void backwardFetchByKeyRangeReturnsIteratorProxy() {
-        lenient().when(delegate.backwardFetch("from", "to", 0L, 10L)).thenReturn(keyValueIterator);
-        assertThat(proxy().backwardFetch("from", "to", 0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
+    @ParameterizedTest(name = "{0} by key range and time range returns key/value iterator proxy")
+    @MethodSource("keyRangeTimeRangeFetches")
+    void keyRangeTimeRangeFetchReturnsKeyValueIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
+        lenient().when(delegate.fetch(any(), any(), anyLong(), anyLong())).thenReturn(keyValueIterator);
+        lenient().when(delegate.backwardFetch(any(), any(), anyLong(), anyLong())).thenReturn(keyValueIterator);
+        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
     }
 
     @Test
@@ -90,7 +103,8 @@ class WindowStoreProxyTest {
     @Test
     void fetchByKeyAndSingleTimeReturnsValue() {
         lenient().when(delegate.fetch("key", 5L)).thenReturn("value");
-        assertThat(proxy().fetch("key", 5L)).isNotNull();
+        assertThat(proxy().fetch("key", 5L)).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asString()).isEqualTo("value"));
     }
 
     @Test

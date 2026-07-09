@@ -27,12 +27,14 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProcessingExceptionHandler.ProcessingHandlerResponse;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse;
 import org.apache.kafka.streams.processor.api.Record;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static io.axual.ksml.execution.ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
 import static io.axual.ksml.execution.ErrorHandler.HandlerType.STOP_ON_FAIL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -52,10 +54,22 @@ class ExecutionErrorHandlerTest {
 
     @BeforeEach
     void configureHandlers() {
+        applyHandlers(STOP_ON_FAIL);
+    }
+
+    @AfterEach
+    void restoreHandlers() {
+        // ErrorHandling lives on the shared ExecutionContext singleton and exposes no getters to
+        // capture the originals, so reset to a neutral default to avoid leaking STOP_ON_FAIL into
+        // other tests that share the same instance.
+        applyHandlers(CONTINUE_ON_FAIL);
+    }
+
+    private static void applyHandlers(final ErrorHandler.HandlerType type) {
         final var errorHandling = ExecutionContext.INSTANCE.errorHandling();
-        errorHandling.setConsumeHandler(new ErrorHandler(false, "test.logger", false, STOP_ON_FAIL));
-        errorHandling.setProcessHandler(new ErrorHandler(false, "test.logger", false, STOP_ON_FAIL));
-        errorHandling.setProduceHandler(new ErrorHandler(false, "test.logger", false, STOP_ON_FAIL));
+        errorHandling.setConsumeHandler(new ErrorHandler(false, "test.logger", false, type));
+        errorHandling.setProcessHandler(new ErrorHandler(false, "test.logger", false, type));
+        errorHandling.setProduceHandler(new ErrorHandler(false, "test.logger", false, type));
     }
 
     @Test

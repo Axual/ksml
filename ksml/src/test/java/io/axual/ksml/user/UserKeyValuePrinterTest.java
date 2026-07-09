@@ -42,6 +42,6 @@ class UserKeyValuePrinterTest {
     @Test
     void fallsBackToToStringForNonStringResult() {
         final var printer = new UserKeyValuePrinter(functionReturning(STRING, 2, new DataInteger(7)), tags());
-        assertThat(printer.apply("key", "value")).contains("7");
+        assertThat(printer.apply("key", "value")).isEqualTo("7");
     }
 }

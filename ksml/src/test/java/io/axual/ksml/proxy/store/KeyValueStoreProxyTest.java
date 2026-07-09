@@ -24,6 +24,7 @@ import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -50,7 +51,8 @@ class KeyValueStoreProxyTest {
     @Test
     void getConvertsKeyAndReturnsResult() {
         when(delegate.get("key")).thenReturn("value");
-        assertThat(proxy().get("key")).isNotNull();
+        assertThat(proxy().get("key")).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asString()).isEqualTo("value"));
         verify(delegate).get("key");
     }
 
@@ -63,7 +65,8 @@ class KeyValueStoreProxyTest {
     @Test
     void deleteForwardsToDelegate() {
         when(delegate.delete("key")).thenReturn("old");
-        assertThat(proxy().delete("key")).isNotNull();
+        assertThat(proxy().delete("key")).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asString()).isEqualTo("old"));
         verify(delegate).delete("key");
     }
 
@@ -77,7 +80,8 @@ class KeyValueStoreProxyTest {
     @Test
     void approximateNumEntriesIsConverted() {
         when(delegate.approximateNumEntries()).thenReturn(5L);
-        assertThat(proxy().approximateNumEntries()).isNotNull();
+        assertThat(proxy().approximateNumEntries()).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asLong()).isEqualTo(5L));
     }
 
     @Test

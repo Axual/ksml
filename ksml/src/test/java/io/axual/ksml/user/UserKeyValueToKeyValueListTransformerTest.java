@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
@@ -39,7 +40,7 @@ class UserKeyValueToKeyValueListTransformerTest {
 
     private static final UserType LIST_OF_TUPLES = new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN)));
 
-    private UserKeyValueToKeyValueListTransformer transformer(io.axual.ksml.data.object.DataObject result) {
+    private UserKeyValueToKeyValueListTransformer transformer(DataObject result) {
         return new UserKeyValueToKeyValueListTransformer(functionReturning(LIST_OF_TUPLES, 2, result), tags());
     }
 

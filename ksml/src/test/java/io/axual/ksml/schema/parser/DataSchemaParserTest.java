@@ -20,7 +20,6 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -28,23 +27,17 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.exception.ParseException;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.parser.ParseNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static io.axual.ksml.schema.parser.SchemaParserTestSupport.nodeOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DataSchemaParserTest {
 
     private final DataSchemaParser parser = new DataSchemaParser();
-
-    private static ParseNode nodeOf(String yaml) throws Exception {
-        final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
-        return ParseNode.fromRoot(root, "test");
-    }
 
     @ParameterizedTest
     @ValueSource(strings = {"any", "boolean", "byte", "short", "integer", "long", "float", "double", "bytes", "string"})

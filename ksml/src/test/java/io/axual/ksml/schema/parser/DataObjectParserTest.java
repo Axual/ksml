@@ -20,7 +20,6 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataInteger;
@@ -28,21 +27,15 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.exception.ParseException;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.parser.ParseNode;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.schema.parser.SchemaParserTestSupport.nodeOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DataObjectParserTest {
 
     private final DataObjectParser parser = new DataObjectParser();
-
-    private static ParseNode nodeOf(String yaml) throws Exception {
-        final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
-        return ParseNode.fromRoot(root, "test");
-    }
 
     @Test
     void returnsNullForNullNode() {

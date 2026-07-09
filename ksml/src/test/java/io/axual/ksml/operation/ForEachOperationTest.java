@@ -20,19 +20,31 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.stream.KStreamWrapper;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Named;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.forEachAction;
-import static io.axual.ksml.operation.OperationTestSupport.kStream;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ForEachOperationTest {
 
     @Test
-    void applyToStreamIsTerminalAndReturnsNull() {
+    @SuppressWarnings("unchecked")
+    void applyToStreamProcessesValuesAndReturnsNull() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new ForEachOperation(operationConfig("forEach"), forEachAction());
-        assertThat(operation.apply(kStream(), mockContext())).isNull();
+
+        assertThat(operation.apply(input, mockContext())).isNull();
+        verify(stream).processValues(any(), any(Named.class));
     }
 }

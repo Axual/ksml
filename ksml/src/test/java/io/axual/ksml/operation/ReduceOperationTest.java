@@ -20,15 +20,14 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.ReducerDefinition;
 import io.axual.ksml.stream.KTableWrapper;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.operation.OperationTestSupport.genericFunction;
 import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
+import static io.axual.ksml.operation.OperationTestSupport.reducer;
 import static io.axual.ksml.operation.OperationTestSupport.sessionStore;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
@@ -39,10 +38,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 class ReduceOperationTest {
-
-    private static ReducerDefinition reducer() {
-        return new ReducerDefinition(genericFunction());
-    }
 
     @Test
     void applyToGroupedStreamReturnsTable() {
@@ -93,37 +88,49 @@ class ReduceOperationTest {
 
     @Test
     void applyToGroupedStreamWithStoreMaterializes() {
-        final var operation = new ReduceOperation(storeConfig("reduce", keyValueStore("store")), reducer());
+        final var store = keyValueStore("store");
+        final var operation = new ReduceOperation(storeConfig("reduce", store), reducer());
+        final var context = mockContext();
 
-        final var result = operation.apply(groupedStream(), mockContext());
+        final var result = operation.apply(groupedStream(), context);
 
         assertThat(result).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToGroupedTableWithStoreMaterializes() {
-        final var operation = new ReduceOperation(storeConfig("reduce", keyValueStore("store")), reducer(), reducer());
+        final var store = keyValueStore("store");
+        final var operation = new ReduceOperation(storeConfig("reduce", store), reducer(), reducer());
+        final var context = mockContext();
 
-        final var result = operation.apply(groupedTable(), mockContext());
+        final var result = operation.apply(groupedTable(), context);
 
         assertThat(result).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToSessionWindowedWithStoreMaterializes() {
-        final var operation = new ReduceOperation(storeConfig("reduce", sessionStore("store")), reducer());
+        final var store = sessionStore("store");
+        final var operation = new ReduceOperation(storeConfig("reduce", store), reducer());
+        final var context = mockContext();
 
-        final var result = operation.apply(sessionWindowed(), mockContext());
+        final var result = operation.apply(sessionWindowed(), context);
 
         assertThat(result).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToTimeWindowedWithStoreMaterializes() {
-        final var operation = new ReduceOperation(storeConfig("reduce", windowStore("store")), reducer());
+        final var store = windowStore("store");
+        final var operation = new ReduceOperation(storeConfig("reduce", store), reducer());
+        final var context = mockContext();
 
-        final var result = operation.apply(timeWindowed(), mockContext());
+        final var result = operation.apply(timeWindowed(), context);
 
         assertThat(result).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 }

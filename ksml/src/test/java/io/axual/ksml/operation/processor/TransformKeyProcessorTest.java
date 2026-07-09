@@ -30,9 +30,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,14 +63,21 @@ class TransformKeyProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void initConnectsToStateStore() {
+    void initExposesStateStoreToAction() {
         final KeyValueStore<Object, Object> store = mock(KeyValueStore.class);
         when(context.getStateStore("store")).thenReturn(store);
 
-        final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> rec.key(), new String[]{"store"});
+        final var seenStore = new AtomicReference<Object>();
+        final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> {
+            seenStore.set(stores.get("store"));
+            return rec.key();
+        }, new String[]{"store"});
         processor.init(context);
 
+        processor.process(new Record<>("key", "value", 0L));
+
         verify(context).getStateStore("store");
+        assertThat(seenStore.get()).isNotNull();
     }
 
     @Test
@@ -80,9 +91,11 @@ class TransformKeyProcessorTest {
     }
 
     @Test
-    void initWithoutStoresSucceeds() {
+    void initWithoutStoresDoesNotLookUpAnyStore() {
         final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> rec.key(), NO_STORES);
-        assertThat(processor).isNotNull();
+
         processor.init(context);
+
+        verify(context, never()).getStateStore(any());
     }
 }

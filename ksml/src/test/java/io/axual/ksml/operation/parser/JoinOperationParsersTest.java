@@ -20,17 +20,10 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.DataTypeFlattener;
-import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.JoinWithGlobalTableOperation;
 import io.axual.ksml.operation.JoinWithStreamOperation;
 import io.axual.ksml.operation.JoinWithTableOperation;
@@ -39,12 +32,20 @@ import io.axual.ksml.operation.LeftJoinWithStreamOperation;
 import io.axual.ksml.operation.LeftJoinWithTableOperation;
 import io.axual.ksml.operation.OuterJoinWithStreamOperation;
 import io.axual.ksml.operation.OuterJoinWithTableOperation;
-import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import static io.axual.ksml.operation.parser.OperationParserTestSupport.nodeOf;
+import static io.axual.ksml.operation.parser.OperationParserTestSupport.registerNotations;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class JoinOperationParsersTest {
 
@@ -52,18 +53,11 @@ class JoinOperationParsersTest {
 
     @BeforeEach
     void setUp() {
-        final var jsonNotation = new JsonNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION,
-                new BinaryNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()), jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
+        registerNotations();
         resources.register("theTable",
                 new TableDefinition("the_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         resources.register("theGlobalTable",
                 new GlobalTableDefinition("the_global_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
-    }
-
-    private static ParseNode nodeOf(String yaml) throws Exception {
-        return ParseNode.fromRoot(YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class), "test");
     }
 
     private static final String STREAM_JOIN = """
@@ -104,58 +98,29 @@ class JoinOperationParsersTest {
               resultType: string
             """;
 
-    // --- inner join ------------------------------------------------------------------------------
-
-    @Test
-    void parsesStreamJoin() throws Exception {
-        assertThat(new JoinOperationParser(resources).parser().parse(nodeOf(STREAM_JOIN)))
-                .isInstanceOf(JoinWithStreamOperation.class);
+    static Stream<Arguments> joinCases() {
+        final Function<TopologyResources, OperationParser<BaseOperation>> inner = JoinOperationParser::new;
+        final Function<TopologyResources, OperationParser<BaseOperation>> left = LeftJoinOperationParser::new;
+        final Function<TopologyResources, OperationParser<BaseOperation>> outer = OuterJoinOperationParser::new;
+        return Stream.of(
+                arguments("inner stream", inner, STREAM_JOIN, JoinWithStreamOperation.class),
+                arguments("inner table", inner, TABLE_JOIN, JoinWithTableOperation.class),
+                arguments("inner global table", inner, GLOBAL_TABLE_JOIN, JoinWithGlobalTableOperation.class),
+                arguments("left stream", left, STREAM_JOIN, LeftJoinWithStreamOperation.class),
+                arguments("left table", left, TABLE_JOIN, LeftJoinWithTableOperation.class),
+                arguments("left global table", left, GLOBAL_TABLE_JOIN, LeftJoinWithGlobalTableOperation.class),
+                arguments("outer stream", outer, STREAM_JOIN, OuterJoinWithStreamOperation.class),
+                arguments("outer table", outer, TABLE_JOIN, OuterJoinWithTableOperation.class));
     }
 
-    @Test
-    void parsesTableJoin() throws Exception {
-        assertThat(new JoinOperationParser(resources).parser().parse(nodeOf(TABLE_JOIN)))
-                .isInstanceOf(JoinWithTableOperation.class);
-    }
-
-    @Test
-    void parsesGlobalTableJoin() throws Exception {
-        assertThat(new JoinOperationParser(resources).parser().parse(nodeOf(GLOBAL_TABLE_JOIN)))
-                .isInstanceOf(JoinWithGlobalTableOperation.class);
-    }
-
-    // --- left join -------------------------------------------------------------------------------
-
-    @Test
-    void parsesLeftStreamJoin() throws Exception {
-        assertThat(new LeftJoinOperationParser(resources).parser().parse(nodeOf(STREAM_JOIN)))
-                .isInstanceOf(LeftJoinWithStreamOperation.class);
-    }
-
-    @Test
-    void parsesLeftTableJoin() throws Exception {
-        assertThat(new LeftJoinOperationParser(resources).parser().parse(nodeOf(TABLE_JOIN)))
-                .isInstanceOf(LeftJoinWithTableOperation.class);
-    }
-
-    @Test
-    void parsesLeftGlobalTableJoin() throws Exception {
-        assertThat(new LeftJoinOperationParser(resources).parser().parse(nodeOf(GLOBAL_TABLE_JOIN)))
-                .isInstanceOf(LeftJoinWithGlobalTableOperation.class);
-    }
-
-    // --- outer join ------------------------------------------------------------------------------
-
-    @Test
-    void parsesOuterStreamJoin() throws Exception {
-        assertThat(new OuterJoinOperationParser(resources).parser().parse(nodeOf(STREAM_JOIN)))
-                .isInstanceOf(OuterJoinWithStreamOperation.class);
-    }
-
-    @Test
-    void parsesOuterTableJoin() throws Exception {
-        assertThat(new OuterJoinOperationParser(resources).parser().parse(nodeOf(TABLE_JOIN)))
-                .isInstanceOf(OuterJoinWithTableOperation.class);
+    @ParameterizedTest(name = "parses {0} join")
+    @MethodSource("joinCases")
+    void parsesJoin(String description,
+                    Function<TopologyResources, OperationParser<BaseOperation>> parserFactory,
+                    String yaml,
+                    Class<? extends BaseOperation> expectedType) throws Exception {
+        final var operation = parserFactory.apply(resources).parse(nodeOf(yaml));
+        assertThat(operation).isInstanceOf(expectedType);
     }
 
     @Test

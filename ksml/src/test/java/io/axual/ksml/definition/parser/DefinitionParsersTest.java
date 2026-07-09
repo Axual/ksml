@@ -34,8 +34,13 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
+import org.apache.kafka.streams.AutoOffsetReset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,20 +64,30 @@ class DefinitionParsersTest {
 
     // --- OffsetResetPolicyParser -----------------------------------------------------------------
 
+    @ParameterizedTest
+    @NullAndEmptySource
+    void parsesNullOrEmptyResetPolicyAsNull(String input) {
+        assertThat(OffsetResetPolicyParser.parseResetPolicy(input)).isNull();
+    }
+
     @Test
-    void parsesResetPolicies() {
-        assertThat(OffsetResetPolicyParser.parseResetPolicy(null)).isNull();
-        assertThat(OffsetResetPolicyParser.parseResetPolicy("")).isNull();
-        assertThat(OffsetResetPolicyParser.parseResetPolicy("earliest")).isNotNull();
-        assertThat(OffsetResetPolicyParser.parseResetPolicy("latest")).isNotNull();
-        assertThat(OffsetResetPolicyParser.parseResetPolicy("none")).isNotNull();
-        assertThat(OffsetResetPolicyParser.parseResetPolicy("by_duration:10s")).isNotNull();
+    void parsesNamedResetPolicies() {
+        assertThat(OffsetResetPolicyParser.parseResetPolicy("earliest")).isEqualTo(AutoOffsetReset.earliest());
+        assertThat(OffsetResetPolicyParser.parseResetPolicy("latest")).isEqualTo(AutoOffsetReset.latest());
+        assertThat(OffsetResetPolicyParser.parseResetPolicy("none")).isEqualTo(AutoOffsetReset.none());
+    }
+
+    @Test
+    void parsesByDurationResetPolicy() {
+        assertThat(OffsetResetPolicyParser.parseResetPolicy("by_duration:10s"))
+                .isEqualTo(AutoOffsetReset.byDuration(Duration.ofSeconds(10)));
     }
 
     @Test
     void rejectsUnknownResetPolicy() {
         assertThatThrownBy(() -> OffsetResetPolicyParser.parseResetPolicy("nonsense"))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unknown auto offset reset strategy");
     }
 
     // --- JoinTargetDefinitionParser --------------------------------------------------------------
@@ -87,6 +102,7 @@ class DefinitionParsersTest {
         final var target = new JoinTargetDefinitionParser(resources)
                 .parse(nodeOf("stream:\n  topic: other\n  keyType: string\n  valueType: string"));
         assertThat(target).isNotNull();
+        assertThat(target.definition().topic()).isEqualTo("other");
     }
 
     @Test
@@ -95,6 +111,8 @@ class DefinitionParsersTest {
                 new TableDefinition("some_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         final var target = new JoinTargetDefinitionParser(resources).parse(nodeOf("table: someTable"));
         assertThat(target).isNotNull();
+        assertThat(target.definition()).isInstanceOf(TableDefinition.class);
+        assertThat(target.definition().topic()).isEqualTo("some_table");
     }
 
     @Test
@@ -103,6 +121,8 @@ class DefinitionParsersTest {
                 new GlobalTableDefinition("some_global_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         final var target = new JoinTargetDefinitionParser(resources).parse(nodeOf("globalTable: someGlobalTable"));
         assertThat(target).isNotNull();
+        assertThat(target.definition()).isInstanceOf(GlobalTableDefinition.class);
+        assertThat(target.definition().topic()).isEqualTo("some_global_table");
     }
 
     @Test
@@ -119,6 +139,7 @@ class DefinitionParsersTest {
         final var table = new TableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_table\nkeyType: string\nvalueType: string"));
         assertThat(table).isInstanceOf(TableDefinition.class);
+        assertThat(((TableDefinition) table).topic()).isEqualTo("my_table");
     }
 
     @Test
@@ -126,5 +147,6 @@ class DefinitionParsersTest {
         final var globalTable = new GlobalTableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_global_table\nkeyType: string\nvalueType: string"));
         assertThat(globalTable).isInstanceOf(GlobalTableDefinition.class);
+        assertThat(((GlobalTableDefinition) globalTable).topic()).isEqualTo("my_global_table");
     }
 }

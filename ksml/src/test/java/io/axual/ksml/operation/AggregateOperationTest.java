@@ -38,6 +38,7 @@ import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowedCogrouped;
 import static io.axual.ksml.operation.OperationTestSupport.windowStore;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 class AggregateOperationTest {
 
@@ -81,21 +82,37 @@ class AggregateOperationTest {
 
     @Test
     void applyToGroupedStreamWithStoreMaterializes() {
-        assertThat(operation(keyValueStore("store")).apply(groupedStream(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = keyValueStore("store");
+        final var context = mockContext();
+
+        assertThat(operation(store).apply(groupedStream(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToGroupedTableWithStoreMaterializes() {
-        assertThat(operation(keyValueStore("store")).apply(groupedTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = keyValueStore("store");
+        final var context = mockContext();
+
+        assertThat(operation(store).apply(groupedTable(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToSessionWindowedWithStoreMaterializes() {
-        assertThat(operation(sessionStore("store")).apply(sessionWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = sessionStore("store");
+        final var context = mockContext();
+
+        assertThat(operation(store).apply(sessionWindowed(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToTimeWindowedWithStoreMaterializes() {
-        assertThat(operation(windowStore("store")).apply(timeWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = windowStore("store");
+        final var context = mockContext();
+
+        assertThat(operation(store).apply(timeWindowed(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 }

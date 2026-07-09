@@ -28,6 +28,7 @@ import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 class ToTableOperationTest {
 
@@ -39,7 +40,11 @@ class ToTableOperationTest {
 
     @Test
     void applyToStreamWithStoreMaterializes() {
-        final var operation = new ToTableOperation(storeConfig("toTable", keyValueStore("store")));
-        assertThat(operation.apply(kStream(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = keyValueStore("store");
+        final var operation = new ToTableOperation(storeConfig("toTable", store));
+        final var context = mockContext();
+
+        assertThat(operation.apply(kStream(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 }

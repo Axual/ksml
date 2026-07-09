@@ -47,7 +47,7 @@ class LoggerBridgeTest {
     }
 
     @Test
-    void logMethodsDelegateForEveryLevelAndArity() {
+    void logMethodsDoNotThrow() {
         final var logger = bridge.getLogger("io.axual.ksml.test");
         assertThatCode(() -> {
             logger.trace("trace");

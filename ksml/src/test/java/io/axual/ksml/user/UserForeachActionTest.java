@@ -20,19 +20,33 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.store.StateStores;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.user.UserTestSupport.functionReturning;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static io.axual.ksml.user.UserTestSupport.params;
 import static io.axual.ksml.user.UserTestSupport.tags;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class UserForeachActionTest {
 
     @Test
-    void appliesActionWithoutReturningResult() {
+    void appliesActionInvokesUnderlyingCall() {
         // A forEach action must not declare a result type.
-        final var action = new UserForeachAction(functionReturning(null, 2, null), tags());
+        final var invoked = new AtomicBoolean(false);
+        final var function = new UserFunction("ns", "fn", params(2), null, (String[]) null) {
+            @Override
+            public DataObject call(StateStores stores, DataObject... parameters) {
+                invoked.set(true);
+                return null;
+            }
+        };
+        final var action = new UserForeachAction(function, tags());
 
-        assertThatCode(() -> action.apply(null, "key", "value")).doesNotThrowAnyException();
+        action.apply(null, "key", "value");
+
+        assertThat(invoked).isTrue();
     }
 }

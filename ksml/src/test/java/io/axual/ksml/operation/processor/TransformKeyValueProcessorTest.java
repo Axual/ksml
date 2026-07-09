@@ -30,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -61,6 +62,6 @@ class TransformKeyValueProcessorTest {
 
         processor.process(new Record<>("k1", "v1", 0L));
 
-        verify(context, never()).forward(org.mockito.ArgumentMatchers.any());
+        verify(context, never()).forward(any());
     }
 }

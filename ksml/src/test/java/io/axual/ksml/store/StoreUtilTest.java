@@ -34,8 +34,12 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Duration;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -74,30 +78,20 @@ class StoreUtilTest {
 
     // --- getStoreBuilder: key/value --------------------------------------------------------------
 
-    @Test
-    void buildsInMemoryKeyValueStore() {
-        assertThat(StoreUtil.getStoreBuilder(keyValueStore(false, false, false, true, true))).isNotNull();
+    private static Stream<Arguments> keyValueStoreVariants() {
+        return Stream.of(
+                Arguments.of("in-memory", keyValueStore(false, false, false, true, true)),
+                Arguments.of("in-memory timestamped", keyValueStore(false, true, false, false, false)),
+                Arguments.of("persistent", keyValueStore(true, false, false, true, false)),
+                Arguments.of("persistent timestamped", keyValueStore(true, true, false, false, true)),
+                // Versioned stores do not support caching, so caching must be disabled.
+                Arguments.of("persistent versioned", keyValueStore(true, false, true, false, true)));
     }
 
-    @Test
-    void buildsInMemoryTimestampedKeyValueStore() {
-        assertThat(StoreUtil.getStoreBuilder(keyValueStore(false, true, false, false, false))).isNotNull();
-    }
-
-    @Test
-    void buildsPersistentKeyValueStore() {
-        assertThat(StoreUtil.getStoreBuilder(keyValueStore(true, false, false, true, false))).isNotNull();
-    }
-
-    @Test
-    void buildsPersistentTimestampedKeyValueStore() {
-        assertThat(StoreUtil.getStoreBuilder(keyValueStore(true, true, false, false, true))).isNotNull();
-    }
-
-    @Test
-    void buildsPersistentVersionedKeyValueStore() {
-        // Versioned stores do not support caching, so caching must be disabled.
-        assertThat(StoreUtil.getStoreBuilder(keyValueStore(true, false, true, false, true))).isNotNull();
+    @ParameterizedTest(name = "builds {0} key/value store")
+    @MethodSource("keyValueStoreVariants")
+    void buildsKeyValueStore(String name, KeyValueStateStoreDefinition definition) {
+        assertThat(StoreUtil.getStoreBuilder(definition)).isNotNull();
     }
 
     // --- getStoreBuilder: session & window -------------------------------------------------------

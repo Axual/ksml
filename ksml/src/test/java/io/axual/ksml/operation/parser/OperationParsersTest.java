@@ -20,15 +20,8 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.DataTypeFlattener;
-import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.operation.FilterNotOperation;
 import io.axual.ksml.operation.MergeOperation;
@@ -36,8 +29,6 @@ import io.axual.ksml.operation.ReduceOperation;
 import io.axual.ksml.operation.SuppressOperation;
 import io.axual.ksml.operation.WindowBySessionOperation;
 import io.axual.ksml.operation.WindowByTimeOperation;
-import io.axual.ksml.parser.ParseNode;
-import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,6 +37,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static io.axual.ksml.operation.parser.OperationParserTestSupport.nodeOf;
+import static io.axual.ksml.operation.parser.OperationParserTestSupport.registerNotations;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -55,16 +48,8 @@ class OperationParsersTest {
     private final TopologyResources resources = new TopologyResources("test");
 
     @BeforeEach
-    void registerNotations() {
-        final var jsonNotation = new JsonNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()));
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION,
-                new BinaryNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()), jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
-    }
-
-    private static ParseNode nodeOf(String yaml) throws Exception {
-        final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
-        return ParseNode.fromRoot(root, "test");
+    void setUp() {
+        registerNotations();
     }
 
     static Stream<Arguments> validTimeWindows() {
@@ -88,7 +73,7 @@ class OperationParsersTest {
         final var parser = new WindowByTimeOperationParser(resources).parser();
         final var node = nodeOf("windowType: hopping\nduration: 10s\nadvanceBy: 20s");
         assertThatThrownBy(() -> parser.parse(node))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ParseException.class)
                 .hasMessageContaining("advanceBy");
     }
 

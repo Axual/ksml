@@ -27,13 +27,22 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.kstream.internals.SessionWindow;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.SessionStore;
+import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.function.Function;
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,58 +59,47 @@ class SessionStoreProxyTest {
         return new SessionStoreProxy(delegate);
     }
 
-    @Test
-    void fetchByKeyReturnsIteratorProxy() {
-        lenient().when(delegate.fetch("key")).thenReturn(iterator);
-        assertThat(proxy().fetch("key")).isInstanceOf(KeyValueIteratorProxy.class);
+    private static Stream<Arguments> singleKeyOperations() {
+        return Stream.of(
+                Arguments.of("fetch", (Function<SessionStoreProxy, Object>) p -> p.fetch("key")),
+                Arguments.of("backwardFetch", (Function<SessionStoreProxy, Object>) p -> p.backwardFetch("key")),
+                Arguments.of("findSessions", (Function<SessionStoreProxy, Object>) p -> p.findSessions("key", 0L, 10L)),
+                Arguments.of("backwardFindSessions", (Function<SessionStoreProxy, Object>) p -> p.backwardFindSessions("key", 0L, 10L)));
     }
 
-    @Test
-    void fetchByKeyRangeReturnsIteratorProxy() {
-        lenient().when(delegate.fetch("from", "to")).thenReturn(iterator);
-        assertThat(proxy().fetch("from", "to")).isInstanceOf(KeyValueIteratorProxy.class);
+    private static Stream<Arguments> keyRangeOperations() {
+        return Stream.of(
+                Arguments.of("fetch", (Function<SessionStoreProxy, Object>) p -> p.fetch("from", "to")),
+                Arguments.of("backwardFetch", (Function<SessionStoreProxy, Object>) p -> p.backwardFetch("from", "to")),
+                Arguments.of("findSessions", (Function<SessionStoreProxy, Object>) p -> p.findSessions("from", "to", 0L, 10L)),
+                Arguments.of("backwardFindSessions", (Function<SessionStoreProxy, Object>) p -> p.backwardFindSessions("from", "to", 0L, 10L)));
     }
 
-    @Test
-    void backwardFetchByKeyReturnsIteratorProxy() {
-        lenient().when(delegate.backwardFetch("key")).thenReturn(iterator);
-        assertThat(proxy().backwardFetch("key")).isInstanceOf(KeyValueIteratorProxy.class);
+    @ParameterizedTest(name = "{0} by key returns iterator proxy")
+    @MethodSource("singleKeyOperations")
+    void singleKeyOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
+        lenient().when(delegate.fetch(any())).thenReturn(iterator);
+        lenient().when(delegate.backwardFetch(any())).thenReturn(iterator);
+        lenient().when(delegate.findSessions(any(), anyLong(), anyLong())).thenReturn(iterator);
+        lenient().when(delegate.backwardFindSessions(any(), anyLong(), anyLong())).thenReturn(iterator);
+        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
     }
 
-    @Test
-    void backwardFetchByKeyRangeReturnsIteratorProxy() {
-        lenient().when(delegate.backwardFetch("from", "to")).thenReturn(iterator);
-        assertThat(proxy().backwardFetch("from", "to")).isInstanceOf(KeyValueIteratorProxy.class);
-    }
-
-    @Test
-    void findSessionsByKeyReturnsIteratorProxy() {
-        lenient().when(delegate.findSessions("key", 0L, 10L)).thenReturn(iterator);
-        assertThat(proxy().findSessions("key", 0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
-    }
-
-    @Test
-    void findSessionsByKeyRangeReturnsIteratorProxy() {
-        lenient().when(delegate.findSessions("from", "to", 0L, 10L)).thenReturn(iterator);
-        assertThat(proxy().findSessions("from", "to", 0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
-    }
-
-    @Test
-    void backwardFindSessionsByKeyReturnsIteratorProxy() {
-        lenient().when(delegate.backwardFindSessions("key", 0L, 10L)).thenReturn(iterator);
-        assertThat(proxy().backwardFindSessions("key", 0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
-    }
-
-    @Test
-    void backwardFindSessionsByKeyRangeReturnsIteratorProxy() {
-        lenient().when(delegate.backwardFindSessions("from", "to", 0L, 10L)).thenReturn(iterator);
-        assertThat(proxy().backwardFindSessions("from", "to", 0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
+    @ParameterizedTest(name = "{0} by key range returns iterator proxy")
+    @MethodSource("keyRangeOperations")
+    void keyRangeOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
+        lenient().when(delegate.fetch(any(), any())).thenReturn(iterator);
+        lenient().when(delegate.backwardFetch(any(), any())).thenReturn(iterator);
+        lenient().when(delegate.findSessions(any(), any(), anyLong(), anyLong())).thenReturn(iterator);
+        lenient().when(delegate.backwardFindSessions(any(), any(), anyLong(), anyLong())).thenReturn(iterator);
+        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
     }
 
     @Test
     void fetchSessionReturnsConvertedValue() {
         lenient().when(delegate.fetchSession("key", 0L, 10L)).thenReturn("aggregate");
-        assertThat(proxy().fetchSession("key", 0L, 10L)).isNotNull();
+        assertThat(proxy().fetchSession("key", 0L, 10L)).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asString()).isEqualTo("aggregate"));
     }
 
     private static DataObject windowedKey() {
@@ -110,9 +108,13 @@ class SessionStoreProxyTest {
     }
 
     @Test
-    void putStoresWindowedAggregate() {
+    void putPreservesWindowBounds() {
         proxy().put(windowedKey(), "aggregate");
-        verify(delegate).put(any(), any());
+        final ArgumentCaptor<Windowed<Object>> captor = ArgumentCaptor.captor();
+        verify(delegate).put(captor.capture(), any());
+        final Windowed<Object> stored = captor.getValue();
+        assertThat(stored.window().start()).isEqualTo(0L);
+        assertThat(stored.window().end()).isEqualTo(10L);
     }
 
     @Test

@@ -20,21 +20,20 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.stream.StreamWrapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static io.axual.ksml.operation.OperationTestSupport.cogroupedStream;
-import static io.axual.ksml.operation.OperationTestSupport.globalKTable;
-import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
-import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
 import static io.axual.ksml.operation.OperationTestSupport.kStream;
-import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
-import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
-import static io.axual.ksml.operation.OperationTestSupport.sessionWindowedCogrouped;
-import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
-import static io.axual.ksml.operation.OperationTestSupport.timeWindowedCogrouped;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.verify;
 
 class AsOperationTest {
@@ -52,48 +51,22 @@ class AsOperationTest {
         verify(context).registerStreamWrapper("myTarget", input);
     }
 
-    @Test
-    void applyToTableReturnsNull() {
-        assertThat(operation().apply(kTable(), mockContext())).isNull();
+    static Stream<Arguments> nonStreamWrappers() {
+        return Stream.of(
+                arguments("table", (Supplier<StreamWrapper>) OperationTestSupport::kTable),
+                arguments("globalTable", (Supplier<StreamWrapper>) OperationTestSupport::globalKTable),
+                arguments("groupedStream", (Supplier<StreamWrapper>) OperationTestSupport::groupedStream),
+                arguments("groupedTable", (Supplier<StreamWrapper>) OperationTestSupport::groupedTable),
+                arguments("sessionWindowed", (Supplier<StreamWrapper>) OperationTestSupport::sessionWindowed),
+                arguments("timeWindowed", (Supplier<StreamWrapper>) OperationTestSupport::timeWindowed),
+                arguments("cogroupedStream", (Supplier<StreamWrapper>) OperationTestSupport::cogroupedStream),
+                arguments("sessionWindowedCogrouped", (Supplier<StreamWrapper>) OperationTestSupport::sessionWindowedCogrouped),
+                arguments("timeWindowedCogrouped", (Supplier<StreamWrapper>) OperationTestSupport::timeWindowedCogrouped));
     }
 
-    @Test
-    void applyToGlobalTableReturnsNull() {
-        assertThat(operation().apply(globalKTable(), mockContext())).isNull();
-    }
-
-    @Test
-    void applyToGroupedStreamReturnsNull() {
-        assertThat(operation().apply(groupedStream(), mockContext())).isNull();
-    }
-
-    @Test
-    void applyToGroupedTableReturnsNull() {
-        assertThat(operation().apply(groupedTable(), mockContext())).isNull();
-    }
-
-    @Test
-    void applyToSessionWindowedReturnsNull() {
-        assertThat(operation().apply(sessionWindowed(), mockContext())).isNull();
-    }
-
-    @Test
-    void applyToTimeWindowedReturnsNull() {
-        assertThat(operation().apply(timeWindowed(), mockContext())).isNull();
-    }
-
-    @Test
-    void applyToCogroupedStreamReturnsNull() {
-        assertThat(operation().apply(cogroupedStream(), mockContext())).isNull();
-    }
-
-    @Test
-    void applyToSessionWindowedCogroupedReturnsNull() {
-        assertThat(operation().apply(sessionWindowedCogrouped(), mockContext())).isNull();
-    }
-
-    @Test
-    void applyToTimeWindowedCogroupedReturnsNull() {
-        assertThat(operation().apply(timeWindowedCogrouped(), mockContext())).isNull();
+    @ParameterizedTest(name = "applyTo {0} returns null")
+    @MethodSource("nonStreamWrappers")
+    void applyToNonStreamReturnsNull(String name, Supplier<StreamWrapper> wrapper) {
+        assertThat(wrapper.get().apply(operation(), mockContext())).isNull();
     }
 }

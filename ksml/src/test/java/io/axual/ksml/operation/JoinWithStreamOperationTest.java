@@ -21,33 +21,51 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.KStreamWrapper;
+import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.StreamJoined;
+import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
 import static io.axual.ksml.operation.OperationTestSupport.dualStoreConfig;
-import static io.axual.ksml.operation.OperationTestSupport.kStream;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.joinWindowStore;
 import static io.axual.ksml.operation.OperationTestSupport.streamDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class JoinWithStreamOperationTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyToStreamReturnsStream() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new JoinWithStreamOperation(
                 dualStoreConfig("join"), streamDefinition(), valueJoiner(), Duration.ofSeconds(1), null);
-        assertThat(operation.apply(kStream(), mockContext())).isInstanceOf(KStreamWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+        verify(stream).join(any(KStream.class), any(ValueJoinerWithKey.class), any(JoinWindows.class), any(StreamJoined.class));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyToStreamWithStoresReturnsStream() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new JoinWithStreamOperation(
                 dualStoreConfig("join", joinWindowStore("thisStore"), joinWindowStore("otherStore")),
                 streamDefinition(), valueJoiner(), Duration.ofSeconds(1), null);
-        assertThat(operation.apply(kStream(), mockContext())).isInstanceOf(KStreamWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+        verify(stream).join(any(KStream.class), any(ValueJoinerWithKey.class), any(JoinWindows.class), any(StreamJoined.class));
     }
 
     @Test

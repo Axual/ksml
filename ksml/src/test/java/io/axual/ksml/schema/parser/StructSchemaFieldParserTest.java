@@ -20,22 +20,16 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.parser.ParseNode;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.schema.parser.SchemaParserTestSupport.nodeOf;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StructSchemaFieldParserTest {
 
     private final StructSchemaFieldParser parser = new StructSchemaFieldParser();
-
-    private static ParseNode nodeOf(String yaml) throws Exception {
-        final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
-        return ParseNode.fromRoot(root, "test");
-    }
 
     @Test
     void parsesMinimalFieldAsRequired() throws Exception {
@@ -94,5 +88,7 @@ class StructSchemaFieldParserTest {
                   - string
                 """));
         assertThat(field.required()).isFalse();
+        assertThat(field.schema()).isInstanceOfSatisfying(UnionSchema.class,
+                union -> assertThat(union.contains(DataSchema.NULL_SCHEMA)).isFalse());
     }
 }

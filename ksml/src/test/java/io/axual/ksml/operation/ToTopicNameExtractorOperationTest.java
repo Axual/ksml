@@ -20,19 +20,32 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.stream.KStreamWrapper;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.processor.TopicNameExtractor;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.operation.OperationTestSupport.kStream;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static io.axual.ksml.operation.OperationTestSupport.topicNameExtractor;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ToTopicNameExtractorOperationTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyIsTerminalAndReturnsNull() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new ToTopicNameExtractorOperation(operationConfig("toExtractor"), topicNameExtractor(), null);
-        assertThat(operation.apply(kStream(), mockContext())).isNull();
+
+        assertThat(operation.apply(input, mockContext())).isNull();
+        verify(stream).to(any(TopicNameExtractor.class), any(Produced.class));
     }
 }

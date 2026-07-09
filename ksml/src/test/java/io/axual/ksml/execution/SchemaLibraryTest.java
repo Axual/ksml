@@ -31,6 +31,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,11 +77,8 @@ class SchemaLibraryTest {
         assertThat(library.getOrFetchRemoteSchema(notation, "topic", false)).isSameAs(remoteSchema);
         // second call is served from cache
         assertThat(library.getOrFetchRemoteSchema(notation, "topic", false)).isSameAs(remoteSchema);
-    }
 
-    @Test
-    void schemaDirectoryIsConfigurable() {
-        library.schemaDirectory("/tmp/schemas");
-        assertThat(library.getSchema("unknown", true)).isNull();
+        // the remote schema must be fetched only once; the second lookup is served from cache
+        verify(notation, times(1)).fetchRemoteSchema("topic", false);
     }
 }

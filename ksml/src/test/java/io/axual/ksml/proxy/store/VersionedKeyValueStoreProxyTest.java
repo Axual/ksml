@@ -20,12 +20,15 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,31 +49,34 @@ class VersionedKeyValueStoreProxyTest {
         return new VersionedKeyValueStoreProxy(delegate);
     }
 
+    private void stubRecord() {
+        lenient().when(versionedRecord.value()).thenReturn("value");
+        lenient().when(versionedRecord.timestamp()).thenReturn(100L);
+        lenient().when(versionedRecord.validTo()).thenReturn(Optional.empty());
+    }
+
     @Test
     void getByKeyConvertsResult() {
-        when(versionedRecord.value()).thenReturn("value");
-        when(versionedRecord.timestamp()).thenReturn(100L);
-        when(versionedRecord.validTo()).thenReturn(java.util.Optional.empty());
+        stubRecord();
         when(delegate.get("key")).thenReturn(versionedRecord);
-        assertThat(proxy().get("key")).isNotNull();
+        assertThat(proxy().get("key")).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("100");
     }
 
     @Test
     void getByKeyAndTimestampConvertsResult() {
-        lenient().when(versionedRecord.value()).thenReturn("value");
-        lenient().when(versionedRecord.timestamp()).thenReturn(100L);
-        lenient().when(versionedRecord.validTo()).thenReturn(java.util.Optional.empty());
+        stubRecord();
         when(delegate.get("key", 50L)).thenReturn(versionedRecord);
-        assertThat(proxy().get("key", 50L)).isNotNull();
+        assertThat(proxy().get("key", 50L)).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("100");
     }
 
     @Test
     void deleteConvertsResult() {
-        lenient().when(versionedRecord.value()).thenReturn("value");
-        lenient().when(versionedRecord.timestamp()).thenReturn(100L);
-        lenient().when(versionedRecord.validTo()).thenReturn(java.util.Optional.empty());
+        stubRecord();
         when(delegate.delete("key", 50L)).thenReturn(versionedRecord);
-        assertThat(proxy().delete("key", 50L)).isNotNull();
+        assertThat(proxy().delete("key", 50L)).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("100");
     }
 
     @Test

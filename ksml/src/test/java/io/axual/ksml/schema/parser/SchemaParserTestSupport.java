@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.schema.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,21 +20,20 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataString;
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.parser.ParseNode;
 
-import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
-import static io.axual.ksml.user.UserTestSupport.functionReturning;
-import static io.axual.ksml.user.UserTestSupport.tags;
-import static org.assertj.core.api.Assertions.assertThat;
+/**
+ * Shared helpers for the schema parser tests.
+ */
+final class SchemaParserTestSupport {
 
-class UserValueTransformerWithKeyTest {
+    private SchemaParserTestSupport() {
+    }
 
-    @Test
-    void transformsValueWithKey() {
-        final var result = new DataString("newValue");
-        final var transformer = new UserValueTransformerWithKey(functionReturning(UNKNOWN, 2, result), tags());
-
-        assertThat(transformer.transform("key", "value")).isEqualTo(result);
+    static ParseNode nodeOf(String yaml) throws Exception {
+        final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
+        return ParseNode.fromRoot(root, "test");
     }
 }

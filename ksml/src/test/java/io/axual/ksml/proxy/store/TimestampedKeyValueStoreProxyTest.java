@@ -20,10 +20,13 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
+import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,34 +46,43 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
-    void getConvertsKeyAndResult() {
+    void getConvertsResultToDict() {
         when(delegate.get("key")).thenReturn(ValueAndTimestamp.make("value", 100L));
-        assertThat(proxy().get("key")).isNotNull();
+        assertThat(proxy().get("key")).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("100");
         verify(delegate).get("key");
     }
 
     @Test
-    void deleteConvertsResult() {
+    void deleteConvertsResultToDict() {
         when(delegate.delete("key")).thenReturn(ValueAndTimestamp.make("value", 100L));
-        assertThat(proxy().delete("key")).isNotNull();
+        assertThat(proxy().delete("key")).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("100");
     }
 
     @Test
     void putWrapsValueWithTimestamp() {
         proxy().put("key", "value", 100L);
-        verify(delegate).put(any(), any());
+        final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
+        verify(delegate).put(any(), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(100L);
+        assertThat(captor.getValue().value()).isNotNull();
     }
 
     @Test
     void putIfAbsentWrapsValueWithTimestamp() {
         when(delegate.putIfAbsent(any(), any())).thenReturn(null);
         proxy().putIfAbsent("key", "value", 100L);
-        verify(delegate).putIfAbsent(any(), any());
+        final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
+        verify(delegate).putIfAbsent(any(), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(100L);
+        assertThat(captor.getValue().value()).isNotNull();
     }
 
     @Test
     void approximateNumEntriesIsConverted() {
         when(delegate.approximateNumEntries()).thenReturn(3L);
-        assertThat(proxy().approximateNumEntries()).isNotNull();
+        assertThat(proxy().approximateNumEntries()).isInstanceOfSatisfying(Value.class,
+                value -> assertThat(value.asLong()).isEqualTo(3L));
     }
 }

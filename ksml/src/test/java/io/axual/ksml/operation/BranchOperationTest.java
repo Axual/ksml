@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.stream.KStreamWrapper;
+import org.apache.kafka.streams.kstream.Branched;
 import org.apache.kafka.streams.kstream.BranchedKStream;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
@@ -40,6 +41,7 @@ import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BranchOperationTest {
@@ -83,6 +85,8 @@ class BranchOperationTest {
         final var operation = new BranchOperation(operationConfig("branch"), List.of(branch));
 
         assertThat(operation.apply(splittableStream(branched), mockContext())).isNull();
+        // Without a predicate the branch is still registered, driven by a default always-true predicate.
+        verify(branched).branch(any(), any(Branched.class));
     }
 
     @Test
@@ -96,6 +100,8 @@ class BranchOperationTest {
         final var operation = new BranchOperation(operationConfig("branch"), List.of(branch));
 
         assertThat(operation.apply(splittableStream(branched), mockContext())).isNull();
+        // The chained peek operation must run against the branch's stream.
+        verify(branchStream).processValues(any(), any(Named.class));
     }
 
     @Test
@@ -109,5 +115,7 @@ class BranchOperationTest {
         final var operation = new BranchOperation(operationConfig("branch"), List.of(branch));
 
         assertThat(operation.apply(splittableStream(branched), mockContext())).isNull();
+        // The sink forEach operation must run against the branch's stream.
+        verify(branchStream).processValues(any(), any(Named.class));
     }
 }

@@ -20,8 +20,11 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.stream.KTableWrapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
@@ -33,6 +36,7 @@ import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.windowStore;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 class CountOperationTest {
 
@@ -62,25 +66,45 @@ class CountOperationTest {
 
     @Test
     void applyToGroupedStreamWithStoreMaterializes() {
-        final var operation = new CountOperation(storeConfig("count", keyValueStore("store")));
-        assertThat(operation.apply(groupedStream(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = keyValueStore("store");
+        final var operation = new CountOperation(storeConfig("count", store));
+        final var context = mockContext();
+
+        assertThat(operation.apply(groupedStream(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToGroupedTableWithStoreMaterializes() {
-        final var operation = new CountOperation(storeConfig("count", keyValueStore("store")));
-        assertThat(operation.apply(groupedTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = keyValueStore("store");
+        final var operation = new CountOperation(storeConfig("count", store));
+        final var context = mockContext();
+
+        assertThat(operation.apply(groupedTable(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 
     @Test
     void applyToSessionWindowedWithStoreMaterializes() {
-        final var operation = new CountOperation(storeConfig("count", sessionStore("store")));
-        assertThat(operation.apply(sessionWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = sessionStore("store");
+        final var operation = new CountOperation(storeConfig("count", store));
+        final var context = mockContext();
+
+        assertThat(operation.apply(sessionWindowed(), context)).isInstanceOf(KTableWrapper.class);
+        final var materialized = ArgumentCaptor.forClass(SessionStateStoreDefinition.class);
+        verify(context).materialize(materialized.capture());
+        assertThat(materialized.getValue().name()).isEqualTo("store");
     }
 
     @Test
     void applyToTimeWindowedWithStoreMaterializes() {
-        final var operation = new CountOperation(storeConfig("count", windowStore("store")));
-        assertThat(operation.apply(timeWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = windowStore("store");
+        final var operation = new CountOperation(storeConfig("count", store));
+        final var context = mockContext();
+
+        assertThat(operation.apply(timeWindowed(), context)).isInstanceOf(KTableWrapper.class);
+        final var materialized = ArgumentCaptor.forClass(WindowStateStoreDefinition.class);
+        verify(context).materialize(materialized.capture());
+        assertThat(materialized.getValue().name()).isEqualTo("store");
     }
 }

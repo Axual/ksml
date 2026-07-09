@@ -20,15 +20,16 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,9 +45,10 @@ class TimestampedWindowStoreProxyTest {
     }
 
     @Test
-    void fetchConvertsKeyAndResult() {
+    void fetchConvertsResultToDict() {
         when(delegate.fetch("key", 5L)).thenReturn(ValueAndTimestamp.make("value", 5L));
-        assertThat(proxy().fetch("key", 5L)).isNotNull();
+        assertThat(proxy().fetch("key", 5L)).isInstanceOf(PythonDict.class)
+                .asString().contains("value").contains("5");
     }
 
     @Test
@@ -59,6 +61,9 @@ class TimestampedWindowStoreProxyTest {
     @Test
     void putWrapsRawValueWithTimestamp() {
         proxy().put("key", "value", 100L, 5L);
-        verify(delegate).put(eq("key"), any(), eq(100L));
+        final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
+        verify(delegate).put(eq("key"), captor.capture(), eq(100L));
+        assertThat(captor.getValue().value()).isEqualTo("value");
+        assertThat(captor.getValue().timestamp()).isEqualTo(5L);
     }
 }

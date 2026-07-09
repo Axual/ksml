@@ -31,6 +31,7 @@ import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.predicate;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 class FilterOperationTest {
 
@@ -50,7 +51,11 @@ class FilterOperationTest {
 
     @Test
     void applyToTableWithStoreMaterializes() {
-        final var operation = new FilterOperation(storeConfig("filter", keyValueStore("store")), predicate());
-        assertThat(operation.apply(kTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+        final var store = keyValueStore("store");
+        final var operation = new FilterOperation(storeConfig("filter", store), predicate());
+        final var context = mockContext();
+
+        assertThat(operation.apply(kTable(), context)).isInstanceOf(KTableWrapper.class);
+        verify(context).materialize(store);
     }
 }

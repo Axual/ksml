@@ -22,28 +22,52 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
+import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.KGroupedStream;
+import org.apache.kafka.streams.kstream.KGroupedTable;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueMapper;
-import static io.axual.ksml.operation.OperationTestSupport.kStream;
-import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.tupleKeyValueMapper;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class GroupByOperationTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyToStreamReturnsGroupedStream() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        when(stream.groupBy(any(KeyValueMapper.class), any(Grouped.class))).thenReturn(mock(KGroupedStream.class));
+        final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new GroupByOperation(storeConfig("groupBy"), keyValueMapper());
-        assertThat(operation.apply(kStream(), mockContext())).isInstanceOf(KGroupedStreamWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KGroupedStreamWrapper.class);
+        verify(stream).groupBy(any(KeyValueMapper.class), any(Grouped.class));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void applyToTableReturnsGroupedTable() {
         // KTable groupBy requires the selector to produce a (key, value) tuple.
+        final KTable<Object, Object> table = mock(KTable.class);
+        when(table.groupBy(any(KeyValueMapper.class), any(Grouped.class))).thenReturn(mock(KGroupedTable.class));
+        final var input = new KTableWrapper(table, key(), value());
         final var operation = new GroupByOperation(storeConfig("groupBy"), tupleKeyValueMapper());
-        assertThat(operation.apply(kTable(), mockContext())).isInstanceOf(KGroupedTableWrapper.class);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KGroupedTableWrapper.class);
+        verify(table).groupBy(any(KeyValueMapper.class), any(Grouped.class));
     }
 }

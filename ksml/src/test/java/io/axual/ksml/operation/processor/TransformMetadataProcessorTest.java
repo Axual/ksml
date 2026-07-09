@@ -23,6 +23,7 @@ package io.axual.ksml.operation.processor;
 import io.axual.ksml.data.type.RecordMetadata;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
+import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -51,10 +52,11 @@ class TransformMetadataProcessorTest {
 
         processor.process(fixedKeyRecord("key", "value"));
 
-        final ArgumentCaptor<org.apache.kafka.streams.processor.api.FixedKeyRecord<Object, Object>> captor = ArgumentCaptor.captor();
+        final ArgumentCaptor<FixedKeyRecord<Object, Object>> captor = ArgumentCaptor.captor();
         verify(context).forward(captor.capture());
-        assertThat(captor.getValue().timestamp()).isEqualTo(9999L);
-        assertThat(captor.getValue().headers().lastHeader("h")).isNotNull();
+        final var forwarded = captor.getValue();
+        assertThat(forwarded.timestamp()).isEqualTo(9999L);
+        assertThat(forwarded.headers().lastHeader("h").value()).isEqualTo("v".getBytes());
     }
 
     @Test

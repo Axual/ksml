@@ -27,6 +27,8 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
 import static io.axual.ksml.user.UserTestSupport.tags;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +44,7 @@ class UserStreamPartitionerTest {
     @Test
     void returnsSinglePartition() {
         assertThat(partitioner(new DataInteger(2)).partitions("topic", "key", "value", 8))
-                .contains(java.util.Set.of(2));
+                .contains(Set.of(2));
     }
 
     @Test
@@ -52,7 +54,7 @@ class UserStreamPartitionerTest {
         list.add(new DataInteger(3));
 
         assertThat(partitioner(list).partitions("topic", "key", "value", 8))
-                .contains(java.util.Set.of(1, 3));
+                .contains(Set.of(1, 3));
     }
 
     @Test
