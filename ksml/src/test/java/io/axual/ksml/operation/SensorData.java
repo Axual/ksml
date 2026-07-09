@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -34,12 +33,11 @@ import static io.axual.ksml.operation.SensorData.SensorType.AREA;
  * Test utility class to create GenericRecords matching the SensorData.avsc schema.
  */
 @Builder
-@Slf4j
 public class SensorData {
 
-    static Schema SENSOR_DATA_SCHEMA;
+    static final Schema SENSOR_DATA_SCHEMA;
 
-    static Schema SENSOR_TYPE_SCHEMA;
+    static final Schema SENSOR_TYPE_SCHEMA;
 
     public static final String SCHEMA_LOCATION = "schemas/SensorData.avsc";
 
@@ -48,7 +46,7 @@ public class SensorData {
             SENSOR_DATA_SCHEMA = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream(SCHEMA_LOCATION));
             SENSOR_TYPE_SCHEMA = SENSOR_DATA_SCHEMA.getField("type").schema();
         } catch (IOException e) {
-            log.error("Failed to load schemas", e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

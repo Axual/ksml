@@ -246,27 +246,28 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                 schemas);
     }
 
-    protected <TYPE> StructsParser<List<TYPE>> listField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchemas<TYPE> valueParser) {
+    protected <U> StructsParser<List<U>> listField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchemas<U> valueParser) {
         return new FieldParser<>(childName, false, doc, new ListWithSchemaParser<>(childTagKey, childTagValuePrefix, valueParser)) {
             @Override
-            public List<TYPE> parse(ParseNode node) {
+            public List<U> parse(ParseNode node) {
                 final var list = super.parse(node);
                 return list != null ? list : new ArrayList<>();
             }
         };
     }
 
-    protected <TYPE> StructsParser<Map<String, TYPE>> mapField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchemas<TYPE> valueParser) {
+    protected <U> StructsParser<Map<String, U>> mapField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchemas<U> valueParser) {
         return new FieldParser<>(childName, false, doc, new MapWithSchemaParser<>(childTagKey, childTagValuePrefix, valueParser)) {
             @Override
-            public Map<String, TYPE> parse(ParseNode node) {
+            public Map<String, U> parse(ParseNode node) {
                 final var map = super.parse(node);
                 return map != null ? map : new HashMap<>();
             }
         };
+
     }
 
-    protected <TYPE> StructsParser<TYPE> customField(String childName, String doc, ParserWithSchemas<TYPE> valueParser) {
+    protected <U> StructsParser<U> customField(String childName, String doc, ParserWithSchemas<U> valueParser) {
         return new FieldParser<>(childName, false, doc, valueParser);
     }
 

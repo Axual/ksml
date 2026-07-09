@@ -212,11 +212,11 @@ class PythonDataObjectMapperTest {
     @DisplayName("PythonNativeMapper.fromPython(DataType, Value): Python int that fits in the expected primitive returns the native value")
     void fromPython_typedNumeric_inRangeReturnsNative() {
         Value val = context.eval("python", "42");
-        final var native_ = new PythonNativeMapper();
-        assertThat(native_.fromPython(DataByte.DATATYPE, val)).isEqualTo((byte) 42);
-        assertThat(native_.fromPython(DataShort.DATATYPE, val)).isEqualTo((short) 42);
-        assertThat(native_.fromPython(DataInteger.DATATYPE, val)).isEqualTo(42);
-        assertThat(native_.fromPython(DataLong.DATATYPE, val)).isEqualTo(42L);
+        final var nativeMapper = new PythonNativeMapper();
+        assertThat(nativeMapper.fromPython(DataByte.DATATYPE, val)).isEqualTo((byte) 42);
+        assertThat(nativeMapper.fromPython(DataShort.DATATYPE, val)).isEqualTo((short) 42);
+        assertThat(nativeMapper.fromPython(DataInteger.DATATYPE, val)).isEqualTo(42);
+        assertThat(nativeMapper.fromPython(DataLong.DATATYPE, val)).isEqualTo(42L);
     }
 
     @Test

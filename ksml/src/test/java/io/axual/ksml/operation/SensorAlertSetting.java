@@ -22,7 +22,6 @@ package io.axual.ksml.operation;
 
 import lombok.Builder;
 import lombok.Singular;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
@@ -32,12 +31,11 @@ import java.io.IOException;
 import java.util.List;
 
 @Builder
-@Slf4j
 public class SensorAlertSetting {
 
-    static Schema ALERT_SETTINGS_SCHEMA;
-    static Schema ALERT_SETTING_SCHEMA;
-    static Schema ALERT_TYPE_SCHEMA;
+    static final Schema ALERT_SETTINGS_SCHEMA;
+    static final Schema ALERT_SETTING_SCHEMA;
+    static final Schema ALERT_TYPE_SCHEMA;
 
     public static final String SCHEMA_LOCATION = "schemas/SensorAlertSettings.avsc";
 
@@ -47,7 +45,7 @@ public class SensorAlertSetting {
             ALERT_SETTING_SCHEMA = ALERT_SETTINGS_SCHEMA.getField("alertSettings").schema();
             ALERT_TYPE_SCHEMA = ALERT_SETTING_SCHEMA.getElementType().getField("type").schema();
         } catch (IOException e) {
-            log.error("Failed to load schemas", e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

@@ -27,7 +27,7 @@
       "type" : "object",
       "additionalProperties" : false,
       "patternProperties" : {
-        "^[a-zA-Z][a-zA-Z0-9_]*$" : {
+        "^[a-zA-Z]\\w*$" : {
           "type" : "object",
           "additionalProperties" : false,
           "description" : "A named binding from a logical stream identifier to a Kafka topic and its key/value types",
@@ -59,7 +59,7 @@
       "type" : "object",
       "additionalProperties" : false,
       "patternProperties" : {
-        "^[a-zA-Z][a-zA-Z0-9_]*$" : {
+        "^[a-zA-Z]\\w*$" : {
           "type" : "object",
           "additionalProperties" : false,
           "description" : "One hermetic test entry in a test suite",

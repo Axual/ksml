@@ -49,7 +49,7 @@ public final class KSMLTestDSL {
      * parser (as the compiled {@link #IDENTIFIER_PATTERN}) and the schema generator
      * (as the source string in {@code patternProperties}).
      */
-    public static final String IDENTIFIER_REGEX = "^[a-zA-Z][a-zA-Z0-9_]*$";
+    public static final String IDENTIFIER_REGEX = "^[a-zA-Z]\\w*$";
 
     /** Compiled form of {@link #IDENTIFIER_REGEX}, for parser-side validation. */
     public static final Pattern IDENTIFIER_PATTERN = Pattern.compile(IDENTIFIER_REGEX);

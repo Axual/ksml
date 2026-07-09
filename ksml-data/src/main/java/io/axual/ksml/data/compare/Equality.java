@@ -20,7 +20,6 @@ package io.axual.ksml.data.compare;
  * =========================LICENSE_END==================================
  */
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 
