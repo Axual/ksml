@@ -20,12 +20,12 @@ package io.axual.ksml.client.admin;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
-import org.apache.kafka.common.internals.KafkaFutureImpl;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
@@ -37,6 +37,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ResolvingDescribeAclsResultTest {
     private final PrefixResolver resolver = new PrefixResolver();
@@ -56,9 +59,15 @@ class ResolvingDescribeAclsResultTest {
 
     @Test
     @DisplayName("A failed lookup propagates the failure")
+    @SuppressWarnings("unchecked")
     void failurePropagates() {
-        final KafkaFutureImpl<Collection<AclBinding>> future = new KafkaFutureImpl<>();
-        future.completeExceptionally(new RuntimeException("boom"));
+        final KafkaFuture<Collection<AclBinding>> future = mock(KafkaFuture.class);
+        final RuntimeException cause = new RuntimeException("boom");
+        when(future.whenComplete(any())).thenAnswer(inv -> {
+            final KafkaFuture.BiConsumer<Collection<AclBinding>, Throwable> action = inv.getArgument(0);
+            action.accept(null, cause);
+            return mock(KafkaFuture.class);
+        });
 
         final var result = new ResolvingDescribeAclsResult(future, resolver, resolver);
 

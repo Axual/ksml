@@ -1,4 +1,4 @@
-package org.apache.kafka.clients.admin;
+package io.axual.ksml.client.admin;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,6 +20,9 @@ package org.apache.kafka.clients.admin;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
+import org.apache.kafka.clients.admin.ExtendableListConsumerGroupsResult;
+import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
 import org.apache.kafka.common.KafkaFuture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,8 +35,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The concrete {@link org.apache.kafka.clients.admin.ResolvingListConsumerGroupsResult} overrides
- * {@code all()} and {@code valid()}, so this test exercises the plain delegation of the base class.
+ * The concrete {@link ResolvingListConsumerGroupsResult} overrides {@code all()} and {@code valid()},
+ * so this test exercises the plain delegation of the base class.
  */
 @SuppressWarnings({"deprecation", "removal"}) // ListConsumerGroupsResult/ConsumerGroupListing deprecated in Kafka 4.1 but still extended
 class ExtendableListConsumerGroupsResultTest {

@@ -20,6 +20,7 @@ package io.axual.ksml.client.admin;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AccessControlEntryFilter;
 import org.apache.kafka.common.acl.AclBinding;

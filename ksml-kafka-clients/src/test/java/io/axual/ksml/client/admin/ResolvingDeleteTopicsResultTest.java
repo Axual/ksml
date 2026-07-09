@@ -20,6 +20,7 @@ package io.axual.ksml.client.admin;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.apache.kafka.common.KafkaFuture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

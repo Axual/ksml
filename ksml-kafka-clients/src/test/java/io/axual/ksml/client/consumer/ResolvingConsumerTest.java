@@ -28,6 +28,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.clients.consumer.SubscriptionPattern;
+import org.apache.kafka.common.Node;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,7 +75,7 @@ class ResolvingConsumerTest {
         withConsumer((consumer, delegate) -> {
             consumer.subscribe(List.of(UNRESOLVED_TOPIC));
 
-            final ArgumentCaptor<java.util.Collection<String>> topics = ArgumentCaptor.captor();
+            final ArgumentCaptor<Collection<String>> topics = ArgumentCaptor.captor();
             verify(delegate).subscribe(topics.capture());
             assertThat(topics.getValue()).containsExactly(RESOLVED_TOPIC);
         });
@@ -81,16 +85,16 @@ class ResolvingConsumerTest {
     @DisplayName("subscribe with a listener resolves topics and unresolves rebalance callbacks")
     void subscribeWithListenerWrapsCallbacks() {
         withConsumer((consumer, delegate) -> {
-            final var assigned = new java.util.ArrayList<TopicPartition>();
-            final var revoked = new java.util.ArrayList<TopicPartition>();
+            final var assigned = new ArrayList<TopicPartition>();
+            final var revoked = new ArrayList<TopicPartition>();
             final ConsumerRebalanceListener callerListener = new ConsumerRebalanceListener() {
                 @Override
-                public void onPartitionsRevoked(java.util.Collection<TopicPartition> partitions) {
+                public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
                     revoked.addAll(partitions);
                 }
 
                 @Override
-                public void onPartitionsAssigned(java.util.Collection<TopicPartition> partitions) {
+                public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
                     assigned.addAll(partitions);
                 }
             };
@@ -98,7 +102,7 @@ class ResolvingConsumerTest {
             consumer.subscribe(List.of(UNRESOLVED_TOPIC), callerListener);
 
             final ArgumentCaptor<ConsumerRebalanceListener> wrapped = ArgumentCaptor.captor();
-            verify(delegate).subscribe(any(java.util.Collection.class), wrapped.capture());
+            verify(delegate).subscribe(any(Collection.class), wrapped.capture());
             wrapped.getValue().onPartitionsAssigned(List.of(RESOLVED_PARTITION));
             wrapped.getValue().onPartitionsRevoked(List.of(RESOLVED_PARTITION));
 
@@ -124,14 +128,14 @@ class ResolvingConsumerTest {
     void patternWithListenerSubscriptionResolves() {
         withConsumer((consumer, delegate) -> {
             final var pattern = Pattern.compile("orders.*");
-            final var assigned = new java.util.ArrayList<TopicPartition>();
+            final var assigned = new ArrayList<TopicPartition>();
             final ConsumerRebalanceListener callerListener = new ConsumerRebalanceListener() {
                 @Override
-                public void onPartitionsRevoked(java.util.Collection<TopicPartition> partitions) {
-                    // Skip implementation during this test
+                public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+                    throw new UnsupportedOperationException("onPartitionsRevoked not observed in this test");
                 }
                 @Override
-                public void onPartitionsAssigned(java.util.Collection<TopicPartition> partitions) {
+                public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
                     assigned.addAll(partitions);
                 }
             };
@@ -187,7 +191,7 @@ class ResolvingConsumerTest {
     @DisplayName("commitAsync wraps a callback and unresolves the offsets passed to it")
     void commitAsyncUnresolvesCallbackOffsets() {
         withConsumer((consumer, delegate) -> {
-            final var received = new java.util.HashMap<TopicPartition, OffsetAndMetadata>();
+            final var received = new HashMap<TopicPartition, OffsetAndMetadata>();
             final OffsetCommitCallback callerCallback = (offsets, exception) -> received.putAll(offsets);
 
             consumer.commitAsync(Map.of(UNRESOLVED_PARTITION, new OffsetAndMetadata(10L)), callerCallback);
@@ -292,7 +296,7 @@ class ResolvingConsumerTest {
     void partitionsForResolvesAndUnresolves() {
         withConsumer((consumer, delegate) -> {
             when(delegate.partitionsFor(RESOLVED_TOPIC)).thenReturn(
-                    List.of(new PartitionInfo(RESOLVED_TOPIC, 0, null, new org.apache.kafka.common.Node[0], new org.apache.kafka.common.Node[0])));
+                    List.of(new PartitionInfo(RESOLVED_TOPIC, 0, null, new Node[0], new Node[0])));
 
             assertThat(consumer.partitionsFor(UNRESOLVED_TOPIC))
                     .singleElement()
@@ -307,7 +311,7 @@ class ResolvingConsumerTest {
     void listTopicsUnresolves() {
         withConsumer((consumer, delegate) -> {
             when(delegate.listTopics()).thenReturn(Map.of(RESOLVED_TOPIC,
-                    List.of(new PartitionInfo(RESOLVED_TOPIC, 0, null, new org.apache.kafka.common.Node[0], new org.apache.kafka.common.Node[0]))));
+                    List.of(new PartitionInfo(RESOLVED_TOPIC, 0, null, new Node[0], new Node[0]))));
 
             assertThat(consumer.listTopics()).containsOnlyKeys(UNRESOLVED_TOPIC);
         });

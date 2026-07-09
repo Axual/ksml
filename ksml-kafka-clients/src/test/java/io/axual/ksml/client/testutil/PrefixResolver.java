@@ -1,4 +1,4 @@
-package io.axual.ksml.client.admin;
+package io.axual.ksml.client.testutil;
 
 /*-
  * ========================LICENSE_START=================================

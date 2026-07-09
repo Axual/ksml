@@ -78,6 +78,7 @@ import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -85,11 +86,11 @@ import org.mockito.MockedConstruction;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -121,30 +122,32 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("Unsupported operations fail fast with a NotSupportedException")
-    void unsupportedOperationsThrow() throws Exception {
+    void unsupportedOperationsThrow() {
         withAdmin((admin, delegate) -> {
-            // These operations fail fast before touching their arguments, so null arguments keep each
-            // assertion lambda to the single invocation under test (Sonar S5778).
-            assertThatThrownBy(() -> admin.createAcls(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.deleteAcls(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.describeConfigs(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.incrementalAlterConfigs(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.alterReplicaLogDirs(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.describeLogDirs(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.describeReplicaLogDirs(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.createPartitions(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.electLeaders(null, null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.alterPartitionReassignments(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.listPartitionReassignments(Optional.empty(), null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.describeClientQuotas(null, null)).isInstanceOf(NotSupportedException.class);
-            assertThatThrownBy(() -> admin.alterClientQuotas(null, null)).isInstanceOf(NotSupportedException.class);
+            // Null arguments ensure each lambda contains a single invocation, so a failure
+            // pinpoints exactly which operation is broken (each assertion is independent via SoftAssertions).
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThatThrownBy(() -> admin.createAcls(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.deleteAcls(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.describeConfigs(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.incrementalAlterConfigs(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.alterReplicaLogDirs(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.describeLogDirs(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.describeReplicaLogDirs(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.createPartitions(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.electLeaders(null, null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.alterPartitionReassignments(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.listPartitionReassignments(Optional.empty(), null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.describeClientQuotas(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.alterClientQuotas(null, null)).isInstanceOf(NotSupportedException.class);
+            });
             verifyNoInteractions(delegate);
         });
     }
 
     @Test
     @DisplayName("Metric subscription calls are intentionally swallowed and not forwarded")
-    void metricSubscriptionIsSwallowed() throws Exception {
+    void metricSubscriptionIsSwallowed() {
         withAdmin((admin, delegate) -> {
             admin.registerMetricForSubscription(null);
             admin.unregisterMetricFromSubscription(null);
@@ -154,7 +157,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("createTopics resolves topic names and wraps the result")
-    void createTopicsResolves() throws Exception {
+    void createTopicsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(CreateTopicsResult.class);
             when(delegateResult.values()).thenReturn(Map.of());
@@ -171,7 +174,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("deleteTopics resolves the topic collection and unresolves the result")
-    void deleteTopicsResolves() throws Exception {
+    void deleteTopicsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DeleteTopicsResult.class);
             when(delegateResult.topicIdValues()).thenReturn(null);
@@ -189,7 +192,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("listTopics unresolves the listed topic names")
-    void listTopicsUnresolves() throws Exception {
+    void listTopicsUnresolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(ListTopicsResult.class);
             when(delegateResult.namesToListings()).thenReturn(KafkaFuture.completedFuture(
@@ -198,13 +201,13 @@ class ResolvingAdminTest {
 
             final var result = admin.listTopics(new ListTopicsOptions());
 
-            assertThat(result.names().get()).containsExactly(UNRESOLVED_TOPIC);
+            assertThat(await(result.names())).containsExactly(UNRESOLVED_TOPIC);
         });
     }
 
     @Test
     @DisplayName("describeTopics resolves the topic collection and unresolves the result")
-    void describeTopicsResolves() throws Exception {
+    void describeTopicsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DescribeTopicsResult.class);
             when(delegateResult.topicIdValues()).thenReturn(null);
@@ -220,7 +223,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("describeAcls resolves the filter and unresolves the returned bindings")
-    void describeAclsResolves() throws Exception {
+    void describeAclsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DescribeAclsResult.class);
             when(delegateResult.values()).thenReturn(KafkaFuture.completedFuture(List.of(
@@ -233,13 +236,14 @@ class ResolvingAdminTest {
                     AccessControlEntryFilter.ANY);
             final var result = admin.describeAcls(filter, new DescribeAclsOptions());
 
-            assertThat(result.values().get()).extracting(b -> b.pattern().name()).containsExactly(UNRESOLVED_TOPIC);
+            assertThat(await(result.values())).extracting(b -> b.pattern().name()).containsExactly(UNRESOLVED_TOPIC);
+            verify(delegate).describeAcls(argThat(f -> RESOLVED_TOPIC.equals(f.patternFilter().name())), any());
         });
     }
 
     @Test
     @DisplayName("deleteRecords resolves the partition keys and forwards the result")
-    void deleteRecordsResolves() throws Exception {
+    void deleteRecordsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DeleteRecordsResult.class);
             when(delegate.deleteRecords(any(), any())).thenReturn(delegateResult);
@@ -253,7 +257,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("describeConsumerGroups resolves the group ids and unresolves the result")
-    void describeConsumerGroupsResolves() throws Exception {
+    void describeConsumerGroupsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DescribeConsumerGroupsResult.class);
             when(delegateResult.describedGroups()).thenReturn(Map.of(RESOLVED_GROUP,
@@ -270,7 +274,7 @@ class ResolvingAdminTest {
     @Test
     @DisplayName("listConsumerGroups unresolves the returned group ids")
     @SuppressWarnings({"deprecation", "removal"}) // ListConsumerGroupsResult/ConsumerGroupListing deprecated in Kafka 4.1 but still wrapped
-    void listConsumerGroupsUnresolves() throws Exception {
+    void listConsumerGroupsUnresolves() {
         withAdmin((admin, delegate) -> {
             final var listing = new ConsumerGroupListing(RESOLVED_GROUP, Optional.empty(), false);
             final var delegateResult = mock(ListConsumerGroupsResult.class);
@@ -280,13 +284,14 @@ class ResolvingAdminTest {
 
             final var result = admin.listConsumerGroups(new ListConsumerGroupsOptions());
 
-            assertThat(result.all().get()).extracting(ConsumerGroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
+            assertThat(await(result.all())).extracting(ConsumerGroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
+            assertThat(await(result.valid())).extracting(ConsumerGroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
         });
     }
 
     @Test
     @DisplayName("listConsumerGroupOffsets resolves the specs and unresolves the result")
-    void listConsumerGroupOffsetsResolves() throws Exception {
+    void listConsumerGroupOffsetsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(ListConsumerGroupOffsetsResult.class);
             when(delegateResult.partitionsToOffsetAndMetadata(RESOLVED_GROUP)).thenReturn(
@@ -297,15 +302,15 @@ class ResolvingAdminTest {
                     new ListConsumerGroupOffsetsSpec().topicPartitions(List.of(UNRESOLVED_PARTITION)));
             final var result = admin.listConsumerGroupOffsets(specs, new ListConsumerGroupOffsetsOptions());
 
-            assertThat(result.all().get()).containsOnlyKeys(UNRESOLVED_GROUP);
-            assertThat(result.partitionsToOffsetAndMetadata(UNRESOLVED_GROUP).get())
+            assertThat(await(result.all())).containsOnlyKeys(UNRESOLVED_GROUP);
+            assertThat(await(result.partitionsToOffsetAndMetadata(UNRESOLVED_GROUP)))
                     .containsEntry(UNRESOLVED_PARTITION, new OffsetAndMetadata(1L));
         });
     }
 
     @Test
     @DisplayName("deleteConsumerGroups resolves the group ids and unresolves the result")
-    void deleteConsumerGroupsResolves() throws Exception {
+    void deleteConsumerGroupsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(DeleteConsumerGroupsResult.class);
             when(delegateResult.deletedGroups()).thenReturn(Map.of(RESOLVED_GROUP, KafkaFuture.completedFuture(null)));
@@ -320,7 +325,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("deleteConsumerGroupOffsets resolves the group id and partitions")
-    void deleteConsumerGroupOffsetsResolves() throws Exception {
+    void deleteConsumerGroupOffsetsResolves() {
         withAdmin((admin, delegate) -> {
             when(delegate.deleteConsumerGroupOffsets(any(), any(), any())).thenReturn(mock(DeleteConsumerGroupOffsetsResult.class));
 
@@ -333,7 +338,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("removeMembersFromConsumerGroup resolves the group id and forwards the result")
-    void removeMembersFromConsumerGroupResolves() throws Exception {
+    void removeMembersFromConsumerGroupResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(RemoveMembersFromConsumerGroupResult.class);
             when(delegate.removeMembersFromConsumerGroup(any(), any())).thenReturn(delegateResult);
@@ -347,7 +352,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("alterConsumerGroupOffsets resolves the group id and offsets")
-    void alterConsumerGroupOffsetsResolves() throws Exception {
+    void alterConsumerGroupOffsetsResolves() {
         withAdmin((admin, delegate) -> {
             when(delegate.alterConsumerGroupOffsets(any(), any(), any())).thenReturn(mock(AlterConsumerGroupOffsetsResult.class));
 
@@ -362,7 +367,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("listOffsets resolves the requested partitions and unresolves the result")
-    void listOffsetsResolves() throws Exception {
+    void listOffsetsResolves() {
         withAdmin((admin, delegate) -> {
             final var delegateResult = mock(ListOffsetsResult.class);
             when(delegateResult.all()).thenReturn(KafkaFuture.completedFuture(
@@ -371,21 +376,32 @@ class ResolvingAdminTest {
 
             final var result = admin.listOffsets(Map.of(UNRESOLVED_PARTITION, OffsetSpec.latest()), new ListOffsetsOptions());
 
-            assertThat(result.all().get()).containsOnlyKeys(UNRESOLVED_PARTITION);
+            assertThat(await(result.all())).containsOnlyKeys(UNRESOLVED_PARTITION);
             verify(delegate).listOffsets(argThat(m -> m.containsKey(RESOLVED_PARTITION)), any());
         });
     }
 
-    private void withAdmin(AdminTest test) throws Exception {
+    private void withAdmin(AdminTest test) {
         try (MockedConstruction<KafkaAdminClient> mocked = mockConstruction(KafkaAdminClient.class)) {
             final var admin = new ResolvingAdmin(CONFIGS);
             test.accept(admin, mocked.constructed().get(0));
         }
     }
 
+    private static <T> T await(KafkaFuture<T> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @FunctionalInterface
     private interface AdminTest {
-        void accept(ResolvingAdmin admin, Admin delegate) throws Exception;
+        void accept(ResolvingAdmin admin, Admin delegate);
     }
 
     private static ConsumerGroupDescription consumerGroupDescription(String groupId) {

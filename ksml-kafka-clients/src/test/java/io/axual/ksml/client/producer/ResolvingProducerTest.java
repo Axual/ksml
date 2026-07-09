@@ -61,9 +61,7 @@ class ResolvingProducerTest {
     @Test
     @DisplayName("send resolves the record topic and unresolves the returned metadata")
     void sendResolvesTopicAndUnresolvesMetadata() throws Exception {
-        try (var mocked = mockConstruction(KafkaProducer.class)) {
-            final var producer = new ResolvingProducer<String, String>(CONFIGS);
-            final var delegate = delegateOf(mocked);
+        withProducer((producer, delegate) -> {
             when(delegate.send(any())).thenReturn(resolvedMetadataFuture());
 
             final var metadata = producer.send(new ProducerRecord<>(UNRESOLVED_TOPIC, "k", "v")).get();
@@ -72,29 +70,25 @@ class ResolvingProducerTest {
             verify(delegate).send(sent.capture());
             assertThat(sent.getValue().topic()).isEqualTo(RESOLVED_TOPIC);
             assertThat(metadata.topic()).isEqualTo(UNRESOLVED_TOPIC);
-        }
+        });
     }
 
     @Test
     @DisplayName("send with a null callback delegates to the single-argument send")
     void sendWithNullCallbackDelegates() throws Exception {
-        try (var mocked = mockConstruction(KafkaProducer.class)) {
-            final var producer = new ResolvingProducer<String, String>(CONFIGS);
-            final var delegate = delegateOf(mocked);
+        withProducer((producer, delegate) -> {
             when(delegate.send(any())).thenReturn(resolvedMetadataFuture());
 
             producer.send(new ProducerRecord<>(UNRESOLVED_TOPIC, "k", "v"), null).get();
 
             verify(delegate).send(any());
-        }
+        });
     }
 
     @Test
     @DisplayName("send with a callback unresolves the metadata passed to the callback")
-    void sendWithCallbackUnresolvesMetadata() {
-        try (var mocked = mockConstruction(KafkaProducer.class)) {
-            final var producer = new ResolvingProducer<String, String>(CONFIGS);
-            final var delegate = delegateOf(mocked);
+    void sendWithCallbackUnresolvesMetadata() throws Exception {
+        withProducer((producer, delegate) -> {
             when(delegate.send(any(), any())).thenReturn(resolvedMetadataFuture());
             final var received = new RecordMetadata[1];
 
@@ -105,17 +99,15 @@ class ResolvingProducerTest {
             proxyCallback.getValue().onCompletion(resolvedMetadata(), null);
 
             assertThat(received[0].topic()).isEqualTo(UNRESOLVED_TOPIC);
-        }
+        });
     }
 
     @Test
     @DisplayName("A callback receiving no metadata is forwarded unchanged")
-    void sendWithCallbackForwardsNullMetadata() {
-        try (var mocked = mockConstruction(KafkaProducer.class)) {
-            final var producer = new ResolvingProducer<String, String>(CONFIGS);
-            final var delegate = delegateOf(mocked);
+    void sendWithCallbackForwardsNullMetadata() throws Exception {
+        withProducer((producer, delegate) -> {
             when(delegate.send(any(), any())).thenReturn(resolvedMetadataFuture());
-            final var received = new RecordMetadata[]{resolvedMetadata()};
+            final var received = new RecordMetadata[1];
             final var failure = new RuntimeException("boom");
             final var receivedException = new Exception[1];
 
@@ -130,16 +122,13 @@ class ResolvingProducerTest {
 
             assertThat(received[0]).isNull();
             assertThat(receivedException[0]).isSameAs(failure);
-        }
+        });
     }
 
     @Test
     @DisplayName("sendOffsetsToTransaction resolves partition topics and the group id")
-    void sendOffsetsToTransactionResolves() {
-        try (var mocked = mockConstruction(KafkaProducer.class)) {
-            final var producer = new ResolvingProducer<String, String>(CONFIGS);
-            final var delegate = delegateOf(mocked);
-
+    void sendOffsetsToTransactionResolves() throws Exception {
+        withProducer((producer, delegate) -> {
             producer.sendOffsetsToTransaction(
                     Map.of(new TopicPartition(UNRESOLVED_TOPIC, 0), new OffsetAndMetadata(10L)),
                     groupMetadata());
@@ -149,15 +138,13 @@ class ResolvingProducerTest {
             verify(delegate).sendOffsetsToTransaction(offsets.capture(), groupMetadata.capture());
             assertThat(offsets.getValue()).containsKey(new TopicPartition(RESOLVED_TOPIC, 0));
             assertThat(groupMetadata.getValue().groupId()).isEqualTo("tenant-group");
-        }
+        });
     }
 
     @Test
     @DisplayName("partitionsFor resolves the requested topic and unresolves the results")
-    void partitionsForResolvesAndUnresolves() {
-        try (var mocked = mockConstruction(KafkaProducer.class)) {
-            final var producer = new ResolvingProducer<String, String>(CONFIGS);
-            final var delegate = delegateOf(mocked);
+    void partitionsForResolvesAndUnresolves() throws Exception {
+        withProducer((producer, delegate) -> {
             when(delegate.partitionsFor(RESOLVED_TOPIC)).thenReturn(
                     List.of(new PartitionInfo(RESOLVED_TOPIC, 0, Node.noNode(), new Node[0], new Node[0])));
 
@@ -166,15 +153,13 @@ class ResolvingProducerTest {
             assertThat(partitions).singleElement()
                     .extracting(PartitionInfo::topic)
                     .isEqualTo(UNRESOLVED_TOPIC);
-        }
+        });
     }
 
     @Test
     @DisplayName("The returned future exposes cancellation and completion state of the delegate future")
     void proxyFutureDelegatesState() throws Exception {
-        try (var mocked = mockConstruction(KafkaProducer.class)) {
-            final var producer = new ResolvingProducer<String, String>(CONFIGS);
-            final var delegate = delegateOf(mocked);
+        withProducer((producer, delegate) -> {
             when(delegate.send(any())).thenReturn(resolvedMetadataFuture());
 
             final var future = producer.send(new ProducerRecord<>(UNRESOLVED_TOPIC, "k", "v"));
@@ -182,7 +167,19 @@ class ResolvingProducerTest {
             assertThat(future).isNotCancelled().isDone();
             assertThat(future.cancel(true)).isFalse();
             assertThat(future.get(1, TimeUnit.SECONDS).topic()).isEqualTo(UNRESOLVED_TOPIC);
+        });
+    }
+
+    private void withProducer(ProducerTest test) throws Exception {
+        try (var mocked = mockConstruction(KafkaProducer.class)) {
+            final var producer = new ResolvingProducer<String, String>(CONFIGS);
+            test.accept(producer, delegateOf(mocked));
         }
+    }
+
+    @FunctionalInterface
+    private interface ProducerTest {
+        void accept(ResolvingProducer<String, String> producer, KafkaProducer<String, String> delegate) throws Exception;
     }
 
     @SuppressWarnings("removal") // The only public ConsumerGroupMetadata constructors are deprecated for removal in Kafka 4.2 with no replacement yet

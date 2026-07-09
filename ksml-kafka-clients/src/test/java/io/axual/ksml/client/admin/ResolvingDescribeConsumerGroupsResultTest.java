@@ -20,6 +20,7 @@ package io.axual.ksml.client.admin;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.common.GroupState;
 import org.apache.kafka.common.GroupType;
@@ -46,8 +47,9 @@ class ResolvingDescribeConsumerGroupsResultTest {
 
         final var result = new ResolvingDescribeConsumerGroupsResult(futures, resolver);
 
-        assertThat(result.describedGroups()).containsOnlyKeys("group");
-        assertThat(result.describedGroups().get("group").get().groupId()).isEqualTo("group");
+        final var groups = result.describedGroups();
+        assertThat(groups).containsOnlyKeys("group");
+        assertThat(groups.get("group").get().groupId()).isEqualTo("group");
     }
 
     @Test

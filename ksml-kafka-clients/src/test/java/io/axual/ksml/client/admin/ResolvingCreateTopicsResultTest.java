@@ -20,6 +20,7 @@ package io.axual.ksml.client.admin;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.common.KafkaFuture;

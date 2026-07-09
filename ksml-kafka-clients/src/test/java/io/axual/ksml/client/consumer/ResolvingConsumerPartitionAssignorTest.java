@@ -20,7 +20,7 @@ package io.axual.ksml.client.consumer;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.admin.PrefixResolver;
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor.Assignment;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor.GroupAssignment;
@@ -79,8 +79,8 @@ class ResolvingConsumerPartitionAssignorTest {
         assertThat(assignor.name()).isEqualTo("range");
         assertThat(assignor.supportedProtocols()).containsExactly(RebalanceProtocol.EAGER);
 
-        assignor.subscriptionUserData(java.util.Set.of("orders"));
-        verify(backingAssignor).subscriptionUserData(java.util.Set.of("orders"));
+        assignor.subscriptionUserData(Set.of("orders"));
+        verify(backingAssignor).subscriptionUserData(Set.of("orders"));
     }
 
     @Test
