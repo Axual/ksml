@@ -113,7 +113,7 @@ class SessionStoreProxyTest {
         final ArgumentCaptor<Windowed<Object>> captor = ArgumentCaptor.captor();
         verify(delegate).put(captor.capture(), any());
         final Windowed<Object> stored = captor.getValue();
-        assertThat(stored.window().start()).isEqualTo(0L);
+        assertThat(stored.window().start()).isZero();
         assertThat(stored.window().end()).isEqualTo(10L);
     }
 
