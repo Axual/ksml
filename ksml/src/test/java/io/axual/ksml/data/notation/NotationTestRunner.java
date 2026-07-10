@@ -31,7 +31,6 @@ import io.axual.ksml.data.notation.string.StringNotation;
 import lombok.extern.slf4j.Slf4j;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.util.JsonNodeUtil;
 import io.axual.ksml.schema.NativeDataSchemaMapper;
 import io.axual.ksml.type.UserType;
