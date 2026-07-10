@@ -45,7 +45,7 @@ Lists of 54 third-party dependencies.
      (Apache License, Version 2.0) Apache HttpClient (org.apache.httpcomponents.client5:httpclient5:5.5 - https://hc.apache.org/httpcomponents-client-5.5.x/5.5/httpclient5/)
      (Apache License, Version 2.0) Apache HttpComponents Core HTTP/1.1 (org.apache.httpcomponents.core5:httpcore5:5.3.4 - https://hc.apache.org/httpcomponents-core-5.3.x/5.3.4/httpcore5/)
      (Apache License, Version 2.0) Apache HttpComponents Core HTTP/2 (org.apache.httpcomponents.core5:httpcore5-h2:5.3.4 - https://hc.apache.org/httpcomponents-core-5.3.x/5.3.4/httpcore5-h2/)
-     (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.3.0 - https://kafka.apache.org)
+     (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.3.1 - https://kafka.apache.org)
      (The Apache Software License, Version 2.0) IntelliJ IDEA Annotations (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
      (The Apache License, Version 2.0) Kotlin Reflect (org.jetbrains.kotlin:kotlin-reflect:2.0.10 - https://kotlinlang.org/)
      (The Apache License, Version 2.0) Kotlin Stdlib (org.jetbrains.kotlin:kotlin-stdlib:2.0.21 - https://kotlinlang.org/)

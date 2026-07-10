@@ -811,4 +811,82 @@ class AvroSchemaMapperTest {
         assertThat(field.defaultVal()).isEqualTo("US");
     }
 
+    @Test
+    @DisplayName("DESCENDING and IGNORE field sort orders round-trip correctly in both directions")
+    void fieldOrderDescending_roundTrips() {
+        final var avroSchema = new Schema.Parser().parse("""
+                {
+                  "type": "record",
+                  "name": "Ordered",
+                  "namespace": "io.axual.test",
+                  "fields": [
+                    {"name": "asc",  "type": "string", "order": "ascending"},
+                    {"name": "desc", "type": "string", "order": "descending"},
+                    {"name": "ign",  "type": "string", "order": "ignore"}
+                  ]
+                }
+                """);
+
+        final var ksml = (StructSchema) schemaMapper.toDataSchema(avroSchema);
+        assertThat(ksml.field("asc").order()).isEqualTo(StructSchema.Field.Order.ASCENDING);
+        assertThat(ksml.field("desc").order()).isEqualTo(StructSchema.Field.Order.DESCENDING);
+        assertThat(ksml.field("ign").order()).isEqualTo(StructSchema.Field.Order.IGNORE);
+
+        final var back = schemaMapper.fromDataSchema(ksml);
+        assertThat(back.getField("asc").order()).isEqualTo(Schema.Field.Order.ASCENDING);
+        assertThat(back.getField("desc").order()).isEqualTo(Schema.Field.Order.DESCENDING);
+        assertThat(back.getField("ign").order()).isEqualTo(Schema.Field.Order.IGNORE);
+    }
+
+    @Test
+    @DisplayName("Map field with non-null map default exercises the DataMap branch of toJsonShapedDefault")
+    void mapFieldWithMapDefault_roundTrips() {
+        final var avroSchema = new Schema.Parser().parse("""
+                {
+                  "type": "record",
+                  "name": "WithMapDefault",
+                  "namespace": "io.axual.test",
+                  "fields": [{
+                    "name": "config",
+                    "type": {"type": "map", "values": "string"},
+                    "default": {"k1": "v1", "k2": "v2"}
+                  }]
+                }
+                """);
+
+        final var ksml = schemaMapper.toDataSchema(avroSchema);
+        // fromDataSchema calls toJsonShapedDefault(DataMap) — must not throw
+        final var back = schemaMapper.fromDataSchema(ksml);
+
+        assertThat(back.getField("config").hasDefaultValue()).isTrue();
+        @SuppressWarnings("unchecked")
+        final var defaultMap = (java.util.Map<String, Object>) back.getField("config").defaultVal();
+        assertThat(defaultMap).containsEntry("k1", "v1").containsEntry("k2", "v2");
+    }
+
+    @Test
+    @DisplayName("List field with non-null list default exercises the DataList branch of toJsonShapedDefault")
+    void listFieldWithListDefault_roundTrips() {
+        final var avroSchema = new Schema.Parser().parse("""
+                {
+                  "type": "record",
+                  "name": "WithListDefault",
+                  "namespace": "io.axual.test",
+                  "fields": [{
+                    "name": "tags",
+                    "type": {"type": "array", "items": "string"},
+                    "default": ["alpha", "beta"]
+                  }]
+                }
+                """);
+
+        final var ksml = schemaMapper.toDataSchema(avroSchema);
+        final var back = schemaMapper.fromDataSchema(ksml);
+
+        assertThat(back.getField("tags").hasDefaultValue()).isTrue();
+        @SuppressWarnings("unchecked")
+        final var defaultList = (java.util.List<Object>) back.getField("tags").defaultVal();
+        assertThat(defaultList).containsExactly("alpha", "beta");
+    }
+
 }
