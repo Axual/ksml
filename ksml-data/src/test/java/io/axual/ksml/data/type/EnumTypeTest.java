@@ -20,6 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.EnumSchema;
@@ -70,5 +71,19 @@ class EnumTypeTest {
         softly.assertThat(ds.toString()).isEqualTo("hello");
         softly.assertThat(type.isAssignableFrom(ds).isAssignable()).isTrue();
         softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("Deep equals: equal to an enum with the same symbols, not to a different one, null or a foreign type")
+    void deepEquals() {
+        final var type = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"))));
+        final var same = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("A"))));
+        final var other = new EnumType(new EnumSchema(List.of(new EnumSchema.Symbol("B"))));
+
+        assertThat(type.equals(type, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(type.equals(same, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(type.equals(other, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(type.equals(null, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(type.equals("not-an-enum", EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }

@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -76,5 +77,18 @@ class UnionSchemaTest {
                 new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 2)
         );
         assertThat(union.isAssignableFrom(anonymous).isAssignable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Deep equals compares the union members")
+    void deepEquals() {
+        final var union = new UnionSchema(new UnionSchema.Member("i", DataSchema.INTEGER_SCHEMA, "Integer", 1));
+        final var same = new UnionSchema(new UnionSchema.Member("i", DataSchema.INTEGER_SCHEMA, "Integer", 1));
+        final var different = new UnionSchema(new UnionSchema.Member("s", DataSchema.STRING_SCHEMA, "String", 1));
+
+        assertThat(union.equals(same, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(union.equals(different, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(union.equals(null, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(union.equals(DataSchema.STRING_SCHEMA, EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }

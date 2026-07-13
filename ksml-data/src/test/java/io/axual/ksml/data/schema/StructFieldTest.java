@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.object.DataNull;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
@@ -98,5 +99,17 @@ class StructSchemaFieldTest {
         assertThat(target.isAssignableFrom(otherFloat).isAssignable()).isFalse();
         // null is not assignable
         assertThat(target.isAssignableFrom(null).isAssignable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deep equals compares the field attributes (name, schema, tag, ...)")
+    void deepEquals() {
+        final var base = new StructSchema.Field("id", DataSchema.INTEGER_SCHEMA, "doc", 1);
+
+        assertThat(base.equals(new StructSchema.Field("id", DataSchema.INTEGER_SCHEMA, "doc", 1), EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(base.equals(new StructSchema.Field("other", DataSchema.INTEGER_SCHEMA, "doc", 1), EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(base.equals(new StructSchema.Field("id", DataSchema.STRING_SCHEMA, "doc", 1), EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(base.equals(null, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(base.equals("not-a-field", EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }

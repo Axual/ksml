@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -46,5 +47,40 @@ class EnumSchemaTest {
 
         // No overlap: should be false
         assertThat(colors.isAssignableFrom(blueOnly).isAssignable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Symbol exposes name/doc/tag; the name-only constructor defaults doc and tag")
+    void symbolAccessors() {
+        final var full = new EnumSchema.Symbol("RED", "the colour red", 3);
+        assertThat(full.name()).isEqualTo("RED");
+        assertThat(full.doc()).isEqualTo("the colour red");
+        assertThat(full.tag()).isEqualTo(3);
+
+        final var nameOnly = new EnumSchema.Symbol("GREEN");
+        assertThat(nameOnly.name()).isEqualTo("GREEN");
+        assertThat(nameOnly.doc()).isNull();
+    }
+
+    @Test
+    @DisplayName("symbols() returns the configured symbols")
+    void symbolsAccessor() {
+        final var colors = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("RED"), new EnumSchema.Symbol("GREEN")));
+
+        final var symbols = colors.symbols();
+        assertThat(symbols).hasSize(2);
+        assertThat(symbols.get(0).name()).isEqualTo("RED");
+    }
+
+    @Test
+    @DisplayName("Deep equals treats enums with the same symbols as equal and differing symbols as not equal")
+    void deepEquals() {
+        final var colors = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("RED")));
+        final var sameColors = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("RED")));
+        final var otherColors = new EnumSchema("ns", "Color", "doc", List.of(new EnumSchema.Symbol("BLUE")));
+
+        assertThat(colors.equals(sameColors, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(colors.equals(otherColors, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(colors.equals(DataSchema.STRING_SCHEMA, EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }

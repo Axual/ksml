@@ -23,18 +23,37 @@ package io.axual.ksml.data.util;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationStub;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.UnionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ConvertUtilTest {
     private final ConvertUtil converter = new ConvertUtil(new NativeDataObjectMapper(), new DataTypeDataSchemaMapper());
@@ -248,5 +267,218 @@ class ConvertUtilTest {
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("BOOLEAN");
         assertThat(converter.convertStringToDataObject(DataBoolean.DATATYPE, "yes", true)).isNull();
+    }
+
+    // ---- complex (recursive) conversions ----
+
+    @Test
+    @DisplayName("convert: a list is converted element-by-element to the target value type")
+    void convertListElements() {
+        final var source = new DataList(DataInteger.DATATYPE);
+        source.add(new DataInteger(1));
+        source.add(new DataInteger(2));
+
+        final var result = (DataList) converter.convert(new ListType(DataLong.DATATYPE), source);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0)).isEqualTo(new DataLong(1L));
+        assertThat(result.get(1)).isEqualTo(new DataLong(2L));
+    }
+
+    @Test
+    @DisplayName("convert: a map's values are converted to the target value type")
+    void convertMapValues() {
+        final var source = new DataMap(DataInteger.DATATYPE);
+        source.put("a", new DataInteger(1));
+
+        final var result = (DataMap) converter.convert(new MapType(DataLong.DATATYPE), source);
+
+        assertThat(result.get("a")).isEqualTo(new DataLong(1L));
+    }
+
+    @Test
+    @DisplayName("convert: a tuple's elements are converted position-by-position to the target types")
+    void convertTupleElements() {
+        final var source = new DataTuple(new DataInteger(1), new DataInteger(2));
+
+        final var result = (DataTuple) converter.convert(new TupleType(DataLong.DATATYPE, DataString.DATATYPE), source);
+
+        assertThat(result.elements()).containsExactly(new DataLong(1L), new DataString("2"));
+    }
+
+    @Test
+    @DisplayName("convert: a DataNull becomes a (null) instance of the requested complex type")
+    void convertNullToComplexType() {
+        final var result = converter.convert(new ListType(DataLong.DATATYPE), DataNull.INSTANCE);
+
+        assertThat(result).isInstanceOf(DataList.class);
+    }
+
+    @Test
+    @DisplayName("convert: numeric values widen across the byte/short/int/long/double/float ladder")
+    void convertNumericWidening() {
+        assertThat(converter.convert(DataShort.DATATYPE, new DataByte((byte) 5))).isEqualTo(new DataShort((short) 5));
+        assertThat(converter.convert(DataInteger.DATATYPE, new DataByte((byte) 5))).isEqualTo(new DataInteger(5));
+        assertThat(converter.convert(DataLong.DATATYPE, new DataByte((byte) 5))).isEqualTo(new DataLong(5L));
+        assertThat(converter.convert(DataDouble.DATATYPE, new DataByte((byte) 5))).isEqualTo(new DataDouble(5.0));
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataByte((byte) 5))).isEqualTo(new DataFloat(5.0f));
+
+        assertThat(converter.convert(DataInteger.DATATYPE, new DataShort((short) 6))).isEqualTo(new DataInteger(6));
+        assertThat(converter.convert(DataLong.DATATYPE, new DataShort((short) 6))).isEqualTo(new DataLong(6L));
+        assertThat(converter.convert(DataDouble.DATATYPE, new DataShort((short) 6))).isEqualTo(new DataDouble(6.0));
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataShort((short) 6))).isEqualTo(new DataFloat(6.0f));
+
+        assertThat(converter.convert(DataDouble.DATATYPE, new DataInteger(7))).isEqualTo(new DataDouble(7.0));
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataInteger(7))).isEqualTo(new DataFloat(7.0f));
+
+        assertThat(converter.convert(DataDouble.DATATYPE, new DataLong(8L))).isEqualTo(new DataDouble(8.0));
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataLong(8L))).isEqualTo(new DataFloat(8.0f));
+
+        assertThat(converter.convert(DataFloat.DATATYPE, new DataDouble(9.0))).isEqualTo(new DataFloat(9.0f));
+        assertThat(converter.convert(DataDouble.DATATYPE, new DataFloat(9.0f))).isEqualTo(new DataDouble(9.0));
+    }
+
+    @Test
+    @DisplayName("convertStringToDataObject: byte/short/float/double numeric strings parse to their types")
+    void convertStringToNumericTypes() {
+        assertThat(converter.convertStringToDataObject(DataByte.DATATYPE, "5", false)).isEqualTo(new DataByte((byte) 5));
+        assertThat(converter.convertStringToDataObject(DataShort.DATATYPE, "6", false)).isEqualTo(new DataShort((short) 6));
+        assertThat(converter.convertStringToDataObject(DataFloat.DATATYPE, "1.5", false)).isEqualTo(new DataFloat(1.5f));
+        assertThat(converter.convertStringToDataObject(DataDouble.DATATYPE, "2.5", false)).isEqualTo(new DataDouble(2.5));
+        // A null expected type wraps the raw string; a null value yields DataNull.
+        assertThat(converter.convertStringToDataObject(null, "x", false)).isEqualTo(new DataString("x"));
+        assertThat(converter.convertStringToDataObject(DataInteger.DATATYPE, null, false)).isEqualTo(DataNull.INSTANCE);
+    }
+
+    @Test
+    @DisplayName("convert: a DataNull maps to the target scalar type's null representation without throwing")
+    void convertNullToScalarType() {
+        assertThat(converter.convert(DataString.DATATYPE, DataNull.INSTANCE)).isEqualTo(new DataString());
+        assertThat(converter.convert(DataLong.DATATYPE, DataNull.INSTANCE)).isEqualTo(new DataLong());
+    }
+
+    private static StructSchema personSchema() {
+        return new StructSchema("ns", "Person", null, List.of(new StructSchema.Field("id", DataSchema.INTEGER_SCHEMA, null, 0)));
+    }
+
+    @Test
+    @DisplayName("convert: a map is converted into a struct of the target StructType")
+    void convertMapToStruct() {
+        final var map = new DataMap(DataInteger.DATATYPE);
+        map.put("id", new DataInteger(1));
+
+        final var result = converter.convert(new StructType(personSchema()), map);
+
+        assertThat(result).isInstanceOf(DataStruct.class);
+        assertThat(((DataStruct) result).get("id")).isEqualTo(new DataInteger(1));
+    }
+
+    @Test
+    @DisplayName("convert: a struct is converted into a map of the target MapType")
+    void convertStructToMap() {
+        final var struct = new DataStruct(personSchema());
+        struct.put("id", new DataInteger(1));
+
+        final var result = converter.convert(new MapType(DataInteger.DATATYPE), struct);
+
+        assertThat(result).isInstanceOf(DataMap.class);
+        assertThat(((DataMap) result).get("id")).isEqualTo(new DataInteger(1));
+    }
+
+    @Test
+    @DisplayName("convert: a schemaless struct is converted into a struct with the target schema")
+    void convertStructToStruct() {
+        final var struct = new DataStruct();
+        struct.put("id", new DataInteger(1));
+
+        final var result = converter.convert(new StructType(personSchema()), struct);
+
+        assertThat(result).isInstanceOf(DataStruct.class);
+        assertThat(((DataStruct) result).get("id")).isEqualTo(new DataInteger(1));
+    }
+
+    @Test
+    @DisplayName("convert: a value is converted to the first compatible member of a union type")
+    void convertToUnionMember() {
+        final var union = new UnionType(new UnionType.Member(DataLong.DATATYPE), new UnionType.Member(DataString.DATATYPE));
+
+        final var result = converter.convert(union, new DataInteger(5));
+
+        assertThat(result).isEqualTo(new DataLong(5L));
+    }
+
+    private static Notation notationConvertingTo(DataObject fixed) {
+        return new NotationStub("stub", null, (value, targetType) -> fixed);
+    }
+
+    @Test
+    @DisplayName("convert: the target notation's converter is used when it produces an assignable value")
+    void convertUsesTargetNotationConverter() {
+        final var converted = new DataString("converted");
+        final var targetNotation = notationConvertingTo(converted);
+
+        final var result = converter.convert(null, targetNotation, DataString.DATATYPE, new DataInteger(1), false);
+
+        assertThat(result).isEqualTo(converted);
+    }
+
+    @Test
+    @DisplayName("convert: the source notation's converter is used when the target notation cannot convert")
+    void convertFallsBackToSourceNotationConverter() {
+        final var converted = new DataString("from-source");
+        final var sourceNotation = notationConvertingTo(converted);
+
+        final var result = converter.convert(sourceNotation, null, DataString.DATATYPE, new DataInteger(1), false);
+
+        assertThat(result).isEqualTo(converted);
+    }
+
+    @Test
+    @DisplayName("convertStringToDataObject: a JSON string is parsed into a list/map/struct/tuple of the target type")
+    void convertStringToComplexTypes() {
+        final var list = (DataList) converter.convertStringToDataObject(new ListType(DataInteger.DATATYPE), "[1, 2, 3]", false);
+        assertThat(list).hasSize(3);
+
+        final var map = (DataMap) converter.convertStringToDataObject(new MapType(DataInteger.DATATYPE), "{\"a\": 1}", false);
+        assertThat(map.get("a")).isEqualTo(new DataInteger(1));
+
+        final var struct = (DataStruct) converter.convertStringToDataObject(new StructType(personSchema()), "{\"id\": 1}", false);
+        assertThat(struct.get("id")).isEqualTo(new DataInteger(1));
+
+        final var tuple = (DataTuple) converter.convertStringToDataObject(new TupleType(DataInteger.DATATYPE, DataString.DATATYPE), "[1, \"x\"]", false);
+        assertThat(tuple.elements()).containsExactly(new DataInteger(1), new DataString("x"));
+
+        final var tuple2 = (DataTuple) converter.convertStringToDataObject(new TupleType(DataInteger.DATATYPE, DataString.DATATYPE), "(1, \"x\")", false);
+        assertThat(tuple2.elements()).containsExactly(new DataInteger(1), new DataString("x"));
+    }
+
+    @Test
+    @DisplayName("convertStringToDataObject: malformed JSON returns null with allowFail and throws otherwise; wrong tuple arity always throws")
+    void convertStringToComplexTypesErrors() {
+        final var listType = new ListType(DataInteger.DATATYPE);
+        final var mapType = new MapType(DataInteger.DATATYPE);
+        final var structType = new StructType(personSchema());
+        final var tupleType = new TupleType(DataInteger.DATATYPE, DataString.DATATYPE);
+        assertThat(converter.convertStringToDataObject(listType, "not-json", true)).isNull();
+        assertThatThrownBy(() -> converter.convertStringToDataObject(mapType, "not-json", false))
+                .isInstanceOf(DataException.class);
+        assertThatThrownBy(() -> converter.convertStringToDataObject(structType, "not-json", false))
+                .isInstanceOf(DataException.class);
+        assertThatThrownBy(() -> converter.convertStringToDataObject(tupleType, "[1]", false))
+                .isInstanceOf(DataException.class);
+    }
+
+    @Test
+    @DisplayName("convert: float and double values narrow to the integral types")
+    void convertFloatingToIntegral() {
+        assertThat(converter.convert(DataByte.DATATYPE, new DataFloat(5.0f))).isEqualTo(new DataByte((byte) 5));
+        assertThat(converter.convert(DataShort.DATATYPE, new DataFloat(5.0f))).isEqualTo(new DataShort((short) 5));
+        assertThat(converter.convert(DataInteger.DATATYPE, new DataFloat(5.0f))).isEqualTo(new DataInteger(5));
+        assertThat(converter.convert(DataLong.DATATYPE, new DataFloat(5.0f))).isEqualTo(new DataLong(5L));
+
+        assertThat(converter.convert(DataByte.DATATYPE, new DataDouble(6.0))).isEqualTo(new DataByte((byte) 6));
+        assertThat(converter.convert(DataShort.DATATYPE, new DataDouble(6.0))).isEqualTo(new DataShort((short) 6));
+        assertThat(converter.convert(DataInteger.DATATYPE, new DataDouble(6.0))).isEqualTo(new DataInteger(6));
+        assertThat(converter.convert(DataLong.DATATYPE, new DataDouble(6.0))).isEqualTo(new DataLong(6L));
     }
 }

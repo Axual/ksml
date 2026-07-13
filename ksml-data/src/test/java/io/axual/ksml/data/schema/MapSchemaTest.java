@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -66,5 +67,15 @@ class MapSchemaTest {
         assertThat(mapOfInt.isAssignableFrom(DataSchema.STRING_SCHEMA).isAssignable()).isFalse();
         // Null not assignable
         assertThat(mapOfInt.isAssignableFrom(null).isAssignable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deep equals compares the value schema")
+    void deepEquals() {
+        final var mapOfInt = new MapSchema(DataSchema.INTEGER_SCHEMA);
+
+        assertThat(mapOfInt.equals(new MapSchema(DataSchema.INTEGER_SCHEMA), EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(mapOfInt.equals(new MapSchema(DataSchema.STRING_SCHEMA), EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(mapOfInt.equals(DataSchema.STRING_SCHEMA, EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }

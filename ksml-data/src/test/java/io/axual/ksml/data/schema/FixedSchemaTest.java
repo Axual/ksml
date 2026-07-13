@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -58,5 +59,15 @@ class FixedSchemaTest {
 
         // null not assignable
         assertThat(eight.isAssignableFrom(null).isAssignable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deep equals compares type and size")
+    void deepEquals() {
+        final var eight = new FixedSchema("ns", "F", "", 8);
+
+        assertThat(eight.equals(new FixedSchema("ns", "F", "", 8), EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(eight.equals(new FixedSchema("ns", "F", "", 4), EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(eight.equals(DataSchema.STRING_SCHEMA, EqualityFlags.EMPTY).isNotEqual()).isTrue();
     }
 }
