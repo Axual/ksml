@@ -39,6 +39,7 @@ import java.util.concurrent.TimeoutException;
 public class RestClient implements AutoCloseable {
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(4);
     private static final String INTERRUPTED_MESSAGE = "Store data fetch from {} was interrupted";
+    private static final String FAILED_MESSAGE = "Store data fetch from {} failed";
     private static final String TIMEOUT_MESSAGE = "Store data fetch from {} timed out";
     private Client client = null;
 
@@ -138,7 +139,7 @@ public class RestClient implements AutoCloseable {
             Thread.currentThread().interrupt();
             throw new ServiceUnavailableException("Remote store query was interrupted");
         } catch (ExecutionException _) {
-            log.warn(INTERRUPTED_MESSAGE, url);
+            log.warn(FAILED_MESSAGE, url);
             throw new ServiceUnavailableException("Remote store query failed");
         } catch (TimeoutException _) {
             log.warn(TIMEOUT_MESSAGE, url);
