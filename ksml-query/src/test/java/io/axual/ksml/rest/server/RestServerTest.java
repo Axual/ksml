@@ -45,7 +45,7 @@ class RestServerTest {
 
     @Test
     @DisplayName("initGlobalQuerier publishes the querier and host info to the shared GlobalState")
-    void publishesQuerierToGlobalState() throws Exception {
+    void publishesQuerierToGlobalState() {
         // Port 0 lets the OS assign a free port at bind time, avoiding a flaky port grab.
         final var hostInfo = new HostInfo("localhost", 0);
 
@@ -59,7 +59,7 @@ class RestServerTest {
 
     @Test
     @DisplayName("The server binds locally, serves its registered resources and shuts down cleanly")
-    void servesRegisteredResources() throws Exception {
+    void servesRegisteredResources() {
         // Port 0 lets the OS assign a free port at bind time; the real port is read back via boundPort().
         try (var server = new RestServer(new HostInfo("localhost", 0));
              var client = ClientBuilder.newClient()) {
