@@ -20,6 +20,7 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -31,20 +32,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Exercises the collection default methods of {@link GroupResolver} through a prefixing test double.
  */
 class GroupResolverTest {
-    private static final String PREFIX = "resolved-";
+    private static final String PREFIX = PrefixResolver.PREFIX;
 
-    private final GroupResolver resolver = new GroupResolver() {
-        @Override
-        public String resolve(String name) {
-            return name == null ? null : PREFIX + name;
-        }
-
-        @Override
-        public String unresolve(String name) {
-            if (name == null || !name.startsWith(PREFIX)) return null;
-            return name.substring(PREFIX.length());
-        }
-    };
+    private final GroupResolver resolver = new PrefixResolver();
 
     @Test
     @DisplayName("Resolve of a group collection prefixes every group id")

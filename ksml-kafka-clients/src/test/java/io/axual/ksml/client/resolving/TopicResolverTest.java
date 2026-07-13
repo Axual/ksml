@@ -20,6 +20,7 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.testutil.PrefixResolver;
 import org.apache.kafka.common.TopicCollection;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.Uuid;
@@ -39,20 +40,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * for names that do not carry the prefix so the null-filtering branches are covered too.
  */
 class TopicResolverTest {
-    private static final String PREFIX = "resolved-";
+    private static final String PREFIX = PrefixResolver.PREFIX;
 
-    private final TopicResolver resolver = new TopicResolver() {
-        @Override
-        public String resolve(String name) {
-            return name == null ? null : PREFIX + name;
-        }
-
-        @Override
-        public String unresolve(String name) {
-            if (name == null || !name.startsWith(PREFIX)) return null;
-            return name.substring(PREFIX.length());
-        }
-    };
+    private final TopicResolver resolver = new PrefixResolver();
 
     @Test
     @DisplayName("Resolve wraps and prefixes a topic pattern")

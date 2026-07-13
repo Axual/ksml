@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,6 +83,7 @@ class ResolvingProducerTest {
             producer.send(new ProducerRecord<>(UNRESOLVED_TOPIC, "k", "v"), null).get();
 
             verify(delegate).send(any());
+            verify(delegate, never()).send(any(), any());
         });
     }
 

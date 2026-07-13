@@ -87,6 +87,7 @@ class ResolvingConsumerTest {
         withConsumer((consumer, delegate) -> {
             final var assigned = new ArrayList<TopicPartition>();
             final var revoked = new ArrayList<TopicPartition>();
+            final var lost = new ArrayList<TopicPartition>();
             final ConsumerRebalanceListener callerListener = new ConsumerRebalanceListener() {
                 @Override
                 public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
@@ -97,6 +98,11 @@ class ResolvingConsumerTest {
                 public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
                     assigned.addAll(partitions);
                 }
+
+                @Override
+                public void onPartitionsLost(Collection<TopicPartition> partitions) {
+                    lost.addAll(partitions);
+                }
             };
 
             consumer.subscribe(List.of(UNRESOLVED_TOPIC), callerListener);
@@ -105,9 +111,11 @@ class ResolvingConsumerTest {
             verify(delegate).subscribe(any(Collection.class), wrapped.capture());
             wrapped.getValue().onPartitionsAssigned(List.of(RESOLVED_PARTITION));
             wrapped.getValue().onPartitionsRevoked(List.of(RESOLVED_PARTITION));
+            wrapped.getValue().onPartitionsLost(List.of(RESOLVED_PARTITION));
 
             assertThat(assigned).containsExactly(UNRESOLVED_PARTITION);
             assertThat(revoked).containsExactly(UNRESOLVED_PARTITION);
+            assertThat(lost).containsExactly(UNRESOLVED_PARTITION);
         });
     }
 
