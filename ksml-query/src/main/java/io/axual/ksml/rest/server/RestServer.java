@@ -80,6 +80,14 @@ public class RestServer implements AutoCloseable {
         }
     }
 
+    /**
+     * @return the TCP port the underlying Grizzly listener actually bound to, useful when the server
+     * was created with port {@code 0} to let the OS assign a free one
+     */
+    public int boundPort() {
+        return server.getListener("grizzly").getPort();
+    }
+
     public void initGlobalQuerier(KsmlQuerier ksmlQuerier) {
         GlobalState.INSTANCE.set(ksmlQuerier, hostInfo);
     }

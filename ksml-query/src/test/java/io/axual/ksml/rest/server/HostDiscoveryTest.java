@@ -4,7 +4,7 @@ package io.axual.ksml.rest.server;
  * ========================LICENSE_START=================================
  * KSML Queryable State Store
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-@Slf4j
-public final class Utils {
-    private Utils() {
-    }
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public static String getHostIPForDiscovery() {
-        String host = HostDiscovery.discoverDocker();
-        log.info(" Host IP {}", host);
-        return host;
+class HostDiscoveryTest {
+
+    @Test
+    @DisplayName("Local discovery always resolves to localhost")
+    void discoverLocalReturnsLocalhost() {
+        assertThat(HostDiscovery.discoverLocal()).isEqualTo("localhost");
     }
 }
