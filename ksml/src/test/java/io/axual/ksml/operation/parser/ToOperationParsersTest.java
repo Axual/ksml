@@ -27,6 +27,7 @@ import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.operation.ToTopicNameExtractorOperation;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -49,12 +50,14 @@ class ToOperationParsersTest {
     }
 
     @Test
+    @DisplayName("a to operation referencing a registered topic parses into a to operation")
     void parsesToWithTopicReference() throws Exception {
         assertThat(new ToOperationParser(resources).parser().parse(nodeOf("to: outStream")))
                 .isInstanceOf(ToOperation.class);
     }
 
     @Test
+    @DisplayName("a to operation with an inline topic definition parses into a to operation")
     void parsesToWithInlineTopic() throws Exception {
         assertThat(new ToOperationParser(resources).parser()
                 .parse(nodeOf("to:\n  topic: inline_out\n  keyType: string\n  valueType: string")))
@@ -62,6 +65,7 @@ class ToOperationParsersTest {
     }
 
     @Test
+    @DisplayName("a toTopicNameExtractor referencing a function parses into a to-topic-name-extractor operation")
     void parsesToTopicNameExtractorWithFunctionReference() throws Exception {
         assertThat(new ToTopicNameExtractorOperationParser(resources).parser()
                 .parse(nodeOf("toTopicNameExtractor: myExtractor")))

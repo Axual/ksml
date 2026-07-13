@@ -20,15 +20,14 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.parser.ParseTestSupport;
 import io.axual.ksml.type.UserType;
 
 /**
@@ -47,6 +46,6 @@ final class OperationParserTestSupport {
     }
 
     static ParseNode nodeOf(String yaml) throws Exception {
-        return ParseNode.fromRoot(YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class), "test");
+        return ParseTestSupport.nodeOf(yaml);
     }
 }

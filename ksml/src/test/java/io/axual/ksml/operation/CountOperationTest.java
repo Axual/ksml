@@ -22,20 +22,30 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.stream.KGroupedStreamWrapper;
+import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.KGroupedStream;
+import org.apache.kafka.streams.kstream.KGroupedTable;
+import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.sessionStore;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.windowStore;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class CountOperationTest {
@@ -45,26 +55,41 @@ class CountOperationTest {
     }
 
     @Test
-    void applyToGroupedStreamReturnsTable() {
-        assertThat(operation().apply(groupedStream(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("count on a grouped stream delegates to KGroupedStream.count and returns a table")
+    @SuppressWarnings("unchecked")
+    void applyToGroupedStreamCallsCount() {
+        final KGroupedStream<Object, Object> grouped = mock(KGroupedStream.class);
+        final var input = new KGroupedStreamWrapper(grouped, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(grouped).count(any(Named.class));
     }
 
     @Test
-    void applyToGroupedTableReturnsTable() {
-        assertThat(operation().apply(groupedTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("count on a grouped table delegates to KGroupedTable.count and returns a table")
+    @SuppressWarnings("unchecked")
+    void applyToGroupedTableCallsCount() {
+        final KGroupedTable<Object, Object> grouped = mock(KGroupedTable.class);
+        final var input = new KGroupedTableWrapper(grouped, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(grouped).count(any(Named.class));
     }
 
     @Test
+    @DisplayName("count on a session-windowed stream returns a table")
     void applyToSessionWindowedReturnsTable() {
         assertThat(operation().apply(sessionWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
     }
 
     @Test
+    @DisplayName("count on a time-windowed stream returns a table")
     void applyToTimeWindowedReturnsTable() {
         assertThat(operation().apply(timeWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
     }
 
     @Test
+    @DisplayName("count on a grouped stream with a store materializes that store")
     void applyToGroupedStreamWithStoreMaterializes() {
         final var store = keyValueStore("store");
         final var operation = new CountOperation(storeConfig("count", store));
@@ -75,6 +100,7 @@ class CountOperationTest {
     }
 
     @Test
+    @DisplayName("count on a grouped table with a store materializes that store")
     void applyToGroupedTableWithStoreMaterializes() {
         final var store = keyValueStore("store");
         final var operation = new CountOperation(storeConfig("count", store));
@@ -85,6 +111,7 @@ class CountOperationTest {
     }
 
     @Test
+    @DisplayName("count on a session-windowed stream materializes the session store by name")
     void applyToSessionWindowedWithStoreMaterializes() {
         final var store = sessionStore("store");
         final var operation = new CountOperation(storeConfig("count", store));
@@ -97,6 +124,7 @@ class CountOperationTest {
     }
 
     @Test
+    @DisplayName("count on a time-windowed stream materializes the window store by name")
     void applyToTimeWindowedWithStoreMaterializes() {
         final var store = windowStore("store");
         final var operation = new CountOperation(storeConfig("count", store));

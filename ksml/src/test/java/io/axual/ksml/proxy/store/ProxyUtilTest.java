@@ -30,6 +30,7 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -42,17 +43,20 @@ import static org.mockito.Mockito.when;
 class ProxyUtilTest {
 
     @Test
+    @DisplayName("a null input converts to null")
     void nullConvertsToNull() {
         assertThat(ProxyUtil.toPython(null)).isNull();
     }
 
     @Test
+    @DisplayName("a plain value converts to a Python value")
     void plainValueConvertsToPythonValue() {
         assertThat(ProxyUtil.toPython("value")).isInstanceOfSatisfying(Value.class,
                 value -> assertThat(value.asString()).isEqualTo("value"));
     }
 
     @Test
+    @DisplayName("a value-and-timestamp converts to a dict holding the value and timestamp")
     void valueAndTimestampConvertsToDict() {
         final var vat = ValueAndTimestamp.make("value", 100L);
         assertThat(ProxyUtil.toPython(vat)).isInstanceOf(PythonDict.class)
@@ -60,12 +64,14 @@ class ProxyUtilTest {
     }
 
     @Test
+    @DisplayName("a key-value pair converts to a dict holding the key and value")
     void keyValueConvertsToDict() {
         assertThat(ProxyUtil.toPython(new KeyValue<>("key", "value"))).isInstanceOf(PythonDict.class)
                 .asString().contains("key").contains("value");
     }
 
     @Test
+    @DisplayName("a versioned record converts to a dict holding the value, timestamp and validTo")
     void versionedRecordConvertsToDict() {
         final VersionedRecord<Object> versionedRecord = mock();
         when(versionedRecord.value()).thenReturn("value");
@@ -76,6 +82,7 @@ class ProxyUtilTest {
     }
 
     @Test
+    @DisplayName("a key-value iterator is wrapped in a proxy that delegates to it")
     void keyValueIteratorWrapsInProxyAndDelegates() {
         final KeyValueIterator<Object, Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
@@ -86,6 +93,7 @@ class ProxyUtilTest {
     }
 
     @Test
+    @DisplayName("a window-store iterator is wrapped in a proxy that delegates to it")
     void windowStoreIteratorWrapsInProxyAndDelegates() {
         final WindowStoreIterator<Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
@@ -96,12 +104,14 @@ class ProxyUtilTest {
     }
 
     @Test
+    @DisplayName("a data object converts to a Python value")
     void dataObjectConvertsToPython() {
         assertThat(ProxyUtil.toPython(new DataString("value"))).isInstanceOfSatisfying(Value.class,
                 value -> assertThat(value.asString()).isEqualTo("value"));
     }
 
     @Test
+    @DisplayName("a windowed key converts to a Python value")
     void windowedKeyConvertsToPython() {
         final var windowed = new Windowed<>("key", new SessionWindow(0L, 10L));
         assertThat(ProxyUtil.toPython(windowed)).isInstanceOf(Value.class);

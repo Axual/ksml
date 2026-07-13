@@ -26,6 +26,7 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.RecordContext;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -47,12 +48,14 @@ class UserTopicNameExtractorTest {
     }
 
     @Test
+    @DisplayName("a string function result is returned as the extracted topic name")
     void returnsExtractedTopicName() {
         final var extractor = new UserTopicNameExtractor(functionReturning(STRING, 3, new DataString("outTopic")), tags());
         assertThat(extractor.extract("key", "value", recordContext())).isEqualTo("outTopic");
     }
 
     @Test
+    @DisplayName("a non-string function result throws an execution exception mentioning string")
     void failsWhenResultIsNotAString() {
         final var extractor = new UserTopicNameExtractor(functionReturning(STRING, 3, new DataInteger(1)), tags());
         final var context = recordContext();

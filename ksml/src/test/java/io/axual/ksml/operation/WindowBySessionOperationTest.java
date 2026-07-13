@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.SessionWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.SessionWindows;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -40,12 +41,14 @@ class WindowBySessionOperationTest {
     }
 
     @Test
+    @DisplayName("windowing a grouped stream by session produces a session-windowed stream")
     void applyToGroupedStreamReturnsSessionWindowed() {
         final var operation = new WindowBySessionOperation(operationConfig("windowBySession"), sessionWindows());
         assertThat(operation.apply(groupedStream(), mockContext())).isInstanceOf(SessionWindowedKStreamWrapper.class);
     }
 
     @Test
+    @DisplayName("windowing a cogrouped stream by session produces a session-windowed cogrouped stream")
     void applyToCogroupedStreamReturnsSessionWindowedCogrouped() {
         final var operation = new WindowBySessionOperation(operationConfig("windowBySession"), sessionWindows());
         assertThat(operation.apply(cogroupedStream(), mockContext())).isInstanceOf(SessionWindowedCogroupedKStreamWrapper.class);

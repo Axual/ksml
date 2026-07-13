@@ -21,6 +21,7 @@ package io.axual.ksml.operation.processor;
  */
 
 import io.axual.ksml.operation.processor.TransformKeyProcessor.TransformKeyAction;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OperationProcessorSupplierTest {
 
     @Test
+    @DisplayName("get builds a processor instance using the configured factory")
     void getCreatesProcessorViaFactory() {
         final TransformKeyAction action = (stores, rec) -> rec.key();
         final var supplier = new OperationProcessorSupplier<>(

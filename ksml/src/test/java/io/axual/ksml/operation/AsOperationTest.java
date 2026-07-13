@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.StreamWrapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -43,6 +44,7 @@ class AsOperationTest {
     }
 
     @Test
+    @DisplayName("applying to a stream registers it under the target name and returns null")
     void applyToStreamRegistersUnderTargetNameAndReturnsNull() {
         final var context = mockContext();
         final var input = kStream();
@@ -65,6 +67,7 @@ class AsOperationTest {
     }
 
     @ParameterizedTest(name = "applyTo {0} returns null")
+    @DisplayName("applying the as operation to a non-stream wrapper returns null")
     @MethodSource("nonStreamWrappers")
     void applyToNonStreamReturnsNull(String name, Supplier<StreamWrapper> wrapper) {
         assertThat(wrapper.get().apply(operation(), mockContext())).isNull();

@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataString;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserValueTransformerTest {
 
     @Test
+    @DisplayName("transforming a value returns the function result")
     void transformsValue() {
         final var result = new DataString("newValue");
         final var transformer = new UserValueTransformer(functionReturning(UNKNOWN, 2, result), tags());

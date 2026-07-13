@@ -25,6 +25,7 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -69,6 +70,7 @@ class WindowStoreProxyTest {
     }
 
     @ParameterizedTest(name = "{0} by key and time range returns window iterator proxy")
+    @DisplayName("single-key time-range fetches wrap the delegate result in a WindowStoreIteratorProxy")
     @MethodSource("singleKeyTimeRangeFetches")
     void singleKeyTimeRangeFetchReturnsWindowIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), anyLong(), anyLong())).thenReturn(windowIterator);
@@ -77,6 +79,7 @@ class WindowStoreProxyTest {
     }
 
     @ParameterizedTest(name = "{0} by key range and time range returns key/value iterator proxy")
+    @DisplayName("key-range time-range fetches wrap the delegate result in a KeyValueIteratorProxy")
     @MethodSource("keyRangeTimeRangeFetches")
     void keyRangeTimeRangeFetchReturnsKeyValueIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), any(), anyLong(), anyLong())).thenReturn(keyValueIterator);
@@ -85,6 +88,7 @@ class WindowStoreProxyTest {
     }
 
     @Test
+    @DisplayName("all and backwardAll wrap the delegate result in a KeyValueIteratorProxy")
     void allAndBackwardAllReturnIteratorProxies() {
         lenient().when(delegate.all()).thenReturn(keyValueIterator);
         lenient().when(delegate.backwardAll()).thenReturn(keyValueIterator);
@@ -93,6 +97,7 @@ class WindowStoreProxyTest {
     }
 
     @Test
+    @DisplayName("fetchAll and backwardFetchAll wrap the delegate result in a KeyValueIteratorProxy")
     void fetchAllAndBackwardFetchAllReturnIteratorProxies() {
         lenient().when(delegate.fetchAll(0L, 10L)).thenReturn(keyValueIterator);
         lenient().when(delegate.backwardFetchAll(0L, 10L)).thenReturn(keyValueIterator);
@@ -101,6 +106,7 @@ class WindowStoreProxyTest {
     }
 
     @Test
+    @DisplayName("fetch by key and single timestamp returns the value as a polyglot Value")
     void fetchByKeyAndSingleTimeReturnsValue() {
         lenient().when(delegate.fetch("key", 5L)).thenReturn("value");
         assertThat(proxy().fetch("key", 5L)).isInstanceOfSatisfying(Value.class,
@@ -108,6 +114,7 @@ class WindowStoreProxyTest {
     }
 
     @Test
+    @DisplayName("put forwards the key, value and window timestamp to the delegate")
     void putForwardsToDelegate() {
         proxy().put("key", "value", 100L);
         verify(delegate).put("key", "value", 100L);

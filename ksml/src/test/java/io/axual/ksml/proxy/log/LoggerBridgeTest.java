@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.log;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,11 +31,13 @@ class LoggerBridgeTest {
     private final LoggerBridge bridge = new LoggerBridge();
 
     @Test
+    @DisplayName("getLogger returns a logger carrying the requested name")
     void getLoggerReturnsNamedLogger() {
         assertThat(bridge.getLogger("io.axual.ksml.test").getName()).isEqualTo("io.axual.ksml.test");
     }
 
     @Test
+    @DisplayName("all log-level enablement checks execute without throwing")
     void levelChecksDelegateWithoutError() {
         final var logger = bridge.getLogger("io.axual.ksml.test");
         assertThatCode(() -> {
@@ -47,6 +50,7 @@ class LoggerBridgeTest {
     }
 
     @Test
+    @DisplayName("logging at every level with zero, one or two arguments does not throw")
     void logMethodsDoNotThrow() {
         final var logger = bridge.getLogger("io.axual.ksml.test");
         assertThatCode(() -> {

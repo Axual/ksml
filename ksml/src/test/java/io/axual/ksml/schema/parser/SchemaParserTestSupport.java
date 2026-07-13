@@ -20,9 +20,8 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.parser.ParseTestSupport;
 
 /**
  * Shared helpers for the schema parser tests.
@@ -33,7 +32,6 @@ final class SchemaParserTestSupport {
     }
 
     static ParseNode nodeOf(String yaml) throws Exception {
-        final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
-        return ParseNode.fromRoot(root, "test");
+        return ParseTestSupport.nodeOf(yaml);
     }
 }

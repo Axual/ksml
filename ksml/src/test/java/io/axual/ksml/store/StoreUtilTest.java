@@ -33,6 +33,7 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -89,6 +90,7 @@ class StoreUtilTest {
     }
 
     @ParameterizedTest(name = "builds {0} key/value store")
+    @DisplayName("builds a store builder for each key/value store variant")
     @MethodSource("keyValueStoreVariants")
     void buildsKeyValueStore(String name, KeyValueStateStoreDefinition definition) {
         assertThat(StoreUtil.getStoreBuilder(definition)).isNotNull();
@@ -97,12 +99,14 @@ class StoreUtilTest {
     // --- getStoreBuilder: session & window -------------------------------------------------------
 
     @Test
+    @DisplayName("builds a store builder for persistent and in-memory session stores")
     void buildsSessionStore() {
         assertThat(StoreUtil.getStoreBuilder(sessionStore(true, true, true))).isNotNull();
         assertThat(StoreUtil.getStoreBuilder(sessionStore(false, false, false))).isNotNull();
     }
 
     @Test
+    @DisplayName("builds a store builder for persistent, timestamped and in-memory window stores")
     void buildsWindowStore() {
         assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
         assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
@@ -110,6 +114,7 @@ class StoreUtilTest {
     }
 
     @Test
+    @DisplayName("getStoreBuilder rejects an unrecognised store definition type")
     void rejectsUnknownStoreType() {
         final var unknown = mock(StateStoreDefinition.class);
         assertThatThrownBy(() -> StoreUtil.getStoreBuilder(unknown))
@@ -120,16 +125,19 @@ class StoreUtilTest {
     // --- materialize -----------------------------------------------------------------------------
 
     @Test
+    @DisplayName("materialize produces a materialized key/value store")
     void materializesKeyValueStore() {
         assertThat(StoreUtil.materialize(keyValueStore(false, false, false, false, false)).materialized()).isNotNull();
     }
 
     @Test
+    @DisplayName("materialize produces a materialized session store")
     void materializesSessionStore() {
         assertThat(StoreUtil.materialize(sessionStore(true, false, false)).materialized()).isNotNull();
     }
 
     @Test
+    @DisplayName("materialize produces a materialized window store")
     void materializesWindowStore() {
         assertThat(StoreUtil.materialize(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).materialized()).isNotNull();
     }
@@ -141,12 +149,14 @@ class StoreUtilTest {
     }
 
     @Test
+    @DisplayName("validatedWindowStore accepts a store matching the join window settings")
     void validatesMatchingWindowStore() {
         final var store = windowStore(false, false, true, Duration.ofSeconds(2), Duration.ofSeconds(2));
         assertThat(StoreUtil.validatedWindowStore(store, joinWindows())).isNotNull();
     }
 
     @Test
+    @DisplayName("validatedWindowStore rejects a store that does not retain duplicates")
     void rejectsWindowStoreWithoutRetainDuplicates() {
         final var store = windowStore(false, false, false, Duration.ofSeconds(2), Duration.ofSeconds(2));
         final var windows = joinWindows();
@@ -156,6 +166,7 @@ class StoreUtilTest {
     }
 
     @Test
+    @DisplayName("validatedWindowStore rejects a store whose window size differs from the join window")
     void rejectsWindowStoreWithWrongWindowSize() {
         // windowSize (3s) differs from the join window size (2s); retention stays >= windowSize.
         final var store = windowStore(false, false, true, Duration.ofSeconds(4), Duration.ofSeconds(3));
@@ -166,6 +177,7 @@ class StoreUtilTest {
     }
 
     @Test
+    @DisplayName("validatedWindowStore rejects a store whose retention is too large for the join window")
     void rejectsWindowStoreWithWrongRetention() {
         final var store = windowStore(false, false, true, Duration.ofSeconds(10), Duration.ofSeconds(2));
         final var windows = joinWindows();

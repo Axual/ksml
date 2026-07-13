@@ -22,15 +22,24 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Predicate;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
 import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.predicate;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class FilterOperationTest {
@@ -40,16 +49,29 @@ class FilterOperationTest {
     }
 
     @Test
+    @DisplayName("filter on a stream returns a stream")
     void applyToStreamReturnsStream() {
+        // On a stream, filter and filterNot both delegate to KStream.processValues; the difference
+        // is the supplied processor (FilterProcessor vs FilterNotProcessor), not a KStream method,
+        // so only the resulting wrapper type can be asserted here.
         assertThat(operation().apply(kStream(), mockContext())).isInstanceOf(KStreamWrapper.class);
     }
 
     @Test
-    void applyToTableReturnsTable() {
-        assertThat(operation().apply(kTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("filter on a table delegates to KTable.filter and never to filterNot")
+    @SuppressWarnings("unchecked")
+    void applyToTableCallsFilter() {
+        // A table filter must delegate to KTable.filter, never KTable.filterNot.
+        final KTable<Object, Object> table = mock(KTable.class);
+        final var input = new KTableWrapper(table, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(table).filter(any(Predicate.class), any(Named.class));
+        verify(table, never()).filterNot(any(Predicate.class), any(Named.class));
     }
 
     @Test
+    @DisplayName("filter on a table with a store materializes that store")
     void applyToTableWithStoreMaterializes() {
         final var store = keyValueStore("store");
         final var operation = new FilterOperation(storeConfig("filter", store), predicate());

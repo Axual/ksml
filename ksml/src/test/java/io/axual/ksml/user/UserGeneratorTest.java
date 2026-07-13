@@ -23,6 +23,7 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -34,6 +35,7 @@ class UserGeneratorTest {
     private static final UserType MESSAGE = new UserType(UserGenerator.EXPECTED_RESULT_TYPE);
 
     @Test
+    @DisplayName("apply returns the key/value message produced by the function")
     void generatesMessage() {
         final var result = new DataTuple(new DataString("key"), new DataString("value"));
         final var generator = new UserGenerator(functionReturning(MESSAGE, 0, result), tags());

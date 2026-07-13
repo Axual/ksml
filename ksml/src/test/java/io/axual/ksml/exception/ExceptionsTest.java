@@ -20,6 +20,7 @@ package io.axual.ksml.exception;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,18 +30,21 @@ class ExceptionsTest {
     private static final Throwable CAUSE = new IllegalStateException("root");
 
     @Test
+    @DisplayName("TopologyException retains its message and cause")
     void topologyExceptionCarriesMessageAndCause() {
         assertThat(new TopologyException("broken")).hasMessageContaining("broken");
         assertThat(new TopologyException("broken", CAUSE)).hasMessageContaining("broken").hasCause(CAUSE);
     }
 
     @Test
+    @DisplayName("MetricRegistrationException retains its message and cause")
     void metricRegistrationExceptionCarriesMessageAndCause() {
         assertThat(new MetricRegistrationException("dup")).hasMessageContaining("dup");
         assertThat(new MetricRegistrationException("dup", CAUSE)).hasMessageContaining("dup").hasCause(CAUSE);
     }
 
     @Test
+    @DisplayName("MetricObjectNamingException retains its message and cause")
     void metricObjectNamingExceptionCarriesMessageAndCause() {
         assertThat(new MetricObjectNamingException("bad name")).hasMessageContaining("bad name");
         assertThat(new MetricObjectNamingException("bad name", CAUSE)).hasMessageContaining("bad name").hasCause(CAUSE);

@@ -36,6 +36,7 @@ import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.AutoOffsetReset;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -65,12 +66,14 @@ class DefinitionParsersTest {
     // --- OffsetResetPolicyParser -----------------------------------------------------------------
 
     @ParameterizedTest
+    @DisplayName("a null or empty reset policy string is parsed as null")
     @NullAndEmptySource
     void parsesNullOrEmptyResetPolicyAsNull(String input) {
         assertThat(OffsetResetPolicyParser.parseResetPolicy(input)).isNull();
     }
 
     @Test
+    @DisplayName("named reset policies earliest, latest and none are parsed correctly")
     void parsesNamedResetPolicies() {
         assertThat(OffsetResetPolicyParser.parseResetPolicy("earliest")).isEqualTo(AutoOffsetReset.earliest());
         assertThat(OffsetResetPolicyParser.parseResetPolicy("latest")).isEqualTo(AutoOffsetReset.latest());
@@ -78,12 +81,14 @@ class DefinitionParsersTest {
     }
 
     @Test
+    @DisplayName("a by_duration reset policy is parsed into a duration-based reset")
     void parsesByDurationResetPolicy() {
         assertThat(OffsetResetPolicyParser.parseResetPolicy("by_duration:10s"))
                 .isEqualTo(AutoOffsetReset.byDuration(Duration.ofSeconds(10)));
     }
 
     @Test
+    @DisplayName("an unknown reset policy string is rejected")
     void rejectsUnknownResetPolicy() {
         assertThatThrownBy(() -> OffsetResetPolicyParser.parseResetPolicy("nonsense"))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -93,11 +98,13 @@ class DefinitionParsersTest {
     // --- JoinTargetDefinitionParser --------------------------------------------------------------
 
     @Test
+    @DisplayName("the join target parser returns null for a null node")
     void joinTargetReturnsNullForNullNode() {
         assertThat(new JoinTargetDefinitionParser(resources).parse(null)).isNull();
     }
 
     @Test
+    @DisplayName("the join target parser parses an inline stream definition")
     void joinTargetParsesInlineStream() throws Exception {
         final var target = new JoinTargetDefinitionParser(resources)
                 .parse(nodeOf("stream:\n  topic: other\n  keyType: string\n  valueType: string"));
@@ -106,6 +113,7 @@ class DefinitionParsersTest {
     }
 
     @Test
+    @DisplayName("the join target parser resolves a table reference by name")
     void joinTargetParsesTableReference() throws Exception {
         resources.register("someTable",
                 new TableDefinition("some_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
@@ -116,6 +124,7 @@ class DefinitionParsersTest {
     }
 
     @Test
+    @DisplayName("the join target parser resolves a global table reference by name")
     void joinTargetParsesGlobalTableReference() throws Exception {
         resources.register("someGlobalTable",
                 new GlobalTableDefinition("some_global_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
@@ -126,6 +135,7 @@ class DefinitionParsersTest {
     }
 
     @Test
+    @DisplayName("the join target parser fails when no valid target is present")
     void joinTargetFailsWhenNoTargetPresent() throws Exception {
         final var node = nodeOf("foo: bar");
         final var parser = new JoinTargetDefinitionParser(resources);
@@ -135,6 +145,7 @@ class DefinitionParsersTest {
     // --- Table / GlobalTable definition parsers --------------------------------------------------
 
     @Test
+    @DisplayName("a table definition is parsed from YAML")
     void parsesTableDefinition() throws Exception {
         final var table = new TableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_table\nkeyType: string\nvalueType: string"));
@@ -143,6 +154,7 @@ class DefinitionParsersTest {
     }
 
     @Test
+    @DisplayName("a global table definition is parsed from YAML")
     void parsesGlobalTableDefinition() throws Exception {
         final var globalTable = new GlobalTableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_global_table\nkeyType: string\nvalueType: string"));

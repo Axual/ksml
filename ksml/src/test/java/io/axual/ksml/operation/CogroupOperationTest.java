@@ -26,6 +26,7 @@ import io.axual.ksml.stream.KGroupedStreamWrapper;
 import org.apache.kafka.streams.kstream.Aggregator;
 import org.apache.kafka.streams.kstream.CogroupedKStream;
 import org.apache.kafka.streams.kstream.KGroupedStream;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.aggregator;
@@ -48,6 +49,7 @@ class CogroupOperationTest {
     }
 
     @Test
+    @DisplayName("cogroup on a grouped stream produces a cogrouped stream")
     @SuppressWarnings("unchecked")
     void applyToGroupedStreamReturnsCogrouped() {
         final KGroupedStream<Object, Object> grouped = mock(KGroupedStream.class);
@@ -59,6 +61,7 @@ class CogroupOperationTest {
     }
 
     @Test
+    @DisplayName("cogroup on an already-cogrouped stream is rejected as unsupported")
     void applyToCogroupedStreamIsUnsupported() {
         final var operation = operation();
         final var input = cogroupedStream();

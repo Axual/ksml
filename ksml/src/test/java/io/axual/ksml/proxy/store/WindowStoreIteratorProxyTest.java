@@ -23,6 +23,7 @@ package io.axual.ksml.proxy.store;
 import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.WindowStoreIterator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -38,6 +39,7 @@ class WindowStoreIteratorProxyTest {
     private WindowStoreIterator<Object> iterator;
 
     @Test
+    @DisplayName("next converts the timestamp/value entry into a dict")
     void nextConvertsEntryToDict() {
         when(iterator.hasNext()).thenReturn(true);
         when(iterator.next()).thenReturn(new KeyValue<>(1L, "value"));

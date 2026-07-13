@@ -22,6 +22,7 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.AutoOffsetReset;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TopicDefinitionTest {
 
     @Test
+    @DisplayName("toString omits optional fields when only the topic is set")
     void toStringWithOnlyTopicOmitsOptionalFields() {
         final var definition = new TopicDefinition("orders", null, null, null, null, null);
         assertThat(definition).asString().contains("topic=orders");
@@ -36,6 +38,7 @@ class TopicDefinitionTest {
     }
 
     @Test
+    @DisplayName("populated key, value and reset policy fields are retained")
     void toStringIncludesAllPopulatedFields() {
         final var key = UserType.UNKNOWN;
         final var value = UserType.UNKNOWN;
@@ -48,6 +51,7 @@ class TopicDefinitionTest {
     }
 
     @Test
+    @DisplayName("equal topic definitions share the same hash code")
     void equalTopicDefinitionsShareHashCode() {
         final var first = new TopicDefinition("orders", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null);
         final var second = new TopicDefinition("orders", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null);

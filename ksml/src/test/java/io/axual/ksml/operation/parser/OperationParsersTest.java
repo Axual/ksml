@@ -30,6 +30,7 @@ import io.axual.ksml.operation.SuppressOperation;
 import io.axual.ksml.operation.WindowBySessionOperation;
 import io.axual.ksml.operation.WindowByTimeOperation;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,6 +63,7 @@ class OperationParsersTest {
     }
 
     @ParameterizedTest(name = "parses {0} time window")
+    @DisplayName("each valid time window configuration parses into a window-by-time operation")
     @MethodSource("validTimeWindows")
     void parsesTimeWindow(String description, String yaml) throws Exception {
         final var op = new WindowByTimeOperationParser(resources).parser().parse(nodeOf(yaml));
@@ -69,6 +71,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a hopping window whose advanceBy exceeds its duration is rejected with a parse error")
     void rejectsHoppingWindowThatAdvancesByMoreThanItsDuration() throws Exception {
         final var parser = new WindowByTimeOperationParser(resources).parser();
         final var node = nodeOf("windowType: hopping\nduration: 10s\nadvanceBy: 20s");
@@ -78,6 +81,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a session window configuration parses into a window-by-session operation")
     void parsesSessionWindow() throws Exception {
         final var op = new WindowBySessionOperationParser(resources).parser()
                 .parse(nodeOf("inactivityGap: 10s\ngrace: 5s"));
@@ -85,6 +89,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a suppress-until-time-limit configuration parses into a suppress operation")
     void parsesSuppressUntilTimeLimit() throws Exception {
         final var op = new SuppressOperationParser(resources).parser()
                 .parse(nodeOf("until: timeLimit\nduration: 10s\nmaxRecords: 100\nbufferFullStrategy: emitEarlyWhenFull"));
@@ -92,6 +97,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a suppress-until-window-closes configuration parses into a suppress operation")
     void parsesSuppressUntilWindowCloses() throws Exception {
         final var op = new SuppressOperationParser(resources).parser()
                 .parse(nodeOf("until: windowCloses\nbufferFullStrategy: shutdownWhenFull"));
@@ -99,6 +105,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a reduce configuration with a reducer parses into a reduce operation")
     void parsesReduceWithReducer() throws Exception {
         final var op = new ReduceOperationParser(resources).parser()
                 .parse(nodeOf("name: reduceOp\nreducer:\n  expression: value1\n  resultType: string"));
@@ -106,6 +113,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a reduce configuration with an adder and subtractor parses into a reduce operation")
     void parsesReduceWithAdderAndSubtractor() throws Exception {
         final var op = new ReduceOperationParser(resources).parser()
                 .parse(nodeOf("name: reduceOp\nadder:\n  expression: value1\n  resultType: string\nsubtractor:\n  expression: value2\n  resultType: string"));
@@ -113,6 +121,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a merge configuration parses into a merge operation")
     void parsesMerge() throws Exception {
         final var op = new MergeOperationParser(resources).parser()
                 .parse(nodeOf("stream:\n  topic: other\n  keyType: string\n  valueType: string"));
@@ -120,6 +129,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a filterNot configuration parses into a filter-not operation")
     void parsesFilterNot() throws Exception {
         final var op = new FilterNotOperationParser(resources).parser()
                 .parse(nodeOf("name: filterNotOp\nif:\n  expression: \"true\""));
@@ -127,6 +137,7 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a convertKeyValue configuration parses into a convert-key-value operation")
     void parsesConvertKeyValue() throws Exception {
         final var op = new ConvertKeyValueOperationParser(resources).parser()
                 .parse(nodeOf("into: \"(string, string)\""));

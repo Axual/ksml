@@ -27,6 +27,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -43,6 +44,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("constructing a function with a null namespace throws TopologyException")
     void rejectsNullNamespace() {
         final var parameters = params(0);
         assertThatThrownBy(() -> new UserFunction(null, "fn", parameters, UNKNOWN, List.of()))
@@ -51,6 +53,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("constructing a function with a null name throws TopologyException")
     void rejectsNullName() {
         final var parameters = params(0);
         assertThatThrownBy(() -> new UserFunction("ns", null, parameters, UNKNOWN, List.of()))
@@ -59,6 +62,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("a fixed parameter declared after an optional one throws TopologyException")
     void rejectsFixedParameterAfterOptionalParameter() {
         final var parameters = new ParameterDefinition[]{
                 new ParameterDefinition("optional", DataType.UNKNOWN, true, null),
@@ -70,6 +74,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("fixedParameterCount counts only the non-optional parameters")
     void countsFixedParameters() {
         final var parameters = new ParameterDefinition[]{
                 new ParameterDefinition("fixed", DataType.UNKNOWN, false, null),
@@ -79,6 +84,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("toString renders the function signature and its store names")
     void toStringRendersSignatureAndStores() {
         final var function = function(params(1), List.of("store1", "store2"));
         assertThat(function).asString()
@@ -88,6 +94,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("calling the base function directly throws ExecutionException requiring an override")
     void baseCallCannotBeInvokedDirectly() {
         final var function = function(params(0), List.of());
         assertThatThrownBy(function::call)
@@ -96,6 +103,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("convertToKeyValue turns a two-element DataList into a key/value pair")
     void convertsDataListToKeyValue() {
         final var function = function(params(0), List.of());
         final var list = new DataList(DataType.UNKNOWN);
@@ -109,6 +117,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("convertToKeyValue turns a DataTuple into a key/value pair")
     void convertsDataTupleToKeyValue() {
         final var function = function(params(0), List.of());
         final var tuple = new DataTuple(new DataString("k"), new DataString("v"));
@@ -120,6 +129,7 @@ class UserFunctionTest {
     }
 
     @Test
+    @DisplayName("convertToKeyValue throws TopologyException for a value that is not a pair")
     void convertToKeyValueFailsForNonPair() {
         final var function = function(params(0), List.of());
         assertThatThrownBy(() -> function.convertToKeyValue(new DataString("x"), DataType.UNKNOWN, DataType.UNKNOWN))

@@ -27,6 +27,7 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.exception.ParseException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -40,23 +41,27 @@ class DataSchemaParserTest {
     private final DataSchemaParser parser = new DataSchemaParser();
 
     @ParameterizedTest
+    @DisplayName("parses each primitive type name into a non-null schema")
     @ValueSource(strings = {"any", "boolean", "byte", "short", "integer", "long", "float", "double", "bytes", "string"})
     void parsesPrimitiveTypes(String type) throws Exception {
         assertThat(parser.parse(nodeOf(type))).isNotNull();
     }
 
     @Test
+    @DisplayName("parses the quoted \"null\" type name into a non-null schema")
     void parsesNullType() throws Exception {
         // Quoted so YAML treats it as the string "null" rather than a null node.
         assertThat(parser.parse(nodeOf("\"null\""))).isNotNull();
     }
 
     @Test
+    @DisplayName("parsing a null node returns null")
     void returnsNullForNullNode() {
         assertThat(parser.parse(null)).isNull();
     }
 
     @Test
+    @DisplayName("parses a fixed type definition into a FixedSchema")
     void parsesFixedSchema() throws Exception {
         final var schema = parser.parse(nodeOf("""
                 type: fixed
@@ -68,6 +73,7 @@ class DataSchemaParserTest {
     }
 
     @Test
+    @DisplayName("parses an enum type with both scalar and object symbols into an EnumSchema")
     void parsesEnumSchemaWithScalarAndObjectSymbols() throws Exception {
         final var schema = parser.parse(nodeOf("""
                 type: enum
@@ -83,6 +89,7 @@ class DataSchemaParserTest {
     }
 
     @Test
+    @DisplayName("parses a list type definition into a ListSchema")
     void parsesListSchema() throws Exception {
         final var schema = parser.parse(nodeOf("""
                 type: list
@@ -92,6 +99,7 @@ class DataSchemaParserTest {
     }
 
     @Test
+    @DisplayName("parses a map type definition into a MapSchema")
     void parsesMapSchema() throws Exception {
         final var schema = parser.parse(nodeOf("""
                 type: map
@@ -101,6 +109,7 @@ class DataSchemaParserTest {
     }
 
     @Test
+    @DisplayName("parses a struct type with a fully specified field into a StructSchema")
     void parsesStructSchemaWithRichField() throws Exception {
         final var schema = parser.parse(nodeOf("""
                 type: struct
@@ -120,6 +129,7 @@ class DataSchemaParserTest {
     }
 
     @Test
+    @DisplayName("parses a top-level array of types into a UnionSchema")
     void parsesUnionSchemaFromArray() throws Exception {
         final var schema = parser.parse(nodeOf("""
                 - string
@@ -129,12 +139,14 @@ class DataSchemaParserTest {
     }
 
     @Test
+    @DisplayName("parsing an unrecognised type name throws ParseException")
     void rejectsUnknownSchemaType() {
         assertThatThrownBy(() -> parser.parse(nodeOf("type: bogus")))
                 .isInstanceOf(ParseException.class);
     }
 
     @Test
+    @DisplayName("parsing a recognised type with no schema branch throws ParseException about an unknown schema type")
     void rejectsTypeWithoutSwitchMapping() {
         // "tuple" is a recognised type but has no dedicated schema branch.
         assertThatThrownBy(() -> parser.parse(nodeOf("type: tuple")))

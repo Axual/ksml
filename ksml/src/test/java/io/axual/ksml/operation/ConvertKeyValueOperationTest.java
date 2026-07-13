@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.UNKNOWN_TYPE;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.verify;
 class ConvertKeyValueOperationTest {
 
     @Test
+    @DisplayName("converting key and value on a stream maps both and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamMapsKeyAndValue() {
         final KStream<Object, Object> stream = mock(KStream.class);

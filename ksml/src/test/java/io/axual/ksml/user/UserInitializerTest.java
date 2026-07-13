@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataString;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserInitializerTest {
 
     @Test
+    @DisplayName("apply returns the initial aggregate value produced by the function")
     void initializesAggregate() {
         final var result = new DataString("initial");
         final var initializer = new UserInitializer(functionReturning(UNKNOWN, 0, result), tags());

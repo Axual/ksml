@@ -25,6 +25,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.internals.ProcessorRecordContext;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_OFFSET_FIELD;
@@ -37,6 +38,7 @@ class RecordContextDataObjectMapperTest {
     private final RecordContextDataObjectMapper mapper = new RecordContextDataObjectMapper();
 
     @Test
+    @DisplayName("toDataObject maps topic and offset fields into the struct")
     void toDataObjectMapsAllFields() {
         final var context = new ProcessorRecordContext(123L, 45L, 6, "topic", new RecordHeaders());
 
@@ -49,6 +51,7 @@ class RecordContextDataObjectMapperTest {
     }
 
     @Test
+    @DisplayName("a record context survives a round trip through the data object")
     void roundTripsThroughDataObject() {
         // Same value for timestamp and offset keeps the assertion independent of field ordering.
         final var context = new ProcessorRecordContext(99L, 99L, 6, "topic", new RecordHeaders());
@@ -62,6 +65,7 @@ class RecordContextDataObjectMapperTest {
     }
 
     @Test
+    @DisplayName("fromDataObject rejects a non-struct input")
     void fromDataObjectRejectsNonStruct() {
         final DataObject value = new DataString("not a struct");
         assertThatThrownBy(() -> mapper.fromDataObject(value))
@@ -70,6 +74,7 @@ class RecordContextDataObjectMapperTest {
     }
 
     @Test
+    @DisplayName("fromDataObject falls back to default values for missing fields")
     void fromDataObjectUsesDefaultsForMissingFields() {
         final var restored = mapper.fromDataObject(new DataStruct());
 

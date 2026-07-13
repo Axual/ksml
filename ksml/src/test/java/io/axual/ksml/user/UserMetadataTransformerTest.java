@@ -25,6 +25,7 @@ import io.axual.ksml.data.type.RecordMetadata;
 import io.axual.ksml.definition.DefinitionConstants;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -37,6 +38,7 @@ class UserMetadataTransformerTest {
     private static final RecordMetadataDataObjectMapper META_MAPPER = new RecordMetadataDataObjectMapper();
 
     @Test
+    @DisplayName("transforming metadata returns record metadata with the function-provided timestamp")
     void transformsMetadata() {
         final var transformed = new RecordMetadata(1234L, new RecordHeaders());
         final var function = functionReturning(METADATA, 3, META_MAPPER.toDataObject(transformed));

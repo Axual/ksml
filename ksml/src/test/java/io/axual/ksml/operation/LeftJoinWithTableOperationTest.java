@@ -30,6 +30,7 @@ import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.TableJoined;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
@@ -51,6 +52,7 @@ import static org.mockito.Mockito.verify;
 class LeftJoinWithTableOperationTest {
 
     @Test
+    @DisplayName("left-joining a stream with a table delegates to KStream.leftJoin and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamReturnsStream() {
         final KStream<Object, Object> stream = mock(KStream.class);
@@ -63,6 +65,7 @@ class LeftJoinWithTableOperationTest {
     }
 
     @Test
+    @DisplayName("foreign-key left-joining two tables without a store uses the unmaterialized leftJoin overload")
     @SuppressWarnings("unchecked")
     void applyToTableReturnsTable() {
         final KTable<Object, Object> table = mock(KTable.class);
@@ -76,6 +79,7 @@ class LeftJoinWithTableOperationTest {
     }
 
     @Test
+    @DisplayName("foreign-key left-joining two tables with a store and partitioners uses the materialized leftJoin overload")
     @SuppressWarnings("unchecked")
     void applyToTableWithStoreAndPartitioners() {
         final KTable<Object, Object> table = mock(KTable.class);
@@ -90,6 +94,7 @@ class LeftJoinWithTableOperationTest {
     }
 
     @Test
+    @DisplayName("left-joining two tables without a foreign key uses the primary-key named-and-materialized leftJoin overload")
     @SuppressWarnings("unchecked")
     void applyToTableWithoutForeignKeyUsesPrimaryKeyJoin() {
         final KTable<Object, Object> table = mock(KTable.class);

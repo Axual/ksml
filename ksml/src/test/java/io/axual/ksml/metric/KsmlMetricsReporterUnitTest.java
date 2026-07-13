@@ -23,6 +23,7 @@ package io.axual.ksml.metric;
 import com.codahale.metrics.MetricRegistry;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -61,6 +62,7 @@ class KsmlMetricsReporterUnitTest {
     // --- configure -------------------------------------------------------------------------------
 
     @Test
+    @DisplayName("configure fails when the enricher instance config is missing")
     void configureFailsWhenEnricherMissing() {
         assertThatThrownBy(() -> reporter.configure(Map.of()))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -68,6 +70,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("configure fails when the enricher config value has the wrong type")
     void configureFailsWhenEnricherHasWrongType() {
         final Map<String, Object> configs = Map.of(ENRICHER_INSTANCE_CONFIG, "not an enricher");
         assertThatThrownBy(() -> reporter.configure(configs))
@@ -75,6 +78,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("configure succeeds when a valid enricher is supplied")
     void configureAcceptsEnricher() {
         assertThatCode(() -> reporter.configure(Map.of(ENRICHER_INSTANCE_CONFIG, enricher)))
                 .doesNotThrowAnyException();
@@ -83,12 +87,14 @@ class KsmlMetricsReporterUnitTest {
     // --- metricChange ----------------------------------------------------------------------------
 
     @Test
+    @DisplayName("metricChange ignores a null metric")
     void metricChangeIgnoresNullMetric() {
         assertThatCode(() -> reporter.metricChange(null)).doesNotThrowAnyException();
         assertThat(reporter.getRegisteredMetrics()).isEmpty();
     }
 
     @Test
+    @DisplayName("metricChange ignores a metric when the enricher is not initialized")
     void metricChangeIgnoresMetricWhenEnricherNotInitialized() {
         when(kafkaMetric.metricName()).thenReturn(kafkaName("m"));
         try (final var noEnricher = new KsmlMetricsReporter()) {
@@ -100,6 +106,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("metricChange ignores a metric the enricher considers uninteresting")
     void metricChangeIgnoresUninterestingMetric() {
         when(enricher.isInteresting(kafkaMetric)).thenReturn(false);
         reporter.metricChange(kafkaMetric);
@@ -107,6 +114,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("metricChange drops a metric when the enricher yields no name")
     void metricChangeDropsMetricWithoutEnrichedName() {
         when(enricher.isInteresting(kafkaMetric)).thenReturn(true);
         when(kafkaMetric.metricName()).thenReturn(kafkaName("m"));
@@ -117,6 +125,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("metricChange registers an interesting metric as a gauge")
     void metricChangeRegistersGauge() {
         when(enricher.isInteresting(kafkaMetric)).thenReturn(true);
         final var name = kafkaName("m");
@@ -129,6 +138,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("metricChange re-registers a metric under a new enriched name")
     void metricChangeReRegistersUnderNewName() {
         when(enricher.isInteresting(kafkaMetric)).thenReturn(true);
         final var name = kafkaName("m");
@@ -146,12 +156,14 @@ class KsmlMetricsReporterUnitTest {
     // --- createGauge -----------------------------------------------------------------------------
 
     @Test
+    @DisplayName("createGauge exposes a numeric metric value")
     void createGaugeReturnsNumericValue() {
         when(kafkaMetric.metricValue()).thenReturn(5.0d);
         assertThat(reporter.createGauge(kafkaMetric).getAsDouble()).isEqualTo(5.0d);
     }
 
     @Test
+    @DisplayName("createGauge returns NaN for a non-numeric metric value")
     void createGaugeReturnsNaNForNonNumericValue() {
         lenient().when(kafkaMetric.metricName()).thenReturn(kafkaName("m"));
         when(kafkaMetric.metricValue()).thenReturn("not a number");
@@ -159,6 +171,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("createGauge returns NaN when reading the metric value throws")
     void createGaugeReturnsNaNWhenValueReadThrows() {
         lenient().when(kafkaMetric.metricName()).thenReturn(kafkaName("m"));
         when(kafkaMetric.metricValue()).thenThrow(new RuntimeException("boom"));
@@ -168,6 +181,7 @@ class KsmlMetricsReporterUnitTest {
     // --- removal / close / init ------------------------------------------------------------------
 
     @Test
+    @DisplayName("metricRemoval removes a previously registered metric")
     void metricRemovalRemovesRegisteredMetric() {
         when(enricher.isInteresting(kafkaMetric)).thenReturn(true);
         final var name = kafkaName("m");
@@ -181,12 +195,14 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("metricRemoval of an unregistered metric is a no-op")
     void metricRemovalOfUnknownMetricIsNoOp() {
         when(kafkaMetric.metricName()).thenReturn(kafkaName("m"));
         assertThatCode(() -> reporter.metricRemoval(kafkaMetric)).doesNotThrowAnyException();
     }
 
     @Test
+    @DisplayName("close removes all registered metrics")
     void closeRemovesAllRegisteredMetrics() {
         when(enricher.isInteresting(kafkaMetric)).thenReturn(true);
         final var name = kafkaName("m");
@@ -200,6 +216,7 @@ class KsmlMetricsReporterUnitTest {
     }
 
     @Test
+    @DisplayName("init forwards each supplied metric through metricChange")
     void initForwardsEachMetricToMetricChange() {
         when(enricher.isInteresting(kafkaMetric)).thenReturn(true);
         final var name = kafkaName("m");

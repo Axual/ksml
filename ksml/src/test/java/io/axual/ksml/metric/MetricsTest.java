@@ -20,6 +20,7 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,11 +29,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class MetricsTest {
 
     @Test
+    @DisplayName("the metrics registry is a singleton")
     void registryIsASingleton() {
         assertThat(Metrics.registry()).isSameAs(Metrics.registry());
     }
 
     @Test
+    @DisplayName("init enables JMX without error")
     void initEnablesJmxWithoutError() {
         try {
             assertThatCode(Metrics::init).doesNotThrowAnyException();

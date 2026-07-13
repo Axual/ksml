@@ -20,6 +20,7 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,12 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FatalErrorTest {
 
     @Test
+    @DisplayName("report wraps a throwable into a runtime exception carrying its message")
     void reportReturnsRuntimeExceptionWithMessage() {
         final var reported = FatalError.report(new IllegalStateException("boom"));
         assertThat(reported).isInstanceOf(RuntimeException.class).hasMessage("boom");
     }
 
     @Test
+    @DisplayName("report returns only the top-level message and drops the cause chain")
     void reportReturnsTopLevelMessageWithoutPropagatingCause() {
         final var cause = new IllegalArgumentException("root cause");
         final var reported = FatalError.report(new RuntimeException("wrapper", cause));

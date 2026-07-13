@@ -21,6 +21,7 @@ package io.axual.ksml.operation.processor;
  */
 
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -40,6 +41,7 @@ class FilterNotProcessorTest {
     private FixedKeyProcessorContext<Object, Object> context;
 
     @Test
+    @DisplayName("filterNot forwards the record when the predicate evaluates to false")
     void forwardsRecordWhenPredicateIsFalse() {
         final var processor = new FilterNotProcessor("filterNot", (stores, rec) -> false, NO_STORES);
         processor.init(context);
@@ -51,6 +53,7 @@ class FilterNotProcessorTest {
     }
 
     @Test
+    @DisplayName("filterNot drops the record when the predicate evaluates to true")
     void dropsRecordWhenPredicateIsTrue() {
         final var processor = new FilterNotProcessor("filterNot", (stores, rec) -> true, NO_STORES);
         processor.init(context);

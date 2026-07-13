@@ -27,6 +27,7 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.exception.ParseException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.schema.parser.SchemaParserTestSupport.nodeOf;
@@ -38,41 +39,49 @@ class DataObjectParserTest {
     private final DataObjectParser parser = new DataObjectParser();
 
     @Test
+    @DisplayName("parsing a null node returns null")
     void returnsNullForNullNode() {
         assertThat(parser.parse(null)).isNull();
     }
 
     @Test
+    @DisplayName("parses a JSON null literal into DataNull")
     void parsesNull() throws Exception {
         assertThat(parser.parse(nodeOf("null"))).isEqualTo(DataNull.INSTANCE);
     }
 
     @Test
+    @DisplayName("parses a boolean literal into DataBoolean")
     void parsesBoolean() throws Exception {
         assertThat(parser.parse(nodeOf("true"))).isEqualTo(new DataBoolean(true));
     }
 
     @Test
+    @DisplayName("parses a value within int range into DataInteger")
     void parsesInteger() throws Exception {
         assertThat(parser.parse(nodeOf("42"))).isEqualTo(new DataInteger(42));
     }
 
     @Test
+    @DisplayName("parses a value beyond int range into DataLong")
     void parsesLong() throws Exception {
         assertThat(parser.parse(nodeOf("2147483648"))).isEqualTo(new DataLong(2147483648L));
     }
 
     @Test
+    @DisplayName("parses a decimal literal into DataDouble")
     void parsesDouble() throws Exception {
         assertThat(parser.parse(nodeOf("3.14"))).isEqualTo(new DataDouble(3.14));
     }
 
     @Test
+    @DisplayName("parses a text literal into DataString")
     void parsesString() throws Exception {
         assertThat(parser.parse(nodeOf("hello"))).isEqualTo(new DataString("hello"));
     }
 
     @Test
+    @DisplayName("parsing an unsupported node type such as an array throws ParseException")
     void rejectsUnsupportedType() {
         assertThatThrownBy(() -> parser.parse(nodeOf("[1, 2, 3]")))
                 .isInstanceOf(ParseException.class);

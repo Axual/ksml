@@ -25,6 +25,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -41,12 +42,14 @@ class UserTimestampExtractorTest {
     }
 
     @Test
+    @DisplayName("a long function result is returned as the extracted timestamp")
     void returnsExtractedTimestamp() {
         final var extractor = new UserTimestampExtractor(functionReturning(LONG, 2, new DataLong(999L)), tags());
         assertThat(extractor.extract(consumerRecord(), 0L)).isEqualTo(999L);
     }
 
     @Test
+    @DisplayName("a non-long function result throws an execution exception mentioning long")
     void failsWhenResultIsNotALong() {
         final var extractor = new UserTimestampExtractor(functionReturning(LONG, 2, new DataString("nope")), tags());
         final var rec = consumerRecord();

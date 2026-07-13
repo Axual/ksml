@@ -24,6 +24,7 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.WindowedType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,18 +34,21 @@ class DataTypeFlattenerTest {
     private final DataTypeFlattener flattener = new DataTypeFlattener();
 
     @Test
+    @DisplayName("flatten converts a windowed type into a struct type")
     void windowedTypeFlattensToStructType() {
         final var flattened = flattener.flatten(new WindowedType(DataType.UNKNOWN));
         assertThat(flattened).isInstanceOf(StructType.class);
     }
 
     @Test
+    @DisplayName("toDataSchema converts a windowed type into a windowed struct schema")
     void windowedTypeConvertsToWindowedSchema() {
         final var schema = flattener.toDataSchema("ns", "name", new WindowedType(DataType.UNKNOWN));
         assertThat(schema).isInstanceOf(StructSchema.class);
     }
 
     @Test
+    @DisplayName("flatten returns a non-windowed type unchanged")
     void nonWindowedTypeIsReturnedUnchanged() {
         assertThat(flattener.flatten(DataType.UNKNOWN)).isEqualTo(DataType.UNKNOWN);
     }

@@ -24,6 +24,7 @@ import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -46,6 +47,7 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("get exposes the value and timestamp of the stored record as a dict")
     void getConvertsResultToDict() {
         when(delegate.get("key")).thenReturn(ValueAndTimestamp.make("value", 100L));
         assertThat(proxy().get("key")).isInstanceOf(PythonDict.class)
@@ -54,6 +56,7 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("delete exposes the removed value and timestamp as a dict")
     void deleteConvertsResultToDict() {
         when(delegate.delete("key")).thenReturn(ValueAndTimestamp.make("value", 100L));
         assertThat(proxy().delete("key")).isInstanceOf(PythonDict.class)
@@ -61,6 +64,7 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("put wraps the raw value with the given timestamp before storing")
     void putWrapsValueWithTimestamp() {
         proxy().put("key", "value", 100L);
         final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
@@ -70,6 +74,7 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("putIfAbsent wraps the raw value with the given timestamp before storing")
     void putIfAbsentWrapsValueWithTimestamp() {
         when(delegate.putIfAbsent(any(), any())).thenReturn(null);
         proxy().putIfAbsent("key", "value", 100L);
@@ -80,6 +85,7 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("approximateNumEntries returns the delegate count as a polyglot Value")
     void approximateNumEntriesIsConverted() {
         when(delegate.approximateNumEntries()).thenReturn(3L);
         assertThat(proxy().approximateNumEntries()).isInstanceOfSatisfying(Value.class,

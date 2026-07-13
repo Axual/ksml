@@ -27,6 +27,7 @@ import org.apache.kafka.streams.kstream.Branched;
 import org.apache.kafka.streams.kstream.BranchedKStream;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -54,6 +55,7 @@ class BranchOperationTest {
     }
 
     @Test
+    @DisplayName("applying a branch operation with no branches produces no output stream")
     @SuppressWarnings("unchecked")
     void applyWithoutBranchesReturnsNull() {
         final BranchedKStream<Object, Object> branched = mock(BranchedKStream.class);
@@ -64,6 +66,7 @@ class BranchOperationTest {
     }
 
     @Test
+    @DisplayName("a branch guarded by a predicate is registered and yields no chained output")
     @SuppressWarnings("unchecked")
     void applyWithPredicateBranchReturnsNull() {
         final BranchedKStream<Object, Object> branched = mock(BranchedKStream.class);
@@ -76,6 +79,7 @@ class BranchOperationTest {
     }
 
     @Test
+    @DisplayName("a branch without a predicate is registered using a default always-true predicate")
     @SuppressWarnings("unchecked")
     void applyWithoutPredicateUsesDefaultTrueBranch() {
         final BranchedKStream<Object, Object> branched = mock(BranchedKStream.class);
@@ -90,6 +94,7 @@ class BranchOperationTest {
     }
 
     @Test
+    @DisplayName("chained operations inside a branch run against that branch's stream")
     @SuppressWarnings("unchecked")
     void applyRunsBranchChainOperations() {
         final BranchedKStream<Object, Object> branched = mock(BranchedKStream.class);
@@ -105,6 +110,7 @@ class BranchOperationTest {
     }
 
     @Test
+    @DisplayName("a branch's sink operation runs against that branch's stream")
     @SuppressWarnings("unchecked")
     void applyRunsBranchSink() {
         final BranchedKStream<Object, Object> branched = mock(BranchedKStream.class);

@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.StreamWrapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
@@ -56,6 +57,7 @@ class StreamOperationTest {
     }
 
     @Test
+    @DisplayName("the default apply methods throw a TopologyException for every unsupported input type")
     void rejectsUnsupportedInputTypes() {
         final var context = mockContext();
         assertRejects(op -> op.apply(kTable(), context));

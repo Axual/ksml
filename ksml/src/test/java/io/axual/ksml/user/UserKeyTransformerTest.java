@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataString;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
@@ -35,12 +36,14 @@ class UserKeyTransformerTest {
     }
 
     @Test
+    @DisplayName("transform a key using the two-argument apply returns the function result")
     void transformsKeyWithoutStores() {
         final var result = new DataString("newKey");
         assertThat(transformer(result).apply("key", "value")).isEqualTo(result);
     }
 
     @Test
+    @DisplayName("transform a key using the state-store apply returns the function result")
     void transformsKeyWithStores() {
         final var result = new DataString("newKey");
         assertThat(transformer(result).apply(null, "key", "value")).isEqualTo(result);

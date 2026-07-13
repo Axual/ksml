@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataString;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserForeignKeyExtractorTest {
 
     @Test
+    @DisplayName("apply returns the foreign key produced by the function for the value")
     void extractsForeignKey() {
         final var result = new DataString("foreignKey");
         final var extractor = new UserForeignKeyExtractor(functionReturning(UNKNOWN, 1, result), tags());

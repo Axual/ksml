@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataString;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserMergerTest {
 
     @Test
+    @DisplayName("merging two session aggregates returns the function result")
     void mergesTwoSessionValues() {
         final var result = new DataString("merged");
         final var merger = new UserMerger(functionReturning(UNKNOWN, 3, result), tags());

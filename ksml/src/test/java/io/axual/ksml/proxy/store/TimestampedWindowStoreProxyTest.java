@@ -23,6 +23,7 @@ package io.axual.ksml.proxy.store;
 import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +46,7 @@ class TimestampedWindowStoreProxyTest {
     }
 
     @Test
+    @DisplayName("fetch exposes the value and timestamp of the fetched record as a dict")
     void fetchConvertsResultToDict() {
         when(delegate.fetch("key", 5L)).thenReturn(ValueAndTimestamp.make("value", 5L));
         assertThat(proxy().fetch("key", 5L)).isInstanceOf(PythonDict.class)
@@ -52,6 +54,7 @@ class TimestampedWindowStoreProxyTest {
     }
 
     @Test
+    @DisplayName("put forwards an existing ValueAndTimestamp unchanged to the delegate")
     void putForwardsValueAndTimestamp() {
         final ValueAndTimestamp<Object> value = ValueAndTimestamp.make("value", 5L);
         proxy().put("key", value, 100L);
@@ -59,6 +62,7 @@ class TimestampedWindowStoreProxyTest {
     }
 
     @Test
+    @DisplayName("put wraps a raw value with the record timestamp before storing at the window time")
     void putWrapsRawValueWithTimestamp() {
         proxy().put("key", "value", 100L, 5L);
         final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();

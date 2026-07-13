@@ -26,6 +26,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.globalTableDefinition;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.verify;
 class LeftJoinWithGlobalTableOperationTest {
 
     @Test
+    @DisplayName("left-joining a stream with a global table delegates to KStream.leftJoin and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamReturnsStream() {
         final KStream<Object, Object> stream = mock(KStream.class);

@@ -25,6 +25,7 @@ import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.StreamJoined;
 import org.apache.kafka.streams.kstream.ValueJoiner;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.verify;
 class OuterJoinWithStreamOperationTest {
 
     @Test
+    @DisplayName("outer join with a stream produces a KStream result using a JoinWindows-based outerJoin")
     @SuppressWarnings("unchecked")
     void applyToStreamReturnsStream() {
         final KStream<Object, Object> stream = mock(KStream.class);

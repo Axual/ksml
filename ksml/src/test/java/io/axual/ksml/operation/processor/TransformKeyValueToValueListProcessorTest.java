@@ -21,6 +21,7 @@ package io.axual.ksml.operation.processor;
  */
 
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,6 +44,7 @@ class TransformKeyValueToValueListProcessorTest {
     private FixedKeyProcessorContext<Object, Object> context;
 
     @Test
+    @DisplayName("forwards a separate record for each value returned by the transform")
     void forwardsEachValueInList() {
         final List<Object> values = List.of("v1", "v2", "v3");
         final var processor = new TransformKeyValueToValueListProcessor("flatMapValues", (stores, rec) -> values, NO_STORES);
@@ -54,6 +56,7 @@ class TransformKeyValueToValueListProcessorTest {
     }
 
     @Test
+    @DisplayName("does not forward anything when the transform returns null")
     void doesNotForwardWhenResultIsNull() {
         final var processor = new TransformKeyValueToValueListProcessor("flatMapValues", (stores, rec) -> null, NO_STORES);
         processor.init(context);

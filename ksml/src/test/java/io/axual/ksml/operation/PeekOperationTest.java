@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.forEachAction;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.verify;
 class PeekOperationTest {
 
     @Test
+    @DisplayName("peek on a stream returns a KStream and invokes processValues without altering records")
     @SuppressWarnings("unchecked")
     void applyToStreamProcessesValues() {
         final KStream<Object, Object> stream = mock(KStream.class);

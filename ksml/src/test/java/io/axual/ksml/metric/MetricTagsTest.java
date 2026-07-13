@@ -20,6 +20,7 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MetricTagsTest {
 
     @Test
+    @DisplayName("append returns a new instance and leaves the original untouched")
     void appendReturnsNewInstanceLeavingOriginalUntouched() {
         final var original = new MetricTags();
         final var appended = original.append("app", "ksml");
@@ -36,29 +38,34 @@ class MetricTagsTest {
     }
 
     @Test
+    @DisplayName("append of a tag adds it as an entry")
     void appendTagAddsEntry() {
         final var tags = new MetricTags().append(new MetricTag("key", "value"));
         assertThat(tags).containsExactly(new MetricTag("key", "value"));
     }
 
     @Test
+    @DisplayName("appendIfPresent adds a tag when a value is given")
     void appendIfPresentAddsWhenValueGiven() {
         assertThat(new MetricTags().appendIfPresent("key", "value")).hasSize(1);
     }
 
     @Test
+    @DisplayName("appendIfPresent ignores a null or blank value")
     void appendIfPresentIgnoresNullOrBlank() {
         assertThat(new MetricTags().appendIfPresent("key", null)).isEmpty();
         assertThat(new MetricTags().appendIfPresent("key", "  ")).isEmpty();
     }
 
     @Test
+    @DisplayName("toString joins multiple tags with a comma")
     void toStringJoinsTagsWithComma() {
         final var tags = new MetricTags().append("a", "1").append("b", "2");
         assertThat(tags).hasToString("a=1,b=2");
     }
 
     @Test
+    @DisplayName("empty tags render as an empty string")
     void emptyTagsRenderAsEmptyString() {
         assertThat(new MetricTags()).hasToString("");
     }

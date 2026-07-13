@@ -30,6 +30,7 @@ import org.apache.kafka.streams.kstream.KGroupedTable;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.when;
 class GroupByOperationTest {
 
     @Test
+    @DisplayName("groupBy on a stream produces a grouped stream")
     @SuppressWarnings("unchecked")
     void applyToStreamReturnsGroupedStream() {
         final KStream<Object, Object> stream = mock(KStream.class);
@@ -59,6 +61,7 @@ class GroupByOperationTest {
     }
 
     @Test
+    @DisplayName("groupBy on a table with a tuple selector produces a grouped table")
     @SuppressWarnings("unchecked")
     void applyToTableReturnsGroupedTable() {
         // KTable groupBy requires the selector to produce a (key, value) tuple.

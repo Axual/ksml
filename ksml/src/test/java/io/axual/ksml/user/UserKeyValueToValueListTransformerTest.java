@@ -27,6 +27,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -43,6 +44,7 @@ class UserKeyValueToValueListTransformerTest {
     }
 
     @Test
+    @DisplayName("a returned data list produces a value list of the same size")
     void returnsValueList() {
         final var list = new DataList(DataType.UNKNOWN);
         list.add(new DataString("v1"));
@@ -52,6 +54,7 @@ class UserKeyValueToValueListTransformerTest {
     }
 
     @Test
+    @DisplayName("a non-list function result throws an execution exception mentioning list")
     void failsWhenFunctionDoesNotReturnList() {
         final var transformer = transformer(new DataString("notAList"));
         assertThatThrownBy(() -> transformer.apply("key", "value"))

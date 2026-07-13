@@ -26,6 +26,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.when;
 class ToStreamOperationTest {
 
     @Test
+    @DisplayName("toStream with a key-value mapper converts a table to a KStream using the mapper")
     @SuppressWarnings("unchecked")
     void applyWithMapperReturnsStream() {
         final KTable<Object, Object> table = mock(KTable.class);
@@ -55,6 +57,7 @@ class ToStreamOperationTest {
     }
 
     @Test
+    @DisplayName("toStream without a mapper converts a table to a KStream keeping the original keys")
     @SuppressWarnings("unchecked")
     void applyWithoutMapperReturnsStream() {
         final KTable<Object, Object> table = mock(KTable.class);

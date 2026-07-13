@@ -25,6 +25,7 @@ import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.StreamJoined;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -44,6 +45,7 @@ import static org.mockito.Mockito.verify;
 class JoinWithStreamOperationTest {
 
     @Test
+    @DisplayName("joining two streams over a window delegates to KStream.join and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamReturnsStream() {
         final KStream<Object, Object> stream = mock(KStream.class);
@@ -56,6 +58,7 @@ class JoinWithStreamOperationTest {
     }
 
     @Test
+    @DisplayName("joining two streams with explicit join stores delegates to KStream.join and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamWithStoresReturnsStream() {
         final KStream<Object, Object> stream = mock(KStream.class);
@@ -69,6 +72,7 @@ class JoinWithStreamOperationTest {
     }
 
     @Test
+    @DisplayName("toString() includes both join store names")
     void toStringIncludesStoreNames() {
         final var operation = new JoinWithStreamOperation(
                 dualStoreConfig("join", joinWindowStore("thisStore"), joinWindowStore("otherStore")),

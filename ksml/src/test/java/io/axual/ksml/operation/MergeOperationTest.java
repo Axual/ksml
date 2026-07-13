@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.verify;
 class MergeOperationTest {
 
     @Test
+    @DisplayName("merge on a stream delegates to KStream.merge with the other stream and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamMergesWithOtherStream() {
         final KStream<Object, Object> stream = mock(KStream.class);

@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.UNKNOWN_TYPE;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.verify;
 class ConvertKeyOperationTest {
 
     @Test
+    @DisplayName("converting the key on a stream reselects the key and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamSelectsKey() {
         final KStream<Object, Object> stream = mock(KStream.class);

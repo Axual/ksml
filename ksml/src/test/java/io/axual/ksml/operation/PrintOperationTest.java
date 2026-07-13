@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.keyValuePrinter;
@@ -31,12 +32,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PrintOperationTest {
 
     @Test
+    @DisplayName("print with a key-value mapper is a terminal operation and returns null")
     void applyWithMapperIsTerminalAndReturnsNull() {
         final var operation = new PrintOperation(operationConfig("print"), null, "label", keyValuePrinter());
         assertThat(operation.apply(kStream(), mockContext())).isNull();
     }
 
     @Test
+    @DisplayName("print without a mapper is a terminal operation and returns null")
     void applyWithoutMapperIsTerminalAndReturnsNull() {
         final var operation = new PrintOperation(operationConfig("print"), null, null, null);
         assertThat(operation.apply(kStream(), mockContext())).isNull();

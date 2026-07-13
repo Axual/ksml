@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataString;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserAggregatorTest {
 
     @Test
+    @DisplayName("apply invokes the function with key, value and accumulator and returns its result")
     void aggregatesKeyValueAndAccumulator() {
         final var result = new DataString("aggregated");
         final var aggregator = new UserAggregator(functionReturning(UNKNOWN, 3, result), tags());

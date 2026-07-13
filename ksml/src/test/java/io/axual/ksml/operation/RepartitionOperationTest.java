@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Repartitioned;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verify;
 class RepartitionOperationTest {
 
     @Test
+    @DisplayName("repartition on a stream returns a KStream and invokes repartition with the given partition count")
     @SuppressWarnings("unchecked")
     void applyToStreamRepartitions() {
         final KStream<Object, Object> stream = mock(KStream.class);

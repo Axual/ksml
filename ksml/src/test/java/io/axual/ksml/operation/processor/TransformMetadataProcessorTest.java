@@ -24,6 +24,7 @@ import io.axual.ksml.data.type.RecordMetadata;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +44,7 @@ class TransformMetadataProcessorTest {
     private FixedKeyProcessorContext<Object, Object> context;
 
     @Test
+    @DisplayName("forwards the record with the new timestamp and headers from the returned metadata")
     void appliesNewTimestampAndHeaders() {
         final var headers = new RecordHeaders();
         headers.add("h", "v".getBytes());
@@ -60,6 +62,7 @@ class TransformMetadataProcessorTest {
     }
 
     @Test
+    @DisplayName("forwards the record unchanged when the returned metadata has null timestamp and headers")
     void forwardsUnchangedWhenMetadataFieldsAreNull() {
         final var metadata = new RecordMetadata(null, null);
         final var processor = new TransformMetadataProcessor("transformMetadata", (stores, rec) -> metadata, NO_STORES);

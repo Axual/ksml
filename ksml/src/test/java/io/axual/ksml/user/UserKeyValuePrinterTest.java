@@ -23,6 +23,7 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -34,12 +35,14 @@ class UserKeyValuePrinterTest {
     private static final UserType STRING = new UserType(DataString.DATATYPE);
 
     @Test
+    @DisplayName("a string result is returned as-is by the printer")
     void returnsStringResultDirectly() {
         final var printer = new UserKeyValuePrinter(functionReturning(STRING, 2, new DataString("printed")), tags());
         assertThat(printer.apply("key", "value")).isEqualTo("printed");
     }
 
     @Test
+    @DisplayName("a non-string result falls back to its toString representation")
     void fallsBackToToStringForNonStringResult() {
         final var printer = new UserKeyValuePrinter(functionReturning(STRING, 2, new DataInteger(7)), tags());
         assertThat(printer.apply("key", "value")).isEqualTo("7");

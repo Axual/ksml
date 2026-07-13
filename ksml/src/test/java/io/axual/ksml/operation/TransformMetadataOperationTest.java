@@ -24,6 +24,7 @@ import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.verify;
 class TransformMetadataOperationTest {
 
     @Test
+    @DisplayName("transform metadata on a stream returns a KStream and processes values with a fixed-key processor supplier")
     @SuppressWarnings("unchecked")
     void applyToStreamProcessesValues() {
         final KStream<Object, Object> stream = mock(KStream.class);

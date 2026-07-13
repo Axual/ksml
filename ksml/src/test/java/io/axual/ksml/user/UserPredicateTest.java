@@ -24,6 +24,7 @@ import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -36,18 +37,21 @@ class UserPredicateTest {
     private static final UserType BOOLEAN = new UserType(DataBoolean.DATATYPE);
 
     @Test
+    @DisplayName("the predicate is true when the function returns a true boolean")
     void returnsTrueWhenFunctionReturnsTrue() {
         final var predicate = new UserPredicate(functionReturning(BOOLEAN, 2, new DataBoolean(true)), tags());
         assertThat(predicate.test("key", "value")).isTrue();
     }
 
     @Test
+    @DisplayName("the predicate is false when the function returns a false boolean")
     void returnsFalseWhenFunctionReturnsFalse() {
         final var predicate = new UserPredicate(functionReturning(BOOLEAN, 2, new DataBoolean(false)), tags());
         assertThat(predicate.test("key", "value")).isFalse();
     }
 
     @Test
+    @DisplayName("a non-boolean function result throws an execution exception mentioning boolean")
     void failsWhenFunctionDoesNotReturnBoolean() {
         final var predicate = new UserPredicate(functionReturning(BOOLEAN, 2, new DataString("nope")), tags());
         assertThatThrownBy(() -> predicate.test("key", "value"))

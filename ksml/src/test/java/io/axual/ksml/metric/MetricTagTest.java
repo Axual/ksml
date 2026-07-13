@@ -20,6 +20,7 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,18 +29,21 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class MetricTagTest {
 
     @Test
+    @DisplayName("a null or blank tag key is rejected")
     void rejectsNullOrBlankKey() {
         assertThatThrownBy(() -> new MetricTag(null, "v")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new MetricTag(" ", "v")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
+    @DisplayName("a null or blank tag value is rejected")
     void rejectsNullOrBlankValue() {
         assertThatThrownBy(() -> new MetricTag("k", null)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new MetricTag("k", " ")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
+    @DisplayName("toString renders the tag as key=value")
     void toStringRendersKeyValue() {
         assertThat(new MetricTag("app", "ksml")).hasToString("app=ksml");
     }

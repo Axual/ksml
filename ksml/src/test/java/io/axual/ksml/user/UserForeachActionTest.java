@@ -22,6 +22,7 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.store.StateStores;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserForeachActionTest {
 
     @Test
+    @DisplayName("apply invokes the underlying function call for the key and value")
     void appliesActionInvokesUnderlyingCall() {
         // A forEach action must not declare a result type.
         final var invoked = new AtomicBoolean(false);

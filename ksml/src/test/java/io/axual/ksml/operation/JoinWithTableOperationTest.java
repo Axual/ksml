@@ -30,6 +30,7 @@ import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.TableJoined;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
@@ -51,6 +52,7 @@ import static org.mockito.Mockito.verify;
 class JoinWithTableOperationTest {
 
     @Test
+    @DisplayName("joining a stream with a table delegates to KStream.join and returns a stream")
     @SuppressWarnings("unchecked")
     void applyToStreamReturnsStream() {
         final KStream<Object, Object> stream = mock(KStream.class);
@@ -63,6 +65,7 @@ class JoinWithTableOperationTest {
     }
 
     @Test
+    @DisplayName("foreign-key joining two tables without a store uses the unmaterialized join overload")
     @SuppressWarnings("unchecked")
     void applyToTableReturnsTable() {
         final KTable<Object, Object> table = mock(KTable.class);
@@ -76,6 +79,7 @@ class JoinWithTableOperationTest {
     }
 
     @Test
+    @DisplayName("foreign-key joining two tables with a store and partitioners uses the materialized join overload")
     @SuppressWarnings("unchecked")
     void applyToTableWithStoreAndPartitioners() {
         final KTable<Object, Object> table = mock(KTable.class);
@@ -90,6 +94,7 @@ class JoinWithTableOperationTest {
     }
 
     @Test
+    @DisplayName("joining two tables without a foreign key uses the primary-key named-and-materialized join overload")
     @SuppressWarnings("unchecked")
     void applyToTableWithoutForeignKeyUsesPrimaryKeyJoin() {
         final KTable<Object, Object> table = mock(KTable.class);

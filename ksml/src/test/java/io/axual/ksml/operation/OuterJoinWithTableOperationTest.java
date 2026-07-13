@@ -24,6 +24,7 @@ import io.axual.ksml.stream.KTableWrapper;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueJoiner;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.verify;
 class OuterJoinWithTableOperationTest {
 
     @Test
+    @DisplayName("outer join with a table produces a KTable result using the table outerJoin")
     @SuppressWarnings("unchecked")
     void applyToTableReturnsTable() {
         final KTable<Object, Object> table = mock(KTable.class);

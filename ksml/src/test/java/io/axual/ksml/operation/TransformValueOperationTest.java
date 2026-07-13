@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
@@ -40,16 +41,19 @@ class TransformValueOperationTest {
     }
 
     @Test
+    @DisplayName("transform value on a stream produces a KStream result")
     void applyToStreamReturnsStream() {
         assertThat(operation().apply(kStream(), mockContext())).isInstanceOf(KStreamWrapper.class);
     }
 
     @Test
+    @DisplayName("transform value on a table produces a KTable result")
     void applyToTableReturnsTable() {
         assertThat(operation().apply(kTable(), mockContext())).isInstanceOf(KTableWrapper.class);
     }
 
     @Test
+    @DisplayName("transform value on a table with a configured store materializes that store")
     void applyToTableWithStoreMaterializes() {
         final var store = keyValueStore("store");
         final var operation = new TransformValueOperation(storeConfig("mapValues", store), valueTransformer());

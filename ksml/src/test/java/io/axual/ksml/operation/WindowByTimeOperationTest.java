@@ -24,6 +24,7 @@ import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -45,18 +46,21 @@ class WindowByTimeOperationTest {
     }
 
     @Test
+    @DisplayName("windowing a grouped stream by time windows produces a time-windowed stream")
     void applyTimeWindowsToGroupedStreamReturnsTimeWindowed() {
         final var operation = new WindowByTimeOperation(operationConfig("windowByTime"), timeWindows());
         assertThat(operation.apply(groupedStream(), mockContext())).isInstanceOf(TimeWindowedKStreamWrapper.class);
     }
 
     @Test
+    @DisplayName("windowing a grouped stream by sliding windows produces a time-windowed stream")
     void applySlidingWindowsToGroupedStreamReturnsTimeWindowed() {
         final var operation = new WindowByTimeOperation(operationConfig("windowByTime"), slidingWindows());
         assertThat(operation.apply(groupedStream(), mockContext())).isInstanceOf(TimeWindowedKStreamWrapper.class);
     }
 
     @Test
+    @DisplayName("windowing a cogrouped stream by time windows produces a time-windowed cogrouped stream")
     void applyTimeWindowsToCogroupedStreamReturnsTimeWindowedCogrouped() {
         final var operation = new WindowByTimeOperation(operationConfig("windowByTime"), timeWindows());
         assertThat(operation.apply(cogroupedStream(), mockContext())).isInstanceOf(TimeWindowedCogroupedKStreamWrapper.class);

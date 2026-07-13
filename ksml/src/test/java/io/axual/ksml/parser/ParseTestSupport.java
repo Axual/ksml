@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,23 +20,18 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataString;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.axual.ksml.generator.YAMLObjectMapper;
 
-import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
-import static io.axual.ksml.user.UserTestSupport.functionReturning;
-import static io.axual.ksml.user.UserTestSupport.tags;
-import static org.assertj.core.api.Assertions.assertThat;
+/**
+ * Canonical YAML-to-{@link ParseNode} conversion shared across parser test helpers.
+ */
+public final class ParseTestSupport {
 
-class UserReducerTest {
+    private ParseTestSupport() {
+    }
 
-    @Test
-    @DisplayName("reducing two values returns the function result")
-    void appliesReducerAndReturnsResult() {
-        final var result = new DataString("reduced");
-        final var reducer = new UserReducer(functionReturning(UNKNOWN, 2, result), tags());
-
-        assertThat(reducer.apply("a", "b")).isEqualTo(result);
+    public static ParseNode nodeOf(String yaml) throws Exception {
+        return ParseNode.fromRoot(YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class), "test");
     }
 }

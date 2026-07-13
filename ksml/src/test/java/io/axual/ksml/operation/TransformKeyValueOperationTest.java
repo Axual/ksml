@@ -24,6 +24,7 @@ import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.processor.api.ProcessorSupplier;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.verify;
 class TransformKeyValueOperationTest {
 
     @Test
+    @DisplayName("transform key-value on a stream returns a KStream and processes records via a processor supplier")
     @SuppressWarnings("unchecked")
     void applyToStreamProcessesRecords() {
         final KStream<Object, Object> stream = mock(KStream.class);

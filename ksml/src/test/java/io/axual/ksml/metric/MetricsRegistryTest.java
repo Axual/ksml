@@ -21,6 +21,7 @@ package io.axual.ksml.metric;
  */
 
 import io.axual.ksml.exception.MetricRegistrationException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -38,6 +39,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("a registered counter can be retrieved")
     void registersAndRetrievesCounter() {
         final var metricName = name("counter");
         final var counter = registry.registerCounter(metricName);
@@ -45,6 +47,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("a registered meter can be retrieved")
     void registersAndRetrievesMeter() {
         final var metricName = name("meter");
         final var meter = registry.registerMeter(metricName);
@@ -52,6 +55,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("a registered timer can be retrieved")
     void registersAndRetrievesTimer() {
         final var metricName = name("timer");
         final var timer = registry.registerTimer(metricName);
@@ -59,6 +63,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("a registered histogram can be retrieved")
     void registersAndRetrievesHistogram() {
         final var metricName = name("histogram");
         final var histogram = registry.registerHistogram(metricName);
@@ -66,6 +71,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("a gauge registered from a supplier exposes the supplied value")
     void registersGaugeFromSupplier() {
         final var metricName = name("gauge");
         registry.registerGauge(metricName, () -> "gaugeValue");
@@ -73,6 +79,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("a gauge registered from a double supplier exposes the supplied value")
     void registersGaugeFromDoubleSupplier() {
         final var metricName = name("doubleGauge");
         registry.registerGauge(metricName, () -> 3.14d);
@@ -80,6 +87,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("registering the same metric twice fails")
     void registeringSameMetricTwiceFails() {
         final var metricName = name("dup");
         registry.registerCounter(metricName);
@@ -89,11 +97,13 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("getting an unknown metric returns null")
     void getReturnsNullForUnknownMetric() {
         assertThat(registry.getCounter(name("missing"))).isNull();
     }
 
     @Test
+    @DisplayName("getting a metric with the wrong type fails")
     void getWithWrongTypeFails() {
         final var metricName = name("typed");
         registry.registerCounter(metricName);
@@ -103,6 +113,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("remove deletes a single metric")
     void removeDeletesMetric() {
         final var metricName = name("removable");
         registry.registerCounter(metricName);
@@ -111,6 +122,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("removeAll clears every registered metric")
     void removeAllClearsMetrics() {
         registry.registerCounter(name("a"));
         registry.registerMeter(name("b"));
@@ -120,6 +132,7 @@ class MetricsRegistryTest {
     }
 
     @Test
+    @DisplayName("enabling and disabling JMX does not throw")
     void enableAndDisableJmx() {
         assertThatCode(() -> {
             registry.enableJmx("io.axual.ksml.test", List.of(new MetricTag("app", "test")));

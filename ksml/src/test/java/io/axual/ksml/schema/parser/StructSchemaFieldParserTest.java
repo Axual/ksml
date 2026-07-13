@@ -22,6 +22,7 @@ package io.axual.ksml.schema.parser;
 
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.schema.parser.SchemaParserTestSupport.nodeOf;
@@ -32,6 +33,7 @@ class StructSchemaFieldParserTest {
     private final StructSchemaFieldParser parser = new StructSchemaFieldParser();
 
     @Test
+    @DisplayName("a field with only name and type defaults to required")
     void parsesMinimalFieldAsRequired() throws Exception {
         final var field = parser.parse(nodeOf("""
                 name: id
@@ -42,6 +44,7 @@ class StructSchemaFieldParserTest {
     }
 
     @Test
+    @DisplayName("an explicit required:false flag makes the field not required")
     void honoursExplicitRequiredFlag() throws Exception {
         final var field = parser.parse(nodeOf("""
                 name: id
@@ -52,6 +55,7 @@ class StructSchemaFieldParserTest {
     }
 
     @Test
+    @DisplayName("parses the constant flag, tag and default value of a field")
     void parsesConstantTagDefaultAndOrder() throws Exception {
         final var field = parser.parse(nodeOf("""
                 name: id
@@ -68,6 +72,7 @@ class StructSchemaFieldParserTest {
     }
 
     @Test
+    @DisplayName("a union type without null keeps the field required")
     void unionWithoutNullStaysRequired() throws Exception {
         final var field = parser.parse(nodeOf("""
                 name: id
@@ -80,6 +85,7 @@ class StructSchemaFieldParserTest {
     }
 
     @Test
+    @DisplayName("a union type containing null becomes not required and drops the null member")
     void optionalUnionWithNullBecomesNotRequiredAndStripsNull() throws Exception {
         final var field = parser.parse(nodeOf("""
                 name: id

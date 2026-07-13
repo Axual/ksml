@@ -23,6 +23,7 @@ package io.axual.ksml.proxy.store;
 import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -56,6 +57,7 @@ class VersionedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("get by key exposes the versioned record as a dict")
     void getByKeyConvertsResult() {
         stubRecord();
         when(delegate.get("key")).thenReturn(versionedRecord);
@@ -64,6 +66,7 @@ class VersionedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("get by key and timestamp exposes the versioned record as a dict")
     void getByKeyAndTimestampConvertsResult() {
         stubRecord();
         when(delegate.get("key", 50L)).thenReturn(versionedRecord);
@@ -72,6 +75,7 @@ class VersionedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("delete exposes the removed versioned record as a dict")
     void deleteConvertsResult() {
         stubRecord();
         when(delegate.delete("key", 50L)).thenReturn(versionedRecord);
@@ -80,6 +84,7 @@ class VersionedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("put forwards the key, value and timestamp to the delegate")
     void putForwardsToDelegate() {
         proxy().put("key", "value", 100L);
         verify(delegate).put(eq("key"), any(), eq(100L));

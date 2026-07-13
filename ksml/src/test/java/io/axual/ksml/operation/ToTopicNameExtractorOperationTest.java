@@ -24,6 +24,7 @@ import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.verify;
 class ToTopicNameExtractorOperationTest {
 
     @Test
+    @DisplayName("toTopicNameExtractor is a terminal operation that writes to the extracted topic and returns null")
     @SuppressWarnings("unchecked")
     void applyIsTerminalAndReturnsNull() {
         final KStream<Object, Object> stream = mock(KStream.class);

@@ -29,6 +29,7 @@ import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExce
 import org.apache.kafka.streams.processor.api.Record;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -73,6 +74,7 @@ class ExecutionErrorHandlerTest {
     }
 
     @Test
+    @DisplayName("deserialization handling is delegated to the shared error handling")
     void delegatesDeserializationHandling() {
         final var rec = new ConsumerRecord<>("topic", 0, 0L, "k".getBytes(), "v".getBytes());
         assertThat(handler.handle(context, rec, new RuntimeException("boom")))
@@ -80,12 +82,14 @@ class ExecutionErrorHandlerTest {
     }
 
     @Test
+    @DisplayName("processing handling is delegated to the shared error handling")
     void delegatesProcessingHandling() {
         assertThat(handler.handle(context, new Record<>("k", "v", 0L), new RuntimeException("boom")))
                 .isEqualTo(ProcessingHandlerResponse.FAIL);
     }
 
     @Test
+    @DisplayName("production handling is delegated to the shared error handling")
     void delegatesProductionHandling() {
         final var rec = new ProducerRecord<>("topic", "k".getBytes(), "v".getBytes());
         assertThat(handler.handle(context, rec, new RuntimeException("boom")))
@@ -93,6 +97,7 @@ class ExecutionErrorHandlerTest {
     }
 
     @Test
+    @DisplayName("configure is a no-op and does not throw")
     void configureIsANoOp() {
         assertThatCode(() -> handler.configure(java.util.Map.of())).doesNotThrowAnyException();
     }

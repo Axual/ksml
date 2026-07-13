@@ -24,6 +24,7 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.exception.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -51,11 +52,13 @@ class SchemaLibraryTest {
     }
 
     @Test
+    @DisplayName("getSchema by name returns null for an unknown schema when null is allowed")
     void getSchemaByNameReturnsNullWhenUnknownAndNullAllowed() {
         assertThat(library.getSchema("unknown", true)).isNull();
     }
 
     @Test
+    @DisplayName("getSchema by name throws for an unknown schema when null is not allowed")
     void getSchemaByNameThrowsWhenUnknownAndNullNotAllowed() {
         assertThatThrownBy(() -> library.getSchema("unknown", false))
                 .isInstanceOf(ExecutionException.class)
@@ -63,6 +66,7 @@ class SchemaLibraryTest {
     }
 
     @Test
+    @DisplayName("getSchema by notation returns null when the notation has no schema parser")
     void getSchemaByNotationReturnsNullWhenNoParser() {
         when(notation.name()).thenReturn("avro");
         when(notation.schemaParser()).thenReturn(null);
@@ -70,6 +74,7 @@ class SchemaLibraryTest {
     }
 
     @Test
+    @DisplayName("getOrFetchRemoteSchema caches the result so the remote is fetched only once")
     void getOrFetchRemoteSchemaCachesResult() {
         when(notation.name()).thenReturn("avro");
         when(notation.fetchRemoteSchema("topic", false)).thenReturn(remoteSchema);

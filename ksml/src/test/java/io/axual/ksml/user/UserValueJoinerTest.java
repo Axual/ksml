@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataString;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.UNKNOWN;
@@ -35,12 +36,14 @@ class UserValueJoinerTest {
     }
 
     @Test
+    @DisplayName("joining two values returns the function result")
     void joinsTwoValues() {
         final var result = new DataString("joined");
         assertThat(joiner(result).apply("v1", "v2")).isEqualTo(result);
     }
 
     @Test
+    @DisplayName("joining two values with a key returns the function result")
     void joinsWithKey() {
         final var result = new DataString("joined");
         assertThat(joiner(result).apply("key", "v1", "v2")).isEqualTo(result);

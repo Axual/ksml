@@ -25,6 +25,7 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -42,12 +43,14 @@ class UserStreamPartitionerTest {
     }
 
     @Test
+    @DisplayName("an integer result maps to a set with that single partition")
     void returnsSinglePartition() {
         assertThat(partitioner(new DataInteger(2)).partitions("topic", "key", "value", 8))
                 .contains(Set.of(2));
     }
 
     @Test
+    @DisplayName("a list result maps to a set containing all listed partitions")
     void returnsSetOfPartitions() {
         final var list = new DataList(DataInteger.DATATYPE);
         list.add(new DataInteger(1));
@@ -58,6 +61,7 @@ class UserStreamPartitionerTest {
     }
 
     @Test
+    @DisplayName("a result that is neither integer nor list yields no partitions")
     void returnsEmptyWhenResultIsNeitherIntegerNorList() {
         assertThat(partitioner(new DataString("nonsense")).partitions("topic", "key", "value", 8))
                 .isEmpty();

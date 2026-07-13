@@ -34,6 +34,7 @@ import io.axual.ksml.operation.OuterJoinWithStreamOperation;
 import io.axual.ksml.operation.OuterJoinWithTableOperation;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -114,6 +115,7 @@ class JoinOperationParsersTest {
     }
 
     @ParameterizedTest(name = "parses {0} join")
+    @DisplayName("each join parser variant parses its YAML into the expected join operation type")
     @MethodSource("joinCases")
     void parsesJoin(String description,
                     Function<TopologyResources, OperationParser<BaseOperation>> parserFactory,
@@ -124,6 +126,7 @@ class JoinOperationParsersTest {
     }
 
     @Test
+    @DisplayName("inner, left and outer join parsers return null for a null node")
     void joinParsersReturnNullForNullNode() {
         assertThat(new JoinOperationParser(resources).parser().parse(null)).isNull();
         assertThat(new LeftJoinOperationParser(resources).parser().parse(null)).isNull();

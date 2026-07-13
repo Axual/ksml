@@ -23,6 +23,7 @@ package io.axual.ksml.proxy.store;
 import io.axual.ksml.python.PythonDict;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -44,12 +45,14 @@ class KeyValueIteratorProxyTest {
     }
 
     @Test
+    @DisplayName("hasNext delegates to the wrapped iterator")
     void hasNextDelegates() {
         when(iterator.hasNext()).thenReturn(true);
         assertThat(proxy().hasNext()).isTrue();
     }
 
     @Test
+    @DisplayName("next converts the iterator entry into a Python dict")
     void nextConvertsEntryToDict() {
         when(iterator.hasNext()).thenReturn(true);
         when(iterator.next()).thenReturn(new KeyValue<>("key", "value"));
@@ -57,12 +60,14 @@ class KeyValueIteratorProxyTest {
     }
 
     @Test
+    @DisplayName("next returns null when the iterator has no more entries")
     void nextReturnsNullWhenExhausted() {
         when(iterator.hasNext()).thenReturn(false);
         assertThat(proxy().next()).isNull();
     }
 
     @Test
+    @DisplayName("close is idempotent and only closes the wrapped iterator once")
     void closeIsIdempotent() {
         final var proxy = proxy();
         proxy.close();

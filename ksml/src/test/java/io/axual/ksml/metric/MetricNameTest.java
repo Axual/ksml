@@ -20,6 +20,7 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,17 +29,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class MetricNameTest {
 
     @Test
+    @DisplayName("a null or blank metric name is rejected")
     void rejectsNullOrBlankName() {
         assertThatThrownBy(() -> new MetricName(null)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new MetricName("  ")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
+    @DisplayName("toString omits the tag separator when there are no tags")
     void toStringWithoutTagsOmitsSeparator() {
         assertThat(new MetricName("latency")).hasToString("name=latency");
     }
 
     @Test
+    @DisplayName("toString appends tags after the metric name")
     void toStringWithTagsAppendsThem() {
         final var tags = new MetricTags().append("app", "ksml");
         assertThat(new MetricName("latency", tags)).hasToString("name=latency,app=ksml");

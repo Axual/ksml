@@ -23,6 +23,7 @@ package io.axual.ksml.operation.processor;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +44,7 @@ class TransformKeyValueProcessorTest {
     private ProcessorContext<Object, Object> context;
 
     @Test
+    @DisplayName("forwards a record carrying the transformed key and value")
     void forwardsTransformedKeyValue() {
         final var processor = new TransformKeyValueProcessor("map", (stores, rec) -> new KeyValue<>("k2", "v2"), NO_STORES);
         processor.init(context);
@@ -56,6 +58,7 @@ class TransformKeyValueProcessorTest {
     }
 
     @Test
+    @DisplayName("does not forward anything when the transform returns null")
     void doesNotForwardWhenResultIsNull() {
         final var processor = new TransformKeyValueProcessor("map", (stores, rec) -> null, NO_STORES);
         processor.init(context);

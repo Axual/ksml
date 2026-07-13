@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
@@ -33,12 +34,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class BaseOperationTest {
 
     @Test
+    @DisplayName("a valid operation name appears in the toString() output")
     void acceptsValidNameInToString() {
         final var operation = new CountOperation(storeConfig("validName"));
         assertThat(operation).asString().contains("validName");
     }
 
     @Test
+    @DisplayName("an invalid operation name raises IllegalArgumentException")
     void rejectsInvalidName() {
         // An invalid name fails Kafka's Named validation, after which BaseOperation nulls the name,
         // appending a null metric-tag value then fails, surfacing the invalid configuration.

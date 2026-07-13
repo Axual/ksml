@@ -25,6 +25,7 @@ import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -36,6 +37,7 @@ class UserKeyValueTransformerTest {
     private static final UserType TUPLE = new UserType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN));
 
     @Test
+    @DisplayName("a returned tuple is split into the new key and value")
     void transformsIntoKeyValue() {
         final var result = new DataTuple(new DataString("newKey"), new DataString("newValue"));
         final var transformer = new UserKeyValueTransformer(functionReturning(TUPLE, 2, result), tags());

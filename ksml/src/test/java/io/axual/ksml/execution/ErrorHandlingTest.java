@@ -31,6 +31,7 @@ import org.apache.kafka.streams.errors.StreamsException;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse;
 import org.apache.kafka.streams.processor.api.Record;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -72,12 +73,14 @@ class ErrorHandlingTest {
     // --- payload conversion ----------------------------------------------------------------------
 
     @Test
+    @DisplayName("bytesToString renders null as a placeholder and bytes as base64")
     void bytesToStringHandlesNullAndValue() {
         assertThat(errorHandling.bytesToString(null)).isEqualTo("<NULL>");
         assertThat(errorHandling.bytesToString("data".getBytes())).startsWith("(base64)");
     }
 
     @Test
+    @DisplayName("objectToString renders null as a placeholder and prefixes the value type")
     void objectToStringHandlesNullAndValue() {
         assertThat(errorHandling.objectToString(null)).isEqualTo("<NULL>");
         assertThat(errorHandling.objectToString("data")).isEqualTo("(string)data");
@@ -86,6 +89,7 @@ class ErrorHandlingTest {
     // --- deserialization -------------------------------------------------------------------------
 
     @Test
+    @DisplayName("a continue-on-fail consume handler with payload logging returns CONTINUE")
     void deserializationContinueOnFailWithPayloadLogging() {
         errorHandling.setConsumeHandler(handler(true, true, CONTINUE_ON_FAIL));
         assertThat(errorHandling.handle(context, consumerRecord(), new RuntimeException("boom")))
@@ -93,6 +97,7 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("a stop-on-fail consume handler without payload logging returns FAIL")
     void deserializationStopOnFailWithoutPayloadLogging() {
         errorHandling.setConsumeHandler(handler(true, false, STOP_ON_FAIL));
         assertThat(errorHandling.handle(context, consumerRecord(), new RuntimeException("boom")))
@@ -100,6 +105,7 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("retry-on-fail is unsupported for deserialization handling")
     void deserializationRetryIsUnsupported() {
         errorHandling.setConsumeHandler(handler(false, false, RETRY_ON_FAIL));
         final var rec = consumerRecord();
@@ -111,6 +117,7 @@ class ErrorHandlingTest {
     // --- processing ------------------------------------------------------------------------------
 
     @Test
+    @DisplayName("a continue-on-fail process handler returns CONTINUE")
     void processingContinueOnFail() {
         errorHandling.setProcessHandler(handler(true, true, CONTINUE_ON_FAIL));
         assertThat(errorHandling.handle(context, new Record<>("key", "value", 0L), new RuntimeException("boom")))
@@ -118,6 +125,7 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("a stop-on-fail process handler returns FAIL")
     void processingStopOnFail() {
         errorHandling.setProcessHandler(handler(false, false, STOP_ON_FAIL));
         assertThat(errorHandling.handle(context, new Record<>("key", "value", 0L), new RuntimeException("boom")))
@@ -125,6 +133,7 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("retry-on-fail is unsupported for processing handling")
     void processingRetryIsUnsupported() {
         errorHandling.setProcessHandler(handler(false, false, RETRY_ON_FAIL));
         final var rec = new Record<>("key", "value", 0L);
@@ -136,6 +145,7 @@ class ErrorHandlingTest {
     // --- production ------------------------------------------------------------------------------
 
     @Test
+    @DisplayName("a continue-on-fail produce handler returns CONTINUE")
     void productionContinueOnFail() {
         errorHandling.setProduceHandler(handler(true, true, CONTINUE_ON_FAIL));
         assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")))
@@ -143,6 +153,7 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("a stop-on-fail produce handler returns FAIL")
     void productionStopOnFail() {
         errorHandling.setProduceHandler(handler(false, false, STOP_ON_FAIL));
         assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")))
@@ -150,6 +161,7 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("a retry-on-fail produce handler returns RETRY")
     void productionRetryOnFail() {
         errorHandling.setProduceHandler(handler(true, true, RETRY_ON_FAIL));
         assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")))
@@ -159,6 +171,7 @@ class ErrorHandlingTest {
     // --- uncaught exceptions ---------------------------------------------------------------------
 
     @Test
+    @DisplayName("an uncaught topic authorization exception shuts down the client")
     void uncaughtTopicAuthorizationExceptionShutsDownClient() {
         final var cause = new TopicAuthorizationException(Set.of("secure-topic"));
         assertThat(errorHandling.uncaughtException(new StreamsException(cause)))
@@ -166,6 +179,7 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("an uncaught non-streams exception shuts down the client")
     void uncaughtNonStreamsExceptionShutsDownClient() {
         errorHandling.setProcessHandler(handler(true, true, STOP_ON_FAIL));
         assertThat(errorHandling.uncaughtException(new RuntimeException("boom")))

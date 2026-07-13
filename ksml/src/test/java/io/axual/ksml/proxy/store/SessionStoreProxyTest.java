@@ -28,6 +28,7 @@ import org.apache.kafka.streams.kstream.internals.SessionWindow;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.SessionStore;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -76,6 +77,7 @@ class SessionStoreProxyTest {
     }
 
     @ParameterizedTest(name = "{0} by key returns iterator proxy")
+    @DisplayName("single-key session lookups wrap the delegate result in a KeyValueIteratorProxy")
     @MethodSource("singleKeyOperations")
     void singleKeyOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any())).thenReturn(iterator);
@@ -86,6 +88,7 @@ class SessionStoreProxyTest {
     }
 
     @ParameterizedTest(name = "{0} by key range returns iterator proxy")
+    @DisplayName("key-range session lookups wrap the delegate result in a KeyValueIteratorProxy")
     @MethodSource("keyRangeOperations")
     void keyRangeOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), any())).thenReturn(iterator);
@@ -96,6 +99,7 @@ class SessionStoreProxyTest {
     }
 
     @Test
+    @DisplayName("fetchSession converts the delegate aggregate into a polyglot Value")
     void fetchSessionReturnsConvertedValue() {
         lenient().when(delegate.fetchSession("key", 0L, 10L)).thenReturn("aggregate");
         assertThat(proxy().fetchSession("key", 0L, 10L)).isInstanceOfSatisfying(Value.class,
@@ -108,6 +112,7 @@ class SessionStoreProxyTest {
     }
 
     @Test
+    @DisplayName("put keeps the windowed key session start and end bounds intact")
     void putPreservesWindowBounds() {
         proxy().put(windowedKey(), "aggregate");
         final ArgumentCaptor<Windowed<Object>> captor = ArgumentCaptor.captor();
@@ -118,12 +123,14 @@ class SessionStoreProxyTest {
     }
 
     @Test
+    @DisplayName("remove forwards the windowed key deletion to the delegate")
     void removeDeletesWindowedKey() {
         proxy().remove(windowedKey());
         verify(delegate).remove(any());
     }
 
     @Test
+    @DisplayName("put does nothing when the key is not a windowed key")
     void putIgnoresNonWindowedKey() {
         proxy().put("plainKey", "aggregate");
         verify(delegate, never()).put(any(), any());

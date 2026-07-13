@@ -24,6 +24,7 @@ import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.KTableWrapper;
 import org.apache.kafka.streams.kstream.Suppressed;
 import org.apache.kafka.streams.kstream.Windowed;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -46,18 +47,21 @@ class SuppressOperationTest {
     }
 
     @Test
+    @DisplayName("suppress until time limit on a table returns a KTable")
     void applyUntilTimeLimitToTableReturnsTable() {
         final var operation = SuppressOperation.create(operationConfig("suppress"), untilTimeLimit());
         assertThat(operation.apply(kTable(), mockContext())).isInstanceOf(KTableWrapper.class);
     }
 
     @Test
+    @DisplayName("suppress until window closes on a windowed-key table returns a KTable")
     void applyUntilWindowClosesToWindowedTableReturnsTable() {
         final var operation = SuppressOperation.createWindowed(operationConfig("suppress"), untilWindowCloses());
         assertThat(operation.apply(windowedKeyTable(), mockContext())).isInstanceOf(KTableWrapper.class);
     }
 
     @Test
+    @DisplayName("suppress until window closes on a non-windowed table throws a TopologyException")
     void applyUntilWindowClosesToNonWindowedTableFails() {
         final var operation = SuppressOperation.createWindowed(operationConfig("suppress"), untilWindowCloses());
         final var input = kTable();

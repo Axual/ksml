@@ -26,6 +26,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.apache.kafka.streams.processor.api.InternalFixedKeyRecordFactory;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -53,6 +54,7 @@ class PeekProcessorTest {
     }
 
     @Test
+    @DisplayName("peek runs the side-effect action and forwards the record unchanged")
     void invokesActionAndForwardsRecordUnchanged() {
         final var invoked = new AtomicBoolean(false);
         final var processor = new PeekProcessor("peek", (stores, rec) -> invoked.set(true), NO_STORES);
@@ -67,6 +69,7 @@ class PeekProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    @DisplayName("init resolves declared state stores and makes them available to the action")
     void initExposesStateStoreToAction() {
         final KeyValueStore<Object, Object> store = mock(KeyValueStore.class);
         when(context.getStateStore("store")).thenReturn(store);
@@ -82,6 +85,7 @@ class PeekProcessorTest {
     }
 
     @Test
+    @DisplayName("init throws an execution exception when a declared state store is missing")
     void initFailsWhenStateStoreIsMissing() {
         when(context.getStateStore("missing")).thenReturn(null);
         final var processor = new PeekProcessor("peek", (stores, rec) -> {

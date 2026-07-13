@@ -22,6 +22,7 @@ package io.axual.ksml.stream;
 
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.operation.StreamOperation;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,6 +44,7 @@ class StreamWrapperTest {
     }
 
     @Test
+    @DisplayName("the default apply implementation rejects an unsupported operation")
     void defaultApplyRejectsUnsupportedOperation() {
         final var wrapper = new BareStreamWrapper();
         final var operation = mock(StreamOperation.class);

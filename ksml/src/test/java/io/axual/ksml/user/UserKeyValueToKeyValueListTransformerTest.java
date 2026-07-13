@@ -29,6 +29,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.user.UserTestSupport.functionReturning;
@@ -45,6 +46,7 @@ class UserKeyValueToKeyValueListTransformerTest {
     }
 
     @Test
+    @DisplayName("a list of tuples is converted into the matching number of key-value pairs")
     void convertsListOfTuplesIntoKeyValues() {
         final var list = new DataList(DataType.UNKNOWN);
         list.add(new DataTuple(new DataString("k1"), new DataString("v1")));
@@ -54,11 +56,13 @@ class UserKeyValueToKeyValueListTransformerTest {
     }
 
     @Test
+    @DisplayName("a null function result yields an empty key-value list")
     void returnsEmptyListWhenFunctionReturnsNull() {
         assertThat(transformer(null).apply("key", "value")).isEmpty();
     }
 
     @Test
+    @DisplayName("a non-list function result throws an execution exception mentioning list")
     void failsWhenFunctionDoesNotReturnList() {
         final var transformer = transformer(new DataString("notAList"));
         assertThatThrownBy(() -> transformer.apply("key", "value"))

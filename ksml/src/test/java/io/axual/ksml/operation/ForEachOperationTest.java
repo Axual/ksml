@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.forEachAction;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.verify;
 class ForEachOperationTest {
 
     @Test
+    @DisplayName("forEach on a stream processes each value and terminates the pipeline")
     @SuppressWarnings("unchecked")
     void applyToStreamProcessesValuesAndReturnsNull() {
         final KStream<Object, Object> stream = mock(KStream.class);

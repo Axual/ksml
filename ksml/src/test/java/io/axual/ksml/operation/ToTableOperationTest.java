@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.KTableWrapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
@@ -33,12 +34,14 @@ import static org.mockito.Mockito.verify;
 class ToTableOperationTest {
 
     @Test
+    @DisplayName("toTable on a stream produces a KTable result")
     void applyToStreamReturnsTable() {
         final var operation = new ToTableOperation(storeConfig("toTable"));
         assertThat(operation.apply(kStream(), mockContext())).isInstanceOf(KTableWrapper.class);
     }
 
     @Test
+    @DisplayName("toTable on a stream with a configured store materializes that store")
     void applyToStreamWithStoreMaterializes() {
         final var store = keyValueStore("store");
         final var operation = new ToTableOperation(storeConfig("toTable", store));

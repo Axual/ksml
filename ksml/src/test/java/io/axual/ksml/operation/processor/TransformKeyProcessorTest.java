@@ -24,6 +24,7 @@ import io.axual.ksml.exception.ExecutionException;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +50,7 @@ class TransformKeyProcessorTest {
     private ProcessorContext<Object, Object> context;
 
     @Test
+    @DisplayName("forwards the record with the transformed key while keeping the value")
     void forwardsRecordWithTransformedKey() {
         final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> "newKey", NO_STORES);
         processor.init(context);
@@ -63,6 +65,7 @@ class TransformKeyProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    @DisplayName("init resolves declared state stores and makes them available to the action")
     void initExposesStateStoreToAction() {
         final KeyValueStore<Object, Object> store = mock(KeyValueStore.class);
         when(context.getStateStore("store")).thenReturn(store);
@@ -81,6 +84,7 @@ class TransformKeyProcessorTest {
     }
 
     @Test
+    @DisplayName("init throws an execution exception when a declared state store is missing")
     void initFailsWhenStateStoreIsMissing() {
         when(context.getStateStore("missing")).thenReturn(null);
         final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> rec.key(), new String[]{"missing"});
@@ -91,6 +95,7 @@ class TransformKeyProcessorTest {
     }
 
     @Test
+    @DisplayName("init does not look up any state store when none are declared")
     void initWithoutStoresDoesNotLookUpAnyStore() {
         final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> rec.key(), NO_STORES);
 
