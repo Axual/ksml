@@ -30,8 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.net.ServerSocket;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,16 +43,11 @@ class RestServerTest {
         GlobalState.INSTANCE.set(null, null);
     }
 
-    private static int freePort() throws Exception {
-        try (var socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        }
-    }
-
     @Test
     @DisplayName("initGlobalQuerier publishes the querier and host info to the shared GlobalState")
     void publishesQuerierToGlobalState() throws Exception {
-        final var hostInfo = new HostInfo("localhost", freePort());
+        // Port 0 lets the OS assign a free port at bind time, avoiding a flaky port grab.
+        final var hostInfo = new HostInfo("localhost", 0);
 
         try (var server = new RestServer(hostInfo)) {
             server.initGlobalQuerier(querier);
@@ -67,15 +60,14 @@ class RestServerTest {
     @Test
     @DisplayName("The server binds locally, serves its registered resources and shuts down cleanly")
     void servesRegisteredResources() throws Exception {
-        final var hostInfo = new HostInfo("localhost", freePort());
-
-        try (var server = new RestServer(hostInfo);
+        // Port 0 lets the OS assign a free port at bind time; the real port is read back via boundPort().
+        try (var server = new RestServer(new HostInfo("localhost", 0));
              var client = ClientBuilder.newClient()) {
             server.start();
 
             // No querier is registered, so the startup probe resource answers 500 - which still proves
             // the resource is wired up and the server is serving requests on its bound port.
-            final var status = client.target("http://localhost:" + hostInfo.port() + "/startup")
+            final var status = client.target("http://localhost:" + server.boundPort() + "/startup")
                     .request()
                     .get(Response.class)
                     .getStatus();

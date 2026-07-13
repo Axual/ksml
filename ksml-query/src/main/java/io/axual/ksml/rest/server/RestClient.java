@@ -49,26 +49,32 @@ public class RestClient implements AutoCloseable {
         }
         return client;
     }
+    /**
+     * Fetch a page of key-value entries from a remote instance over REST, using the default timeout.
+     *
+     * @param url remote key-value store endpoint URL
+     * @return the entries, or an empty set if the call fails or times out
+     */
     public KeyValueBeans getRemoteKeyValueBeans(String url) {
         return getRemoteKeyValueBeans(url, DEFAULT_TIMEOUT);
     }
 
     /**
-     * Fetch remote KeyValueBeans using REST call
+     * Fetch a page of windowed key-value entries from a remote instance over REST, using the default timeout.
      *
-     * @param url remote keyvalue endpoint URL
-     * @return the StoreData
+     * @param url remote windowed-store endpoint URL
+     * @return the windowed entries, or an empty set if the call fails or times out
      */
     public WindowedKeyValueBeans getRemoteWindowedKeyValueBeans(String url) {
         return getRemoteWindowKeyValueBeans(url, DEFAULT_TIMEOUT);
     }
 
     /**
-     * Fetch remote KeyValueBeans using REST call
+     * Fetch a page of key-value entries from a remote instance over REST.
      *
-     * @param url      remote keyvalue endpoint URL
-     * @param duration duration for which to wait for response before giving up
-     * @return the StoreData
+     * @param url      remote key-value store endpoint URL
+     * @param duration how long to wait for the response before giving up
+     * @return the entries, or an empty set if the call fails or times out
      */
     public KeyValueBeans getRemoteKeyValueBeans(String url, Duration duration) {
         try {
@@ -77,9 +83,11 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(KeyValueBeans.class);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (InterruptedException | ExecutionException _) {
+        } catch (InterruptedException _) {
             log.warn(INTERRUPTED_MESSAGE, url);
             Thread.currentThread().interrupt();
+        } catch (ExecutionException _) {
+            log.warn(FAILED_MESSAGE, url);
         } catch (TimeoutException _) {
             log.warn(TIMEOUT_MESSAGE, url);
         }
@@ -88,11 +96,11 @@ public class RestClient implements AutoCloseable {
     }
 
     /**
-     * Fetch remote KeyValueBeans using REST call
+     * Fetch a page of windowed key-value entries from a remote instance over REST.
      *
-     * @param url      remote keyvalue endpoint URL
-     * @param duration duration for which to wait for response before giving up
-     * @return the StoreData
+     * @param url      remote windowed-store endpoint URL
+     * @param duration how long to wait for the response before giving up
+     * @return the windowed entries, or an empty set if the call fails or times out
      */
     public WindowedKeyValueBeans getRemoteWindowKeyValueBeans(String url, Duration duration) {
         try {
@@ -101,9 +109,11 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(WindowedKeyValueBeans.class);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (InterruptedException | ExecutionException _) {
+        } catch (InterruptedException _) {
             log.warn(INTERRUPTED_MESSAGE, url);
             Thread.currentThread().interrupt();
+        } catch (ExecutionException _) {
+            log.warn(FAILED_MESSAGE, url);
         } catch (TimeoutException _) {
             log.warn(TIMEOUT_MESSAGE, url);
         }
@@ -111,21 +121,25 @@ public class RestClient implements AutoCloseable {
     }
 
     /**
-     * Fetch remote KeyValueBeans using REST call
+     * Fetch a single key-value entry from a remote instance over REST, using the default timeout.
      *
-     * @param url remote keyvalue endpoint URL
-     * @return the StoreData
+     * @param url         remote single-key endpoint URL
+     * @param resultClass the concrete bean type to deserialize into
+     * @return the fetched bean
+     * @throws ServiceUnavailableException if the remote call fails, times out or is interrupted
      */
     public <T extends KeyValueBean> T getRemoteKeyValueBean(String url, Class<T> resultClass) {
         return getRemoteKeyValueBean(url, resultClass, DEFAULT_TIMEOUT);
     }
 
     /**
-     * Fetch remote KeyValueBeans using REST call
+     * Fetch a single key-value entry from a remote instance over REST.
      *
-     * @param url      remote keyvalue endpoint URL
-     * @param duration duration for which to wait for response before giving up
-     * @return the StoreData
+     * @param url         remote single-key endpoint URL
+     * @param resultClass the concrete bean type to deserialize into
+     * @param duration    how long to wait for the response before giving up
+     * @return the fetched bean
+     * @throws ServiceUnavailableException if the remote call fails, times out or is interrupted
      */
     public <T extends KeyValueBean> T getRemoteKeyValueBean(String url, Class<T> resultClass, Duration duration) {
         try {

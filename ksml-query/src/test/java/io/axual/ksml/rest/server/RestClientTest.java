@@ -60,7 +60,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RestClientTest {
 
-    private static final String URL = "http://remote:9090/state/keyValue/store/local/all";
+    private static final String LIST_URL = "http://remote:9090/state/keyValue/store/local/all";
+    private static final String SINGLE_URL = "http://remote:9090/state/keyValue/store/local/get/k1";
 
     @Mock
     private Client client;
@@ -84,6 +85,7 @@ class RestClientTest {
     @AfterEach
     void tearDown() {
         clientBuilder.close();
+        Thread.interrupted(); // reset the flag so a test never leaks its interrupt state to the next one
     }
 
     /** Stubs the async REST chain so that {@code asyncInvoker.get(SomeClass.class)} returns the given future. */
@@ -101,7 +103,7 @@ class RestClientTest {
         final var future = mockFutureReturning(beans);
         stubChainReturning(future);
 
-        assertThat(restClient.getRemoteKeyValueBeans(URL)).isSameAs(beans);
+        assertThat(restClient.getRemoteKeyValueBeans(LIST_URL)).isSameAs(beans);
     }
 
     @Test
@@ -109,15 +111,16 @@ class RestClientTest {
     void keyValueBeansTimeout() throws Exception {
         stubChainReturning(mockFutureThrowing(new TimeoutException()));
 
-        assertThat(restClient.getRemoteKeyValueBeans(URL).elements()).isEmpty();
+        assertThat(restClient.getRemoteKeyValueBeans(LIST_URL).elements()).isEmpty();
     }
 
     @Test
-    @DisplayName("getRemoteKeyValueBeans returns empty beans when the call fails")
+    @DisplayName("getRemoteKeyValueBeans returns empty beans and leaves the interrupt flag unset when the call fails")
     void keyValueBeansExecutionError() throws Exception {
         stubChainReturning(mockFutureThrowing(new ExecutionException(new RuntimeException("boom"))));
 
-        assertThat(restClient.getRemoteKeyValueBeans(URL).elements()).isEmpty();
+        assertThat(restClient.getRemoteKeyValueBeans(LIST_URL).elements()).isEmpty();
+        assertThat(Thread.currentThread().isInterrupted()).isFalse();
     }
 
     @Test
@@ -125,10 +128,9 @@ class RestClientTest {
     void keyValueBeansInterrupted() throws Exception {
         stubChainReturning(mockFutureThrowing(new InterruptedException()));
 
-        restClient.getRemoteKeyValueBeans(URL);
+        restClient.getRemoteKeyValueBeans(LIST_URL);
 
         assertThat(Thread.currentThread().isInterrupted()).isTrue();
-        Thread.interrupted(); // clear for other tests
     }
 
     @Test
@@ -137,7 +139,7 @@ class RestClientTest {
         final var beans = new WindowedKeyValueBeans();
         stubChainReturning(mockFutureReturning(beans));
 
-        assertThat(restClient.getRemoteWindowedKeyValueBeans(URL)).isSameAs(beans);
+        assertThat(restClient.getRemoteWindowedKeyValueBeans(LIST_URL)).isSameAs(beans);
     }
 
     @Test
@@ -145,7 +147,16 @@ class RestClientTest {
     void windowedBeansTimeout() throws Exception {
         stubChainReturning(mockFutureThrowing(new TimeoutException()));
 
-        assertThat(restClient.getRemoteWindowedKeyValueBeans(URL).elements()).isEmpty();
+        assertThat(restClient.getRemoteWindowedKeyValueBeans(LIST_URL).elements()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getRemoteWindowedKeyValueBeans returns empty beans and leaves the interrupt flag unset when the call fails")
+    void windowedBeansExecutionError() throws Exception {
+        stubChainReturning(mockFutureThrowing(new ExecutionException(new RuntimeException("boom"))));
+
+        assertThat(restClient.getRemoteWindowedKeyValueBeans(LIST_URL).elements()).isEmpty();
+        assertThat(Thread.currentThread().isInterrupted()).isFalse();
     }
 
     @Test
@@ -153,10 +164,9 @@ class RestClientTest {
     void windowedBeansInterrupted() throws Exception {
         stubChainReturning(mockFutureThrowing(new InterruptedException()));
 
-        restClient.getRemoteWindowedKeyValueBeans(URL);
+        restClient.getRemoteWindowedKeyValueBeans(LIST_URL);
 
         assertThat(Thread.currentThread().isInterrupted()).isTrue();
-        Thread.interrupted(); // clear for other tests
     }
 
     @Test
@@ -165,7 +175,7 @@ class RestClientTest {
         final var bean = new KeyValueBean(new DataString("k"), new DataString("v"));
         stubChainReturning(mockFutureReturning(bean));
 
-        assertThat(restClient.getRemoteKeyValueBean(URL, KeyValueBean.class)).isSameAs(bean);
+        assertThat(restClient.getRemoteKeyValueBean(SINGLE_URL, KeyValueBean.class)).isSameAs(bean);
     }
 
     @Test
@@ -173,7 +183,7 @@ class RestClientTest {
     void singleBeanTimeout() throws Exception {
         stubChainReturning(mockFutureThrowing(new TimeoutException()));
 
-        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(URL, KeyValueBean.class))
+        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(SINGLE_URL, KeyValueBean.class))
                 .isInstanceOf(ServiceUnavailableException.class);
     }
 
@@ -182,7 +192,7 @@ class RestClientTest {
     void singleBeanExecutionError() throws Exception {
         stubChainReturning(mockFutureThrowing(new ExecutionException(new RuntimeException("boom"))));
 
-        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(URL, KeyValueBean.class))
+        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(SINGLE_URL, KeyValueBean.class))
                 .isInstanceOf(ServiceUnavailableException.class);
     }
 
@@ -191,17 +201,16 @@ class RestClientTest {
     void singleBeanInterrupted() throws Exception {
         stubChainReturning(mockFutureThrowing(new InterruptedException()));
 
-        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(URL, KeyValueBean.class))
+        assertThatThrownBy(() -> restClient.getRemoteKeyValueBean(SINGLE_URL, KeyValueBean.class))
                 .isInstanceOf(ServiceUnavailableException.class);
         assertThat(Thread.currentThread().isInterrupted()).isTrue();
-        Thread.interrupted(); // clear for other tests
     }
 
     @Test
     @DisplayName("close closes the underlying REST client once it has been created")
     void closeClosesClient() throws Exception {
         stubChainReturning(mockFutureReturning(new KeyValueBeans()));
-        restClient.getRemoteKeyValueBeans(URL); // forces lazy creation of the JAX-RS client
+        restClient.getRemoteKeyValueBeans(LIST_URL); // forces lazy creation of the JAX-RS client
 
         restClient.close();
 
