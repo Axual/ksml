@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.protobuf.confluent;
+package io.axual.ksml.data.notation.protobuf;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - PROTOBUF Confluent
+ * KSML Data Library - PROTOBUF
  * %%
  * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
@@ -26,19 +26,37 @@ import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.internal.parser.EnumElement;
 import com.squareup.wire.schema.internal.parser.MessageElement;
+import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import com.squareup.wire.schema.internal.parser.ProtoParser;
-import io.axual.ksml.data.notation.protobuf.ProtobufConstants;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ConfluentProtobufFileElementDescriptorMapperTest {
+/**
+ * Shared behavior for the per-vendor {@code ProtobufFileElementDescriptorMapper} tests.
+ *
+ * <p>The Apicurio and Confluent mappers convert between the same two representations
+ * ({@link ProtoFileElement} and protobuf {@link Descriptors.FileDescriptor}) and must behave
+ * identically for every case except how a {@code oneof} group is exposed on the built descriptor,
+ * which differs because Confluent goes through {@code DynamicSchema}. Subclasses supply the mapper
+ * via {@link #toDescriptor} / {@link #toFileElement} and the vendor-specific oneof assertion via
+ * {@link #assertOneOfBranches}.
+ */
+abstract class AbstractProtobufFileElementDescriptorMapperTest {
 
-    private static final String NS = "io.axual.ksml.test";
-    private final ConfluentProtobufFileElementDescriptorMapper mapper = new ConfluentProtobufFileElementDescriptorMapper();
+    protected static final String NS = "io.axual.ksml.test";
 
-    private static com.squareup.wire.schema.internal.parser.ProtoFileElement parseProto(String proto) {
+    /** Convert a parsed proto file to a protobuf FileDescriptor using the vendor mapper under test. */
+    protected abstract Descriptors.FileDescriptor toDescriptor(String namespace, String fileName, ProtoFileElement fileElement);
+
+    /** Convert a protobuf message descriptor back to a wire ProtoFileElement using the vendor mapper under test. */
+    protected abstract ProtoFileElement toFileElement(Descriptors.Descriptor descriptor);
+
+    /** Assert the branches of the {@code payload} oneof on a built descriptor (exposed differently per vendor). */
+    protected abstract void assertOneOfBranches(Descriptors.Descriptor msgDescriptor);
+
+    private static ProtoFileElement parseProto(String proto) {
         return ProtoParser.Companion.parse(Location.get(""), proto);
     }
 
@@ -56,7 +74,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 }
                 """);
 
-        final var fileDescriptor = mapper.toDescriptor(NS, "simple.proto", fileElement);
+        final var fileDescriptor = toDescriptor(NS, "simple.proto", fileElement);
 
         assertThat(fileDescriptor).isNotNull();
         final var msgDescriptor = fileDescriptor.findMessageTypeByName("Simple");
@@ -80,7 +98,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 }
                 """);
 
-        final var fileDescriptor = mapper.toDescriptor(NS, "with_enum.proto", fileElement);
+        final var fileDescriptor = toDescriptor(NS, "with_enum.proto", fileElement);
 
         assertThat(fileDescriptor).isNotNull();
         final var msgDescriptor = fileDescriptor.findMessageTypeByName("WithEnum");
@@ -94,7 +112,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
     }
 
     @Test
-    @DisplayName("Message with oneOf block produces FileDescriptor where oneOf fields are accessible by name")
+    @DisplayName("Message with oneOf block produces FileDescriptor with the expected oneOf branches")
     void toDescriptor_withOneOf_buildsFileDescriptorWithOneOf() {
         final var fileElement = parseProto("""
                 syntax = "proto3";
@@ -108,17 +126,12 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 }
                 """);
 
-        final var fileDescriptor = mapper.toDescriptor(NS, "with_oneof.proto", fileElement);
+        final var fileDescriptor = toDescriptor(NS, "with_oneof.proto", fileElement);
 
         assertThat(fileDescriptor).isNotNull();
         final var msgDescriptor = fileDescriptor.findMessageTypeByName("WithOneOf");
         assertThat(msgDescriptor).isNotNull();
-        // The oneOf group is registered; the Confluent DynamicSchema API links fields to oneOf differently from
-        // Apicurio, so check field accessibility by name rather than via the oneOf's field list.
-        assertThat(msgDescriptor.findFieldByName("text")).isNotNull();
-        assertThat(msgDescriptor.findFieldByName("text").getType()).isEqualTo(Descriptors.FieldDescriptor.Type.STRING);
-        assertThat(msgDescriptor.findFieldByName("count")).isNotNull();
-        assertThat(msgDescriptor.findFieldByName("count").getType()).isEqualTo(Descriptors.FieldDescriptor.Type.INT32);
+        assertOneOfBranches(msgDescriptor);
     }
 
     @Test
@@ -136,7 +149,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 }
                 """);
 
-        final var fileDescriptor = mapper.toDescriptor(NS, "nested.proto", fileElement);
+        final var fileDescriptor = toDescriptor(NS, "nested.proto", fileElement);
 
         assertThat(fileDescriptor).isNotNull();
         final var outerMsg = fileDescriptor.findMessageTypeByName("Outer");
@@ -162,7 +175,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 }
                 """);
 
-        final var fileDescriptor = mapper.toDescriptor(NS, "dedup.proto", fileElement);
+        final var fileDescriptor = toDescriptor(NS, "dedup.proto", fileElement);
 
         assertThat(fileDescriptor).isNotNull();
         assertThat(fileDescriptor.findMessageTypeByName("Inner")).isNotNull();
@@ -180,7 +193,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 }
                 """);
 
-        final var fileDescriptor = mapper.toDescriptor(NS, "list.proto", fileElement);
+        final var fileDescriptor = toDescriptor(NS, "list.proto", fileElement);
 
         assertThat(fileDescriptor).isNotNull();
         final var msgDescriptor = fileDescriptor.findMessageTypeByName("WithList");
@@ -198,12 +211,12 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
     void toFileElement_simpleDescriptor_producesCorrectProtoFileElement() throws Descriptors.DescriptorValidationException {
         final var msgDescriptor = buildSimpleMessageDescriptor();
 
-        final var fileElement = mapper.toFileElement(msgDescriptor);
+        final var fileElement = toFileElement(msgDescriptor);
 
         assertThat(fileElement).isNotNull();
         assertThat(fileElement.getPackageName()).isEqualTo(NS);
         final var msgTypes = fileElement.getTypes().stream()
-                .filter(t -> t instanceof MessageElement)
+                .filter(MessageElement.class::isInstance)
                 .map(t -> (MessageElement) t)
                 .toList();
         assertThat(msgTypes).hasSize(1);
@@ -222,11 +235,11 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
     void toFileElement_withEnum_producesProtoFileElementWithEnumType() throws Descriptors.DescriptorValidationException {
         final var msgDescriptor = buildDescriptorWithEnum();
 
-        final var fileElement = mapper.toFileElement(msgDescriptor);
+        final var fileElement = toFileElement(msgDescriptor);
 
         assertThat(fileElement).isNotNull();
         final var enumTypes = fileElement.getTypes().stream()
-                .filter(t -> t instanceof EnumElement)
+                .filter(EnumElement.class::isInstance)
                 .map(t -> (EnumElement) t)
                 .toList();
         assertThat(enumTypes).isNotEmpty();
@@ -240,11 +253,11 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
     void toFileElement_withOneOf_producesProtoFileElementWithOneOf() throws Descriptors.DescriptorValidationException {
         final var msgDescriptor = buildDescriptorWithOneOf();
 
-        final var fileElement = mapper.toFileElement(msgDescriptor);
+        final var fileElement = toFileElement(msgDescriptor);
 
         assertThat(fileElement).isNotNull();
         final var msgTypes = fileElement.getTypes().stream()
-                .filter(t -> t instanceof MessageElement)
+                .filter(MessageElement.class::isInstance)
                 .map(t -> (MessageElement) t)
                 .toList();
         assertThat(msgTypes).isNotEmpty();
@@ -260,11 +273,11 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
     void toFileElement_withNestedMessage_producesProtoFileElementWithBothMessageTypes() throws Descriptors.DescriptorValidationException {
         final var msgDescriptor = buildDescriptorWithNestedMessage();
 
-        final var fileElement = mapper.toFileElement(msgDescriptor);
+        final var fileElement = toFileElement(msgDescriptor);
 
         assertThat(fileElement).isNotNull();
         final var msgTypes = fileElement.getTypes().stream()
-                .filter(t -> t instanceof MessageElement)
+                .filter(MessageElement.class::isInstance)
                 .map(t -> (MessageElement) t)
                 .toList();
         final var names = msgTypes.stream().map(MessageElement::getName).toList();
@@ -286,7 +299,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 }
                 """);
 
-        final var fileDescriptor = mapper.toDescriptor(NS, "nested_enum.proto", fileElement);
+        final var fileDescriptor = toDescriptor(NS, "nested_enum.proto", fileElement);
 
         assertThat(fileDescriptor).isNotNull();
         final var msgDescriptor = fileDescriptor.findMessageTypeByName("WithNestedEnum");
@@ -303,7 +316,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
     void toFileElement_withNestedEnumInsideMessage_producesNestedEnumInMessage() throws Descriptors.DescriptorValidationException {
         final var msgDescriptor = buildDescriptorWithNestedEnum();
 
-        final var fileElement = mapper.toFileElement(msgDescriptor);
+        final var fileElement = toFileElement(msgDescriptor);
 
         assertThat(fileElement).isNotNull();
         final var withNestedEnum = fileElement.getTypes().stream()
@@ -311,7 +324,7 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
                 .map(t -> (MessageElement) t)
                 .findFirst().orElseThrow();
         final var nestedEnums = withNestedEnum.getNestedTypes().stream()
-                .filter(t -> t instanceof EnumElement)
+                .filter(EnumElement.class::isInstance)
                 .toList();
         assertThat(nestedEnums).hasSize(1);
         assertThat(nestedEnums.getFirst().getName()).isEqualTo("Status");
@@ -322,11 +335,11 @@ class ConfluentProtobufFileElementDescriptorMapperTest {
     void toFileElement_withRepeatedField_producesRepeatedLabelOnField() throws Descriptors.DescriptorValidationException {
         final var msgDescriptor = buildDescriptorWithRepeatedField();
 
-        final var fileElement = mapper.toFileElement(msgDescriptor);
+        final var fileElement = toFileElement(msgDescriptor);
 
         assertThat(fileElement).isNotNull();
         final var msgTypes = fileElement.getTypes().stream()
-                .filter(t -> t instanceof MessageElement)
+                .filter(MessageElement.class::isInstance)
                 .map(t -> (MessageElement) t)
                 .toList();
         assertThat(msgTypes).hasSize(1);

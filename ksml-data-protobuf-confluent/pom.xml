@@ -24,6 +24,13 @@
             <artifactId>ksml-data-protobuf</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-data-protobuf</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-protobuf-serializer</artifactId>
         </dependency>

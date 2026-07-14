@@ -280,8 +280,7 @@ class ProtobufFileElementSchemaMapperTest {
                 """);
 
         final var field = struct.field("status");
-        assertThat(field.defaultValue()).isNotNull();
-        assertThat(field.defaultValue().toString()).contains("active");
+        assertThat(field.defaultValue()).isEqualTo(new DataString("active"));
     }
 
     // ===== toDataSchema: error cases =====
@@ -455,8 +454,11 @@ class ProtobufFileElementSchemaMapperTest {
     // ===== fromDataSchema: MapSchema is silently dropped =====
 
     @Test
-    @DisplayName("MapSchema field is silently dropped from the output (proto does not support Avro-style maps via this path)")
+    @DisplayName("MapSchema field is dropped from the output (proto does not support Avro-style maps via this path)")
     void fromDataSchema_mapSchemaField_silentlyDropped() {
+        // Intended behavior: convertDataSchemaToProtoType returns null for a MapSchema, and
+        // convertStructSchemaToMessageElement skips fields with a null proto type. This test pins
+        // that contract so a future change to map handling is a conscious decision, not a surprise.
         final var struct = StructSchema.builder()
                 .namespace(NS).name("WithMap")
                 .field(new StructSchema.Field("kept", DataSchema.STRING_SCHEMA, "", 1))
