@@ -31,7 +31,7 @@ import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-class ToTableOperationTest {
+class ToTableOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("toTable on a stream produces a KTable result")

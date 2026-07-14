@@ -59,7 +59,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class AggregateOperationTest {
+class AggregateOperationTest extends OperationTestBase {
 
     private AggregateOperation operation() {
         return new AggregateOperation(storeConfig("aggregate"), initializer(), aggregator(), merger(), aggregator(), aggregator());

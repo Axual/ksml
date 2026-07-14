@@ -41,7 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class JoinWithGlobalTableOperationTest {
+class JoinWithGlobalTableOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("joining a stream with a global table delegates to KStream.join and returns a stream")

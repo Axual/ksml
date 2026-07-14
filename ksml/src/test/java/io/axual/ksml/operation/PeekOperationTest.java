@@ -36,7 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class PeekOperationTest {
+class PeekOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("peek on a stream returns a KStream and invokes processValues without altering records")

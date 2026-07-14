@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.verify;
 
-class AsOperationTest {
+class AsOperationTest extends OperationTestBase {
 
     private AsOperation operation() {
         return new AsOperation(operationConfig("as"), "myTarget");

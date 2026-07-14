@@ -52,7 +52,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class CountOperationTest {
+class CountOperationTest extends OperationTestBase {
 
     private CountOperation operation() {
         return new CountOperation(storeConfig("count"));

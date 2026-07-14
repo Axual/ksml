@@ -35,7 +35,7 @@ import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class WindowByTimeOperationTest {
+class WindowByTimeOperationTest extends OperationTestBase {
 
     private static TimeWindows timeWindows() {
         return TimeWindows.ofSizeWithNoGrace(Duration.ofSeconds(1));

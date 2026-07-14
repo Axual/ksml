@@ -34,7 +34,7 @@ import static io.axual.ksml.operation.OperationTestSupport.valueTransformer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-class TransformValueOperationTest {
+class TransformValueOperationTest extends OperationTestBase {
 
     private TransformValueOperation operation() {
         return new TransformValueOperation(storeConfig("mapValues"), valueTransformer());

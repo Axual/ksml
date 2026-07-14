@@ -38,7 +38,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class OuterJoinWithTableOperationTest {
+class OuterJoinWithTableOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("outer join with a table produces a KTable result using the table outerJoin")

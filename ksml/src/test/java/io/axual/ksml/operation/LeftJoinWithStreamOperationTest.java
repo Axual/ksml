@@ -41,7 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class LeftJoinWithStreamOperationTest {
+class LeftJoinWithStreamOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("left-joining two streams over a window delegates to KStream.leftJoin and returns a stream")

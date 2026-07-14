@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class ToTopicNameExtractorOperationTest {
+class ToTopicNameExtractorOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("toTopicNameExtractor is a terminal operation that writes to the extracted topic and returns null")

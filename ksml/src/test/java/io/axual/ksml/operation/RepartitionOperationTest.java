@@ -35,7 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class RepartitionOperationTest {
+class RepartitionOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("repartition on a stream returns a KStream and invokes repartition with the given partition count")

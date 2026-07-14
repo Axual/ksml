@@ -36,7 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class ForEachOperationTest {
+class ForEachOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("forEach on a stream processes each value and terminates the pipeline")

@@ -45,7 +45,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class GroupByOperationTest {
+class GroupByOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("groupBy on a stream produces a grouped stream")

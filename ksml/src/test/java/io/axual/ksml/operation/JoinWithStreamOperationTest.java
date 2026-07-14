@@ -42,7 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class JoinWithStreamOperationTest {
+class JoinWithStreamOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("joining two streams over a window delegates to KStream.join and returns a stream")

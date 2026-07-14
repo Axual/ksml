@@ -42,7 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class SuppressOperationTest {
+class SuppressOperationTest extends OperationTestBase {
 
     private static Suppressed<Object> untilTimeLimit() {
         return Suppressed.untilTimeLimit(Duration.ofMillis(10), Suppressed.BufferConfig.unbounded());

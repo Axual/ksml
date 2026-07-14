@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * does not support. {@link MergeOperation} only overrides the {@code KStreamWrapper} variant, so
  * every other input type falls through to the throwing default.
  */
-class StreamOperationTest {
+class StreamOperationTest extends OperationTestBase {
 
     private final MergeOperation operation = new MergeOperation(operationConfig("merge"), streamDefinition());
 

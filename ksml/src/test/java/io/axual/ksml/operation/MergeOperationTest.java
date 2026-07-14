@@ -36,7 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class MergeOperationTest {
+class MergeOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("merge on a stream delegates to KStream.merge with the other stream and returns a stream")

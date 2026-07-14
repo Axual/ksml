@@ -41,7 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class OuterJoinWithStreamOperationTest {
+class OuterJoinWithStreamOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("outer join with a stream produces a KStream result using a JoinWindows-based outerJoin")

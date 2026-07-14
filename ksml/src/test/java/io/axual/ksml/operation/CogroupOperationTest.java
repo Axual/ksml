@@ -42,7 +42,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CogroupOperationTest {
+class CogroupOperationTest extends OperationTestBase {
 
     private CogroupOperation operation() {
         return new CogroupOperation(operationConfig("cogroup"), aggregator());

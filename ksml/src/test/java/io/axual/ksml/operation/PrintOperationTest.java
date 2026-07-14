@@ -29,7 +29,7 @@ import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PrintOperationTest {
+class PrintOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("print with a key-value mapper is a terminal operation and returns null")

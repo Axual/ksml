@@ -34,7 +34,7 @@ import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class WindowBySessionOperationTest {
+class WindowBySessionOperationTest extends OperationTestBase {
 
     private static SessionWindows sessionWindows() {
         return SessionWindows.ofInactivityGapWithNoGrace(Duration.ofSeconds(1));

@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ToStreamOperationTest {
+class ToStreamOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("toStream with a key-value mapper converts a table to a KStream using the mapper")

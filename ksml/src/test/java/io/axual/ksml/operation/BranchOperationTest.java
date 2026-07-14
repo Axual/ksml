@@ -45,7 +45,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class BranchOperationTest {
+class BranchOperationTest extends OperationTestBase {
 
     @SuppressWarnings("unchecked")
     private static KStreamWrapper splittableStream(BranchedKStream<Object, Object> branched) {

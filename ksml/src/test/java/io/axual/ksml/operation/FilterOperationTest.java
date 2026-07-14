@@ -45,7 +45,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-class FilterOperationTest {
+class FilterOperationTest extends OperationTestBase {
 
     private FilterOperation operation() {
         return new FilterOperation(storeConfig("filter"), predicate());

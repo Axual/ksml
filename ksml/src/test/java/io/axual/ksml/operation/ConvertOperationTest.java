@@ -23,12 +23,17 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.processor.api.ProcessorSupplier;
+import org.apache.kafka.streams.kstream.ValueMapper;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
+import static io.axual.ksml.operation.OperationTestSupport.UNKNOWN_TYPE;
 import static io.axual.ksml.operation.OperationTestSupport.key;
-import static io.axual.ksml.operation.OperationTestSupport.keyValueToKeyValueListTransformer;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static io.axual.ksml.operation.OperationTestSupport.value;
@@ -37,17 +42,31 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class TransformKeyValueToKeyValueListOperationTest {
+class ConvertOperationTest extends OperationTestBase {
 
-    @Test
-    @DisplayName("transform key-value to key-value list on a stream returns a KStream and processes records with named child nodes")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("a convert operation on a stream returns a stream and delegates to the expected KStream method")
+    @MethodSource("convertCases")
     @SuppressWarnings("unchecked")
-    void applyToStreamProcessesRecords() {
+    void convertOnStreamDelegatesToExpectedMethod(String name, StreamOperation operation, Consumer<KStream<Object, Object>> verification) {
         final KStream<Object, Object> stream = mock(KStream.class);
         final var input = new KStreamWrapper(stream, key(), value());
-        final var operation = new TransformKeyValueToKeyValueListOperation(operationConfig("flatMap"), keyValueToKeyValueListTransformer());
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
-        verify(stream).process(any(ProcessorSupplier.class), any(Named.class), any(String[].class));
+        verification.accept(stream);
+    }
+
+    static Stream<Arguments> convertCases() {
+        return Stream.of(
+                Arguments.of("convertKey reselects the key",
+                        new ConvertKeyOperation(operationConfig("convertKey"), UNKNOWN_TYPE),
+                        (Consumer<KStream<Object, Object>>) s -> verify(s).selectKey(any(), any(Named.class))),
+                Arguments.of("convertValue maps the values",
+                        new ConvertValueOperation(operationConfig("convertValue"), UNKNOWN_TYPE),
+                        (Consumer<KStream<Object, Object>>) s -> verify(s).mapValues(any(ValueMapper.class), any(Named.class))),
+                Arguments.of("convertKeyValue maps key and value",
+                        new ConvertKeyValueOperation(operationConfig("convertKeyValue"), UNKNOWN_TYPE, UNKNOWN_TYPE),
+                        (Consumer<KStream<Object, Object>>) s -> verify(s).map(any(), any(Named.class)))
+        );
     }
 }

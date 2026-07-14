@@ -51,7 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class ReduceOperationTest {
+class ReduceOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("reduce on a grouped stream returns a KTable and registers the reducer user function")

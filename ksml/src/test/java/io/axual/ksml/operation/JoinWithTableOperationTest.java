@@ -49,7 +49,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class JoinWithTableOperationTest {
+class JoinWithTableOperationTest extends OperationTestBase {
 
     @Test
     @DisplayName("joining a stream with a table delegates to KStream.join and returns a stream")
