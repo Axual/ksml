@@ -42,12 +42,17 @@ class ConfluentProtobufFileElementDescriptorMapperTest extends AbstractProtobufF
 
     @Override
     protected void assertOneOfBranches(Descriptors.Descriptor msgDescriptor) {
-        // Confluent builds the descriptor via DynamicSchema, which links oneof fields to the group
-        // differently from Apicurio, so verify field accessibility by name rather than via the
-        // oneof's field list.
-        assertThat(msgDescriptor.findFieldByName("text")).isNotNull();
-        assertThat(msgDescriptor.findFieldByName("text").getType()).isEqualTo(Descriptors.FieldDescriptor.Type.STRING);
-        assertThat(msgDescriptor.findFieldByName("count")).isNotNull();
-        assertThat(msgDescriptor.findFieldByName("count").getType()).isEqualTo(Descriptors.FieldDescriptor.Type.INT32);
+        // Documented limitation: the Confluent mapper builds the descriptor via DynamicSchema, and the
+        // resulting FileDescriptor does not retain the oneof grouping. Both the message oneof list
+        // (getOneofs()) and each field's getContainingOneof() come back empty/null on this path, so the
+        // grouping cannot be asserted the way the Apicurio test does. We therefore verify only that the
+        // two branch fields survive the conversion with the right types.
+        final var text = msgDescriptor.findFieldByName("text");
+        assertThat(text).isNotNull();
+        assertThat(text.getType()).isEqualTo(Descriptors.FieldDescriptor.Type.STRING);
+
+        final var count = msgDescriptor.findFieldByName("count");
+        assertThat(count).isNotNull();
+        assertThat(count.getType()).isEqualTo(Descriptors.FieldDescriptor.Type.INT32);
     }
 }

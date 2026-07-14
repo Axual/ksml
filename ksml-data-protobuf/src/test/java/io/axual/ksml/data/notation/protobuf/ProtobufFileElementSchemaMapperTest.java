@@ -454,11 +454,14 @@ class ProtobufFileElementSchemaMapperTest {
     // ===== fromDataSchema: MapSchema is silently dropped =====
 
     @Test
-    @DisplayName("MapSchema field is dropped from the output (proto does not support Avro-style maps via this path)")
+    @DisplayName("MapSchema field is currently dropped from proto output (known limitation, see issue #661)")
     void fromDataSchema_mapSchemaField_silentlyDropped() {
-        // Intended behavior: convertDataSchemaToProtoType returns null for a MapSchema, and
-        // convertStructSchemaToMessageElement skips fields with a null proto type. This test pins
-        // that contract so a future change to map handling is a conscious decision, not a surprise.
+        // Known limitation, NOT a designed feature: proto3 does support map<K, V>, but this mapper
+        // does not emit maps yet. convertDataSchemaToProtoType returns null for a MapSchema and
+        // convertStructSchemaToMessageElement skips fields with a null proto type, so the field is
+        // dropped with no error or warning. This test only guards the current behavior; when map
+        // output is implemented it should be updated to assert the emitted map field.
+        // Tracked in https://github.com/Axual/ksml/issues/661
         final var struct = StructSchema.builder()
                 .namespace(NS).name("WithMap")
                 .field(new StructSchema.Field("kept", DataSchema.STRING_SCHEMA, "", 1))
