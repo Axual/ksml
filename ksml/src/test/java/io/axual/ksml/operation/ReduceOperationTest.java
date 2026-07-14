@@ -23,9 +23,14 @@ package io.axual.ksml.operation;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
+import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.KGroupedStream;
 import org.apache.kafka.streams.kstream.KGroupedTable;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Reducer;
+import org.apache.kafka.streams.kstream.SessionWindowedKStream;
+import org.apache.kafka.streams.kstream.TimeWindowedKStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -85,23 +90,27 @@ class ReduceOperationTest {
     }
 
     @Test
-    @DisplayName("reduce on a session windowed stream returns a KTable")
-    void applyToSessionWindowedReturnsTable() {
+    @DisplayName("reduce on a session-windowed stream delegates to SessionWindowedKStream.reduce and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToSessionWindowedCallsReduce() {
+        final SessionWindowedKStream<Object, Object> windowed = mock(SessionWindowedKStream.class);
+        final var input = new SessionWindowedKStreamWrapper(windowed, key(), value());
         final var operation = new ReduceOperation(storeConfig("reduce"), reducer());
 
-        final var result = operation.apply(sessionWindowed(), mockContext());
-
-        assertThat(result).isInstanceOf(KTableWrapper.class);
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(windowed).reduce(any(Reducer.class), any(Named.class));
     }
 
     @Test
-    @DisplayName("reduce on a time windowed stream returns a KTable")
-    void applyToTimeWindowedReturnsTable() {
+    @DisplayName("reduce on a time-windowed stream delegates to TimeWindowedKStream.reduce and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToTimeWindowedCallsReduce() {
+        final TimeWindowedKStream<Object, Object> windowed = mock(TimeWindowedKStream.class);
+        final var input = new TimeWindowedKStreamWrapper(windowed, key(), value());
         final var operation = new ReduceOperation(storeConfig("reduce"), reducer());
 
-        final var result = operation.apply(timeWindowed(), mockContext());
-
-        assertThat(result).isInstanceOf(KTableWrapper.class);
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(windowed).reduce(any(Reducer.class), any(Named.class));
     }
 
     @Test

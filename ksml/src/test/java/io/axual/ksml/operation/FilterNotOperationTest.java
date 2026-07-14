@@ -20,17 +20,20 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.operation.processor.FilterNotProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Predicate;
+import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
-import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.predicate;
@@ -49,12 +52,19 @@ class FilterNotOperationTest {
     }
 
     @Test
-    @DisplayName("filterNot on a stream returns a stream")
-    void applyToStreamReturnsStream() {
-        // On a stream, filter and filterNot both delegate to KStream.processValues; the difference
-        // is the supplied processor (FilterProcessor vs FilterNotProcessor), not a KStream method,
-        // so only the resulting wrapper type can be asserted here.
-        assertThat(operation().apply(kStream(), mockContext())).isInstanceOf(KStreamWrapper.class);
+    @DisplayName("filterNot on a stream wires a FilterNotProcessor through processValues")
+    @SuppressWarnings("unchecked")
+    void applyToStreamWiresFilterNotProcessor() {
+        // On a stream, filter and filterNot both delegate to KStream.processValues; what differs is the
+        // supplied processor, so capture the supplier and assert it produces a FilterNotProcessor.
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+
+        final var captor = ArgumentCaptor.<FixedKeyProcessorSupplier<Object, Object, Object>>captor();
+        verify(stream).processValues(captor.capture(), any(Named.class), any(String[].class));
+        assertThat(captor.getValue().get()).isInstanceOf(FilterNotProcessor.class);
     }
 
     @Test

@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Suppressed;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.junit.jupiter.api.DisplayName;
@@ -30,11 +31,16 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import static io.axual.ksml.operation.OperationTestSupport.kTable;
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
-import static io.axual.ksml.operation.OperationTestSupport.windowedKeyTable;
+import static io.axual.ksml.operation.OperationTestSupport.value;
+import static io.axual.ksml.operation.OperationTestSupport.windowedKey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class SuppressOperationTest {
 
@@ -47,17 +53,25 @@ class SuppressOperationTest {
     }
 
     @Test
-    @DisplayName("suppress until time limit on a table returns a KTable")
-    void applyUntilTimeLimitToTableReturnsTable() {
+    @DisplayName("suppress until time limit delegates to KTable.suppress and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyUntilTimeLimitToTableCallsSuppress() {
+        final KTable<Object, Object> table = mock(KTable.class);
         final var operation = SuppressOperation.create(operationConfig("suppress"), untilTimeLimit());
-        assertThat(operation.apply(kTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+
+        assertThat(operation.apply(new KTableWrapper(table, key(), value()), mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(table).suppress(any(Suppressed.class));
     }
 
     @Test
-    @DisplayName("suppress until window closes on a windowed-key table returns a KTable")
-    void applyUntilWindowClosesToWindowedTableReturnsTable() {
+    @DisplayName("suppress until window closes on a windowed-key table delegates to KTable.suppress and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyUntilWindowClosesToWindowedTableCallsSuppress() {
+        final KTable<Object, Object> table = mock(KTable.class);
         final var operation = SuppressOperation.createWindowed(operationConfig("suppress"), untilWindowCloses());
-        assertThat(operation.apply(windowedKeyTable(), mockContext())).isInstanceOf(KTableWrapper.class);
+
+        assertThat(operation.apply(new KTableWrapper(table, windowedKey(), value()), mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(table).suppress(any(Suppressed.class));
     }
 
     @Test

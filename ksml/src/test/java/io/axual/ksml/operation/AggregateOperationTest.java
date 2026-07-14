@@ -20,19 +20,27 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
+import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
+import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.Aggregator;
+import org.apache.kafka.streams.kstream.CogroupedKStream;
 import org.apache.kafka.streams.kstream.Initializer;
 import org.apache.kafka.streams.kstream.KGroupedStream;
 import org.apache.kafka.streams.kstream.KGroupedTable;
+import org.apache.kafka.streams.kstream.Merger;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.SessionWindowedKStream;
+import org.apache.kafka.streams.kstream.TimeWindowedCogroupedKStream;
+import org.apache.kafka.streams.kstream.TimeWindowedKStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.axual.ksml.operation.OperationTestSupport.aggregator;
-import static io.axual.ksml.operation.OperationTestSupport.cogroupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
 import static io.axual.ksml.operation.OperationTestSupport.initializer;
@@ -44,7 +52,6 @@ import static io.axual.ksml.operation.OperationTestSupport.sessionStore;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
-import static io.axual.ksml.operation.OperationTestSupport.timeWindowedCogrouped;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.windowStore;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,27 +92,47 @@ class AggregateOperationTest {
     }
 
     @Test
-    @DisplayName("applying to a session-windowed stream returns a KTable")
-    void applyToSessionWindowedReturnsTable() {
-        assertThat(operation().apply(sessionWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("applying to a session-windowed stream invokes aggregate and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToSessionWindowedCallsAggregate() {
+        final SessionWindowedKStream<Object, Object> windowed = mock(SessionWindowedKStream.class);
+        final var input = new SessionWindowedKStreamWrapper(windowed, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(windowed).aggregate(any(Initializer.class), any(Aggregator.class), any(Merger.class), any(Named.class));
     }
 
     @Test
-    @DisplayName("applying to a time-windowed stream returns a KTable")
-    void applyToTimeWindowedReturnsTable() {
-        assertThat(operation().apply(timeWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("applying to a time-windowed stream invokes aggregate and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToTimeWindowedCallsAggregate() {
+        final TimeWindowedKStream<Object, Object> windowed = mock(TimeWindowedKStream.class);
+        final var input = new TimeWindowedKStreamWrapper(windowed, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(windowed).aggregate(any(Initializer.class), any(Aggregator.class), any(Named.class));
     }
 
     @Test
-    @DisplayName("applying to a cogrouped stream returns a KTable")
-    void applyToCogroupedStreamReturnsTable() {
-        assertThat(operation().apply(cogroupedStream(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("applying to a cogrouped stream invokes aggregate and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToCogroupedStreamCallsAggregate() {
+        final CogroupedKStream<Object, Object> cogrouped = mock(CogroupedKStream.class);
+        final var input = new CogroupedKStreamWrapper(cogrouped, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(cogrouped).aggregate(any(Initializer.class), any(Named.class));
     }
 
     @Test
-    @DisplayName("applying to a time-windowed cogrouped stream returns a KTable")
-    void applyToTimeWindowedCogroupedReturnsTable() {
-        assertThat(operation().apply(timeWindowedCogrouped(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("applying to a time-windowed cogrouped stream invokes aggregate and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToTimeWindowedCogroupedCallsAggregate() {
+        final TimeWindowedCogroupedKStream<Object, Object> cogrouped = mock(TimeWindowedCogroupedKStream.class);
+        final var input = new TimeWindowedCogroupedKStreamWrapper(cogrouped, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(cogrouped).aggregate(any(Initializer.class), any(Named.class));
     }
 
     @Test

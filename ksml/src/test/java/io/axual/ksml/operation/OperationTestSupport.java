@@ -109,8 +109,9 @@ final class OperationTestSupport {
     /**
      * Registers a mock default notation returning a mock Serde. Operations that build
      * Grouped/Produced/Joined/Repartitioned instances call {@link StreamDataType#serde()}, which
-     * resolves a notation from the global (shared) library. Because other test classes overwrite
-     * that global entry, this is re-registered by {@link #mockContext()} before every {@code apply}.
+     * resolves a notation from the global (shared) library, so {@link #mockContext()} registers it
+     * before every {@code apply}. The entry is snapshotted and restored per test by
+     * {@code DefaultNotationIsolationExtension}, so it does not leak into other test classes.
      */
     @SuppressWarnings("unchecked")
     private static void registerMockDefaultNotation() {
@@ -348,11 +349,9 @@ final class OperationTestSupport {
         return new KTableWrapper(mock(KTable.class), key(), value());
     }
 
-    /** A table whose key is a windowed type, as produced by windowed aggregations. */
-    @SuppressWarnings("unchecked")
-    static KTableWrapper windowedKeyTable() {
-        final var windowedKey = new StreamDataType(new UserType(new WindowedType(DataType.UNKNOWN)), true);
-        return new KTableWrapper(mock(KTable.class), windowedKey, value());
+    /** The windowed key type produced by windowed aggregations, e.g. as consumed by a windowed suppress. */
+    static StreamDataType windowedKey() {
+        return new StreamDataType(new UserType(new WindowedType(DataType.UNKNOWN)), true);
     }
 
     @SuppressWarnings("unchecked")

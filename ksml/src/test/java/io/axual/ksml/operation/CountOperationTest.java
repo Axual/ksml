@@ -25,9 +25,13 @@ import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
+import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.KGroupedStream;
 import org.apache.kafka.streams.kstream.KGroupedTable;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.SessionWindowedKStream;
+import org.apache.kafka.streams.kstream.TimeWindowedKStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -77,15 +81,25 @@ class CountOperationTest {
     }
 
     @Test
-    @DisplayName("count on a session-windowed stream returns a table")
-    void applyToSessionWindowedReturnsTable() {
-        assertThat(operation().apply(sessionWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("count on a session-windowed stream delegates to SessionWindowedKStream.count and returns a table")
+    @SuppressWarnings("unchecked")
+    void applyToSessionWindowedCallsCount() {
+        final SessionWindowedKStream<Object, Object> windowed = mock(SessionWindowedKStream.class);
+        final var input = new SessionWindowedKStreamWrapper(windowed, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(windowed).count(any(Named.class));
     }
 
     @Test
-    @DisplayName("count on a time-windowed stream returns a table")
-    void applyToTimeWindowedReturnsTable() {
-        assertThat(operation().apply(timeWindowed(), mockContext())).isInstanceOf(KTableWrapper.class);
+    @DisplayName("count on a time-windowed stream delegates to TimeWindowedKStream.count and returns a table")
+    @SuppressWarnings("unchecked")
+    void applyToTimeWindowedCallsCount() {
+        final TimeWindowedKStream<Object, Object> windowed = mock(TimeWindowedKStream.class);
+        final var input = new TimeWindowedKStreamWrapper(windowed, key(), value());
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(windowed).count(any(Named.class));
     }
 
     @Test
