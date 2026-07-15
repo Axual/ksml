@@ -32,8 +32,9 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * that registers a (mock) default notation cannot leak it into other test classes or make the suite
  * order dependent.
  *
- * <p>Auto-registered for the whole module via {@code META-INF/services} and
- * {@code junit-platform.properties}; it is a no-op for tests that never touch the default notation.
+ * <p>Applied only to the operation unit tests that register a mock default notation, by extending
+ * {@code OperationTestBase} (which carries {@code @ExtendWith(DefaultNotationIsolationExtension.class)}).
+ * It is a no-op for any test that never touches the default notation.
  *
  * <p>The notation library is a JVM-wide singleton, so this guards sequential execution only. Parallel
  * test execution must stay off for this module.
