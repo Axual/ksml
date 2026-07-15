@@ -60,6 +60,26 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>
+            <!--
+                Publish a test-jar so the downstream protobuf modules (apicurio, confluent) can reuse the
+                shared descriptor-mapper test base (AbstractProtobufFileElementDescriptorMapperTest), instead
+                of duplicating it. This is the first test-jar in the repo.
+                Consequence: those two modules cannot compile their tests without this test-jar, so building
+                them in isolation needs `-am` (or a prior `mvn install` of this module). A plain
+                `mvn test -pl ksml-data-protobuf-confluent` fails to resolve the test-jar; `mvn clean verify`
+                and `-am` builds work.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>

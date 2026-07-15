@@ -23,6 +23,18 @@
             <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-data-protobuf</artifactId>
         </dependency>
+        <!--
+            Shared descriptor-mapper test base (AbstractProtobufFileElementDescriptorMapperTest) lives in the
+            ksml-data-protobuf test-jar. Because of this, building this module's tests in isolation needs `-am`
+            or a prior `mvn install` of ksml-data-protobuf; `mvn clean verify` and `-am` builds resolve it fine.
+        -->
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-data-protobuf</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-protobuf-serializer</artifactId>
@@ -34,6 +46,11 @@
             <artifactId>lombok</artifactId>
         </dependency>
         <!-- -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
