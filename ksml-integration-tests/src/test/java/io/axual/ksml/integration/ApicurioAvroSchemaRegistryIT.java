@@ -21,10 +21,10 @@ package io.axual.ksml.integration;
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.SensorDataTestUtil;
+import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -32,10 +32,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -52,29 +50,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 class ApicurioAvroSchemaRegistryIT {
-
-    static final Network network = Network.newNetwork();
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
-            .withNetwork(network)
-            .withNetworkAliases("broker")
-            .withExposedPorts(9092, 9093);
-
-    @Container
-    static final ApicurioSchemaRegistryContainer schemaRegistry = new ApicurioSchemaRegistryContainer()
-            .withNetwork(network)
-            .withLegacyIdMode();
-
     @Container
     static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro",
                           "producer-avro.yaml", "processor-avro-convert.yaml", "SensorData.avsc")
-            .withKafka(kafka)
-            .withApicurioAvroRegistry(schemaRegistry)
+            .withKafka(SharedKsmlInfra.kafka())
+            .withApicurioAvroRegistry(SharedKsmlInfra.schemaRegistry())
             .withTopics("sensor_data_avro", "sensor_data_avro_processed")
-            .dependsOn(kafka, schemaRegistry);
-
+            .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
     @Test
     void testKSMLApicurioAvroToJsonConversion() throws Exception {
@@ -87,7 +70,7 @@ class ApicurioAvroSchemaRegistryIT {
 
         // Create consumer properties
         final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -152,7 +135,7 @@ class ApicurioAvroSchemaRegistryIT {
         // Producer generates every 3 seconds, so wait for at least 2 messages
         // Use AdminClient to check actual message count
         KSMLRunnerTestUtil.waitForTopicMessages(
-            kafka.getBootstrapServers(),
+            SharedKsmlInfra.kafka().getBootstrapServers(),
             "sensor_data_avro",
             2, // Wait for at least 2 messages
             Duration.ofSeconds(30) // Maximum 30 seconds

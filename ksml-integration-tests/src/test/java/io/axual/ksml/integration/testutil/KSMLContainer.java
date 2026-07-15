@@ -312,13 +312,20 @@ public class KSMLContainer implements Startable {
             props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
 
             try (AdminClient adminClient = AdminClient.create(props)) {
+                // The broker is shared across IT classes, so only create topics that do not exist yet
+                // (createTopics fails on an already-existing topic).
+                final var existingTopics = adminClient.listTopics().names().get();
                 List<NewTopic> topics = new ArrayList<>();
                 for (String topicName : topicsToCreate) {
-                    topics.add(new NewTopic(topicName, topicPartitionCount, (short) 1));
+                    if (!existingTopics.contains(topicName)) {
+                        topics.add(new NewTopic(topicName, topicPartitionCount, (short) 1));
+                    }
                 }
 
-                adminClient.createTopics(topics).all().get();
-                log.info("Created Kafka topics: {} with {} partitions", topicsToCreate, topicPartitionCount);
+                if (!topics.isEmpty()) {
+                    adminClient.createTopics(topics).all().get();
+                }
+                log.info("Ensured Kafka topics exist: {} with {} partitions", topicsToCreate, topicPartitionCount);
             }
         } catch (Exception e) {
             log.error("Failed to create Kafka topics", e);

@@ -20,19 +20,17 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -50,28 +48,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 class ConfluentAvroSchemaRegistryIT {
-
-    static final Network network = Network.newNetwork();
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
-            .withNetwork(network)
-            .withNetworkAliases("broker")
-            .withExposedPorts(9092, 9093);
-
-    @Container
-    static final ApicurioSchemaRegistryContainer schemaRegistry = new ApicurioSchemaRegistryContainer()
-            .withNetwork(network);
-
     @Container
     static final KSMLContainer ksml = new KSMLContainer()
-            .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro",
+            .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-confluent",
                           "producer-avro.yaml", "processor-avro-transform.yaml", "SensorData.avsc")
-            .withKafka(kafka)
-            .withConfluentAvroRegistry(schemaRegistry)
-            .withTopics("sensor_data_avro", "sensor_data_avro_transformed")
-            .dependsOn(kafka, schemaRegistry);
-
+            .withKafka(SharedKsmlInfra.kafka())
+            .withConfluentAvroRegistry(SharedKsmlInfra.schemaRegistry())
+            .withTopics("sensor_data_avro_confluent", "sensor_data_transformed_confluent")
+            .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
     @Test
     void testKSMLAvroTransformation() throws Exception {
@@ -84,13 +68,13 @@ class ConfluentAvroSchemaRegistryIT {
 
         // Check sensor_data_transformed topic (transformer output - transformed AVRO data)
         final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-transformed");
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
-            consumer.subscribe(Collections.singletonList("sensor_data_transformed"));
+            consumer.subscribe(Collections.singletonList("sensor_data_transformed_confluent"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
             assertThat(records).as("Should have transformed sensor data in sensor_data_transformed topic").isNotEmpty();
@@ -122,8 +106,8 @@ class ConfluentAvroSchemaRegistryIT {
         // Producer generates every 3 seconds, so wait for at least 2 messages
         // Use AdminClient to check actual message count instead of fixed sleep
         KSMLRunnerTestUtil.waitForTopicMessages(
-            kafka.getBootstrapServers(),
-            "sensor_data_avro",
+            SharedKsmlInfra.kafka().getBootstrapServers(),
+            "sensor_data_avro_confluent",
             2, // Wait for at least 2 messages
             Duration.ofSeconds(30) // Maximum 30 seconds (much better than fixed 10s)
         );
