@@ -30,7 +30,9 @@ import org.testcontainers.kafka.KafkaContainer;
  * most of that repeated startup time.
  *
  * <p>Each container is started lazily on first use (so IT classes that need no registry never start one)
- * and never explicitly stopped; Testcontainers' Ryuk reaps them when the JVM exits. Because they are
+ * and never explicitly stopped; Testcontainers' Ryuk reaps them when the JVM exits. In practice "first
+ * use" is class-load time, because IT classes call {@link #kafka()}/{@link #schemaRegistry()} from their
+ * static {@code @Container} field initializers, not from within a test method. Because they are
  * shared, ITs MUST use unique Kafka topic names so they do not collide on the broker or on
  * schema-registry subjects.
  *

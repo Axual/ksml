@@ -91,6 +91,10 @@ To run tests and validate code coverage:
 mvn clean test
 ```
 
+> The repo's `.mvn/maven.config` sets `-T1C` (one build thread per core), so the reactor builds modules in
+> parallel by default. The integration tests share a single Kafka broker and schema registry per JVM and
+> stay sequential within their module, so this is safe. Append `-T1` to any command to force a serial build.
+
 - Ensure at least 60% code coverage.
 - Use the following custom annotations when writing tests for definitions:
   - `@ExtendWith(KSMLTestExtension.class)`

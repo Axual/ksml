@@ -66,7 +66,7 @@ class ConfluentAvroSchemaRegistryIT {
         // Verify KSML is still running
         assertThat(ksml.isRunning()).as("KSML should still be running").isTrue();
 
-        // Check sensor_data_transformed topic (transformer output - transformed AVRO data)
+        // Check sensor_data_transformed_confluent topic (transformer output - transformed AVRO data)
         final Properties consumerProps = new Properties();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -77,7 +77,7 @@ class ConfluentAvroSchemaRegistryIT {
             consumer.subscribe(Collections.singletonList("sensor_data_transformed_confluent"));
             ConsumerRecords<String, String> records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(10));
 
-            assertThat(records).as("Should have transformed sensor data in sensor_data_transformed topic").isNotEmpty();
+            assertThat(records).as("Should have transformed sensor data in sensor_data_transformed_confluent topic").isNotEmpty();
             log.info("Found {} transformed sensor messages", records.count());
 
             // Validate that we received transformed AVRO messages

@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.errors.TopicExistsException;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.lifecycle.Startable;
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
  * TestContainers-compatible wrapper for KSML that provides a fluent API for configuring
@@ -315,7 +317,7 @@ public class KSMLContainer implements Startable {
                 // The broker is shared across IT classes, so only create topics that do not exist yet
                 // (createTopics fails on an already-existing topic).
                 final var existingTopics = adminClient.listTopics().names().get();
-                List<NewTopic> topics = new ArrayList<>();
+                final var topics = new ArrayList<NewTopic>();
                 for (String topicName : topicsToCreate) {
                     if (!existingTopics.contains(topicName)) {
                         topics.add(new NewTopic(topicName, topicPartitionCount, (short) 1));
@@ -323,7 +325,15 @@ public class KSMLContainer implements Startable {
                 }
 
                 if (!topics.isEmpty()) {
-                    adminClient.createTopics(topics).all().get();
+                    try {
+                        adminClient.createTopics(topics).all().get();
+                    } catch (ExecutionException e) {
+                        // listTopics/createTopics is check-then-act; tolerate a topic that was created
+                        // concurrently between the two calls instead of failing the whole suite.
+                        if (!(e.getCause() instanceof TopicExistsException)) {
+                            throw e;
+                        }
+                    }
                 }
                 log.info("Ensured Kafka topics exist: {} with {} partitions", topicsToCreate, topicPartitionCount);
             }

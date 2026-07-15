@@ -112,6 +112,10 @@ Once installed, configure GraalVM as your default JVM, then build the project us
 
 ```mvn clean package```
 
+> The repository ships a `.mvn/maven.config` containing `-T1C`, so every Maven command runs the reactor
+> with one build thread per CPU core. This speeds up multi-module builds and the test suite. It applies to
+> all local `mvn` invocations (not just `clean verify`); to build single-threaded, run `mvn -T1 ...`.
+
 ## Running KSML
 
 Requirements:
