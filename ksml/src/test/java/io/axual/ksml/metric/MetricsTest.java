@@ -1,0 +1,47 @@
+package io.axual.ksml.metric;
+
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2024 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
+class MetricsTest {
+
+    @Test
+    @DisplayName("the metrics registry is a singleton")
+    void registryIsASingleton() {
+        assertThat(Metrics.registry()).isSameAs(Metrics.registry());
+    }
+
+    @Test
+    @DisplayName("init enables JMX without error")
+    void initEnablesJmxWithoutError() {
+        try {
+            assertThatCode(Metrics::init).doesNotThrowAnyException();
+        } finally {
+            // Avoid leaking a JMX reporter into other tests that share the global registry.
+            Metrics.registry().disableJmx();
+        }
+    }
+}
