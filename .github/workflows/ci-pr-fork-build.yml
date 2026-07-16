@@ -26,7 +26,7 @@ jobs:
 
       - name: Build and test
         timeout-minutes: 60
-        run: mvn clean verify -DskipITs=false --no-transfer-progress
+        run: mvn -T1C clean verify -DskipITs=false --no-transfer-progress
         env:
           TESTCONTAINERS_RYUK_DISABLED: false
 

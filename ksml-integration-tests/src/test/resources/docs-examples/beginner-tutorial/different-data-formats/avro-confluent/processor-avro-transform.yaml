@@ -1,12 +1,12 @@
 streams:
   avro_input:
-    topic: sensor_data_avro
+    topic: sensor_data_avro_confluent
     keyType: string
     valueType: avro:SensorData
     offsetResetPolicy: latest
 
   transformed_output:
-    topic: sensor_data_transformed
+    topic: sensor_data_transformed_confluent
     keyType: string
     valueType: avro:SensorData
 

@@ -46,7 +46,7 @@ This schema validates the runner configuration that controls how KSML executes:
 
     ```yaml
     {%
-      include "../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/confluent_avro/ksml-runner.yaml"
+      include "../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro-confluent/confluent_avro/ksml-runner.yaml"
     %}
     ```
 

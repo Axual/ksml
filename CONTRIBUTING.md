@@ -91,6 +91,11 @@ To run tests and validate code coverage:
 mvn clean test
 ```
 
+> Builds run single-threaded by default. Add `-T1C` (one build thread per core) to build modules in
+> parallel and speed up the suite, e.g. `mvn -T1C clean verify`. This is safe for the tests: the
+> integration tests share a single Kafka broker and schema registry per JVM and stay sequential within
+> their module. CI applies `-T1C` to the test build only, keeping `sonar:sonar` and release builds serial.
+
 - Ensure at least 60% code coverage.
 - Use the following custom annotations when writing tests for definitions:
   - `@ExtendWith(KSMLTestExtension.class)`

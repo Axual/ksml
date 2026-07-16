@@ -80,7 +80,7 @@ Use this configuration when working with Confluent Schema Registry or when you n
 
     ```yaml
     {%
-      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/confluent_avro/ksml-runner.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro-confluent/confluent_avro/ksml-runner.yaml"
     %}
     ```
 
@@ -156,7 +156,7 @@ This processor transforms Avro data (uppercases sensor names) while maintaining 
 
     ```yaml
     {%
-      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro/processor-avro-transform.yaml"
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro-confluent/processor-avro-transform.yaml"
     %} 
     ```
 
