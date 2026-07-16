@@ -36,8 +36,14 @@ import org.testcontainers.kafka.KafkaContainer;
  * shared, ITs MUST use unique Kafka topic names so they do not collide on the broker or on
  * schema-registry subjects.
  *
- * <p>The registry runs in legacy-id mode so it serves both the Apicurio-native ({@code /apis/registry/v2})
- * and Confluent-compatible ({@code /apis/ccompat/v7}) APIs, covering every registry-based IT.
+ * <p>The registry serves both the Apicurio-native ({@code /apis/registry/v2}) and Confluent-compatible
+ * ({@code /apis/ccompat/v7}) endpoints, covering every registry-based IT. It runs with legacy-id mode
+ * ({@code APICURIO_CCOMPAT_LEGACY_ID_MODE_ENABLED=true}), which changes the schema id the ccompat endpoint
+ * embeds in the wire-format header read by the Confluent/JSON serdes. Do not remove it: before these
+ * containers were consolidated {@code ApicurioAvroSchemaRegistryIT} already enabled legacy-id mode while
+ * {@code ConfluentAvroSchemaRegistryIT} and {@code JsonSchemaRegistryIT} did not, so turning it on for the
+ * shared registry is a deliberate, verified environment change for those two ccompat-based tests, not an
+ * accident to clean up.
  *
  * <p>The instances are per-JVM. Under parallel test execution each Surefire/Failsafe fork gets its own
  * Kafka and registry, so forks stay isolated; within a JVM, tests must run sequentially (which is the
