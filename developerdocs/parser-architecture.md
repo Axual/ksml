@@ -91,8 +91,8 @@ logic and the describe logic.** There's no such thing as a class that "sort of" 
 subset of parsers that are schema-aware, "does both parse and describe" isn't a convention,
 it's structurally guaranteed.
 
-`StructsParser<T>` — the interface almost everything in `DefinitionParser`/`FieldParsers` is
-built around — `extends ParserWithSchemas<T>` and narrows `schemas()`'s return type to
+`StructsParser<T>` — the interface almost everything in `DefinitionParser` is built around —
+`extends ParserWithSchemas<T>` and narrows `schemas()`'s return type to
 `List<StructSchema>` specifically (a legal covariant override, since `List<StructSchema>` is a
 subtype of `List<? extends DataSchema>`), and adds a default `schema()` that returns the single
 schema directly if there's only one, or wraps several in a `UnionSchema` otherwise.
@@ -118,15 +118,27 @@ description can be extracted, combined, and converted **without ever calling `pa
 
 ### Where `schema()` gets its information from
 
-Every field-builder method in `FieldParsers` (`stringField`, `booleanField`, `listField`,
-`structsParser(...)`, etc.) builds **both** halves from the same declaration at the same time:
-a parse function *and* a `DataSchema` fragment (name, type, doc string, tag, required/optional,
-union alternatives). `structsParser(...)` combines several such (parser, schema) pairs into one
+The field-builder methods that build a `StructsParser<T>` — `stringField`, `booleanField`,
+`listField`, `structsParser(...)`, `optional(...)`, `structSchema(...)`, and the rest — live as
+`protected` instance methods directly on `DefinitionParser<T>` itself, inherited by every
+subclass. Each one builds **both** halves from the same declaration at the same time: a parse
+function *and* a `DataSchema` fragment (name, type, doc string, tag, required/optional, union
+alternatives). `structsParser(...)` combines several such (parser, schema) pairs into one
 combined `StructsParser<T>` whose `schemas()` merges the individual field schemas into one
 `StructSchema`. So a class's `schema()`/`schemas()` output isn't computed by inspecting the
 class or by reflection — it's built up field-by-field, at construction time, out of the exact
-same declarations that also produce the parse behavior. That's the "parse ⊗ describe"
-combinator design: the two can never drift apart because they're two views of one declaration.
+same declarations (inherited from `DefinitionParser`) that also produce the parse behavior.
+That's the "parse ⊗ describe" combinator design: the two can never drift apart because they're
+two views of one declaration.
+
+> **Proposed improvement — `FieldParsers`.** These field-builder methods are stateless: they
+> don't depend on `DefinitionParser`'s resources or identity, only on their own arguments. A
+> companion change extracts them out of `DefinitionParser` into a standalone `FieldParsers`
+> utility class, callable as `FieldParsers.stringField(...)`, `FieldParsers.structsParser(...)`,
+> etc., without requiring a class to extend `DefinitionParser` at all. If you're reading this on
+> a branch where that change hasn't landed, you'll see these same methods called bare and
+> unqualified (`stringField(...)`, `structsParser(...)`) rather than `FieldParsers.xxx(...)` —
+> same behavior, different location.
 
 ### What the `DataSchema` tree is used for
 
@@ -237,17 +249,17 @@ public StructsParser<TopologyDefinition> parser() {
     final var dummyResources = new TopologyResources("dummy");
     // (1) SCHEMA computation — runs once, uses a throwaway empty TopologyResources.
     //     parse() is never called on these instances; only .schemas() is read.
-    final var pipelinesParser = FieldParsers.optional(FieldParsers.mapField(
+    final var pipelinesParser = optional(mapField(
             PIPELINES, PIPELINE, PIPELINE, "Collection of named pipelines",
             new PipelineDefinitionParser(dummyResources)));
-    final var producersParser = FieldParsers.optional(FieldParsers.mapField(
+    final var producersParser = optional(mapField(
             PRODUCERS, PRODUCER, PRODUCER, "Collection of named producers",
             new ProducerDefinitionParser(dummyResources)));
 
     final var fields = resourcesParser.schemas().getFirst().fields();
     fields.addAll(pipelinesParser.schemas().getFirst().fields());
     fields.addAll(producersParser.schemas().getFirst().fields());
-    final var schemas = List.of(FieldParsers.structSchema(TopologyDefinition.class, "KSML definition", fields));
+    final var schemas = List.of(structSchema(TopologyDefinition.class, "KSML definition", fields));
 
     return new StructsParser<>() {
         @Override
@@ -274,11 +286,18 @@ public StructsParser<TopologyDefinition> parser() {
 }
 ```
 
+`optional`, `mapField`, and `structSchema` here are unqualified because `TopologyDefinitionParser
+extends DefinitionParser<TopologyDefinition>` and inherits them directly (see the "proposed
+improvement" note above) — on a branch with the `FieldParsers` extraction applied, these same
+calls read `FieldParsers.optional(...)`, `FieldParsers.mapField(...)`,
+`FieldParsers.structSchema(...)`. `MapParser` is unaffected either way — it was never one of the
+methods `DefinitionParser` provided; it's a plain, always-standalone class.
+
 ```mermaid
 flowchart TB
     subgraph SCHEMA["(1) Schema computation — runs once, throwaway resources"]
         direction TB
-        A1["new PipelineDefinitionParser(dummyResources)"] --> A2["FieldParsers.mapField(...)\n= a MapWithSchemaParser, schema-aware"]
+        A1["new PipelineDefinitionParser(dummyResources)"] --> A2["mapField(...)\n= a MapWithSchemaParser, schema-aware"]
         A2 -->|".schemas() read, .parse() never called"| A3["merged into TopologyDefinition's StructSchema"]
     end
     subgraph REAL["(2) Real parse — runs per YAML file, real resources"]
@@ -308,7 +327,7 @@ already-described, already-schema-aware children.
 | `ParserWithSchemas<T>` | ✓ (inherited) | ✓ (a list of `DataSchema`) |
 | `StructsParser<T>` | ✓ (inherited) | ✓ (`List<StructSchema>`, plus default `schema()`) |
 | `ListWithSchemaParser`, `MapWithSchemaParser` | ✓ (inherited from `ListParser`/`MapParser`) | ✓ (`ParserWithSchema`) |
-| `DefinitionParser<T>` and everything under it (`FieldParsers`-built parsers, all KSML definition/operation parsers) | ✓ | ✓ |
+| `DefinitionParser<T>` and everything under it (all KSML definition/operation parsers) | ✓ | ✓ |
 | `io.axual.ksml.schema.parser.*` (the schema-definition DSL) | ✓ | — (no schema-of-a-schema is ever produced) |
 
 The one-line version: **`parse()` turns real input into a value; `schema()`/`schemas()`
