@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.GroupByKeyOperation;
@@ -33,7 +34,7 @@ public class GroupByKeyOperationParser extends OperationParser<GroupByKeyOperati
     }
 
     public StructsParser<GroupByKeyOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 GroupByKeyOperation.class,
                 "",
                 "Operation to group all messages with the same key together",

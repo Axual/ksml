@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.BranchDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -36,12 +37,12 @@ public class BranchOperationParser extends OperationParser<BranchOperation> {
 
     @Override
     public StructsParser<BranchOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 BranchOperation.class,
                 "",
                 "Splits the pipeline result into multiple substreams. Each message gets sent down one stream, based on the first matching branch condition",
                 operationNameField(),
-                listField(
+                FieldParsers.listField(
                         KSMLDSL.Operations.BRANCH,
                         "branch",
                         "branch",

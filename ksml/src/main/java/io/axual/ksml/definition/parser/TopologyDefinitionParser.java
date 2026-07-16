@@ -20,6 +20,7 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyDefinition;
@@ -46,20 +47,20 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
     @Override
     public StructsParser<TopologyDefinition> parser() {
         final var dummyResources = new TopologyResources("dummy");
-        final var pipelinesParser = optional(mapField(PIPELINES, PIPELINE, PIPELINE, "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
-        final var producersParser = optional(mapField(PRODUCERS, PRODUCER, PRODUCER, "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
+        final var pipelinesParser = FieldParsers.optional(FieldParsers.mapField(PIPELINES, PIPELINE, PIPELINE, "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
+        final var producersParser = FieldParsers.optional(FieldParsers.mapField(PRODUCERS, PRODUCER, PRODUCER, "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
 
         final var fields = resourcesParser.schemas().getFirst().fields();
         fields.addAll(pipelinesParser.schemas().getFirst().fields());
         fields.addAll(producersParser.schemas().getFirst().fields());
-        final var schemas = List.of(structSchema(TopologyDefinition.class, "KSML definition", fields));
+        final var schemas = List.of(FieldParsers.structSchema(TopologyDefinition.class, "KSML definition", fields));
 
         return new StructsParser<>() {
             @Override
             public TopologyDefinition parse(ParseNode node) {
-                final var name = withDefault(optional(stringField(KSMLDSL.NAME, true, "The name of the topology")), "<anonymous topology>").parse(node);
-                final var version = withDefault(optional(stringField(KSMLDSL.VERSION, true, "The version of the topology")), "<no version>").parse(node);
-                final var description = withDefault(optional(stringField(KSMLDSL.DESCRIPTION, true, "The description of the topology")), "").parse(node);
+                final var name = FieldParsers.withDefault(FieldParsers.optional(FieldParsers.stringField(KSMLDSL.NAME, true, "The name of the topology")), "<anonymous topology>").parse(node);
+                final var version = FieldParsers.withDefault(FieldParsers.optional(FieldParsers.stringField(KSMLDSL.VERSION, true, "The version of the topology")), "<no version>").parse(node);
+                final var description = FieldParsers.withDefault(FieldParsers.optional(FieldParsers.stringField(KSMLDSL.DESCRIPTION, true, "The description of the topology")), "").parse(node);
 
                 final var resources = resourcesParser.parse(node);
                 final var result = new TopologyDefinition(resources.namespace(), name, version, description);

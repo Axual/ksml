@@ -33,16 +33,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 // Tests that integerField and longField reject YAML literals that would silently overflow.
 class DefinitionParserFieldValidationTest {
 
-    // Exposes the protected integerField/longField helpers for direct unit testing.
+    // Exposes the integerField/longField helpers for direct unit testing.
     // Using StructsParser.parse() directly avoids the FatalError wrapping in DefinitionParser.parse().
-    private static class FieldTestParser extends DefinitionParser<Void> {
-        final StructsParser<Integer> intField = integerField("value", "test integer field");
-        final StructsParser<Long> longField = longField("value", "test long field");
-
-        @Override
-        public StructsParser<Void> parser() {
-            return null; // not used directly
-        }
+    private static class FieldTestParser {
+        final StructsParser<Integer> intField = FieldParsers.integerField("value", "test integer field");
+        final StructsParser<Long> longField = FieldParsers.longField("value", "test long field");
     }
 
     private static final FieldTestParser PARSER = new FieldTestParser();

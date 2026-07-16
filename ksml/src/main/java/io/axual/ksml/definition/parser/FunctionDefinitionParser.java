@@ -26,6 +26,7 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StringValueParser;
@@ -43,28 +44,28 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
         this.requireType = requireType;
     }
 
-    protected StructsParser<T> parserWithStores(Class<T> resultClass, String type, String description, Constructor1<T, FunctionDefinition> constructor) {
+    protected StructsParser<T> parserWithStores(Class<T> resultClass, String type, String description, FieldParsers.Constructor1<T, FunctionDefinition> constructor) {
         return parser(resultClass, description, true, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, globalCode, code, expression, resultType, stores), constructor);
     }
 
-    protected StructsParser<T> parserWithoutStores(Class<T> resultClass, String type, String description, Constructor1<T, FunctionDefinition> constructor) {
+    protected StructsParser<T> parserWithoutStores(Class<T> resultClass, String type, String description, FieldParsers.Constructor1<T, FunctionDefinition> constructor) {
         return parser(resultClass, description, false, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, globalCode, code, expression, resultType, null), constructor);
     }
 
-    private StructsParser<T> parser(Class<T> resultClass, String description, boolean includeStores, Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
+    private StructsParser<T> parser(Class<T> resultClass, String description, boolean includeStores, FieldParsers.Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, FieldParsers.Constructor1<T, FunctionDefinition> outerConstructor) {
         final var parseType = resultClass == FunctionDefinition.class;
         final var doc = "Defines a " + description + " function, that gets injected into the Kafka Streams topology";
-        final var name = optional(stringField(Functions.NAME, "The name of the " + description + ". If this field is not defined, then the name is derived from the context."));
-        final var params = optional(listField(Functions.PARAMETERS, "parameter", "parameter", "A list of parameters to be passed into the " + description, new ParameterDefinitionParser()));
-        final var globalCode = optional(codeField(Functions.GLOBAL_CODE, "Global (multiline) code that gets loaded into the Python context outside of the " + description + ". Can be used for defining eg. global variables."));
-        final var code = optional(codeField(Functions.CODE, "The (multiline) code of the " + description + "."));
-        final var expression = optional(codeField(Functions.EXPRESSION, "The (multiline) expression returned by the " + description + ". Used as an alternative for 'return' statements in the code."));
-        final var resultType = optional(userTypeField(Functions.RESULT_TYPE, "The data type returned by the " + description + ". Only required for function types, which are not pre-defined.", false));
+        final var name = FieldParsers.optional(FieldParsers.stringField(Functions.NAME, "The name of the " + description + ". If this field is not defined, then the name is derived from the context."));
+        final var params = FieldParsers.optional(FieldParsers.listField(Functions.PARAMETERS, "parameter", "parameter", "A list of parameters to be passed into the " + description, new ParameterDefinitionParser()));
+        final var globalCode = FieldParsers.optional(FieldParsers.codeField(Functions.GLOBAL_CODE, "Global (multiline) code that gets loaded into the Python context outside of the " + description + ". Can be used for defining eg. global variables."));
+        final var code = FieldParsers.optional(FieldParsers.codeField(Functions.CODE, "The (multiline) code of the " + description + "."));
+        final var expression = FieldParsers.optional(FieldParsers.codeField(Functions.EXPRESSION, "The (multiline) expression returned by the " + description + ". Used as an alternative for 'return' statements in the code."));
+        final var resultType = FieldParsers.optional(FieldParsers.userTypeField(Functions.RESULT_TYPE, "The data type returned by the " + description + ". Only required for function types, which are not pre-defined.", false));
         final var stores = includeStores
-                ? optional(listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()))
+                ? FieldParsers.optional(FieldParsers.listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()))
                 : new IgnoreParser<List<String>>();
         // We assume that the resultClass is always either using stores or not using stores, but not a combination of both. Hence, we do not provide a definitionVariant extension to distinguish between the two.
-        final var parser = structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX, doc, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
+        final var parser = FieldParsers.structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX, doc, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
         return new StructsParser<>() {
             @Override
             public T parse(ParseNode node) {

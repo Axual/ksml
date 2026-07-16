@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
@@ -41,18 +42,18 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
     public WindowByTimeOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.WINDOW_BY_TIME, resources);
 
-        final var durationParser = durationField(KSMLDSL.TimeWindows.DURATION, "The duration of time windows");
-        final var advanceByParser = durationField(KSMLDSL.TimeWindows.ADVANCE_BY, "The amount of time to increase time windows by");
-        final var graceParser = durationField(KSMLDSL.TimeWindows.GRACE, "The grace period, during which out-of-order records can still be processed");
-        final var timeDifferenceParser = durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, "The maximum amount of time difference between two records");
+        final var durationParser = FieldParsers.durationField(KSMLDSL.TimeWindows.DURATION, "The duration of time windows");
+        final var advanceByParser = FieldParsers.durationField(KSMLDSL.TimeWindows.ADVANCE_BY, "The amount of time to increase time windows by");
+        final var graceParser = FieldParsers.durationField(KSMLDSL.TimeWindows.GRACE, "The grace period, during which out-of-order records can still be processed");
+        final var timeDifferenceParser = FieldParsers.durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, "The maximum amount of time difference between two records");
 
-        tumblingParser = structsParser(
+        tumblingParser = FieldParsers.structsParser(
                 WindowByTimeOperation.class,
                 "WithTumblingWindow",
                 DOC,
                 operationNameField(),
                 durationParser,
-                optional(graceParser),
+                FieldParsers.optional(graceParser),
                 (name, duration, grace, tags) -> {
                     final var timeWindows = (grace != null && grace.toMillis() > 0)
                             ? TimeWindows.ofSizeAndGrace(duration, grace)
@@ -60,14 +61,14 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                     return new WindowByTimeOperation(operationConfig(name, tags), timeWindows);
                 });
 
-        hoppingParser = structsParser(
+        hoppingParser = FieldParsers.structsParser(
                 WindowByTimeOperation.class,
                 "WithHoppingWindow",
                 DOC,
                 operationNameField(),
                 durationParser,
                 advanceByParser,
-                optional(graceParser),
+                FieldParsers.optional(graceParser),
                 (name, duration, advanceBy, grace, tags) -> {
                     if (advanceBy.toMillis() > duration.toMillis()) {
                         throw new TopologyException("A hopping window can not advanceBy more than its duration");
@@ -78,13 +79,13 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                     return new WindowByTimeOperation(operationConfig(name, tags), timeWindows);
                 });
 
-        slidingParser = structsParser(
+        slidingParser = FieldParsers.structsParser(
                 WindowByTimeOperation.class,
                 "WithSlidingWindow",
                 DOC,
                 operationNameField(),
                 timeDifferenceParser,
-                optional(graceParser),
+                FieldParsers.optional(graceParser),
                 (name, timeDifference, grace, tags) -> {
                     final var slidingWindows = (grace != null && grace.toMillis() > 0)
                             ? SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace)

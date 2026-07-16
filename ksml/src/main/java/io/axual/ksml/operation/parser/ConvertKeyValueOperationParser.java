@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
@@ -34,12 +35,12 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
 
     @Override
     public StructsParser<ConvertKeyValueOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 ConvertKeyValueOperation.class,
                 "",
                 "An operation to convert the stream key and value types to other types. Conversion is only syntactic, eg. from Avro to XML.",
                 operationNameField(),
-                userTypeField(KSMLDSL.Operations.Convert.INTO, "The tuple type to convert the stream key/value into", false),
+                FieldParsers.userTypeField(KSMLDSL.Operations.Convert.INTO, "The tuple type to convert the stream key/value into", false),
                 (name, into, tags) -> {
                     if (into.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
                         return new ConvertKeyValueOperation(operationConfig(name, tags), userTupleType.getUserType(0), userTupleType.getUserType(1));

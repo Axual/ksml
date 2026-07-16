@@ -21,31 +21,35 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceFields;
 
 import static io.axual.ksml.dsl.KSMLDSL.Producers;
 
-public class ProducerDefinitionParser extends TopologyResourceAwareParser<ProducerDefinition> {
+public class ProducerDefinitionParser extends DefinitionParser<ProducerDefinition> {
+    private final TopologyResourceFields resourceFields;
+
     public ProducerDefinitionParser(TopologyResources resources) {
-        super(resources);
+        this.resourceFields = new TopologyResourceFields(resources);
     }
 
     @Override
     public StructsParser<ProducerDefinition> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 ProducerDefinition.class,
                 "",
                 "Definition of a Producer that regularly generates messages for a topic",
-                functionField(Producers.GENERATOR, "The function that generates records", new GeneratorDefinitionParser(false)),
-                optional(functionField(Producers.CONDITION, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser(false))),
-                optional(functionField(Producers.UNTIL, "A predicate that returns true to indicate producing should stop.", new PredicateDefinitionParser(false))),
-                topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(resources(), false)),
-                optional(longField(Producers.COUNT, "The number of messages to produce.")),
-                withDefault(optional(longField(Producers.BATCH_SIZE, "The size of batches")), 1L),
-                optional(durationField(Producers.INTERVAL, "The interval with which the generator is called")),
+                resourceFields.functionField(Producers.GENERATOR, "The function that generates records", new GeneratorDefinitionParser(false)),
+                FieldParsers.optional(resourceFields.functionField(Producers.CONDITION, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser(false))),
+                FieldParsers.optional(resourceFields.functionField(Producers.UNTIL, "A predicate that returns true to indicate producing should stop.", new PredicateDefinitionParser(false))),
+                resourceFields.topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(resourceFields.resources(), false)),
+                FieldParsers.optional(FieldParsers.longField(Producers.COUNT, "The number of messages to produce.")),
+                FieldParsers.withDefault(FieldParsers.optional(FieldParsers.longField(Producers.BATCH_SIZE, "The size of batches")), 1L),
+                FieldParsers.optional(FieldParsers.durationField(Producers.INTERVAL, "The interval with which the generator is called")),
                 (generator, condition, until, target, count, batchSize, interval, tags) -> new ProducerDefinition(generator, condition, until, target, count, batchSize, interval));
     }
 }

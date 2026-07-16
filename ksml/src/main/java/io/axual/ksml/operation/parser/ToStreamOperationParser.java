@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -34,12 +35,12 @@ public class ToStreamOperationParser extends OperationParser<ToStreamOperation> 
 
     @Override
     public StructsParser<ToStreamOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 ToStreamOperation.class,
                 "",
                 "Convert a Table into a Stream, optionally through a custom key transformer",
                 operationNameField(),
-                optional(functionField(KSMLDSL.Operations.ToStream.MAPPER, "A function that computes the output key for every record", new KeyTransformerDefinitionParser(false))),
+                FieldParsers.optional(functionField(KSMLDSL.Operations.ToStream.MAPPER, "A function that computes the output key for every record", new KeyTransformerDefinitionParser(false))),
                 (name, mapper, tags) -> new ToStreamOperation(operationConfig(name, tags), mapper));
     }
 }

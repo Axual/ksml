@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.KeyValueToValueListTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -34,7 +35,7 @@ public class TransformKeyValueToValueListOperationParser extends OperationParser
 
     @Override
     protected StructsParser<TransformKeyValueToValueListOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 TransformKeyValueToValueListOperation.class,
                 "",
                 "Convert every record in the stream to a list of output records with the same key",

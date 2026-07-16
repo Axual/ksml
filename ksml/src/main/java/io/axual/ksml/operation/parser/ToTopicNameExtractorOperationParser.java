@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.ToTopicNameExtractorDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
@@ -36,7 +37,7 @@ public class ToTopicNameExtractorOperationParser extends OperationParser<ToTopic
     private class ToOperationDefinitionParser extends DefinitionParser<ToTopicNameExtractorOperation> {
         @Override
         protected StructsParser<ToTopicNameExtractorOperation> parser() {
-            return structsParser(
+            return FieldParsers.structsParser(
                     ToTopicNameExtractorOperation.class,
                     "",
                     "Inline defined topic name extractor to send output messages to",

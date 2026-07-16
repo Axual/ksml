@@ -21,6 +21,7 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructsParser;
@@ -30,12 +31,12 @@ import static io.axual.ksml.dsl.KSMLDSL.Functions;
 public class ParameterDefinitionParser extends DefinitionParser<ParameterDefinition> {
     @Override
     public StructsParser<ParameterDefinition> parser() {
-        return structsParser(ParameterDefinition.class,
+        return FieldParsers.structsParser(ParameterDefinition.class,
                 "",
                 "Defines a parameter for a user function",
-                stringField(Functions.Parameters.NAME, true, "The name of the parameter"),
-                userTypeField(Functions.Parameters.TYPE, "The type of the parameter", false),
-                optional(stringField(Functions.Parameters.DEFAULT_VALUE, "The default value for the parameter")),
+                FieldParsers.stringField(Functions.Parameters.NAME, true, "The name of the parameter"),
+                FieldParsers.userTypeField(Functions.Parameters.TYPE, "The type of the parameter", false),
+                FieldParsers.optional(FieldParsers.stringField(Functions.Parameters.DEFAULT_VALUE, "The default value for the parameter")),
                 (name, type, defaultValue, tags) -> new ParameterDefinition(name, type.dataType(), true, defaultValue));
     }
 }

@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.GlobalTableDefinition;
@@ -95,15 +96,15 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
     }
 
     private StructsParser<JoinWithStreamOperation> createJoinStreamParser(StructsParser<FunctionDefinition> valueJoinerField) {
-        return structsParser(
+        return FieldParsers.structsParser(
                 JoinWithStreamOperation.class,
                 "",
                 "Operation to join with a stream",
                 operationNameField(),
                 topicField(Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to join with", new StreamDefinitionParser(resources(), true)),
                 valueJoinerField,
-                durationField(Operations.Join.TIME_DIFFERENCE, "The maximum time difference for a join over two streams on the same key"),
-                optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
+                FieldParsers.durationField(Operations.Join.TIME_DIFFERENCE, "The maximum time difference for a join over two streams on the same key"),
+                FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the joined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
@@ -115,17 +116,17 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
     }
 
     private StructsParser<JoinWithTableOperation> createJoinTableParser(StructsParser<FunctionDefinition> valueJoinerField) {
-        return structsParser(
+        return FieldParsers.structsParser(
                 JoinWithTableOperation.class,
                 "",
                 "Operation to join with a table",
                 operationNameField(),
                 topicField(Operations.Join.WITH_TABLE, "A reference to the table, or an inline definition of the table to join with", new TableDefinitionParser(resources(), true)),
-                optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ForeignKeyExtractorDefinitionParser(false))),
+                FieldParsers.optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ForeignKeyExtractorDefinitionParser(false))),
                 valueJoinerField,
-                optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
-                optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
-                optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
+                FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
+                FieldParsers.optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
+                FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
                 storeField(false, "Materialized view of the joined table (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
                 (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
                     if (table instanceof TableDefinition tableDef) {
@@ -136,7 +137,7 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
     }
 
     private StructsParser<JoinWithGlobalTableOperation> createJoinGlobalTableParser(StructsParser<FunctionDefinition> valueJoinerField) {
-        return structsParser(
+        return FieldParsers.structsParser(
                 JoinWithGlobalTableOperation.class,
                 "",
                 "Operation to join with a table",
