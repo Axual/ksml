@@ -188,14 +188,14 @@ class RepartitionIT {
 
             // Validate processing metadata was added by transformValue operation
             assertThat(value.has("processing_info")).as("Should have processing_info field added by pipeline").isTrue();
-            assertThat(value.get("processing_info").asText())
+            assertThat(value.get("processing_info").asString())
                 .as("Processing info should indicate repartitioning by user")
                 .contains("Repartitioned by user:");
 
             assertThat(value.has("original_region")).as("Should have original_region field added by pipeline").isTrue();
 
             // Validate key matches user_id in value
-            assertThat(value.get("user_id").asText()).as("Key should match user_id in value").isEqualTo(userId);
+            assertThat(value.get("user_id").asString()).as("Key should match user_id in value").isEqualTo(userId);
         }
     }
 

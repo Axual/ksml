@@ -81,14 +81,14 @@ public class StreamTableLeftJoinTest {
         JsonNode enriched = objectMapper.readTree(result);
 
         // Verify activity data preserved
-        assertThat(enriched.get("activity_id").asText()).isEqualTo("activity_001");
-        assertThat(enriched.get("user_id").asText()).isEqualTo("user001");
-        assertThat(enriched.get("activity_type").asText()).isEqualTo("login");
+        assertThat(enriched.get("activity_id").asString()).isEqualTo("activity_001");
+        assertThat(enriched.get("user_id").asString()).isEqualTo("user001");
+        assertThat(enriched.get("activity_type").asString()).isEqualTo("login");
 
         // Verify location data added
-        assertThat(enriched.get("location").get("country").asText()).isEqualTo("USA");
-        assertThat(enriched.get("location").get("city").asText()).isEqualTo("New York");
-        assertThat(enriched.get("location").get("timezone").asText()).isEqualTo("EST");
+        assertThat(enriched.get("location").get("country").asString()).isEqualTo("USA");
+        assertThat(enriched.get("location").get("city").asString()).isEqualTo("New York");
+        assertThat(enriched.get("location").get("timezone").asString()).isEqualTo("EST");
 
         // Verify enrichment flag
         assertThat(enriched.get("enriched").asBoolean()).isTrue();
@@ -108,14 +108,14 @@ public class StreamTableLeftJoinTest {
         JsonNode enriched = objectMapper.readTree(result);
 
         // Verify activity data preserved
-        assertThat(enriched.get("activity_id").asText()).isEqualTo("activity_002");
-        assertThat(enriched.get("user_id").asText()).isEqualTo("user004");
-        assertThat(enriched.get("activity_type").asText()).isEqualTo("page_view");
+        assertThat(enriched.get("activity_id").asString()).isEqualTo("activity_002");
+        assertThat(enriched.get("user_id").asString()).isEqualTo("user004");
+        assertThat(enriched.get("activity_type").asString()).isEqualTo("page_view");
 
         // Verify default location values used
-        assertThat(enriched.get("location").get("country").asText()).isEqualTo("UNKNOWN");
-        assertThat(enriched.get("location").get("city").asText()).isEqualTo("UNKNOWN");
-        assertThat(enriched.get("location").get("timezone").asText()).isEqualTo("UTC");
+        assertThat(enriched.get("location").get("country").asString()).isEqualTo("UNKNOWN");
+        assertThat(enriched.get("location").get("city").asString()).isEqualTo("UNKNOWN");
+        assertThat(enriched.get("location").get("timezone").asString()).isEqualTo("UTC");
 
         // Verify enrichment flag
         assertThat(enriched.get("enriched").asBoolean()).isFalse();
@@ -152,9 +152,9 @@ public class StreamTableLeftJoinTest {
             String result = enrichedOutput.readValue();
             JsonNode enriched = objectMapper.readTree(result);
 
-            assertThat(enriched.get("location").get("country").asText()).isEqualTo("UNKNOWN");
-            assertThat(enriched.get("location").get("city").asText()).isEqualTo("UNKNOWN");
-            assertThat(enriched.get("location").get("timezone").asText()).isEqualTo("UTC");
+            assertThat(enriched.get("location").get("country").asString()).isEqualTo("UNKNOWN");
+            assertThat(enriched.get("location").get("city").asString()).isEqualTo("UNKNOWN");
+            assertThat(enriched.get("location").get("timezone").asString()).isEqualTo("UTC");
             assertThat(enriched.get("enriched").asBoolean()).isFalse();
         }
     }

@@ -90,7 +90,7 @@ public class OrderProcessingTest {
         String result = priorityOutput.readValue();
         JsonNode order = objectMapper.readTree(result);
         
-        assertEquals("priority", order.get("processing_tier").asText());
+        assertEquals("priority", order.get("processing_tier").asString());
         assertEquals(4, order.get("sla_hours").asInt());
         assertNotNull(order.get("processed_at"));
     }

@@ -81,7 +81,7 @@ public class CogroupTest {
         // Verify orders aggregated correctly
         assertThat(json.get("total_amount").asDouble()).isEqualTo(150.00);
         assertThat(json.get("order_count").asInt()).isEqualTo(2);
-        assertThat(json.get("customer").asText()).isEqualTo(customer);
+        assertThat(json.get("customer").asString()).isEqualTo(customer);
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")

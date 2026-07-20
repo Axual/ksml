@@ -65,8 +65,8 @@ public class FilteringTransformingCompleteTest {
         JsonNode output = objectMapper.readTree(result);
 
         // Verify transformation applied correctly
-        assertThat(output.get("sensor_id").asText()).isEqualTo("sensor0");
-        assertThat(output.get("location").asText()).isEqualTo("data_center");
+        assertThat(output.get("sensor_id").asString()).isEqualTo("sensor0");
+        assertThat(output.get("location").asString()).isEqualTo("data_center");
 
         // Verify temperature conversion (80F = 26.67C)
         assertThat(output.get("readings").get("temperature").get("fahrenheit").asInt()).isEqualTo(80);
@@ -164,7 +164,7 @@ public class FilteringTransformingCompleteTest {
             JsonNode error = objectMapper.readTree(result);
 
             assertThat(error.has("error")).isTrue();
-            assertThat(error.get("sensor_id").asText()).isEqualTo("sensor4");
+            assertThat(error.get("sensor_id").asString()).isEqualTo("sensor4");
         }
     }
 

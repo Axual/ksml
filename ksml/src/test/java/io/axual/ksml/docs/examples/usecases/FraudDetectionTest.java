@@ -137,14 +137,14 @@ public class FraudDetectionTest {
         JsonNode locationAlert = objectMapper.readTree(alertJson);
 
         // Verify alert structure
-        assertThat(locationAlert.get("transaction_id").asText()).isEqualTo("txn_004");
-        assertThat(locationAlert.get("alert_type").asText()).isEqualTo("unusual_location");
-        assertThat(locationAlert.get("card_id").asText()).isEqualTo(cardId);
-        assertThat(locationAlert.get("customer_id").asText()).isEqualTo(customerId);
+        assertThat(locationAlert.get("transaction_id").asString()).isEqualTo("txn_004");
+        assertThat(locationAlert.get("alert_type").asString()).isEqualTo("unusual_location");
+        assertThat(locationAlert.get("card_id").asString()).isEqualTo(cardId);
+        assertThat(locationAlert.get("customer_id").asString()).isEqualTo(customerId);
 
         // Verify current location
-        assertThat(locationAlert.get("current_location").get("country").asText()).isEqualTo("France");
-        assertThat(locationAlert.get("current_location").get("state").asText()).isEqualTo("Paris");
+        assertThat(locationAlert.get("current_location").get("country").asString()).isEqualTo("France");
+        assertThat(locationAlert.get("current_location").get("state").asString()).isEqualTo("Paris");
 
         // Verify previous locations
         assertThat(locationAlert.has("previous_locations")).isTrue();
@@ -237,8 +237,8 @@ public class FraudDetectionTest {
         String alertJson = unusualLocationOutput.readValue();
         JsonNode locationAlert = objectMapper.readTree(alertJson);
 
-        assertThat(locationAlert.get("alert_type").asText()).isEqualTo("unusual_location");
-        assertThat(locationAlert.get("current_location").get("state").asText()).isEqualTo("NY");
+        assertThat(locationAlert.get("alert_type").asString()).isEqualTo("unusual_location");
+        assertThat(locationAlert.get("current_location").get("state").asString()).isEqualTo("NY");
         // Verify risk score is calculated (value depends on location history state)
         assertThat(locationAlert.get("risk_score").asInt()).isGreaterThan(0);
     }
