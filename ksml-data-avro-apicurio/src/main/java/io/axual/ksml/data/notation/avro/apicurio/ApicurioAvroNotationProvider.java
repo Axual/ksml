@@ -58,7 +58,7 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
                 clientConfig.topicResolver());
     }
 
-    private RegistryClientFacade createSrClient(Map<String, Object> serdeConfigs) {
+    RegistryClientFacade createSrClient(Map<String, Object> serdeConfigs) {
         if (!serdeConfigs.containsKey(SchemaResolverConfig.REGISTRY_URL))
             return null;
         return RegistryClientFacadeFactory.create(new SchemaResolverConfig(serdeConfigs));

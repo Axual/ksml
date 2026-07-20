@@ -20,7 +20,7 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import io.axual.ksml.generator.YAMLObjectMapper;
 
 /**

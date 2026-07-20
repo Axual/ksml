@@ -20,8 +20,6 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.rest.client.auth.Auth;
-import io.apicurio.rest.client.auth.BasicAuth;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

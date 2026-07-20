@@ -41,6 +41,6 @@ public class DataObjectParser extends BaseParser<DataObject> {
         if (node.isLong()) return new DataLong(node.asLong());
         if (node.isDouble()) return new DataDouble(node.asDouble());
         if (node.isString()) return new DataString(node.asString());
-        throw new ParseException(node, "Can not parse value type: " + node.asString());
+        throw new ParseException(node, "Can not parse value type");
     }
 }

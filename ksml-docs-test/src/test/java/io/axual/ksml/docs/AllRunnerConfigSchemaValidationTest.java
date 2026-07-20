@@ -20,7 +20,7 @@ package io.axual.ksml.docs;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
@@ -55,6 +55,10 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 @Slf4j
 class AllRunnerConfigSchemaValidationTest {
+
+    // networknt's validator is built on Jackson 2, so YAML content parsed by KSML's Jackson 3 mapper
+    // is bridged to a Jackson 2 tree before validation.
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private static JsonSchema runnerSchema;
 
@@ -111,7 +115,8 @@ class AllRunnerConfigSchemaValidationTest {
         log.info("Validating: {}", yamlFile);
 
         final var yamlContent = Files.readString(yamlFile);
-        final var jsonContent = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
+        final var yamlNode = YAMLObjectMapper.INSTANCE.readValue(yamlContent, tools.jackson.databind.JsonNode.class);
+        final var jsonContent = JSON_MAPPER.readTree(yamlNode.toString());
 
         final var violations = runnerSchema.validate(jsonContent);
 
