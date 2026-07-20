@@ -85,8 +85,8 @@ public class SensorDataTestUtil {
                 .returns(false, JsonNode::isNull)
                 .returns(true, JsonNode::isTextual);
 
-        if (fieldNode.isTextual()) {
-            String actualValue = fieldNode.asText();
+        if (fieldNode.isString()) {
+            String actualValue = fieldNode.asString();
             softly.assertThat(actualValue)
                     .as("%s should be one of the valid enum values", fieldDescription)
                     .isIn((Object[]) validValues);

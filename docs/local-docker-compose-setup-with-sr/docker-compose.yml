@@ -57,7 +57,7 @@ services:
 
 
   schema_registry:
-    image: apicurio/apicurio-registry:3.0.2
+    image: apicurio/apicurio-registry:3.3.0
     hostname: schema-registry
     depends_on:
       broker:

@@ -66,9 +66,9 @@ class TestDefinitionSchemaGeneratorTest {
 
     @Test
     void rootIsAnObjectWithJsonSchemaPreamble() {
-        assertEquals("http://json-schema.org/draft-07/schema#", root.get("$schema").asText());
-        assertEquals("KSML Test Suite Definition", root.get("title").asText());
-        assertEquals("object", root.get("type").asText());
+        assertEquals("http://json-schema.org/draft-07/schema#", root.get("$schema").asString());
+        assertEquals("KSML Test Suite Definition", root.get("title").asString());
+        assertEquals("object", root.get("type").asString());
         assertFalse(root.get("additionalProperties").asBoolean(),
                 "Root object schema must close down extra properties");
     }
@@ -78,7 +78,7 @@ class TestDefinitionSchemaGeneratorTest {
         var required = root.get("required");
         assertNotNull(required, "Root must declare a required array");
         var names = new java.util.HashSet<String>();
-        required.forEach(n -> names.add(n.asText()));
+        required.forEach(n -> names.add(n.asString()));
         assertEquals(java.util.Set.of("definition", "tests"), names);
     }
 
@@ -94,7 +94,7 @@ class TestDefinitionSchemaGeneratorTest {
     @Test
     void streamsUsesPatternPropertiesKeyedByIdentifierRegex() {
         var streams = root.path("properties").path("streams");
-        assertEquals("object", streams.get("type").asText());
+        assertEquals("object", streams.get("type").asString());
         assertFalse(streams.get("additionalProperties").asBoolean());
         var pattern = streams.path("patternProperties");
         assertTrue(pattern.has(KSMLTestDSL.IDENTIFIER_REGEX),
@@ -104,7 +104,7 @@ class TestDefinitionSchemaGeneratorTest {
     @Test
     void testsUsesPatternPropertiesAndRequiresAtLeastOneEntry() {
         var tests = root.path("properties").path("tests");
-        assertEquals("object", tests.get("type").asText());
+        assertEquals("object", tests.get("type").asString());
         assertFalse(tests.get("additionalProperties").asBoolean());
         assertEquals(1, tests.get("minProperties").asInt(),
                 "tests map must require at least one entry");
@@ -114,58 +114,58 @@ class TestDefinitionSchemaGeneratorTest {
     @Test
     void streamSchemaRequiresTopicAndDefaultsKeyValueTypeToString() {
         var streamSchema = root.at(STREAM_SCHEMA_POINTER);
-        assertEquals("object", streamSchema.get("type").asText());
+        assertEquals("object", streamSchema.get("type").asString());
         assertFalse(streamSchema.get("additionalProperties").asBoolean());
 
         var required = streamSchema.get("required");
         assertEquals(1, required.size());
-        assertEquals("topic", required.get(0).asText());
+        assertEquals("topic", required.get(0).asString());
 
-        assertEquals("string", streamSchema.at("/properties/keyType/default").asText());
-        assertEquals("string", streamSchema.at("/properties/valueType/default").asText());
+        assertEquals("string", streamSchema.at("/properties/keyType/default").asString());
+        assertEquals("string", streamSchema.at("/properties/valueType/default").asString());
     }
 
     @Test
     void testCaseSchemaRequiresProduceAndAssert() {
         var testSchema = root.at(TEST_SCHEMA_POINTER);
-        assertEquals("object", testSchema.get("type").asText());
+        assertEquals("object", testSchema.get("type").asString());
         var required = new java.util.HashSet<String>();
-        testSchema.get("required").forEach(n -> required.add(n.asText()));
+        testSchema.get("required").forEach(n -> required.add(n.asString()));
         assertEquals(java.util.Set.of("produce", "assert"), required);
     }
 
     @Test
     void produceBlockOneOfBetweenMessagesAndGenerator() {
         var produceItem = root.at(TEST_SCHEMA_POINTER + "/properties/produce/items");
-        assertEquals("object", produceItem.get("type").asText());
+        assertEquals("object", produceItem.get("type").asString());
 
         var oneOf = produceItem.get("oneOf");
         assertNotNull(oneOf, "Produce block schema must declare oneOf");
         var variantRequired = new java.util.HashSet<String>();
         for (var variant : oneOf) {
-            variant.get("required").forEach(n -> variantRequired.add(n.asText()));
+            variant.get("required").forEach(n -> variantRequired.add(n.asString()));
         }
         assertEquals(java.util.Set.of("messages", "generator"), variantRequired);
 
         // 'to' is itself required regardless of which variant is chosen
-        assertEquals("to", produceItem.get("required").get(0).asText());
+        assertEquals("to", produceItem.get("required").get(0).asString());
     }
 
     @Test
     void assertBlockAnyOfBetweenOnAndStores() {
         var assertItem = root.at(TEST_SCHEMA_POINTER + "/properties/assert/items");
-        assertEquals("object", assertItem.get("type").asText());
+        assertEquals("object", assertItem.get("type").asString());
 
         var anyOf = assertItem.get("anyOf");
         assertNotNull(anyOf, "Assert block schema must declare anyOf");
         var variantRequired = new java.util.HashSet<String>();
         for (var variant : anyOf) {
-            variant.get("required").forEach(n -> variantRequired.add(n.asText()));
+            variant.get("required").forEach(n -> variantRequired.add(n.asString()));
         }
         assertEquals(java.util.Set.of("on", "stores"), variantRequired);
 
         // 'code' is required unconditionally
-        assertEquals("code", assertItem.get("required").get(0).asText());
+        assertEquals("code", assertItem.get("required").get(0).asString());
     }
 
     @Test
@@ -184,7 +184,7 @@ class TestDefinitionSchemaGeneratorTest {
     @Test
     void definitionFieldCarriesAnnotationDescription() {
         var annotation = componentAnnotation(TestSuiteDefinition.class, "definition");
-        var schemaDescription = root.at("/properties/definition/description").asText();
+        var schemaDescription = root.at("/properties/definition/description").asString();
         assertEquals(annotation.description(), schemaDescription,
                 "definition field description must come from the @JsonSchema annotation");
     }
@@ -195,21 +195,21 @@ class TestDefinitionSchemaGeneratorTest {
         var examples = root.at("/properties/definition/examples");
         assertEquals(annotation.examples().length, examples.size());
         for (int i = 0; i < annotation.examples().length; i++) {
-            assertEquals(annotation.examples()[i], examples.get(i).asText());
+            assertEquals(annotation.examples()[i], examples.get(i).asString());
         }
     }
 
     @Test
     void streamTopicFieldCarriesAnnotationDescription() {
         var annotation = componentAnnotation(StreamDefinition.class, "topic");
-        var schemaDescription = root.at(STREAM_SCHEMA_POINTER + "/properties/topic/description").asText();
+        var schemaDescription = root.at(STREAM_SCHEMA_POINTER + "/properties/topic/description").asString();
         assertEquals(annotation.description(), schemaDescription);
     }
 
     @Test
     void testCaseDescriptionFieldCarriesAnnotationDescription() {
         var annotation = componentAnnotation(TestCaseDefinition.class, "description");
-        var schemaDescription = root.at(TEST_SCHEMA_POINTER + "/properties/description/description").asText();
+        var schemaDescription = root.at(TEST_SCHEMA_POINTER + "/properties/description/description").asString();
         assertEquals(annotation.description(), schemaDescription);
     }
 
@@ -220,12 +220,12 @@ class TestDefinitionSchemaGeneratorTest {
         var produceTypeDescription = ProduceBlock.class.getAnnotation(JsonSchema.class).description();
         var assertTypeDescription = AssertBlock.class.getAnnotation(JsonSchema.class).description();
 
-        assertEquals(streamTypeDescription, root.at(STREAM_SCHEMA_POINTER + "/description").asText());
-        assertEquals(testCaseTypeDescription, root.at(TEST_SCHEMA_POINTER + "/description").asText());
+        assertEquals(streamTypeDescription, root.at(STREAM_SCHEMA_POINTER + "/description").asString());
+        assertEquals(testCaseTypeDescription, root.at(TEST_SCHEMA_POINTER + "/description").asString());
         assertEquals(produceTypeDescription,
-                root.at(TEST_SCHEMA_POINTER + "/properties/produce/items/description").asText());
+                root.at(TEST_SCHEMA_POINTER + "/properties/produce/items/description").asString());
         assertEquals(assertTypeDescription,
-                root.at(TEST_SCHEMA_POINTER + "/properties/assert/items/description").asText());
+                root.at(TEST_SCHEMA_POINTER + "/properties/assert/items/description").asString());
     }
 
     // ---------------------------------------------------------------------------------------

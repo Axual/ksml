@@ -54,7 +54,7 @@ class FieldExtractor {
         if (child == null || child.isNull()) {
             throw new TestDefinitionException("Missing required field '" + field + "' in " + contextFile);
         }
-        return child.asText();
+        return child.asString();
     }
 
     /**
@@ -65,7 +65,7 @@ class FieldExtractor {
         if (child == null || child.isNull()) {
             return null;
         }
-        return child.asText();
+        return child.asString();
     }
 
     /**
@@ -119,7 +119,7 @@ class FieldExtractor {
         }
         var result = new ArrayList<String>();
         for (var element : child) {
-            result.add(element.asText());
+            result.add(element.asString());
         }
         return result;
     }
@@ -131,8 +131,8 @@ class FieldExtractor {
         if (jsonNode == null || jsonNode.isNull()) {
             return null;
         }
-        if (jsonNode.isTextual()) {
-            return jsonNode.asText();
+        if (jsonNode.isString()) {
+            return jsonNode.asString();
         }
         if (jsonNode.isNumber()) {
             if (jsonNode.isInt()) return jsonNode.asInt();
@@ -152,6 +152,6 @@ class FieldExtractor {
             }
             return list;
         }
-        return jsonNode.asText();
+        return jsonNode.asString();
     }
 }

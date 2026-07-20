@@ -208,7 +208,7 @@ public class JsonNodeUtil {
             if (value.isDouble()) return value.doubleValue();
             if (value.isFloat()) return value.floatValue();
             if (value.isBinary()) return value.binaryValue();
-            if (value.isTextual()) return value.textValue();
+            if (value.isString()) return value.stringValue();
             if (value.isArray()) return convertJsonNodeToNative(value);
             if (value.isObject()) return convertJsonNodeToNative(value);
         } catch (Exception e) {

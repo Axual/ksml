@@ -79,11 +79,11 @@ public class PatternDetectionTest {
         JsonNode detection = objectMapper.readTree(result);
 
         // Verify pattern detection structure
-        assertThat(detection.get("pattern_type").asText()).isEqualTo("ABC_SEQUENCE");
-        assertThat(detection.get("status").asText()).isEqualTo("DETECTED");
-        assertThat(detection.get("session_id").asText()).isEqualTo(sessionId);
+        assertThat(detection.get("pattern_type").asString()).isEqualTo("ABC_SEQUENCE");
+        assertThat(detection.get("status").asString()).isEqualTo("DETECTED");
+        assertThat(detection.get("session_id").asString()).isEqualTo(sessionId);
         assertThat(detection.has("completing_event")).isTrue();
-        assertThat(detection.get("completing_event").get("event_type").asText()).isEqualTo("C");
+        assertThat(detection.get("completing_event").get("event_type").asString()).isEqualTo("C");
     }
 
     @KSMLTest(topology = "docs-examples/advanced-tutorial/complex-event-processing/processor-pattern-detection.yaml")
@@ -120,7 +120,7 @@ public class PatternDetectionTest {
 
         String result = outputTopic.readValue();
         JsonNode detection = objectMapper.readTree(result);
-        assertThat(detection.get("pattern_type").asText()).isEqualTo("ABC_SEQUENCE");
+        assertThat(detection.get("pattern_type").asString()).isEqualTo("ABC_SEQUENCE");
     }
 
     @KSMLTest(topology = "docs-examples/advanced-tutorial/complex-event-processing/processor-pattern-detection.yaml")
@@ -140,7 +140,7 @@ public class PatternDetectionTest {
 
         String result = outputTopic.readValue();
         JsonNode detection = objectMapper.readTree(result);
-        assertThat(detection.get("session_id").asText()).isEqualTo("session_001");
+        assertThat(detection.get("session_id").asString()).isEqualTo("session_001");
     }
 
     private String createEventJson(String sessionId, String eventType, int sequenceNum) throws Exception {

@@ -36,7 +36,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -57,7 +56,6 @@ import java.util.Map;
         """)
 @AllArgsConstructor
 @NoArgsConstructor
-@Jacksonized
 @Data
 public class KSMLConfig {
     public static final String DEFAULT_LOCATION = System.getProperty("user.dir");

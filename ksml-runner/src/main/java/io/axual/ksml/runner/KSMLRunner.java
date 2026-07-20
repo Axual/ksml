@@ -27,8 +27,8 @@ import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
-import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
+import com.github.victools.jsonschema.module.jackson.JacksonSchemaModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
@@ -638,7 +638,7 @@ public class KSMLRunner {
 
     @SuppressWarnings("java:S106")
     private static void printRunnerSchema(String filename) {
-        final var moduleJackson = new JacksonModule(
+        final var moduleJackson = new JacksonSchemaModule(
                 JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
                 JacksonOption.ALWAYS_REF_SUBTYPES,
                 JacksonOption.FLATTENED_ENUMS_FROM_JSONVALUE);
