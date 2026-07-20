@@ -24,6 +24,7 @@ import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
@@ -90,7 +91,7 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
 
     /**
      * Pre-registers the SensorData schema (WITH the nested inline enum) under
-     * {@code default/<topic>-value} via the Apicurio v2 REST API, BEFORE KSML starts.
+     * {@code default/<topic>-value} via the Apicurio v3 REST API, BEFORE KSML starts.
      */
     static void preRegisterSchema(KSMLContainer container) throws Exception {
         final int port = SharedKsmlInfra.schemaRegistry().getMappedPort(8081);
@@ -105,17 +106,29 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
         final String avsc = Files.readString(Path.of(resource.toURI()));
         log.info("Issue290: pre-registering schema under {}/{}:\n{}", GROUP, ARTIFACT_ID, avsc);
 
+        // Apicurio v3 replaced the v2 header-based registration with a CreateArtifact JSON body that
+        // carries the artifactId, artifactType and first version content inline.
+        final var mapper = new ObjectMapper();
+        final var body = mapper.createObjectNode();
+        body.put("artifactId", ARTIFACT_ID);
+        body.put("artifactType", "AVRO");
+        body.putObject("firstVersion")
+                .putObject("content")
+                .put("content", avsc)
+                .put("contentType", "application/json");
+        final String jsonBody = mapper.writeValueAsString(body);
+
         try (HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build()) {
 
+            // ifExists=FIND_OR_CREATE_VERSION keeps re-registration idempotent against the shared registry.
             final HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(baseUrl + "/apis/registry/v3/groups/" + GROUP + "/artifacts"))
+                    .uri(URI.create(baseUrl + "/apis/registry/v3/groups/" + GROUP
+                            + "/artifacts?ifExists=FIND_OR_CREATE_VERSION"))
                     .timeout(Duration.ofSeconds(30))
                     .header("Content-Type", "application/json")
-                    .header("X-Registry-ArtifactId", ARTIFACT_ID)
-                    .header("X-Registry-ArtifactType", "AVRO")
-                    .POST(HttpRequest.BodyPublishers.ofString(avsc, StandardCharsets.UTF_8))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
                     .build();
 
             final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -130,7 +143,7 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
             // Confirm the artifact is retrievable, and log exactly what is stored.
             final HttpRequest get = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/apis/registry/v3/groups/" + GROUP
-                            + "/artifacts/" + ARTIFACT_ID))
+                            + "/artifacts/" + ARTIFACT_ID + "/versions/branch=latest/content"))
                     .timeout(Duration.ofSeconds(30))
                     .GET()
                     .build();

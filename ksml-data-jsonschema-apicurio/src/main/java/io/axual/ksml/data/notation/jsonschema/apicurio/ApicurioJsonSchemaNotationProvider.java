@@ -23,7 +23,6 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.jsonschema.JsonSchemaDataObjectMapper;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
@@ -35,7 +34,7 @@ import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
  * the {@link VendorNotationProvider} base class.</p>
  *
  * <p>When asked to create a notation, this provider wires a {@link JsonSchemaNotation}
- * with an {@link ApicurioJsonSchemaSerdeSupplier} and a {@link JsonSchemaDataObjectMapper}
+ * with an {@link ApicurioJsonSchemaSerdeSupplier} and an {@link ApicurioJsonSchemaDataObjectMapper}
  * using the {@link io.axual.ksml.data.mapper.NativeDataObjectMapper} from the provided
  * {@link NotationContext}.</p>
  */
@@ -59,6 +58,6 @@ public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
                         vendorName(),
                         context,
                         new ApicurioJsonSchemaSerdeSupplier(registryClient),
-                        new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
+                        new ApicurioJsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
     }
 }

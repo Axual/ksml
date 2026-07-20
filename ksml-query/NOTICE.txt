@@ -1,5 +1,5 @@
 
-Lists of 220 third-party dependencies.
+Lists of 218 third-party dependencies.
      (Apache License, Version 2.0) LZ4 Java Compression (at.yawk.lz4:lz4-java:1.10.2 - https://github.com/yawkat/lz4-java)
      (The Apache Software License, Version 2.0) Handy URI Templates (com.damnhandy:handy-uri-templates:2.1.8 - https://github.com/damnhandy/Handy-URI-Templates)
      (Apache License, Version 2.0) com.dashjoin:jsonata (com.dashjoin:jsonata:0.9.10 - https://github.com/dashjoin/jsonata-java)
@@ -173,9 +173,7 @@ Lists of 220 third-party dependencies.
      (Apache License, 2.0) (BSD 2-Clause) (EDL 1.0) (EPL 2.0) (GPL2 w/ CPE) (MIT license) (Modified BSD) (Public Domain) (W3C license) (jQuery license) jersey-core-client (org.glassfish.jersey.core:jersey-client:4.0.2 - https://projects.eclipse.org/projects/ee4j.jersey/jersey-client)
      (Apache License, 2.0) (EPL 2.0) (Public Domain) (The GNU General Public License (GPL), Version 2, With Classpath Exception) jersey-core-common (org.glassfish.jersey.core:jersey-common:4.0.2 - https://projects.eclipse.org/projects/ee4j.jersey/jersey-common)
      (Apache License, 2.0) (EPL 2.0) (Modified BSD) (The GNU General Public License (GPL), Version 2, With Classpath Exception) jersey-core-server (org.glassfish.jersey.core:jersey-server:4.0.2 - https://projects.eclipse.org/projects/ee4j.jersey/jersey-server)
-     (Apache License, 2.0) (BSD 2-Clause) (EDL 1.0) (EPL 2.0) (GPL2 w/ CPE) (MIT license) (Modified BSD) (Public Domain) (W3C license) (jQuery license) jersey-ext-entity-filtering (org.glassfish.jersey.ext:jersey-entity-filtering:4.0.2 - https://projects.eclipse.org/projects/ee4j.jersey/project/jersey-entity-filtering)
      (Apache License, 2.0) (BSD 2-Clause) (EDL 1.0) (EPL 2.0) (GPL2 w/ CPE) (MIT license) (Modified BSD) (Public Domain) (W3C license) (jQuery license) jersey-inject-hk2 (org.glassfish.jersey.inject:jersey-hk2:4.0.2 - https://projects.eclipse.org/projects/ee4j.jersey/project/jersey-hk2)
-     (Apache License, 2.0) (EPL 2.0) (The GNU General Public License (GPL), Version 2, With Classpath Exception) jersey-media-json-jackson (org.glassfish.jersey.media:jersey-media-json-jackson:4.0.2 - https://projects.eclipse.org/projects/ee4j.jersey/project/jersey-media-json-jackson)
      (Universal Permissive License, Version 1.0) Polyglot (org.graalvm.polyglot:polyglot:25.0.3 - https://github.com/oracle/graal)
      (MIT License) (Python Software Foundation License) (Universal Permissive License, Version 1.0) Graalpython (org.graalvm.python:python-language:25.0.3 - http://www.graalvm.org/python)
      (MIT License) (Python Software Foundation License) (Universal Permissive License, Version 1.0) Graalpython Resources (org.graalvm.python:python-resources:25.0.3 - http://www.graalvm.org/python)
