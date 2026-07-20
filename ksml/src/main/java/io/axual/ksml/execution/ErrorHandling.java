@@ -101,7 +101,7 @@ public class ErrorHandling {
                 exception);
     }
 
-    public DeserializationExceptionHandler.DeserializationHandlerResponse handle(ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> rec, Exception exception) {
+    public DeserializationExceptionHandler.Response handle(ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> rec, Exception exception) {
         if (consumeHandler.log()) {
             // log record
             String key = consumeHandler.logPayload() ? bytesToString(rec.key()) : DATA_MASK;
@@ -109,14 +109,14 @@ public class ErrorHandling {
             logError(consumeExceptionLogger, "Deserialization", context, key, value, exception);
         }
         return switch (consumeHandler.handlerType()) {
-            case CONTINUE_ON_FAIL -> DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE;
-            case STOP_ON_FAIL -> DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL;
+            case CONTINUE_ON_FAIL -> DeserializationExceptionHandler.Response.resume();
+            case STOP_ON_FAIL -> DeserializationExceptionHandler.Response.fail();
             default ->
                     throw new UnsupportedOperationException("Unsupported deserialization error handler type. Only CONTINUE_ON_FAIL or STOP_ON_FAIL are allowed.");
         };
     }
 
-    public ProcessingExceptionHandler.ProcessingHandlerResponse handle(ErrorHandlerContext context, Record<?, ?> rec, Exception exception) {
+    public ProcessingExceptionHandler.Response handle(ErrorHandlerContext context, Record<?, ?> rec, Exception exception) {
         if (processHandler.log()) {
             // log record
             String key = processHandler.logPayload() ? objectToString(rec.key()) : DATA_MASK;
@@ -124,14 +124,14 @@ public class ErrorHandling {
             logError(processExceptionLogger, "Processing", context, key, value, exception);
         }
         return switch (processHandler.handlerType()) {
-            case CONTINUE_ON_FAIL -> ProcessingExceptionHandler.ProcessingHandlerResponse.CONTINUE;
-            case STOP_ON_FAIL -> ProcessingExceptionHandler.ProcessingHandlerResponse.FAIL;
+            case CONTINUE_ON_FAIL -> ProcessingExceptionHandler.Response.resume();
+            case STOP_ON_FAIL -> ProcessingExceptionHandler.Response.fail();
             default ->
                     throw new UnsupportedOperationException("Unsupported processing error handler type. Only CONTINUE_ON_FAIL or STOP_ON_FAIL are allowed.");
         };
     }
 
-    public ProductionExceptionHandler.ProductionExceptionHandlerResponse handle(ErrorHandlerContext context, ProducerRecord<byte[], byte[]> rec, Exception exception) {
+    public ProductionExceptionHandler.Response handle(ErrorHandlerContext context, ProducerRecord<byte[], byte[]> rec, Exception exception) {
         if (produceHandler.log()) {
             // log record
             String key = produceHandler.logPayload() ? bytesToString(rec.key()) : DATA_MASK;
@@ -139,9 +139,9 @@ public class ErrorHandling {
             logError(produceExceptionLogger, "Produce", context, key, value, exception);
         }
         return switch (produceHandler.handlerType()) {
-            case CONTINUE_ON_FAIL -> ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE;
-            case STOP_ON_FAIL -> ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL;
-            case RETRY_ON_FAIL -> ProductionExceptionHandler.ProductionExceptionHandlerResponse.RETRY;
+            case CONTINUE_ON_FAIL -> ProductionExceptionHandler.Response.resume();
+            case STOP_ON_FAIL -> ProductionExceptionHandler.Response.fail();
+            case RETRY_ON_FAIL -> ProductionExceptionHandler.Response.retry();
         };
     }
 }

@@ -32,17 +32,17 @@ import java.util.Map;
 
 public class ExecutionErrorHandler implements DeserializationExceptionHandler, ProcessingExceptionHandler, ProductionExceptionHandler {
     @Override
-    public DeserializationHandlerResponse handle(final ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> rec, Exception exception) {
+    public DeserializationExceptionHandler.Response handleError(final ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> rec, Exception exception) {
         return ExecutionContext.INSTANCE.errorHandling().handle(context, rec, exception);
     }
 
     @Override
-    public ProcessingHandlerResponse handle(ErrorHandlerContext context, Record<?, ?> rec, Exception exception) {
+    public ProcessingExceptionHandler.Response handleError(ErrorHandlerContext context, Record<?, ?> rec, Exception exception) {
         return ExecutionContext.INSTANCE.errorHandling().handle(context, rec, exception);
     }
 
     @Override
-    public ProductionExceptionHandlerResponse handle(final ErrorHandlerContext context, ProducerRecord<byte[], byte[]> rec, Exception exception) {
+    public ProductionExceptionHandler.Response handleError(final ErrorHandlerContext context, ProducerRecord<byte[], byte[]> rec, Exception exception) {
         return ExecutionContext.INSTANCE.errorHandling().handle(context, rec, exception);
     }
 

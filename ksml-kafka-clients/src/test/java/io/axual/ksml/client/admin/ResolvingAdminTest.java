@@ -25,7 +25,7 @@ import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AlterConsumerGroupOffsetsOptions;
 import org.apache.kafka.clients.admin.AlterConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
-import org.apache.kafka.clients.admin.ConsumerGroupListing;
+import org.apache.kafka.clients.admin.GroupListing;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.DeleteConsumerGroupOffsetsOptions;
@@ -46,8 +46,8 @@ import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsOptions;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
-import org.apache.kafka.clients.admin.ListConsumerGroupsOptions;
-import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
+import org.apache.kafka.clients.admin.ListGroupsOptions;
+import org.apache.kafka.clients.admin.ListGroupsResult;
 import org.apache.kafka.clients.admin.ListOffsetsOptions;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
@@ -272,20 +272,19 @@ class ResolvingAdminTest {
     }
 
     @Test
-    @DisplayName("listConsumerGroups unresolves the returned group ids")
-    @SuppressWarnings({"deprecation", "removal"}) // ListConsumerGroupsResult/ConsumerGroupListing deprecated in Kafka 4.1 but still wrapped
-    void listConsumerGroupsUnresolves() {
+    @DisplayName("listGroups unresolves the returned group ids")
+    void listGroupsUnresolves() {
         withAdmin((admin, delegate) -> {
-            final var listing = new ConsumerGroupListing(RESOLVED_GROUP, Optional.empty(), false);
-            final var delegateResult = mock(ListConsumerGroupsResult.class);
+            final var listing = new GroupListing(RESOLVED_GROUP, Optional.empty(), "consumer", Optional.empty());
+            final var delegateResult = mock(ListGroupsResult.class);
             when(delegateResult.all()).thenReturn(KafkaFuture.completedFuture(List.of(listing)));
             when(delegateResult.valid()).thenReturn(KafkaFuture.completedFuture(List.of(listing)));
-            when(delegate.listConsumerGroups(any())).thenReturn(delegateResult);
+            when(delegate.listGroups(any())).thenReturn(delegateResult);
 
-            final var result = admin.listConsumerGroups(new ListConsumerGroupsOptions());
+            final var result = admin.listGroups(new ListGroupsOptions());
 
-            assertThat(await(result.all())).extracting(ConsumerGroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
-            assertThat(await(result.valid())).extracting(ConsumerGroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
+            assertThat(await(result.all())).extracting(GroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
+            assertThat(await(result.valid())).extracting(GroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
         });
     }
 
