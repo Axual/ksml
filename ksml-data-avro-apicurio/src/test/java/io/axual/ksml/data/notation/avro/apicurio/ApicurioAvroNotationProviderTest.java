@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,31 +39,6 @@ class ApicurioAvroNotationProviderTest {
                 .returns(AvroNotation.NOTATION_NAME, ApicurioAvroNotationProvider::notationName)
                 .returns("apicurio", ApicurioAvroNotationProvider::vendorName);
     }
-
-//    @Test
-//    @DisplayName("buildAuth returns HTTP Basic auth when a username and password are set")
-//    void buildAuth_withUsernameAndPassword_returnsBasicAuth() {
-//        final Map<String, Object> config = new HashMap<>();
-//        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
-//        config.put("apicurio.auth.username", "alice");
-//        config.put("apicurio.auth.password", "secret");
-//
-//        final AttributeContext.Auth auth = new ApicurioAvroNotationProvider().buildAuth(config);
-//
-//        assertThat(auth).isInstanceOf(BasicAuth.class);
-//        final var basicAuth = (BasicAuth) auth;
-//        assertThat(basicAuth.getUsername()).isEqualTo("alice");
-//        assertThat(basicAuth.getPassword()).isEqualTo("secret");
-//    }
-//
-//    @Test
-//    @DisplayName("buildAuth returns null when no username is set (behavior unchanged)")
-//    void buildAuth_withoutUsername_returnsNull() {
-//        final Map<String, Object> config = new HashMap<>();
-//        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
-//
-//        assertThat(new ApicurioAvroNotationProvider().buildAuth(config)).isNull();
-//    }
 
     @Test
     @DisplayName("createSrClient returns null when no registry URL is configured")
@@ -84,9 +60,26 @@ class ApicurioAvroNotationProviderTest {
     void createSrClient_withUrlAndAuth_returnsClient() {
         final Map<String, Object> config = new HashMap<>();
         config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
-        config.put("apicurio.auth.username", "alice");
-        config.put("apicurio.auth.password", "secret");
+        config.put("apicurio.registry.auth.username", "alice");
+        config.put("apicurio.registry.auth.password", "secret");
 
         assertThat(new ApicurioAvroNotationProvider().createSrClient(config)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Basic-auth credentials are read from the Apicurio v3 apicurio.registry.auth.* keys")
+    void authCredentialsUseApicurioV3Keys() {
+        // KSML no longer maps auth itself (main's buildAuth); it passes the config straight to Apicurio,
+        // which reads the login from these keys. Apicurio v3 renamed them from apicurio.auth.* (v2) to
+        // apicurio.registry.auth.*, so this pins the exact keys users must configure.
+        final Map<String, Object> config = new HashMap<>();
+        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
+        config.put("apicurio.registry.auth.username", "alice");
+        config.put("apicurio.registry.auth.password", "secret");
+
+        final var resolverConfig = new SchemaResolverConfig(config);
+
+        assertThat(resolverConfig.getAuthUsername()).isEqualTo("alice");
+        assertThat(resolverConfig.getAuthPassword()).isEqualTo("secret");
     }
 }
