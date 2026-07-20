@@ -59,6 +59,10 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
     }
 
     @Override
+    // The 4-arg ConsumerGroupMetadata constructor is deprecated for removal, but it is the only API that
+    // preserves generationId/memberId/groupInstanceId while rewriting the group id; the groupId-only
+    // constructor would drop the fields EOS relies on. Keep it until Kafka offers a full replacement.
+    @SuppressWarnings("removal")
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets,
                                          ConsumerGroupMetadata groupMetadata) throws ProducerFencedException {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
