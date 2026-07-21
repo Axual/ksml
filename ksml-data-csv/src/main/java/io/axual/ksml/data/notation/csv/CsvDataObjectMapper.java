@@ -48,9 +48,8 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
             .with(CsvReadFeature.ALLOW_COMMENTS);
     private static final ObjectWriter CSV_WRITER = new CsvMapper()
             .writerFor(String[].class)
-            // TODO: Find out if the below options are implemented differently in Jackson v3
-            // .with(CsvWriteFeature.ESCAPE_CONTROL_CHARS_WITH_ESCAPE_CHAR)
-            // .with(CsvWriteFeature.ESCAPE_QUOTE_CHAR_WITH_ESCAPE_CHAR)
+            // Quotes and control chars are escaped by RFC-4180 quote-doubling; the ESCAPE_*_WITH_ESCAPE_CHAR
+            // features are not used as Jackson 3 requires an escape char in the CsvSchema for them.
             .with(CsvWriteFeature.ALWAYS_QUOTE_STRINGS)
             .without(CsvWriteFeature.WRITE_LINEFEED_AFTER_LAST_ROW);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();

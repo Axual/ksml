@@ -50,6 +50,10 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
     @Override
     public Notation createNotation(NotationContext context) {
         final Map<String, Object> serdeConfigs = context != null ? MapUtil.stringKeys(context.serdeConfigs()) : new HashMap<>();
+        // Apicurio v3 renamed the basic-auth keys; reject the v2 names so a stale config fails loudly
+        // instead of silently dropping the credentials (which would surface later as a 401).
+        rejectRenamedConfigKey(serdeConfigs, "apicurio.auth.username", SchemaResolverConfig.AUTH_USERNAME);
+        rejectRenamedConfigKey(serdeConfigs, "apicurio.auth.password", SchemaResolverConfig.AUTH_PASSWORD);
         final var clientConfig = new ResolvingClientConfig(serdeConfigs);
         final var srClient = this.registryClient != null ? registryClient : createSrClient(serdeConfigs);
         return new ApicurioAvroNotation(

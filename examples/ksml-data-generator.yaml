@@ -44,7 +44,7 @@ ksml:
     apicurio:
       config:
         # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        apicurio.registry.url: http://schema_registry:8081
+        apicurio.registry.url: http://schema_registry:8081/apis/registry/v3
         apicurio.registry.headers.enabled: false
         apicurio.registry.dereference-schema: true
         apicurio.registry.serializer.dereference-schema: true

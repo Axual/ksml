@@ -20,10 +20,9 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.runner.config.ErrorHandlingConfig.ErrorTypeHandlingConfig;
 import io.axual.ksml.runner.config.ErrorHandlingConfig.ErrorTypeHandlingConfig.Handler;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -35,7 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ErrorHandlingHandlerTest {
 
-    private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+    // Use the exact mapper the runner uses to read its config, so this test validates real behavior.
+    private static final ObjectMapper YAML = RunnerConfigMapper.INSTANCE;
     private static final ObjectMapper JSON = new ObjectMapper();
 
     @ParameterizedTest(name = "forValue(\"{0}\") -> {1}")

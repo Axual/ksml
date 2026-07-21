@@ -61,6 +61,9 @@ public class TestDefinitionParser {
     // info we surface in the error message.
     private static final ObjectMapper YAML_MAPPER = YAMLMapper.builder()
             .enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY)
+            // Fail fast on unknown/misspelled keys instead of silently ignoring them (Jackson 3 defaults
+            // this off), matching the strict validation of the KSML runner config.
+            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .build();
 
     /**

@@ -45,9 +45,10 @@ import java.util.Map;
  * {@link RegistryClientFacade} (useful for testing) and defaults to constructing
  * serializer/deserializer instances without an explicit client when null.</p>
  *
- * <p>The returned Serde is wrapped in a {@link ConfigInjectionSerde} to apply sensible default
- * configuration keys for Apicurio (artifact resolver strategy, headers mode, confluent compatibility,
- * and id handling). User-provided configuration always takes precedence.</p>
+ * <p>The returned Serde is wrapped in a {@link ConfigInjectionSerde} to pin the Apicurio serde
+ * configuration KSML relies on (artifact resolver strategy, headers mode, confluent-compatible id
+ * handling and validation), rather than depending on the Apicurio v3 defaults. User-provided
+ * configuration always takes precedence.</p>
  */
 public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
     /**
@@ -66,12 +67,12 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        // Create a serde that injects Apicurio defaults while honoring user-supplied configs
+        // Create a serde that pins the Apicurio defaults while honoring user-supplied configs
         return new ApicurioJsonSchemaSerde(registryClient);
     }
 
     /**
-     * Serde wrapper that injects the default Apicurio configuration where not provided by the user.
+     * Serde wrapper that pins the default Apicurio configuration where not provided by the user.
      */
     static class ApicurioJsonSchemaSerde extends ConfigInjectionSerde {
         public ApicurioJsonSchemaSerde(RegistryClientFacade registryClient) {
@@ -88,7 +89,7 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
         protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
             if (configs.getOrDefault(KafkaSerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
                     configs.getOrDefault(KafkaSerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
-                // Enable payload encoding in a Confluent compatible way
+                // Encode the schema id in the payload in the Confluent-compatible way.
                 configs.putIfAbsent(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
                 configs.putIfAbsent(KafkaSerdeConfig.ENABLE_HEADERS, false);
                 configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");

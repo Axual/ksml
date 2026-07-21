@@ -56,14 +56,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * that serializes {@code avro:SensorData} to that topic with auto-register disabled, and
  * checks whether messages actually land on the topic.
  *
- * <p><b>Status: passes, guarding the fix.</b> Without the fix this test FAILS: with the
- * issue-faithful config (only {@code auto-register: false} + {@code auto-register.if-exists:
- * RETURN}) Apicurio's content-based lookup represents the nested enum as a bare reference,
- * which never matches the inline-registered schema, so serialization fails with
- * {@code ArtifactNotFoundException}. The fix in {@code ApicurioAvroSerdeSupplier} defaults
- * {@code apicurio.registry.find-latest=true}, so the serializer resolves the artifact's
- * latest version by coordinates instead of by content. If this test starts failing again,
- * #290 has regressed.
+ * <p><b>Status: passes, guarding the fix on Apicurio v3.</b> The fix defaults
+ * {@code apicurio.registry.find-latest=true} in {@code ApicurioAvroSerdeSupplier}, so with auto-register
+ * disabled the serializer resolves the pre-registered artifact by coordinates instead of by content
+ * (content-based lookup renders the inline enum as a bare reference and never matches). Without that
+ * default this test fails with an artifact-not-found error and #290 has regressed.
+ *
+ * <p>Note the Apicurio v2 to v3 change: {@code auto-register.if-exists} no longer accepts {@code RETURN}
+ * (valid values are {@code FAIL}, {@code CREATE_VERSION}, {@code FIND_OR_CREATE_VERSION}). The config
+ * below uses {@code FIND_OR_CREATE_VERSION}; the value is irrelevant here because auto-register is off,
+ * but v3 still validates it, so an invalid value fails the serde at configuration time.
  *
  * <p>Runs under maven-failsafe in the {@code integration-tests} profile (requires a running
  * Docker daemon for Testcontainers), or on its own via:
