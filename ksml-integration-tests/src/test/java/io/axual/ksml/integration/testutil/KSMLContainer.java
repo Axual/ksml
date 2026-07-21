@@ -81,14 +81,14 @@ public class KSMLContainer implements Startable {
 
     public enum SchemaRegistryType {
         APICURIO_AVRO("apicurio_avro",
-                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
-                     "apicurio.registry.url: http://localhost:%d/apis/registry/v2"),
+                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v3",
+                     "apicurio.registry.url: http://localhost:%d/apis/registry/v3"),
         CONFLUENT_AVRO("confluent_avro",
                       "schema.registry.url: http://schema-registry:8081/apis/ccompat/v7",
                       "schema.registry.url: http://localhost:%d/apis/ccompat/v7"),
         APICURIO_JSON("apicurio_jsonschema",
-                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v2",
-                     "apicurio.registry.url: http://localhost:%d/apis/registry/v2");
+                     "apicurio.registry.url: http://schema-registry:8081/apis/registry/v3",
+                     "apicurio.registry.url: http://localhost:%d/apis/registry/v3");
 
         final String subdirectory;
         final String oldUrlPattern;
@@ -322,7 +322,7 @@ public class KSMLContainer implements Startable {
                     if (!existingTopics.contains(topicName)) {
                         topics.add(new NewTopic(topicName, topicPartitionCount, (short) 1));
                     } else if (topicPartitionCount > 1) {
-                        // A shared topic kept from an earlier IT may have fewer partitions than we need;
+                        // A shared topic kept from an earlier IT may have fewer partitions than we need,
                         // createTopics cannot change an existing topic, so warn instead of failing silently.
                         log.warn("Topic {} already exists; not changing its partition count (wanted {})",
                                 topicName, topicPartitionCount);

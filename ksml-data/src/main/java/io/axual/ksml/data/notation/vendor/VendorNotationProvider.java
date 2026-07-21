@@ -20,8 +20,11 @@ package io.axual.ksml.data.notation.vendor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.NotationProvider;
 import lombok.Getter;
+
+import java.util.Map;
 
 /**
  * Convenience base for vendor-specific {@link NotationProvider} implementations.
@@ -46,5 +49,20 @@ public abstract class VendorNotationProvider implements NotationProvider {
     protected VendorNotationProvider(String notationName, String vendorName) {
         this.notationName = notationName;
         this.vendorName = vendorName;
+    }
+
+    /**
+     * Fail fast when a configuration key that a vendor has renamed is still present. Passing the config
+     * straight through would otherwise silently ignore the old key (e.g. dropped credentials), so we
+     * reject it with a message pointing at the replacement key instead of letting the failure surface
+     * later as an unexplained authentication or lookup error.
+     *
+     * @param configs        the serde configuration to inspect (nullable)
+     * @param deprecatedKey  the key that is no longer read by the vendor
+     * @param replacementKey the key that should be used instead
+     */
+    protected static void rejectRenamedConfigKey(Map<String, ?> configs, String deprecatedKey, String replacementKey) {
+        if (configs != null && configs.containsKey(deprecatedKey))
+            throw new DataException("Configuration key '" + deprecatedKey + "' is no longer supported; use '" + replacementKey + "' instead");
     }
 }

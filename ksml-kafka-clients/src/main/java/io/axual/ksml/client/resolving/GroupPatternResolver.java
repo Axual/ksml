@@ -20,8 +20,6 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Map;
 
 public class GroupPatternResolver extends CachedPatternResolver implements GroupResolver {
@@ -37,6 +35,6 @@ public class GroupPatternResolver extends CachedPatternResolver implements Group
     private static String replaceAliases(String pattern) {
         // Some systems use "group" instead of "group.id" in their consumer group pattern. This method allows
         // for both, replacing "{group}" with "{group.id}"
-        return StringUtils.replace(pattern, PLACEHOLDER_ALIAS_PATTERN, DEFAULT_PLACEHOLDER_PATTERN);
+        return pattern == null ? null : pattern.replace(PLACEHOLDER_ALIAS_PATTERN, DEFAULT_PLACEHOLDER_PATTERN);
     }
 }

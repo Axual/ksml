@@ -22,28 +22,22 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
 
 import com.google.protobuf.Descriptors;
 import com.squareup.wire.schema.Field;
-import com.squareup.wire.schema.internal.parser.EnumConstantElement;
 import com.squareup.wire.schema.internal.parser.EnumElement;
-import com.squareup.wire.schema.internal.parser.FieldElement;
 import com.squareup.wire.schema.internal.parser.MessageElement;
-import com.squareup.wire.schema.internal.parser.OneOfElement;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
 import io.apicurio.registry.utils.protobuf.schema.DynamicSchema;
 import io.apicurio.registry.utils.protobuf.schema.EnumDefinition;
 import io.apicurio.registry.utils.protobuf.schema.MessageDefinition;
 import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.notation.protobuf.DescriptorToFileElementConverter;
 import io.axual.ksml.data.notation.protobuf.ProtobufConstants;
 import io.axual.ksml.data.notation.protobuf.ProtobufFileElementDescriptorMapper;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.DEFAULT_LOCATION;
 import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.DEFAULT_SYNTAX;
-import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.NO_DOCUMENTATION;
 
 public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFileElementDescriptorMapper {
     public Descriptors.FileDescriptor toDescriptor(String namespace, String name, ProtoFileElement fileElement) {
@@ -89,6 +83,7 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
                 throw new SchemaException("Can not generate dynamic PROTOBUF schema" + name + ": " + e.getMessage(), e);
             }
         }
+
         @SuppressWarnings({"java:S3776", "java:S3358"})
         private MessageDefinition toMessageDefinition(String namespace, MessageElement messageElement) {
             // Mark the namespace + message name as done
@@ -140,115 +135,6 @@ public class ApicurioProtobufFileElementDescriptorMapper implements ProtobufFile
                 enumBuilder.addValue(constant.getName(), constant.getTag());
             }
             return enumBuilder.build();
-        }
-    }
-
-    private static class DescriptorToFileElementConverter {
-        public ProtoFileElement convert(Descriptors.Descriptor descriptor) {
-            final var types = new ArrayList<TypeElement>();
-            for (final var msg : descriptor.getFile().getMessageTypes()) {
-                types.add(convertToMessageElement(msg));
-            }
-            for (final var enm : descriptor.getFile().getEnumTypes()) {
-                types.add(convertToEnumElement(enm));
-            }
-            return new ProtoFileElement(
-                    DEFAULT_LOCATION,
-                    descriptor.getFile().getPackage(),
-                    DEFAULT_SYNTAX,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    types,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList());
-        }
-
-        private static String defaultValue(Descriptors.FieldDescriptor field) {
-            if (field.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) return null;
-            final var defaultValue = field.getDefaultValue();
-            return defaultValue != null ? defaultValue.toString() : null;
-        }
-
-        private MessageElement convertToMessageElement(Descriptors.Descriptor messageDescriptor) {
-            // Convert the oneOfs to OneOfElements
-            final var oneOfs = new ArrayList<OneOfElement>();
-            for (final var oneOf : messageDescriptor.getOneofs()) {
-                final var oneOfFields = new ArrayList<FieldElement>();
-                for (final var oneOfField : oneOf.getFields()) {
-                    final Field.Label label;
-                    if (oneOfField.isRequired()) {
-                        label = Field.Label.REQUIRED;
-                    } else {
-                        label = oneOfField.isRepeated() ? Field.Label.REPEATED : Field.Label.OPTIONAL;
-                    }
-                    final var type = convertType(oneOfField);
-                    oneOfFields.add(new FieldElement(DEFAULT_LOCATION, label, type, oneOfField.getName(), defaultValue(oneOfField), null, oneOfField.getNumber(), NO_DOCUMENTATION, Collections.emptyList()));
-                }
-                oneOfs.add(new OneOfElement(oneOf.getName(), NO_DOCUMENTATION, oneOfFields, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION));
-            }
-
-            // Convert nested messages
-            final var nestedTypes = new ArrayList<TypeElement>();
-            for (final var nestedType : messageDescriptor.getNestedTypes()) {
-                nestedTypes.add(convertToMessageElement(nestedType));
-            }
-
-            // Convert nested enums
-            for (final var enumType : messageDescriptor.getEnumTypes()) {
-                nestedTypes.add(convertToEnumElement(enumType));
-            }
-
-            // Convert the message fields
-            final var fields = new ArrayList<FieldElement>();
-            for (final var field : messageDescriptor.getFields()) {
-                if (field.getContainingOneof() == null) {
-                    final var type = convertType(field);
-                    if (type != null) fields.add(convertToFieldElement(field, type));
-                }
-            }
-
-            return new MessageElement(
-                    DEFAULT_LOCATION,
-                    messageDescriptor.getName(),
-                    NO_DOCUMENTATION,
-                    nestedTypes,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    fields,
-                    oneOfs,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList());
-        }
-
-        @SuppressWarnings("java:S3358")
-        private static FieldElement convertToFieldElement(Descriptors.FieldDescriptor field, String type) {
-            final var required = field.isRequired();
-            final var list = field.isRepeated();
-            return new FieldElement(
-                    DEFAULT_LOCATION,
-                    required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
-                    type,
-                    field.getName(),
-                    defaultValue(field),
-                    null,
-                    field.getNumber(),
-                    NO_DOCUMENTATION,
-                    Collections.emptyList());
-        }
-
-        private EnumElement convertToEnumElement(Descriptors.EnumDescriptor enumDescriptor) {
-            final var constants = enumDescriptor.getValues().stream().map(symbol -> new EnumConstantElement(DEFAULT_LOCATION, symbol.getName(), symbol.getIndex(), NO_DOCUMENTATION, Collections.emptyList())).toList();
-            return new EnumElement(DEFAULT_LOCATION, enumDescriptor.getName(), NO_DOCUMENTATION, Collections.emptyList(), constants, Collections.emptyList());
-        }
-
-        private String convertType(Descriptors.FieldDescriptor field) {
-            return switch (field.getType()) {
-                case DOUBLE, FLOAT, INT64, UINT64, INT32, FIXED64, FIXED32, BOOL, STRING, BYTES, UINT32, SFIXED32,
-                     SFIXED64, SINT32, SINT64 -> field.getType().toString().toLowerCase();
-                default -> field.toProto().getTypeName();
-            };
         }
     }
 }

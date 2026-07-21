@@ -20,8 +20,9 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.rest.client.auth.Auth;
-import io.apicurio.rest.client.auth.BasicAuth;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ApicurioAvroNotationProviderTest {
 
@@ -42,31 +44,6 @@ class ApicurioAvroNotationProviderTest {
     }
 
     @Test
-    @DisplayName("buildAuth returns HTTP Basic auth when a username and password are set")
-    void buildAuth_withUsernameAndPassword_returnsBasicAuth() {
-        final Map<String, Object> config = new HashMap<>();
-        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v2");
-        config.put("apicurio.auth.username", "alice");
-        config.put("apicurio.auth.password", "secret");
-
-        final Auth auth = new ApicurioAvroNotationProvider().buildAuth(config);
-
-        assertThat(auth).isInstanceOf(BasicAuth.class);
-        final var basicAuth = (BasicAuth) auth;
-        assertThat(basicAuth.getUsername()).isEqualTo("alice");
-        assertThat(basicAuth.getPassword()).isEqualTo("secret");
-    }
-
-    @Test
-    @DisplayName("buildAuth returns null when no username is set (behavior unchanged)")
-    void buildAuth_withoutUsername_returnsNull() {
-        final Map<String, Object> config = new HashMap<>();
-        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v2");
-
-        assertThat(new ApicurioAvroNotationProvider().buildAuth(config)).isNull();
-    }
-
-    @Test
     @DisplayName("createSrClient returns null when no registry URL is configured")
     void createSrClient_withoutRegistryUrl_returnsNull() {
         assertThat(new ApicurioAvroNotationProvider().createSrClient(new HashMap<>())).isNull();
@@ -76,7 +53,7 @@ class ApicurioAvroNotationProviderTest {
     @DisplayName("createSrClient builds a client when a URL is set but no login")
     void createSrClient_withUrlNoAuth_returnsClient() {
         final Map<String, Object> config = new HashMap<>();
-        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v2");
+        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
 
         assertThat(new ApicurioAvroNotationProvider().createSrClient(config)).isNotNull();
     }
@@ -85,10 +62,40 @@ class ApicurioAvroNotationProviderTest {
     @DisplayName("createSrClient builds a client when a URL and a login are set")
     void createSrClient_withUrlAndAuth_returnsClient() {
         final Map<String, Object> config = new HashMap<>();
-        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v2");
-        config.put("apicurio.auth.username", "alice");
-        config.put("apicurio.auth.password", "secret");
+        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
+        config.put("apicurio.registry.auth.username", "alice");
+        config.put("apicurio.registry.auth.password", "secret");
 
         assertThat(new ApicurioAvroNotationProvider().createSrClient(config)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Basic-auth credentials are read from the Apicurio v3 apicurio.registry.auth.* keys")
+    void authCredentialsUseApicurioV3Keys() {
+        // KSML no longer maps auth itself (main's buildAuth); it passes the config straight to Apicurio,
+        // which reads the login from these keys. Apicurio v3 renamed them from apicurio.auth.* (v2) to
+        // apicurio.registry.auth.*, so this pins the exact keys users must configure.
+        final Map<String, Object> config = new HashMap<>();
+        config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
+        config.put("apicurio.registry.auth.username", "alice");
+        config.put("apicurio.registry.auth.password", "secret");
+
+        final var resolverConfig = new SchemaResolverConfig(config);
+
+        assertThat(resolverConfig.getAuthUsername()).isEqualTo("alice");
+        assertThat(resolverConfig.getAuthPassword()).isEqualTo("secret");
+    }
+
+    @Test
+    @DisplayName("createNotation fails fast on the deprecated Apicurio v2 auth keys")
+    void createNotation_withDeprecatedV2AuthKeys_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.auth.username", "alice");
+        final var prov = new ApicurioAvroNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("apicurio.auth.username")
+                .hasMessageContaining(SchemaResolverConfig.AUTH_USERNAME);
     }
 }

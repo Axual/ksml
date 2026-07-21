@@ -20,11 +20,11 @@ package io.axual.ksml.data.util;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ObjectNode;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.value.Tuple;
 import lombok.extern.slf4j.Slf4j;
@@ -184,8 +184,7 @@ public class JsonNodeUtil {
 
     private static List<Object> convertArrayNodeToList(ArrayNode node) {
         final var result = new ArrayList<>();
-        for (final var it = node.elements(); it.hasNext(); ) {
-            final var element = it.next();
+        for (final var element : node.elements()) {
             result.add(convertJsonNodeValueToNative(element));
         }
         return result;
@@ -209,7 +208,7 @@ public class JsonNodeUtil {
             if (value.isDouble()) return value.doubleValue();
             if (value.isFloat()) return value.floatValue();
             if (value.isBinary()) return value.binaryValue();
-            if (value.isTextual()) return value.textValue();
+            if (value.isString()) return value.stringValue();
             if (value.isArray()) return convertJsonNodeToNative(value);
             if (value.isObject()) return convertJsonNodeToNative(value);
         } catch (Exception e) {

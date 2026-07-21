@@ -20,7 +20,8 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
@@ -32,13 +33,13 @@ import lombok.Getter;
 public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     // Registry Client is mocked by tests
     @Getter
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioProtobufNotationProvider() {
         this(null);
     }
 
-    public ApicurioProtobufNotationProvider(RegistryClient registryClient) {
+    public ApicurioProtobufNotationProvider(RegistryClientFacade registryClient) {
         super(ProtobufNotation.NOTATION_NAME, "apicurio");
         this.registryClient = registryClient;
     }
@@ -46,6 +47,10 @@ public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     @Override
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
+        // Apicurio v3 renamed the basic-auth keys; reject the v2 names so a stale config fails loudly
+        // instead of silently dropping the credentials (which would surface later as a 401).
+        rejectRenamedConfigKey(context.serdeConfigs(), "apicurio.auth.username", SchemaResolverConfig.AUTH_USERNAME);
+        rejectRenamedConfigKey(context.serdeConfigs(), "apicurio.auth.password", SchemaResolverConfig.AUTH_PASSWORD);
         return new ProtobufNotation(
                 new VendorNotationContext(
                         vendorName(),

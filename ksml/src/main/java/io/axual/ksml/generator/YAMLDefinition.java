@@ -20,7 +20,7 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public record YAMLDefinition(String source, JsonNode root) {
 }

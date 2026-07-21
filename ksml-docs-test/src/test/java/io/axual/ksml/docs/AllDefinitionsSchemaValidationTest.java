@@ -20,7 +20,6 @@ package io.axual.ksml.docs;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.JsonSchema;
@@ -56,6 +55,10 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 @Slf4j
 class AllDefinitionsSchemaValidationTest {
+
+    // networknt's validator is built on Jackson 2, so both the generated schema and the YAML content
+    // (parsed by KSML's Jackson 3 mapper) are handled as Jackson 2 trees here.
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private static JsonSchema ksmlSchema;
 
@@ -95,8 +98,7 @@ class AllDefinitionsSchemaValidationTest {
         final var parser = new TopologyDefinitionParser("dummy");
         final var schemaJson = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
 
-        final var objectMapper = new ObjectMapper();
-        final var schemaNode = objectMapper.readTree(schemaJson);
+        final var schemaNode = JSON_MAPPER.readTree(schemaJson);
         // The generated schema permits additional properties by default; tighten this at the root so
         // we catch top-level typos like "functionss:" instead of "functions:".
         ((ObjectNode) schemaNode).put("additionalProperties", false);
@@ -112,7 +114,8 @@ class AllDefinitionsSchemaValidationTest {
         log.info("Validating: {}", yamlFile);
 
         final var yamlContent = Files.readString(yamlFile);
-        final var jsonContent = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
+        final var yamlNode = YAMLObjectMapper.INSTANCE.readValue(yamlContent, tools.jackson.databind.JsonNode.class);
+        final var jsonContent = JSON_MAPPER.readTree(yamlNode.toString());
 
         final var violations = ksmlSchema.validate(jsonContent);
 

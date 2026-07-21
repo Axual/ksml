@@ -5,7 +5,7 @@ ksml:
   schemaRegistries:
     my_apicurio_registry:
       config:
-        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
+        apicurio.registry.url: http://schema-registry:8081/apis/registry/v3
   notations:
     jsonschema:
       type: apicurio_jsonschema

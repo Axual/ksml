@@ -71,8 +71,8 @@ import org.apache.kafka.clients.admin.ForwardingAdmin;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsOptions;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
-import org.apache.kafka.clients.admin.ListConsumerGroupsOptions;
-import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
+import org.apache.kafka.clients.admin.ListGroupsOptions;
+import org.apache.kafka.clients.admin.ListGroupsResult;
 import org.apache.kafka.clients.admin.ListOffsetsOptions;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListPartitionReassignmentsOptions;
@@ -212,8 +212,8 @@ public class ResolvingAdmin extends ForwardingAdmin {
     }
 
     @Override
-    public ListConsumerGroupsResult listConsumerGroups(ListConsumerGroupsOptions options) {
-        return new ResolvingListConsumerGroupsResult(super.listConsumerGroups(options), groupResolver);
+    public ListGroupsResult listGroups(ListGroupsOptions options) {
+        return new ResolvingListGroupsResult(super.listGroups(options), groupResolver);
     }
 
     @Override

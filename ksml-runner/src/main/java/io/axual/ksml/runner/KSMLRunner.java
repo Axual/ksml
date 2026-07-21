@@ -21,17 +21,14 @@ package io.axual.ksml.runner;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.victools.jsonschema.generator.FieldScope;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
-import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
+import com.github.victools.jsonschema.module.jackson.JacksonSchemaModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
@@ -60,6 +57,7 @@ import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.config.NotationConfig;
 import io.axual.ksml.runner.config.PrometheusConfig;
+import io.axual.ksml.runner.config.RunnerConfigMapper;
 import io.axual.ksml.runner.config.SchemaRegistryConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionProvider;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionSubTypeResolver;
@@ -80,9 +78,10 @@ import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.state.HostInfo;
 import picocli.CommandLine;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -638,7 +637,7 @@ public class KSMLRunner {
 
     @SuppressWarnings("java:S106")
     private static void printRunnerSchema(String filename) {
-        final var moduleJackson = new JacksonModule(
+        final var moduleJackson = new JacksonSchemaModule(
                 JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
                 JacksonOption.ALWAYS_REF_SUBTYPES,
                 JacksonOption.FLATTENED_ENUMS_FROM_JSONVALUE);
@@ -744,11 +743,10 @@ public class KSMLRunner {
     }
 
     static KSMLRunnerConfig readConfiguration(File configFile) {
-        final var mapper = new ObjectMapper(new YAMLFactory());
         try {
-            final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
+            final var config = RunnerConfigMapper.INSTANCE.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) return config;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.error("Configuration exception", e);
         }
         throw new ConfigException("No configuration found");

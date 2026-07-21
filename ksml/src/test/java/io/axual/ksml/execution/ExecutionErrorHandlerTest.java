@@ -22,10 +22,10 @@ package io.axual.ksml.execution;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.streams.errors.DeserializationExceptionHandler.DeserializationHandlerResponse;
+import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
-import org.apache.kafka.streams.errors.ProcessingExceptionHandler.ProcessingHandlerResponse;
-import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse;
+import org.apache.kafka.streams.errors.ProcessingExceptionHandler;
+import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 import org.apache.kafka.streams.processor.api.Record;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,23 +77,23 @@ class ExecutionErrorHandlerTest {
     @DisplayName("deserialization handling is delegated to the shared error handling")
     void delegatesDeserializationHandling() {
         final var rec = new ConsumerRecord<>("topic", 0, 0L, "k".getBytes(), "v".getBytes());
-        assertThat(handler.handle(context, rec, new RuntimeException("boom")))
-                .isEqualTo(DeserializationHandlerResponse.FAIL);
+        assertThat(handler.handleError(context, rec, new RuntimeException("boom")).result())
+                .isEqualTo(DeserializationExceptionHandler.Result.FAIL);
     }
 
     @Test
     @DisplayName("processing handling is delegated to the shared error handling")
     void delegatesProcessingHandling() {
-        assertThat(handler.handle(context, new Record<>("k", "v", 0L), new RuntimeException("boom")))
-                .isEqualTo(ProcessingHandlerResponse.FAIL);
+        assertThat(handler.handleError(context, new Record<>("k", "v", 0L), new RuntimeException("boom")).result())
+                .isEqualTo(ProcessingExceptionHandler.Result.FAIL);
     }
 
     @Test
     @DisplayName("production handling is delegated to the shared error handling")
     void delegatesProductionHandling() {
         final var rec = new ProducerRecord<>("topic", "k".getBytes(), "v".getBytes());
-        assertThat(handler.handle(context, rec, new RuntimeException("boom")))
-                .isEqualTo(ProductionExceptionHandlerResponse.FAIL);
+        assertThat(handler.handleError(context, rec, new RuntimeException("boom")).result())
+                .isEqualTo(ProductionExceptionHandler.Result.FAIL);
     }
 
     @Test

@@ -20,11 +20,13 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.Legacy4ByteIdHandler;
-import io.apicurio.registry.serde.SerdeConfig;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.apicurio.registry.serde.Default4ByteIdHandler;
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
+import io.apicurio.registry.serde.config.SerdeConfig;
+import io.apicurio.registry.serde.kafka.config.KafkaSerdeConfig;
 import io.apicurio.registry.serde.strategy.TopicIdStrategy;
 import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
 import io.axual.ksml.data.serde.ConfigInjectionSerde;
@@ -36,9 +38,9 @@ import java.util.Map;
 
 public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
     // Registry Client is mocked by tests
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
-    public ApicurioAvroSerdeSupplier(RegistryClient registryClient) {
+    public ApicurioAvroSerdeSupplier(RegistryClientFacade registryClient) {
         this.registryClient = registryClient;
     }
 
@@ -47,35 +49,40 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
         return new ApicurioAvroSerde(registryClient);
     }
 
+    /**
+     * Serde that pins the Apicurio serde configuration KSML relies on, rather than depending on the
+     * Apicurio v3 defaults. This keeps the on-wire format stable across KSML and Apicurio upgrades.
+     *
+     * <p>When headers are not enabled it forces the Confluent-compatible id format (the schema id is a
+     * 4-byte content id in the message payload, not in Kafka headers), matching KSML 1.x. It also defaults
+     * {@code find-latest} to {@code true} so a pre-registered schema with a nested inline type resolves by
+     * coordinates instead of by content (see <a href="https://github.com/Axual/ksml/issues/290">#290</a>).
+     * Every value uses {@code putIfAbsent}, so user-supplied configuration always wins.</p>
+     */
     static class ApicurioAvroSerde extends ConfigInjectionSerde {
-        public ApicurioAvroSerde(RegistryClient registryClient) {
-            this(Serdes.serdeFrom(
+        ApicurioAvroSerde(RegistryClientFacade registryClient) {
+            super(Serdes.serdeFrom(
                     registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>(),
                     registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>()));
         }
 
-        public ApicurioAvroSerde(Serde<Object> delegate) {
+        // Delegate constructor, used by tests to verify the injected defaults without a real Apicurio serde.
+        ApicurioAvroSerde(Serde<Object> delegate) {
             super(delegate);
         }
 
         @Override
         protected Map<String, Object> modifyConfigs(Map<String, Object> configs, boolean isKey) {
-            if (configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
-                    configs.getOrDefault(SerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
-                // Enable payload encoding in a Confluent compatible way
-                configs.putIfAbsent(SerdeConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
-                configs.putIfAbsent(SerdeConfig.ENABLE_HEADERS, false);
-                configs.putIfAbsent(SerdeConfig.ENABLE_CONFLUENT_ID_HANDLER, true);
+            if (configs.getOrDefault(KafkaSerdeConfig.ENABLE_HEADERS, false) == Boolean.FALSE ||
+                    configs.getOrDefault(KafkaSerdeConfig.ENABLE_HEADERS, "false").equals("false")) {
+                // Encode the schema id in the payload in the Confluent-compatible way.
+                configs.putIfAbsent(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName());
+                configs.putIfAbsent(KafkaSerdeConfig.ENABLE_HEADERS, false);
                 configs.putIfAbsent(SerdeConfig.USE_ID, "contentId");
-                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getCanonicalName());
+                configs.putIfAbsent(SerdeConfig.ID_HANDLER, Default4ByteIdHandler.class.getCanonicalName());
             }
-            // Default to resolving the latest registered artifact version by coordinates instead of
-            // by content. When auto-register is false (and the user has not opted into find-latest),
-            // Apicurio otherwise performs a content-based lookup whose canonical key renders nested
-            // named types (e.g. an inline enum) as bare references; that never matches a schema
-            // registered in inline form, causing serialization to fail with ArtifactNotFoundException.
-            // See https://github.com/Axual/ksml/issues/290 . Users can still override this explicitly.
-            configs.putIfAbsent(SerdeConfig.FIND_LATEST_ARTIFACT, true);
+            // Resolve pre-registered artifacts by coordinates instead of by content (issue #290).
+            configs.putIfAbsent(SchemaResolverConfig.FIND_LATEST_ARTIFACT, true);
             return configs;
         }
     }

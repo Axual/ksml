@@ -21,51 +21,35 @@ package io.axual.ksml.data.notation.avro.confluent;
  */
 
 import io.axual.ksml.client.resolving.Resolver;
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.RemoteSchemaAvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
-import io.axual.ksml.data.schema.DataSchema;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Confluent-backed AvroNotation that supports fetching schemas from a schema registry.
  * <p>
- * This extends AvroNotation to override {@link #fetchRemoteSchema(String, boolean)}, enabling
- * deferred schema resolution for stream definitions that omit an explicit schema name.
+ * Extends {@link RemoteSchemaAvroNotation}, providing the Confluent-specific registry client and fetch.
  */
-@Slf4j
-public class ConfluentAvroNotation extends AvroNotation {
+public class ConfluentAvroNotation extends RemoteSchemaAvroNotation {
     private final SchemaRegistryClient registryClient;
-    private final Resolver topicResolver;
 
     public ConfluentAvroNotation(VendorNotationContext context, SchemaRegistryClient registryClient, Resolver topicResolver) {
-        super(context);
+        super(context, topicResolver::resolve);
         this.registryClient = registryClient;
-        this.topicResolver = topicResolver;
     }
 
     @Override
-    public boolean supportsRemoteSchema() {
-        if (registryClient != null) return true;
-        log.warn("Confluent schema registry not configured, remote schema resolution is disabled");
-        return false;
+    protected boolean hasRegistryClient() {
+        return registryClient != null;
     }
 
     @Override
-    public DataSchema fetchRemoteSchema(String topic, boolean isKey) {
-        if (registryClient == null) {
-            throw new SchemaException("Cannot fetch remote schema: no schema registry client configured");
-        }
+    protected String registryDescription() {
+        return "Confluent schema registry";
+    }
 
-        final var subject = topicResolver.resolve(topic) + (isKey ? "-key" : "-value");
-        try {
-            log.info("Fetching latest schema for subject '{}' from schema registry", subject);
-            final var metadata = registryClient.getLatestSchemaMetadata(subject);
-            final var schemaString = metadata.getSchema();
-            return schemaParser().parse(subject, subject, schemaString);
-        } catch (Exception e) {
-            throw new SchemaException("Failed to fetch schema for subject '" + subject + "' from schema registry", e);
-        }
+    @Override
+    protected String fetchSchemaString(String subject) throws Exception {
+        return registryClient.getLatestSchemaMetadata(subject).getSchema();
     }
 }

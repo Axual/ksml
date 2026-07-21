@@ -20,8 +20,8 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.aggregations;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
@@ -81,7 +81,7 @@ public class CogroupTest {
         // Verify orders aggregated correctly
         assertThat(json.get("total_amount").asDouble()).isEqualTo(150.00);
         assertThat(json.get("order_count").asInt()).isEqualTo(2);
-        assertThat(json.get("customer").asText()).isEqualTo(customer);
+        assertThat(json.get("customer").asString()).isEqualTo(customer);
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")

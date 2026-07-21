@@ -69,6 +69,32 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         this.typeSchemaMapper = typeSchemaMapper;
     }
 
+    private static MessageElement findMessage(ProtoFileElement fileElement, String name) {
+        // Find the message by name in the schema's message types
+        for (final var msg : fileElement.getTypes()) {
+            if (msg instanceof MessageElement msgElement && msgElement.getName().equals(name))
+                return msgElement;
+        }
+        throw new SchemaException("Could not find message of type '" + name + "' in PROTOBUF schema");
+    }
+
+    @SuppressWarnings("java:S3358")
+    private static FieldElement convertStructFieldToFieldElement(StructSchema.Field field, String type) {
+        final var required = field.required();
+        final var list = field.schema() instanceof ListSchema;
+        final var defaultValue = field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE ? field.defaultValue().toString() : null;
+        return new FieldElement(
+                DEFAULT_LOCATION,
+                required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
+                type,
+                field.name(),
+                defaultValue,
+                null,
+                field.tag(),
+                field.doc(),
+                Collections.emptyList());
+    }
+
     @Override
     public StructSchema toDataSchema(String namespace, String name, ProtoFileElement fileElement) {
         // Look up the message name in the schema
@@ -79,14 +105,6 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         final var fields = convertMessageFieldsToStructFields(context, message);
         // Return a new struct schema with the converted fields
         return new StructSchema(context.namespace, message.getName(), message.getDocumentation(), fields, false);
-    }
-
-    private static MessageElement findMessage(ProtoFileElement fileElement, String name) {
-        // Find the message by name in the schema's message types
-        for (final var msg : fileElement.getTypes()) {
-            if (msg instanceof MessageElement msgElement && msgElement.getName().equals(name)) return msgElement;
-        }
-        throw new SchemaException("Could not find message of type '" + name + "' in PROTOBUF schema");
     }
 
     private List<StructSchema.Field> convertMessageFieldsToStructFields(ProtobufReadContext context, MessageElement message) {
@@ -128,19 +146,22 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         // and proto2 `optional` fields both allow absence and are treated as optional here.
         final var required = field.getLabel() == Field.Label.REQUIRED;
         final var type = convertFieldElementToDataSchema(context, field);
-        if (type == null) throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
+        if (type == null)
+            throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
         final var defaultValue = convertDefaultValueToDataObject(type, field.getDefaultValue());
         return new StructSchema.Field(name, type, field.getDocumentation(), field.getTag(), required, false, defaultValue);
     }
 
     private DataObject convertDefaultValueToDataObject(DataSchema expectedType, String defaultValue) {
-        if (defaultValue == null) return null;
+        if (defaultValue == null)
+            return null;
         return nativeMapper.toDataObject(typeSchemaMapper.fromDataSchema(expectedType), defaultValue);
     }
 
     private UnionSchema.Member convertFieldElementToUnionMember(ProtobufReadContext context, FieldElement field) {
         final var type = convertFieldElementToDataSchema(context, field);
-        if (type == null) throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
+        if (type == null)
+            throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
         return new UnionSchema.Member(field.getName(), type, field.getDocumentation(), field.getTag());
     }
 
@@ -154,9 +175,17 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         switch (field.getType()) {
             case "boolean":
                 return DataSchema.BOOLEAN_SCHEMA;
-            case "int32", "fixed32", "sfixed32", "sint32", "uint32":
+            case "int32",
+                 "fixed32",
+                 "sfixed32",
+                 "sint32",
+                 "uint32":
                 return DataSchema.INTEGER_SCHEMA;
-            case "int64", "fixed64", "sfixed64", "sint64", "uint64":
+            case "int64",
+                 "fixed64",
+                 "sfixed64",
+                 "sint64",
+                 "uint64":
                 return DataSchema.LONG_SCHEMA;
             case "float":
                 return DataSchema.FLOAT_SCHEMA;
@@ -208,7 +237,8 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         final var fields = new ArrayList<FieldElement>();
         for (final var field : schema.fields()) {
             final var type = convertStructFieldToProtoType(context, nestedTypes, oneOfs, schema.name(), field);
-            if (type != null) fields.add(convertStructFieldToFieldElement(field, type));
+            if (type != null)
+                fields.add(convertStructFieldToFieldElement(field, type));
         }
 
         return new MessageElement(
@@ -222,23 +252,6 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 oneOfs,
                 Collections.emptyList(),
                 Collections.emptyList(),
-                Collections.emptyList());
-    }
-
-    @SuppressWarnings("java:S3358")
-    private static FieldElement convertStructFieldToFieldElement(StructSchema.Field field, String type) {
-        final var required = field.required();
-        final var list = field.schema() instanceof ListSchema;
-        final var defaultValue = field.defaultValue() != null && field.defaultValue() != DataNull.INSTANCE ? field.defaultValue().toString() : null;
-        return new FieldElement(
-                DEFAULT_LOCATION,
-                required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
-                type,
-                field.name(),
-                defaultValue,
-                null,
-                field.tag(),
-                field.doc(),
                 Collections.emptyList());
     }
 
@@ -274,14 +287,20 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     }
 
     private String convertDataSchemaToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String parentName, DataSchema schema) {
-        if (schema == DataSchema.BOOLEAN_SCHEMA) return "boolean";
+        if (schema == DataSchema.BOOLEAN_SCHEMA)
+            return "boolean";
         if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA)
             return "int32";
-        if (schema == DataSchema.LONG_SCHEMA) return "int64";
-        if (schema == DataSchema.FLOAT_SCHEMA) return "float";
-        if (schema == DataSchema.DOUBLE_SCHEMA) return "double";
-        if (schema == DataSchema.BYTES_SCHEMA || schema instanceof FixedSchema) return "bytes";
-        if (schema == DataSchema.STRING_SCHEMA) return "string";
+        if (schema == DataSchema.LONG_SCHEMA)
+            return "int64";
+        if (schema == DataSchema.FLOAT_SCHEMA)
+            return "float";
+        if (schema == DataSchema.DOUBLE_SCHEMA)
+            return "double";
+        if (schema == DataSchema.BYTES_SCHEMA || schema instanceof FixedSchema)
+            return "bytes";
+        if (schema == DataSchema.STRING_SCHEMA)
+            return "string";
         if (schema instanceof EnumSchema enumSchema) {
             final var enm = convertEnumSchemaToEnumElement(enumSchema);
             // Find out if the enum is nested or defined at the top level
@@ -324,7 +343,9 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     /**
      * This is a helper class to convert from ProtoFileElements to DataSchema with type lookups
      */
-    private record ReadContextReference(String namespace, TypeElement type) {
+    private record ReadContextReference(
+            String namespace,
+            TypeElement type) {
     }
 
     private static class ProtobufReadContext implements ReferenceResolver<ReadContextReference> {
@@ -338,17 +359,21 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
         public ReadContextReference get(String name) {
             final var descriptor = getFrom(fileElement.getPackageName(), fileElement.getTypes(), name);
-            if (descriptor != null) return descriptor;
+            if (descriptor != null)
+                return descriptor;
             final var enm = ListUtil.find(fileElement.getTypes(), type -> type.getName().equals(namespace + "." + name));
-            if (enm != null) return new ReadContextReference(namespace, enm);
+            if (enm != null)
+                return new ReadContextReference(namespace, enm);
             return null;
         }
 
         private ReadContextReference getFrom(String namespace, List<TypeElement> types, String name) {
             for (final var type : types) {
-                if (type.getName().equals(name)) return new ReadContextReference(namespace, type);
+                if (type.getName().equals(name))
+                    return new ReadContextReference(namespace, type);
                 final var subMsg = getFrom(namespace + "." + type.getName(), type.getNestedTypes(), name);
-                if (subMsg != null) return subMsg;
+                if (subMsg != null)
+                    return subMsg;
             }
             return null;
         }
@@ -389,6 +414,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                     Location.get(""),
                     namespace,
                     ProtobufConstants.DEFAULT_SYNTAX,
+                    Collections.emptyList(),
                     Collections.emptyList(),
                     Collections.emptyList(),
                     types.reversed(),

@@ -80,7 +80,7 @@
         <apache.commons.text.version>1.15.0</apache.commons.text.version>
         <apache.kafka.version>4.3.1</apache.kafka.version>
         <apache.xmlschema.version>2.3.2</apache.xmlschema.version>
-        <apicurio.version>2.6.13.Final</apicurio.version>
+        <apicurio.version>3.3.0</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
         <commons.io.version>2.22.0</commons.io.version>
         <confluent.version>8.3.0</confluent.version>
@@ -88,21 +88,21 @@
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>25.0.3</graalvm.version>
         <guava.version>33.6.0-jre</guava.version>
-        <jackson.version>2.22.0</jackson.version>
+        <jackson.version>3.2.0</jackson.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
-        <logback.version>1.5.34</logback.version>
+        <logback.version>1.5.37</logback.version>
         <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <lombok.version>1.18.46</lombok.version>
         <picocli.version>4.7.7</picocli.version>
         <prometheus.version>1.0.1</prometheus.version>
         <prometheus-instrumentation.version>1.8.0</prometheus-instrumentation.version>
-        <protobuf.version>3.25.9</protobuf.version>
+        <protobuf.version>4.35.1</protobuf.version>
         <saaj.version>3.0.6</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
-        <victools.version>4.38.0</victools.version>
-        <wire.version>5.2.1</wire.version>
+        <victools.version>5.0.0</victools.version>
+        <wire.version>6.4.1</wire.version>
 
         <!-- KSML schema generation -->
         <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
@@ -113,7 +113,7 @@
         <awaitility.version>4.3.0</awaitility.version>
         <hamcrest.version>3.0</hamcrest.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
-        <junit.version>6.1.0</junit.version>
+        <junit.version>6.1.1</junit.version>
         <mockito-core.version>5.23.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
         <testcontainers.version>2.0.5</testcontainers.version>
@@ -342,47 +342,21 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-streams</artifactId>
                 <version>${apache.kafka.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.osgi</groupId>
-                        <artifactId>org.osgi.core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-databind</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.dataformat</groupId>
-                        <artifactId>jackson-dataformat-yaml</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
-                        <artifactId>jackson-jakarta-rs-json-provider</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>
                 <groupId>io.apicurio</groupId>
-                <artifactId>apicurio-registry-serdes-avro-serde</artifactId>
+                <artifactId>apicurio-registry-avro-serde-kafka</artifactId>
                 <version>${apicurio.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.apicurio</groupId>
-                <artifactId>apicurio-registry-serdes-jsonschema-serde</artifactId>
+                <artifactId>apicurio-registry-jsonschema-serde-kafka</artifactId>
                 <version>${apicurio.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.apicurio</groupId>
-                <artifactId>apicurio-registry-protobuf-schema-utilities</artifactId>
+                <artifactId>apicurio-registry-protobuf-serde-kafka</artifactId>
                 <version>${apicurio.version}</version>
             </dependency>
             <dependency>
@@ -419,7 +393,7 @@
             </dependency>
             <!-- Jackson — all artefacts version-aligned via the official BOM -->
             <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
+                <groupId>tools.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
                 <version>${jackson.version}</version>
                 <type>pom</type>

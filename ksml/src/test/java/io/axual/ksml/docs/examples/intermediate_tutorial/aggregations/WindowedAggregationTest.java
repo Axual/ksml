@@ -20,8 +20,8 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.aggregations;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
@@ -121,7 +121,7 @@ public class WindowedAggregationTest {
         assertThat(json.has("window_end")).isTrue();
         assertThat(json.has("stats")).isTrue();
 
-        assertThat(json.get("sensor_id").asText()).isEqualTo(sensorId);
+        assertThat(json.get("sensor_id").asString()).isEqualTo(sensorId);
         // Verify window metadata exists (values depend on test timing, so just check they're present)
         assertThat(json.get("window_start")).isNotNull();
         assertThat(json.get("window_end")).isNotNull();
@@ -140,25 +140,25 @@ public class WindowedAggregationTest {
         // Read and verify each sensor maintains separate statistics
         String result1 = outputTopic.readValue();
         JsonNode json1 = objectMapper.readTree(result1);
-        assertThat(json1.get("sensor_id").asText()).isEqualTo("temp001");
+        assertThat(json1.get("sensor_id").asString()).isEqualTo("temp001");
         assertThat(json1.get("stats").get("count").asInt()).isEqualTo(1);
         assertThat(json1.get("stats").get("avg").asDouble()).isEqualTo(20.0);
 
         String result2 = outputTopic.readValue();
         JsonNode json2 = objectMapper.readTree(result2);
-        assertThat(json2.get("sensor_id").asText()).isEqualTo("temp002");
+        assertThat(json2.get("sensor_id").asString()).isEqualTo("temp002");
         assertThat(json2.get("stats").get("count").asInt()).isEqualTo(1);
         assertThat(json2.get("stats").get("avg").asDouble()).isEqualTo(30.0);
 
         String result3 = outputTopic.readValue();
         JsonNode json3 = objectMapper.readTree(result3);
-        assertThat(json3.get("sensor_id").asText()).isEqualTo("temp001");
+        assertThat(json3.get("sensor_id").asString()).isEqualTo("temp001");
         assertThat(json3.get("stats").get("count").asInt()).isEqualTo(2);
         assertThat(json3.get("stats").get("avg").asDouble()).isEqualTo(21.0);
 
         String result4 = outputTopic.readValue();
         JsonNode json4 = objectMapper.readTree(result4);
-        assertThat(json4.get("sensor_id").asText()).isEqualTo("temp002");
+        assertThat(json4.get("sensor_id").asString()).isEqualTo("temp002");
         assertThat(json4.get("stats").get("count").asInt()).isEqualTo(2);
         assertThat(json4.get("stats").get("avg").asDouble()).isEqualTo(31.0);
     }

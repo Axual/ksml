@@ -20,9 +20,9 @@ package io.axual.ksml.integration.testutil;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.assertj.core.api.SoftAssertions;
 
 /**
@@ -54,7 +54,7 @@ public class SensorDataTestUtil {
 
             return node;
 
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             softly.fail("Invalid JSON structure: " + e.getMessage());
             return null;
         }
@@ -85,8 +85,8 @@ public class SensorDataTestUtil {
                 .returns(false, JsonNode::isNull)
                 .returns(true, JsonNode::isTextual);
 
-        if (fieldNode.isTextual()) {
-            String actualValue = fieldNode.asText();
+        if (fieldNode.isString()) {
+            String actualValue = fieldNode.asString();
             softly.assertThat(actualValue)
                     .as("%s should be one of the valid enum values", fieldDescription)
                     .isIn((Object[]) validValues);
