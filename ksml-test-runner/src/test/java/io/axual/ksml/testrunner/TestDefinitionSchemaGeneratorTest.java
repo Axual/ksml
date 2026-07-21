@@ -56,7 +56,7 @@ class TestDefinitionSchemaGeneratorTest {
     private static JsonNode root;
 
     @BeforeAll
-    static void generate() throws IOException {
+    static void generate() {
         root = MAPPER.readTree(TestDefinitionSchemaGenerator.generateSchema());
     }
 

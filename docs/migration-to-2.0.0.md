@@ -18,6 +18,8 @@ Before you upgrade, check each item below:
 
 ## Apicurio Registry 3
 
+KSML 2.0.0 upgrades to the Apicurio Registry 3 client. This client talks to Apicurio over the v3 API only, so you must run an Apicurio Registry 3.x server. Apicurio 2.x servers are no longer supported. If you cannot upgrade your registry yet, stay on KSML 1.x until you can.
+
 ### Registry URL must use the v3 endpoint
 
 KSML 2.0.0 talks to Apicurio Registry over the v3 API only. The v2 endpoint is not supported.
