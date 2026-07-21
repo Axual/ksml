@@ -46,7 +46,7 @@ class KSMLRunnerConfigTest {
 
     @Test
     @DisplayName("complete config should load without exceptions")
-    void shouldLoadWithoutExceptions() throws IOException {
+    void shouldLoadWithoutExceptions() {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-runner-config.yaml");
         final var ksmlRunnerConfig = objectMapper.readValue(yaml, KSMLRunnerConfig.class);
 
