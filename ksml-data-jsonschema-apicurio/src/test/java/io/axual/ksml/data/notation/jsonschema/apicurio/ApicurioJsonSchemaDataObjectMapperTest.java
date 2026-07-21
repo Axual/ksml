@@ -78,8 +78,8 @@ class ApicurioJsonSchemaDataObjectMapperTest {
                 return "not-json{";
             }
         };
-
-        assertThatThrownBy(() -> mapper.toDataObject(new StructType(), notJson))
+        final var struct = new StructType();
+        assertThatThrownBy(() -> mapper.toDataObject(struct, notJson))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Cannot convert value to DataObject");
     }

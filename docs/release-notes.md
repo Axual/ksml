@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [2.0.0-SNAPSHOT](#200-snapshot)
         * [1.3.0 (2026-06-23)](#130-2026-06-23)
         * [1.2.1 (2026-05-08)](#121-2026-05-08)
         * [1.2.0 (2026-03-25)](#120-2026-03-25)
@@ -28,6 +29,19 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+## 2.0.0-SNAPSHOT
+
+Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Registry 3, Kafka 4.x and the matching Avro, Protobuf, Wire and Confluent versions. Some changes below are breaking, so please read the [Upgrading to 2.0.0](migration-to-2.0.0.md) guide before you upgrade.
+
+* Upgraded to Jackson 3 (the `tools.jackson` packages) across all modules.
+* Upgraded to Apicurio Registry 3. Breaking change: the basic-auth config keys were renamed. Use `apicurio.registry.auth.username` and `apicurio.registry.auth.password` instead of the old `apicurio.auth.username` and `apicurio.auth.password`. KSML now fails at startup with a clear error if the old keys are still present, so it never silently drops your credentials.
+* Breaking change: Apicurio registry URLs must now use the v3 endpoint (`/apis/registry/v3`). The v2 endpoint is no longer supported.
+* Breaking change: `apicurio.registry.auto-register.if-exists` no longer accepts `RETURN`. Use one of `FAIL`, `CREATE_VERSION` or `FIND_OR_CREATE_VERSION`.
+* The Apicurio notations (`apicurio_avro`, `apicurio_jsonschema`, `apicurio_protobuf`) keep the same on-wire format as 1.x. KSML still pins the serde options explicitly (updated to the Apicurio v3 config keys) rather than depending on the Apicurio v3 defaults, so the schema id stays a 4-byte content id in the payload with no Kafka headers. Verified on 2.0.0 for all three notations. No topic reprocessing is needed. Set `apicurio.registry.headers.enabled: true` if you want the header-based id format instead.
+* Runner config validation is strict again: an unknown or misspelled key in `ksml-runner.yaml` fails at startup instead of being silently ignored (Jackson 3 changed this default, so KSML re-enables the strict check).
+* Upgraded to Kafka 4.x and updated the deprecated admin and Streams error-handler APIs.
+* Upgraded Protobuf and Wire to their 4.x and 6.x major versions.
 
 ## 1.3.0 (2026-06-23)
 

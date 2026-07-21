@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  */
 
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
@@ -53,6 +54,10 @@ public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
     @Override
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
+        // Apicurio v3 renamed the basic-auth keys; reject the v2 names so a stale config fails loudly
+        // instead of silently dropping the credentials (which would surface later as a 401).
+        rejectRenamedConfigKey(context.serdeConfigs(), "apicurio.auth.username", SchemaResolverConfig.AUTH_USERNAME);
+        rejectRenamedConfigKey(context.serdeConfigs(), "apicurio.auth.password", SchemaResolverConfig.AUTH_PASSWORD);
         return new JsonSchemaNotation(
                 new VendorNotationContext(
                         vendorName(),

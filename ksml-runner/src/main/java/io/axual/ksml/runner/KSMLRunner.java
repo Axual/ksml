@@ -57,6 +57,7 @@ import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.config.NotationConfig;
 import io.axual.ksml.runner.config.PrometheusConfig;
+import io.axual.ksml.runner.config.RunnerConfigMapper;
 import io.axual.ksml.runner.config.SchemaRegistryConfig;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionProvider;
 import io.axual.ksml.runner.config.internal.KsmlFileOrDefinitionSubTypeResolver;
@@ -79,8 +80,6 @@ import org.apache.kafka.streams.state.HostInfo;
 import picocli.CommandLine;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -744,9 +743,8 @@ public class KSMLRunner {
     }
 
     static KSMLRunnerConfig readConfiguration(File configFile) {
-        final var mapper = new ObjectMapper(new YAMLFactory());
         try {
-            final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
+            final var config = RunnerConfigMapper.INSTANCE.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) return config;
         } catch (JacksonException e) {
             log.error("Configuration exception", e);

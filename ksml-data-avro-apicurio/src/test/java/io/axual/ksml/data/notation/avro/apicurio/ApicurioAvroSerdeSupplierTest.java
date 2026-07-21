@@ -21,11 +21,25 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.apicurio.registry.serde.Default4ByteIdHandler;
+import io.apicurio.registry.serde.config.SerdeConfig;
+import io.apicurio.registry.serde.kafka.config.KafkaSerdeConfig;
+import io.apicurio.registry.serde.strategy.TopicIdStrategy;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ApicurioAvroSerdeSupplierTest {
 
@@ -40,5 +54,54 @@ class ApicurioAvroSerdeSupplierTest {
     void getWithRegistryClient() {
         final var client = mock(RegistryClientFacade.class);
         assertThat(new ApicurioAvroSerdeSupplier(client).get(null, true)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Pins the Confluent-compatible 4-byte content-id format and find-latest (issue #290)")
+    @SuppressWarnings("unchecked")
+    void injectsConfluentCompatibleDefaults() {
+        final var injected = configureAndCapture(new HashMap<>());
+        assertThat(injected)
+                .containsEntry(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName())
+                .containsEntry(KafkaSerdeConfig.ENABLE_HEADERS, false)
+                .containsEntry(SerdeConfig.USE_ID, "contentId")
+                .containsEntry(SerdeConfig.ID_HANDLER, Default4ByteIdHandler.class.getCanonicalName())
+                .containsEntry(SchemaResolverConfig.FIND_LATEST_ARTIFACT, true);
+    }
+
+    @Test
+    @DisplayName("User-supplied values are never overwritten")
+    @SuppressWarnings("unchecked")
+    void userValuesPreserved() {
+        final Map<String, Object> configs = new HashMap<>();
+        configs.put(SerdeConfig.USE_ID, "globalId");
+        configs.put(SchemaResolverConfig.FIND_LATEST_ARTIFACT, false);
+        final var injected = configureAndCapture(configs);
+        assertThat(injected)
+                .containsEntry(SerdeConfig.USE_ID, "globalId")
+                .containsEntry(SchemaResolverConfig.FIND_LATEST_ARTIFACT, false);
+    }
+
+    @Test
+    @DisplayName("When the user enables headers, the payload id config is not injected")
+    @SuppressWarnings("unchecked")
+    void headersEnabledSkipsPayloadIdConfig() {
+        final Map<String, Object> configs = new HashMap<>();
+        configs.put(KafkaSerdeConfig.ENABLE_HEADERS, true);
+        final var injected = configureAndCapture(configs);
+        assertThat(injected).doesNotContainKey(SerdeConfig.USE_ID)
+        // find-latest is applied regardless of the header mode
+                        .containsEntry(SchemaResolverConfig.FIND_LATEST_ARTIFACT, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> configureAndCapture(Map<String, Object> configs) {
+        final Serializer<Object> serializer = mock(Serializer.class);
+        final Deserializer<Object> deserializer = mock(Deserializer.class);
+        final var serde = new ApicurioAvroSerdeSupplier.ApicurioAvroSerde(Serdes.serdeFrom(serializer, deserializer));
+        serde.configure(configs, false);
+        final ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+        verify(serializer).configure(captor.capture(), anyBoolean());
+        return captor.getValue();
     }
 }

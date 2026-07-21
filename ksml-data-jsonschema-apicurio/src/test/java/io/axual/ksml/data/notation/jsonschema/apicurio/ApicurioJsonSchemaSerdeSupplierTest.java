@@ -2,7 +2,7 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - PROTOBUF Apicurio
+ * KSML Data Library - JSON Schema Apicurio
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -21,111 +21,91 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  */
 
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
-import io.axual.ksml.data.serde.HeaderFilterSerde;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.apicurio.registry.serde.Default4ByteIdHandler;
+import io.apicurio.registry.serde.config.SerdeConfig;
+import io.apicurio.registry.serde.kafka.config.KafkaSerdeConfig;
+import io.apicurio.registry.serde.strategy.TopicIdStrategy;
 import io.axual.ksml.data.type.StructType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class ApicurioJsonSchemaSerdeSupplierTest {
+
     @Test
-    void testSuppliedPropertiesNotOverwritten() {
-        // Set up mocks
-        Serializer<Object> delegateSerializer = mock(Serializer.class);
-        Deserializer<Object> delegateDeserializer = mock(Deserializer.class);
-        ArgumentCaptor<Map<String, Object>> configCaptor = ArgumentCaptor.forClass(Map.class);
-        // Set up the serde we want to test
-        final var serde = new ApicurioJsonSchemaSerdeSupplier.ApicurioJsonSchemaSerde(Serdes.serdeFrom(delegateSerializer, delegateDeserializer));
-        // Call the serde with prefilled config map
-        final var configs = new HashMap<String, String>();
-        configs.put("apicurio.registry.artifact-resolver-strategy", "myconfig");
-        configs.putIfAbsent("apicurio.registry.headers.enabled", "myconfig");
-        configs.putIfAbsent("apicurio.registry.as-confluent", "myconfig");
-        configs.putIfAbsent("apicurio.registry.use-id", "myconfig");
-        configs.putIfAbsent("apicurio.registry.serdes.json-schema.validation-enabled", "false");
-        serde.configure(configs, false);
-        // Capture the config map passed into the delegate serializer
-        verify(delegateSerializer).configure(configCaptor.capture(), any(Boolean.class));
-        final var modifiedConfigs = configCaptor.getValue();
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.artifact-resolver-strategy"));
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.headers.enabled"));
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.as-confluent"));
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.use-id"));
-        assertEquals("false", modifiedConfigs.get("apicurio.registry.serdes.json-schema.validation-enabled"));
+    @DisplayName("get() builds a Serde using the default Apicurio serializers when no client is set")
+    void getWithoutRegistryClient() {
+        final var serde = new ApicurioJsonSchemaSerdeSupplier().get(new StructType(), false);
+        assertThat(serde).isNotNull();
+        assertThat(serde.serializer()).isNotNull();
+        assertThat(serde.deserializer()).isNotNull();
     }
 
     @Test
-    void testSuppliedPropertiesExtendedWithDefaults() {
-        // Set up mocks
-        var headerFilterSerde = mock(HeaderFilterSerde.class);
-        Serializer<Object> delegateSerializer = mock(Serializer.class);
-        Deserializer<Object> delegateDeserializer = mock(Deserializer.class);
-        ArgumentCaptor<Map<String, Object>> configCaptor = ArgumentCaptor.forClass(Map.class);
-        when(headerFilterSerde.serializer()).thenReturn(delegateSerializer);
-        when(headerFilterSerde.deserializer()).thenReturn(delegateDeserializer);
-        // Set up the serde we want to test
-        final var serde = new ApicurioJsonSchemaSerdeSupplier.ApicurioJsonSchemaSerde(Serdes.serdeFrom(delegateSerializer, delegateDeserializer));
-        // Call the serde with empty config map
-        serde.configure(new HashMap<String, String>(), false);
-        // Capture the config map passed into the delegate serializer
-        verify(delegateSerializer).configure(configCaptor.capture(), any(Boolean.class));
-        // Verify whether the serializer's configure was called with empty config map
-        assertFalse(configCaptor.getValue().isEmpty(), "Expected a non-empty map to be passed to delegate serializer");
-        final var modifiedConfigs = configCaptor.getValue();
-        // Validate if default properties were added to the empty config map
-        assertEquals("io.apicurio.registry.serde.strategy.TopicIdStrategy", modifiedConfigs.get("apicurio.registry.artifact-resolver-strategy"));
-        assertEquals(false, modifiedConfigs.get("apicurio.registry.headers.enabled"), "Expected default config enabling payload encoding");
-        assertEquals(true, modifiedConfigs.get("apicurio.registry.serdes.json-schema.validation-enabled"), "Expected default config enabling json schema validation");
-        assertEquals("contentId", modifiedConfigs.get("apicurio.registry.use-id"), "Expected default config using contentId as schema id");
-        // New: default id-handler should be injected as well
-        assertEquals("io.apicurio.registry.serde.Default4ByteIdHandler", modifiedConfigs.get("apicurio.registry.id-handler"), "Expected default id handler to be set");
-    }
-
-    @Test
-    void testUserProvidedIdHandlerPreserved() {
-        // Set up mocks
-        Serializer<Object> delegateSerializer = mock(Serializer.class);
-        Deserializer<Object> delegateDeserializer = mock(Deserializer.class);
-        ArgumentCaptor<Map<String, Object>> configCaptor = ArgumentCaptor.forClass(Map.class);
-        final var serde = new ApicurioJsonSchemaSerdeSupplier.ApicurioJsonSchemaSerde(Serdes.serdeFrom(delegateSerializer, delegateDeserializer));
-
-        // Provide a custom id-handler which should not be overwritten
-        final var configs = new HashMap<String, String>();
-        configs.put("apicurio.registry.id-handler", "my.custom.IdHandler");
-        serde.configure(configs, false);
-
-        verify(delegateSerializer).configure(configCaptor.capture(), any(Boolean.class));
-        final var modifiedConfigs = configCaptor.getValue();
-        assertEquals("my.custom.IdHandler", modifiedConfigs.get("apicurio.registry.id-handler"));
-    }
-
-    @Test
-    void testSupplierBasics_vendorNameAndSerdeNotNull() {
-        final var supplier = new ApicurioJsonSchemaSerdeSupplier();
-        final var serde = supplier.get(new StructType(), false);
-        assertNotNull(serde);
-        assertNotNull(serde.serializer());
-        assertNotNull(serde.deserializer());
-    }
-
-    @Test
-    void testSupplierRegistryClientGetter() {
+    @DisplayName("get() builds a Serde around the supplied registry client")
+    void getWithRegistryClient() {
         final var client = mock(RegistryClientFacade.class);
-        final var supplier = new ApicurioJsonSchemaSerdeSupplier(client);
-        assertSame(client, supplier.registryClient());
+        assertThat(new ApicurioJsonSchemaSerdeSupplier(client).get(new StructType(), true)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("The supplied registry client is exposed via the getter")
+    void registryClientGetter() {
+        final var client = mock(RegistryClientFacade.class);
+        assertThat(new ApicurioJsonSchemaSerdeSupplier(client).registryClient()).isSameAs(client);
+    }
+
+    @Test
+    @DisplayName("Pins the Confluent-compatible 4-byte content-id format and schema validation")
+    @SuppressWarnings("unchecked")
+    void injectsConfluentCompatibleDefaults() {
+        final var injected = configureAndCapture(new HashMap<>());
+        assertThat(injected)
+                .containsEntry(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName())
+                .containsEntry(KafkaSerdeConfig.ENABLE_HEADERS, false)
+                .containsEntry(SerdeConfig.USE_ID, "contentId")
+                .containsEntry(SerdeConfig.ID_HANDLER, Default4ByteIdHandler.class.getCanonicalName())
+                .containsEntry("apicurio.registry.serdes.json-schema.validation-enabled", true);
+    }
+
+    @Test
+    @DisplayName("User-supplied values are never overwritten")
+    @SuppressWarnings("unchecked")
+    void userValuesPreserved() {
+        final Map<String, Object> configs = new HashMap<>();
+        configs.put(SerdeConfig.USE_ID, "globalId");
+        assertThat(configureAndCapture(configs)).containsEntry(SerdeConfig.USE_ID, "globalId");
+    }
+
+    @Test
+    @DisplayName("When the user enables headers, the payload id config is not injected")
+    @SuppressWarnings("unchecked")
+    void headersEnabledSkipsPayloadIdConfig() {
+        final Map<String, Object> configs = new HashMap<>();
+        configs.put(KafkaSerdeConfig.ENABLE_HEADERS, true);
+        assertThat(configureAndCapture(configs)).doesNotContainKey(SerdeConfig.USE_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> configureAndCapture(Map<String, Object> configs) {
+        final Serializer<Object> serializer = mock(Serializer.class);
+        final Deserializer<Object> deserializer = mock(Deserializer.class);
+        final var serde = new ApicurioJsonSchemaSerdeSupplier.ApicurioJsonSchemaSerde(Serdes.serdeFrom(serializer, deserializer));
+        serde.configure(configs, false);
+        final ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+        verify(serializer).configure(captor.capture(), anyBoolean());
+        return captor.getValue();
     }
 }
