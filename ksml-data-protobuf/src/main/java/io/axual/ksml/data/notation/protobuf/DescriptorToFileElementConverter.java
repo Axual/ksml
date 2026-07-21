@@ -75,18 +75,7 @@ public class DescriptorToFileElementConverter {
         // Convert the oneOfs to OneOfElements
         final var oneOfs = new ArrayList<OneOfElement>();
         for (final var oneOf : messageDescriptor.getOneofs()) {
-            final var oneOfFields = new ArrayList<FieldElement>();
-            for (final var oneOfField : oneOf.getFields()) {
-                final Field.Label label;
-                if (oneOfField.isRequired()) {
-                    label = Field.Label.REQUIRED;
-                } else {
-                    label = oneOfField.isRepeated() ? Field.Label.REPEATED : Field.Label.OPTIONAL;
-                }
-                final var type = convertType(oneOfField);
-                oneOfFields.add(new FieldElement(DEFAULT_LOCATION, label, type, oneOfField.getName(), defaultValue(oneOfField), null, oneOfField.getNumber(), NO_DOCUMENTATION, Collections.emptyList()));
-            }
-            oneOfs.add(new OneOfElement(oneOf.getName(), NO_DOCUMENTATION, oneOfFields, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION));
+            oneOfs.add(convertToOneOfElement(oneOf));
         }
 
         // Convert nested messages
@@ -121,6 +110,20 @@ public class DescriptorToFileElementConverter {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList());
+    }
+
+    private OneOfElement convertToOneOfElement(Descriptors.OneofDescriptor oneOf) {
+        final var oneOfFields = new ArrayList<FieldElement>();
+        for (final var oneOfField : oneOf.getFields()) {
+            final Field.Label label;
+            if (oneOfField.isRequired()) {
+                label = Field.Label.REQUIRED;
+            } else {
+                label = oneOfField.isRepeated() ? Field.Label.REPEATED : Field.Label.OPTIONAL;
+            }
+            oneOfFields.add(new FieldElement(DEFAULT_LOCATION, label, convertType(oneOfField), oneOfField.getName(), defaultValue(oneOfField), null, oneOfField.getNumber(), NO_DOCUMENTATION, Collections.emptyList()));
+        }
+        return new OneOfElement(oneOf.getName(), NO_DOCUMENTATION, oneOfFields, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION);
     }
 
     @SuppressWarnings("java:S3358")
