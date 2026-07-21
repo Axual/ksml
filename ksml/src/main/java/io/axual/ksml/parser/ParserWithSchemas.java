@@ -26,18 +26,44 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Base interface for parsers that can return a list of {@link DataSchema}s. This is used for parsers that return a list of values, such as {@link ListParser} and {@link MapParser}.
+ * @param <T>
+ */
 public interface ParserWithSchemas<T> extends Parser<T> {
+
     @SuppressWarnings("java:S1452") // wildcard is required: implementations return List<StructSchema>, a covariant subtype
     List<? extends DataSchema> schemas();
 
+    /**
+     * Create a ParserWithSchemas from a parse function and a schema. The caller is responsible for ensuring that the schema is valid for the type T.
+     * @param parseFunc a parse function that takes a ParseNode and returns an instance of T.
+     * @param schema the schema for the type T.
+     * @return a ParserWithSchemas that can parse T and return the schema.
+     * @param <T> the type of the parsed object.
+     */
     static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, DataSchema schema) {
         return of(parseFunc, List.of(schema));
     }
 
+    /**
+     * Create a ParserWithSchemas from a parse function and a list of DataSchemas. The caller is responsible for ensuring that the schema is valid for the type T.
+     * @param parseFunc a parse function that takes a ParseNode and returns an instance of T.
+     * @param schemas the list of schemas for the type T.
+     * @return a ParserWithSchemas that can parse T and return the list of schemas.
+     * @param <T> the type of the parsed object.
+     */
     static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, List<DataSchema> schemas) {
         return of(parseFunc, () -> schemas);
     }
 
+    /**
+     * Create a ParserWithSchemas from a parse function and a supplier for a list of schemas. The caller is responsible for ensuring that the schemas are valid for the type T.
+     * @param parseFunc a parse function that takes a ParseNode and returns an instance of T.
+     * @param getter a supplier that returns the list of schemas for the type T.
+     * @return a ParserWithSchemas that can parse T and return the list of schemas.
+     * @param <T> the type of the parsed object.
+     */
     static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, Supplier<List<DataSchema>> getter) {
         return new ParserWithSchemas<>() {
             @Override

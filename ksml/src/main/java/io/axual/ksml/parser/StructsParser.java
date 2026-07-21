@@ -59,10 +59,13 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
         };
     }
 
-    // Builds a StructsParser whose construction is deferred until first use and cached
-    // thereafter, matching DefinitionParser's historic parse()/schemas() memoization.
-    // Construction failures propagate unwrapped; only parse(node) failures are reported
-    // as fatal errors, mirroring the exact split DefinitionParser.parse() used to apply.
+    /**
+     * Wraps a StructsParser supplier in a StructsParser that will lazily construct the delegate parser. The supplier is called exactly once
+     * upon the first invocation of parse() or schemas().
+     * @param supplier a StructsParser supplier.
+     * @return a StructsParser that lazily constructs the delegate parser.
+     * @param <T> the type of the parsed object.
+     */
     static <T> StructsParser<T> lazy(Supplier<StructsParser<T>> supplier) {
         return new StructsParser<>() {
             private StructsParser<T> delegate;
@@ -74,9 +77,9 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
 
             @Override
             public T parse(ParseNode node) {
-                final var target = delegate();
+                final var delegateParser = delegate();
                 try {
-                    return target.parse(node);
+                    return delegateParser.parse(node);
                 } catch (Exception e) {
                     throw FatalError.report(e);
                 }
