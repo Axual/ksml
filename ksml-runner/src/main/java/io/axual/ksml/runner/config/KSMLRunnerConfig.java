@@ -31,6 +31,7 @@ import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.runner.config.internal.StringMap;
 import jakarta.annotation.Nonnull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.StreamsConfig;
@@ -76,6 +77,7 @@ public class KSMLRunnerConfig {
 
     @JsonClassDescription("Contains the Kafka Streams configuration options, like bootstrap servers, application ids, etc")
     @Data
+    @EqualsAndHashCode(callSuper = true)
     public static class KafkaConfig extends StringMap {
         @JsonCreator
         public KafkaConfig() {
@@ -118,7 +120,6 @@ public class KSMLRunnerConfig {
                 ResolvingClientConfig.replaceDeprecatedConfigKeys(result);
             }
             return Collections.unmodifiableMap(result);
-
         }
     }
 }

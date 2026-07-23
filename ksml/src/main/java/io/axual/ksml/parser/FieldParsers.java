@@ -271,6 +271,13 @@ public final class FieldParsers {
         throw new TopologyException(message);
     }
 
+    // Constructor0..Constructor10 and the structsParser(...) overloads below are an
+    // arity-indexed family: one hand-written interface/method per arity, because Java has
+    // no variadic generics to express "N typed StructsParser arguments, zipped into one
+    // constructor call" any other way. Parameter count necessarily grows with arity, so
+    // java:S107 ("too many parameters") is expected and accepted from Constructor7/
+    // structsParser(...,G,...) upward; suppressed individually below rather than disabling
+    // the rule project-wide.
     public interface Constructor0<R> {
         R construct(MetricTags tags);
     }
@@ -300,18 +307,22 @@ public final class FieldParsers {
     }
 
     public interface Constructor7<R, A, B, C, D, E, F, G> {
+        @SuppressWarnings("java:S107")
         R construct(A a, B b, C c, D d, E e, F f, G g, MetricTags tags);
     }
 
     public interface Constructor8<R, A, B, C, D, E, F, G, H> {
+        @SuppressWarnings("java:S107")
         R construct(A a, B b, C c, D d, E e, F f, G g, H h, MetricTags tags);
     }
 
     public interface Constructor9<R, A, B, C, D, E, F, G, H, I> {
+        @SuppressWarnings("java:S107")
         R construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, MetricTags tags);
     }
 
     public interface Constructor10<R, A, B, C, D, E, F, G, H, I, J> {
+        @SuppressWarnings("java:S107")
         R construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, MetricTags tags);
     }
 
@@ -331,30 +342,37 @@ public final class FieldParsers {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), node.tags()));
     }
 
+    @SuppressWarnings("java:S107")
     public static <S, A, B, C, D> StructsParser<S> structsParser(Class<? extends S> resultClass, String definitionVariant, String doc, StructsParser<A> a, StructsParser<B> b, StructsParser<C> c, StructsParser<D> d, Constructor4<S, A, B, C, D> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), node.tags()));
     }
 
+    @SuppressWarnings("java:S107")
     public static <S, A, B, C, D, E> StructsParser<S> structsParser(Class<? extends S> resultClass, String definitionVariant, String doc, StructsParser<A> a, StructsParser<B> b, StructsParser<C> c, StructsParser<D> d, StructsParser<E> e, Constructor5<S, A, B, C, D, E> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), node.tags()));
     }
 
+    @SuppressWarnings("java:S107")
     public static <S, A, B, C, D, E, F> StructsParser<S> structsParser(Class<? extends S> resultClass, String definitionVariant, String doc, StructsParser<A> a, StructsParser<B> b, StructsParser<C> c, StructsParser<D> d, StructsParser<E> e, StructsParser<F> f, Constructor6<S, A, B, C, D, E, F> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), node.tags()));
     }
 
+    @SuppressWarnings("java:S107")
     public static <S, A, B, C, D, E, F, G> StructsParser<S> structsParser(Class<? extends S> resultClass, String definitionVariant, String doc, StructsParser<A> a, StructsParser<B> b, StructsParser<C> c, StructsParser<D> d, StructsParser<E> e, StructsParser<F> f, StructsParser<G> g, Constructor7<S, A, B, C, D, E, F, G> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), node.tags()));
     }
 
+    @SuppressWarnings("java:S107")
     public static <S, A, B, C, D, E, F, G, H> StructsParser<S> structsParser(Class<? extends S> resultClass, String definitionVariant, String doc, StructsParser<A> a, StructsParser<B> b, StructsParser<C> c, StructsParser<D> d, StructsParser<E> e, StructsParser<F> f, StructsParser<G> g, StructsParser<H> h, Constructor8<S, A, B, C, D, E, F, G, H> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), node.tags()));
     }
 
+    @SuppressWarnings("java:S107")
     public static <S, A, B, C, D, E, F, G, H, I> StructsParser<S> structsParser(Class<? extends S> resultClass, String definitionVariant, String doc, StructsParser<A> a, StructsParser<B> b, StructsParser<C> c, StructsParser<D> d, StructsParser<E> e, StructsParser<F> f, StructsParser<G> g, StructsParser<H> h, StructsParser<I> i, Constructor9<S, A, B, C, D, E, F, G, H, I> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), node.tags()));
     }
 
+    @SuppressWarnings("java:S107")
     public static <S, A, B, C, D, E, F, G, H, I, J> StructsParser<S> structsParser(Class<? extends S> resultClass, String definitionVariant, String doc, StructsParser<A> a, StructsParser<B> b, StructsParser<C> c, StructsParser<D> d, StructsParser<E> e, StructsParser<F> f, StructsParser<G> g, StructsParser<H> h, StructsParser<I> i, StructsParser<J> j, Constructor10<S, A, B, C, D, E, F, G, H, I, J> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i, j), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node), node.tags()));
     }
