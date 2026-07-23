@@ -25,13 +25,36 @@ import io.axual.ksml.data.schema.DataSchema;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Base interface for a {@link Parser} that has the ability to return a {@link DataSchema} for the type T is returns.
+ * @param <T>
+ */
 public interface ParserWithSchema<T> extends Parser<T> {
+
+    /**
+     * The schema that represents the structure of the parsed object.
+     * @return the DataSchema for the type T.
+     */
     DataSchema schema();
 
+    /**
+     * Create a ParserWithSchema from a parse function and a schema.. The caller is responsible for ensuring that the schema is valid for the type T.
+     * @param parseFunc a parse function that takes a ParseNode and returns an instance of T.
+     * @param schema the schema for the type T.
+     * @return a ParserWithSchema that can parse T and return the schema.
+     * @param <T> the type of the parsed object.
+     */
     static <T> ParserWithSchema<T> of(final Function<ParseNode, T> parseFunc, DataSchema schema) {
         return of(parseFunc, () -> schema);
     }
 
+    /**
+     * Create a ParserWithSchema from a parse function and a schema supplier. The caller is responsible for ensuring that the schema is valid for the type T.
+     * @param parseFunc a parse function that takes a ParseNode and returns an instance of T.
+     * @param getter a supplier that returns the schema for the type T.
+     * @return a ParserWithSchema that can parse T and return the schema.
+     * @param <T> the type of the parsed object.
+     */
     static <T> ParserWithSchema<T> of(final Function<ParseNode, T> parseFunc, Supplier<DataSchema> getter) {
         return new ParserWithSchema<>() {
             @Override

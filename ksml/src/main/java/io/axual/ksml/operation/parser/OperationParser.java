@@ -20,8 +20,11 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
@@ -31,29 +34,48 @@ import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.DualStoreOperationConfig;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceFields;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 @Getter
-public abstract class OperationParser<T extends BaseOperation> extends TopologyResourceAwareParser<T> implements NamedObjectParser {
+public abstract class OperationParser<T extends BaseOperation> extends DefinitionParser<T> implements NamedObjectParser {
+    private final TopologyResourceFields resourceFields;
     private String defaultShortName;
     private String defaultLongName;
     protected final String type;
 
     protected OperationParser(String type, TopologyResources resources) {
-        super(resources);
+        this.resourceFields = new TopologyResourceFields(resources);
         this.type = type;
     }
 
+    protected TopologyResources resources() {
+        return resourceFields.resources();
+    }
+
+    protected <F extends FunctionDefinition> StructsParser<FunctionDefinition> functionField(String childName, String doc, StructsParser<F> parser) {
+        return resourceFields.functionField(childName, doc, parser);
+    }
+
+    protected StructsParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
+        return resourceFields.topicField(childName, doc, parser);
+    }
+
+    protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<? extends S> parser) {
+        return resourceFields.lookupField(resourceType, childName, doc, lookup, parser);
+    }
+
     protected StructsParser<String> operationNameField() {
-        final var parser =  optional(stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, "The name of the operation processor"));
+        final var parser =  FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, "The name of the operation processor"));
         return new StructsParser<>() {
             @Override
             public String parse(ParseNode node) {
@@ -68,19 +90,19 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
     }
 
     protected OperationConfig operationConfig(String name, MetricTags tags) {
-        name = validateName("Operation", name, defaultLongName != null ? defaultLongName + "_" + type : type);
+        name = FieldParsers.validateName("Operation", name, defaultLongName != null ? defaultLongName + "_" + type : type);
         return new OperationConfig(
                 name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags),
                 tags);
     }
 
     protected StoreOperationConfig storeOperationConfig(String name, MetricTags tags, StateStoreDefinition store) {
-        name = validateName("Store", name, defaultShortName(), true);
+        name = FieldParsers.validateName("Store", name, defaultShortName(), true);
         return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store);
     }
 
     protected DualStoreOperationConfig dualStoreOperationConfig(String name, MetricTags tags, StateStoreDefinition store1, StateStoreDefinition store2) {
-        name = validateName("Store", name, defaultShortName(), true);
+        name = FieldParsers.validateName("Store", name, defaultShortName(), true);
         return new DualStoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store1, store2);
     }
 
@@ -91,7 +113,7 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
     protected StructsParser<StateStoreDefinition> storeField(String childName, boolean required, String doc, StoreType expectedStoreType) {
         final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType, false);
         final var resourceParser = new TopologyResourceParser<>("state store", childName, doc, (name, context) -> resources().stateStore(name), stateStoreParser);
-        final var schemas = required ? resourceParser.schemas() : optional(resourceParser).schemas();
+        final var schemas = required ? resourceParser.schemas() : FieldParsers.optional(resourceParser).schemas();
         return new StructsParser<>() {
             @Override
             public StateStoreDefinition parse(ParseNode node) {

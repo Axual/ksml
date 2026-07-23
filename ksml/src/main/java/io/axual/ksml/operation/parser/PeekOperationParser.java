@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -33,7 +34,7 @@ public class PeekOperationParser extends OperationParser<PeekOperation> {
     }
 
     public StructsParser<PeekOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 PeekOperation.class,
                 "",
                 "Operation to peek into a stream, without modifying the stream contents",

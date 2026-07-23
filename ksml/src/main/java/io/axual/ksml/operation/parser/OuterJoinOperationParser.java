@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
@@ -78,15 +79,15 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
     }
 
     private StructsParser<OuterJoinWithStreamOperation> createOuterJoinStreamParser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 OuterJoinWithStreamOperation.class,
                 "",
                 "Operation to outerJoin with a stream",
                 operationNameField(),
                 topicField(KSMLDSL.Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to outerJoin with", new StreamDefinitionParser(resources(), true)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
-                durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "The maximum time difference for an outerJoin over two streams on the same key"),
-                optional(durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
+                FieldParsers.durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "The maximum time difference for an outerJoin over two streams on the same key"),
+                FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(KSMLDSL.Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
@@ -98,7 +99,7 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
     }
 
     private StructsParser<OuterJoinWithTableOperation> createOuterJoinTableParser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 OuterJoinWithTableOperation.class,
                 "",
                 "Operation to outerJoin with a table",

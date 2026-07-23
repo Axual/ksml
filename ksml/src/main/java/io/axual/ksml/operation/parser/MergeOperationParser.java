@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
@@ -36,7 +37,7 @@ public class MergeOperationParser extends OperationParser<MergeOperation> {
 
     @Override
     protected StructsParser<MergeOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 MergeOperation.class,
                 "",
                 "A merge operation to join two Streams",

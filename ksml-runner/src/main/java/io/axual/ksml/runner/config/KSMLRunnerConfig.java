@@ -27,12 +27,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.runner.config.internal.StringMap;
 import jakarta.annotation.Nonnull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.StreamsConfig;
@@ -45,7 +44,6 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = false)
 @NoArgsConstructor
 public class KSMLRunnerConfig {
-    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     @JsonProperty(value = "ksml", required = true)
     @Nonnull
@@ -73,16 +71,13 @@ public class KSMLRunnerConfig {
         this.kafkaConfig = kafkaConfig;
     }
 
-    public KafkaConfig getKafkaConfig() {
-        return this.kafkaConfig;
-    }
-
     public Map<String, String> getKafkaConfigMap() {
         return kafkaConfig.getEffectiveConfig();
     }
 
     @JsonClassDescription("Contains the Kafka Streams configuration options, like bootstrap servers, application ids, etc")
     @Data
+    @EqualsAndHashCode(callSuper = true)
     public static class KafkaConfig extends StringMap {
         @JsonCreator
         public KafkaConfig() {
@@ -125,7 +120,6 @@ public class KSMLRunnerConfig {
                 ResolvingClientConfig.replaceDeprecatedConfigKeys(result);
             }
             return Collections.unmodifiableMap(result);
-
         }
     }
 }

@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
@@ -31,11 +32,11 @@ public class AsOperationParser extends OperationParser<AsOperation> {
     }
 
     public StructsParser<AsOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 AsOperation.class,
                 "",
                 "An operation to close the pipeline and save the result under a given name",
-                stringField(KSMLDSL.Operations.AS, "The name to register the pipeline result under, which can be used as source by follow-up pipelines"),
+                FieldParsers.stringField(KSMLDSL.Operations.AS, "The name to register the pipeline result under, which can be used as source by follow-up pipelines"),
                 (name, tags) -> name != null ? new AsOperation(operationConfig(name, tags), name) : null);
     }
 }

@@ -20,6 +20,16 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Base parser interface. A parser takes a {@link ParseNode} and returns a result of type {@code T}.
+ * @param <T>
+ */
 public interface Parser<T> {
+
+    /**
+     * Parse the given ParseNode and return the result.
+     * @param node a {@link ParseNode}.
+     * @return the result of parsing the node.
+     */
     T parse(ParseNode node);
 }

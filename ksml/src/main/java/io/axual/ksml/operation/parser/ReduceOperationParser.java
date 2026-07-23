@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.parser.ReducerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
@@ -41,7 +42,7 @@ public class ReduceOperationParser extends OperationParser<ReduceOperation> {
 
     public ReduceOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.REDUCE, resources);
-        reducerParser = structsParser(
+        reducerParser = FieldParsers.structsParser(
                 ReduceOperation.class,
                 "WithReducer",
                 DOC,
@@ -49,7 +50,7 @@ public class ReduceOperationParser extends OperationParser<ReduceOperation> {
                 functionField(KSMLDSL.Operations.Reduce.REDUCER, "A function that computes a new aggregate result", new ReducerDefinitionParser(false)),
                 storeField(false, "Materialized view of the aggregation", null),
                 (name, reducer, store, tags) -> new ReduceOperation(storeOperationConfig(name, tags, store), reducer));
-        addedSubtractorParser = structsParser(
+        addedSubtractorParser = FieldParsers.structsParser(
                 ReduceOperation.class,
                 "WithAdderAndSubtractor",
                 DOC,

@@ -20,25 +20,29 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.ToTopicDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceFields;
 
-public class ToTopicDefinitionParser extends TopologyResourceAwareParser<ToTopicDefinition> {
+public class ToTopicDefinitionParser extends DefinitionParser<ToTopicDefinition> {
+    private final TopologyResourceFields resourceFields;
+
     public ToTopicDefinitionParser(TopologyResources resources) {
-        super(resources);
+        this.resourceFields = new TopologyResourceFields(resources);
     }
 
     @Override
     protected StructsParser<ToTopicDefinition> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 ToTopicDefinition.class,
                 "",
                 "Writes out pipeline messages to a topic",
-                new TopicDefinitionParser(resources(), false),
-                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
+                new TopicDefinitionParser(resourceFields.resources(), false),
+                FieldParsers.optional(resourceFields.functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
                 (topic, partitioner, tags) -> topic != null ? new ToTopicDefinition(topic, partitioner) : null);
     }
 }
