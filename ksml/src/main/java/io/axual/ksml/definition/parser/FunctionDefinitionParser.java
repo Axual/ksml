@@ -24,6 +24,7 @@ package io.axual.ksml.definition.parser;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.FieldParsers;
@@ -45,11 +46,11 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
     }
 
     protected StructsParser<T> parserWithStores(Class<T> resultClass, String type, String description, FieldParsers.Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, true, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, globalCode, code, expression, resultType, stores), constructor);
+        return parser(resultClass, description, true, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, PythonSource.of(globalCode, code, expression), resultType, stores), constructor);
     }
 
     protected StructsParser<T> parserWithoutStores(Class<T> resultClass, String type, String description, FieldParsers.Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, false, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, globalCode, code, expression, resultType, null), constructor);
+        return parser(resultClass, description, false, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, PythonSource.of(globalCode, code, expression), resultType, null), constructor);
     }
 
     private StructsParser<T> parser(Class<T> resultClass, String description, boolean includeStores, FieldParsers.Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, FieldParsers.Constructor1<T, FunctionDefinition> outerConstructor) {

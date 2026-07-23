@@ -47,32 +47,24 @@ public class FunctionDefinition extends AbstractDefinition {
     private final UserType resultType;
     private final List<String> storeNames;
 
-    public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
-        return as(type, name, parameters, multiline(globalCode), multiline(code), multiline(expression), resultType, storeNames);
+    public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, PythonSource source, UserType resultType, List<String> storeNames) {
+        return as(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, source, resultType, storeNames);
     }
 
-    public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, String[] globalCode, String[] code, String[] expression, UserType resultType, List<String> storeNames) {
-        return as(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, globalCode, code, expression, resultType, storeNames);
-    }
-
-    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
-        return new FunctionDefinition(type, name, parameters, multiline(globalCode), multiline(code), multiline(expression), resultType, storeNames);
-    }
-
-    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String[] expression, UserType resultType, List<String> storeNames) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters, source, resultType, storeNames);
     }
 
     public FunctionDefinition withType(String type) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withName(String name) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withDefaultResultType(DataType defaultResultType) {
@@ -80,11 +72,11 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withDefaultResultType(UserType defaultResultType) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType != null ? resultType : defaultResultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType != null ? resultType : defaultResultType, storeNames);
     }
 
     public FunctionDefinition withResultType(UserType resultType) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
@@ -92,7 +84,7 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withDefaultExpression(String[] defaultExpression) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression), resultType, storeNames);
     }
 
     public FunctionDefinition validateNoResultTypeDefined() {
@@ -111,14 +103,14 @@ public class FunctionDefinition extends AbstractDefinition {
         throw new TopologyException(message + ": function=" + name() + ", type=" + type() + ", resultType=" + resultType());
     }
 
-    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String[] expression, UserType resultType, List<String> storeNames) {
+    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<String> storeNames) {
         this.type = type;
         this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
-        this.expression = expression;
-        this.code = code != null ? code : EMPTY_STRING_ARRAY;
-        this.globalCode = globalCode != null ? globalCode : EMPTY_STRING_ARRAY;
+        this.expression = source.expression();
+        this.code = source.code() != null ? source.code() : EMPTY_STRING_ARRAY;
+        this.globalCode = source.globalCode() != null ? source.globalCode() : EMPTY_STRING_ARRAY;
         this.storeNames = storeNames != null ? storeNames : EMPTY_STRING_LIST;
     }
 
@@ -165,10 +157,5 @@ public class FunctionDefinition extends AbstractDefinition {
 
         // Return the integrated parameter list
         return result;
-    }
-
-    private static String[] multiline(String lines) {
-        if (lines == null) return EMPTY_STRING_ARRAY;
-        return lines.split("\\r?\\n");
     }
 }
