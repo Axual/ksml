@@ -44,6 +44,7 @@ import io.axual.ksml.definition.MergerDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.MetadataTransformerDefinition;
 import io.axual.ksml.definition.PredicateDefinition;
+import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.definition.ReducerDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StreamDefinition;
@@ -188,9 +189,7 @@ final class OperationTestSupport {
                 "generic",
                 "fn",
                 List.of(),
-                (String) null,
-                (String) null,
-                (String) null,
+                PythonSource.of((String) null, (String) null, (String) null),
                 resultType,
                 List.of());
     }

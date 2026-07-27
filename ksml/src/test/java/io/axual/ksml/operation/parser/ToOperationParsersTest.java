@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToOperation;
@@ -46,7 +47,7 @@ class ToOperationParsersTest {
         resources.register("outStream",
                 new StreamDefinition("out_topic", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null));
         resources.register("myExtractor", FunctionDefinition.as(
-                "generic", "myExtractor", List.of(), (String) null, (String) null, "topic", new UserType(io.axual.ksml.data.object.DataString.DATATYPE), List.of()));
+                "generic", "myExtractor", List.of(), PythonSource.of(null, null, "topic"), new UserType(io.axual.ksml.data.object.DataString.DATATYPE), List.of()));
     }
 
     @Test
