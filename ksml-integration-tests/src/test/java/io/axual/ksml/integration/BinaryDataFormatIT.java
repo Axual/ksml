@@ -22,6 +22,7 @@ package io.axual.ksml.integration;
 
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -29,10 +30,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -54,22 +53,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 class BinaryDataFormatIT {
-
-    static final Network network = Network.newNetwork();
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
-            .withNetwork(network)
-            .withNetworkAliases("broker")
-            .withExposedPorts(9092, 9093);
-
     @Container
     static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/binary",
                           "ksml-runner.yaml", "binary-producer.yaml", "binary-processor.yaml")
-            .withKafka(kafka)
+            .withKafka(SharedKsmlInfra.kafka())
             .withTopics("ksml_sensordata_binary", "ksml_sensordata_binary_processed")
-            .dependsOn(kafka);
+            .dependsOn(SharedKsmlInfra.kafka());
 
     @Test
     void testKSMLBinaryProcessing() throws Exception {
@@ -82,7 +72,7 @@ class BinaryDataFormatIT {
 
         // Create consumer properties
         final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
@@ -185,7 +175,7 @@ class BinaryDataFormatIT {
         // Producer generates every 3 seconds, so wait for at least 2 messages
         // Use AdminClient to check actual message count instead of fixed sleep
         KSMLRunnerTestUtil.waitForTopicMessages(
-            kafka.getBootstrapServers(),
+            SharedKsmlInfra.kafka().getBootstrapServers(),
             "ksml_sensordata_binary",
             2, // Wait for at least 2 messages
             Duration.ofSeconds(30) // Maximum 30 seconds (much better than fixed 7s)

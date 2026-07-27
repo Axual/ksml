@@ -43,7 +43,7 @@ public class KeyValueStoreResource extends StoreResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<KeyValueBean> getAll(@PathParam("storeName") final String storeName) {
         var result = getAllLocal(storeName);
-        result.addAll(getAllRemote(storeName, "keyvalue"));
+        result.addAll(getAllRemote(storeName, "keyValue"));
         return result;
     }
 
@@ -80,7 +80,7 @@ public class KeyValueStoreResource extends StoreResource {
             return result;
         } else {
             log.info("Querying remote store {} for key {}", storeName, key);
-            String url = "http://" + metadataForKey.activeHost() + ":" + metadataForKey.activeHost().port() + "/state/keyvalue/" + storeName + "/local/get/" + key;
+            String url = "http://" + metadataForKey.activeHost().host() + ":" + metadataForKey.activeHost().port() + "/state/keyValue/" + storeName + "/local/get/" + key;
             var result = restClient.getRemoteKeyValueBean(url, KeyValueBean.class);
             log.info("Store data from remote store at {} == {}", url, result);
             return result;

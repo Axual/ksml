@@ -21,10 +21,10 @@ package io.axual.ksml.integration;
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.SensorDataTestUtil;
+import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -32,10 +32,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,28 +52,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 class JsonSchemaRegistryIT {
-
-    static final Network network = Network.newNetwork();
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
-            .withNetwork(network)
-            .withNetworkAliases("broker")
-            .withExposedPorts(9092, 9093);
-
-    @Container
-    static final ApicurioSchemaRegistryContainer schemaRegistry = new ApicurioSchemaRegistryContainer()
-            .withNetwork(network);
-
     @Container
     static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/jsonschema",
                           "jsonschema-producer.yaml", "jsonschema-processor.yaml", "SensorData.json")
-            .withKafka(kafka)
-            .withApicurioJsonRegistry(schemaRegistry)
+            .withKafka(SharedKsmlInfra.kafka())
+            .withApicurioJsonRegistry(SharedKsmlInfra.schemaRegistry())
             .withTopics("sensor_data_jsonschema", "sensor_data_jsonschema_processed")
             .withSetupCallback(container -> registerJsonSchema())
-            .dependsOn(kafka, schemaRegistry);
+            .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
     @Test
     void testKSMLJsonSchemaProcessing() throws Exception {
@@ -147,7 +132,7 @@ class JsonSchemaRegistryIT {
         // Producer generates every 3 seconds, so wait for at least 2 messages
         // Use AdminClient to check actual message count instead of fixed sleep
         KSMLRunnerTestUtil.waitForTopicMessages(
-            kafka.getBootstrapServers(),
+            SharedKsmlInfra.kafka().getBootstrapServers(),
             "sensor_data_jsonschema",
             2, // Wait for at least 2 messages
             Duration.ofSeconds(30) // Maximum 30 seconds (much better than fixed 10s)
@@ -173,7 +158,7 @@ class JsonSchemaRegistryIT {
             throw new RuntimeException("Failed to read schema file: " + schemaPath, e);
         }
 
-        String schemaRegistryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081);
+        String schemaRegistryUrl = "http://localhost:" + SharedKsmlInfra.schemaRegistry().getMappedPort(8081);
 
         // Wait for schema registry to be ready using HTTP client
         KSMLRunnerTestUtil.waitForSchemaRegistryReady(schemaRegistryUrl, Duration.ofMinutes(1));
@@ -199,7 +184,7 @@ class JsonSchemaRegistryIT {
 
     private Properties createConsumerProperties(String groupId) {
         final Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());

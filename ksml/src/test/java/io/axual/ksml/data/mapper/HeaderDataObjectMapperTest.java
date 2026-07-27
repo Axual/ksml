@@ -22,6 +22,7 @@ package io.axual.ksml.data.mapper;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
@@ -30,6 +31,7 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +41,7 @@ import static io.axual.ksml.dsl.HeaderSchema.HEADER_SCHEMA_VALUE_FIELD;
 import static io.axual.ksml.dsl.HeaderSchema.HEADER_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class HeaderDataObjectMapperTest {
 
@@ -99,5 +102,84 @@ class HeaderDataObjectMapperTest {
         assertThatCode(() -> mapper.fromDataObject(headers))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("exceeds BYTE range");
+    }
+
+    private static DataList singleHeader(DataObject key, DataObject value) {
+        final var header = new DataStruct(HEADER_SCHEMA);
+        header.put(HEADER_SCHEMA_KEY_FIELD, key);
+        header.put(HEADER_SCHEMA_VALUE_FIELD, value);
+        final var headers = new DataList(HEADER_TYPE);
+        headers.add(header);
+        return headers;
+    }
+
+    @Test
+    @DisplayName("toDataObject: printable, binary and null header values map to the right data types")
+    void toDataObject_mapsHeaderValues() {
+        final var headers = new RecordHeaders();
+        headers.add("printable", "hello".getBytes());
+        headers.add("binary", new byte[]{0, 1, 2});
+        headers.add("empty", null);
+
+        // The null-valued header exercises the DataNull branch of convertHeaderValue.
+        final var result = mapper.toDataObject(headers);
+
+        assertThat(result).isInstanceOf(DataList.class);
+        final var list = (DataList) result;
+        assertThat(list).hasSize(3);
+        assertThat(((DataStruct) list.get(0)).get(HEADER_SCHEMA_VALUE_FIELD)).isInstanceOf(DataString.class);
+        assertThat(((DataStruct) list.get(1)).get(HEADER_SCHEMA_VALUE_FIELD)).isInstanceOf(DataBytes.class);
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataString value is serialized to bytes")
+    void fromDataObject_stringValue() {
+        final var result = mapper.fromDataObject(singleHeader(new DataString("k"), new DataString("hello")));
+        assertThat(result.lastHeader("k").value()).isEqualTo("hello".getBytes());
+    }
+
+    @Test
+    @DisplayName("fromDataObject: DataBytes value is passed through unchanged")
+    void fromDataObject_bytesValue() {
+        final var raw = new byte[]{9, 8, 7};
+        final var result = mapper.fromDataObject(singleHeader(new DataString("k"), new DataBytes(raw)));
+        assertThat(result.lastHeader("k").value()).isEqualTo(raw);
+    }
+
+    @Test
+    @DisplayName("fromDataObject: non-list input is rejected")
+    void fromDataObject_nonList_throws() {
+        final DataObject value = new DataString("not a list");
+        assertThatThrownBy(() -> mapper.fromDataObject(value))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid Kafka Headers");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: non-string header key is rejected")
+    void fromDataObject_nonStringKey_throws() {
+        final var headers = singleHeader(new DataInteger(1), new DataString("value"));
+        assertThatThrownBy(() -> mapper.fromDataObject(headers))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Header key");
+    }
+
+    @Test
+    @DisplayName("fromDataObject: header with wrong number of fields is rejected")
+    void fromDataObject_wrongFieldCount_throws() {
+        final var header = new DataStruct(HEADER_SCHEMA);
+        header.put(HEADER_SCHEMA_KEY_FIELD, new DataString("k"));
+        final var headers = new DataList(HEADER_TYPE);
+        headers.add(header);
+        assertThatThrownBy(() -> mapper.fromDataObject(headers))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("fromDataObject: unsupported element type in byte list is rejected")
+    void fromDataObject_unsupportedByteElement_throws() {
+        final var headers = headersWithByteList(new DataString("x"));
+        assertThatThrownBy(() -> mapper.fromDataObject(headers))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

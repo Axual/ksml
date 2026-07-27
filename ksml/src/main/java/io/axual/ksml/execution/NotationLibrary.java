@@ -33,6 +33,10 @@ public class NotationLibrary {
         notations.put(notationName != null ? notationName.toUpperCase() : null, notation);
     }
 
+    public void unregister(String notationName) {
+        notations.remove(notationName != null ? notationName.toUpperCase() : null);
+    }
+
     public boolean exists(String notationName) {
         return notations.containsKey(notationName != null ? notationName.toUpperCase() : null);
     }

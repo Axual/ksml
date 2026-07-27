@@ -546,12 +546,6 @@
 
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${mockito-core.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
                 <artifactId>mockito-junit-jupiter</artifactId>
                 <version>${mockito-junit-jupiter.version}</version>
                 <scope>test</scope>
@@ -618,6 +612,19 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <!-- Mockito is added here (rather than only in dependencyManagement) so that every module
+             resolves it. Else the surefire plugin config below will fail for modules that
+              do not declare mockito-core as a dependency (the dependency:properties target
+              will not be able to resolve the property in the argline) -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito-core.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -640,8 +647,15 @@
                     <version>${maven.dependency.plugin.version}</version>
                     <executions>
                         <execution>
+                            <id>go-offline</id>
                             <goals>
                                 <goal>go-offline</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>mockito-agent-property</id>
+                            <goals>
+                                <goal>properties</goal>
                             </goals>
                         </execution>
                     </executions>
@@ -652,7 +666,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.plugin.version}</version>
                     <configuration>
-                        <argLine>@{surefireArgLine} ${jdk24PlusJvmArgs}</argLine>
+                        <argLine>@{surefireArgLine} ${jdk24PlusJvmArgs} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                     </configuration>
                 </plugin>
 
@@ -858,6 +872,11 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
             </plugin>
 
         </plugins>

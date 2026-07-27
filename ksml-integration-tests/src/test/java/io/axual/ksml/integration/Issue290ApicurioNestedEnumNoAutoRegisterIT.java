@@ -20,17 +20,14 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -78,44 +75,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 class Issue290ApicurioNestedEnumNoAutoRegisterIT {
-
     private static final String TOPIC = "sensor_data_avro_290";
     private static final String ARTIFACT_ID = TOPIC + "-value";
     private static final String GROUP = "default";
 
-    static final Network network = Network.newNetwork();
-
-    @AfterAll
-    static void teardown() {
-        network.close();
-    }
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
-            .withNetwork(network)
-            .withNetworkAliases("broker")
-            .withExposedPorts(9092, 9093);
-
-    @Container
-    static final ApicurioSchemaRegistryContainer schemaRegistry = new ApicurioSchemaRegistryContainer()
-            .withNetwork(network)
-            .withLegacyIdMode();
-
     @Container
     static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/issue290", "producer-avro.yaml", "SensorData.avsc")
-            .withKafka(kafka)
-            .withApicurioAvroRegistry(schemaRegistry)
+            .withKafka(SharedKsmlInfra.kafka())
+            .withApicurioAvroRegistry(SharedKsmlInfra.schemaRegistry())
             .withTopics(TOPIC)
             .withSetupCallback(Issue290ApicurioNestedEnumNoAutoRegisterIT::preRegisterSchema)
-            .dependsOn(kafka, schemaRegistry);
+            .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
     /**
      * Pre-registers the SensorData schema (WITH the nested inline enum) under
      * {@code default/<topic>-value} via the Apicurio v2 REST API, BEFORE KSML starts.
      */
     static void preRegisterSchema(KSMLContainer container) throws Exception {
-        final int port = schemaRegistry.getMappedPort(8081);
+        final int port = SharedKsmlInfra.schemaRegistry().getMappedPort(8081);
         final String baseUrl = "http://localhost:" + port;
 
         KSMLRunnerTestUtil.waitForSchemaRegistryReady(baseUrl, Duration.ofSeconds(60));
@@ -170,7 +148,7 @@ class Issue290ApicurioNestedEnumNoAutoRegisterIT {
             // Producer emits every 3s. Give it generous time; if serialization fails,
             // no messages will ever appear and this throws.
             KSMLRunnerTestUtil.waitForTopicMessages(
-                    kafka.getBootstrapServers(),
+                    SharedKsmlInfra.kafka().getBootstrapServers(),
                     TOPIC,
                     2,
                     Duration.ofSeconds(45));

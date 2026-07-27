@@ -22,16 +22,15 @@ package io.axual.ksml.integration;
 
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -48,22 +47,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 class KSMLBranchingIT {
-
-    static final Network network = Network.newNetwork();
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
-            .withNetwork(network)
-            .withNetworkAliases("broker")
-            .withExposedPorts(9092, 9093);
-
     @Container
     static final KSMLContainer ksml = new KSMLContainer()
             .withKsmlFiles("/docs-examples/intermediate-tutorial/branching",
                           "ksml-runner.yaml", "producer-order-events.yaml", "processor-order-processing.yaml")
-            .withKafka(kafka)
+            .withKafka(SharedKsmlInfra.kafka())
             .withTopics("order_input", "priority_orders", "regional_orders", "international_orders")
-            .dependsOn(kafka);
+            .dependsOn(SharedKsmlInfra.kafka());
 
     private void waitForOrderGeneration() throws Exception {
         log.info("Waiting for order generation to start...");
@@ -71,7 +61,7 @@ class KSMLBranchingIT {
         // Producer generates every 3 seconds, so wait for at least 2 orders
         // Use AdminClient to check actual message count instead of log parsing
         KSMLRunnerTestUtil.waitForTopicMessages(
-                kafka.getBootstrapServers(),
+                SharedKsmlInfra.kafka().getBootstrapServers(),
                 "order_input",
                 2, // Wait for at least 2 orders
                 Duration.ofSeconds(30) // Maximum 30 seconds
@@ -79,7 +69,6 @@ class KSMLBranchingIT {
 
         log.info("Order data has been generated and verified");
     }
-
 
     @Test
     void testKSMLOrderProcessing() throws Exception {
@@ -177,7 +166,7 @@ class KSMLBranchingIT {
 
     private Properties createConsumerProperties(String groupId) {
         final Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());

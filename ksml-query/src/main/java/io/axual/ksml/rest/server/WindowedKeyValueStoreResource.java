@@ -97,7 +97,7 @@ public class WindowedKeyValueStoreResource extends StoreResource {
             return result;
         } else {
             log.info("Querying remote store {} for key {}", storeName, key);
-            String url = "http://" + metadataForKey.activeHost() + ":" + metadataForKey.activeHost().port() + "/state/keyvalue/" + storeName + "/local/get/" + key;
+            String url = "http://" + metadataForKey.activeHost().host() + ":" + metadataForKey.activeHost().port() + "/state/windowed/" + storeName + "/local/get/" + key + "/" + timestamp;
             var result = restClient.getRemoteKeyValueBean(url, WindowedKeyValueBean.class);
             log.info("Store data from remote store at {} == {}", url, result);
             return result;

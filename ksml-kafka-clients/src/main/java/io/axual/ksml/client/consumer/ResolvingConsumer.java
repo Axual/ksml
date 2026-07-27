@@ -365,6 +365,11 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
         public void onPartitionsAssigned(Collection<TopicPartition> collection) {
             listener.onPartitionsAssigned(topicResolver.unresolveTopicPartitions(collection));
         }
+
+        @Override
+        public void onPartitionsLost(Collection<TopicPartition> collection) {
+            listener.onPartitionsLost(topicResolver.unresolveTopicPartitions(collection));
+        }
     }
 
     private final class ProxyOffsetCommitCallback implements OffsetCommitCallback {

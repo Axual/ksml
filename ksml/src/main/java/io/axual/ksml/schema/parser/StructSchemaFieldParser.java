@@ -27,6 +27,7 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.util.Pair;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
@@ -95,7 +96,7 @@ public class StructSchemaFieldParser extends BaseParser<StructSchema.Field> {
         if (!unionSchema.contains(DataSchema.NULL_SCHEMA)) return Pair.of(schema, true);
 
         // Create a copy of the UnionSchema excluding NULL types, and mark the field as optional.
-        final var newMembers = Arrays.asList(unionSchema.members());
+        final var newMembers = new ArrayList<>(Arrays.asList(unionSchema.members()));
         newMembers.removeIf(field -> field.schema() == DataSchema.NULL_SCHEMA);
         return Pair.of(new UnionSchema(newMembers.toArray(UnionSchema.Member[]::new)), false);
     }

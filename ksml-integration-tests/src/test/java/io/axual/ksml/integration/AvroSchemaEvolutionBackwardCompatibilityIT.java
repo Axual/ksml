@@ -20,9 +20,9 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.integration.testutil.ApicurioSchemaRegistryContainer;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
+import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import io.apicurio.registry.serde.Legacy4ByteIdHandler;
 import io.apicurio.registry.serde.SerdeConfig;
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
@@ -39,10 +39,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Network;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -66,22 +62,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </ol>
  */
 @Slf4j
-@Testcontainers
 class AvroSchemaEvolutionBackwardCompatibilityIT {
-
-    static final Network network = Network.newNetwork();
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0")
-            .withNetwork(network)
-            .withNetworkAliases("broker")
-            .withExposedPorts(9092, 9093);
-
-    @Container
-    static final ApicurioSchemaRegistryContainer schemaRegistry = new ApicurioSchemaRegistryContainer()
-            .withNetwork(network)
-            .withLegacyIdMode();
-
     @Test
     void testBackwardCompatibility_AddOptionalFields() {
         log.info("=".repeat(80));
@@ -103,10 +84,10 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         final KSMLContainer ksmlPhase1 = new KSMLContainer()
                 .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-tests-phase1",
                         "phase1-producer.yaml", "SensorData.avsc")
-                .withKafka(kafka)
-                .withApicurioAvroRegistry(schemaRegistry)
+                .withKafka(SharedKsmlInfra.kafka())
+                .withApicurioAvroRegistry(SharedKsmlInfra.schemaRegistry())
                 .withTopics("sensor_data_evolution_test", "sensor_data_evolution_processed")
-                .dependsOn(kafka, schemaRegistry);
+                .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
         try {
             ksmlPhase1.start();
@@ -117,13 +98,13 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     .atMost(Duration.ofSeconds(30))
                     .pollInterval(Duration.ofSeconds(1))
                     .until(() -> {
-                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_evolution_test");
+                        long count = getTopicMessageCount(SharedKsmlInfra.kafka().getBootstrapServers(), "sensor_data_evolution_test");
                         log.debug("Found {} messages in topic sensor_data_evolution_test", count);
                         return count >= 3;
                     });
 
             final Properties consumerProps = new Properties();
-            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-phase1-verifier");
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -149,9 +130,9 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         final KSMLContainer ksmlPhase2 = new KSMLContainer()
                 .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-tests-phase2",
                         "phase2-processor.yaml", "SensorData.avsc")
-                .withKafka(kafka)
-                .withApicurioAvroRegistry(schemaRegistry)
-                .dependsOn(kafka, schemaRegistry);
+                .withKafka(SharedKsmlInfra.kafka())
+                .withApicurioAvroRegistry(SharedKsmlInfra.schemaRegistry())
+                .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
         try {
             ksmlPhase2.start();
@@ -162,14 +143,14 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     .atMost(Duration.ofSeconds(30))
                     .pollInterval(Duration.ofSeconds(1))
                     .until(() -> {
-                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_evolution_processed");
+                        long count = getTopicMessageCount(SharedKsmlInfra.kafka().getBootstrapServers(), "sensor_data_evolution_processed");
                         log.debug("Found {} messages in topic sensor_data_evolution_processed", count);
                         return count >= 3;
                     });
 
-            final String registryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2";
+            final String registryUrl = "http://localhost:" + SharedKsmlInfra.schemaRegistry().getMappedPort(8081) + "/apis/registry/v2";
             final Properties consumerProps = new Properties();
-            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-phase2-verifier");
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -230,10 +211,10 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         final KSMLContainer ksmlPhase1 = new KSMLContainer()
                 .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-type-promo-tests-phase1",
                         "phase1-type-promo-producer.yaml", "SensorData.avsc")
-                .withKafka(kafka)
-                .withApicurioAvroRegistry(schemaRegistry)
+                .withKafka(SharedKsmlInfra.kafka())
+                .withApicurioAvroRegistry(SharedKsmlInfra.schemaRegistry())
                 .withTopics("sensor_data_avro_type_promo_test", "sensor_data_avro_type_promo_processed")
-                .dependsOn(kafka, schemaRegistry);
+                .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
         try {
             ksmlPhase1.start();
@@ -244,13 +225,13 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     .atMost(Duration.ofSeconds(30))
                     .pollInterval(Duration.ofSeconds(1))
                     .until(() -> {
-                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_avro_type_promo_test");
+                        long count = getTopicMessageCount(SharedKsmlInfra.kafka().getBootstrapServers(), "sensor_data_avro_type_promo_test");
                         log.debug("Found {} messages in topic sensor_data_avro_type_promo_test", count);
                         return count >= 3;
                     });
 
             final Properties consumerProps = new Properties();
-            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-type-promo-phase1-verifier");
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -275,9 +256,9 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
         final KSMLContainer ksmlPhase2 = new KSMLContainer()
                 .withKsmlFiles("/docs-examples/beginner-tutorial/different-data-formats/avro-schema-evolution-type-promo-tests-phase2",
                         "phase2-type-promo-processor.yaml", "SensorData.avsc")
-                .withKafka(kafka)
-                .withApicurioAvroRegistry(schemaRegistry)
-                .dependsOn(kafka, schemaRegistry);
+                .withKafka(SharedKsmlInfra.kafka())
+                .withApicurioAvroRegistry(SharedKsmlInfra.schemaRegistry())
+                .dependsOn(SharedKsmlInfra.kafka(), SharedKsmlInfra.schemaRegistry());
 
         try {
             ksmlPhase2.start();
@@ -288,14 +269,14 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
                     .atMost(Duration.ofSeconds(30))
                     .pollInterval(Duration.ofSeconds(1))
                     .until(() -> {
-                        long count = getTopicMessageCount(kafka.getBootstrapServers(), "sensor_data_avro_type_promo_processed");
+                        long count = getTopicMessageCount(SharedKsmlInfra.kafka().getBootstrapServers(), "sensor_data_avro_type_promo_processed");
                         log.debug("Found {} messages in topic sensor_data_avro_type_promo_processed", count);
                         return count >= 3;
                     });
 
-            final String registryUrl = "http://localhost:" + schemaRegistry.getMappedPort(8081) + "/apis/registry/v2";
+            final String registryUrl = "http://localhost:" + SharedKsmlInfra.schemaRegistry().getMappedPort(8081) + "/apis/registry/v2";
             final Properties consumerProps = new Properties();
-            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+            consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKsmlInfra.kafka().getBootstrapServers());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-type-promo-phase2-verifier");
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
