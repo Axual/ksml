@@ -42,7 +42,9 @@ public class XmlStringMapper implements StringMapper<Object> {
 
     public XmlStringMapper(String rootName, boolean prettyPrint) {
         final var inputFactory = new WstxInputFactory();
-        inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+        // Namespace-aware parsing (StAX default): a prefixed element is exposed by its local name and the
+        // xmlns declaration is not surfaced as data. Preserves 1.x behavior, which relied on this default.
+        inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         final var outputFactory = new WstxOutputFactory();
         outputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
         var builder = XmlMapper.builder(new XmlFactory(inputFactory, outputFactory)).enable(XmlWriteFeature.WRITE_XML_1_1);

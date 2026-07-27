@@ -86,6 +86,14 @@ Jackson 3 changed its default so that unknown keys are ignored. KSML re-enables 
 
 What you need to do: make sure your `ksml-runner.yaml` has no leftover or misspelled keys before you upgrade.
 
+## Duplicate keys in KSML definitions now fail
+
+KSML now rejects a definition file that uses the same key twice, instead of silently keeping the last value. This catches copy-and-paste mistakes early.
+
+On the 1.x line a repeated key was accepted and the last one quietly won, which could hide a real mistake in a pipeline or function definition.
+
+What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.
+
 ## Kafka 4.x
 
 For pipeline authors who write KSML YAML, there is nothing to change here.
