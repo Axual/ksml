@@ -78,7 +78,7 @@ class PythonSourceTest {
         final var source = new PythonSource(null, new String[]{"line1"}, new String[]{"line1", "line2"});
 
         assertThat(source).asString()
-                .isEqualTo("PythonSource[globalCode=none, code=1 line, expression=2 lines]");
+                .isEqualTo("PythonSource[globalCode=none, code=1 line(s), expression=2 line(s)]");
     }
 
     @Test
