@@ -74,6 +74,6 @@ public record PythonSource(String[] globalCode, String[] code, String[] expressi
 
     private static String describe(String[] lines) {
         if (lines == null) return "null";
-        return lines.length == 0 ? "none" : lines.length + " line" + (lines.length == 1 ? "" : "s");
+        return lines.length == 0 ? "none" : lines.length + " line(s)";
     }
 }
