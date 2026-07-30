@@ -109,8 +109,8 @@ public class FunctionDefinition extends AbstractDefinition {
         this.parameters = parameters;
         this.resultType = resultType;
         this.expression = source.expression();
-        this.code = source.code() != null ? source.code() : EMPTY_STRING_ARRAY;
-        this.globalCode = source.globalCode() != null ? source.globalCode() : EMPTY_STRING_ARRAY;
+        this.code = source.code();
+        this.globalCode = source.globalCode();
         this.storeNames = storeNames != null ? storeNames : EMPTY_STRING_LIST;
     }
 
@@ -120,8 +120,8 @@ public class FunctionDefinition extends AbstractDefinition {
         this.parameters = definition.parameters;
         this.resultType = definition.resultType;
         this.expression = definition.expression;
-        this.code = definition.code != null ? definition.code : new String[]{};
-        this.globalCode = definition.globalCode != null ? definition.globalCode : EMPTY_STRING_ARRAY;
+        this.code = definition.code;
+        this.globalCode = definition.globalCode;
         this.storeNames = definition.storeNames != null ? definition.storeNames : EMPTY_STRING_LIST;
     }
 
