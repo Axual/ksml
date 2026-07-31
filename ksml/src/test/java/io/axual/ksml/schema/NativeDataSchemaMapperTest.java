@@ -29,7 +29,10 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.logical.DecimalLogicalType;
+import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.exception.ExecutionException;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -167,5 +170,23 @@ class NativeDataSchemaMapperTest {
                 .isInstanceOf(ExecutionException.class)
                 .hasMessageContaining("DataStruct")
                 .hasMessageContaining(unhandledDefault.toString());
+    }
+
+    @Test
+    void logicalTypeFields_serializeAsRepresentationPrimitive() {
+        var schema = new StructSchema(null, "TestRecord", null, List.of(
+                new StructSchema.Field("id", new LogicalSchema(LogicalTypeRegistry.UUID)),
+                new StructSchema.Field("amount", new LogicalSchema(new DecimalLogicalType(10, 2))),
+                new StructSchema.Field("day", new LogicalSchema(LogicalTypeRegistry.DATE))));
+
+        var result = (Map<?, ?>) mapper.fromDataSchema(schema);
+
+        var fields = (List<?>) result.get("fields");
+        assertThat(fields.get(0)).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+                .containsEntry("type", "string");
+        assertThat(fields.get(1)).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+                .containsEntry("type", "string");
+        assertThat(fields.get(2)).asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+                .containsEntry("type", "integer");
     }
 }

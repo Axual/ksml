@@ -100,6 +100,26 @@ class AvroLogicalTypesValueTest {
         assertThatThrownBy(() -> mapper.toDataObject(record)).isInstanceOf(DataException.class);
     }
 
+    @Test
+    @DisplayName("An optional decimal field round-trips a present value and a null")
+    void optionalDecimal_roundTrips() {
+        final var optSchema = new Schema.Parser().parse("""
+                {"type":"record","name":"OptDecimal","namespace":"io.axual.test","fields":[
+                  {"name":"amount","type":["null",{"type":"bytes","logicalType":"decimal","precision":10,"scale":2}],"default":null}]}""");
+
+        final var present = new GenericData.Record(optSchema);
+        present.put("amount", ByteBuffer.wrap(new byte[]{0x30, 0x39}));
+        final var presentStruct = (DataStruct) mapper.toDataObject(present);
+        assertThat(presentStruct.get("amount")).isEqualTo(new DataString("123.45"));
+        final var backPresent = (GenericRecord) mapper.fromDataObject(presentStruct);
+        assertThat(toArray((ByteBuffer) backPresent.get("amount"))).containsExactly((byte) 0x30, (byte) 0x39);
+
+        final var absent = new GenericData.Record(optSchema);
+        final var absentStruct = (DataStruct) mapper.toDataObject(absent);
+        final var backAbsent = (GenericRecord) mapper.fromDataObject(absentStruct);
+        assertThat(backAbsent.get("amount")).isNull();
+    }
+
     private static byte[] toArray(ByteBuffer buffer) {
         final var dup = buffer.duplicate();
         final var arr = new byte[dup.remaining()];

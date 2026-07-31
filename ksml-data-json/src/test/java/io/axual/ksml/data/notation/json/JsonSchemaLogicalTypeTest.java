@@ -23,6 +23,7 @@ package io.axual.ksml.data.notation.json;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.logical.DecimalLogicalType;
 import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,5 +67,18 @@ class JsonSchemaLogicalTypeTest {
         final var back = mapper.fromDataSchema(schema);
         final var reparsed = mapper.toDataSchema("ns", "T", back);
         assertThat(reparsed).isEqualTo(schema);
+    }
+
+    @Test
+    @DisplayName("A non-uuid logical schema is written as its representation primitive, not a format")
+    void writesNonUuidLogicalAsRepresentationPrimitive() {
+        final var schema = StructSchema.builder().namespace("ns").name("T")
+                .field(new StructSchema.Field("amount", new LogicalSchema(new DecimalLogicalType(10, 2))))
+                .field(new StructSchema.Field("day", new LogicalSchema(LogicalTypeRegistry.DATE)))
+                .additionalFieldsAllowed(false)
+                .build();
+        final var back = (StructSchema) mapper.toDataSchema("ns", "T", mapper.fromDataSchema(schema));
+        assertThat(back.field("amount").schema()).isEqualTo(DataSchema.STRING_SCHEMA);
+        assertThat(back.field("day").schema()).isNotInstanceOf(LogicalSchema.class);
     }
 }

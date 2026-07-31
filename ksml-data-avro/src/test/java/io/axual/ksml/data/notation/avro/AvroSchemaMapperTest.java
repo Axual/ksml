@@ -34,6 +34,7 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
 import org.apache.avro.JsonProperties;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -192,6 +193,48 @@ class AvroSchemaMapperTest {
 
         final var again = toKsmlStruct(backToAvro);
         assertThat(again).isEqualTo(ksml);
+    }
+
+    @ParameterizedTest
+    @DisplayName("Every supported Avro logical type round-trips through the schema mapper")
+    @MethodSource("allAvroLogicalTypes")
+    void allLogicalTypes_avroToKsmlToAvro_preservesLogicalType(Schema avroLogical, String expectedName) {
+        final var ksml = schemaMapper.toDataSchema(avroLogical);
+        assertThat(ksml).isInstanceOf(LogicalSchema.class);
+        assertThat(((LogicalSchema) ksml).logicalType().name()).isEqualTo(expectedName);
+
+        final var back = schemaMapper.fromDataSchema(ksml);
+        assertThat(back.getLogicalType()).as("logical type preserved back to Avro").isNotNull();
+        assertThat(back.getLogicalType().getName()).isEqualTo(expectedName);
+    }
+
+    private static Stream<Arguments> allAvroLogicalTypes() {
+        return Stream.of(
+                Arguments.of(LogicalTypes.uuid().addToSchema(Schema.create(Schema.Type.STRING)), "uuid"),
+                Arguments.of(LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT)), "date"),
+                Arguments.of(LogicalTypes.timeMillis().addToSchema(Schema.create(Schema.Type.INT)), "time-millis"),
+                Arguments.of(LogicalTypes.timeMicros().addToSchema(Schema.create(Schema.Type.LONG)), "time-micros"),
+                Arguments.of(LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG)), "timestamp-millis"),
+                Arguments.of(LogicalTypes.timestampMicros().addToSchema(Schema.create(Schema.Type.LONG)), "timestamp-micros"),
+                Arguments.of(LogicalTypes.localTimestampMillis().addToSchema(Schema.create(Schema.Type.LONG)), "local-timestamp-millis"),
+                Arguments.of(LogicalTypes.localTimestampMicros().addToSchema(Schema.create(Schema.Type.LONG)), "local-timestamp-micros"),
+                Arguments.of(LogicalTypes.decimal(10, 2).addToSchema(Schema.create(Schema.Type.BYTES)), "decimal"));
+    }
+
+    @Test
+    @DisplayName("Logical types inside a list and a map are preserved by the schema mapper")
+    void logicalTypesInCollections_roundTrip() {
+        final var arrayOfDecimal = Schema.createArray(LogicalTypes.decimal(10, 2).addToSchema(Schema.create(Schema.Type.BYTES)));
+        final var ksmlList = schemaMapper.toDataSchema(arrayOfDecimal);
+        assertThat(ksmlList).isInstanceOf(ListSchema.class);
+        assertThat(((ListSchema) ksmlList).valueSchema()).isInstanceOf(LogicalSchema.class);
+        assertThat(schemaMapper.fromDataSchema(ksmlList).getElementType().getLogicalType().getName()).isEqualTo("decimal");
+
+        final var mapOfUuid = Schema.createMap(LogicalTypes.uuid().addToSchema(Schema.create(Schema.Type.STRING)));
+        final var ksmlMap = schemaMapper.toDataSchema(mapOfUuid);
+        assertThat(ksmlMap).isInstanceOf(MapSchema.class);
+        assertThat(((MapSchema) ksmlMap).valueSchema()).isInstanceOf(LogicalSchema.class);
+        assertThat(schemaMapper.fromDataSchema(ksmlMap).getValueType().getLogicalType().getName()).isEqualTo("uuid");
     }
 
     @Test

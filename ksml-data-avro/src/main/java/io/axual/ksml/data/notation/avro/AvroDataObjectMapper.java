@@ -208,6 +208,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     private DataObject nullForOptionalField(Schema fieldSchema) {
         final var effective = unwrapUnionToPrimary(fieldSchema);
         if (effective == null) return null; // not an optional union or ambiguous union
+        // A null optional decimal is omitted; its string representation cannot round-trip as a bytes-typed null.
+        if (AvroLogicalTypes.resolve(effective) instanceof DecimalLogicalType) return null;
         return switch (effective.getType()) {
             case STRING -> new DataString(null);
             case INT -> new DataInteger(null);

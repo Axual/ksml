@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
@@ -60,5 +61,14 @@ class AvroLogicalTypesTest {
         final var scaled = new BigDecimal(value).setScale(2);
         final var bytes = AvroLogicalTypes.decimalToBytes(scaled).array();
         assertThat(AvroLogicalTypes.decimalToString(bytes, 2)).isEqualTo(scaled.toPlainString());
+    }
+
+    @Test
+    @DisplayName("A fixed-backed decimal falls back to a plain fixed schema (bytes-backed decimal only)")
+    void fixedBackedDecimal_fallsBackToPlainFixed() {
+        final var fixedDecimal = new Schema.Parser().parse("""
+                {"type":"fixed","name":"Money","size":8,"logicalType":"decimal","precision":10,"scale":2}""");
+        assertThat(AvroLogicalTypes.resolve(fixedDecimal)).isNull();
+        assertThat(new AvroSchemaMapper().toDataSchema(fixedDecimal)).isInstanceOf(FixedSchema.class);
     }
 }
