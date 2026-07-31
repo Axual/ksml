@@ -43,13 +43,13 @@ class AvroLogicalTypesValueTest {
     private final Schema schema = AvroTestUtil.loadSchema(SCHEMA_LOGICAL_TYPES);
 
     private GenericData.Record sampleRecord() {
-        final var record = new GenericData.Record(schema);
-        record.put("date", 19785);
-        record.put("timeMillis", 3723000);
-        record.put("tsMillis", 1700000000123L);
-        record.put("uuid", "123e4567-e89b-12d3-a456-426614174000");
-        record.put("decimal", ByteBuffer.wrap(new byte[]{0x30, 0x39})); // unscaled 12345, scale 2 -> 123.45
-        return record;
+        final var avroRecord = new GenericData.Record(schema);
+        avroRecord.put("date", 19785);
+        avroRecord.put("timeMillis", 3723000);
+        avroRecord.put("tsMillis", 1700000000123L);
+        avroRecord.put("uuid", "123e4567-e89b-12d3-a456-426614174000");
+        avroRecord.put("decimal", ByteBuffer.wrap(new byte[]{0x30, 0x39})); // unscaled 12345, scale 2 -> 123.45
+        return avroRecord;
     }
 
     private DataStruct read() {
@@ -70,10 +70,10 @@ class AvroLogicalTypesValueTest {
     @Test
     @DisplayName("Writing re-encodes the decimal string back to the original bytes")
     void write_encodesDecimalBackToBytes() {
-        final var record = (GenericRecord) mapper.fromDataObject(read());
-        assertThat(record.get("decimal")).isInstanceOf(ByteBuffer.class);
-        assertThat(toArray((ByteBuffer) record.get("decimal"))).containsExactly((byte) 0x30, (byte) 0x39);
-        assertThat(record.get("uuid")).hasToString("123e4567-e89b-12d3-a456-426614174000");
+        final var avroRecord = (GenericRecord) mapper.fromDataObject(read());
+        assertThat(avroRecord.get("decimal")).isInstanceOf(ByteBuffer.class);
+        assertThat(toArray((ByteBuffer) avroRecord.get("decimal"))).containsExactly((byte) 0x30, (byte) 0x39);
+        assertThat(avroRecord.get("uuid")).hasToString("123e4567-e89b-12d3-a456-426614174000");
     }
 
     @Test
@@ -95,9 +95,9 @@ class AvroLogicalTypesValueTest {
     @Test
     @DisplayName("Reading rejects an inbound value that violates its logical type")
     void read_rejectsInvalidInbound() {
-        final var record = sampleRecord();
-        record.put("timeMillis", -1);
-        assertThatThrownBy(() -> mapper.toDataObject(record)).isInstanceOf(DataException.class);
+        final var avroRecord = sampleRecord();
+        avroRecord.put("timeMillis", -1);
+        assertThatThrownBy(() -> mapper.toDataObject(avroRecord)).isInstanceOf(DataException.class);
     }
 
     @Test

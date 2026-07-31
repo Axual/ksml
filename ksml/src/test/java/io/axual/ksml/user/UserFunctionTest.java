@@ -132,7 +132,8 @@ class UserFunctionTest {
     @DisplayName("convertToKeyValue throws TopologyException for a value that is not a pair")
     void convertToKeyValueFailsForNonPair() {
         final var function = function(params(0), List.of());
-        assertThatThrownBy(() -> function.convertToKeyValue(new DataString("x"), DataType.UNKNOWN, DataType.UNKNOWN))
+        final var notAPair = new DataString("x");
+        assertThatThrownBy(() -> function.convertToKeyValue(notAPair, DataType.UNKNOWN, DataType.UNKNOWN))
                 .isInstanceOf(TopologyException.class);
     }
 }

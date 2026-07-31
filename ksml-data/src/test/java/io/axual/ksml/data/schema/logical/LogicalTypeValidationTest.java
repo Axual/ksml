@@ -56,7 +56,8 @@ class LogicalTypeValidationTest {
                 .doesNotThrowAnyException();
         assertThatCode(() -> LogicalTypeRegistry.UUID.validate(new DataString(null))).doesNotThrowAnyException();
         assertThatCode(() -> LogicalTypeRegistry.UUID.validate(DataNull.INSTANCE)).doesNotThrowAnyException();
-        assertThatThrownBy(() -> LogicalTypeRegistry.UUID.validate(new DataString("not-a-uuid")))
+        final var invalidUuid = new DataString("not-a-uuid");
+        assertThatThrownBy(() -> LogicalTypeRegistry.UUID.validate(invalidUuid))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("not a valid uuid");
     }
@@ -72,7 +73,8 @@ class LogicalTypeValidationTest {
     @DisplayName("time-millis rejects values outside [0, 86_399_999]")
     @ValueSource(ints = {-1, 86_400_000, Integer.MAX_VALUE, Integer.MIN_VALUE})
     void timeMillis_rejects_outOfRange(int value) {
-        assertThatThrownBy(() -> LogicalTypeRegistry.TIME_MILLIS.validate(new DataInteger(value)))
+        final var outOfRange = new DataInteger(value);
+        assertThatThrownBy(() -> LogicalTypeRegistry.TIME_MILLIS.validate(outOfRange))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("time-millis");
     }
@@ -88,7 +90,8 @@ class LogicalTypeValidationTest {
     @DisplayName("time-micros rejects values outside [0, 86_399_999_999]")
     @ValueSource(longs = {-1L, 86_400_000_000L, Long.MAX_VALUE})
     void timeMicros_rejects_outOfRange(long value) {
-        assertThatThrownBy(() -> LogicalTypeRegistry.TIME_MICROS.validate(new DataLong(value)))
+        final var outOfRange = new DataLong(value);
+        assertThatThrownBy(() -> LogicalTypeRegistry.TIME_MICROS.validate(outOfRange))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("time-micros");
     }
@@ -135,16 +138,20 @@ class LogicalTypeValidationTest {
     @DisplayName("decimal(10,2) rejects precision overflow, too many fraction digits, and non-string values")
     void decimal_rejects_invalid() {
         final var decimal = new DecimalLogicalType(10, 2);
-        assertThatThrownBy(() -> decimal.validate(new DataString("123456789.99")))
+        final var precisionOverflow = new DataString("123456789.99");
+        assertThatThrownBy(() -> decimal.validate(precisionOverflow))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("precision");
-        assertThatThrownBy(() -> decimal.validate(new DataString("1.234")))
+        final var tooManyFractions = new DataString("1.234");
+        assertThatThrownBy(() -> decimal.validate(tooManyFractions))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("fraction digits");
-        assertThatThrownBy(() -> decimal.validate(new DataString("not-a-number")))
+        final var notANumber = new DataString("not-a-number");
+        assertThatThrownBy(() -> decimal.validate(notANumber))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("not a valid decimal");
-        assertThatThrownBy(() -> decimal.validate(new DataInteger(5)))
+        final var nonString = new DataInteger(5);
+        assertThatThrownBy(() -> decimal.validate(nonString))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("must be a string");
     }

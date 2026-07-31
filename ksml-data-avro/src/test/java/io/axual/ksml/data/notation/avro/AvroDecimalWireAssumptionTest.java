@@ -53,12 +53,12 @@ class AvroDecimalWireAssumptionTest {
                 .as("default GenericData registers no decimal conversion, so KSML must hand it raw bytes")
                 .isNull();
 
-        final var record = new GenericData.Record(schema);
-        record.put("amount", ByteBuffer.wrap(new byte[]{0x30, 0x39}));
+        final var avroRecord = new GenericData.Record(schema);
+        avroRecord.put("amount", ByteBuffer.wrap(new byte[]{0x30, 0x39}));
 
         final var out = new ByteArrayOutputStream();
         final var encoder = EncoderFactory.get().binaryEncoder(out, null);
-        new GenericDatumWriter<GenericRecord>(schema).write(record, encoder);
+        new GenericDatumWriter<GenericRecord>(schema).write(avroRecord, encoder);
         encoder.flush();
 
         final var decoder = DecoderFactory.get().binaryDecoder(out.toByteArray(), null);
