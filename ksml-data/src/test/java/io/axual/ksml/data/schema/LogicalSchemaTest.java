@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.compare.EqualityFlags;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
@@ -49,6 +50,8 @@ class LogicalSchemaTest {
     @Test
     @DisplayName("Equality distinguishes decimal parameters and never equals a bare primitive")
     void equalitySemantics() {
+        final var reflexive = new LogicalSchema(new DecimalLogicalType(10, 2));
+        assertThat(reflexive.equals(reflexive)).isTrue();
         assertThat(new LogicalSchema(new DecimalLogicalType(10, 2)))
                 .isEqualTo(new LogicalSchema(new DecimalLogicalType(10, 2)))
                 .isNotEqualTo(new LogicalSchema(new DecimalLogicalType(10, 4)))
@@ -87,5 +90,38 @@ class LogicalSchemaTest {
                 .isEqualTo(DataInteger.DATATYPE);
         assertThat(typeMapper.fromDataSchema(new LogicalSchema(LogicalTypeRegistry.TIME_MICROS)))
                 .isEqualTo(DataLong.DATATYPE);
+    }
+
+    @Test
+    @DisplayName("Structural equals reports equal for the same logical type and not-equal for a different type, null, and a bare primitive")
+    void structuralEqualsCoversAllBranches() {
+        final var decimal = new LogicalSchema(new DecimalLogicalType(10, 2));
+        assertThat(decimal.equals(decimal, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(decimal.equals(new LogicalSchema(new DecimalLogicalType(10, 2)), EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(decimal.equals(new LogicalSchema(new DecimalLogicalType(10, 4)), EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(decimal.equals(null, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+        assertThat(decimal.equals(DataSchema.BYTES_SCHEMA, EqualityFlags.EMPTY).isNotEqual()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Equal logical schemas share their hash code")
+    void hashCodeIsConsistentWithEquals() {
+        assertThat(new LogicalSchema(new DecimalLogicalType(10, 2)))
+                .hasSameHashCodeAs(new LogicalSchema(new DecimalLogicalType(10, 2)));
+    }
+
+    @Test
+    @DisplayName("toString is the logical type name and the getter exposes the underlying logical type")
+    void toStringAndGetterExposeLogicalType() {
+        final var uuid = new LogicalSchema(LogicalTypeRegistry.UUID);
+        assertThat(uuid.logicalType()).isSameAs(LogicalTypeRegistry.UUID);
+        assertThat(uuid).hasToString("uuid");
+        assertThat(new LogicalSchema(new DecimalLogicalType(10, 2))).hasToString("decimal");
+    }
+
+    @Test
+    @DisplayName("A logical schema is not assignable from a null schema")
+    void notAssignableFromNull() {
+        assertThat(new LogicalSchema(LogicalTypeRegistry.UUID).isAssignableFrom(null).isAssignable()).isFalse();
     }
 }
