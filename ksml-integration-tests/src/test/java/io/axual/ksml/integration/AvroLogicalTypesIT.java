@@ -26,6 +26,7 @@ import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,7 @@ class AvroLogicalTypesIT {
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-logical-json");
 
-        try (final var consumer = new org.apache.kafka.clients.consumer.KafkaConsumer<String, String>(consumerProps)) {
+        try (final var consumer = new KafkaConsumer<String, String>(consumerProps)) {
             consumer.subscribe(Collections.singletonList("logical_data_json"));
             final var records = KSMLRunnerTestUtil.pollWithRetry(consumer, Duration.ofSeconds(15));
 

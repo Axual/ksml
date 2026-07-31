@@ -290,7 +290,6 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     private static byte[] toDecimalBytes(Object value) {
         if (value instanceof ByteBuffer buffer) return toByteArray(buffer);
         if (value instanceof byte[] bytes) return bytes;
-        if (value instanceof GenericFixed fixed) return fixed.bytes();
         throw new DataException("Expected bytes for decimal logical type but got " + value.getClass().getSimpleName());
     }
 
@@ -335,11 +334,11 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         if (value == null) return null;
         final var logicalType = AvroLogicalTypes.resolve(schema);
         if (logicalType != null && !(value instanceof DataNull)) {
-            logicalType.validate(value);
             if (logicalType instanceof DecimalLogicalType decimalType) {
-                final var text = ((DataString) value).value();
-                return text == null ? null : AvroLogicalTypes.stringToDecimalBytes(text, decimalType.scale());
+                final var scaled = decimalType.toBigDecimal(value);
+                return scaled == null ? null : AvroLogicalTypes.decimalToBytes(scaled);
             }
+            logicalType.validate(value);
         }
         return switch (schema.getType()) {
             case NULL -> null;

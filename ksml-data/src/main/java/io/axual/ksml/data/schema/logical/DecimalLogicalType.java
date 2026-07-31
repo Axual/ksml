@@ -33,8 +33,6 @@ import java.math.RoundingMode;
 
 /** The decimal logical type: an exact number with fixed precision and scale, carried as bytes and represented in KSML as a canonical string. */
 public record DecimalLogicalType(int precision, int scale) implements LogicalType {
-    public static final String LOGICAL_TYPE_NAME = "decimal";
-
     public DecimalLogicalType {
         if (precision <= 0)
             throw new SchemaException("Decimal precision must be positive, but was " + precision);
@@ -46,7 +44,7 @@ public record DecimalLogicalType(int precision, int scale) implements LogicalTyp
 
     @Override
     public String name() {
-        return LOGICAL_TYPE_NAME;
+        return LogicalTypeNames.DECIMAL;
     }
 
     @Override
@@ -61,33 +59,39 @@ public record DecimalLogicalType(int precision, int scale) implements LogicalTyp
 
     @Override
     public void validate(DataObject value) {
-        if (value == null || value instanceof DataNull) return;
+        toBigDecimal(value);
+    }
+
+    /** Validates the value and returns it scaled to this type's scale, or null when the value is null. */
+    public BigDecimal toBigDecimal(DataObject value) {
+        if (value == null || value instanceof DataNull) return null;
         if (!(value instanceof DataString stringValue))
             throw new DataException("Decimal value must be a string, but was " + value.getClass().getSimpleName());
         final var text = stringValue.value();
-        if (text == null) return;
+        if (text == null) return null;
 
         final BigDecimal parsed;
         try {
             parsed = new BigDecimal(text);
-        } catch (NumberFormatException _) {
-            throw new DataException("Value \"" + text + "\" is not a valid decimal");
+        } catch (NumberFormatException e) {
+            throw new DataException("Value \"" + text + "\" is not a valid decimal", e);
         }
 
         final BigDecimal scaled;
         try {
             scaled = parsed.setScale(scale, RoundingMode.UNNECESSARY);
-        } catch (ArithmeticException _) {
-            throw new DataException("Decimal value \"" + text + "\" has more fraction digits than the schema scale of " + scale);
+        } catch (ArithmeticException e) {
+            throw new DataException("Decimal value \"" + text + "\" has more fraction digits than the schema scale of " + scale, e);
         }
 
         if (scaled.precision() > precision)
             throw new DataException("Decimal value \"" + text + "\" needs " + scaled.precision()
                     + " digits of precision, but the schema allows only " + precision);
+        return scaled;
     }
 
     @Override
     public String toString() {
-        return LOGICAL_TYPE_NAME + "(" + precision + "," + scale + ")";
+        return LogicalTypeNames.DECIMAL + "(" + precision + "," + scale + ")";
     }
 }

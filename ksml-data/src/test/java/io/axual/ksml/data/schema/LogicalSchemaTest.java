@@ -59,11 +59,21 @@ class LogicalSchemaTest {
     }
 
     @Test
-    @DisplayName("A logical schema is assignable wherever its base primitive is")
-    void assignableAsBase() {
+    @DisplayName("A logical schema is assignable only from the identical logical type")
+    void assignabilityRequiresSameLogicalType() {
         final var decimal = new LogicalSchema(new DecimalLogicalType(10, 2));
-        assertThat(decimal.isAssignableFrom(DataSchema.BYTES_SCHEMA).isAssignable()).isTrue();
-        assertThat(decimal.isAssignableFrom(new LogicalSchema(new DecimalLogicalType(4, 1))).isAssignable()).isTrue();
+        assertThat(decimal.isAssignableFrom(new LogicalSchema(new DecimalLogicalType(10, 2))).isAssignable()).isTrue();
+        assertThat(decimal.isAssignableFrom(new LogicalSchema(new DecimalLogicalType(10, 4))).isAssignable()).isFalse();
+        assertThat(decimal.isAssignableFrom(DataSchema.BYTES_SCHEMA).isAssignable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("equals is symmetric between a logical schema and its base primitive")
+    void equalsIsSymmetric() {
+        final var decimal = new LogicalSchema(new DecimalLogicalType(10, 2));
+        final var forward = decimal.equals(DataSchema.BYTES_SCHEMA);
+        final var backward = DataSchema.BYTES_SCHEMA.equals(decimal);
+        assertThat(forward).isEqualTo(backward).isFalse();
     }
 
     @Test

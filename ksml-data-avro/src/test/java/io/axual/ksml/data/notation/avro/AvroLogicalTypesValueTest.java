@@ -73,7 +73,7 @@ class AvroLogicalTypesValueTest {
         final var record = (GenericRecord) mapper.fromDataObject(read());
         assertThat(record.get("decimal")).isInstanceOf(ByteBuffer.class);
         assertThat(toArray((ByteBuffer) record.get("decimal"))).containsExactly((byte) 0x30, (byte) 0x39);
-        assertThat(record.get("uuid").toString()).isEqualTo("123e4567-e89b-12d3-a456-426614174000");
+        assertThat(record.get("uuid")).hasToString("123e4567-e89b-12d3-a456-426614174000");
     }
 
     @Test

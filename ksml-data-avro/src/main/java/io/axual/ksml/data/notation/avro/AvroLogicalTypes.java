@@ -22,13 +22,13 @@ package io.axual.ksml.data.notation.avro;
 
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
 import io.axual.ksml.data.schema.logical.LogicalType;
+import io.axual.ksml.data.schema.logical.LogicalTypeNames;
 import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 
 /** Adapter between Avro's logical types and the notation-neutral {@link LogicalType} model. */
@@ -53,12 +53,15 @@ final class AvroLogicalTypes {
     static LogicalType resolveEffective(Schema schema) {
         if (schema == null) return null;
         if (schema.getType() == Schema.Type.UNION) {
+            // Only a simple optional union [null, T] carries a logical type unambiguously; a union mixing a
+            // logical branch with other types is left to the plain per-value conversion.
+            Schema single = null;
             for (final var branch : schema.getTypes()) {
                 if (branch.getType() == Schema.Type.NULL) continue;
-                final var logicalType = resolve(branch);
-                if (logicalType != null) return logicalType;
+                if (single != null) return null;
+                single = branch;
             }
-            return null;
+            return single == null ? null : resolve(single);
         }
         return resolve(schema);
     }
@@ -66,18 +69,18 @@ final class AvroLogicalTypes {
     /** Attaches the Avro logical type matching the given {@link LogicalType} to a base Avro schema. */
     static Schema apply(Schema base, LogicalType logicalType) {
         return switch (logicalType.name()) {
-            case DecimalLogicalType.LOGICAL_TYPE_NAME -> {
+            case LogicalTypeNames.DECIMAL -> {
                 final var decimal = (DecimalLogicalType) logicalType;
                 yield LogicalTypes.decimal(decimal.precision(), decimal.scale()).addToSchema(base);
             }
-            case "uuid" -> LogicalTypes.uuid().addToSchema(base);
-            case "date" -> LogicalTypes.date().addToSchema(base);
-            case "time-millis" -> LogicalTypes.timeMillis().addToSchema(base);
-            case "time-micros" -> LogicalTypes.timeMicros().addToSchema(base);
-            case "timestamp-millis" -> LogicalTypes.timestampMillis().addToSchema(base);
-            case "timestamp-micros" -> LogicalTypes.timestampMicros().addToSchema(base);
-            case "local-timestamp-millis" -> LogicalTypes.localTimestampMillis().addToSchema(base);
-            case "local-timestamp-micros" -> LogicalTypes.localTimestampMicros().addToSchema(base);
+            case LogicalTypeNames.UUID -> LogicalTypes.uuid().addToSchema(base);
+            case LogicalTypeNames.DATE -> LogicalTypes.date().addToSchema(base);
+            case LogicalTypeNames.TIME_MILLIS -> LogicalTypes.timeMillis().addToSchema(base);
+            case LogicalTypeNames.TIME_MICROS -> LogicalTypes.timeMicros().addToSchema(base);
+            case LogicalTypeNames.TIMESTAMP_MILLIS -> LogicalTypes.timestampMillis().addToSchema(base);
+            case LogicalTypeNames.TIMESTAMP_MICROS -> LogicalTypes.timestampMicros().addToSchema(base);
+            case LogicalTypeNames.LOCAL_TIMESTAMP_MILLIS -> LogicalTypes.localTimestampMillis().addToSchema(base);
+            case LogicalTypeNames.LOCAL_TIMESTAMP_MICROS -> LogicalTypes.localTimestampMicros().addToSchema(base);
             default -> base;
         };
     }
@@ -86,8 +89,7 @@ final class AvroLogicalTypes {
         return new BigDecimal(new BigInteger(unscaledTwosComplement), scale).toPlainString();
     }
 
-    static ByteBuffer stringToDecimalBytes(String value, int scale) {
-        final var scaled = new BigDecimal(value).setScale(scale, RoundingMode.UNNECESSARY);
+    static ByteBuffer decimalToBytes(BigDecimal scaled) {
         return ByteBuffer.wrap(scaled.unscaledValue().toByteArray());
     }
 }

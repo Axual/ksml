@@ -56,8 +56,11 @@ public final class LogicalSchema extends DataSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         if (otherSchema == null) return Assignable.notAssignable("No other schema provided");
-        final var effectiveOther = otherSchema instanceof LogicalSchema other ? other.baseSchema() : otherSchema;
-        return baseSchema().isAssignableFrom(effectiveOther);
+        // Only assignable from the identical logical type (same name and, for decimal, the same precision and
+        // scale). A more lenient rule such as decimal precision widening could be added later if needed.
+        if (!(otherSchema instanceof LogicalSchema other) || !logicalType.equals(other.logicalType))
+            return Assignable.notAssignable(logicalType.name() + " is not assignable from " + otherSchema);
+        return baseSchema().isAssignableFrom(other.baseSchema());
     }
 
     @Override
@@ -85,6 +88,13 @@ public final class LogicalSchema extends DataSchema {
     @Override
     public int hashCode() {
         return Objects.hash(type(), logicalType);
+    }
+
+    // The parent DataSchema uses Lombok equals with canEqual; restrict it so a base primitive is never considered
+    // equal to a LogicalSchema, keeping equals symmetric.
+    @Override
+    protected boolean canEqual(Object other) {
+        return other instanceof LogicalSchema;
     }
 
     @Override

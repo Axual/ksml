@@ -26,6 +26,8 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
+
+import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -113,9 +115,20 @@ class LogicalTypeValidationTest {
     void decimal_accepts_valid() {
         final var decimal = new DecimalLogicalType(10, 2);
         assertThatCode(() -> decimal.validate(new DataString("123.45"))).doesNotThrowAnyException();
+        assertThatCode(() -> decimal.validate(new DataString("-123.45"))).doesNotThrowAnyException();
         assertThatCode(() -> decimal.validate(new DataString("0.00"))).doesNotThrowAnyException();
+        assertThatCode(() -> decimal.validate(new DataString("99999999.99"))).doesNotThrowAnyException();
         assertThatCode(() -> decimal.validate(new DataString(null))).doesNotThrowAnyException();
         assertThatCode(() -> decimal.validate(DataNull.INSTANCE)).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("toBigDecimal validates and returns the value scaled to the declared scale")
+    void decimal_toBigDecimal_scales() {
+        final var decimal = new DecimalLogicalType(10, 2);
+        assertThat(decimal.toBigDecimal(new DataString("1.5"))).isEqualTo(new BigDecimal("1.50"));
+        assertThat(decimal.toBigDecimal(new DataString("-1.2"))).isEqualTo(new BigDecimal("-1.20"));
+        assertThat(decimal.toBigDecimal(DataNull.INSTANCE)).isNull();
     }
 
     @Test

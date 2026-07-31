@@ -39,14 +39,14 @@ public final class LogicalTypeRegistry {
     private static final long MILLIS_PER_DAY = 86_400_000L;
     private static final long MICROS_PER_DAY = 86_400_000_000L;
 
-    public static final LogicalType UUID = simple("uuid", DataSchema.STRING_SCHEMA, DataString.DATATYPE, LogicalTypeRegistry::validateUuid);
-    public static final LogicalType DATE = simple("date", DataSchema.INTEGER_SCHEMA, DataInteger.DATATYPE, LogicalTypeRegistry::noValidation);
-    public static final LogicalType TIME_MILLIS = simple("time-millis", DataSchema.INTEGER_SCHEMA, DataInteger.DATATYPE, LogicalTypeRegistry::validateTimeMillis);
-    public static final LogicalType TIME_MICROS = simple("time-micros", DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::validateTimeMicros);
-    public static final LogicalType TIMESTAMP_MILLIS = simple("timestamp-millis", DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
-    public static final LogicalType TIMESTAMP_MICROS = simple("timestamp-micros", DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
-    public static final LogicalType LOCAL_TIMESTAMP_MILLIS = simple("local-timestamp-millis", DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
-    public static final LogicalType LOCAL_TIMESTAMP_MICROS = simple("local-timestamp-micros", DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
+    public static final LogicalType UUID = simple(LogicalTypeNames.UUID, DataSchema.STRING_SCHEMA, DataString.DATATYPE, LogicalTypeRegistry::validateUuid);
+    public static final LogicalType DATE = simple(LogicalTypeNames.DATE, DataSchema.INTEGER_SCHEMA, DataInteger.DATATYPE, LogicalTypeRegistry::noValidation);
+    public static final LogicalType TIME_MILLIS = simple(LogicalTypeNames.TIME_MILLIS, DataSchema.INTEGER_SCHEMA, DataInteger.DATATYPE, LogicalTypeRegistry::validateTimeMillis);
+    public static final LogicalType TIME_MICROS = simple(LogicalTypeNames.TIME_MICROS, DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::validateTimeMicros);
+    public static final LogicalType TIMESTAMP_MILLIS = simple(LogicalTypeNames.TIMESTAMP_MILLIS, DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
+    public static final LogicalType TIMESTAMP_MICROS = simple(LogicalTypeNames.TIMESTAMP_MICROS, DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
+    public static final LogicalType LOCAL_TIMESTAMP_MILLIS = simple(LogicalTypeNames.LOCAL_TIMESTAMP_MILLIS, DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
+    public static final LogicalType LOCAL_TIMESTAMP_MICROS = simple(LogicalTypeNames.LOCAL_TIMESTAMP_MICROS, DataSchema.LONG_SCHEMA, DataLong.DATATYPE, LogicalTypeRegistry::noValidation);
 
     private static final Map<String, LogicalType> BY_NAME = Map.of(
             UUID.name(), UUID,
@@ -78,8 +78,8 @@ public final class LogicalTypeRegistry {
         if (!(value instanceof DataString stringValue) || stringValue.value() == null) return;
         try {
             java.util.UUID.fromString(stringValue.value());
-        } catch (IllegalArgumentException _) {
-            throw new DataException("Value \"" + stringValue.value() + "\" is not a valid uuid");
+        } catch (IllegalArgumentException e) {
+            throw new DataException("Value \"" + stringValue.value() + "\" is not a valid uuid", e);
         }
     }
 
