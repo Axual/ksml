@@ -651,6 +651,57 @@ Schema registry lookup requires a schema registry to be configured in `ksml-runn
 section, and the notation must reference it. See
 the [Configuration Reference](configuration-reference.md#schema-registry-configuration) for details.
 
+#### Logical types
+
+Avro lets a base type carry a *logical type* that adds meaning, such as a `uuid`, a `decimal`, or a timestamp. KSML
+keeps the logical type when it reads and writes Avro, checks that values match it, and hands your Python code a value
+that is easy to use.
+
+This table shows each supported logical type and the value your Python function receives:
+
+| Avro logical type        | Avro base type | Value in KSML                                         |
+|--------------------------|----------------|-------------------------------------------------------|
+| `uuid`                   | string         | string, e.g. `"123e4567-e89b-12d3-a456-426614174000"` |
+| `decimal`                | bytes          | string, e.g. `"123.45"`                               |
+| `date`                   | int            | int, days since 1970-01-01                            |
+| `time-millis`            | int            | int, milliseconds after midnight                      |
+| `time-micros`            | long           | long, microseconds after midnight                     |
+| `timestamp-millis`       | long           | long, milliseconds since 1970-01-01                   |
+| `timestamp-micros`       | long           | long, microseconds since 1970-01-01                   |
+| `local-timestamp-millis` | long           | long                                                  |
+| `local-timestamp-micros` | long           | long                                                  |
+
+A `decimal` is shown as a plain string like `"123.45"` so no digit is ever lost. KSML turns that string into the
+correct Avro bytes when it writes a message, and back into a string when it reads one. A floating point number is
+never used, because it could change the value.
+
+KSML rejects a value that does not fit its logical type, so the mistake is caught at the producer instead of far
+downstream. Values that fail are, for example, a `uuid` that is not a real UUID, a `time-millis` outside the range `0`
+to `86399999`, or a `decimal` with more digits than the schema allows.
+
+**Example schema with logical types:**
+
+```json
+{
+  "type": "record",
+  "name": "Payment",
+  "namespace": "io.ksml.example",
+  "fields": [
+    { "name": "id", "type": { "type": "string", "logicalType": "uuid" } },
+    { "name": "amount", "type": { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 } },
+    { "name": "created_at", "type": { "type": "long", "logicalType": "timestamp-millis" } }
+  ]
+}
+```
+
+In a Python function you set these fields with plain values:
+
+```python
+value["id"] = "123e4567-e89b-12d3-a456-426614174000"
+value["amount"] = "123.45"
+value["created_at"] = round(time.time() * 1000)
+```
+
 ### Binary
 
 Binary data represents raw bytes for custom protocols. It uses the default serializers/deserialiers from Kafka to
@@ -813,6 +864,10 @@ streams:
     keyType: string
     valueType: jsonschema:UserProfile
 ```
+
+KSML reads the JSON Schema `format: uuid` on a string field as a `uuid` logical type, and keeps the `format` when it
+writes the schema back, so a `uuid` field stays a `uuid` field. Other string formats such as `date-time` are not
+mapped to logical types yet.
 
 ### Protobuf
 

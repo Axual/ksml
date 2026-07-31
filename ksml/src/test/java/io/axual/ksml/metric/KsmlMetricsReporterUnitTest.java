@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -47,6 +48,7 @@ class KsmlMetricsReporterUnitTest {
     @Mock
     private KafkaMetric kafkaMetric;
 
+    @InjectMocks
     private KsmlMetricsReporter reporter;
 
     private static org.apache.kafka.common.MetricName kafkaName(String name) {
@@ -55,7 +57,6 @@ class KsmlMetricsReporterUnitTest {
 
     @BeforeEach
     void setUp() {
-        reporter = new KsmlMetricsReporter(enricher);
         reporter.setRegistry(new MetricsRegistry(new MetricRegistry()));
     }
 

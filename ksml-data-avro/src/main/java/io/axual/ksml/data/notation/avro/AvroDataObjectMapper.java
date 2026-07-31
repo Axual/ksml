@@ -40,6 +40,7 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.logical.DecimalLogicalType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
@@ -107,12 +108,19 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         if (value == null || value == JsonProperties.NULL_VALUE)
             return ConvertUtil.convertNullToDataObject(expected);
 
+        final var logicalType = AvroLogicalTypes.resolveEffective(schema);
+        if (logicalType instanceof DecimalLogicalType decimalType) {
+            final var decimalString = new DataString(AvroLogicalTypes.decimalToString(toDecimalBytes(value), decimalType.scale()));
+            decimalType.validate(decimalString);
+            return decimalString;
+        }
+
         // Normalize common AVRO wrappers first
         if (value instanceof Utf8 val) value = val.toString();
         if (value instanceof ByteBuffer val) value = toByteArray(val);
 
         // Convert value based on its type
-        return switch (value) {
+        final var result = switch (value) {
             case DataObject val -> val;
             case Boolean val -> new DataBoolean(val);
             case Byte val -> expected == DataInteger.DATATYPE ? new DataInteger(val.intValue()) : new DataByte(val);
@@ -130,6 +138,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case Map<?, ?> val -> convertMapToDataMap(expected, val, schema != null ? mapValueSchemaOf(schema) : null);
             default -> throw new DataException("Unsupported primitive type: " + value.getClass().getSimpleName());
         };
+        if (logicalType != null) logicalType.validate(result);
+        return result;
     }
 
     /**
@@ -277,8 +287,17 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         return arr;
     }
 
+    private static byte[] toDecimalBytes(Object value) {
+        if (value instanceof ByteBuffer buffer) return toByteArray(buffer);
+        if (value instanceof byte[] bytes) return bytes;
+        if (value instanceof GenericFixed fixed) return fixed.bytes();
+        throw new DataException("Expected bytes for decimal logical type but got " + value.getClass().getSimpleName());
+    }
+
     private DataType dataTypeFromAvroSchema(Schema schema) {
         if (schema == null) return DataType.UNKNOWN;
+        final var logicalType = AvroLogicalTypes.resolve(schema);
+        if (logicalType != null) return logicalType.representationType();
         return switch (schema.getType()) {
             case NULL -> DataNull.DATATYPE;
             case BOOLEAN -> DataBoolean.DATATYPE;
@@ -314,8 +333,14 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Object convertDataObjectToAvroBySchema(DataObject value, Schema schema) {
         if (value == null) return null;
-        // TODO: Avro logical types (uuid, time-millis, time-micros, date, timestamp-*, decimal)
-        //       are passed through without validation. Add first-class handling as a separate feature.
+        final var logicalType = AvroLogicalTypes.resolve(schema);
+        if (logicalType != null && !(value instanceof DataNull)) {
+            logicalType.validate(value);
+            if (logicalType instanceof DecimalLogicalType decimalType) {
+                final var text = ((DataString) value).value();
+                return text == null ? null : AvroLogicalTypes.stringToDecimalBytes(text, decimalType.scale());
+            }
+        }
         return switch (schema.getType()) {
             case NULL -> null;
             case BOOLEAN -> value instanceof DataBoolean val ? val.value() : schemaMismatch(value, schema);

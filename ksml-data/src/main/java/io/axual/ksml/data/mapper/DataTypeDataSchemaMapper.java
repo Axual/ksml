@@ -34,6 +34,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.TupleSchema;
@@ -117,6 +118,8 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (schema == DataSchema.BYTES_SCHEMA) return DataBytes.DATATYPE;
         if (schema == DataSchema.STRING_SCHEMA) return DataString.DATATYPE;
         return switch (schema) {
+            // A logical type surfaces to the runtime as its representation type (for example decimal as string).
+            case LogicalSchema logicalSchema -> logicalSchema.logicalType().representationType();
             case EnumSchema enumSchema -> new EnumType(enumSchema);
             case ListSchema listSchema -> new ListType(fromDataSchema(listSchema.valueSchema()));
             case MapSchema mapSchema -> new MapType(fromDataSchema(mapSchema.valueSchema()));

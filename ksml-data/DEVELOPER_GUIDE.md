@@ -388,7 +388,13 @@ This section describes the internal schema model used by ksml-data. Schemas capt
 - A convenience StructSchema generated from TupleType via DataTypeDataSchemaMapper; named using DATA_SCHEMA_KSML_NAMESPACE and the TupleType.toString().
 - Fields are auto-generated as elem0, elem1, ..., one per tuple subtype; requires at least one element.
 
-3.13 Schema ↔ DataType mapping
+3.13 LogicalSchema
+- Decorates a base primitive schema with a LogicalType (io.axual.ksml.data.schema.logical), mirroring Avro's model where a logical type is attached to a base Schema (for example decimal on bytes, uuid on string).
+- type() reports the base primitive's type, so assignability and logical-unaware notations treat it as the base; it is never a shared primitive singleton, so reference-equality checks against those singletons do not match it and force mappers to handle it explicitly.
+- logicalType() exposes the LogicalType (name, baseSchema, representationType, validate); representationType is what the runtime and user code see (string for decimal and uuid, int for date/time-millis, long for the other temporal types).
+- Produced and consumed by AvroSchemaMapper (Avro logicalType) and JsonSchemaMapper (JSON Schema format: uuid); DataTypeDataSchemaMapper maps it to its representation DataType.
+
+3.14 Schema ↔ DataType mapping
 - DataTypeDataSchemaMapper bridges between DataType and DataSchema:
   - toDataSchema(DataType) and fromDataSchema(DataSchema) convert between representations (used by ConvertUtil, NativeDataObjectMapper, and struct field conversion).
   - StructType.fieldType uses the mapper to resolve field schema to field DataType.
@@ -396,7 +402,7 @@ This section describes the internal schema model used by ksml-data. Schemas capt
   - inferDataTypeFromNativeMap uses expected StructSchema to choose StructType; defaults to schemaless StructType otherwise.
   - convertMapToDataStruct uses StructType/StructSchema to convert map entries into typed DataStruct fields.
 
-3.14 Guidance for refactoring/AI tools (Schema)
+3.15 Guidance for refactoring/AI tools (Schema)
 - Keep assignability rules symmetric where intended (mutual for equality) and carefully document any asymmetry (eg. FixedSchema size >= other.size, EnumSchema superset semantics).
 - Preserve StructSchema.SCHEMALESS as a unique singleton and normalize it to null in StructType constructor as current code does (StructType treats SCHEMALESS as null schema).
 - When adding a new schema class, update DataTypeDataSchemaMapper and any notation-specific mappers; add tests under src/test/java/io/axual/ksml/data/schema.

@@ -1,0 +1,26 @@
+streams:
+  logical_input:
+    topic: logical_data_avro
+    keyType: string
+    valueType: avro:LogicalData
+    offsetResetPolicy: latest
+
+  json_output:
+    topic: logical_data_json
+    keyType: string
+    valueType: json
+
+pipelines:
+  logical_to_json:
+    from: logical_input
+    via:
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Avro logical: id={}, amount={}, date={}, timeMillis={}, ts={}",
+                       value.get("id"), value.get("amount"), value.get("eventDate"),
+                       value.get("eventTimeMillis"), value.get("eventTimestamp"))
+      - type: convertValue
+        into: json
+    to: json_output

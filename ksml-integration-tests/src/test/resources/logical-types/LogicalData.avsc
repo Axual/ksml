@@ -1,0 +1,14 @@
+{
+  "namespace": "io.axual.ksml.example",
+  "name": "LogicalData",
+  "type": "record",
+  "doc": "Record exercising Avro logical types end to end",
+  "fields": [
+    { "name": "name", "type": "string", "doc": "Message key echoed into the value" },
+    { "name": "id", "type": { "type": "string", "logicalType": "uuid" }, "doc": "uuid logical type" },
+    { "name": "amount", "type": { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 }, "doc": "decimal(10,2)" },
+    { "name": "eventDate", "type": { "type": "int", "logicalType": "date" }, "doc": "date logical type" },
+    { "name": "eventTimeMillis", "type": { "type": "int", "logicalType": "time-millis" }, "doc": "time-millis logical type" },
+    { "name": "eventTimestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "timestamp-millis logical type" }
+  ]
+}

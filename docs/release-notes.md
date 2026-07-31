@@ -42,6 +42,8 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Runner config validation is strict again: an unknown or misspelled key in `ksml-runner.yaml` fails at startup instead of being silently ignored (Jackson 3 changed this default, so KSML re-enables the strict check).
 * Moved off the deprecated Kafka Streams error-handler and admin APIs. The Kafka client version is unchanged: it stays on the same 4.x version that KSML 1.3.0 already used.
 * Upgraded Protobuf and Wire to their 4.x and 6.x major versions.
+* Added first-class support for Avro logical types (`uuid`, `decimal`, `date`, `time-millis`, `time-micros`, `timestamp-millis`, `timestamp-micros`, `local-timestamp-millis`, `local-timestamp-micros`). KSML keeps the logical type on read and write, validates values against it, and represents a `decimal` as a canonical string. See [issue #415](https://github.com/Axual/ksml/issues/415) and [issue #583](https://github.com/Axual/ksml/issues/583).
+* JSON Schema now reads the `format: uuid` string format as a `uuid` logical type and keeps it on read and write.
 
 ## 1.3.0 (2026-06-23)
 
