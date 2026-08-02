@@ -77,4 +77,28 @@ class ApicurioJsonSchemaNotationProviderTest {
                 .hasMessageContaining("apicurio.auth.password")
                 .hasMessageContaining(SchemaResolverConfig.AUTH_PASSWORD);
     }
+
+    @Test
+    @DisplayName("createNotation fails fast on the removed Apicurio v2 as-confluent key")
+    void createNotation_withRemovedAsConfluentKey_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.registry.as-confluent", "true");
+        final var prov = new ApicurioJsonSchemaNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("apicurio.registry.as-confluent");
+    }
+
+    @Test
+    @DisplayName("createNotation fails fast on the removed Legacy4ByteIdHandler value")
+    void createNotation_withRemovedIdHandlerValue_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.registry.id-handler", ApicurioJsonSchemaNotationProvider.LEGACY_4_BYTE_ID_HANDLER);
+        final var prov = new ApicurioJsonSchemaNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Default4ByteIdHandler");
+    }
 }

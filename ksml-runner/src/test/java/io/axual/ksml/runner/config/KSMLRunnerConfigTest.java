@@ -20,28 +20,24 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
+import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KSMLRunnerConfigTest {
 
-    private ObjectMapper objectMapper;
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-
-    @BeforeEach
-    void setup() {
-        objectMapper = new ObjectMapper(new YAMLFactory());
-    }
+    // Use the exact mapper the runner uses to read its config, so this test validates real behavior.
+    private final ObjectMapper objectMapper = RunnerConfigMapper.INSTANCE;
+    private final ObjectMapper mapper = RunnerConfigMapper.INSTANCE;
 
     @Test
     @DisplayName("complete config should load without exceptions")
@@ -111,5 +107,21 @@ class KSMLRunnerConfigTest {
         assertFalse(pyCfg.allowCreateProcess(),     "should pick up allowCreateProcess=false");
         assertTrue(pyCfg.allowCreateThread(),       "should pick up allowCreateThread=true");
         assertTrue(pyCfg.inheritEnvironmentVariables(), "should pick up inheritEnvironmentVariables=true");
+    }
+
+    @Test
+    @DisplayName("An unknown key in the runner config fails instead of being silently ignored")
+    void unknownKeyFails() {
+        final var yaml = """
+            ksml:
+              configDirectory: /tmp/config
+              schemaRegsitry: oops
+            kafka:
+              application.id: test
+            """;
+
+        assertThatThrownBy(() -> objectMapper.readValue(yaml, KSMLRunnerConfig.class))
+                .isInstanceOf(DatabindException.class)
+                .hasMessageContaining("schemaRegsitry");
     }
 }

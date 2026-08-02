@@ -30,7 +30,6 @@ import io.axual.ksml.runner.config.internal.StringMap;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.jackson.Jacksonized;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -38,7 +37,6 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown = false)
 @JsonClassDescription("Specify and configure a specific type of notation, or format on how to read/write data from a Kafka topic.")
 @Builder
-@Jacksonized
 public record NotationConfig(
         @JsonProperty(value = "type", required = true)
         @JsonPropertyDescription("Serializer implementation type")

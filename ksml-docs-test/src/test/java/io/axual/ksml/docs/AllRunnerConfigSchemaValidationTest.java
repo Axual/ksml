@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
+import tools.jackson.databind.JsonNode;
 
 /**
  * JSON Schema validation test for all ksml-runner.yaml configuration files under:
@@ -115,7 +116,7 @@ class AllRunnerConfigSchemaValidationTest {
         log.info("Validating: {}", yamlFile);
 
         final var yamlContent = Files.readString(yamlFile);
-        final var yamlNode = YAMLObjectMapper.INSTANCE.readValue(yamlContent, tools.jackson.databind.JsonNode.class);
+        final var yamlNode = YAMLObjectMapper.INSTANCE.readValue(yamlContent, JsonNode.class);
         final var jsonContent = JSON_MAPPER.readTree(yamlNode.toString());
 
         final var violations = runnerSchema.validate(jsonContent);

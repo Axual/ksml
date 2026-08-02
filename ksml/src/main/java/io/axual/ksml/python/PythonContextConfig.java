@@ -27,12 +27,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @ToString
 @Builder
-@Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = false)
 @JsonClassDescription("Control Python execution security and permissions")
 public class PythonContextConfig {
@@ -58,6 +56,8 @@ public class PythonContextConfig {
     @JsonPropertyDescription("Path to additional Python modules to be loaded. Default is empty, meaning 'no user modules'.")
     private final String modulePath;
 
+    // Jackson 3 binds through this constructor. Lombok's @Jacksonized cannot do it: it generates
+    // Jackson 2 annotations, which Jackson 3 ignores.
     public PythonContextConfig(
             @JsonProperty(value = "allowHostFileAccess")
             boolean allowHostFileAccess,

@@ -22,7 +22,7 @@ package io.axual.ksml.testrunner;
 
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -57,13 +57,10 @@ public class TestDefinitionParser {
             KSMLTestDSL.MODULE_DIRECTORY, KSMLTestDSL.STREAMS, KSMLTestDSL.TESTS);
 
     // STRICT_DUPLICATE_DETECTION makes Jackson throw on duplicate keys at any nesting level
-    // instead of silently keeping one of them. The thrown JsonParseException carries line/column
-    // info we surface in the error message.
+    // instead of silently keeping one of them. It reports line and column, which we pass on
+    // in the error message.
     private static final ObjectMapper YAML_MAPPER = YAMLMapper.builder()
-            .enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY)
-            // Fail fast on unknown/misspelled keys instead of silently ignoring them (Jackson 3 defaults
-            // this off), matching the strict validation of the KSML runner config.
-            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .build();
 
     /**
@@ -76,7 +73,7 @@ public class TestDefinitionParser {
      */
     public TestSuiteDefinition parse(Path testFile) throws IOException {
         log.debug("Parsing test suite definition from {}", testFile);
-       final var content = Files.readString(testFile);
+        final var content = Files.readString(testFile);
 
         final JsonNode root;
         try {
@@ -269,7 +266,7 @@ public class TestDefinitionParser {
     private List<ProduceBlock> parseProduceBlocks(JsonNode produceArray, Set<String> streamKeys,
                                                   String testKey, Path testFile) {
         final var blocks = new ArrayList<ProduceBlock>();
-        for ( final var blockNode : produceArray) {
+        for (final var blockNode : produceArray) {
             final var f = new FieldExtractor(blockNode, testFile);
             final var to = f.requireString(KSMLTestDSL.Produce.TO);
             if (!streamKeys.contains(to)) {

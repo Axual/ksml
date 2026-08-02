@@ -50,14 +50,9 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
     }
 
     /**
-     * Serde that pins the Apicurio serde configuration KSML relies on, rather than depending on the
-     * Apicurio v3 defaults. This keeps the on-wire format stable across KSML and Apicurio upgrades.
-     *
-     * <p>When headers are not enabled it forces the Confluent-compatible id format (the schema id is a
-     * 4-byte content id in the message payload, not in Kafka headers), matching KSML 1.x. It also defaults
-     * {@code find-latest} to {@code true} so a pre-registered schema with a nested inline type resolves by
-     * coordinates instead of by content (see <a href="https://github.com/Axual/ksml/issues/290">#290</a>).
-     * Every value uses {@code putIfAbsent}, so user-supplied configuration always wins.</p>
+     * Serde that pins the Apicurio settings KSML relies on instead of taking the Apicurio v3 defaults, so
+     * the on-wire format stays what KSML 1.x wrote. Every value uses {@code putIfAbsent}, so user
+     * configuration always wins.
      */
     static class ApicurioAvroSerde extends ConfigInjectionSerde {
         ApicurioAvroSerde(RegistryClientFacade registryClient) {

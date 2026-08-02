@@ -24,6 +24,7 @@ import io.axual.ksml.runner.exception.ConfigException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import tools.jackson.core.JacksonException;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -89,7 +90,9 @@ class KSMLRunnerTest {
         Files.writeString(badFilePath, "kafka: [unterminated");
         final var badFile = badFilePath.toFile();
         assertThatThrownBy(() -> KSMLRunner.readConfiguration(badFile))
-                .isInstanceOf(ConfigException.class);
+                .isInstanceOf(ConfigException.class)
+                .hasMessageContaining("bad-runner.yaml")
+                .hasCauseInstanceOf(JacksonException.class);
     }
 
     @Test

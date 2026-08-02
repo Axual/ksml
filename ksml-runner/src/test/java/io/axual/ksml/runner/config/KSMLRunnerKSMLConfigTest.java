@@ -22,12 +22,10 @@ package io.axual.ksml.runner.config;
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.internal.KsmlFilePath;
 import io.axual.ksml.runner.config.internal.KsmlInlineDefinition;
 import io.axual.ksml.runner.exception.ConfigException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -40,12 +38,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class KSMLRunnerKSMLConfigTest {
 
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setup() {
-        objectMapper = new ObjectMapper(new YAMLFactory());
-    }
+    // Use the exact mapper the runner uses to read its config, so this test validates real behavior.
+    private final ObjectMapper objectMapper = RunnerConfigMapper.INSTANCE;
 
     @Test
     @DisplayName("validate of complete config should not throw exceptions")

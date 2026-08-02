@@ -72,9 +72,6 @@ class ApicurioAvroNotationProviderTest {
     @Test
     @DisplayName("Basic-auth credentials are read from the Apicurio v3 apicurio.registry.auth.* keys")
     void authCredentialsUseApicurioV3Keys() {
-        // KSML no longer maps auth itself (main's buildAuth); it passes the config straight to Apicurio,
-        // which reads the login from these keys. Apicurio v3 renamed them from apicurio.auth.* (v2) to
-        // apicurio.registry.auth.*, so this pins the exact keys users must configure.
         final Map<String, Object> config = new HashMap<>();
         config.put("apicurio.registry.url", "http://registry:8081/apis/registry/v3");
         config.put("apicurio.registry.auth.username", "alice");
@@ -97,5 +94,29 @@ class ApicurioAvroNotationProviderTest {
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("apicurio.auth.username")
                 .hasMessageContaining(SchemaResolverConfig.AUTH_USERNAME);
+    }
+
+    @Test
+    @DisplayName("createNotation fails fast on the removed Apicurio v2 as-confluent key")
+    void createNotation_withRemovedAsConfluentKey_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.registry.as-confluent", "true");
+        final var prov = new ApicurioAvroNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("apicurio.registry.as-confluent");
+    }
+
+    @Test
+    @DisplayName("createNotation fails fast on the removed Legacy4ByteIdHandler value")
+    void createNotation_withRemovedIdHandlerValue_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.registry.id-handler", ApicurioAvroNotationProvider.LEGACY_4_BYTE_ID_HANDLER);
+        final var prov = new ApicurioAvroNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Default4ByteIdHandler");
     }
 }

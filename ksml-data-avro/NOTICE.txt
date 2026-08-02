@@ -2,8 +2,8 @@
 Lists of 26 third-party dependencies.
      (Apache License, Version 2.0) LZ4 Java Compression (at.yawk.lz4:lz4-java:1.10.2 - https://github.com/yawkat/lz4-java)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.22 - https://github.com/FasterXML/jackson)
-     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.20.0 - https://github.com/FasterXML/jackson-core)
-     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.20.0 - https://github.com/FasterXML/jackson)
+     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.22.0 - https://github.com/FasterXML/jackson-core)
+     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.22.0 - https://github.com/FasterXML/jackson)
      (BSD 2-Clause License) zstd-jni (com.github.luben:zstd-jni:1.5.6-10 - https://github.com/luben/zstd-jni)
      (The Apache Software License, Version 2.0) FindBugs-jsr305 (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
      (Apache 2.0) error-prone annotations (com.google.errorprone:error_prone_annotations:2.47.0 - https://errorprone.info/error_prone_annotations)

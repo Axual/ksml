@@ -20,11 +20,11 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.apicurio.registry.serde.Default4ByteIdHandler;
 import io.apicurio.registry.serde.config.SerdeConfig;
 import io.apicurio.registry.serde.kafka.config.KafkaSerdeConfig;
-import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
 import io.apicurio.registry.serde.strategy.TopicIdStrategy;

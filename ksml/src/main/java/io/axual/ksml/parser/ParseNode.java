@@ -175,6 +175,16 @@ public class ParseNode {
         return node.isString();
     }
 
+    /**
+     * The JSON kind of this node, for error messages. Unlike {@link #asString()} this is safe to call
+     * on an object or array node, which Jackson 3 refuses to render as a string.
+     *
+     * @return the node type name, for example OBJECT, ARRAY or STRING
+     */
+    public String nodeTypeName() {
+        return node.getNodeType().name();
+    }
+
     public String asString() {
         return node.asString();
     }

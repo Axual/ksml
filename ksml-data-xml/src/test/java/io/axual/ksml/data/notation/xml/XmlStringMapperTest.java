@@ -4,7 +4,7 @@ package io.axual.ksml.data.notation.xml;
  * ========================LICENSE_START=================================
  * KSML Data Library - XML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,6 @@ class XmlStringMapperTest {
     @Test
     @DisplayName("A namespace-prefixed element is parsed by its local name (namespace-aware reader)")
     void parsesNamespacePrefixedElementByLocalName() {
-        // KSML's XML reader is namespace-aware: a declared prefix is resolved and the element is exposed
-        // under its local name ("child"), not the qualified name ("ns:child"), and the namespace
-        // declaration itself is not surfaced as data. A namespace-unaware reader would instead yield keys
-        // "ns:child" and "xmlns:ns", changing the shape of every namespaced document.
         final var result = mapper.fromString("<root xmlns:ns=\"urn:ksml:test\"><ns:child>value</ns:child></root>");
 
         assertThat(result).asInstanceOf(MAP)

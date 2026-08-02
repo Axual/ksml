@@ -22,6 +22,8 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
 
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.apicurio.registry.serde.Default4ByteIdHandler;
+import io.apicurio.registry.serde.config.SerdeConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
@@ -40,6 +42,9 @@ import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
  * {@link NotationContext}.</p>
  */
 public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
+    /** Apicurio v2 id handler, removed in v3. Kept as a literal because the class is gone. */
+    static final String LEGACY_4_BYTE_ID_HANDLER = "io.apicurio.registry.serde.Legacy4ByteIdHandler";
+
     private final RegistryClientFacade registryClient;
 
     public ApicurioJsonSchemaNotationProvider() {
@@ -54,10 +59,14 @@ public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
     @Override
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
-        // Apicurio v3 renamed the basic-auth keys; reject the v2 names so a stale config fails loudly
-        // instead of silently dropping the credentials (which would surface later as a 401).
-        rejectRenamedConfigKey(context.serdeConfigs(), "apicurio.auth.username", SchemaResolverConfig.AUTH_USERNAME);
-        rejectRenamedConfigKey(context.serdeConfigs(), "apicurio.auth.password", SchemaResolverConfig.AUTH_PASSWORD);
+        // Apicurio v3 renamed or removed these v2 settings, so reject them instead of passing them on.
+        final var serdeConfigs = context.serdeConfigs();
+        rejectRenamedConfigKey(serdeConfigs, "apicurio.auth.username", SchemaResolverConfig.AUTH_USERNAME);
+        rejectRenamedConfigKey(serdeConfigs, "apicurio.auth.password", SchemaResolverConfig.AUTH_PASSWORD);
+        rejectRemovedConfigKey(serdeConfigs, "apicurio.registry.as-confluent",
+                "the payload id format now follows " + SerdeConfig.ID_HANDLER + " and " + SerdeConfig.USE_ID);
+        rejectRemovedConfigValue(serdeConfigs, SerdeConfig.ID_HANDLER,
+                LEGACY_4_BYTE_ID_HANDLER, Default4ByteIdHandler.class.getCanonicalName());
         return new JsonSchemaNotation(
                 new VendorNotationContext(
                         vendorName(),

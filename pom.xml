@@ -89,6 +89,9 @@
         <graalvm.version>25.0.3</graalvm.version>
         <guava.version>33.6.0-jre</guava.version>
         <jackson.version>3.2.0</jackson.version>
+        <!-- KSML itself is on Jackson 3. Apicurio, Confluent and victools still pull in Jackson 2,
+             so that line has to stay version-aligned as well until they move over. -->
+        <jackson2.version>2.22.0</jackson2.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
@@ -365,6 +368,16 @@
                 <version>${apicurio.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-common</artifactId>
+                <version>${apicurio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-java-sdk</artifactId>
+                <version>${apicurio.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
                 <version>${confluent.version}</version>
@@ -391,11 +404,22 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>
             </dependency>
-            <!-- Jackson — all artefacts version-aligned via the official BOM -->
+            <!-- Jackson - all artefacts version-aligned via the official BOMs.
+                 The Jackson 3 BOM comes first, because it also pins com.fasterxml.jackson.core:jackson-annotations
+                 (annotations stayed on the 2.x coordinates) and that pin must win.
+                 The Jackson 2 BOM aligns the rest of the Jackson 2 tree that Apicurio, Confluent
+                 and victools still bring in. Remove it once those libraries ship Jackson 3. -->
             <dependency>
                 <groupId>tools.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
                 <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson2.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

@@ -65,4 +65,36 @@ public abstract class VendorNotationProvider implements NotationProvider {
         if (configs != null && configs.containsKey(deprecatedKey))
             throw new DataException("Configuration key '" + deprecatedKey + "' is no longer supported; use '" + replacementKey + "' instead");
     }
+
+    /**
+     * Fail fast when a configuration key that a vendor has dropped entirely is still present. Unlike
+     * {@link #rejectRenamedConfigKey} there is no one-to-one replacement, so the caller supplies the
+     * advice to show instead.
+     *
+     * @param configs    the serde configuration to inspect (nullable)
+     * @param removedKey the key the vendor no longer reads
+     * @param advice     what the user should do instead
+     */
+    protected static void rejectRemovedConfigKey(Map<String, ?> configs, String removedKey, String advice) {
+        if (configs != null && configs.containsKey(removedKey))
+            throw new DataException("Configuration key '" + removedKey + "' no longer exists; " + advice);
+    }
+
+    /**
+     * Fail fast when a key is still valid but the value the user set for it is not. This catches a class
+     * name that a vendor has removed: the value survives {@code putIfAbsent}, so without this check it
+     * would only fail much later when the serde tries to load the class.
+     *
+     * @param configs          the serde configuration to inspect (nullable)
+     * @param key              the configuration key to inspect
+     * @param removedValue     the value the vendor no longer accepts
+     * @param replacementValue the value that should be used instead
+     */
+    protected static void rejectRemovedConfigValue(Map<String, ?> configs, String key, String removedValue, String replacementValue) {
+        if (configs == null) return;
+        final var value = configs.get(key);
+        if (value != null && removedValue.equals(String.valueOf(value)))
+            throw new DataException("Configuration key '" + key + "' is set to '" + removedValue
+                    + "', which no longer exists; use '" + replacementValue + "' instead");
+    }
 }

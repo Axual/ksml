@@ -747,9 +747,11 @@ public class KSMLRunner {
             final var config = RunnerConfigMapper.INSTANCE.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) return config;
         } catch (JacksonException e) {
-            log.error("Configuration exception", e);
+            // Unknown keys are rejected, so a simple typo lands here. Pass the reason on instead of
+            // reporting it as a missing file.
+            throw new ConfigException("Could not read configuration file " + configFile + ": " + e.getOriginalMessage(), e);
         }
-        throw new ConfigException("No configuration found");
+        throw new ConfigException("No configuration found in " + configFile);
     }
 
     static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config) {

@@ -83,7 +83,7 @@ public class SensorDataTestUtil {
                 .as("JSON path '%s' (%s) should exist and not be null", jsonPointer, fieldDescription)
                 .returns(false, JsonNode::isMissingNode)
                 .returns(false, JsonNode::isNull)
-                .returns(true, JsonNode::isTextual);
+                .returns(true, JsonNode::isString);
 
         if (fieldNode.isString()) {
             String actualValue = fieldNode.asString();

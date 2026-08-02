@@ -31,15 +31,9 @@ import io.axual.ksml.data.util.JsonNodeUtil;
 /**
  * Maps between KSML {@link DataObject}s and the JSON values exchanged with Apicurio's JSON Schema serde.
  *
- * <p>Apicurio 3.x still (de)serializes JSON Schema payloads with Jackson 2, while KSML core runs on
- * Jackson 3. A Jackson 2 {@code JsonNode} is not assignable to Jackson 3's {@code JsonNode}, so this
- * mapper keeps plain native Java (Map/List/primitives) on the KSML side:</p>
- * <ul>
- *   <li>serialization hands Apicurio a native value, which its own Jackson 2 mapper encodes as
- *       schema-valid JSON (a Jackson 3 node would instead be bean-serialized into garbage);</li>
- *   <li>deserialization receives a Jackson 2 {@code JsonNode}, bridged to native via its JSON string
- *       form, which both Jackson major versions render identically.</li>
- * </ul>
+ * <p>Apicurio 3.x still uses Jackson 2 while KSML core runs on Jackson 3, and the two {@code JsonNode}
+ * types are unrelated. So this mapper keeps plain native Java (Map/List/primitives) on the KSML side and
+ * lets each library use its own Jackson version.</p>
  */
 public class ApicurioJsonSchemaDataObjectMapper implements DataObjectMapper<Object> {
     private final NativeDataObjectMapper nativeMapper;

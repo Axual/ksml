@@ -13,6 +13,7 @@ Before you upgrade, check each item below:
 * Update every Apicurio registry URL to the `/apis/registry/v3` endpoint.
 * Rename the Apicurio basic-auth keys from `apicurio.auth.*` to `apicurio.registry.auth.*`.
 * Replace any `apicurio.registry.auto-register.if-exists: RETURN` with a valid v3 value such as `FIND_OR_CREATE_VERSION`.
+* Remove `apicurio.registry.as-confluent`, and replace `Legacy4ByteIdHandler` with `Default4ByteIdHandler` if you set `apicurio.registry.id-handler` yourself.
 * Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
@@ -66,6 +67,21 @@ apicurio.registry.auto-register.if-exists: RETURN
 apicurio.registry.auto-register.if-exists: FIND_OR_CREATE_VERSION
 ```
 
+### The id-handler settings changed
+
+Apicurio v3 dropped the `apicurio.registry.as-confluent` key, and removed the `Legacy4ByteIdHandler` class. The payload id format is now set by `apicurio.registry.id-handler` and `apicurio.registry.use-id` alone.
+
+KSML sets both for you, so most users have nothing to do. But KSML never overwrites a value you set yourself, so a leftover v2 setting would quietly change your wire format or fail when the serde tries to load a class that is gone. KSML therefore stops at startup if it still finds either of them.
+
+```yaml
+# Before (1.x)
+apicurio.registry.as-confluent: true
+apicurio.registry.id-handler: io.apicurio.registry.serde.Legacy4ByteIdHandler
+
+# After (2.0.0): drop as-confluent, and use the new handler if you set one at all
+apicurio.registry.id-handler: io.apicurio.registry.serde.Default4ByteIdHandler
+```
+
 ### The Apicurio on-wire format is unchanged
 
 Good news: nothing to do here. The Apicurio notations (`apicurio_avro`, `apicurio_jsonschema`, `apicurio_protobuf`) keep the same on-wire format as KSML 1.x.
@@ -99,6 +115,13 @@ What you need to do: make sure each KSML definition file has no duplicate keys b
 For pipeline authors who write KSML YAML, there is nothing to change here.
 
 If you build your own code against the KSML or Kafka client libraries, note that some deprecated admin and Kafka Streams APIs were updated for Kafka 4.x.
+
+Two public classes in `ksml-kafka-clients` were removed, because Kafka replaced the API they wrapped:
+
+* `io.axual.ksml.client.admin.ResolvingListConsumerGroupsResult`
+* `org.apache.kafka.clients.admin.ExtendableListConsumerGroupsResult`
+
+Kafka's `listConsumerGroups` was replaced by `listGroups`, so `ResolvingAdmin` now overrides `listGroups` and returns a `ResolvingListGroupsResult`. If your code called `listConsumerGroups` through `ResolvingAdmin`, move it to `listGroups` and use `GroupListing` instead of `ConsumerGroupListing`.
 
 ## Protobuf and Wire
 

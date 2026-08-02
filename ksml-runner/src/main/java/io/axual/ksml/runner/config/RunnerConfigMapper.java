@@ -37,7 +37,6 @@ public final class RunnerConfigMapper {
     private RunnerConfigMapper() {
     }
 
-    /** Thread-safe, immutable once built; safe to share. */
     public static final ObjectMapper INSTANCE = YAMLMapper.builder()
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .build();
