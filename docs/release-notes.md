@@ -4,7 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
-        * [2.0.0-SNAPSHOT](#200-snapshot)
+        * [2.0.0 (unreleased)](#200-unreleased)
         * [1.3.0 (2026-06-23)](#130-2026-06-23)
         * [1.2.1 (2026-05-08)](#121-2026-05-08)
         * [1.2.0 (2026-03-25)](#120-2026-03-25)
@@ -30,7 +30,7 @@
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
 
-## 2.0.0-SNAPSHOT
+## 2.0.0 (unreleased)
 
 Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Registry 3, Kafka 4.x and the matching Avro, Protobuf, Wire and Confluent versions. Some changes below are breaking, so please read the [Upgrading to 2.0.0](migration-to-2.0.0.md) guide before you upgrade.
 

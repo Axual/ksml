@@ -25,6 +25,7 @@ import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.function.UnaryOperator;
 
 /**
@@ -50,8 +51,16 @@ public abstract class RemoteSchemaAvroNotation extends AvroNotation {
     /** Human-readable registry name for the "not configured" warning, e.g. "Apicurio registry". */
     protected abstract String registryDescription();
 
-    /** Fetch the raw schema string for the given subject from the registry. */
-    protected abstract String fetchSchemaString(String subject) throws Exception;
+    /**
+     * Fetch the raw schema string for the given subject from the registry.
+     *
+     * @param subject the registry subject to read
+     * @return the schema as the registry stores it
+     * @throws IOException when the registry cannot be reached or answers with an error. Vendors with
+     *                     their own checked exception types wrap them in this one, so that this module
+     *                     needs no vendor dependency.
+     */
+    protected abstract String fetchSchemaString(String subject) throws IOException;
 
     @Override
     public boolean supportsRemoteSchema() {

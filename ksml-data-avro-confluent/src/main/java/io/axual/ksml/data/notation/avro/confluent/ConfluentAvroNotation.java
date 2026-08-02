@@ -24,6 +24,9 @@ import io.axual.ksml.client.resolving.Resolver;
 import io.axual.ksml.data.notation.avro.RemoteSchemaAvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+
+import java.io.IOException;
 
 /**
  * Confluent-backed AvroNotation that supports fetching schemas from a schema registry.
@@ -49,7 +52,12 @@ public class ConfluentAvroNotation extends RemoteSchemaAvroNotation {
     }
 
     @Override
-    protected String fetchSchemaString(String subject) throws Exception {
-        return registryClient.getLatestSchemaMetadata(subject).getSchema();
+    protected String fetchSchemaString(String subject) throws IOException {
+        try {
+            return registryClient.getLatestSchemaMetadata(subject).getSchema();
+        } catch (RestClientException e) {
+            // Confluent's own checked exception, wrapped so the shared base needs no Confluent import.
+            throw new IOException(e);
+        }
     }
 }

@@ -20,40 +20,39 @@ package io.axual.ksml.client.admin;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.admin.ExtendableListGroupsResult;
-import org.apache.kafka.clients.admin.GroupListing;
-import org.apache.kafka.clients.admin.ListGroupsResult;
+import io.axual.ksml.client.testutil.PrefixResolver;
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
+import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
 import org.apache.kafka.common.KafkaFuture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * The concrete {@link ResolvingListGroupsResult} overrides {@code all()} and {@code valid()},
- * so this test exercises the plain delegation of the base class.
- */
-class ExtendableListGroupsResultTest {
+@SuppressWarnings({"deprecation", "removal"}) // ListConsumerGroupsResult/ConsumerGroupListing are deprecated in Kafka 4.1 but still wrapped by the class under test
+class ResolvingListConsumerGroupsResultTest {
+    private final PrefixResolver resolver = new PrefixResolver();
+
     @Test
-    @DisplayName("all, valid and errors delegate to the wrapped result")
-    void delegatesToWrappedResult() {
-        final KafkaFuture<Collection<GroupListing>> all = KafkaFuture.completedFuture(List.of());
-        final KafkaFuture<Collection<GroupListing>> valid = KafkaFuture.completedFuture(List.of());
+    @DisplayName("Listed consumer groups are reported under their unresolved group ids")
+    void listingsAreUnresolved() throws Exception {
+        final var listing = new ConsumerGroupListing("tenant-group", Optional.empty(), false);
+        final var delegate = mock(ListConsumerGroupsResult.class);
+        when(delegate.all()).thenReturn(KafkaFuture.completedFuture(List.of(listing)));
+        when(delegate.valid()).thenReturn(KafkaFuture.completedFuture(List.of(listing)));
         final KafkaFuture<Collection<Throwable>> errors = KafkaFuture.completedFuture(List.of());
-        final var delegate = mock(ListGroupsResult.class);
-        when(delegate.all()).thenReturn(all);
-        when(delegate.valid()).thenReturn(valid);
         when(delegate.errors()).thenReturn(errors);
 
-        final var result = new ExtendableListGroupsResult(delegate);
+        final var result = new ResolvingListConsumerGroupsResult(delegate, resolver);
 
-        assertThat(result.all()).isSameAs(all);
-        assertThat(result.valid()).isSameAs(valid);
+        assertThat(result.all().get()).extracting(ConsumerGroupListing::groupId).containsExactly("group");
+        assertThat(result.valid().get()).extracting(ConsumerGroupListing::groupId).containsExactly("group");
         assertThat(result.errors()).isSameAs(errors);
     }
 }

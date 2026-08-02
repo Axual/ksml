@@ -42,13 +42,31 @@ public class ApicurioJsonSchemaDataObjectMapper implements DataObjectMapper<Obje
         this.nativeMapper = nativeMapper;
     }
 
+    /**
+     * Convert a value coming out of the Apicurio deserializer into a {@link DataObject}.
+     *
+     * <p>The value is a Jackson 2 {@code JsonNode}, so it is turned into JSON text and parsed again
+     * with Jackson 3. That text step is on purpose, not an oversight. JSON text is the only thing both
+     * Jackson versions understand, and it keeps this class free of any hand-written Jackson 2 tree
+     * conversion that would duplicate {@link JsonNodeUtil} and have to handle every number and binary
+     * case correctly on its own.</p>
+     *
+     * <p>The cost is two extra JSON conversions per message, on the path every record takes. Reading
+     * the Jackson 2 node directly would remove them, at the price of about 40 lines duplicating
+     * {@link JsonNodeUtil}. That trade is worth revisiting only if measurement shows it matters:
+     * Apicurio is expected to stay on Jackson 2 for as long as Quarkus does, so this bridge is not
+     * short-lived.</p>
+     *
+     * @param expected the type KSML wants back, used when the value is null
+     * @param value    a Jackson 2 {@code JsonNode} from Apicurio, or null for a Kafka tombstone
+     * @return the value as a KSML {@link DataObject}
+     */
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null) {
             // Allow nulls (eg. Kafka tombstones), honoring the expected type.
             return ConvertUtil.convertNullToDataObject(expected);
         }
-        // Apicurio returns a Jackson 2 JsonNode; its toString() is valid JSON that KSML's Jackson 3 parser reads.
         final var tree = JsonNodeUtil.convertStringToJsonNode(value.toString());
         if (tree == null) throw new DataException("Cannot convert value to DataObject: " + value);
         return nativeMapper.toDataObject(expected, JsonNodeUtil.convertJsonNodeToNative(tree));

@@ -4,7 +4,7 @@ package org.apache.kafka.clients.admin;
  * ========================LICENSE_START=================================
  * Extended Kafka clients for KSML
  * %%
- * Copyright (C) 2021 - 2026 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,30 +25,27 @@ import org.apache.kafka.common.internals.KafkaFutureImpl;
 
 import java.util.Collection;
 
-/**
- * Base wrapper around a {@link ListGroupsResult} that delegates all futures to a wrapped instance.
- * Lives in this package to access the package-private {@link ListGroupsResult} constructor.
- */
-public class ExtendableListGroupsResult extends ListGroupsResult {
-    protected final ListGroupsResult listGroupsResult;
+public class ExtendableListConsumerGroupsResult extends ListConsumerGroupsResult {
+    protected final ListConsumerGroupsResult listConsumerGroupsResult;
 
-    public ExtendableListGroupsResult(ListGroupsResult listGroupsResult) {
+    public ExtendableListConsumerGroupsResult(
+            ListConsumerGroupsResult listConsumerGroupsResult) {
         super(new KafkaFutureImpl<>());
-        this.listGroupsResult = listGroupsResult;
+        this.listConsumerGroupsResult = listConsumerGroupsResult;
     }
 
     @Override
-    public KafkaFuture<Collection<GroupListing>> all() {
-        return listGroupsResult.all();
+    public KafkaFuture<Collection<ConsumerGroupListing>> all() {
+        return listConsumerGroupsResult.all();
     }
 
     @Override
-    public KafkaFuture<Collection<GroupListing>> valid() {
-        return listGroupsResult.valid();
+    public KafkaFuture<Collection<ConsumerGroupListing>> valid() {
+        return listConsumerGroupsResult.valid();
     }
 
     @Override
     public KafkaFuture<Collection<Throwable>> errors() {
-        return listGroupsResult.errors();
+        return listConsumerGroupsResult.errors();
     }
 }

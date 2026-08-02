@@ -49,55 +49,53 @@ import java.util.Set;
 @Slf4j
 public class TestDefinitionParser {
 
-    /**
-     * Top-level fields permitted at the suite level. Anything else triggers a "did you misplace this?" error when it appears under a test entry.
-     */
+    /** Top-level fields permitted at the suite level. Anything else triggers a "did you misplace this?" error when it appears under a test entry. */
     private static final Set<String> SUITE_LEVEL_FIELDS = Set.of(
             KSMLTestDSL.NAME, KSMLTestDSL.DEFINITION, KSMLTestDSL.SCHEMA_DIRECTORY,
             KSMLTestDSL.MODULE_DIRECTORY, KSMLTestDSL.STREAMS, KSMLTestDSL.TESTS);
 
     // STRICT_DUPLICATE_DETECTION makes Jackson throw on duplicate keys at any nesting level
-    // instead of silently keeping one of them. It reports line and column, which we pass on
-    // in the error message.
+    // instead of silently keeping one of them. The thrown JsonParseException carries line/column
+    // info we surface in the error message.
     private static final ObjectMapper YAML_MAPPER = YAMLMapper.builder()
             .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .build();
 
     /**
      * Parse a test suite definition file into a {@link TestSuiteDefinition}.
-     *
      * @param testFile {@link @link Path} to the test suite definition file.
      * @return a TestSuiteDefinition object.
-     * @throws IOException             if the file cannot be read or parsed.
+     * @throws IOException if the file cannot be read or parsed.
      * @throws TestDefinitionException if the file is malformed.
      */
     public TestSuiteDefinition parse(Path testFile) throws IOException {
         log.debug("Parsing test suite definition from {}", testFile);
-        final var content = Files.readString(testFile);
+        var content = Files.readString(testFile);
 
-        final JsonNode root;
+        JsonNode root;
         try {
             root = YAML_MAPPER.readTree(content);
         } catch (JacksonException e) {
             // Catches duplicate-key detection and other YAML-level malformation
-            throw new TestDefinitionException("Invalid YAML in " + testFile + ": " + e.getOriginalMessage(), e);
+            throw new TestDefinitionException(
+                    "Invalid YAML in " + testFile + ": " + e.getOriginalMessage(), e);
         }
         if (root == null || !root.isObject()) {
             throw new TestDefinitionException("Top-level YAML node must be an object in " + testFile);
         }
 
-        final var fieldExtractor = new FieldExtractor(root, testFile);
+        var fieldExtractor = new FieldExtractor(root, testFile);
 
-        final var declaredName = fieldExtractor.optionalString(KSMLTestDSL.NAME);
-        final var name = (declaredName != null && !declaredName.isEmpty())
+        var declaredName = fieldExtractor.optionalString(KSMLTestDSL.NAME);
+        var name = (declaredName != null && !declaredName.isEmpty())
                 ? declaredName
                 : filenameWithoutExtension(testFile);
-        final var definition = fieldExtractor.requireString(KSMLTestDSL.DEFINITION);
-        final var schemaDirectory = fieldExtractor.optionalString(KSMLTestDSL.SCHEMA_DIRECTORY);
-        final var moduleDirectory = fieldExtractor.optionalString(KSMLTestDSL.MODULE_DIRECTORY);
+        var definition = fieldExtractor.requireString(KSMLTestDSL.DEFINITION);
+        var schemaDirectory = fieldExtractor.optionalString(KSMLTestDSL.SCHEMA_DIRECTORY);
+        var moduleDirectory = fieldExtractor.optionalString(KSMLTestDSL.MODULE_DIRECTORY);
 
-        final var streams = parseStreams(root.get(KSMLTestDSL.STREAMS), testFile);
-        final var tests = parseTests(root.get(KSMLTestDSL.TESTS), streams.keySet(), testFile);
+        var streams = parseStreams(root.get(KSMLTestDSL.STREAMS), testFile);
+        var tests = parseTests(root.get(KSMLTestDSL.TESTS), streams.keySet(), testFile);
 
         return new TestSuiteDefinition(name, definition, schemaDirectory, moduleDirectory, streams, tests);
     }
@@ -106,20 +104,19 @@ public class TestDefinitionParser {
      * Return the filename portion of {@code path} without its extension.
      */
     public static String filenameWithoutExtension(Path path) {
-        final var name = path.getFileName().toString();
-        final var dot = name.lastIndexOf('.');
+        var name = path.getFileName().toString();
+        var dot = name.lastIndexOf('.');
         return dot > 0 ? name.substring(0, dot) : name;
     }
 
     /**
      * Build a topic-to-stream map for callers that need to look up types by topic name
      * (e.g., the assertion runner's deserializer resolution and the schema registry population).
-     *
      * @param suite the parsed test suite definition.
      * @return a map of topic name to stream definition.
      */
     public static Map<String, StreamDefinition> buildTopicTypeMap(TestSuiteDefinition suite) {
-        final var map = new LinkedHashMap<String, StreamDefinition>();
+        var map = new LinkedHashMap<String, StreamDefinition>();
         if (suite.streams() != null) {
             for (var entry : suite.streams().values()) {
                 map.put(entry.topic(), entry);
@@ -130,13 +127,12 @@ public class TestDefinitionParser {
 
     /**
      * Parse the streams map from the YAML test definition.
-     *
      * @param streamsNode the streams node in the YAML test definition.
-     * @param testFile    the path to the test suite definition file.
+     * @param testFile the path to the test suite definition file.
      * @return a map of stream key to stream definition.
      */
     private LinkedHashMap<String, StreamDefinition> parseStreams(JsonNode streamsNode, Path testFile) {
-        final var result = new LinkedHashMap<String, StreamDefinition>();
+        var result = new LinkedHashMap<String, StreamDefinition>();
         if (streamsNode == null || streamsNode.isNull()) {
             throw new TestDefinitionException("Missing required '" + KSMLTestDSL.STREAMS + "' map in " + testFile);
         }
@@ -148,21 +144,21 @@ public class TestDefinitionParser {
                     "'" + KSMLTestDSL.STREAMS + "' map must contain at least one entry in " + testFile);
         }
 
-        final var seenTopics = new HashMap<String, String>(); // topic -> first stream key that used it
-        final var fields = streamsNode.properties();
-        for (final var entry : fields) {
-            final var streamKey = entry.getKey();
+        var seenTopics = new HashMap<String, String>(); // topic -> first stream key that used it
+        var fields = streamsNode.properties();
+        for (var entry : fields) {
+            var streamKey = entry.getKey();
             validateIdentifier("stream", streamKey, testFile);
 
-            final var entryNode = entry.getValue();
+            var entryNode = entry.getValue();
             if (!entryNode.isObject()) {
                 throw new TestDefinitionException(
                         "Stream entry '" + streamKey + "' must be an object in " + testFile);
             }
-            final var ef = new FieldExtractor(entryNode, testFile);
-            final var topic = ef.requireString(KSMLTestDSL.Streams.TOPIC);
-            final var keyType = ef.optionalString(KSMLTestDSL.Streams.KEY_TYPE, "string");
-            final var valueType = ef.optionalString(KSMLTestDSL.Streams.VALUE_TYPE, "string");
+            var ef = new FieldExtractor(entryNode, testFile);
+            var topic = ef.requireString(KSMLTestDSL.Streams.TOPIC);
+            var keyType = ef.optionalString(KSMLTestDSL.Streams.KEY_TYPE, "string");
+            var valueType = ef.optionalString(KSMLTestDSL.Streams.VALUE_TYPE, "string");
 
             // Note: type-string validation (e.g., rejection of bare 'confluent_avro' or 'json:Foo')
             // is deferred to runtime. UserTypeParser depends on the global notation library, which
@@ -171,7 +167,7 @@ public class TestDefinitionParser {
             // the type.
 
             // Reject duplicate topic across streams
-            final var existing = seenTopics.put(topic, streamKey);
+            var existing = seenTopics.put(topic, streamKey);
             if (existing != null) {
                 throw new TestDefinitionException(
                         "Streams '" + existing + "' and '" + streamKey + "' both reference topic '"
@@ -185,10 +181,9 @@ public class TestDefinitionParser {
 
     /**
      * Parse the tests map from the YAML test definition.
-     *
-     * @param testsNode  the tests node in the YAML test definition.
+     * @param testsNode the tests node in the YAML test definition.
      * @param streamKeys the keys of the streams map.
-     * @param testFile   the path to the test suite definition file.
+     * @param testFile the path to the test suite definition file.
      * @return a map of test key to test definition.
      */
     private LinkedHashMap<String, TestCaseDefinition> parseTests(JsonNode testsNode,
@@ -205,28 +200,29 @@ public class TestDefinitionParser {
                     "'" + KSMLTestDSL.TESTS + "' map must contain at least one entry in " + testFile);
         }
 
-        final var result = new LinkedHashMap<String, TestCaseDefinition>();
-        for (final var entry : testsNode.properties()) {
-            final var testKey = entry.getKey();
-            final var testValue = entry.getValue();
+        var result = new LinkedHashMap<String, TestCaseDefinition>();
+        var fields = testsNode.properties();
+        for (var entry : fields) {
+            var testKey = entry.getKey();
             validateIdentifier("test", testKey, testFile);
 
-            if (!testValue.isObject()) {
+            var entryNode = entry.getValue();
+            if (!entryNode.isObject()) {
                 throw new TestDefinitionException(
                         "Test entry '" + testKey + "' must be an object in " + testFile);
             }
 
             // Reject suite-level fields appearing inside a test entry
-            testValue.forEachEntry((name, value) -> {
-                if (SUITE_LEVEL_FIELDS.contains(name)) {
+            entryNode.forEachEntry((field, ignored) -> {
+                if (SUITE_LEVEL_FIELDS.contains(field)) {
                     throw new TestDefinitionException(
-                            "Field '" + name + "' is a suite-level field and cannot appear under test '"
+                            "Field '" + field + "' is a suite-level field and cannot appear under test '"
                                     + testKey + "' (" + testFile + ")");
                 }
             });
 
-            final var description = optionalText(testValue.get(KSMLTestDSL.Tests.DESCRIPTION));
-            final var produceNode = testValue.get(KSMLTestDSL.Tests.PRODUCE);
+            var description = optionalText(entryNode.get(KSMLTestDSL.Tests.DESCRIPTION));
+            var produceNode = entryNode.get(KSMLTestDSL.Tests.PRODUCE);
             if (produceNode == null) {
                 throw new TestDefinitionException(
                         "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.PRODUCE + "' in " + testFile);
@@ -235,7 +231,7 @@ public class TestDefinitionParser {
                 throw new TestDefinitionException(
                         "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.PRODUCE + "' must be an array in " + testFile);
             }
-            var assertNode = testValue.get(KSMLTestDSL.Tests.ASSERT);
+            var assertNode = entryNode.get(KSMLTestDSL.Tests.ASSERT);
             if (assertNode == null) {
                 throw new TestDefinitionException(
                         "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.ASSERT + "' in " + testFile);
@@ -245,40 +241,38 @@ public class TestDefinitionParser {
                         "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.ASSERT + "' must be an array in " + testFile);
             }
 
-            final var produceBlocks = parseProduceBlocks(produceNode, streamKeys, testKey, testFile);
-            final var assertBlocks = parseAssertBlocks(assertNode, streamKeys, testKey, testFile);
+            var produceBlocks = parseProduceBlocks(produceNode, streamKeys, testKey, testFile);
+            var assertBlocks = parseAssertBlocks(assertNode, streamKeys, testKey, testFile);
 
             result.put(testKey, new TestCaseDefinition(description, produceBlocks, assertBlocks));
         }
-
         return result;
     }
 
     /**
      * Parse the produce blocks from the YAML test definition.
-     *
      * @param produceArray the produce array in the YAML test definition.
-     * @param streamKeys   the keys of the streams map.
-     * @param testKey      the name of the test in the YAML test definition.
-     * @param testFile     the path to the test suite definition file.
+     * @param streamKeys the keys of the streams map.
+     * @param testKey the name of the test in the YAML test definition.
+     * @param testFile the path to the test suite definition file.
      * @return a list of {@link ProduceBlock}.
      */
     private List<ProduceBlock> parseProduceBlocks(JsonNode produceArray, Set<String> streamKeys,
                                                   String testKey, Path testFile) {
-        final var blocks = new ArrayList<ProduceBlock>();
-        for (final var blockNode : produceArray) {
-            final var f = new FieldExtractor(blockNode, testFile);
-            final var to = f.requireString(KSMLTestDSL.Produce.TO);
+        var blocks = new ArrayList<ProduceBlock>();
+        for (var blockNode : produceArray) {
+            var f = new FieldExtractor(blockNode, testFile);
+            var to = f.requireString(KSMLTestDSL.Produce.TO);
             if (!streamKeys.contains(to)) {
                 throw new TestDefinitionException(
                         "Produce block in test '" + testKey + "' references stream '" + to
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            final var messages = parseMessages(blockNode.get(KSMLTestDSL.Produce.MESSAGES));
-            final var generator = f.optionalMap(KSMLTestDSL.Produce.GENERATOR);
-            final var count = f.optionalLong(KSMLTestDSL.Produce.COUNT);
+            var messages = parseMessages(blockNode.get(KSMLTestDSL.Produce.MESSAGES));
+            var generator = f.optionalMap(KSMLTestDSL.Produce.GENERATOR);
+            var count = f.optionalLong(KSMLTestDSL.Produce.COUNT);
 
-            final var block = new ProduceBlock(to, messages, generator, count);
+            var block = new ProduceBlock(to, messages, generator, count);
             block.validate();
             blocks.add(block);
         }
@@ -287,28 +281,27 @@ public class TestDefinitionParser {
 
     /**
      * Parse the assert blocks from the YAML test definition.
-     *
      * @param assertArray the assert array in the YAML test definition.
-     * @param streamKeys  the keys of the streams map.
-     * @param testKey     the name of the test in the YAML test definition.
-     * @param testFile    the path to the test suite definition file.
+     * @param streamKeys the keys of the streams map.
+     * @param testKey the name of the test in the YAML test definition.
+     * @param testFile the path to the test suite definition file.
      * @return a list of {@link AssertBlock}.
      */
     private List<AssertBlock> parseAssertBlocks(JsonNode assertArray, Set<String> streamKeys,
                                                 String testKey, Path testFile) {
-        final var blocks = new ArrayList<AssertBlock>();
+        var blocks = new ArrayList<AssertBlock>();
         for (var blockNode : assertArray) {
-            final var f = new FieldExtractor(blockNode, testFile);
-            final var on = f.optionalString(KSMLTestDSL.Assert.ON);
+            var f = new FieldExtractor(blockNode, testFile);
+            var on = f.optionalString(KSMLTestDSL.Assert.ON);
             if (on != null && !streamKeys.contains(on)) {
                 throw new TestDefinitionException(
                         "Assert block in test '" + testKey + "' references stream '" + on
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            final var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES);
-            final var code = f.requireString(KSMLTestDSL.Assert.CODE);
+            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES);
+            var code = f.requireString(KSMLTestDSL.Assert.CODE);
 
-            final var block = new AssertBlock(on, stores, code);
+            var block = new AssertBlock(on, stores, code);
             block.validate();
             blocks.add(block);
         }
@@ -317,18 +310,17 @@ public class TestDefinitionParser {
 
     /**
      * Parse a list of messages from a YAML messages array.
-     *
-     * @param messagesNode the message array node in the YAML test definition.
+     * @param messagesNode the messages array node in the YAML test definition.
      * @return a list of {@link TestMessage}.
      */
     private List<TestMessage> parseMessages(JsonNode messagesNode) {
         if (messagesNode == null || !messagesNode.isArray()) {
             return null;
         }
-        final var messages = new ArrayList<TestMessage>();
+        var messages = new ArrayList<TestMessage>();
         for (var msgNode : messagesNode) {
-            final var key = FieldExtractor.nodeToObject(msgNode.get(KSMLTestDSL.Message.KEY));
-            final var value = FieldExtractor.nodeToObject(msgNode.get(KSMLTestDSL.Message.VALUE));
+            var key = FieldExtractor.nodeToObject(msgNode.get(KSMLTestDSL.Message.KEY));
+            var value = FieldExtractor.nodeToObject(msgNode.get(KSMLTestDSL.Message.VALUE));
             Long timestamp = null;
             if (msgNode.has(KSMLTestDSL.Message.TIMESTAMP)) {
                 timestamp = msgNode.get(KSMLTestDSL.Message.TIMESTAMP).asLong();
@@ -353,4 +345,5 @@ public class TestDefinitionParser {
                             + " (alphanumeric and underscore, starting with a letter) in " + testFile);
         }
     }
+
 }
