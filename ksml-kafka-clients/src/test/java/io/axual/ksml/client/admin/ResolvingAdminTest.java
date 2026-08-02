@@ -326,7 +326,8 @@ class ResolvingAdminTest {
     @DisplayName("deleteConsumerGroupOffsets resolves the group id and partitions")
     void deleteConsumerGroupOffsetsResolves() {
         withAdmin((admin, delegate) -> {
-            when(delegate.deleteConsumerGroupOffsets(any(), any(), any())).thenReturn(mock(DeleteConsumerGroupOffsetsResult.class));
+            final var delegateResult = mock(DeleteConsumerGroupOffsetsResult.class);
+            when(delegate.deleteConsumerGroupOffsets(any(), any(), any())).thenReturn(delegateResult);
 
             final var result = admin.deleteConsumerGroupOffsets(UNRESOLVED_GROUP, Set.of(UNRESOLVED_PARTITION), new DeleteConsumerGroupOffsetsOptions());
 
@@ -353,7 +354,8 @@ class ResolvingAdminTest {
     @DisplayName("alterConsumerGroupOffsets resolves the group id and offsets")
     void alterConsumerGroupOffsetsResolves() {
         withAdmin((admin, delegate) -> {
-            when(delegate.alterConsumerGroupOffsets(any(), any(), any())).thenReturn(mock(AlterConsumerGroupOffsetsResult.class));
+            final var delegateResult = mock(AlterConsumerGroupOffsetsResult.class);
+            when(delegate.alterConsumerGroupOffsets(any(), any(), any())).thenReturn(delegateResult);
 
             final var result = admin.alterConsumerGroupOffsets(UNRESOLVED_GROUP,
                     Map.of(UNRESOLVED_PARTITION, new OffsetAndMetadata(1L)), new AlterConsumerGroupOffsetsOptions());
