@@ -56,8 +56,9 @@ public class PythonContextConfig {
     @JsonPropertyDescription("Path to additional Python modules to be loaded. Default is empty, meaning 'no user modules'.")
     private final String modulePath;
 
-    // Jackson 3 binds through this constructor. Lombok's @Jacksonized cannot do it: it generates
-    // Jackson 2 annotations, which Jackson 3 ignores.
+    // Jackson 3 binds through this constructor. @Jacksonized cannot be used: it emits
+    // @JsonDeserialize(builder = ...) from com.fasterxml.jackson.databind.annotation, which
+    // Jackson 3 moved to tools.jackson.databind.annotation.
     public PythonContextConfig(
             @JsonProperty(value = "allowHostFileAccess")
             boolean allowHostFileAccess,

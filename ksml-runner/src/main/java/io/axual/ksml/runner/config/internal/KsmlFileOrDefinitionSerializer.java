@@ -23,7 +23,6 @@ package io.axual.ksml.runner.config.internal;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
@@ -42,7 +41,7 @@ public class KsmlFileOrDefinitionSerializer extends StdSerializer<KsmlFileOrDefi
         if (value instanceof KsmlFilePath sv) {
             gen.writeString(sv.getValue());
         } else if (value instanceof KsmlInlineDefinition ov) {
-            context.findValueSerializer(ObjectNode.class).serialize(ov.getValue(), gen, context);
+            context.writeValue(gen, ov.getValue());
         }
     }
 }

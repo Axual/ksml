@@ -23,7 +23,10 @@ package io.axual.ksml.integration;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.SharedKsmlInfra;
+import io.apicurio.registry.serde.Default4ByteIdHandler;
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
+import io.apicurio.registry.serde.config.SerdeConfig;
+import io.apicurio.registry.serde.kafka.config.KafkaSerdeConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -154,6 +157,11 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
             consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, AvroKafkaDeserializer.class.getName());
             consumerProps.put("apicurio.registry.url", registryUrl);
+            // Match KSML's apicurio-avro serde configuration explicitly, so this test fails if either
+            // side drifts, instead of passing because Apicurio happens to default the same way.
+            consumerProps.put(KafkaSerdeConfig.ENABLE_HEADERS, "false");
+            consumerProps.put(SerdeConfig.USE_ID, "contentId");
+            consumerProps.put(SerdeConfig.ID_HANDLER, Default4ByteIdHandler.class.getName());
 
             try (KafkaConsumer<String, Object> consumer = new KafkaConsumer<>(consumerProps)) {
                 consumer.subscribe(Collections.singletonList("sensor_data_evolution_processed"));
@@ -274,6 +282,11 @@ class AvroSchemaEvolutionBackwardCompatibilityIT {
             consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
             consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, AvroKafkaDeserializer.class.getName());
             consumerProps.put("apicurio.registry.url", registryUrl);
+            // Match KSML's apicurio-avro serde configuration explicitly, so this test fails if either
+            // side drifts, instead of passing because Apicurio happens to default the same way.
+            consumerProps.put(KafkaSerdeConfig.ENABLE_HEADERS, "false");
+            consumerProps.put(SerdeConfig.USE_ID, "contentId");
+            consumerProps.put(SerdeConfig.ID_HANDLER, Default4ByteIdHandler.class.getName());
 
             try (KafkaConsumer<String, Object> consumer = new KafkaConsumer<>(consumerProps)) {
                 consumer.subscribe(Collections.singletonList("sensor_data_avro_type_promo_processed"));

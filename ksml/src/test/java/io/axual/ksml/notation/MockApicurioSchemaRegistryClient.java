@@ -136,8 +136,4 @@ public class MockApicurioSchemaRegistryClient implements RegistryClientFacade {
     public Object getClient() {
         return null;
     }
-
-    public void setReferences(long globalId, List<RegistryArtifactReference> refs) {
-        references.put(globalId, refs);
-    }
 }

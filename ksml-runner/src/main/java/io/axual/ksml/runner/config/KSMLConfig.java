@@ -191,8 +191,12 @@ public class KSMLConfig {
                         log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
                         final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
                         result.put(namespace, def);
-                    } catch (JacksonException _) {
-                        log.error("Could not read KSML definition from file: {}", definitionFilePath);
+                    } catch (JacksonException e) {
+                        // Fail rather than start with a pipeline missing. Skipping used to be harmless for
+                        // malformed YAML, but a duplicate key is now a parse error too, and a runner that
+                        // quietly omits one definition looks like an idle topic rather than a broken config.
+                        throw new ConfigException("definitionFile", definitionFilePath,
+                                "Could not read the KSML definition: " + e.getMessage(), e);
                     }
                 }
                 if (valueObj.getValue() instanceof ObjectNode root) {

@@ -19,11 +19,11 @@ Before you upgrade, check each item below:
 
 ## Apicurio Registry 3
 
-KSML 2.0.0 upgrades to the Apicurio Registry 3 client. This client talks to Apicurio over the v3 API only, so you must run an Apicurio Registry 3.x server. Apicurio 2.x servers are no longer supported. If you cannot upgrade your registry yet, stay on KSML 1.x until you can.
+KSML 2.0.0 upgrades to the Apicurio Registry 3 client. Point `apicurio.registry.url` at the `/apis/registry/v3` endpoint of an Apicurio 3.x server. The client can still fall back to the v2 API when the URL contains `/apis/registry/v2`, or when you set `apicurio.registry.url.version` to `2`, but KSML 2.0.0 is only tested against Apicurio 3.x and we do not support that path. If you cannot upgrade your registry yet, stay on KSML 1.x.
 
 ### Registry URL must use the v3 endpoint
 
-KSML 2.0.0 talks to Apicurio Registry over the v3 API only. The v2 endpoint is not supported.
+Use the v3 endpoint. The v2 endpoint is not tested or supported by KSML 2.0.0.
 
 Update the `apicurio.registry.url` in your schema registry config:
 
@@ -102,11 +102,22 @@ Jackson 3 changed its default so that unknown keys are ignored. KSML re-enables 
 
 What you need to do: make sure your `ksml-runner.yaml` has no leftover or misspelled keys before you upgrade.
 
-## Duplicate keys in KSML definitions now fail
+## Duplicate keys in KSML definitions are now an error
 
 KSML now rejects a definition file that uses the same key twice, instead of silently keeping the last value. This catches copy-and-paste mistakes early.
 
 On the 1.x line a repeated key was accepted and the last one quietly won, which could hide a real mistake in a pipeline or function definition.
+
+KSML stops at startup and names the file and the position:
+
+```
+Configuration Key   : 'definitionFile'
+Configuration Value : '/ksml/processor.yaml'
+Could not read the KSML definition: Duplicate field 'topic'
+ at [Source: (File); line: 4, column: 12]
+```
+
+This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.
 
 What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.
 
@@ -114,14 +125,9 @@ What you need to do: make sure each KSML definition file has no duplicate keys b
 
 For pipeline authors who write KSML YAML, there is nothing to change here.
 
-If you build your own code against the KSML or Kafka client libraries, note that some deprecated admin and Kafka Streams APIs were updated for Kafka 4.x.
+The Kafka client version is unchanged in 2.0.0. It stays on the same 4.x version that KSML 1.3.0 already used, so there is nothing to do for the Kafka client itself.
 
-Two public classes in `ksml-kafka-clients` were removed, because Kafka replaced the API they wrapped:
-
-* `io.axual.ksml.client.admin.ResolvingListConsumerGroupsResult`
-* `org.apache.kafka.clients.admin.ExtendableListConsumerGroupsResult`
-
-Kafka's `listConsumerGroups` was replaced by `listGroups`, so `ResolvingAdmin` now overrides `listGroups` and returns a `ResolvingListGroupsResult`. If your code called `listConsumerGroups` through `ResolvingAdmin`, move it to `listGroups` and use `GroupListing` instead of `ConsumerGroupListing`.
+If you implement your own Kafka Streams error handler against the KSML libraries, the Streams handler API changed: `handle` became `handleError`, and the enum results were replaced by `Response.resume()`, `Response.fail()` and `Response.retry()`.
 
 ## Protobuf and Wire
 

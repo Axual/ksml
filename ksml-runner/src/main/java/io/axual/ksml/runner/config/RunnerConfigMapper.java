@@ -20,6 +20,7 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -30,8 +31,10 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
  * <p>It enables {@link DeserializationFeature#FAIL_ON_UNKNOWN_PROPERTIES} so an unknown or misspelled key
  * fails at startup instead of being silently ignored. Jackson 3 defaults this feature to off and the
  * config records use {@code @JsonIgnoreProperties(ignoreUnknown = false)}, so it must be enabled here to
- * keep the strict validation KSML had on Jackson 2. Production and tests use this same instance so the
- * tests always validate against the real parsing behavior.</p>
+ * keep the strict validation KSML had on Jackson 2. {@link StreamReadFeature#STRICT_DUPLICATE_DETECTION}
+ * rejects a key that appears twice, so the runner config follows the same rule as KSML definition
+ * files. Production and tests use this same instance so the tests always validate against the real
+ * parsing behavior.</p>
  */
 public final class RunnerConfigMapper {
     private RunnerConfigMapper() {
@@ -39,5 +42,6 @@ public final class RunnerConfigMapper {
 
     public static final ObjectMapper INSTANCE = YAMLMapper.builder()
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .build();
 }

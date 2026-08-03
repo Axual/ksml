@@ -74,7 +74,7 @@ public class JsonVerifier {
     }
 
     public JsonVerifier withTextValue(final String expectedText) {
-        assertThat(cursor.asString()).as("Node value does not match in %s", cursor).isEqualTo(expectedText);
+        assertThat(cursor.stringValue()).as("Node value does not match in %s", cursor).isEqualTo(expectedText);
         return this;
     }
 }

@@ -37,7 +37,6 @@ class KSMLRunnerConfigTest {
 
     // Use the exact mapper the runner uses to read its config, so this test validates real behavior.
     private final ObjectMapper objectMapper = RunnerConfigMapper.INSTANCE;
-    private final ObjectMapper mapper = RunnerConfigMapper.INSTANCE;
 
     @Test
     @DisplayName("complete config should load without exceptions")
@@ -69,7 +68,7 @@ class KSMLRunnerConfigTest {
             definitions:
               foo: {}
             """;
-        var cfg = mapper.readValue(yaml, KSMLConfig.class);
+        var cfg = objectMapper.readValue(yaml, KSMLConfig.class);
 
         var pyCfg = cfg.pythonContextConfig();
         // all flags should be default false
@@ -98,7 +97,7 @@ class KSMLRunnerConfigTest {
               allowCreateThread: true
               inheritEnvironmentVariables: true
             """;
-        var cfg = mapper.readValue(yaml, KSMLConfig.class);
+        var cfg = objectMapper.readValue(yaml, KSMLConfig.class);
 
         var pyCfg = cfg.pythonContextConfig();
         assertTrue(pyCfg.allowHostFileAccess(),     "should pick up allowHostFileAccess=true");

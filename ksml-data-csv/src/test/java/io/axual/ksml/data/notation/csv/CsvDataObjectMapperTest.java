@@ -193,15 +193,15 @@ class CsvDataObjectMapperTest {
     @Test
     @DisplayName("Escapes quote and control characters on write and round-trips them intact")
     void escapesQuoteAndControlCharsRoundTrip() {
-        // Values containing a quote and a control character (newline). The writer's
-        // ESCAPE_QUOTE_CHAR_WITH_ESCAPE_CHAR / ESCAPE_CONTROL_CHARS_WITH_ESCAPE_CHAR features must
-        // escape these so the serialized row stays well-formed and survives a round-trip.
+        // Values containing a quote and a newline. They are escaped RFC-4180 style: the whole field is
+        // quoted and an inner quote is doubled. The exact text is asserted below so a change in the
+        // writer configuration cannot slip through a round-trip that is merely self-consistent.
         var original = new DataList(DataString.DATATYPE);
         original.add(DataString.from("say \"hi\""));
         original.add(DataString.from("line1\nline2"));
 
         var csv = mapper.fromDataObject(original);
-        assertThat(csv).isNotNull();
+        assertThat(csv).isEqualTo("\"say \"\"hi\"\"\",\"line1\nline2\"");
 
         var result = mapper.toDataObject(null, csv);
         assertThat(result).isInstanceOf(DataList.class);

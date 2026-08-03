@@ -26,9 +26,11 @@ KSML checks the configuration file strictly:
 
 * An unknown or misspelled key makes KSML stop at startup with an error. A typo such as
   `schemaRegsitry` is reported instead of quietly disabling the setting.
-* A key that appears twice in the same block is an error as well, instead of the last one winning.
+* A key that appears twice in the same block is an error as well, instead of the last one
+  quietly winning.
 
-The same duplicate-key rule applies to KSML definition files. See
+The same duplicate-key rule applies to KSML definition files. A definition file that KSML cannot
+parse stops startup as well, rather than being skipped. See
 [Upgrading to 2.0.0](../migration-to-2.0.0.md) if you are coming from the 1.x line.
 
 ## Minimal Working Configurations
