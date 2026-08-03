@@ -68,11 +68,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserTypeParserTest {
     @BeforeAll
@@ -105,9 +102,9 @@ class UserTypeParserTest {
     @ValueSource(strings = {"boolean", "byte", "bytes", "short", "double", "float", "int", "long", "?", "none", "str", "string"})
     void testParseValidTypes(String type) {
         var userType = parse(type);
-        assertTrue(userType.isOk());
-        assertNotNull(userType);
-        assertEquals(UserType.DEFAULT_NOTATION, userType.result().notation(), "notation for " + type + "should default to " + UserType.DEFAULT_NOTATION);
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType).isNotNull();
+        assertThat(userType.result().notation()).as("notation for " + type + "should default to " + UserType.DEFAULT_NOTATION).isEqualTo(UserType.DEFAULT_NOTATION);
     }
 
     @ParameterizedTest
@@ -115,11 +112,11 @@ class UserTypeParserTest {
     @ValueSource(strings = {"str", "string"})
     void testParseStringType(String type) {
         final var userType = parse(type).result();
-        assertNotNull(userType);
+        assertThat(userType).isNotNull();
         final var dataType = userType.dataType();
-        assertEquals(String.class, dataType.containerClass());
-        assertTrue(dataType.isAssignableFrom("some random string").isAssignable());
-        assertTrue(dataType.isAssignableFrom(String.class).isAssignable());
+        assertThat(dataType.containerClass()).isEqualTo(String.class);
+        assertThat(dataType.isAssignableFrom("some random string").isAssignable()).isTrue();
+        assertThat(dataType.isAssignableFrom(String.class).isAssignable()).isTrue();
     }
 
     @ParameterizedTest
@@ -127,13 +124,13 @@ class UserTypeParserTest {
     @MethodSource("typesAndDataTypes")
     void testDataTypes(String type, DataType dataType) {
         final var userType = parse(type).result();
-        assertNotNull(userType);
+        assertThat(userType).isNotNull();
 
-        assertEquals(dataType, userType.dataType(), "DataType for '" + type + "' should be set to " + dataType);
+        assertThat(userType.dataType()).as("DataType for '" + type + "' should be set to " + dataType).isEqualTo(dataType);
         if (type.equals("?")) {
-            assertEquals(DataType.UNKNOWN, userType.dataType(), "Datatype for '?' should be UNKNOWN (anonymous subclass)");
+            assertThat(userType.dataType()).as("Datatype for '?' should be UNKNOWN (anonymous subclass)").isEqualTo(DataType.UNKNOWN);
         } else {
-            assertTrue(SimpleType.class.isAssignableFrom(userType.dataType().getClass()), "Class for " + type + " should be subclass of SimpleType");
+            assertThat(SimpleType.class.isAssignableFrom(userType.dataType().getClass())).as("Class for " + type + " should be subclass of SimpleType").isTrue();
         }
     }
 
@@ -159,20 +156,20 @@ class UserTypeParserTest {
     @ValueSource(strings = {"[int]", "list(int)"})
     void testListTypes(String type) {
         final var ut = parse(type);
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
         final var dt = ut.result().dataType();
-        assertInstanceOf(ListType.class, dt);
-        assertEquals(DataInteger.DATATYPE, ((ListType) dt).valueType());
+        assertThat(dt).isInstanceOf(ListType.class);
+        assertThat(((ListType) dt).valueType()).isEqualTo(DataInteger.DATATYPE);
     }
 
     @Test
     @DisplayName("Map parsing: map(T)")
     void testMapType() {
         final var ut = parse("map(string)");
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
         final var dt = ut.result().dataType();
-        assertInstanceOf(MapType.class, dt);
-        assertEquals(DataString.DATATYPE, ((MapType) dt).valueType());
+        assertThat(dt).isInstanceOf(MapType.class);
+        assertThat(((MapType) dt).valueType()).isEqualTo(DataString.DATATYPE);
     }
 
     @ParameterizedTest
@@ -180,26 +177,26 @@ class UserTypeParserTest {
     @ValueSource(strings = {"enum(A,B)"})
     void testEnumTypes(String type) {
         final var ut = parse(type);
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
         final var dt = ut.result().dataType();
-        assertInstanceOf(EnumType.class, dt);
+        assertThat(dt).isInstanceOf(EnumType.class);
         final var enumType = (EnumType) dt;
-        assertEquals(2, enumType.schema().symbols().size());
-        assertEquals("A", enumType.schema().symbols().get(0).name());
-        assertEquals("B", enumType.schema().symbols().get(1).name());
+        assertThat(enumType.schema().symbols().size()).isEqualTo(2);
+        assertThat(enumType.schema().symbols().get(0).name()).isEqualTo("A");
+        assertThat(enumType.schema().symbols().get(1).name()).isEqualTo("B");
     }
 
     @Test
     @DisplayName("Union parsing: union(T1, T2)")
     void testUnionType() {
         final var ut = parse("union(int, string)");
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
         final var dt = ut.result().dataType();
-        assertInstanceOf(UnionType.class, dt);
+        assertThat(dt).isInstanceOf(UnionType.class);
         final var u = (UnionType) dt;
-        assertEquals(2, u.subTypeCount());
-        assertEquals(DataInteger.DATATYPE, u.subType(0));
-        assertEquals(DataString.DATATYPE, u.subType(1));
+        assertThat(u.subTypeCount()).isEqualTo(2);
+        assertThat(u.subType(0)).isEqualTo(DataInteger.DATATYPE);
+        assertThat(u.subType(1)).isEqualTo(DataString.DATATYPE);
     }
 
     @ParameterizedTest
@@ -207,46 +204,46 @@ class UserTypeParserTest {
     @ValueSource(strings = {"(int, string)", "tuple(int, string)"})
     void testTupleTypes(String type) {
         final var ut = parse(type);
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
         final var dt = ut.result().dataType();
-        assertInstanceOf(TupleType.class, dt);
+        assertThat(dt).isInstanceOf(TupleType.class);
         final var t = (TupleType) dt;
-        assertEquals(2, t.subTypeCount());
-        assertEquals(DataInteger.DATATYPE, t.subType(0));
-        assertEquals(DataString.DATATYPE, t.subType(1));
+        assertThat(t.subTypeCount()).isEqualTo(2);
+        assertThat(t.subType(0)).isEqualTo(DataInteger.DATATYPE);
+        assertThat(t.subType(1)).isEqualTo(DataString.DATATYPE);
     }
 
     @Test
     @DisplayName("Windowed parsing: windowed(T)")
     void testWindowedType() {
         final var ut = parse("windowed(string)");
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
         final var dt = ut.result().dataType();
-        assertInstanceOf(WindowedType.class, dt);
+        assertThat(dt).isInstanceOf(WindowedType.class);
         final var w = (WindowedType) dt;
-        assertEquals(DataString.DATATYPE, w.keyType());
+        assertThat(w.keyType()).isEqualTo(DataString.DATATYPE);
     }
 
     @Test
     @DisplayName("Nested types parsing: list(map(string))")
     void testNestedTypes() {
         final var ut = parse("list(map(string))");
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
         final var dt = ut.result().dataType();
-        assertInstanceOf(ListType.class, dt);
+        assertThat(dt).isInstanceOf(ListType.class);
         final var lt = (ListType) dt;
-        assertInstanceOf(MapType.class, lt.valueType());
-        assertEquals(DataString.DATATYPE, ((MapType) lt.valueType()).valueType());
+        assertThat(lt.valueType()).isInstanceOf(MapType.class);
+        assertThat(((MapType) lt.valueType()).valueType()).isEqualTo(DataString.DATATYPE);
     }
 
     @Test
     @DisplayName("Notation only returns default type")
     void testNotationOnly() {
         final var ut = parse(UserType.DEFAULT_NOTATION);
-        assertTrue(ut.isOk(), ut.isError() ? ut.errorMessage() : "");
-        assertEquals(UserType.DEFAULT_NOTATION, ut.result().notation());
+        assertThat(ut.isOk()).as(ut.isError() ? ut.errorMessage() : "").isTrue();
+        assertThat(ut.result().notation()).isEqualTo(UserType.DEFAULT_NOTATION);
         // Parser should not error and returns the concrete notation name
-        assertNotNull(ut.result());
+        assertThat(ut.result()).isNotNull();
     }
 
     @ParameterizedTest
@@ -254,16 +251,16 @@ class UserTypeParserTest {
     @ValueSource(strings = {"[int", "list(int", "map(int", "enum(A,B", "union(int,string", "(int,string", "tuple(int,string", "windowed(string"})
     void testUnclosedErrors(String type) {
         final var ut = parse(type);
-        assertTrue(ut.isError());
-        assertNotNull(ut.errorMessage());
+        assertThat(ut.isError()).isTrue();
+        assertThat(ut.errorMessage()).isNotNull();
     }
 
     @Test
     @DisplayName("Null input yields UNKNOWN user type")
     void testNullInput() {
         final var ut = parse(null);
-        assertTrue(ut.isOk());
-        assertEquals(DataType.UNKNOWN, ut.result().dataType());
+        assertThat(ut.isOk()).isTrue();
+        assertThat(ut.result().dataType()).isEqualTo(DataType.UNKNOWN);
     }
 
     @Test
@@ -274,18 +271,18 @@ class UserTypeParserTest {
         Files.writeString(tempDir.resolve(schemaName + ".avsc"), schemaContent);
 
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
-            assertEquals(schemaName + ".avsc", contextName);
-            assertEquals(schemaName, name);
-            assertEquals(schemaContent, schemaString);
+            assertThat(contextName).isEqualTo(schemaName + ".avsc");
+            assertThat(name).isEqualTo(schemaName);
+            assertThat(schemaString).isEqualTo(schemaContent);
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = parse("avro:" + schemaName);
-        assertTrue(userType.isOk());
-        assertEquals("avro", userType.result().notation());
-        assertInstanceOf(StructType.class, userType.result().dataType());
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType.result().notation()).isEqualTo("avro");
+        assertThat(userType.result().dataType()).isInstanceOf(StructType.class);
     }
 
     @Test
@@ -298,18 +295,18 @@ class UserTypeParserTest {
         Files.writeString(tempDir.resolve(schemaName + ".avsc"), schemaContent);
 
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
-            assertEquals(fullName + ".avsc", contextName);
-            assertEquals(fullName, name);
-            assertEquals(schemaContent, schemaString);
+            assertThat(contextName).isEqualTo(fullName + ".avsc");
+            assertThat(name).isEqualTo(fullName);
+            assertThat(schemaString).isEqualTo(schemaContent);
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = parse("avro:" + namespace + "." + schemaName);
-        assertTrue(userType.isOk());
-        assertEquals("avro", userType.result().notation());
-        assertInstanceOf(StructType.class, userType.result().dataType());
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType.result().notation()).isEqualTo("avro");
+        assertThat(userType.result().dataType()).isInstanceOf(StructType.class);
     }
 
     @Test
@@ -320,18 +317,18 @@ class UserTypeParserTest {
         Files.writeString(tempDir.resolve(schemaName + ".json"), schemaContent);
 
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
-            assertEquals(schemaName + ".json", contextName);
-            assertEquals(schemaName, name);
-            assertEquals(schemaContent, schemaString);
+            assertThat(contextName).isEqualTo(schemaName + ".json");
+            assertThat(name).isEqualTo(schemaName);
+            assertThat(schemaString).isEqualTo(schemaContent);
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
         ExecutionContext.INSTANCE.notationLibrary().register("jsonschema", new MockNotation("jsonschema", Notation.SchemaUsage.SCHEMA_REQUIRED, ".json", mockParser));
 
         final var userType = parse("jsonschema:" + schemaName);
-        assertTrue(userType.isOk());
-        assertEquals("jsonschema", userType.result().notation());
-        assertInstanceOf(StructType.class, userType.result().dataType());
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType.result().notation()).isEqualTo("jsonschema");
+        assertThat(userType.result().dataType()).isInstanceOf(StructType.class);
     }
 
     @Test
@@ -342,18 +339,18 @@ class UserTypeParserTest {
         Files.writeString(tempDir.resolve(schemaName + ".proto"), schemaContent);
 
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
-            assertEquals(schemaName + ".proto", contextName);
-            assertEquals(schemaName, name);
-            assertEquals(schemaContent, schemaString);
+            assertThat(contextName).isEqualTo(schemaName + ".proto");
+            assertThat(name).isEqualTo(schemaName);
+            assertThat(schemaString).isEqualTo(schemaContent);
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
         ExecutionContext.INSTANCE.notationLibrary().register("protobuf", new MockNotation("protobuf", Notation.SchemaUsage.SCHEMA_REQUIRED, ".proto", mockParser));
 
         final var userType = parse("protobuf:" + schemaName);
-        assertTrue(userType.isOk());
-        assertEquals("protobuf", userType.result().notation());
-        assertInstanceOf(StructType.class, userType.result().dataType());
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType.result().notation()).isEqualTo("protobuf");
+        assertThat(userType.result().dataType()).isInstanceOf(StructType.class);
     }
 
     @Test
@@ -369,12 +366,9 @@ class UserTypeParserTest {
         // Since DataType.UNKNOWN is a wildcard that's NOT a ComplexType, StructType.isAssignableFrom(UNKNOWN)
         // returns typeMismatch error in ComplexType.isAssignableFrom.
 
-        final var exception = assertThrows(SchemaException.class, () -> parse("avro:MissingSchema"));
-
-        String expectedMessage = "Can not load schema";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
+        assertThatThrownBy(() -> parse("avro:MissingSchema"))
+                .isInstanceOf(SchemaException.class)
+                .hasMessageContaining("Can not load schema");
     }
 
     @Test
@@ -385,20 +379,20 @@ class UserTypeParserTest {
         Files.writeString(tempDir.resolve(schemaName + ".avsc"), schemaContent);
 
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
-            assertEquals(schemaName + ".avsc", contextName);
-            assertEquals(schemaName, name);
-            assertEquals(schemaContent, schemaString);
+            assertThat(contextName).isEqualTo(schemaName + ".avsc");
+            assertThat(name).isEqualTo(schemaName);
+            assertThat(schemaString).isEqualTo(schemaContent);
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = parse("avro:windowed(" + schemaName + ")");
-        assertTrue(userType.isOk(), userType.isError() ? userType.errorMessage() : "");
-        assertEquals("avro", userType.result().notation());
-        assertInstanceOf(WindowedType.class, userType.result().dataType());
+        assertThat(userType.isOk()).as(userType.isError() ? userType.errorMessage() : "").isTrue();
+        assertThat(userType.result().notation()).isEqualTo("avro");
+        assertThat(userType.result().dataType()).isInstanceOf(WindowedType.class);
         final var windowedType = (WindowedType) userType.result().dataType();
-        assertInstanceOf(StructType.class, windowedType.keyType());
+        assertThat(windowedType.keyType()).isInstanceOf(StructType.class);
     }
 
     @Test
@@ -414,12 +408,9 @@ class UserTypeParserTest {
         // Since DataType.UNKNOWN is a wildcard that's NOT a ComplexType, StructType.isAssignableFrom(UNKNOWN)
         // returns typeMismatch error in ComplexType.isAssignableFrom.
 
-        final var exception = assertThrows(SchemaException.class, () -> parse("avro:windowed(MissingSchema)"));
-
-        String expectedMessage = "Can not load schema";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
+        assertThatThrownBy(() -> parse("avro:windowed(MissingSchema)"))
+                .isInstanceOf(SchemaException.class)
+                .hasMessageContaining("Can not load schema");
     }
 
     @Test
@@ -436,11 +427,11 @@ class UserTypeParserTest {
         // returns typeMismatch error in ComplexType.isAssignableFrom.
 
         final var userType = parse("avro:windowed(struct)");
-        assertTrue(userType.isOk());
-        assertEquals("avro", userType.result().notation());
-        assertInstanceOf(WindowedType.class, userType.result().dataType());
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType.result().notation()).isEqualTo("avro");
+        assertThat(userType.result().dataType()).isInstanceOf(WindowedType.class);
         final var windowedType = (WindowedType) userType.result().dataType();
-        assertInstanceOf(StructType.class, windowedType.keyType());
+        assertThat(windowedType.keyType()).isInstanceOf(StructType.class);
     }
 
     @Test
@@ -451,20 +442,20 @@ class UserTypeParserTest {
         Files.writeString(tempDir.resolve(schemaName + ".avsc"), schemaContent);
 
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
-            assertEquals(schemaName + ".avsc", contextName);
-            assertEquals(schemaName, name);
-            assertEquals(schemaContent, schemaString);
+            assertThat(contextName).isEqualTo(schemaName + ".avsc");
+            assertThat(name).isEqualTo(schemaName);
+            assertThat(schemaString).isEqualTo(schemaContent);
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 
         ExecutionContext.INSTANCE.notationLibrary().register("avro", new MockNotation("avro", Notation.SchemaUsage.SCHEMA_REQUIRED, ".avsc", mockParser));
 
         final var userType = parse("avro:[" + schemaName + "]");
-        assertTrue(userType.isOk(), userType.isError() ? userType.errorMessage() : "");
-        assertEquals("avro", userType.result().notation());
-        assertInstanceOf(ListType.class, userType.result().dataType());
+        assertThat(userType.isOk()).as(userType.isError() ? userType.errorMessage() : "").isTrue();
+        assertThat(userType.result().notation()).isEqualTo("avro");
+        assertThat(userType.result().dataType()).isInstanceOf(ListType.class);
         final var listType = (ListType) userType.result().dataType();
-        assertInstanceOf(StructType.class, listType.valueType());
+        assertThat(listType.valueType()).isInstanceOf(StructType.class);
     }
 
     @Test
@@ -484,9 +475,9 @@ class UserTypeParserTest {
         ExecutionContext.INSTANCE.notationLibrary().register("remote_avro", remoteNotation);
 
         final var userType = parse("remote_avro");
-        assertTrue(userType.isOk());
-        assertEquals("remote_avro", userType.result().notation());
-        assertInstanceOf(UnresolvedType.class, userType.result().dataType());
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType.result().notation()).isEqualTo("remote_avro");
+        assertThat(userType.result().dataType()).isInstanceOf(UnresolvedType.class);
     }
 
     @Test
@@ -497,10 +488,9 @@ class UserTypeParserTest {
 
         final var userType = parse("local_avro");
 
-        assertTrue(userType.isError());
+        assertThat(userType.isError()).isTrue();
         String expectedMessage = "Schema is required for notation local_avro";
-        String actualMessage = userType.errorMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
+        assertThat(userType.errorMessage()).contains(expectedMessage);
     }
 
     @Test
@@ -527,8 +517,8 @@ class UserTypeParserTest {
         ExecutionContext.INSTANCE.notationLibrary().register("regression_avro", remoteNotation);
 
         final var userType = parse("regression_avro:" + schemaName);
-        assertTrue(userType.isOk());
-        assertEquals("regression_avro", userType.result().notation());
-        assertInstanceOf(StructType.class, userType.result().dataType());
+        assertThat(userType.isOk()).isTrue();
+        assertThat(userType.result().notation()).isEqualTo("regression_avro");
+        assertThat(userType.result().dataType()).isInstanceOf(StructType.class);
     }
 }

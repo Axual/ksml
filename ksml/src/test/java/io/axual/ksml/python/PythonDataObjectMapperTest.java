@@ -79,7 +79,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PythonDataObjectMapperTest {
     private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true);
@@ -285,9 +284,9 @@ class PythonDataObjectMapperTest {
         Files.writeString(tempDir.resolve(schemaName + ".avsc"), schemaContent);
 
         final var mockParser = (Notation.SchemaParser) (contextName, name, schemaString) -> {
-            assertEquals(schemaName + ".avsc", contextName);
-            assertEquals(schemaName, name);
-            assertEquals(schemaContent, schemaString);
+            assertThat(contextName).isEqualTo(schemaName + ".avsc");
+            assertThat(name).isEqualTo(schemaName);
+            assertThat(schemaString).isEqualTo(schemaContent);
             return new StructSchema(null, schemaName, null, Collections.emptyList());
         };
 

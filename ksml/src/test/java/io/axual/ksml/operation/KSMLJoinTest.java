@@ -32,7 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 import static io.axual.ksml.testutil.JsonVerifier.verifyJson;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -78,7 +78,7 @@ public class KSMLJoinTest {
                 .build().toRecord());
 
         // we should see alerts containing the alert that was triggered, joined with the sensor data that triggered it
-        assertEquals(2, sensorAlerts.getQueueSize());
+        assertThat(sensorAlerts.getQueueSize()).isEqualTo(2);
         List<String> valuesList = sensorAlerts.readValuesToList();
         String alert1 = valuesList.getFirst();
         log.info("alert1 = {}", alert1);

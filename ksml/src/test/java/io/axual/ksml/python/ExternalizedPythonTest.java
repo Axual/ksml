@@ -34,9 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
@@ -67,12 +65,12 @@ class ExternalizedPythonTest {
         }
 
         // only the two records with "blue" should be kept
-        assertFalse(outputTopic.isEmpty());
+        assertThat(outputTopic.isEmpty()).isFalse();
         List<GenericRecord> outputValues = outputTopic.readValuesToList();
-        assertEquals(2, outputValues.size());
-        assertTrue(outputValues.stream()
+        assertThat(outputValues.size()).isEqualTo(2);
+        assertThat(outputValues.stream()
             .map(rec -> rec.get("color").toString())
-            .allMatch(color -> color.equals("blue")));
+            .allMatch(color -> color.equals("blue"))).isTrue();
     }
 
 }

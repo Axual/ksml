@@ -27,9 +27,7 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -63,22 +61,22 @@ public class KSMLRepartitionTest {
         activitiesInput.pipeInput("us-east", usEastActivity3);
 
         // Verify output - should have counts by user_id (after repartitioning)
-        assertFalse(countsOutput.isEmpty());
-        
+        assertThat(countsOutput.isEmpty()).isFalse();
+
         // Read all output records
         var outputRecords = countsOutput.readKeyValuesToMap();
-        
+
         // Verify we have counts for each unique user
-        assertTrue(outputRecords.containsKey("user_001"));
-        assertTrue(outputRecords.containsKey("user_002"));
-        assertTrue(outputRecords.containsKey("user_003"));
-        assertTrue(outputRecords.containsKey("user_004"));
-        
+        assertThat(outputRecords.containsKey("user_001")).isTrue();
+        assertThat(outputRecords.containsKey("user_002")).isTrue();
+        assertThat(outputRecords.containsKey("user_003")).isTrue();
+        assertThat(outputRecords.containsKey("user_004")).isTrue();
+
         // Verify counts (handle count formatting)
-        assertEquals("3", outputRecords.get("user_001").trim()); // 3 activities for user_001
-        assertEquals("1", outputRecords.get("user_002").trim()); // 1 activity for user_002
-        assertEquals("1", outputRecords.get("user_003").trim()); // 1 activity for user_003
-        assertEquals("1", outputRecords.get("user_004").trim()); // 1 activity for user_004
+        assertThat(outputRecords.get("user_001").trim()).isEqualTo("3"); // 3 activities for user_001
+        assertThat(outputRecords.get("user_002").trim()).isEqualTo("1"); // 1 activity for user_002
+        assertThat(outputRecords.get("user_003").trim()).isEqualTo("1"); // 1 activity for user_003
+        assertThat(outputRecords.get("user_004").trim()).isEqualTo("1"); // 1 activity for user_004
         
         // The fact that this test completes successfully validates that:
         // 1. Repartition operation works with only numberOfPartitions parameter

@@ -37,8 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
@@ -71,6 +70,6 @@ class TableDefinitionTest {
         verify(mockNotation).serde(stringType.dataType(), false);
 
         verify(builder).table(eq("topic"), isA(Consumed.class), isA(Materialized.class));
-        assertThat(streamWrapper, instanceOf(KTableWrapper.class));
+        assertThat(streamWrapper).isInstanceOf(KTableWrapper.class);
     }
 }

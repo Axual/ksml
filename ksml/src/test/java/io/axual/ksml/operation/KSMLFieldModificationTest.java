@@ -30,9 +30,7 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for field modification example that modifies schema fields at runtime.
@@ -68,20 +66,22 @@ class KSMLFieldModificationTest {
         // The pipeline should:
         // 1. Change owner to "Zack"
         // 2. Remove the "color" field from the schema
-        assertFalse(outputTopic.isEmpty(), "Output topic should have a record");
+        assertThat(outputTopic.isEmpty()).as("Output topic should have a record").isFalse();
 
         GenericRecord outputRecord = outputTopic.readValue();
 
         // Verify owner was changed
-        assertEquals("Zack", outputRecord.get("owner").toString(),
-                "Owner should be changed to 'Zack'");
+        assertThat(outputRecord.get("owner").toString())
+                .as("Owner should be changed to 'Zack'")
+                .isEqualTo("Zack");
 
         // Verify color field is removed from the output schema
-        assertNull(outputRecord.getSchema().getField("color"),
-                "Color field should be removed from output schema");
+        assertThat(outputRecord.getSchema().getField("color"))
+                .as("Color field should be removed from output schema")
+                .isNull();
 
         // Verify other fields are preserved
-        assertEquals("sensor1", outputRecord.get("name").toString());
-        assertEquals("Amsterdam", outputRecord.get("city").toString());
+        assertThat(outputRecord.get("name").toString()).isEqualTo("sensor1");
+        assertThat(outputRecord.get("city").toString()).isEqualTo("Amsterdam");
     }
 }

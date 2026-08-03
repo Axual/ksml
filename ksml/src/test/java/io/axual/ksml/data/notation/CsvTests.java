@@ -34,7 +34,7 @@ import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBE
 import static io.axual.ksml.data.schema.DataSchemaFlag.IGNORE_UNION_SCHEMA_MEMBER_TAG;
 import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_NAME;
 import static io.axual.ksml.data.type.DataTypeFlag.IGNORE_UNION_TYPE_MEMBER_TAG;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CsvTests {
     private static final EqualityFlags CSV_EQUALITY_FLAGS = new EqualityFlags(
@@ -54,7 +54,7 @@ class CsvTests {
             // Check the conversion
             final var inputFieldNames = ((StructSchema) input).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
             final var outputFieldNames = ((StructSchema) output).fields().stream().map(StructSchema.Field::name).toArray(String[]::new);
-            assertArrayEquals(inputFieldNames, outputFieldNames, "Input schema field names should match output schema field names");
+            assertThat(outputFieldNames).as("Input schema field names should match output schema field names").isEqualTo(inputFieldNames);
         });
     }
 

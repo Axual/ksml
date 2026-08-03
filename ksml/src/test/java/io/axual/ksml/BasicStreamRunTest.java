@@ -55,7 +55,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Basic stream run test.
@@ -101,8 +101,8 @@ class BasicStreamRunTest {
             var outputTopic = driver.createOutputTopic("ksml_sensordata_copy", new StringDeserializer(), new StringDeserializer());
             inputTopic.pipeInput("key1", "value1");
             var keyValue = outputTopic.readKeyValue();
-            assertEquals("key1", keyValue.key);
-            assertEquals("value1", keyValue.value);
+            assertThat(keyValue.key).isEqualTo("key1");
+            assertThat(keyValue.value).isEqualTo("value1");
         }
     }
 
@@ -135,7 +135,7 @@ class BasicStreamRunTest {
             avroInputTopic.pipeInput("key1", dataObject);
             if (!outputTopic.isEmpty()) {
                 var keyValue = outputTopic.readKeyValue();
-                assertEquals("key1", keyValue.key);
+                assertThat(keyValue.key).isEqualTo("key1");
                 log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
             }
         }

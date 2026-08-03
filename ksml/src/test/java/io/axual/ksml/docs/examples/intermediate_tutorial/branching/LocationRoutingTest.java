@@ -32,8 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -64,18 +63,18 @@ public class LocationRoutingTest {
         inputTopic.pipeInput("k3", createSensorJson("office"));
         inputTopic.pipeInput("k4", createSensorJson("unknown"));
 
-        assertEquals(1, datacenterOutput.readValuesToList().size());
-        assertEquals(1, warehouseOutput.readValuesToList().size());
-        assertEquals(1, officeOutput.readValuesToList().size());
-        assertEquals(1, unknownOutput.readValuesToList().size());
+        assertThat(datacenterOutput.readValuesToList().size()).isEqualTo(1);
+        assertThat(warehouseOutput.readValuesToList().size()).isEqualTo(1);
+        assertThat(officeOutput.readValuesToList().size()).isEqualTo(1);
+        assertThat(unknownOutput.readValuesToList().size()).isEqualTo(1);
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/branching/processor-location-routing.yaml")
     void testMissingLocation() throws Exception {
         inputTopic.pipeInput("key", createSensorJson(null));
         
-        assertEquals(1, unknownOutput.readValuesToList().size());
-        assertTrue(datacenterOutput.isEmpty());
+        assertThat(unknownOutput.readValuesToList().size()).isEqualTo(1);
+        assertThat(datacenterOutput.isEmpty()).isTrue();
     }
 
     private String createSensorJson(String location) throws Exception {

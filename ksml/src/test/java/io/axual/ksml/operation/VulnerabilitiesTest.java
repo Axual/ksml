@@ -50,10 +50,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Test for various found KSML shell escapes.
@@ -101,9 +99,10 @@ public class VulnerabilitiesTest {
      void testVulnerableHashMap() {
          int oldcounter = counter.get();
          // The sandbox blocks getClass() access, so this should throw an exception
-         assertThrows(Exception.class, () -> inputTopic.pipeInput("key1", "value1"),
-                 "Sandbox should block getClass() access on HashMap");
-         assertEquals(oldcounter, counter.get(), "No curl request should be received");
+         assertThatThrownBy(() -> inputTopic.pipeInput("key1", "value1"))
+                 .as("Sandbox should block getClass() access on HashMap")
+                 .isInstanceOf(Exception.class);
+         assertThat(counter.get()).as("No curl request should be received").isEqualTo(oldcounter);
      }
 
     /**
@@ -113,22 +112,25 @@ public class VulnerabilitiesTest {
     @KSMLTopologyTest(topologies = {"pipelines/vulnerable-log.yaml","pipelines/vulnerable-loggerbridge.yaml","pipelines/vulnerable-metrics.yaml"})
     @DisplayName("check vulnerabilities in log and metrics")
     void testVulnerableLogAndMetrics() {
-        var rte = assertThrows(RuntimeException.class, () -> {
+        assertThatThrownBy(() -> {
             int oldcounter = counter.get();
             inputTopic.pipeInput("key1", "value1");
-            assertFalse(outputTopic.isEmpty(), "record should be copied");
+            assertThat(outputTopic.isEmpty()).as("record should be copied").isFalse();
             var keyValue = outputTopic.readKeyValue();
             log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
-            assertEquals(oldcounter, counter.get(), "No curl request should be received");
-        }, "trying to exploit log and metrics should result in RuntimeException");
-
-        assertTrue(rte.getCause().getMessage().contains("foreign object has no attribute 'getClass'"), "`getClass' should be blocked by the sandbox.");
+            assertThat(counter.get()).as("No curl request should be received").isEqualTo(oldcounter);
+        })
+                .as("trying to exploit log and metrics should result in RuntimeException")
+                .isInstanceOf(RuntimeException.class)
+                .cause()
+                .as("`getClass' should be blocked by the sandbox.")
+                .hasMessageContaining("foreign object has no attribute 'getClass'");
     }
 
     @KSMLTest(topology = "pipelines/vulnerable-state-store.yaml", schemaDirectory = "schemas")
     @DisplayName("check vulnerabilities in state stores")
     void testVulnerableStateStore() {
-        var rte = assertThrows(RuntimeException.class, () -> {
+        assertThatThrownBy(() -> {
             int oldCounter = counter.get();
 
                 // given that we get events with a higher reading in matching cities
@@ -156,20 +158,23 @@ public class VulnerabilitiesTest {
                 // the last value for sensor1 is present in the store named "last_sensor_data_store"
                 KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
                 DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
-                assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-                assertEquals(new DataString("70"), sensor1Data.get("value"));
+                assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+                assertThat(sensor1Data.get("value")).isEqualTo(new DataString("70"));
 
                 // and the counter should have been incremented
-                assertEquals(oldCounter, counter.get(), "No curl request should be received");
-        }, "Trying to exploit state stores should result on RuntimeException");
-
-        assertTrue(rte.getCause().getMessage().contains("foreign object has no attribute 'getClass'"), "`getClass' should be blocked by the sandbox.");
+                assertThat(counter.get()).as("No curl request should be received").isEqualTo(oldCounter);
+        })
+                .as("Trying to exploit state stores should result on RuntimeException")
+                .isInstanceOf(RuntimeException.class)
+                .cause()
+                .as("`getClass' should be blocked by the sandbox.")
+                .hasMessageContaining("foreign object has no attribute 'getClass'");
     }
 
     @KSMLTest(topology = "pipelines/vulnerable-versioned-state-store.yaml", schemaDirectory = "schemas")
     @DisplayName("check vulnerabilities in versioned state stores")
     void testVulnerableVersionedStateStore() {
-        var rte = assertThrows(RuntimeException.class, () -> {
+        assertThatThrownBy(() -> {
             int oldCounter = counter.get();
 
                 // given that we get events with a higher reading in matching cities
@@ -197,14 +202,17 @@ public class VulnerabilitiesTest {
                 // the last value for sensor1 is present in the store named "last_sensor_data_store"
                 KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
                 DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
-                assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-                assertEquals(new DataString("70"), sensor1Data.get("value"));
+                assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+                assertThat(sensor1Data.get("value")).isEqualTo(new DataString("70"));
 
                 // and the counter should have been incremented
-                assertEquals(oldCounter, counter.get(), "No curl request should be received");
-        }, "Trying to exploit state stores should result on RuntimeException");
-
-        assertTrue(rte.getCause().getMessage().contains("foreign object has no attribute 'getClass'"), "`getClass' should be blocked by the sandbox.");
+                assertThat(counter.get()).as("No curl request should be received").isEqualTo(oldCounter);
+        })
+                .as("Trying to exploit state stores should result on RuntimeException")
+                .isInstanceOf(RuntimeException.class)
+                .cause()
+                .as("`getClass' should be blocked by the sandbox.")
+                .hasMessageContaining("foreign object has no attribute 'getClass'");
     }
 
     /**

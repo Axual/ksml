@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
@@ -52,17 +52,17 @@ class KSMLFlatMapValuesTest {
         inputTopic.pipeInput("keyFirst", "value1");
 
         // we expect the output to contain this record, duplicated
-        assertEquals(3, outputTopic.getQueueSize(), "output should contain 3 records");
+        assertThat(outputTopic.getQueueSize()).as("output should contain 3 records").isEqualTo(3);
 
         List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals("value1a", keyValues.get(0).value);
-        assertEquals("value1b", keyValues.get(1).value);
-        assertEquals("value1c", keyValues.get(2).value);
+        assertThat(keyValues.get(0).value).isEqualTo("value1a");
+        assertThat(keyValues.get(1).value).isEqualTo("value1b");
+        assertThat(keyValues.get(2).value).isEqualTo("value1c");
 
         // and the key to be unchanged
-        assertEquals("keyFirst", keyValues.get(0).key);
-        assertEquals("keyFirst", keyValues.get(1).key);
-        assertEquals("keyFirst", keyValues.get(2).key);
+        assertThat(keyValues.get(0).key).isEqualTo("keyFirst");
+        assertThat(keyValues.get(1).key).isEqualTo("keyFirst");
+        assertThat(keyValues.get(2).key).isEqualTo("keyFirst");
     }
 
     @KSMLTest(topology = "pipelines/test-flatmapvalues-expression.yaml")
@@ -73,16 +73,16 @@ class KSMLFlatMapValuesTest {
         inputTopic.pipeInput("keyFirst", "value1");
 
         // we expect the output to contain this record, duplicated
-        assertEquals(3, outputTopic.getQueueSize(), "output should contain 3 records");
+        assertThat(outputTopic.getQueueSize()).as("output should contain 3 records").isEqualTo(3);
 
         List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals("value1-1", keyValues.get(0).value);
-        assertEquals("value1-2", keyValues.get(1).value);
-        assertEquals("value1-3", keyValues.get(2).value);
+        assertThat(keyValues.get(0).value).isEqualTo("value1-1");
+        assertThat(keyValues.get(1).value).isEqualTo("value1-2");
+        assertThat(keyValues.get(2).value).isEqualTo("value1-3");
 
         // and the key to be unchanged
-        assertEquals("keyFirst", keyValues.get(0).key);
-        assertEquals("keyFirst", keyValues.get(1).key);
-        assertEquals("keyFirst", keyValues.get(2).key);
+        assertThat(keyValues.get(0).key).isEqualTo("keyFirst");
+        assertThat(keyValues.get(1).key).isEqualTo("keyFirst");
+        assertThat(keyValues.get(2).key).isEqualTo("keyFirst");
     }
 }

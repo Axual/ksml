@@ -33,8 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PythonFunctionTest {
     @BeforeAll
@@ -65,8 +64,8 @@ class PythonFunctionTest {
         final var arg2 = new DataInteger(i2);
 
         final var result = adder.call(arg1, arg2);
-        assertInstanceOf(DataInteger.class, result);
-        assertEquals(sum, ((DataInteger) result).value());
+        assertThat(result).isInstanceOf(DataInteger.class);
+        assertThat(((DataInteger) result).value()).isEqualTo(sum);
     }
 
     /**
@@ -87,8 +86,8 @@ class PythonFunctionTest {
         final var arg2 = new DataInteger(i2);
 
         final var result = adder.call(arg1, arg2);
-        assertInstanceOf(DataInteger.class, result);
-        assertEquals(sum, ((DataInteger) result).value());
+        assertThat(result).isInstanceOf(DataInteger.class);
+        assertThat(((DataInteger) result).value()).isEqualTo(sum);
     }
 
     /**
@@ -109,8 +108,8 @@ class PythonFunctionTest {
         final var arg2 = new DataInteger(i2);
 
         final var result = adder.call(arg1, arg2);
-        assertInstanceOf(DataInteger.class, result);
-        assertEquals(sum, ((DataInteger) result).value());
+        assertThat(result).isInstanceOf(DataInteger.class);
+        assertThat(((DataInteger) result).value()).isEqualTo(sum);
     }
 
     @Test
@@ -127,18 +126,18 @@ class PythonFunctionTest {
 
         final var expectedResultNullKey = "True False";
         var resultNullKey = concat.call(nullArg, nonNullArg);
-        assertInstanceOf(DataString.class, resultNullKey);
-        assertEquals(expectedResultNullKey, ((DataString) resultNullKey).value());
+        assertThat(resultNullKey).isInstanceOf(DataString.class);
+        assertThat(((DataString) resultNullKey).value()).isEqualTo(expectedResultNullKey);
 
         final var expectedResultNullValue = "False True";
         var resultNullValue = concat.call(nonNullArg, nullArg);
-        assertInstanceOf(DataString.class, resultNullValue);
-        assertEquals(expectedResultNullValue, ((DataString) resultNullValue).value());
+        assertThat(resultNullValue).isInstanceOf(DataString.class);
+        assertThat(((DataString) resultNullValue).value()).isEqualTo(expectedResultNullValue);
 
         final var expectedResultNullKeyValue = "True True";
         var resultNullKeyValue = concat.call(nullArg, nullArg);
-        assertInstanceOf(DataString.class, resultNullKeyValue);
-        assertEquals(expectedResultNullKeyValue, ((DataString) resultNullKeyValue).value());
+        assertThat(resultNullKeyValue).isInstanceOf(DataString.class);
+        assertThat(((DataString) resultNullKeyValue).value()).isEqualTo(expectedResultNullKeyValue);
 
     }
 }

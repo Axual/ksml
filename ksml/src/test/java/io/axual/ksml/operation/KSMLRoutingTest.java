@@ -31,8 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -65,16 +64,16 @@ public class KSMLRoutingTest {
         inputTopic.pipeInput("random_key", "some_value");
         inputTopic.pipeInput("sensor1", "some_value");
 
-        assertFalse(outputSensor0.isEmpty());
-        assertFalse(outputSensor1.isEmpty());
-        assertFalse(outputSensor2.isEmpty());
+        assertThat(outputSensor0.isEmpty()).isFalse();
+        assertThat(outputSensor1.isEmpty()).isFalse();
+        assertThat(outputSensor2.isEmpty()).isFalse();
 
         List<KeyValue<String, String>> keyValues0 = outputSensor0.readKeyValuesToList();
         List<KeyValue<String, String>> keyValues1 = outputSensor1.readKeyValuesToList();
         List<KeyValue<String, String>> keyValues2 = outputSensor2.readKeyValuesToList();
 
-        assertEquals(2, keyValues2.size(), "2 sensor2 readings were routed to output2");
-        assertEquals(4, keyValues1.size(), "4 sensor1 readings were routed to output1");
-        assertEquals(4, keyValues0.size(), "4 other readings were routed to output0");
+        assertThat(keyValues2.size()).as("2 sensor2 readings were routed to output2").isEqualTo(2);
+        assertThat(keyValues1.size()).as("4 sensor1 readings were routed to output1").isEqualTo(4);
+        assertThat(keyValues0.size()).as("4 other readings were routed to output0").isEqualTo(4);
     }
 }

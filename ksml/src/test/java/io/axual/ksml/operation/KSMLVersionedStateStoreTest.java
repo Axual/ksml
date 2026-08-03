@@ -32,7 +32,7 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -72,7 +72,7 @@ public class KSMLVersionedStateStoreTest {
         // the last value for sensor1 is present in the store named "last_sensor_data_store"
         VersionedKeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getVersionedKeyValueStore("last_sensor_data_store");
         DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1").value();
-        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-        assertEquals(new DataString("70"), sensor1Data.get("value"));
+        assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+        assertThat(sensor1Data.get("value")).isEqualTo(new DataString("70"));
     }
 }

@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
@@ -52,12 +52,12 @@ class KSMLFlatMapTest {
         inputTopic.pipeInput("someKey", "someValue");
 
         // we expect the output to contain this record, duplicated
-        assertEquals(2, outputTopic.getQueueSize(), "output should contain 2 records");
+        assertThat(outputTopic.getQueueSize()).as("output should contain 2 records").isEqualTo(2);
 
         List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals("someKey", keyValues.get(0).key, "key should be copied");
-        assertEquals("someValue", keyValues.get(0).value, "value should be copied");
-        assertEquals("someKey-b", keyValues.get(1).key, "key should be copied and changed");
-        assertEquals("someValue-b", keyValues.get(1).value, "value should be copied and changed");
+        assertThat(keyValues.get(0).key).as("key should be copied").isEqualTo("someKey");
+        assertThat(keyValues.get(0).value).as("value should be copied").isEqualTo("someValue");
+        assertThat(keyValues.get(1).key).as("key should be copied and changed").isEqualTo("someKey-b");
+        assertThat(keyValues.get(1).value).as("value should be copied and changed").isEqualTo("someValue-b");
     }
 }

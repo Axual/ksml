@@ -27,9 +27,7 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -54,19 +52,19 @@ public class KSMLStreamPartitionerTest {
         userEventsInput.pipeInput("D", "{\"user_id\":\"D\",\"user_type\":\"trial\"}");
 
         // Verify output - all events should be partitioned correctly
-        assertFalse(partitionedOutput.isEmpty());
-        
+        assertThat(partitionedOutput.isEmpty()).isFalse();
+
         // Read all events at once to verify they were processed correctly
         var allEvents = partitionedOutput.readKeyValuesToList();
-        assertEquals(4, allEvents.size());
+        assertThat(allEvents.size()).isEqualTo(4);
 
         // Verify we can read all partitioned events
         // This validates that the partitioner function with resultType: integer works correctly
         var eventKeys = allEvents.stream().map(kv -> kv.key).toList();
-        assertTrue(eventKeys.contains("A"));
-        assertTrue(eventKeys.contains("B"));
-        assertTrue(eventKeys.contains("C"));
-        assertTrue(eventKeys.contains("D"));
+        assertThat(eventKeys.contains("A")).isTrue();
+        assertThat(eventKeys.contains("B")).isTrue();
+        assertThat(eventKeys.contains("C")).isTrue();
+        assertThat(eventKeys.contains("D")).isTrue();
         
         // The fact that this test completes successfully validates that:
         // 1. The streamPartitioner function with resultType: integer is properly recognized

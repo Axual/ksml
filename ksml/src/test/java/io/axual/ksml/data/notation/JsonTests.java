@@ -26,7 +26,7 @@ import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class JsonTests {
     private final NotationTestRunner runner = new NotationTestRunner(TestData.Variant.JSON);
@@ -34,8 +34,8 @@ class JsonTests {
     @Test
     void schemaTest() {
         runner.schemaTest(JsonNotation.NOTATION_NAME, new JsonSchemaMapper(false), (input, output) -> {
-            assertTrue(input.isAssignableFrom(output).isAssignable(), "Input is not assignable from the output");
-            assertTrue(output.isAssignableFrom(input).isAssignable(), "Output is not assignable from the input");
+            assertThat(input.isAssignableFrom(output).isAssignable()).as("Input is not assignable from the output").isTrue();
+            assertThat(output.isAssignableFrom(input).isAssignable()).as("Output is not assignable from the input").isTrue();
         });
     }
 

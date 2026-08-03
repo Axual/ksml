@@ -28,10 +28,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 // Covers the memoize-once and fatal-error-wrapping contracts StructsParser.lazy()
 // must preserve from DefinitionParser's historic parse()/schemas() implementation.
@@ -55,7 +53,7 @@ class StructsParserLazyTest {
         lazy.schemas();
         lazy.parse(node);
 
-        assertEquals(1, buildCount.get());
+        assertThat(buildCount.get()).isEqualTo(1);
     }
 
     @Test
@@ -65,10 +63,10 @@ class StructsParserLazyTest {
         }, List.<StructSchema>of()));
 
         final var node = nodeOf("value: 1");
-        final var ex = assertThrows(RuntimeException.class, () -> lazy.parse(node));
-        assertEquals(RuntimeException.class, ex.getClass());
-        assertEquals("boom", ex.getMessage());
-        assertNull(ex.getCause());
+        assertThatThrownBy(() -> lazy.parse(node))
+                .isExactlyInstanceOf(RuntimeException.class)
+                .hasMessage("boom")
+                .hasNoCause();
     }
 
     @Test
@@ -77,7 +75,8 @@ class StructsParserLazyTest {
             throw new IllegalStateException("construction failed");
         });
 
-        final var ex = assertThrows(IllegalStateException.class, lazy::schemas);
-        assertEquals("construction failed", ex.getMessage());
+        assertThatThrownBy(lazy::schemas)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("construction failed");
     }
 }
