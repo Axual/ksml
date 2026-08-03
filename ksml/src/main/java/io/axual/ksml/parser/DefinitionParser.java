@@ -24,7 +24,7 @@ import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.List;
 
-public abstract class DefinitionParser<T> extends BaseParser<T> implements StructsParser<T> {
+public abstract class DefinitionParser<T> implements StructsParser<T> {
     private final StructsParser<T> lazyParser = StructsParser.lazy(this::parser);
 
     protected abstract StructsParser<T> parser();

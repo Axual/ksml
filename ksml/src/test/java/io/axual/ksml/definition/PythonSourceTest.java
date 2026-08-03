@@ -30,8 +30,8 @@ class PythonSourceTest {
     @Test
     @DisplayName("equal contents are equal regardless of null-vs-empty normalization")
     void equalsTreatsNullAndEmptyGlobalCodeAndCodeAsEqual() {
-        final var first = new PythonSource(null, null, new String[]{"expr"});
-        final var second = new PythonSource(new String[]{}, new String[]{}, new String[]{"expr"});
+        final var first = PythonSource.of(null, null, new String[]{"expr"});
+        final var second = PythonSource.of(new String[]{}, new String[]{}, new String[]{"expr"});
 
         assertThat(first).isEqualTo(second);
     }
@@ -39,8 +39,8 @@ class PythonSourceTest {
     @Test
     @DisplayName("differing code content is not equal")
     void equalsDetectsDifferingContent() {
-        final var first = new PythonSource(null, new String[]{"a"}, null);
-        final var second = new PythonSource(null, new String[]{"b"}, null);
+        final var first = PythonSource.of(null, new String[]{"a"}, null);
+        final var second = PythonSource.of(null, new String[]{"b"}, null);
 
         assertThat(first).isNotEqualTo(second);
     }
@@ -48,8 +48,8 @@ class PythonSourceTest {
     @Test
     @DisplayName("a null expression equals another null expression")
     void equalsTreatsNullExpressionAsEqual() {
-        final var first = new PythonSource(null, null, null);
-        final var second = new PythonSource(null, null, null);
+        final var first = PythonSource.of((String[]) null, (String[]) null, (String[]) null);
+        final var second = PythonSource.of((String[]) null, (String[]) null, (String[]) null);
 
         assertThat(first).isEqualTo(second);
     }
@@ -57,8 +57,8 @@ class PythonSourceTest {
     @Test
     @DisplayName("a null expression is not equal to an empty expression")
     void equalsDistinguishesNullFromEmptyExpression() {
-        final var first = new PythonSource(null, null, null);
-        final var second = new PythonSource(null, null, new String[]{});
+        final var first = PythonSource.of((String[]) null, (String[]) null, (String[]) null);
+        final var second = PythonSource.of(null, null, new String[]{});
 
         assertThat(first).isNotEqualTo(second);
     }
@@ -66,8 +66,8 @@ class PythonSourceTest {
     @Test
     @DisplayName("equal instances share the same hash code")
     void equalInstancesShareHashCode() {
-        final var first = new PythonSource(null, new String[]{"a", "b"}, new String[]{"expr"});
-        final var second = new PythonSource(new String[]{}, new String[]{"a", "b"}, new String[]{"expr"});
+        final var first = PythonSource.of(null, new String[]{"a", "b"}, new String[]{"expr"});
+        final var second = PythonSource.of(new String[]{}, new String[]{"a", "b"}, new String[]{"expr"});
 
         assertThat(first).hasSameHashCodeAs(second);
     }
@@ -75,7 +75,7 @@ class PythonSourceTest {
     @Test
     @DisplayName("toString summarizes line counts instead of dumping array contents")
     void toStringSummarizesLineCounts() {
-        final var source = new PythonSource(null, new String[]{"line1"}, new String[]{"line1", "line2"});
+        final var source = PythonSource.of(null, new String[]{"line1"}, new String[]{"line1", "line2"});
 
         assertThat(source).asString()
                 .isEqualTo("PythonSource[globalCode=none, code=1 line(s), expression=2 line(s)]");
@@ -84,7 +84,7 @@ class PythonSourceTest {
     @Test
     @DisplayName("toString reports a null expression explicitly")
     void toStringReportsNullExpression() {
-        final var source = new PythonSource(null, null, null);
+        final var source = PythonSource.of((String[]) null, (String[]) null, (String[]) null);
 
         assertThat(source).asString()
                 .isEqualTo("PythonSource[globalCode=none, code=none, expression=null]");

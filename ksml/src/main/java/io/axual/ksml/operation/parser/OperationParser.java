@@ -41,12 +41,10 @@ import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceFields;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
-import lombok.Getter;
 
 import java.util.List;
 import java.util.function.BiFunction;
 
-@Getter
 public abstract class OperationParser<T extends BaseOperation> extends DefinitionParser<T> implements NamedObjectParser {
     private final TopologyResourceFields resourceFields;
     private String defaultShortName;
@@ -97,12 +95,12 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
     }
 
     protected StoreOperationConfig storeOperationConfig(String name, MetricTags tags, StateStoreDefinition store) {
-        name = FieldParsers.validateName("Store", name, defaultShortName(), true);
+        name = FieldParsers.validateName("Store", name, defaultShortName, true);
         return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store);
     }
 
     protected DualStoreOperationConfig dualStoreOperationConfig(String name, MetricTags tags, StateStoreDefinition store1, StateStoreDefinition store2) {
-        name = FieldParsers.validateName("Store", name, defaultShortName(), true);
+        name = FieldParsers.validateName("Store", name, defaultShortName, true);
         return new DualStoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store1, store2);
     }
 

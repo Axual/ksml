@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @EqualsAndHashCode
@@ -56,15 +57,15 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withType(String type) {
-        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withName(String name) {
-        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withDefaultResultType(DataType defaultResultType) {
@@ -72,11 +73,11 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withDefaultResultType(UserType defaultResultType) {
-        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType != null ? resultType : defaultResultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType != null ? resultType : defaultResultType, storeNames);
     }
 
     public FunctionDefinition withResultType(UserType resultType) {
-        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression), resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
@@ -84,7 +85,7 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withDefaultExpression(String[] defaultExpression) {
-        return new FunctionDefinition(type, name, parameters, new PythonSource(globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression), resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression), resultType, storeNames);
     }
 
     public FunctionDefinition validateNoResultTypeDefined() {
@@ -104,13 +105,14 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<String> storeNames) {
+        Objects.requireNonNull(source, "PythonSource is required");
         this.type = type;
         this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
-        this.expression = source.expression();
-        this.code = source.code();
-        this.globalCode = source.globalCode();
+        this.expression = source.expression() != null ? source.expression().toArray(EMPTY_STRING_ARRAY) : null;
+        this.code = source.code().toArray(EMPTY_STRING_ARRAY);
+        this.globalCode = source.globalCode().toArray(EMPTY_STRING_ARRAY);
         this.storeNames = storeNames != null ? storeNames : EMPTY_STRING_LIST;
     }
 

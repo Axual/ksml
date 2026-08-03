@@ -99,7 +99,7 @@ schema directly if there's only one, or wraps several in a `UnionSchema` otherwi
 
 ## 4. `DataSchema` — what the shape actually *is*
 
-`DataSchema` is a small sealed family of value types describing a shape, independent of any
+`DataSchema` is a small family of value types describing a shape, independent of any
 Java type or any specific piece of input:
 
 | Type           | Describes                                                         |

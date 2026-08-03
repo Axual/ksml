@@ -26,13 +26,13 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.UnresolvedType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.type.UserType;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 // Field-builder helpers available while only the base resource set (functions and state stores)
@@ -43,12 +43,12 @@ public class TopologyBaseResourceFields {
     private final TopologyBaseResources resources;
 
     public TopologyBaseResourceFields(TopologyBaseResources resources) {
+        Objects.requireNonNull(resources, "Topology base resources not properly initialized. This is a programming error.");
         this.resources = resources;
     }
 
     public TopologyBaseResources resources() {
-        if (resources != null) return resources;
-        throw new TopologyException("Topology base resources not properly initialized. This is a programming error.");
+        return resources;
     }
 
     public <F extends FunctionDefinition> StructsParser<FunctionDefinition> functionField(String childName, String doc, StructsParser<F> parser) {

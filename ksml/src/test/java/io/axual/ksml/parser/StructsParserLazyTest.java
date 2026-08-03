@@ -29,7 +29,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // Covers the memoize-once and fatal-error-wrapping contracts StructsParser.lazy()
 // must preserve from DefinitionParser's historic parse()/schemas() implementation.
@@ -41,7 +43,7 @@ class StructsParserLazyTest {
     }
 
     @Test
-    void lazy_buildsDelegateAtMostOnce() throws Exception {
+    void buildsDelegateExactlyOnce() throws Exception {
         final var buildCount = new AtomicInteger();
         final StructsParser<String> lazy = StructsParser.lazy(() -> {
             buildCount.incrementAndGet();
@@ -64,7 +66,9 @@ class StructsParserLazyTest {
 
         final var node = nodeOf("value: 1");
         final var ex = assertThrows(RuntimeException.class, () -> lazy.parse(node));
+        assertEquals(RuntimeException.class, ex.getClass());
         assertEquals("boom", ex.getMessage());
+        assertNull(ex.getCause());
     }
 
     @Test

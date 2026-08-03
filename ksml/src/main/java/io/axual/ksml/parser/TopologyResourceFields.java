@@ -23,10 +23,10 @@ package io.axual.ksml.parser;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 // Field-builder helpers available once the full resource set is known, i.e. once all
@@ -39,13 +39,13 @@ public class TopologyResourceFields {
     private final TopologyResources resources;
 
     public TopologyResourceFields(TopologyResources resources) {
+        Objects.requireNonNull(resources, "Topology resources not properly initialized. This is a programming error.");
         this.base = new TopologyBaseResourceFields(resources);
         this.resources = resources;
     }
 
     public TopologyResources resources() {
-        if (resources != null) return resources;
-        throw new TopologyException("Topology resources not properly initialized. This is a programming error.");
+        return resources;
     }
 
     public <F extends FunctionDefinition> StructsParser<FunctionDefinition> functionField(String childName, String doc, StructsParser<F> parser) {
