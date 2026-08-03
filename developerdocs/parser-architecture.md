@@ -120,25 +120,20 @@ description can be extracted, combined, and converted **without ever calling `pa
 
 The field-builder methods that build a `StructsParser<T>` — `stringField`, `booleanField`,
 `listField`, `structsParser(...)`, `optional(...)`, `structSchema(...)`, and the rest — live as
-`protected` instance methods directly on `DefinitionParser<T>` itself, inherited by every
-subclass. Each one builds **both** halves from the same declaration at the same time: a parse
-function *and* a `DataSchema` fragment (name, type, doc string, tag, required/optional, union
-alternatives). `structsParser(...)` combines several such (parser, schema) pairs into one
-combined `StructsParser<T>` whose `schemas()` merges the individual field schemas into one
-`StructSchema`. So a class's `schema()`/`schemas()` output isn't computed by inspecting the
-class or by reflection — it's built up field-by-field, at construction time, out of the exact
-same declarations (inherited from `DefinitionParser`) that also produce the parse behavior.
-That's the "parse ⊗ describe" combinator design: the two can never drift apart because they're
-two views of one declaration.
+static methods on a standalone `FieldParsers` utility class, callable as
+`FieldParsers.stringField(...)`, `FieldParsers.structsParser(...)`, etc., without requiring a
+class to extend anything. Each one builds **both** halves from the same declaration at the same
+time: a parse function *and* a `DataSchema` fragment (name, type, doc string, tag,
+required/optional, union alternatives). `structsParser(...)` combines several such (parser,
+schema) pairs into one combined `StructsParser<T>` whose `schemas()` merges the individual field
+schemas into one `StructSchema`. So a class's `schema()`/`schemas()` output isn't computed by
+inspecting the class or by reflection — it's built up field-by-field, out of the exact same
+`FieldParsers` calls that also produce the parse behavior. That's the "parse ⊗ describe"
+combinator design: the two can never drift apart because they're two views of one declaration.
 
-> **Proposed improvement — `FieldParsers`.** These field-builder methods are stateless: they
-> don't depend on `DefinitionParser`'s resources or identity, only on their own arguments. A
-> companion change extracts them out of `DefinitionParser` into a standalone `FieldParsers`
-> utility class, callable as `FieldParsers.stringField(...)`, `FieldParsers.structsParser(...)`,
-> etc., without requiring a class to extend `DefinitionParser` at all. If you're reading this on
-> a branch where that change hasn't landed, you'll see these same methods called bare and
-> unqualified (`stringField(...)`, `structsParser(...)`) rather than `FieldParsers.xxx(...)` —
-> same behavior, different location.
+These methods are stateless — they don't depend on any parser's resources or identity, only on
+their own arguments — which is why they live on `FieldParsers` rather than as inherited instance
+methods: any class can call them without needing to extend a particular parent.
 
 ### What the `DataSchema` tree is used for
 
@@ -249,17 +244,17 @@ public StructsParser<TopologyDefinition> parser() {
     final var dummyResources = new TopologyResources("dummy");
     // (1) SCHEMA computation — runs once, uses a throwaway empty TopologyResources.
     //     parse() is never called on these instances; only .schemas() is read.
-    final var pipelinesParser = optional(mapField(
+    final var pipelinesParser = FieldParsers.optional(FieldParsers.mapField(
             PIPELINES, PIPELINE, PIPELINE, "Collection of named pipelines",
             new PipelineDefinitionParser(dummyResources)));
-    final var producersParser = optional(mapField(
+    final var producersParser = FieldParsers.optional(FieldParsers.mapField(
             PRODUCERS, PRODUCER, PRODUCER, "Collection of named producers",
             new ProducerDefinitionParser(dummyResources)));
 
     final var fields = resourcesParser.schemas().getFirst().fields();
     fields.addAll(pipelinesParser.schemas().getFirst().fields());
     fields.addAll(producersParser.schemas().getFirst().fields());
-    final var schemas = List.of(structSchema(TopologyDefinition.class, "KSML definition", fields));
+    final var schemas = List.of(FieldParsers.structSchema(TopologyDefinition.class, "KSML definition", fields));
 
     return new StructsParser<>() {
         @Override
@@ -286,12 +281,11 @@ public StructsParser<TopologyDefinition> parser() {
 }
 ```
 
-`optional`, `mapField`, and `structSchema` here are unqualified because `TopologyDefinitionParser
-extends DefinitionParser<TopologyDefinition>` and inherits them directly (see the "proposed
-improvement" note above) — on a branch with the `FieldParsers` extraction applied, these same
-calls read `FieldParsers.optional(...)`, `FieldParsers.mapField(...)`,
-`FieldParsers.structSchema(...)`. `MapParser` is unaffected either way — it was never one of the
-methods `DefinitionParser` provided; it's a plain, always-standalone class.
+`FieldParsers.optional`, `FieldParsers.mapField`, and `FieldParsers.structSchema` here are called
+explicitly because they're static utility methods, not inherited instance methods —
+`TopologyDefinitionParser extends DefinitionParser<TopologyDefinition>`, but `DefinitionParser`
+itself no longer provides any field-builder methods to inherit. `MapParser` is unrelated either
+way — it was never one of the `FieldParsers` methods; it's a plain, always-standalone class.
 
 ```mermaid
 flowchart TB
