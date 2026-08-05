@@ -24,8 +24,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class JsonVerifier {
 
@@ -74,7 +74,7 @@ public class JsonVerifier {
     }
 
     public JsonVerifier withTextValue(final String expectedText) {
-        assertEquals(expectedText, cursor.textValue(), String.format("Node value does not match in %s", cursor));
+        assertThat(cursor.textValue()).as("Node value does not match in %s", cursor).isEqualTo(expectedText);
         return this;
     }
 }

@@ -25,24 +25,17 @@ import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 // Tests that integerField and longField reject YAML literals that would silently overflow.
 class DefinitionParserFieldValidationTest {
 
-    // Exposes the protected integerField/longField helpers for direct unit testing.
+    // Exposes the integerField/longField helpers for direct unit testing.
     // Using StructsParser.parse() directly avoids the FatalError wrapping in DefinitionParser.parse().
-    private static class FieldTestParser extends DefinitionParser<Void> {
-        final StructsParser<Integer> intField = integerField("value", "test integer field");
-        final StructsParser<Long> longField = longField("value", "test long field");
-
-        @Override
-        public StructsParser<Void> parser() {
-            return null; // not used directly
-        }
+    private static class FieldTestParser {
+        final StructsParser<Integer> intField = FieldParsers.integerField("value", "test integer field");
+        final StructsParser<Long> longField = FieldParsers.longField("value", "test long field");
     }
 
     private static final FieldTestParser PARSER = new FieldTestParser();
@@ -58,27 +51,29 @@ class DefinitionParserFieldValidationTest {
     void integerField_throwsForValueExceedingIntRange() throws Exception {
         // 9999999999 fits in a long but overflows int; the old code silently truncated to 1410065407
         final var node = nodeOf("value: 9999999999");
-        final var ex = assertThrows(ParseException.class, () -> PARSER.intField.parse(node));
-        assertThat(ex.getMessage(), containsString("'value' is out of INT range"));
+        assertThatThrownBy(() -> PARSER.intField.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("'value' is out of INT range");
     }
 
     @Test
     void integerField_throwsForNegativeValueExceedingIntRange() throws Exception {
         final var node = nodeOf("value: -9999999999");
-        final var ex = assertThrows(ParseException.class, () -> PARSER.intField.parse(node));
-        assertThat(ex.getMessage(), containsString("'value' is out of INT range"));
+        assertThatThrownBy(() -> PARSER.intField.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("'value' is out of INT range");
     }
 
     @Test
     void integerField_acceptsValidPositiveIntValue() throws Exception {
         final var node = nodeOf("value: 4");
-        assertDoesNotThrow(() -> PARSER.intField.parse(node));
+        assertThatCode(() -> PARSER.intField.parse(node)).doesNotThrowAnyException();
     }
 
     @Test
     void integerField_acceptsMaxIntValue() throws Exception {
         final var node = nodeOf("value: 2147483647");
-        assertDoesNotThrow(() -> PARSER.intField.parse(node));
+        assertThatCode(() -> PARSER.intField.parse(node)).doesNotThrowAnyException();
     }
 
     // --- longField ---
@@ -87,28 +82,30 @@ class DefinitionParserFieldValidationTest {
     void longField_throwsForFloatingPointValue() throws Exception {
         // 1.5 is not integral; the old code silently called longValue() which returned 1
         final var node = nodeOf("value: 1.5");
-        final var ex = assertThrows(ParseException.class, () -> PARSER.longField.parse(node));
-        assertThat(ex.getMessage(), containsString("'value' is not a valid long integer"));
+        assertThatThrownBy(() -> PARSER.longField.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("'value' is not a valid long integer");
     }
 
     @Test
     void longField_throwsForValueExceedingLongRange() throws Exception {
         // 99999999999999999999 exceeds Long.MAX_VALUE; Jackson parses it as BigInteger
         final var node = nodeOf("value: 99999999999999999999");
-        final var ex = assertThrows(ParseException.class, () -> PARSER.longField.parse(node));
-        assertThat(ex.getMessage(), containsString("'value' is not a valid long integer"));
+        assertThatThrownBy(() -> PARSER.longField.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("'value' is not a valid long integer");
     }
 
     @Test
     void longField_acceptsSmallIntegerValue() throws Exception {
         final var node = nodeOf("value: 5");
-        assertDoesNotThrow(() -> PARSER.longField.parse(node));
+        assertThatCode(() -> PARSER.longField.parse(node)).doesNotThrowAnyException();
     }
 
     @Test
     void longField_acceptsLargeValueWithinLongRange() throws Exception {
         // 5000000000 exceeds Integer.MAX_VALUE but is well within Long.MAX_VALUE
         final var node = nodeOf("value: 5000000000");
-        assertDoesNotThrow(() -> PARSER.longField.parse(node));
+        assertThatCode(() -> PARSER.longField.parse(node)).doesNotThrowAnyException();
     }
 }

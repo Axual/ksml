@@ -28,8 +28,7 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
@@ -47,9 +46,9 @@ class KSMLTransformToNoneTest {
         log.debug("testSetNoneValueData()");
 
         inputTopic.pipeInput("key1", (String) null);
-        assertFalse(outputTopic.isEmpty(), "record should be copied");
+        assertThat(outputTopic.isEmpty()).as("record should be copied").isFalse();
         var keyValue = outputTopic.readKeyValue();
-        assertNull(keyValue.value);
+        assertThat(keyValue.value).isNull();
         log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
     }
 }

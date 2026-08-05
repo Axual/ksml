@@ -4,11 +4,7 @@ package io.axual.ksml.data.util;
  * ========================LICENSE_START=================================
  * KSML Data Library
  * %%
-<<<<<<< HEAD
- * Copyright (C) 2021 - 2024 Axual B.V.
-=======
  * Copyright (C) 2021 - 2025 Axual B.V.
->>>>>>> main
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

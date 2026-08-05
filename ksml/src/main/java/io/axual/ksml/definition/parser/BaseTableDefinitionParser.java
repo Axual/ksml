@@ -21,59 +21,74 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
+import io.axual.ksml.parser.TopologyBaseResourceFields;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 import io.axual.ksml.type.UserType;
 
 import java.util.List;
 
-public abstract class BaseTableDefinitionParser<T> extends TopologyBaseResourceAwareParser<T> {
+public abstract class BaseTableDefinitionParser<T> extends DefinitionParser<T> {
     protected final boolean isJoinTarget;
     protected final String tableType;
+    private final TopologyBaseResourceFields resourceFields;
 
     protected BaseTableDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget, String tableType) {
-        super(resources);
+        this.resourceFields = new TopologyBaseResourceFields(resources);
         this.isJoinTarget = isJoinTarget;
         this.tableType = tableType != null && !tableType.isEmpty() ? tableType : "";
     }
 
+    protected TopologyBaseResources resources() {
+        return resourceFields.resources();
+    }
+
+    protected <F extends FunctionDefinition> StructsParser<FunctionDefinition> functionField(String childName, String doc, StructsParser<F> parser) {
+        return resourceFields.functionField(childName, doc, parser);
+    }
+
+    protected static UserType resolveUserType(UserType userType, String topic, boolean isKey) {
+        return TopologyBaseResourceFields.resolveUserType(userType, topic, isKey);
+    }
+
     protected StructsParser<String> topicField() {
-        return stringField(KSMLDSL.Streams.TOPIC, "The name of the Kafka topic for this " + tableType);
+        return FieldParsers.stringField(KSMLDSL.Streams.TOPIC, "The name of the Kafka topic for this " + tableType);
 
     }
 
     protected StructsParser<UserType> keyField() {
-        return optional(userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the " + tableType, true), UserType.UNKNOWN);
+        return FieldParsers.optional(FieldParsers.userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the " + tableType, true), UserType.UNKNOWN);
     }
 
     protected StructsParser<UserType> valueField() {
-        return optional(userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the " + tableType, true), UserType.UNKNOWN);
+        return FieldParsers.optional(FieldParsers.userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the " + tableType, true), UserType.UNKNOWN);
     }
 
     protected StructsParser<FunctionDefinition> timestampExtractorField() {
-        return optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function that extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false)));
+        return FieldParsers.optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function that extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false)));
     }
 
     protected StructsParser<String> offsetResetPolicyField() {
-        return optional(stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted)"));
+        return FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted)"));
     }
 
     protected StructsParser<FunctionDefinition> partitionerField() {
-        return optional(functionField(KSMLDSL.Streams.PARTITIONER, "A function that determines to which topic partition a given message needs to be written", new StreamPartitionerDefinitionParser(false)));
+        return FieldParsers.optional(functionField(KSMLDSL.Streams.PARTITIONER, "A function that determines to which topic partition a given message needs to be written", new StreamPartitionerDefinitionParser(false)));
     }
 
     protected StructsParser<KeyValueStateStoreDefinition> storeField() {
         final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, false);
         final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Streams.STORE, "KeyValue state store definition", null, storeParser);
-        final var schemas = optional(resourceParser).schemas();
+        final var schemas = FieldParsers.optional(resourceParser).schemas();
         return new StructsParser<>() {
             @Override
             public KeyValueStateStoreDefinition parse(ParseNode node) {

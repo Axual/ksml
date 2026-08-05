@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.python.PythonContext;
@@ -123,7 +124,7 @@ public class TestDataProducer {
         var resultType = new UserType(new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)));
         var functionDef = FunctionDefinition.as(
                 "generator", generatorName, List.of(),
-                globalCode, code, expression, resultType, null);
+                PythonSource.of(globalCode, code, expression), resultType, null);
 
         // Create a PythonContext and register the generator function
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {

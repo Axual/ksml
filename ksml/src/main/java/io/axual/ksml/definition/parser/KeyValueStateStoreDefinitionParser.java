@@ -20,6 +20,7 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
@@ -38,23 +39,23 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
 
     @Override
     protected StructsParser<KeyValueStateStoreDefinition> parser() {
-        final var nameField = optional(stringField(KSMLDSL.Stores.NAME, false, "The name of the keyValue store. If this field is not defined, then the name is derived from the context."));
-        final var persistentField = optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise"));
-        final var timestampField = optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
-        final var versionedField = optional(booleanField(KSMLDSL.Stores.VERSIONED, "\"true\" if elements in the store are versioned, \"false\" otherwise"));
-        final var historyRetentionField = optional(durationField(KSMLDSL.Stores.HISTORY_RETENTION, "(Versioned only) The duration for which old record versions are available for query (cannot be negative)"));
-        final var segmentIntervalField = optional(durationField(KSMLDSL.Stores.SEGMENT_INTERVAL, "Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."));
-        final var keyTypeField = optional(userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the keyValue store", false));
-        final var valueTypeField = optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the keyValue store", false));
-        final var cachingField = optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly"));
-        final var loggingField = optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise"));
+        final var nameField = FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Stores.NAME, false, "The name of the keyValue store. If this field is not defined, then the name is derived from the context."));
+        final var persistentField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise"));
+        final var timestampField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
+        final var versionedField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.VERSIONED, "\"true\" if elements in the store are versioned, \"false\" otherwise"));
+        final var historyRetentionField = FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Stores.HISTORY_RETENTION, "(Versioned only) The duration for which old record versions are available for query (cannot be negative)"));
+        final var segmentIntervalField = FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Stores.SEGMENT_INTERVAL, "Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."));
+        final var keyTypeField = FieldParsers.optional(FieldParsers.userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the keyValue store", false));
+        final var valueTypeField = FieldParsers.optional(FieldParsers.userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the keyValue store", false));
+        final var cachingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly"));
+        final var loggingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise"));
 
         // Determine this parser's name by the two input booleans
         final var parserPostfix =
                 (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX) +
                 (requireKeyValueType ? "" : KSMLDSL.Types.WITH_IMPLICIT_KEY_AND_VALUE_TYPE);
 
-        if (requireKeyValueType) return structsParser(
+        if (requireKeyValueType) return FieldParsers.structsParser(
                 // Parse the state store including name, keyType and valueType
                 KeyValueStateStoreDefinition.class,
                 parserPostfix,
@@ -70,12 +71,12 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 cachingField,
                 loggingField,
                 (name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging, tags) -> {
-                    name = validateName("KeyValue state store", name, defaultShortName);
+                    name = FieldParsers.validateName("KeyValue state store", name, defaultShortName);
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging);
                 });
 
         // Parse the state store without a name, keyType and valueType
-        return structsParser(
+        return FieldParsers.structsParser(
                 KeyValueStateStoreDefinition.class,
                 parserPostfix,
                 "Definition of a keyValue state store",
@@ -88,7 +89,7 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 cachingField,
                 loggingField,
                 (name, persistent, timestamped, versioned, history, segment, caching, logging, tags) -> {
-                    name = validateName("KeyValue state store", name, defaultShortName);
+                    name = FieldParsers.validateName("KeyValue state store", name, defaultShortName);
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, null, null, caching, logging);
                 });
     }

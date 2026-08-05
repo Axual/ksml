@@ -4,7 +4,7 @@ package io.axual.ksml.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,22 +24,22 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class DurationParserTest {
     @Test
     void testDurationParser() {
-        assertEquals(Duration.ofMillis(123), DurationParser.parseDuration("123ms", false));
-        assertEquals(Duration.ofMillis(123), DurationParser.parseDuration("123       ms", false));
-        assertEquals(Duration.ofSeconds(456), DurationParser.parseDuration("456s", false));
-        assertEquals(Duration.ofSeconds(456), DurationParser.parseDuration("456  s", false));
-        assertEquals(Duration.ofMinutes(789), DurationParser.parseDuration("789m", false));
-        assertEquals(Duration.ofMinutes(789), DurationParser.parseDuration("789   m", false));
-        assertEquals(Duration.ofHours(123), DurationParser.parseDuration("123h", false));
-        assertEquals(Duration.ofHours(123), DurationParser.parseDuration("123 h", false));
-        assertEquals(Duration.ofDays(456), DurationParser.parseDuration("456d", false));
-        assertEquals(Duration.ofDays(456), DurationParser.parseDuration("456    d", false));
-        assertEquals(Duration.ofDays(7*789), DurationParser.parseDuration("789w", false));
-        assertEquals(Duration.ofDays(7*789), DurationParser.parseDuration("789   w", false));
+        assertThat(DurationParser.parseDuration("123ms", false)).isEqualTo(Duration.ofMillis(123));
+        assertThat(DurationParser.parseDuration("123       ms", false)).isEqualTo(Duration.ofMillis(123));
+        assertThat(DurationParser.parseDuration("456s", false)).isEqualTo(Duration.ofSeconds(456));
+        assertThat(DurationParser.parseDuration("456  s", false)).isEqualTo(Duration.ofSeconds(456));
+        assertThat(DurationParser.parseDuration("789m", false)).isEqualTo(Duration.ofMinutes(789));
+        assertThat(DurationParser.parseDuration("789   m", false)).isEqualTo(Duration.ofMinutes(789));
+        assertThat(DurationParser.parseDuration("123h", false)).isEqualTo(Duration.ofHours(123));
+        assertThat(DurationParser.parseDuration("123 h", false)).isEqualTo(Duration.ofHours(123));
+        assertThat(DurationParser.parseDuration("456d", false)).isEqualTo(Duration.ofDays(456));
+        assertThat(DurationParser.parseDuration("456    d", false)).isEqualTo(Duration.ofDays(456));
+        assertThat(DurationParser.parseDuration("789w", false)).isEqualTo(Duration.ofDays(7 * 789));
+        assertThat(DurationParser.parseDuration("789   w", false)).isEqualTo(Duration.ofDays(7 * 789));
     }
 }

@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
@@ -52,12 +52,12 @@ class KSMLTransformKeyValueToKeyValueListTest {
         inputTopic.pipeInput("somekey", "somevalue");
 
         // we expect the output to contain this record, duplicated, with transformed key and value
-        assertEquals(2, outputTopic.getQueueSize(), "output should contain 2 records");
+        assertThat(outputTopic.getQueueSize()).as("output should contain 2 records").isEqualTo(2);
 
         List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals("somekey-a", keyValues.get(0).key, "key should be copied");
-        assertEquals("somevalue-a", keyValues.get(0).value, "value should be copied");
-        assertEquals("somekey-b", keyValues.get(1).key, "key should be copied");
-        assertEquals("somevalue-b", keyValues.get(1).value, "value should be copied");
+        assertThat(keyValues.get(0).key).as("key should be copied").isEqualTo("somekey-a");
+        assertThat(keyValues.get(0).value).as("value should be copied").isEqualTo("somevalue-a");
+        assertThat(keyValues.get(1).key).as("key should be copied").isEqualTo("somekey-b");
+        assertThat(keyValues.get(1).value).as("value should be copied").isEqualTo("somevalue-b");
     }
 }

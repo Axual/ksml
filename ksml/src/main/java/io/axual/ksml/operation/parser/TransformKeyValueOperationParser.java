@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.KeyValueTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -34,7 +35,7 @@ public class TransformKeyValueOperationParser extends OperationParser<TransformK
 
     @Override
     protected StructsParser<TransformKeyValueOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 TransformKeyValueOperation.class,
                 "",
                 "Convert the key/value of every record in the stream to another key/value",

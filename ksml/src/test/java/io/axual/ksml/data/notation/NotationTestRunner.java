@@ -38,7 +38,6 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 class NotationTestRunner {
@@ -96,7 +95,7 @@ class NotationTestRunner {
             final var outputData = objectMapper.toDataObject(inputData.type(), nativeObject);
             log.info("OUTPUT DATA: {}", outputData);
             final var equal = inputData.equals(outputData, flags);
-            assertTrue(equal.isEqual(), "Input data should match output data:\n" + equal.toString(true));
+            assertThat(equal.isEqual()).as("Input data should match output data:\n" + equal.toString(true)).isTrue();
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }
@@ -123,7 +122,7 @@ class NotationTestRunner {
                 log.info("CONVERTED OUTPUT DATA: {}", outputData);
             }
             final var equal = inputData.equals(outputData, flags);
-            assertTrue(equal.isEqual(), "Input data should match output data\n" + equal.toString(true));
+            assertThat(equal.isEqual()).as("Input data should match output data\n" + equal.toString(true)).isTrue();
         } catch (Exception e) {
             throw new DataException("Test failed", e);
         }

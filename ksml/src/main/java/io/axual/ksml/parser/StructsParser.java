@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.execution.FatalError;
 
 import java.util.List;
 import java.util.function.Function;
@@ -54,6 +55,39 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
             @Override
             public List<StructSchema> schemas() {
                 return getter.get();
+            }
+        };
+    }
+
+    /**
+     * Wraps a StructsParser supplier in a StructsParser that will lazily construct the delegate parser. The supplier is called exactly once
+     * upon the first invocation of parse() or schemas().
+     * @param supplier a StructsParser supplier.
+     * @return a StructsParser that lazily constructs the delegate parser.
+     * @param <T> the type of the parsed object.
+     */
+    static <T> StructsParser<T> lazy(Supplier<StructsParser<T>> supplier) {
+        return new StructsParser<>() {
+            private StructsParser<T> delegate;
+
+            private StructsParser<T> delegate() {
+                if (delegate == null) delegate = supplier.get();
+                return delegate;
+            }
+
+            @Override
+            public T parse(ParseNode node) {
+                final var delegateParser = delegate();
+                try {
+                    return delegateParser.parse(node);
+                } catch (Exception e) {
+                    throw FatalError.report(e);
+                }
+            }
+
+            @Override
+            public List<StructSchema> schemas() {
+                return delegate().schemas();
             }
         };
     }

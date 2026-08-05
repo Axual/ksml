@@ -26,10 +26,7 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.kstream.internals.TimeWindow;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class DataFlattenerTest {
     @Test
@@ -39,11 +36,11 @@ class DataFlattenerTest {
         key.put("key", DataString.from("value"));
         final var windowedData = new Windowed<>(key, window);
         final var converted = new DataObjectFlattener().toDataObject(windowedData);
-        assertNotNull(converted, "Conversion result should not be null");
-        assertInstanceOf(DataStruct.class, converted, "Conversion should result in a data struct");
+        assertThat(converted).as("Conversion result should not be null").isNotNull();
+        assertThat(converted).as("Conversion should result in a data struct").isInstanceOf(DataStruct.class);
         final var struct = (DataStruct) converted;
-        assertTrue(struct.containsKey("key"), "Converted struct should contain key field");
-        assertInstanceOf(DataStruct.class, struct.get("key"), "Converted struct should contain key field of type data struct");
-        assertEquals("value", ((DataStruct) struct.get("key")).get("key").toString(), "Converted struct does not contain correct key");
+        assertThat(struct.containsKey("key")).as("Converted struct should contain key field").isTrue();
+        assertThat(struct.get("key")).as("Converted struct should contain key field of type data struct").isInstanceOf(DataStruct.class);
+        assertThat(((DataStruct) struct.get("key")).get("key").toString()).as("Converted struct does not contain correct key").isEqualTo("value");
     }
 }

@@ -27,9 +27,7 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -61,26 +59,26 @@ public class KSMLAggregateStoreTest {
         transactionsInput.pipeInput("t5", transaction5);
 
         // Verify category aggregates (non-windowed)
-        assertFalse(categoryAggregatesOutput.isEmpty());
-        
+        assertThat(categoryAggregatesOutput.isEmpty()).isFalse();
+
         // Read all category aggregates
         var categoryOutputs = categoryAggregatesOutput.readKeyValuesToMap();
-        
+
         // Verify we have aggregates for each category
-        assertTrue(categoryOutputs.containsKey("electronics"));
-        assertTrue(categoryOutputs.containsKey("clothing"));
-        
+        assertThat(categoryOutputs.containsKey("electronics")).isTrue();
+        assertThat(categoryOutputs.containsKey("clothing")).isTrue();
+
         // Verify electronics aggregate
         String electronicsAggregate = categoryOutputs.get("electronics");
-        assertNotNull(electronicsAggregate);
-        assertTrue(electronicsAggregate.contains("\"total_sales\":1099.97"));  // 299.99 + 599.99 + 199.99
-        assertTrue(electronicsAggregate.contains("\"count\":3"));
-        
+        assertThat(electronicsAggregate).isNotNull();
+        assertThat(electronicsAggregate.contains("\"total_sales\":1099.97")).isTrue();  // 299.99 + 599.99 + 199.99
+        assertThat(electronicsAggregate.contains("\"count\":3")).isTrue();
+
         // Verify clothing aggregate
         String clothingAggregate = categoryOutputs.get("clothing");
-        assertNotNull(clothingAggregate);
-        assertTrue(clothingAggregate.contains("\"total_sales\":199.98"));  // 79.99 + 119.99
-        assertTrue(clothingAggregate.contains("\"count\":2"));
+        assertThat(clothingAggregate).isNotNull();
+        assertThat(clothingAggregate.contains("\"total_sales\":199.98")).isTrue();  // 79.99 + 119.99
+        assertThat(clothingAggregate.contains("\"count\":2")).isTrue();
 
         // The fact that this test completes successfully validates that:
         // 1. Aggregate operations work correctly with explicit store definitions

@@ -30,8 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
@@ -57,11 +56,11 @@ class KSMLCountTest {
         inputTopic.pipeInput("keyFirst", "value3");
 
         // the pipeline should count the records for each key
-        assertFalse(outputTopic.isEmpty(), "records should be counted");
+        assertThat(outputTopic.isEmpty()).as("records should be counted").isFalse();
         Map<String, Long> keyValueMap = outputTopic.readKeyValuesToMap();
 
-        assertEquals(3, keyValueMap.get("keyFirst"), "keyFirst should have counted 3 records");
-        assertEquals(2, keyValueMap.get("keySecond"), "keySecond should have counted 2 records");
-        assertEquals(1, keyValueMap.get("keyThird"), "keyThird should have counted 1 records");
+        assertThat(keyValueMap.get("keyFirst")).as("keyFirst should have counted 3 records").isEqualTo(3);
+        assertThat(keyValueMap.get("keySecond")).as("keySecond should have counted 2 records").isEqualTo(2);
+        assertThat(keyValueMap.get("keyThird")).as("keyThird should have counted 1 records").isEqualTo(1);
     }
 }

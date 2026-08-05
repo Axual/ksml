@@ -33,9 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
@@ -67,11 +65,11 @@ class KSMLFilterNotTest {
         }
 
         // only the records with color other than "blue" should be kept
-        assertFalse(outputTopic.isEmpty());
+        assertThat(outputTopic.isEmpty()).isFalse();
         List<GenericRecord> outputValues = outputTopic.readValuesToList();
-        assertEquals(3, outputValues.size());
-        assertTrue(outputValues.stream()
+        assertThat(outputValues.size()).isEqualTo(3);
+        assertThat(outputValues.stream()
                 .map(rec -> rec.get("color").toString())
-                .noneMatch(color -> color.equals("blue")));
+                .noneMatch(color -> color.equals("blue"))).isTrue();
     }
 }

@@ -32,7 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -68,7 +68,7 @@ public class KSMLBranchingTest {
         List<GenericRecord> blueRecords = outputBlue.readValuesToList();
         List<GenericRecord> redRecords = outputRed.readValuesToList();
 
-        assertEquals(3, blueRecords.size(), "3 blue records should be routed to outputBlue");
-        assertEquals(2, redRecords.size(), "red 2 records should be routed to ouputRed");
+        assertThat(blueRecords.size()).as("3 blue records should be routed to outputBlue").isEqualTo(3);
+        assertThat(redRecords.size()).as("red 2 records should be routed to ouputRed").isEqualTo(2);
     }
 }

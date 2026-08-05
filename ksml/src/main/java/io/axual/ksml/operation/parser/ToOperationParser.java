@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.ToTopicDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
@@ -36,7 +37,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
     private class ToOperationDefinitionParser extends DefinitionParser<ToOperation> {
         @Override
         protected StructsParser<ToOperation> parser() {
-            return structsParser(
+            return FieldParsers.structsParser(
                     ToOperation.class,
                     "",
                     "Inline defined topic to send output messages to",

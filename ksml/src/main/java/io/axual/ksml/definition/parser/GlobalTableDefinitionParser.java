@@ -21,6 +21,7 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.parser.StructsParser;
@@ -33,7 +34,7 @@ public class GlobalTableDefinitionParser extends BaseTableDefinitionParser<Globa
 
     @Override
     public StructsParser<GlobalTableDefinition> parser() {
-        if (!isJoinTarget) return structsParser(
+        if (!isJoinTarget) return FieldParsers.structsParser(
                 GlobalTableDefinition.class,
                 "",
                 "Contains a definition of a " + tableType + ", which can be referenced by producers and pipelines",
@@ -51,13 +52,13 @@ public class GlobalTableDefinitionParser extends BaseTableDefinitionParser<Globa
                     return new GlobalTableDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
                 });
 
-        return structsParser(
+        return FieldParsers.structsParser(
                 GlobalTableDefinition.class,
                 "AsJoinTarget",
                 "Reference to a " + tableType + " in a join operation",
                 topicField(),
-                optional(keyField()),
-                optional(valueField()),
+                FieldParsers.optional(keyField()),
+                FieldParsers.optional(valueField()),
                 partitionerField(),
                 storeField(),
                 (topic, keyType, valueType, partitioner, store, tags) -> {

@@ -48,11 +48,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Guards the {@code allowUnresolved} flags that the definition parsers pass to
@@ -124,8 +121,8 @@ class DefinitionParserUnresolvedTypeTest {
         final var parser = new StreamDefinitionParser(new TopologyBaseResources("test"), false).parser();
         final var node = nodeOf("topic: some_topic\nkeyType: string\nvalueType: " + REMOTE_NOTATION);
 
-        final var stream = assertDoesNotThrow(() -> parser.parse(node));
-        assertNotNull(stream);
+        final var stream = parser.parse(node);
+        assertThat(stream).isNotNull();
     }
 
     // --- allowUnresolved = false: the type must be fully known at parse time ---
@@ -136,8 +133,9 @@ class DefinitionParserUnresolvedTypeTest {
         final var parser = new KeyValueStateStoreDefinitionParser(false, true).parser();
         final var node = nodeOf("name: my_store\nkeyType: string\nvalueType: " + REMOTE_NOTATION);
 
-        final var ex = assertThrows(ParseException.class, () -> parser.parse(node));
-        assertThat(ex.getMessage(), containsString(UNRESOLVED_NOT_ALLOWED));
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining(UNRESOLVED_NOT_ALLOWED);
     }
 
     @Test
@@ -146,8 +144,9 @@ class DefinitionParserUnresolvedTypeTest {
         final var parser = new GenericFunctionDefinitionParser(false).parser();
         final var node = nodeOf("resultType: " + REMOTE_NOTATION + "\ncode: \"x = 1\"");
 
-        final var ex = assertThrows(ParseException.class, () -> parser.parse(node));
-        assertThat(ex.getMessage(), containsString(UNRESOLVED_NOT_ALLOWED));
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining(UNRESOLVED_NOT_ALLOWED);
     }
 
     @Test
@@ -156,8 +155,9 @@ class DefinitionParserUnresolvedTypeTest {
         final var parser = new ParameterDefinitionParser().parser();
         final var node = nodeOf("name: my_param\ntype: " + REMOTE_NOTATION);
 
-        final var ex = assertThrows(ParseException.class, () -> parser.parse(node));
-        assertThat(ex.getMessage(), containsString(UNRESOLVED_NOT_ALLOWED));
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining(UNRESOLVED_NOT_ALLOWED);
     }
 
     @Test
@@ -166,7 +166,8 @@ class DefinitionParserUnresolvedTypeTest {
         final var parser = new ConvertValueOperationParser(new TopologyResources("test")).parser();
         final var node = nodeOf("into: " + REMOTE_NOTATION);
 
-        final var ex = assertThrows(ParseException.class, () -> parser.parse(node));
-        assertThat(ex.getMessage(), containsString(UNRESOLVED_NOT_ALLOWED));
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining(UNRESOLVED_NOT_ALLOWED);
     }
 }

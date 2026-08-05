@@ -20,31 +20,35 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.ToTopicNameExtractorDefinition;
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceFields;
 
-public class ToTopicNameExtractorDefinitionParser extends TopologyResourceAwareParser<ToTopicNameExtractorDefinition> {
+public class ToTopicNameExtractorDefinitionParser extends DefinitionParser<ToTopicNameExtractorDefinition> {
+    private final TopologyResourceFields resourceFields;
+
     public ToTopicNameExtractorDefinitionParser(TopologyResources resources) {
-        super(resources);
+        this.resourceFields = new TopologyResourceFields(resources);
     }
 
     @Override
     protected StructsParser<ToTopicNameExtractorDefinition> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 ToTopicNameExtractorDefinition.class,
                 "",
                 "Writes out pipeline messages to a topic as given by a topic name extractor",
-                lookupField(
+                resourceFields.lookupField(
                         "topic name extractor",
                         KSMLDSL.Operations.ToTopicNameExtractor.TOPIC_NAME_EXTRACTOR,
                         "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor",
-                        (name, tags) -> resources().function(name),
+                        (name, tags) -> resourceFields.resources().function(name),
                         new TopicNameExtractorDefinitionParser(false)),
-                optional(functionField(KSMLDSL.Operations.ToTopicNameExtractor.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
+                FieldParsers.optional(resourceFields.functionField(KSMLDSL.Operations.ToTopicNameExtractor.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
                 (tne, partitioner, tags) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }
 }

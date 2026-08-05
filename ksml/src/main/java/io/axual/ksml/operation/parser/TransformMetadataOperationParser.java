@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.MetadataTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -33,7 +34,7 @@ public class TransformMetadataOperationParser extends OperationParser<TransformM
 
     @Override
     protected StructsParser<TransformMetadataOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 TransformMetadataOperation.class,
                 "",
                 "Convert the metadata of every record in the stream",

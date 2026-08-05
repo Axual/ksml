@@ -20,6 +20,7 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -32,14 +33,16 @@ import io.axual.ksml.operation.parser.PipelineOperationParser;
 import io.axual.ksml.operation.parser.PrintOperationParser;
 import io.axual.ksml.operation.parser.ToOperationParser;
 import io.axual.ksml.operation.parser.ToTopicNameExtractorOperationParser;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceFields;
 
 import java.util.ArrayList;
 
-public class PipelineDefinitionParser extends TopologyResourceAwareParser<PipelineDefinition> implements NamedObjectParser {
+public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinition> implements NamedObjectParser {
+    private final TopologyResourceFields resourceFields;
     private final boolean parseSource;
     private final AsOperationParser asParser;
     private final BranchOperationParser branchParser;
@@ -55,36 +58,36 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
     }
 
     protected PipelineDefinitionParser(TopologyResources resources, boolean parseSource) {
-        super(resources);
+        this.resourceFields = new TopologyResourceFields(resources);
         this.parseSource = parseSource;
-        asParser = new AsOperationParser(resources());
-        branchParser = new BranchOperationParser(resources(), parseSource);
-        forEachParser = new ForEachOperationParser(resources());
-        printParser = new PrintOperationParser(resources());
-        toTopic = new ToOperationParser(resources());
-        toTne = new ToTopicNameExtractorOperationParser(resources());
+        asParser = new AsOperationParser(resourceFields.resources());
+        branchParser = new BranchOperationParser(resourceFields.resources(), parseSource);
+        forEachParser = new ForEachOperationParser(resourceFields.resources());
+        printParser = new PrintOperationParser(resourceFields.resources());
+        toTopic = new ToOperationParser(resourceFields.resources());
+        toTne = new ToTopicNameExtractorOperationParser(resourceFields.resources());
     }
 
     @Override
     public StructsParser<PipelineDefinition> parser() {
-        final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resources().topic(name), new TopicDefinitionParser(resources(), true));
+        final var sourceField = resourceFields.topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resourceFields.resources().topic(name), new TopicDefinitionParser(resourceFields.resources(), true));
 
-        return structsParser(
+        return FieldParsers.structsParser(
                 PipelineDefinition.class,
                 parseSource ? "" : "WithoutSource",
                 "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",
-                optional(stringField(KSMLDSL.Pipelines.NAME, true, "The name of the pipeline. If this field is not defined, then the name is derived from the context.")),
+                FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Pipelines.NAME, true, "The name of the pipeline. If this field is not defined, then the name is derived from the context.")),
                 parseSource ? sourceField : new IgnoreParser<>(),
-                optional(listField(KSMLDSL.Pipelines.VIA, "step", "step", "A series of operations performed on the input stream", new PipelineOperationParser(resources()))),
-                optional(asParser),
-                optional(branchParser),
-                optional(forEachParser),
-                optional(printParser),
-                optional(toTopic),
-                optional(toTne),
+                FieldParsers.optional(FieldParsers.listField(KSMLDSL.Pipelines.VIA, "step", "step", "A series of operations performed on the input stream", new PipelineOperationParser(resourceFields.resources()))),
+                FieldParsers.optional(asParser),
+                FieldParsers.optional(branchParser),
+                FieldParsers.optional(forEachParser),
+                FieldParsers.optional(printParser),
+                FieldParsers.optional(toTopic),
+                FieldParsers.optional(toTne),
                 (name, from, via, as, branch, forEach, print, toTopic, toTne, tags) -> {
-                    final var shortName = validateName("Pipeline", name, defaultShortName, true);
-                    final var longName = validateName("Pipeline", name, defaultLongName, false);
+                    final var shortName = FieldParsers.validateName("Pipeline", name, defaultShortName, true);
+                    final var longName = FieldParsers.validateName("Pipeline", name, defaultLongName, false);
                     via = via != null ? via : new ArrayList<>();
                     if (as != null) return new PipelineDefinition(longName, from, via, as);
                     if (branch != null) return new PipelineDefinition(longName, from, via, branch);
@@ -95,7 +98,7 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
-                    var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(longName), tags), shortName) : null;
+                    var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
                     return new PipelineDefinition(name, from, via, sinkOperation);
                 });
     }

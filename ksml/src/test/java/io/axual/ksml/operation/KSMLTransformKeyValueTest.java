@@ -35,7 +35,7 @@ import java.util.List;
 
 import static io.axual.ksml.operation.SensorData.SensorType.HUMIDITY;
 import static io.axual.ksml.operation.SensorData.SensorType.TEMPERATURE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
@@ -71,13 +71,13 @@ public class KSMLTransformKeyValueTest {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
         List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
+        assertThat(keyValues.size()).as("All records should be transformed").isEqualTo(4);
 
         // verify first and last record key and value; the pipeline creates them from fields in the record value
-        assertEquals("AMS", keyValues.get(0).key);
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("UTR", keyValues.get(3).key);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
+        assertThat(keyValues.get(0).key).isEqualTo("AMS");
+        assertThat(keyValues.get(0).value).isEqualTo("HUMIDITY 80");
+        assertThat(keyValues.get(3).key).isEqualTo("UTR");
+        assertThat(keyValues.get(3).value).isEqualTo("TEMPERATURE 27");
     }
 }
 

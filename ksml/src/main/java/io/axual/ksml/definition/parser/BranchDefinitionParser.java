@@ -20,29 +20,32 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceFields;
 
-public class BranchDefinitionParser extends TopologyResourceAwareParser<BranchDefinition> implements NamedObjectParser {
+public class BranchDefinitionParser extends DefinitionParser<BranchDefinition> implements NamedObjectParser {
+    private final TopologyResourceFields resourceFields;
     private final boolean includePipelineSchema;
     private final PipelineDefinitionParser pipelineParser;
 
     public BranchDefinitionParser(TopologyResources resources, boolean includePipelineSchema) {
-        super(resources);
+        this.resourceFields = new TopologyResourceFields(resources);
         this.includePipelineSchema = includePipelineSchema;
-        pipelineParser = new PipelineDefinitionParser(resources(), false);
+        pipelineParser = new PipelineDefinitionParser(resourceFields.resources(), false);
     }
 
     @Override
     public StructsParser<BranchDefinition> parser() {
         // This parser uses the PipelineDefinitionParser recursively, hence requires a special implementation to not
         // make the associated DataSchema recurse infinitely.
-        final var predParser = optional(functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser(false)));
-        if (includePipelineSchema) return structsParser(
+        final var predParser = FieldParsers.optional(resourceFields.functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser(false)));
+        if (includePipelineSchema) return FieldParsers.structsParser(
                 BranchDefinition.class,
                 "WithPipeline",
                 "Defines a branch with sub-pipeline in a BranchOperation",
@@ -50,7 +53,7 @@ public class BranchDefinitionParser extends TopologyResourceAwareParser<BranchDe
                 pipelineParser,
                 (predicate, pipeline, tags) -> new BranchDefinition(predicate, pipeline)
         );
-        return structsParser(
+        return FieldParsers.structsParser(
                 BranchDefinition.class,
                 "",
                 "Defines a branch without sub-pipeline in a BranchOperation",

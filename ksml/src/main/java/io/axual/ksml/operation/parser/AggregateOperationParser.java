@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
@@ -35,16 +36,16 @@ public class AggregateOperationParser extends OperationParser<AggregateOperation
 
     @Override
     protected StructsParser<AggregateOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 AggregateOperation.class,
                 "",
                 "An aggregate operation",
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Aggregate.INITIALIZER, "The initializer function, which generates an initial value for every set of aggregated records", new InitializerDefinitionParser(false)),
-                optional(functionField(KSMLDSL.Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser(false))),
-                optional(functionField(KSMLDSL.Operations.Aggregate.MERGER, "(SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results", new MergerDefinitionParser(false))),
-                optional(functionField(KSMLDSL.Operations.Aggregate.ADDER, "(GroupedTable) A function that adds a record to the aggregation result", new AggregatorDefinitionParser(false))),
-                optional(functionField(KSMLDSL.Operations.Aggregate.SUBTRACTOR, "(GroupedTable) A function that removes a record from the aggregation result", new AggregatorDefinitionParser(false))),
+                FieldParsers.optional(functionField(KSMLDSL.Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser(false))),
+                FieldParsers.optional(functionField(KSMLDSL.Operations.Aggregate.MERGER, "(SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results", new MergerDefinitionParser(false))),
+                FieldParsers.optional(functionField(KSMLDSL.Operations.Aggregate.ADDER, "(GroupedTable) A function that adds a record to the aggregation result", new AggregatorDefinitionParser(false))),
+                FieldParsers.optional(functionField(KSMLDSL.Operations.Aggregate.SUBTRACTOR, "(GroupedTable) A function that removes a record from the aggregation result", new AggregatorDefinitionParser(false))),
                 storeField(true, "Materialized view of the result aggregation", null),
                 (name, init, aggr, merg, add, sub, store, tags) -> new AggregateOperation(storeOperationConfig(name, tags, store), init, aggr, merg, add, sub));
     }

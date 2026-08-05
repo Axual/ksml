@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowBySessionOperation;
@@ -34,13 +35,13 @@ public class WindowBySessionOperationParser extends OperationParser<WindowBySess
 
     @Override
     public StructsParser<WindowBySessionOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 WindowBySessionOperation.class,
                 "",
                 "Operation to window messages by session, configured by an inactivity gap",
                 operationNameField(),
-                durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, "The inactivity gap, below which two messages are considered to be of the same session"),
-                optional(durationField(KSMLDSL.SessionWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
+                FieldParsers.durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, "The inactivity gap, below which two messages are considered to be of the same session"),
+                FieldParsers.optional(FieldParsers.durationField(KSMLDSL.SessionWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
                 (name, inactivityGap, grace, tags) -> {
                     final var sessionWindows = (grace != null && grace.toMillis() > 0)
                             ? SessionWindows.ofInactivityGapAndGrace(inactivityGap, grace)

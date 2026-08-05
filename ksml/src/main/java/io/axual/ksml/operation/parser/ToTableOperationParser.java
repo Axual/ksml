@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToTableOperation;
@@ -34,7 +35,7 @@ public class ToTableOperationParser extends OperationParser<ToTableOperation> {
 
     @Override
     public StructsParser<ToTableOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 ToTableOperation.class,
                 "",
                 "Convert a Stream into a Table",

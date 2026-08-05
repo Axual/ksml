@@ -23,7 +23,6 @@ package io.axual.ksml.python;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -35,8 +34,7 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.fail;
 
 @Slf4j
 class PythonContextTest {
@@ -325,7 +323,7 @@ class PythonContextTest {
                 log.debug("Sandbox correctly blocked sys.prefix traversal: {}", expected.getMessage());
                 return;
             }
-            Assertions.fail("Sandbox escape via sys.prefix succeeded - Python returned: " + fnResult.asString());
+            fail("Sandbox escape via sys.prefix succeeded - Python returned: " + fnResult.asString());
         }
     }
 
@@ -357,8 +355,8 @@ class PythonContextTest {
                     """;
 
             final var value = pythonContext.registerFunction(testCode, "test_import");
-            assertNotNull(value, "Function should be registered");
-            assertTrue(value.canExecute(), "Registered value should be executable");
+            assertThat(value).as("Function should be registered").isNotNull();
+            assertThat(value.canExecute()).as("Registered value should be executable").isTrue();
 
             final var result = value.execute();
             assertThat(result).isNotNull();

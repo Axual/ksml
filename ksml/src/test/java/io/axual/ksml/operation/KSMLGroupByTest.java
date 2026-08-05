@@ -35,7 +35,7 @@ import java.util.Map;
 
 import static io.axual.ksml.operation.SensorData.SensorType.HUMIDITY;
 import static io.axual.ksml.operation.SensorData.SensorType.TEMPERATURE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
@@ -61,9 +61,9 @@ public class KSMLGroupByTest {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
         Map<String, Long> groupedRecords = outputTopic.readKeyValuesToMap();
-        assertEquals(2, groupedRecords.size(), "records should be grouped by city");
-        assertEquals(2L, groupedRecords.get("AMS"), "records for AMS should be counted");
-        assertEquals(2L, groupedRecords.get("UTR"), "records for UTR should be counted");
+        assertThat(groupedRecords.size()).as("records should be grouped by city").isEqualTo(2);
+        assertThat(groupedRecords.get("AMS")).as("records for AMS should be counted").isEqualTo(2L);
+        assertThat(groupedRecords.get("UTR")).as("records for UTR should be counted").isEqualTo(2L);
     }
 
     @KSMLTest(topology = "pipelines/test-groupby-code.yaml", schemaDirectory = "schemas")
@@ -72,9 +72,9 @@ public class KSMLGroupByTest {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
         Map<String, Long> groupedRecords = outputTopic.readKeyValuesToMap();
-        assertEquals(2, groupedRecords.size(), "records should be grouped by city");
-        assertEquals(2L, groupedRecords.get("AMS"), "records for AMS should be counted");
-        assertEquals(2L, groupedRecords.get("UTR"), "records for UTR should be counted");
+        assertThat(groupedRecords.size()).as("records should be grouped by city").isEqualTo(2);
+        assertThat(groupedRecords.get("AMS")).as("records for AMS should be counted").isEqualTo(2L);
+        assertThat(groupedRecords.get("UTR")).as("records for UTR should be counted").isEqualTo(2L);
     }
 }
 

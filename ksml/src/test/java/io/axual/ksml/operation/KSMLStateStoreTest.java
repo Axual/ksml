@@ -38,8 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.time.Duration;
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -80,8 +79,8 @@ public class KSMLStateStoreTest {
         // the last value for sensor1 is present in the store named "last_sensor_data_store"
         KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
         DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
-        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-        assertEquals(new DataString("70"), sensor1Data.get("value"));
+        assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+        assertThat(sensor1Data.get("value")).isEqualTo(new DataString("70"));
     }
 
     @KSMLTest(topology = "pipelines/test-state-store-timestamped.yaml", schemaDirectory = "schemas")
@@ -113,8 +112,8 @@ public class KSMLStateStoreTest {
         // the last value for sensor1 is present in the store named "last_sensor_data_store"
         KeyValueStore<Object, ValueAndTimestamp<Object>> lastSensorDataStore = topologyTestDriver.getTimestampedKeyValueStore("last_sensor_data_store");
         DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1").value();
-        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-        assertEquals(new DataString("70"), sensor1Data.get("value"));
+        assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+        assertThat(sensor1Data.get("value")).isEqualTo(new DataString("70"));
     }
 
     @KSMLTest(topology = "pipelines/test-state-store-avro.yaml", schemaDirectory = "schemas")
@@ -136,12 +135,12 @@ public class KSMLStateStoreTest {
 
         KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
         DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
-        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-        assertEquals(new DataString("80"), sensor1Data.get("value"));
+        assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+        assertThat(sensor1Data.get("value")).isEqualTo(new DataString("80"));
 
         DataStruct sensor2Data = (DataStruct) lastSensorDataStore.get("sensor2");
-        assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
-        assertEquals(new DataString("26"), sensor2Data.get("value"));
+        assertThat(sensor2Data.get("city")).isEqualTo(new DataString("Utrecht"));
+        assertThat(sensor2Data.get("value")).isEqualTo(new DataString("26"));
     }
 
     @KSMLTest(topology = "pipelines/test-state-store-timestamped-avro.yaml", schemaDirectory = "schemas")
@@ -163,12 +162,12 @@ public class KSMLStateStoreTest {
 
         var lastSensorDataStore = topologyTestDriver.getTimestampedKeyValueStore("last_sensor_data_store");
         DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1").value();
-        assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-        assertEquals(new DataString("80"), sensor1Data.get("value"));
+        assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+        assertThat(sensor1Data.get("value")).isEqualTo(new DataString("80"));
 
         DataStruct sensor2Data = (DataStruct) lastSensorDataStore.get("sensor2").value();
-        assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
-        assertEquals(new DataString("26"), sensor2Data.get("value"));
+        assertThat(sensor2Data.get("city")).isEqualTo(new DataString("Utrecht"));
+        assertThat(sensor2Data.get("value")).isEqualTo(new DataString("26"));
     }
 
     @KSMLTest(topology = "pipelines/test-state-store-windowed-avro.yaml", schemaDirectory = "schemas")
@@ -191,16 +190,16 @@ public class KSMLStateStoreTest {
         final var fetchEnd = Instant.ofEpochMilli(0).plus(Duration.ofDays(365));
         WindowStore<Object, Object> windowStore = topologyTestDriver.getWindowStore("sensor_data_window_store");
         try (var iterator = windowStore.fetch("sensor1", Instant.ofEpochMilli(0), fetchEnd)) {
-            assertTrue(iterator.hasNext());
+            assertThat(iterator.hasNext()).isTrue();
             DataStruct sensor1Data = (DataStruct) iterator.next().value;
-            assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
-            assertEquals(new DataString("80"), sensor1Data.get("value"));
+            assertThat(sensor1Data.get("city")).isEqualTo(new DataString("Amsterdam"));
+            assertThat(sensor1Data.get("value")).isEqualTo(new DataString("80"));
         }
         try (var iterator = windowStore.fetch("sensor2", Instant.ofEpochMilli(0), fetchEnd)) {
-            assertTrue(iterator.hasNext());
+            assertThat(iterator.hasNext()).isTrue();
             DataStruct sensor2Data = (DataStruct) iterator.next().value;
-            assertEquals(new DataString("Utrecht"), sensor2Data.get("city"));
-            assertEquals(new DataString("26"), sensor2Data.get("value"));
+            assertThat(sensor2Data.get("city")).isEqualTo(new DataString("Utrecht"));
+            assertThat(sensor2Data.get("value")).isEqualTo(new DataString("26"));
         }
     }
 }

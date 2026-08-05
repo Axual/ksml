@@ -20,6 +20,7 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructsParser;
@@ -36,12 +37,12 @@ public class TopologyBaseResourcesParser extends DefinitionParser<TopologyBaseRe
 
     @Override
     public StructsParser<TopologyBaseResources> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 TopologyBaseResources.class,
                 "",
                 "Contains a list of functions and state stores to be used in streams, producers and pipelines",
-                optional(mapField(STORES, "store", "state store definition", "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser(true))),
-                optional(mapField(FUNCTIONS, "function", "function definition", "Functions that can be referenced in producers and pipelines", new TypedFunctionDefinitionParser())),
+                FieldParsers.optional(FieldParsers.mapField(STORES, "store", "state store definition", "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser(true))),
+                FieldParsers.optional(FieldParsers.mapField(FUNCTIONS, "function", "function definition", "Functions that can be referenced in producers and pipelines", new TypedFunctionDefinitionParser())),
                 (stores, functions, tags) -> {
                     final var result = new TopologyBaseResources(namespace);
                     if (stores != null) stores.forEach(result::register);

@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.CountOperation;
@@ -32,7 +33,7 @@ public class CountOperationParser extends OperationParser<CountOperation> {
     }
 
     public StructsParser<CountOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 CountOperation.class,
                 "",
                 "Count the number of times a key is seen in a given window",

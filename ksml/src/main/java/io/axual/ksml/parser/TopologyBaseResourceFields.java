@@ -4,7 +4,7 @@ package io.axual.ksml.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,41 +20,43 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.UnresolvedType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.type.UserType;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
-public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParser<T> {
-    // The set of functions and stores that streams, producers and pipelines can reference
+// Field-builder helpers available while only the base resource set (functions and state stores)
+// is known — i.e. while streams/tables/topics are themselves still being defined, and cannot yet
+// be referenced by name. Composed into (not extended by) parsers that operate at this phase; see
+// TopologyResourceFields for the phase where the full resource set, including topics, is available.
+public class TopologyBaseResourceFields {
     private final TopologyBaseResources resources;
 
-    protected TopologyBaseResourceAwareParser(TopologyBaseResources resources) {
+    public TopologyBaseResourceFields(TopologyBaseResources resources) {
+        Objects.requireNonNull(resources, "Topology base resources not properly initialized. This is a programming error.");
         this.resources = resources;
     }
 
-    protected TopologyBaseResources resources() {
-        if (resources != null) return resources;
-        throw new TopologyException("Topology base resources not properly initialized. This is a programming error.");
+    public TopologyBaseResources resources() {
+        return resources;
     }
 
-    protected <F extends FunctionDefinition> StructsParser<FunctionDefinition> functionField(String childName, String doc, StructsParser<F> parser) {
+    public <F extends FunctionDefinition> StructsParser<FunctionDefinition> functionField(String childName, String doc, StructsParser<F> parser) {
         final var resourceParser = new TopologyResourceParser<>("function", childName, doc, (name, tags) -> resources.function(name), parser);
         return StructsParser.of(resourceParser::parseDefinition, resourceParser.schemas());
     }
 
-    protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<? extends S> parser) {
+    public <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<? extends S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
         final var schemas = resourceParser.schemas();
         return new StructsParser<>() {
@@ -72,7 +74,7 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
         };
     }
 
-    protected <S> StructsParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<S> parser) {
+    public <S> StructsParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<S> parser) {
         return new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
     }
 
@@ -86,7 +88,7 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
      * @return the resolved UserType with a concrete DataType
      * @throws SchemaException if the notation is unknown or the schema cannot be fetched
      */
-    protected static UserType resolveUserType(UserType userType, String topic, boolean isKey) {
+    public static UserType resolveUserType(UserType userType, String topic, boolean isKey) {
         if (userType == null || !(userType.dataType() instanceof UnresolvedType)) {
             return userType;
         }

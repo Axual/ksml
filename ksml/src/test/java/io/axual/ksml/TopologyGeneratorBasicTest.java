@@ -45,8 +45,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 class TopologyGeneratorBasicTest {
@@ -82,7 +81,7 @@ class TopologyGeneratorBasicTest {
         // Get the reference and clean the newlines
         String reference = cleanDescription(Files.readString(Paths.get(referenceURI)));
 
-        assertThat(cleanDescription(description.toString()), is(reference));
+        assertThat(cleanDescription(description.toString())).isEqualTo(reference);
     }
 
     /**
@@ -101,13 +100,13 @@ class TopologyGeneratorBasicTest {
     })
     void cleanDescriptionTest(String input, String expected) {
         log.info("input='{}',expected='{}'", input, expected);
-        assertThat(cleanDescription(input), is(expected));
+        assertThat(cleanDescription(input)).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("cleanDescription also fixes line endings")
     void cleanDescriptionTestLineEnd() {
-        assertThat(cleanDescription("fix\r\nnewlines"), is("fix\nnewlines"));
+        assertThat(cleanDescription("fix\r\nnewlines")).isEqualTo("fix\nnewlines");
     }
 
     /**

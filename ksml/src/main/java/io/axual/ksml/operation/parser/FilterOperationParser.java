@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ExecutionException;
@@ -35,7 +36,7 @@ public class FilterOperationParser extends OperationParser<FilterOperation> {
     }
 
     public StructsParser<FilterOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 FilterOperation.class,
                 "",
                 "Filter records based on a predicate function",

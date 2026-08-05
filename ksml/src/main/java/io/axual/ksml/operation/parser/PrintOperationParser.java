@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.KeyValuePrinterDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -33,20 +34,20 @@ public class PrintOperationParser extends OperationParser<PrintOperation> {
 
     @Override
     public StructsParser<PrintOperation> parser() {
-        final var contentParser = structsParser(
+        final var contentParser = FieldParsers.structsParser(
                 PrintOperation.class,
                 "",
                 "Operation to print the contents of a pipeline on the screen or to write them to a file",
                 operationNameField(),
-                optional(stringField(KSMLDSL.Operations.Print.FILENAME, "The filename to output records to. If nothing is specified, then messages will be printed on stdout.")),
-                optional(stringField(KSMLDSL.Operations.Print.LABEL, "A label to attach to the output records")),
-                optional(functionField(KSMLDSL.Operations.Print.MAPPER, "A function to convert record into a string for output", new KeyValuePrinterDefinitionParser(false))),
+                FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Operations.Print.FILENAME, "The filename to output records to. If nothing is specified, then messages will be printed on stdout.")),
+                FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Operations.Print.LABEL, "A label to attach to the output records")),
+                FieldParsers.optional(functionField(KSMLDSL.Operations.Print.MAPPER, "A function to convert record into a string for output", new KeyValuePrinterDefinitionParser(false))),
                 (name, filename, label, mapper, tags) -> new PrintOperation(operationConfig(name, tags), filename, label, mapper));
-        return structsParser(
+        return FieldParsers.structsParser(
                 PrintOperation.class,
                 "",
                 "Prints all messages resulting from a pipeline to a specified print target",
-                optional(customField(KSMLDSL.Operations.PRINT, "The specification of where to print messages to", contentParser)),
+                FieldParsers.optional(FieldParsers.customField(KSMLDSL.Operations.PRINT, "The specification of where to print messages to", contentParser)),
                 (p, tags) -> p);
     }
 }

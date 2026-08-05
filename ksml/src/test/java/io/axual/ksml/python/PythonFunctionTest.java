@@ -25,6 +25,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,8 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PythonFunctionTest {
     @BeforeAll
@@ -57,15 +57,15 @@ class PythonFunctionTest {
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, null, null, "one + two", resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(null, null, "one + two"), resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
         final var arg2 = new DataInteger(i2);
 
         final var result = adder.call(arg1, arg2);
-        assertInstanceOf(DataInteger.class, result);
-        assertEquals(sum, ((DataInteger) result).value());
+        assertThat(result).isInstanceOf(DataInteger.class);
+        assertThat(((DataInteger) result).value()).isEqualTo(sum);
     }
 
     /**
@@ -79,15 +79,15 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, null, pythonCode.split("\n"), new String[]{"myAddFunc(one, two)"}, resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(null, pythonCode.split("\n"), new String[]{"myAddFunc(one, two)"}), resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
         final var arg2 = new DataInteger(i2);
 
         final var result = adder.call(arg1, arg2);
-        assertInstanceOf(DataInteger.class, result);
-        assertEquals(sum, ((DataInteger) result).value());
+        assertThat(result).isInstanceOf(DataInteger.class);
+        assertThat(((DataInteger) result).value()).isEqualTo(sum);
     }
 
     /**
@@ -101,15 +101,15 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, pythonCode.split("\n"), null, new String[]{"myAddFunc(one, two)"}, resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(pythonCode.split("\n"), null, new String[]{"myAddFunc(one, two)"}), resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
         final var arg2 = new DataInteger(i2);
 
         final var result = adder.call(arg1, arg2);
-        assertInstanceOf(DataInteger.class, result);
-        assertEquals(sum, ((DataInteger) result).value());
+        assertThat(result).isInstanceOf(DataInteger.class);
+        assertThat(((DataInteger) result).value()).isEqualTo(sum);
     }
 
     @Test
@@ -118,7 +118,7 @@ class PythonFunctionTest {
      */
     void testNullKeyValue() {
         final var stringResultType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
-        final var concatDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "concat", params, null, null, "str(one is None) + ' ' + str(two is None)", stringResultType, null);
+        final var concatDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "concat", params, PythonSource.of(null, null, "str(one is None) + ' ' + str(two is None)"), stringResultType, null);
         final var concat = PythonFunction.forFunction(context, "test", "adder", concatDef);
 
         final var nullArg = DataNull.INSTANCE;
@@ -126,18 +126,18 @@ class PythonFunctionTest {
 
         final var expectedResultNullKey = "True False";
         var resultNullKey = concat.call(nullArg, nonNullArg);
-        assertInstanceOf(DataString.class, resultNullKey);
-        assertEquals(expectedResultNullKey, ((DataString) resultNullKey).value());
+        assertThat(resultNullKey).isInstanceOf(DataString.class);
+        assertThat(((DataString) resultNullKey).value()).isEqualTo(expectedResultNullKey);
 
         final var expectedResultNullValue = "False True";
         var resultNullValue = concat.call(nonNullArg, nullArg);
-        assertInstanceOf(DataString.class, resultNullValue);
-        assertEquals(expectedResultNullValue, ((DataString) resultNullValue).value());
+        assertThat(resultNullValue).isInstanceOf(DataString.class);
+        assertThat(((DataString) resultNullValue).value()).isEqualTo(expectedResultNullValue);
 
         final var expectedResultNullKeyValue = "True True";
         var resultNullKeyValue = concat.call(nullArg, nullArg);
-        assertInstanceOf(DataString.class, resultNullKeyValue);
-        assertEquals(expectedResultNullKeyValue, ((DataString) resultNullKeyValue).value());
+        assertThat(resultNullKeyValue).isInstanceOf(DataString.class);
+        assertThat(((DataString) resultNullKeyValue).value()).isEqualTo(expectedResultNullKeyValue);
 
     }
 }

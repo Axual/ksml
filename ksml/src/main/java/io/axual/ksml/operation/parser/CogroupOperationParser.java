@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -36,7 +37,7 @@ public class CogroupOperationParser extends OperationParser<CogroupOperation> {
 
     @Override
     protected StructsParser<CogroupOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 CogroupOperation.class,
                 "",
                 "A cogroup operation",

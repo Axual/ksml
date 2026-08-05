@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -32,7 +33,7 @@ public class ForEachOperationParser extends OperationParser<ForEachOperation> {
     }
 
     public StructsParser<ForEachOperation> parser() {
-        return structsParser(
+        return FieldParsers.structsParser(
                 ForEachOperation.class,
                 "",
                 "Operation to call a function for every record in the stream",
