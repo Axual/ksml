@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
@@ -112,7 +113,7 @@ class ApicurioAvroNotationProviderTest {
     @DisplayName("createNotation fails fast on the removed Legacy4ByteIdHandler value")
     void createNotation_withRemovedIdHandlerValue_throws() {
         final Map<String, String> config = new HashMap<>();
-        config.put("apicurio.registry.id-handler", ApicurioAvroNotationProvider.LEGACY_4_BYTE_ID_HANDLER);
+        config.put("apicurio.registry.id-handler", ApicurioConfigChecks.LEGACY_4_BYTE_ID_HANDLER);
         final var prov = new ApicurioAvroNotationProvider();
         final var ctx = new NotationContext(config);
         assertThatThrownBy(() -> prov.createNotation(ctx))

@@ -48,6 +48,7 @@
 
     <modules>
         <module>ksml-data</module>
+        <module>ksml-data-apicurio</module>
         <module>ksml-data-avro</module>
         <module>ksml-data-avro-apicurio</module>
         <module>ksml-data-avro-confluent</module>
@@ -170,6 +171,11 @@
             <dependency>
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-apicurio</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -365,6 +371,11 @@
             <dependency>
                 <groupId>io.apicurio</groupId>
                 <artifactId>apicurio-registry-schema-resolver</artifactId>
+                <version>${apicurio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-serde-common</artifactId>
                 <version>${apicurio.version}</version>
             </dependency>
             <dependency>

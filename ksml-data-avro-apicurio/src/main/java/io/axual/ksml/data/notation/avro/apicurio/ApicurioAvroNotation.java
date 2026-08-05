@@ -31,16 +31,24 @@ import io.axual.ksml.data.notation.vendor.VendorNotationContext;
  * Extends {@link RemoteSchemaAvroNotation}, providing the Apicurio-specific registry client and fetch.
  */
 public class ApicurioAvroNotation extends RemoteSchemaAvroNotation {
+    /** Apicurio v3 version expression for the newest version of an artifact. */
+    static final String LATEST_VERSION = "branch=latest";
+
     private final RegistryClientFacade registryClient;
+    private final String artifactGroupId;
 
     /**
      * Construct an AvroNotation with the provided vendor context.
      *
-     * @param context the vendor notation context providing serde supplier, native mapper, and configs
+     * @param context         the vendor notation context providing serde supplier, native mapper, and configs
+     * @param registryClient  the Apicurio registry client, or null when no registry is configured
+     * @param topicResolver   resolves a topic name to the name used on the broker and in the registry
+     * @param artifactGroupId the Apicurio group the schemas live in, never null
      */
-    public ApicurioAvroNotation(VendorNotationContext context, RegistryClientFacade registryClient, Resolver topicResolver) {
+    public ApicurioAvroNotation(VendorNotationContext context, RegistryClientFacade registryClient, Resolver topicResolver, String artifactGroupId) {
         super(context, topicResolver::resolve);
         this.registryClient = registryClient;
+        this.artifactGroupId = artifactGroupId;
     }
 
     @Override
@@ -55,6 +63,8 @@ public class ApicurioAvroNotation extends RemoteSchemaAvroNotation {
 
     @Override
     protected String fetchSchemaString(String subject) {
-        return registryClient.getSchemaByGAV(null, subject, null);
+        // The v3 client puts group and version in the URL path and rejects null for either, so both
+        // must be given here. The v2 client accepted nulls and looked up the latest in the default group.
+        return registryClient.getSchemaByGAV(artifactGroupId, subject, LATEST_VERSION);
     }
 }

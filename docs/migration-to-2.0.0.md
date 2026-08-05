@@ -1,8 +1,8 @@
 # Upgrading to KSML 2.0.0
 
-KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Kafka (4.x), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x).
+KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). The Kafka client version is unchanged.
 
-Most of these upgrades are internal. But a few of them change how you configure KSML, and one of them changes the bytes that are written to Kafka. Please read this page before you upgrade a running deployment.
+Most of these upgrades are internal, but a few of them change how you configure KSML. Please read this page before you upgrade a running deployment.
 
 This guide is written as "what changed" followed by "what you need to do".
 
@@ -121,13 +121,11 @@ This also changed for any other unreadable definition file. On the 1.x line a de
 
 What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.
 
-## Kafka 4.x
+## Kafka Streams error handlers
 
-For pipeline authors who write KSML YAML, there is nothing to change here.
+For pipeline authors who write KSML YAML, there is nothing to change here. The Kafka client version is unchanged in 2.0.0: it stays on the same 4.x version that KSML 1.3.0 already used.
 
-The Kafka client version is unchanged in 2.0.0. It stays on the same 4.x version that KSML 1.3.0 already used, so there is nothing to do for the Kafka client itself.
-
-If you implement your own Kafka Streams error handler against the KSML libraries, the Streams handler API changed: `handle` became `handleError`, and the enum results were replaced by `Response.resume()`, `Response.fail()` and `Response.retry()`.
+KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you implement your own Kafka Streams error handler against the KSML libraries, `handle` became `handleError`, and the enum results were replaced by `Response.resume()`, `Response.fail()` and `Response.retry()`.
 
 ## Protobuf and Wire
 

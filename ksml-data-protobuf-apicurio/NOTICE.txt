@@ -1,5 +1,5 @@
 
-Lists of 99 third-party dependencies.
+Lists of 100 third-party dependencies.
      (Apache License, Version 2.0) LZ4 Java Compression (at.yawk.lz4:lz4-java:1.10.2 - https://github.com/yawkat/lz4-java)
      (Apache License, Version 2.0) com.dashjoin:jsonata (com.dashjoin:jsonata:0.9.10 - https://github.com/dashjoin/jsonata-java)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.22 - https://github.com/FasterXML/jackson)
@@ -53,6 +53,7 @@ Lists of 99 third-party dependencies.
      (Apache License Version 2.0) Registry :: SerDes :: Kafka :: Common (io.apicurio:apicurio-registry-serde-kafka-common:3.3.0 - https://www.apicur.io/apicurio-registry-serde-kafka-common/)
      (Apache License Version 2.0) Registry :: Java SDK :: Client V2 (io.apicurio:apicurio-registry-v2-java-sdk:3.3.0 - https://www.apicur.io/apicurio-registry-v2-java-sdk/)
      (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data)
+     (Apache 2.0) KSML Data Library - Apicurio common (io.axual.ksml:ksml-data-apicurio:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-apicurio)
      (Apache 2.0) KSML Data Library - PROTOBUF (io.axual.ksml:ksml-data-protobuf:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-protobuf)
      (Apache License, Version 2.0) Standard Uri Template (io.github.std-uritemplate:std-uritemplate:2.0.0 - https://std-uritemplate.github.io/)
      (Apache-2.0) Kiota - Http - JDK (io.kiota:kiota-http-jdk:0.0.35 - https://github.com/kiota-community/kiota-java-extra/kiota-libraries-parent/kiota-http-jdk)

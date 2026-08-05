@@ -59,6 +59,7 @@ The submodules are as follows:
 | Module                                      | Description                                                                                                  |
 |---------------------------------------------|--------------------------------------------------------------------------------------------------------------|
 | [`ksml-data`](ksml-data/)                   | contains core data type and schema logic.                                                                    |
+| [`ksml-data-apicurio`](ksml-data-apicurio/) | shared support for the Apicurio-backed notations.                                                            |
 | [`ksml-data-avro`](ksml-data-avro/)         | extension to the data library for AVRO support.                                                              |
 | [`ksml-data-binary`](ksml-data-binary/)     | extension to the data library for BINARY support.                                                            |
 | [`ksml-data-csv`](ksml-data-csv/)           | extension to the data library for CSV support.                                                               |
