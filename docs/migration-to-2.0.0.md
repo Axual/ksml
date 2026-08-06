@@ -28,10 +28,10 @@ Use the v3 endpoint. The v2 endpoint is not tested or supported by KSML 2.0.0.
 Update the `apicurio.registry.url` in your schema registry config:
 
 ```yaml
-# Before (1.x)
+# Before (KSML 1.x)
 apicurio.registry.url: http://schema-registry:8081
 
-# After (2.0.0)
+# After (KSML 2.0.0)
 apicurio.registry.url: http://schema-registry:8081/apis/registry/v3
 ```
 
@@ -44,11 +44,11 @@ Apicurio v3 renamed the basic-auth keys. KSML no longer maps these keys itself, 
 Update the keys:
 
 ```yaml
-# Before (1.x)
+# Before (KSML 1.x)
 apicurio.auth.username: my-user
 apicurio.auth.password: my-secret
 
-# After (2.0.0)
+# After (KSML 2.0.0)
 apicurio.registry.auth.username: my-user
 apicurio.registry.auth.password: my-secret
 ```
@@ -60,10 +60,10 @@ To protect you from a silent failure, KSML now stops at startup with a clear err
 Apicurio v3 changed the accepted values for `apicurio.registry.auto-register.if-exists`. The old `RETURN` value is gone. The valid values are now `FAIL`, `CREATE_VERSION` and `FIND_OR_CREATE_VERSION`. Apicurio validates this value at startup even when auto-register is off, so a stale value fails the serde immediately.
 
 ```yaml
-# Before (1.x)
+# Before (KSML 1.x)
 apicurio.registry.auto-register.if-exists: RETURN
 
-# After (2.0.0)
+# After (KSML 2.0.0)
 apicurio.registry.auto-register.if-exists: FIND_OR_CREATE_VERSION
 ```
 
@@ -74,11 +74,11 @@ Apicurio v3 dropped the `apicurio.registry.as-confluent` key, and removed the `L
 KSML sets both for you, so most users have nothing to do. But KSML never overwrites a value you set yourself, so a leftover v2 setting would quietly change your wire format or fail when the serde tries to load a class that is gone. KSML therefore stops at startup if it still finds either of them.
 
 ```yaml
-# Before (1.x)
+# Before (KSML 1.x)
 apicurio.registry.as-confluent: true
 apicurio.registry.id-handler: io.apicurio.registry.serde.Legacy4ByteIdHandler
 
-# After (2.0.0): drop as-confluent, and use the new handler if you set one at all
+# After (KSML 2.0.0): drop as-confluent, and use the new handler if you set one at all
 apicurio.registry.id-handler: io.apicurio.registry.serde.Default4ByteIdHandler
 ```
 
@@ -86,13 +86,13 @@ apicurio.registry.id-handler: io.apicurio.registry.serde.Default4ByteIdHandler
 
 Good news: nothing to do here. The Apicurio notations (`apicurio_avro`, `apicurio_jsonschema`, `apicurio_protobuf`) keep the same on-wire format as KSML 1.x.
 
-KSML still sets the Apicurio serde options explicitly (now using the Apicurio v3 config keys) so the format is pinned by KSML rather than left to Apicurio's defaults: the schema id is a 4-byte content id in the message payload, headers are off. We verified this on 2.0.0 for all three notations: the message value starts with a `0x00` magic byte, then a 4-byte schema id, then the payload, and no schema id is written into Kafka headers. So existing topics keep working and you do not need to reprocess them.
+KSML still sets the Apicurio serde options explicitly (now using the Apicurio v3 config keys) so the format is pinned by KSML rather than left to Apicurio's defaults: the schema id is a 4-byte content id in the message payload, headers are off. We verified this on KSML 2.0.0 for all three notations: the message value starts with a `0x00` magic byte, then a 4-byte schema id, then the payload, and no schema id is written into Kafka headers. So existing topics keep working and you do not need to reprocess them.
 
 If you deliberately want the header-based id format instead, set `apicurio.registry.headers.enabled: true` in the notation config; KSML only applies the payload-id defaults when headers are off, and your own settings always win.
 
 ### Resolving pre-registered schemas (issue #290)
 
-KSML keeps defaulting `apicurio.registry.find-latest` to `true`, so that with auto-register disabled and a pre-registered schema, the serializer resolves the artifact by its coordinates instead of by its content. This is the same default that was introduced in 1.3.0, and it keeps working on Apicurio v3. You do not need to change anything for this. If you had set `find-latest` yourself, KSML still respects your value.
+KSML keeps defaulting `apicurio.registry.find-latest` to `true`, so that with auto-register disabled and a pre-registered schema, the serializer resolves the artifact by its coordinates instead of by its content. This is the same default that was introduced in KSML 1.3.0, and it keeps working on Apicurio v3. You do not need to change anything for this. If you had set `find-latest` yourself, KSML still respects your value.
 
 ## Stricter runner config validation
 
@@ -123,7 +123,7 @@ What you need to do: make sure each KSML definition file has no duplicate keys b
 
 ## Kafka Streams error handlers
 
-For pipeline authors who write KSML YAML, there is nothing to change here. The Kafka client version is unchanged in 2.0.0: it stays on the same 4.x version that KSML 1.3.0 already used.
+For pipeline authors who write KSML YAML, there is nothing to change here. The Kafka client version is unchanged in KSML 2.0.0: it stays on the same 4.x version that KSML 1.3.0 already used.
 
 KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you implement your own Kafka Streams error handler against the KSML libraries, `handle` became `handleError`, and the enum results were replaced by `Response.resume()`, `Response.fail()` and `Response.retry()`.
 
@@ -140,4 +140,4 @@ If you have Java code that depends on the KSML data libraries, KSML moved from J
 * `com.fasterxml.jackson.core`, `com.fasterxml.jackson.databind` and the dataformat packages moved to `tools.jackson.*`.
 * Jackson annotations stay under `com.fasterxml.jackson.annotation`, so your annotated model classes do not need to change.
 
-Update your imports and rebuild against the 2.0.0 libraries.
+Update your imports and rebuild against the KSML 2.0.0 libraries.
