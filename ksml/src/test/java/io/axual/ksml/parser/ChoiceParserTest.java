@@ -42,7 +42,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class ChoiceParserTest {
 
-    private static ChoiceParser<String> parser() {
+    private final ChoiceParser<String> parser = newParser();
+
+    private static ChoiceParser<String> newParser() {
         return new ChoiceParser<>(
                 "type",
                 "StoreType",
@@ -61,19 +63,21 @@ class ChoiceParserTest {
     @Test
     @DisplayName("A known type is routed to the matching parser")
     void parsesKnownType() throws Exception {
-        assertThat(parser().parse(nodeOf("type: session"))).isEqualTo("parsed:session");
+        assertThat(parser.parse(nodeOf("type: session"))).isEqualTo("parsed:session");
     }
 
     @Test
     @DisplayName("A missing type falls back to the default")
     void missingTypeUsesDefault() throws Exception {
-        assertThat(parser().parse(nodeOf("someOtherField: value"))).isEqualTo("parsed:keyValue");
+        assertThat(parser.parse(nodeOf("someOtherField: value"))).isEqualTo("parsed:keyValue");
     }
 
     @Test
     @DisplayName("An unknown string type reports the accepted values")
     void unknownStringTypeReportsChoices() throws Exception {
-        assertThatThrownBy(() -> parser().parse(nodeOf("type: notAStoreType")))
+        final var node = nodeOf("type: notAStoreType");
+
+        assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Unknown state store \"type\"")
                 .hasMessageContaining("choose one of keyValue, session, window");
@@ -82,12 +86,12 @@ class ChoiceParserTest {
     @Test
     @DisplayName("An object as the type value gives a parse error, not a Jackson coercion error")
     void objectTypeReportsParseError() throws Exception {
-        final var yaml = """
+        final var node = nodeOf("""
                 type:
                   oops: keyValue
-                """;
+                """);
 
-        assertThatThrownBy(() -> parser().parse(nodeOf(yaml)))
+        assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Expected a string for \"type\"")
                 .hasMessageContaining("OBJECT")
@@ -98,13 +102,13 @@ class ChoiceParserTest {
     @Test
     @DisplayName("An array as the type value gives a parse error, not a Jackson coercion error")
     void arrayTypeReportsParseError() throws Exception {
-        final var yaml = """
+        final var node = nodeOf("""
                 type:
                   - keyValue
                   - session
-                """;
+                """);
 
-        assertThatThrownBy(() -> parser().parse(nodeOf(yaml)))
+        assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Expected a string for \"type\"")
                 .hasMessageContaining("ARRAY")
@@ -117,7 +121,9 @@ class ChoiceParserTest {
     void numberTypeIsCoercedToString() throws Exception {
         // 1.x turned this into "5" and then failed on the unknown value. Keep that, so only containers
         // take the new path.
-        assertThatThrownBy(() -> parser().parse(nodeOf("type: 5")))
+        final var node = nodeOf("type: 5");
+
+        assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Unknown state store \"type\"");
     }

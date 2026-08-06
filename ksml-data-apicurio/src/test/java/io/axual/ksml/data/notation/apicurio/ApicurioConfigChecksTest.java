@@ -53,12 +53,15 @@ class ApicurioConfigChecksTest {
     @Test
     @DisplayName("The renamed auth keys are rejected and name their replacement")
     void rejectsRenamedAuthKeys() {
-        assertThatThrownBy(() -> ApicurioConfigChecks.rejectV2Configs(Map.of("apicurio.auth.username", "alice")))
+        final var withUsername = Map.of("apicurio.auth.username", "alice");
+        final var withPassword = Map.of("apicurio.auth.password", "secret");
+
+        assertThatThrownBy(() -> ApicurioConfigChecks.rejectV2Configs(withUsername))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("apicurio.auth.username")
                 .hasMessageContaining("apicurio.registry.auth.username");
 
-        assertThatThrownBy(() -> ApicurioConfigChecks.rejectV2Configs(Map.of("apicurio.auth.password", "secret")))
+        assertThatThrownBy(() -> ApicurioConfigChecks.rejectV2Configs(withPassword))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("apicurio.auth.password")
                 .hasMessageContaining("apicurio.registry.auth.password");
@@ -67,7 +70,9 @@ class ApicurioConfigChecksTest {
     @Test
     @DisplayName("The removed as-confluent key is rejected and points at the id settings")
     void rejectsRemovedAsConfluentKey() {
-        assertThatThrownBy(() -> ApicurioConfigChecks.rejectV2Configs(Map.of("apicurio.registry.as-confluent", "true")))
+        final var configs = Map.of("apicurio.registry.as-confluent", "true");
+
+        assertThatThrownBy(() -> ApicurioConfigChecks.rejectV2Configs(configs))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("apicurio.registry.as-confluent")
                 .hasMessageContaining("apicurio.registry.id-handler")
