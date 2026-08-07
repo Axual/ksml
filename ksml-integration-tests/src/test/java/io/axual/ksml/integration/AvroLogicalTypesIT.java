@@ -20,7 +20,7 @@ package io.axual.ksml.integration;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.axual.ksml.integration.testutil.KSMLContainer;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.SharedKsmlInfra;
@@ -85,10 +85,10 @@ class AvroLogicalTypesIT {
                 try {
                     final var json = JSON.readTree(consumerRecord.value());
                     softly.assertThat(consumerRecord.key()).as("key").startsWith("sensor");
-                    softly.assertThat(json.path("amount").isTextual()).as("amount is a JSON string").isTrue();
-                    softly.assertThat(json.path("amount").asText()).as("decimal survived the avro wire").isEqualTo("123.45");
-                    softly.assertThat(json.path("id").asText()).as("uuid value").isEqualTo("123e4567-e89b-12d3-a456-426614174000");
-                    softly.assertThatCode(() -> UUID.fromString(json.path("id").asText())).as("uuid is well formed").doesNotThrowAnyException();
+                    softly.assertThat(json.path("amount").isString()).as("amount is a JSON string").isTrue();
+                    softly.assertThat(json.path("amount").asString()).as("decimal survived the avro wire").isEqualTo("123.45");
+                    softly.assertThat(json.path("id").asString()).as("uuid value").isEqualTo("123e4567-e89b-12d3-a456-426614174000");
+                    softly.assertThatCode(() -> UUID.fromString(json.path("id").asString())).as("uuid is well formed").doesNotThrowAnyException();
                     softly.assertThat(json.path("eventDate").asInt()).as("date").isEqualTo(19785);
                     softly.assertThat(json.path("eventTimeMillis").asInt()).as("time-millis").isEqualTo(3723000);
                     softly.assertThat(json.path("eventTimestamp").asLong()).as("timestamp-millis is positive").isPositive();
