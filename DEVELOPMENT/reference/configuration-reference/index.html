@@ -1713,6 +1713,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Configuration File Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unknown-and-duplicate-keys-are-rejected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown and duplicate keys are rejected
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2115,6 +2132,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../../migration-to-2.0.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrading to 2.0.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../release-notes/" class="md-nav__link">
         
   
@@ -2169,6 +2213,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Configuration File Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unknown-and-duplicate-keys-are-rejected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown and duplicate keys are rejected
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2554,6 +2615,17 @@
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;localhost:9092&quot;</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">application.id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-ksml-app&quot;</span>
 </code></pre></div>
+<h3 id="unknown-and-duplicate-keys-are-rejected">Unknown and duplicate keys are rejected</h3>
+<p>KSML checks the configuration file strictly:</p>
+<ul>
+<li>An unknown or misspelled key makes KSML stop at startup with an error. A typo such as
+  <code>schemaRegsitry</code> is reported instead of quietly disabling the setting.</li>
+<li>A key that appears twice in the same block is an error as well, instead of the last one
+  quietly winning.</li>
+</ul>
+<p>The same duplicate-key rule applies to KSML definition files. A definition file that KSML cannot
+parse stops startup as well, rather than being skipped. See
+<a href="../../migration-to-2.0.0/">Upgrading to 2.0.0</a> if you are coming from the 1.x line.</p>
 <h2 id="minimal-working-configurations">Minimal Working Configurations</h2>
 <h3 id="without-schema-registry">Without Schema Registry</h3>
 <p>For applications that don't use schema-based formats (Avro, Protobuf, JSON Schema):</p>
@@ -2904,7 +2976,7 @@ server is present. In production using a schema server is preferred.</p>
 <a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="c1"># Apicurio Schema Registry</span>
 <a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nt">apicurio</span><span class="p">:</span>
 <a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">      </span><span class="nt">config</span><span class="p">:</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">        </span><span class="nt">apicurio.registry.url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://apicurio:8080/apis/registry/v2&quot;</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">        </span><span class="nt">apicurio.registry.url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://apicurio:8080/apis/registry/v3&quot;</span>
 </code></pre></div>
 <h4 id="ssl-enabled-schema-registry">SSL-Enabled Schema Registry</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">ksml</span><span class="p">:</span>
@@ -2922,7 +2994,7 @@ server is present. In production using a schema server is preferred.</p>
 <a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
 <a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="nt">apicurio_secure</span><span class="p">:</span>
 <a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">      </span><span class="nt">config</span><span class="p">:</span>
-<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">        </span><span class="nt">apicurio.registry.url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://apicurio:8080/apis/registry/v2&quot;</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">        </span><span class="nt">apicurio.registry.url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://apicurio:8080/apis/registry/v3&quot;</span>
 <a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">        </span><span class="nt">apicurio.registry.request.ssl.keystore.location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/keystore.jks</span>
 <a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">        </span><span class="nt">apicurio.registry.request.ssl.keystore.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JKS</span>
 <a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">        </span><span class="nt">apicurio.registry.request.ssl.keystore.password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;${KEYSTORE_PASSWORD}&quot;</span>
