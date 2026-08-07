@@ -5,12 +5,12 @@ ksml:
   schemaRegistries:
     my_schema_registry:
       config:
-        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
+        apicurio.registry.url: http://schema-registry:8081/apis/registry/v3
         apicurio.registry.dereference-schema: true
         apicurio.registry.serializer.dereference-schema: true
         apicurio.registry.deserializer.dereference-schema: true
         apicurio.registry.auto-register: true
-        apicurio.registry.auto-register.if-exists: RETURN
+        apicurio.registry.auto-register.if-exists: FIND_OR_CREATE_VERSION
   notations:
     avro:
       type: apicurio_avro
