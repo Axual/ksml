@@ -4,7 +4,7 @@ package io.axual.ksml.data.schema.logical;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public record DecimalLogicalType(int precision, int scale) implements LogicalTyp
 
     @Override
     public String name() {
-        return LogicalTypeNames.DECIMAL;
+        return LogicalTypeConstants.DECIMAL;
     }
 
     @Override
@@ -55,6 +55,11 @@ public record DecimalLogicalType(int precision, int scale) implements LogicalTyp
     @Override
     public DataType representationType() {
         return DataString.DATATYPE;
+    }
+
+    @Override
+    public DataSchema representationSchema() {
+        return DataSchema.STRING_SCHEMA;
     }
 
     @Override
@@ -92,6 +97,6 @@ public record DecimalLogicalType(int precision, int scale) implements LogicalTyp
 
     @Override
     public String toString() {
-        return LogicalTypeNames.DECIMAL + "(" + precision + "," + scale + ")";
+        return LogicalTypeConstants.DECIMAL + "(" + precision + "," + scale + ")";
     }
 }

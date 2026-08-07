@@ -2,7 +2,6 @@ functions:
   generate_logical_message:
     type: generator
     globalCode: |
-      import time
       counter = 0
     code: |
       global counter
@@ -14,7 +13,11 @@ functions:
         "amount": "123.45",                              # decimal(10,2), as a canonical string
         "eventDate": 19785,                              # date, days since epoch
         "eventTimeMillis": 3723000,                      # time-millis, 01:02:03
-        "eventTimestamp": round(time.time() * 1000)      # timestamp-millis
+        "eventTimestamp": 1700000000123,                 # timestamp-millis, fixed so the test can assert it
+        "eventTimeMicros": 3723000000,                   # time-micros, 01:02:03
+        "eventTimestampMicros": 1700000000123456,        # timestamp-micros
+        "eventLocalTimestamp": 1700000000123,            # local-timestamp-millis
+        "eventLocalTimestampMicros": 1700000000123456    # local-timestamp-micros
       }
     expression: (key, value)
     resultType: (string, json)

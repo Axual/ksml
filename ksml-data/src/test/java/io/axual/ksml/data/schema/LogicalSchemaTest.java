@@ -4,7 +4,7 @@ package io.axual.ksml.data.schema;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
-import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
+import io.axual.ksml.data.schema.logical.LogicalTypeConstants;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +42,7 @@ class LogicalSchemaTest {
         assertThat(decimal.type()).isEqualTo(DataSchemaConstants.BYTES_TYPE);
         assertThat(decimal.baseSchema()).isEqualTo(DataSchema.BYTES_SCHEMA);
 
-        final var uuid = new LogicalSchema(LogicalTypeRegistry.UUID);
+        final var uuid = new LogicalSchema(LogicalTypeConstants.UUID_TYPE);
         assertThat(uuid.type()).isEqualTo(DataSchemaConstants.STRING_TYPE);
         assertThat(uuid.baseSchema()).isEqualTo(DataSchema.STRING_SCHEMA);
     }
@@ -56,9 +56,9 @@ class LogicalSchemaTest {
                 .isEqualTo(new LogicalSchema(new DecimalLogicalType(10, 2)))
                 .isNotEqualTo(new LogicalSchema(new DecimalLogicalType(10, 4)))
                 .isNotEqualTo(DataSchema.BYTES_SCHEMA);
-        assertThat(new LogicalSchema(LogicalTypeRegistry.UUID))
-                .isEqualTo(new LogicalSchema(LogicalTypeRegistry.UUID))
-                .isNotEqualTo(new LogicalSchema(LogicalTypeRegistry.DATE));
+        assertThat(new LogicalSchema(LogicalTypeConstants.UUID_TYPE))
+                .isEqualTo(new LogicalSchema(LogicalTypeConstants.UUID_TYPE))
+                .isNotEqualTo(new LogicalSchema(LogicalTypeConstants.DATE_TYPE));
     }
 
     @Test
@@ -84,11 +84,11 @@ class LogicalSchemaTest {
     void mapsToRepresentationType() {
         assertThat(typeMapper.fromDataSchema(new LogicalSchema(new DecimalLogicalType(10, 2))))
                 .isEqualTo(DataString.DATATYPE);
-        assertThat(typeMapper.fromDataSchema(new LogicalSchema(LogicalTypeRegistry.UUID)))
+        assertThat(typeMapper.fromDataSchema(new LogicalSchema(LogicalTypeConstants.UUID_TYPE)))
                 .isEqualTo(DataString.DATATYPE);
-        assertThat(typeMapper.fromDataSchema(new LogicalSchema(LogicalTypeRegistry.DATE)))
+        assertThat(typeMapper.fromDataSchema(new LogicalSchema(LogicalTypeConstants.DATE_TYPE)))
                 .isEqualTo(DataInteger.DATATYPE);
-        assertThat(typeMapper.fromDataSchema(new LogicalSchema(LogicalTypeRegistry.TIME_MICROS)))
+        assertThat(typeMapper.fromDataSchema(new LogicalSchema(LogicalTypeConstants.TIME_MICROS_TYPE)))
                 .isEqualTo(DataLong.DATATYPE);
     }
 
@@ -113,8 +113,8 @@ class LogicalSchemaTest {
     @Test
     @DisplayName("toString is the logical type name and the getter exposes the underlying logical type")
     void toStringAndGetterExposeLogicalType() {
-        final var uuid = new LogicalSchema(LogicalTypeRegistry.UUID);
-        assertThat(uuid.logicalType()).isSameAs(LogicalTypeRegistry.UUID);
+        final var uuid = new LogicalSchema(LogicalTypeConstants.UUID_TYPE);
+        assertThat(uuid.logicalType()).isSameAs(LogicalTypeConstants.UUID_TYPE);
         assertThat(uuid).hasToString("uuid");
         assertThat(new LogicalSchema(new DecimalLogicalType(10, 2))).hasToString("decimal");
     }
@@ -122,6 +122,19 @@ class LogicalSchemaTest {
     @Test
     @DisplayName("A logical schema is not assignable from a null schema")
     void notAssignableFromNull() {
-        assertThat(new LogicalSchema(LogicalTypeRegistry.UUID).isAssignableFrom(null).isAssignable()).isFalse();
+        assertThat(new LogicalSchema(LogicalTypeConstants.UUID_TYPE).isAssignableFrom(null).isAssignable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("A decimal may grow its precision at the same scale, but not narrow or change scale")
+    void decimalPrecisionWidening() {
+        final var d10 = new LogicalSchema(new DecimalLogicalType(10, 2));
+        final var d12 = new LogicalSchema(new DecimalLogicalType(12, 2));
+        final var d12s3 = new LogicalSchema(new DecimalLogicalType(12, 3));
+
+        assertThat(d12.isAssignableFrom(d10).isAssignable()).as("widening precision").isTrue();
+        assertThat(d10.isAssignableFrom(d10).isAssignable()).as("identical").isTrue();
+        assertThat(d10.isAssignableFrom(d12).isAssignable()).as("narrowing precision").isFalse();
+        assertThat(d12s3.isAssignableFrom(d12).isAssignable()).as("changing scale").isFalse();
     }
 }

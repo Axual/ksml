@@ -41,6 +41,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
+import io.axual.ksml.data.schema.logical.LogicalType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
@@ -57,6 +58,8 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,8 +113,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
         final var logicalType = AvroLogicalTypes.resolveEffective(schema);
         if (logicalType instanceof DecimalLogicalType decimalType) {
-            final var decimalString = new DataString(AvroLogicalTypes.decimalToString(toDecimalBytes(value), decimalType.scale()));
-            decimalType.validate(decimalString);
+            final var decimalString = new DataString(toDecimal(value, decimalType.scale()).toPlainString());
+            warnIfInvalid(decimalType, decimalString);
             return decimalString;
         }
 
@@ -138,7 +141,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case Map<?, ?> val -> convertMapToDataMap(expected, val, schema != null ? mapValueSchemaOf(schema) : null);
             default -> throw new DataException("Unsupported primitive type: " + value.getClass().getSimpleName());
         };
-        if (logicalType != null) logicalType.validate(result);
+        if (logicalType != null) warnIfInvalid(logicalType, result);
         return result;
     }
 
@@ -208,8 +211,10 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     private DataObject nullForOptionalField(Schema fieldSchema) {
         final var effective = unwrapUnionToPrimary(fieldSchema);
         if (effective == null) return null; // not an optional union or ambiguous union
-        // A null optional decimal is omitted; its string representation cannot round-trip as a bytes-typed null.
-        if (AvroLogicalTypes.resolve(effective) instanceof DecimalLogicalType) return null;
+        // A logical type is presented as its representation primitive, so a decimal needs a string null
+        // rather than the bytes null its base schema would give.
+        final var logicalType = AvroLogicalTypes.resolve(effective);
+        if (logicalType != null) return ConvertUtil.convertNullToDataObject(logicalType.representationType());
         return switch (effective.getType()) {
             case STRING -> new DataString(null);
             case INT -> new DataInteger(null);
@@ -289,10 +294,35 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         return arr;
     }
 
-    private static byte[] toDecimalBytes(Object value) {
-        if (value instanceof ByteBuffer buffer) return toByteArray(buffer);
-        if (value instanceof byte[] bytes) return bytes;
-        throw new DataException("Expected bytes for decimal logical type but got " + value.getClass().getSimpleName());
+    /**
+     * Reads a decimal from whatever shape the Avro serde produced. The default Avro data model has no
+     * decimal conversion and hands over raw bytes, but a user can enable a converter, in which case the
+     * value arrives as a BigDecimal. A value that already went through KSML arrives as a DataString.
+     */
+    private static BigDecimal toDecimal(Object value, int scale) {
+        if (value instanceof BigDecimal decimal) return decimal;
+        if (value instanceof DataString dataString && dataString.value() != null) return new BigDecimal(dataString.value());
+        if (value instanceof CharSequence text) return new BigDecimal(text.toString());
+        final byte[] bytes = switch (value) {
+            case ByteBuffer buffer -> toByteArray(buffer);
+            case byte[] arr -> arr;
+            default -> throw new DataException("Expected bytes or BigDecimal for decimal logical type but got "
+                    + value.getClass().getSimpleName());
+        };
+        return new BigDecimal(new BigInteger(bytes), scale);
+    }
+
+    /**
+     * Reports a value that does not match its logical type without failing the read. A bad value read from
+     * a topic is an upstream problem, and the default consume handler is stopOnFail, so throwing here would
+     * turn someone else's data problem into an outage. The write path still throws.
+     */
+    private static void warnIfInvalid(LogicalType logicalType, DataObject value) {
+        try {
+            logicalType.validate(value);
+        } catch (DataException e) {
+            log.warn("Value read from Kafka does not match its {} logical type: {}", logicalType.name(), e.getMessage());
+        }
     }
 
     private DataType dataTypeFromAvroSchema(Schema schema) {
@@ -435,6 +465,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
     private Object convertDataObjectToAvroUnion(DataObject value, Schema schema) {
         if (value instanceof DataNull) return null;
+        // A typed null (for example DataString(null) for an absent optional decimal) belongs in the null branch.
+        if (isNullValued(value) && schema.getTypes().stream().anyMatch(b -> b.getType() == Schema.Type.NULL)) return null;
         // Native-type match first to avoid routing e.g. DataLong into the DOUBLE branch of [DOUBLE,LONG].
         final var nativeMatch = matchUnionBranchByNativeType(schema, value);
         if (nativeMatch != null) return convertDataObjectToAvroBySchema(value, nativeMatch);
@@ -445,6 +477,11 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         }
         throw new DataException("No union branch in '" + schema + "' is compatible with "
                 + value.getClass().getSimpleName());
+    }
+
+    private static boolean isNullValued(DataObject value) {
+        return value instanceof DataString val && val.value() == null
+                || value instanceof DataBytes val2 && val2.value() == null;
     }
 
     private Object schemaMismatch(DataObject value, Schema schema) {

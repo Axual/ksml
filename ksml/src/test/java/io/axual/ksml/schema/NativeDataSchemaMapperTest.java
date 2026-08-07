@@ -4,7 +4,7 @@ package io.axual.ksml.schema;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
-import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
+import io.axual.ksml.data.schema.logical.LogicalTypeConstants;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.exception.ExecutionException;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -175,9 +175,9 @@ class NativeDataSchemaMapperTest {
     @Test
     void logicalTypeFields_serializeAsRepresentationPrimitive() {
         var schema = new StructSchema(null, "TestRecord", null, List.of(
-                new StructSchema.Field("id", new LogicalSchema(LogicalTypeRegistry.UUID)),
+                new StructSchema.Field("id", new LogicalSchema(LogicalTypeConstants.UUID_TYPE)),
                 new StructSchema.Field("amount", new LogicalSchema(new DecimalLogicalType(10, 2))),
-                new StructSchema.Field("day", new LogicalSchema(LogicalTypeRegistry.DATE))));
+                new StructSchema.Field("day", new LogicalSchema(LogicalTypeConstants.DATE_TYPE))));
 
         var result = (Map<?, ?>) mapper.fromDataSchema(schema);
 

@@ -668,16 +668,29 @@ This table shows each supported logical type and the value your Python function 
 | `time-micros`            | long           | long, microseconds after midnight                     |
 | `timestamp-millis`       | long           | long, milliseconds since 1970-01-01                   |
 | `timestamp-micros`       | long           | long, microseconds since 1970-01-01                   |
-| `local-timestamp-millis` | long           | long                                                  |
-| `local-timestamp-micros` | long           | long                                                  |
+| `local-timestamp-millis` | long           | long, milliseconds since 1970-01-01, no time zone     |
+| `local-timestamp-micros` | long           | long, microseconds since 1970-01-01, no time zone     |
 
 A `decimal` is shown as a plain string like `"123.45"` so no digit is ever lost. KSML turns that string into the
 correct Avro bytes when it writes a message, and back into a string when it reads one. A floating point number is
 never used, because it could change the value.
 
-KSML rejects a value that does not fit its logical type, so the mistake is caught at the producer instead of far
-downstream. Values that fail are, for example, a `uuid` that is not a real UUID, a `time-millis` outside the range `0`
-to `86399999`, or a `decimal` with more digits than the schema allows.
+KSML checks a value against its logical type. Examples that fail are a `uuid` that is not a real UUID, a
+`time-millis` outside the range `0` to `86399999`, or a `decimal` with more digits than the schema allows.
+
+Writing an invalid value fails, so the mistake is caught at the producer instead of far downstream. Reading an
+invalid value only logs a warning and passes the value on, because a bad record in a topic comes from another
+system and stopping your application for it would be worse.
+
+Two limits are worth knowing:
+
+- Only a `bytes`-backed decimal is supported. A `fixed`-backed decimal is treated as a plain `fixed`, so it reaches
+  Python as bytes.
+- Logical types come from the schema, so they work when the schema is loaded from a `.avsc` file or from the schema
+  registry. An inline KSML schema cannot express one.
+
+A `decimal` may grow its precision between schema versions as long as the scale does not change. Narrowing the
+precision or changing the scale is rejected, because both can lose digits.
 
 **Example schema with logical types:**
 
@@ -697,6 +710,8 @@ to `86399999`, or a `decimal` with more digits than the schema allows.
 In a Python function you set these fields with plain values:
 
 ```python
+import time
+
 value["id"] = "123e4567-e89b-12d3-a456-426614174000"
 value["amount"] = "123.45"
 value["created_at"] = round(time.time() * 1000)

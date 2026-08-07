@@ -4,7 +4,7 @@ package io.axual.ksml.data.schema;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,26 +23,31 @@ package io.axual.ksml.data.schema;
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.compare.Equality;
 import io.axual.ksml.data.compare.EqualityFlags;
+import io.axual.ksml.data.schema.logical.DecimalLogicalType;
 import io.axual.ksml.data.schema.logical.LogicalType;
 import io.axual.ksml.data.util.EqualUtil;
+import lombok.EqualsAndHashCode;
 
 import java.util.Objects;
 
 import static io.axual.ksml.data.util.EqualUtil.fieldNotEqual;
 import static io.axual.ksml.data.util.EqualUtil.otherIsNull;
 
-/**
- * A schema node decorating a base primitive with a {@link LogicalType} (Avro-style: decimal on bytes,
- * uuid on string). It reports the base primitive's {@link #type()} so assignability and logical-unaware
- * notations treat it as the base, and being distinct from the primitive singletons it forces mappers to
- * handle it explicitly.
- */
+/** A base primitive with a {@link LogicalType} attached, Avro-style: decimal on bytes, uuid on string. */
+@EqualsAndHashCode(callSuper = true)
 public final class LogicalSchema extends DataSchema {
+    private static final String NOT_ASSIGNABLE_FROM = " is not assignable from ";
+
     private final LogicalType logicalType;
 
     public LogicalSchema(LogicalType logicalType) {
-        super(logicalType.baseSchema().type());
-        this.logicalType = Objects.requireNonNull(logicalType, "logicalType");
+        // Checked inside the super() argument so a null gives the named message instead of a bare NPE.
+        super(requireLogicalType(logicalType).baseSchema().type());
+        this.logicalType = logicalType;
+    }
+
+    private static LogicalType requireLogicalType(LogicalType logicalType) {
+        return Objects.requireNonNull(logicalType, "logicalType");
     }
 
     public LogicalType logicalType() {
@@ -56,10 +61,17 @@ public final class LogicalSchema extends DataSchema {
     @Override
     public Assignable isAssignableFrom(DataSchema otherSchema) {
         if (otherSchema == null) return Assignable.notAssignable("No other schema provided");
-        // Only assignable from the identical logical type (same name and, for decimal, the same precision and
-        // scale). A more lenient rule such as decimal precision widening could be added later if needed.
-        if (!(otherSchema instanceof LogicalSchema other) || !logicalType.equals(other.logicalType))
-            return Assignable.notAssignable(logicalType.name() + " is not assignable from " + otherSchema);
+        if (!(otherSchema instanceof LogicalSchema other))
+            return Assignable.notAssignable(logicalType.name() + NOT_ASSIGNABLE_FROM + otherSchema);
+        // A decimal may grow its precision at the same scale, the safe direction for schema evolution.
+        // Narrowing the precision or changing the scale can lose digits, so both stay rejected.
+        if (logicalType instanceof DecimalLogicalType self && other.logicalType instanceof DecimalLogicalType from) {
+            if (self.scale() != from.scale() || self.precision() < from.precision())
+                return Assignable.notAssignable(self + NOT_ASSIGNABLE_FROM + from);
+            return baseSchema().isAssignableFrom(other.baseSchema());
+        }
+        if (!logicalType.equals(other.logicalType))
+            return Assignable.notAssignable(logicalType.name() + NOT_ASSIGNABLE_FROM + otherSchema);
         return baseSchema().isAssignableFrom(other.baseSchema());
     }
 
@@ -75,26 +87,6 @@ public final class LogicalSchema extends DataSchema {
             return fieldNotEqual("logicalType", this, logicalType, that, that.logicalType);
 
         return Equality.equal();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        return other instanceof LogicalSchema that
-                && Objects.equals(type(), that.type())
-                && Objects.equals(logicalType, that.logicalType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(type(), logicalType);
-    }
-
-    // The parent DataSchema uses Lombok equals with canEqual; restrict it so a base primitive is never considered
-    // equal to a LogicalSchema, keeping equals symmetric.
-    @Override
-    protected boolean canEqual(Object other) {
-        return other instanceof LogicalSchema;
     }
 
     @Override

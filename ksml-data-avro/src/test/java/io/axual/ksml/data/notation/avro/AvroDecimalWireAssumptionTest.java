@@ -4,7 +4,7 @@ package io.axual.ksml.data.notation.avro;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,7 @@ import java.nio.ByteBuffer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Confirms the assumption KSML's logical-type handling relies on: the default Avro data model has no
- * decimal conversion, so it reads and writes a decimal field as raw bytes rather than a BigDecimal.
- * This is the unit-level stand-in for the (deferred) serializer integration test.
- */
+/** Guards the assumption behind the decimal handling: default Avro reads and writes a decimal as raw bytes. */
 class AvroDecimalWireAssumptionTest {
     @Test
     @DisplayName("Default Avro GenericData has no decimal conversion and round-trips a decimal field as raw bytes")

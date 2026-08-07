@@ -15,6 +15,7 @@ Before you upgrade, check each item below:
 * Replace any `apicurio.registry.auto-register.if-exists: RETURN` with a valid v3 value such as `FIND_OR_CREATE_VERSION`.
 * Remove `apicurio.registry.as-confluent`, and replace `Legacy4ByteIdHandler` with `Default4ByteIdHandler` if you set `apicurio.registry.id-handler` yourself.
 * Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.
+* If you read an Avro `decimal` field in Python, change the code to expect a string instead of bytes.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -120,6 +121,54 @@ Could not read the KSML definition: Duplicate field 'topic'
 This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.
 
 What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.
+
+## Avro logical types
+
+KSML now understands Avro logical types (`uuid`, `decimal`, `date`, `time-millis`, `time-micros`,
+`timestamp-millis`, `timestamp-micros`, `local-timestamp-millis`, `local-timestamp-micros`). It keeps
+the logical type when it reads and writes a record. One of these changes what your Python code sees.
+
+### A decimal is now a string
+
+An Avro `decimal` used to arrive in Python as raw bytes, because KSML treated it as its base `bytes`
+type. It is now a string holding the exact number.
+
+```python
+# Before (KSML 1.x): amount was bytes, and you had to decode it yourself
+amount = value["amount"]          # b'\x30\x39'
+
+# After (KSML 2.0.0): amount is the number as text
+amount = value["amount"]          # "123.45"
+```
+
+What you need to do: if a Python function reads a `decimal` field, treat it as a string. Use
+`float(value["amount"])` or Python's `decimal.Decimal` when you need to calculate with it. When you
+write the field, write a string such as `"123.45"`.
+
+### Values are checked against their logical type
+
+KSML checks that a value fits its logical type, for example that a `uuid` is a real UUID and that a
+`time-millis` is between `0` and `86399999`.
+
+Writing an invalid value fails, which points at the mistake in your own pipeline. Reading an invalid
+value only writes a warning to the log and passes the value on. That is on purpose: a bad record in a
+topic comes from another system, and the default consume error handler is `stopOnFail`, so failing
+there would stop your application because of someone else's data.
+
+What you need to do: nothing to upgrade, but watch the log for these warnings after you upgrade.
+
+### Decimal precision may grow, scale may not change
+
+Two versions of a schema whose `decimal` differs only in precision are compatible, as long as the
+scale is the same and the precision grows. Narrowing the precision or changing the scale is rejected,
+because both can lose digits.
+
+### Limits
+
+* Only a `bytes`-backed decimal is supported. A `fixed`-backed decimal is treated as a plain `fixed`
+  and reaches Python as bytes.
+* Logical types come from the schema, so they work when the schema is loaded from a `.avsc` file or
+  from the schema registry. An inline KSML schema cannot express one.
 
 ## Kafka Streams error handlers
 

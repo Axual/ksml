@@ -4,7 +4,7 @@ package io.axual.ksml.data.notation.avro;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ package io.axual.ksml.data.notation.avro;
 
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
 import io.axual.ksml.data.schema.logical.LogicalType;
-import io.axual.ksml.data.schema.logical.LogicalTypeNames;
-import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
+import io.axual.ksml.data.schema.logical.LogicalTypeConstants;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 
@@ -46,15 +45,14 @@ final class AvroLogicalTypes {
             if (schema.getType() != Schema.Type.BYTES) return null;
             return new DecimalLogicalType(decimal.getPrecision(), decimal.getScale());
         }
-        return LogicalTypeRegistry.byName(avroLogical.getName());
+        return LogicalTypeConstants.byName(avroLogical.getName());
     }
 
     /** Like {@link #resolve(Schema)} but looks through an optional union to its non-null branch. */
     static LogicalType resolveEffective(Schema schema) {
         if (schema == null) return null;
         if (schema.getType() == Schema.Type.UNION) {
-            // Only a simple optional union [null, T] carries a logical type unambiguously; a union mixing a
-            // logical branch with other types is left to the plain per-value conversion.
+            // Only a simple [null, T] union carries a logical type; other unions fall back to per-value conversion.
             Schema single = null;
             for (final var branch : schema.getTypes()) {
                 if (branch.getType() == Schema.Type.NULL) continue;
@@ -69,18 +67,18 @@ final class AvroLogicalTypes {
     /** Attaches the Avro logical type matching the given {@link LogicalType} to a base Avro schema. */
     static Schema apply(Schema base, LogicalType logicalType) {
         return switch (logicalType.name()) {
-            case LogicalTypeNames.DECIMAL -> {
+            case LogicalTypeConstants.DECIMAL -> {
                 final var decimal = (DecimalLogicalType) logicalType;
                 yield LogicalTypes.decimal(decimal.precision(), decimal.scale()).addToSchema(base);
             }
-            case LogicalTypeNames.UUID -> LogicalTypes.uuid().addToSchema(base);
-            case LogicalTypeNames.DATE -> LogicalTypes.date().addToSchema(base);
-            case LogicalTypeNames.TIME_MILLIS -> LogicalTypes.timeMillis().addToSchema(base);
-            case LogicalTypeNames.TIME_MICROS -> LogicalTypes.timeMicros().addToSchema(base);
-            case LogicalTypeNames.TIMESTAMP_MILLIS -> LogicalTypes.timestampMillis().addToSchema(base);
-            case LogicalTypeNames.TIMESTAMP_MICROS -> LogicalTypes.timestampMicros().addToSchema(base);
-            case LogicalTypeNames.LOCAL_TIMESTAMP_MILLIS -> LogicalTypes.localTimestampMillis().addToSchema(base);
-            case LogicalTypeNames.LOCAL_TIMESTAMP_MICROS -> LogicalTypes.localTimestampMicros().addToSchema(base);
+            case LogicalTypeConstants.UUID -> LogicalTypes.uuid().addToSchema(base);
+            case LogicalTypeConstants.DATE -> LogicalTypes.date().addToSchema(base);
+            case LogicalTypeConstants.TIME_MILLIS -> LogicalTypes.timeMillis().addToSchema(base);
+            case LogicalTypeConstants.TIME_MICROS -> LogicalTypes.timeMicros().addToSchema(base);
+            case LogicalTypeConstants.TIMESTAMP_MILLIS -> LogicalTypes.timestampMillis().addToSchema(base);
+            case LogicalTypeConstants.TIMESTAMP_MICROS -> LogicalTypes.timestampMicros().addToSchema(base);
+            case LogicalTypeConstants.LOCAL_TIMESTAMP_MILLIS -> LogicalTypes.localTimestampMillis().addToSchema(base);
+            case LogicalTypeConstants.LOCAL_TIMESTAMP_MICROS -> LogicalTypes.localTimestampMicros().addToSchema(base);
             default -> base;
         };
     }

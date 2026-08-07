@@ -391,8 +391,11 @@ This section describes the internal schema model used by ksml-data. Schemas capt
 3.13 LogicalSchema
 - Decorates a base primitive schema with a LogicalType (io.axual.ksml.data.schema.logical), mirroring Avro's model where a logical type is attached to a base Schema (for example decimal on bytes, uuid on string).
 - type() reports the base primitive's type, so assignability and logical-unaware notations treat it as the base; it is never a shared primitive singleton, so reference-equality checks against those singletons do not match it and force mappers to handle it explicitly.
-- logicalType() exposes the LogicalType (name, baseSchema, representationType, validate); representationType is what the runtime and user code see (string for decimal and uuid, int for date/time-millis, long for the other temporal types).
+- logicalType() exposes the LogicalType (name, baseSchema, representationType, representationSchema, validate); the representation is what the runtime and user code see (string for decimal and uuid, int for date/time-millis, long for the other temporal types).
+- The standard scalar logical types and their names live in LogicalTypeConstants; decimal is parameterised, so it has its own DecimalLogicalType.
+- isAssignableFrom accepts a decimal whose precision grew at the same scale; narrowing the precision or changing the scale is rejected.
 - Produced and consumed by AvroSchemaMapper (Avro logicalType) and JsonSchemaMapper (JSON Schema format: uuid); DataTypeDataSchemaMapper maps it to its representation DataType.
+- Notations that have no logical types (PROTOBUF, XML) unwrap it to baseSchema() at the top of their schema mapper, so they behave as they did before logical types existed.
 
 3.14 Schema ↔ DataType mapping
 - DataTypeDataSchemaMapper bridges between DataType and DataSchema:

@@ -21,7 +21,6 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -62,7 +61,6 @@ import static io.axual.ksml.data.schema.DataSchema.ANY_SCHEMA;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();
-    private static final DataTypeDataSchemaMapper TYPE_TO_SCHEMA = new DataTypeDataSchemaMapper();
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, Object value) {
@@ -155,13 +153,12 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
 
     private String getSimpleSchemaType(DataSchema schema) {
         // A logical type is presented to the runtime and to Python as its representation primitive.
-        final var effective = schema instanceof LogicalSchema logicalSchema
-                ? TYPE_TO_SCHEMA.toDataSchema(logicalSchema.logicalType().representationType())
-                : schema;
-        return getSimplePrimitiveType(effective);
+        if (schema instanceof LogicalSchema logicalSchema)
+            return primitiveSchemaTypeName(logicalSchema.logicalType().representationSchema());
+        return primitiveSchemaTypeName(schema);
     }
 
-    private String getSimplePrimitiveType(DataSchema schema) {
+    private String primitiveSchemaTypeName(DataSchema schema) {
         if (schema == ANY_SCHEMA) return DataSchemaConstants.ANY_TYPE;
         if (schema == DataSchema.NULL_SCHEMA) return DataSchemaConstants.NULL_TYPE;
         if (schema == DataSchema.BOOLEAN_SCHEMA) return DataSchemaConstants.BOOLEAN_TYPE;

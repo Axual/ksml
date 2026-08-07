@@ -4,7 +4,7 @@ package io.axual.ksml.data.schema.logical;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,22 +42,22 @@ class LogicalTypeValidationTest {
     @Test
     @DisplayName("Registry resolves standard names and returns null for unknown or custom names")
     void registry_resolvesKnownNames_andNullForUnknown() {
-        assertThat(LogicalTypeRegistry.byName("uuid")).isSameAs(LogicalTypeRegistry.UUID);
-        assertThat(LogicalTypeRegistry.byName("time-millis")).isSameAs(LogicalTypeRegistry.TIME_MILLIS);
-        assertThat(LogicalTypeRegistry.byName("timestamp-micros")).isSameAs(LogicalTypeRegistry.TIMESTAMP_MICROS);
-        assertThat(LogicalTypeRegistry.byName("something-custom")).isNull();
-        assertThat(LogicalTypeRegistry.byName(null)).isNull();
+        assertThat(LogicalTypeConstants.byName("uuid")).isSameAs(LogicalTypeConstants.UUID_TYPE);
+        assertThat(LogicalTypeConstants.byName("time-millis")).isSameAs(LogicalTypeConstants.TIME_MILLIS_TYPE);
+        assertThat(LogicalTypeConstants.byName("timestamp-micros")).isSameAs(LogicalTypeConstants.TIMESTAMP_MICROS_TYPE);
+        assertThat(LogicalTypeConstants.byName("something-custom")).isNull();
+        assertThat(LogicalTypeConstants.byName(null)).isNull();
     }
 
     @Test
     @DisplayName("uuid validation accepts a valid UUID, null, and rejects a malformed string")
     void uuid_validation() {
-        assertThatCode(() -> LogicalTypeRegistry.UUID.validate(new DataString("123e4567-e89b-12d3-a456-426614174000")))
+        assertThatCode(() -> LogicalTypeConstants.UUID_TYPE.validate(new DataString("123e4567-e89b-12d3-a456-426614174000")))
                 .doesNotThrowAnyException();
-        assertThatCode(() -> LogicalTypeRegistry.UUID.validate(new DataString(null))).doesNotThrowAnyException();
-        assertThatCode(() -> LogicalTypeRegistry.UUID.validate(DataNull.INSTANCE)).doesNotThrowAnyException();
+        assertThatCode(() -> LogicalTypeConstants.UUID_TYPE.validate(new DataString(null))).doesNotThrowAnyException();
+        assertThatCode(() -> LogicalTypeConstants.UUID_TYPE.validate(DataNull.INSTANCE)).doesNotThrowAnyException();
         final var invalidUuid = new DataString("not-a-uuid");
-        assertThatThrownBy(() -> LogicalTypeRegistry.UUID.validate(invalidUuid))
+        assertThatThrownBy(() -> LogicalTypeConstants.UUID_TYPE.validate(invalidUuid))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("not a valid uuid");
     }
@@ -66,7 +66,7 @@ class LogicalTypeValidationTest {
     @DisplayName("time-millis accepts values inside [0, 86_399_999]")
     @ValueSource(ints = {0, 1, 3723000, 86_399_999})
     void timeMillis_accepts_inRange(int value) {
-        assertThatCode(() -> LogicalTypeRegistry.TIME_MILLIS.validate(new DataInteger(value))).doesNotThrowAnyException();
+        assertThatCode(() -> LogicalTypeConstants.TIME_MILLIS_TYPE.validate(new DataInteger(value))).doesNotThrowAnyException();
     }
 
     @ParameterizedTest
@@ -74,7 +74,7 @@ class LogicalTypeValidationTest {
     @ValueSource(ints = {-1, 86_400_000, Integer.MAX_VALUE, Integer.MIN_VALUE})
     void timeMillis_rejects_outOfRange(int value) {
         final var outOfRange = new DataInteger(value);
-        assertThatThrownBy(() -> LogicalTypeRegistry.TIME_MILLIS.validate(outOfRange))
+        assertThatThrownBy(() -> LogicalTypeConstants.TIME_MILLIS_TYPE.validate(outOfRange))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("time-millis");
     }
@@ -83,7 +83,7 @@ class LogicalTypeValidationTest {
     @DisplayName("time-micros accepts values inside [0, 86_399_999_999]")
     @ValueSource(longs = {0L, 1L, 86_399_999_999L})
     void timeMicros_accepts_inRange(long value) {
-        assertThatCode(() -> LogicalTypeRegistry.TIME_MICROS.validate(new DataLong(value))).doesNotThrowAnyException();
+        assertThatCode(() -> LogicalTypeConstants.TIME_MICROS_TYPE.validate(new DataLong(value))).doesNotThrowAnyException();
     }
 
     @ParameterizedTest
@@ -91,7 +91,7 @@ class LogicalTypeValidationTest {
     @ValueSource(longs = {-1L, 86_400_000_000L, Long.MAX_VALUE})
     void timeMicros_rejects_outOfRange(long value) {
         final var outOfRange = new DataLong(value);
-        assertThatThrownBy(() -> LogicalTypeRegistry.TIME_MICROS.validate(outOfRange))
+        assertThatThrownBy(() -> LogicalTypeConstants.TIME_MICROS_TYPE.validate(outOfRange))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("time-micros");
     }
@@ -99,9 +99,9 @@ class LogicalTypeValidationTest {
     @Test
     @DisplayName("date and timestamp logical types preserve any value without complaint")
     void preservationOnly_types_acceptAnyValue() {
-        assertThatCode(() -> LogicalTypeRegistry.DATE.validate(new DataInteger(-1))).doesNotThrowAnyException();
-        assertThatCode(() -> LogicalTypeRegistry.TIMESTAMP_MILLIS.validate(new DataLong(-1L))).doesNotThrowAnyException();
-        assertThatCode(() -> LogicalTypeRegistry.LOCAL_TIMESTAMP_MICROS.validate(new DataLong(Long.MAX_VALUE))).doesNotThrowAnyException();
+        assertThatCode(() -> LogicalTypeConstants.DATE_TYPE.validate(new DataInteger(-1))).doesNotThrowAnyException();
+        assertThatCode(() -> LogicalTypeConstants.TIMESTAMP_MILLIS_TYPE.validate(new DataLong(-1L))).doesNotThrowAnyException();
+        assertThatCode(() -> LogicalTypeConstants.LOCAL_TIMESTAMP_MICROS_TYPE.validate(new DataLong(Long.MAX_VALUE))).doesNotThrowAnyException();
     }
 
     @Test
@@ -154,5 +154,22 @@ class LogicalTypeValidationTest {
         assertThatThrownBy(() -> decimal.validate(nonString))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("must be a string");
+    }
+
+    @Test
+    @DisplayName("A range check works whatever DataObject class carries the number")
+    void rangeCheckIgnoresTheWrapperClass() {
+        // A Python integer does not always arrive as the exact class of the base type, so checking the
+        // number rather than the wrapper is what makes the range check useful in practice.
+        final var negativeLong = new DataLong(-1L);
+        final var negativeInt = new DataInteger(-1);
+        final var validLong = new DataLong(3723000L);
+
+        assertThatThrownBy(() -> LogicalTypeConstants.TIME_MILLIS_TYPE.validate(negativeLong))
+                .isInstanceOf(DataException.class);
+        assertThatThrownBy(() -> LogicalTypeConstants.TIME_MICROS_TYPE.validate(negativeInt))
+                .isInstanceOf(DataException.class);
+        assertThatCode(() -> LogicalTypeConstants.TIME_MILLIS_TYPE.validate(validLong))
+                .doesNotThrowAnyException();
     }
 }

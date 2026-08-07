@@ -37,7 +37,7 @@ import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
+import io.axual.ksml.data.schema.logical.LogicalTypeConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -264,7 +264,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private DataSchema stringOrLogicalSchema(DataStruct specStruct) {
         final var format = specStruct.getAsString(FORMAT_NAME);
         return format != null && UUID_FORMAT.equals(format.value())
-                ? new LogicalSchema(LogicalTypeRegistry.UUID)
+                ? new LogicalSchema(LogicalTypeConstants.UUID_TYPE)
                 : DataSchema.STRING_SCHEMA;
     }
 
@@ -373,7 +373,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     private void convertType(DataSchema schema, boolean constant, DataObject defaultValue, DataStruct target, DefinitionLibrary definitions) {
-        if (schema instanceof LogicalSchema logicalSchema) writeLogicalType(logicalSchema, target);
+        if (schema instanceof LogicalSchema logicalSchema) writeLogicalType(logicalSchema, constant, defaultValue, target);
         if (schema == DataSchema.NULL_SCHEMA) target.put(TYPE_NAME, new DataString(NULL_TYPE));
         if (schema == DataSchema.BOOLEAN_SCHEMA) target.put(TYPE_NAME, new DataString(BOOLEAN_TYPE));
         if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA || schema == DataSchema.LONG_SCHEMA)
@@ -431,7 +431,12 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     /** uuid maps to a string with {@code format: uuid}; other logical types degrade to their representation primitive. */
-    private void writeLogicalType(LogicalSchema logicalSchema, DataStruct target) {
+    private void writeLogicalType(LogicalSchema logicalSchema, boolean constant, DataObject defaultValue, DataStruct target) {
+        // A constant field is written as a single-value enum, the same rule the plain string branch uses.
+        if (constant && defaultValue != null) {
+            target.put(ENUM_NAME, DataList.of(new DataString(defaultValue.toString())));
+            return;
+        }
         if (UUID_FORMAT.equals(logicalSchema.logicalType().name())) {
             target.put(TYPE_NAME, new DataString(STRING_TYPE));
             target.put(FORMAT_NAME, new DataString(UUID_FORMAT));

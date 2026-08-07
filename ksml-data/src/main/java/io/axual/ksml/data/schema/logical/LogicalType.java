@@ -4,7 +4,7 @@ package io.axual.ksml.data.schema.logical;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ public interface LogicalType {
 
     /** The runtime type the value takes inside KSML; usually the base type, but string for decimal. */
     DataType representationType();
+
+    /** The primitive schema matching {@link #representationType()}; usually the base, but string for decimal. */
+    DataSchema representationSchema();
 
     /** Validates a value against the semantic. A null value is always allowed; throws DataException otherwise. */
     void validate(DataObject value);

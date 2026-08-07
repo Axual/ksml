@@ -9,6 +9,10 @@
     { "name": "amount", "type": { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 }, "doc": "decimal(10,2)" },
     { "name": "eventDate", "type": { "type": "int", "logicalType": "date" }, "doc": "date logical type" },
     { "name": "eventTimeMillis", "type": { "type": "int", "logicalType": "time-millis" }, "doc": "time-millis logical type" },
-    { "name": "eventTimestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "timestamp-millis logical type" }
+    { "name": "eventTimestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "timestamp-millis logical type" },
+    { "name": "eventTimeMicros", "type": { "type": "long", "logicalType": "time-micros" }, "doc": "time-micros logical type" },
+    { "name": "eventTimestampMicros", "type": { "type": "long", "logicalType": "timestamp-micros" }, "doc": "timestamp-micros logical type" },
+    { "name": "eventLocalTimestamp", "type": { "type": "long", "logicalType": "local-timestamp-millis" }, "doc": "local-timestamp-millis logical type" },
+    { "name": "eventLocalTimestampMicros", "type": { "type": "long", "logicalType": "local-timestamp-micros" }, "doc": "local-timestamp-micros logical type" }
   ]
 }

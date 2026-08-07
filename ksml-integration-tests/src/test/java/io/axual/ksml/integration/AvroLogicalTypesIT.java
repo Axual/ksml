@@ -4,7 +4,7 @@ package io.axual.ksml.integration;
  * ========================LICENSE_START=================================
  * KSML Integration Tests
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * End-to-end test that a record with Avro logical types (uuid, decimal, date, time-millis, timestamp-millis)
+ * End-to-end test that a record with Avro logical types (all nine logical types)
  * is produced through the real Apicurio Avro serializer, read back, and converted to JSON with every logical
  * value intact. The decimal is the key case: it crosses the wire as raw bytes and must come back as "123.45".
  */
@@ -91,7 +91,11 @@ class AvroLogicalTypesIT {
                     softly.assertThatCode(() -> UUID.fromString(json.path("id").asString())).as("uuid is well formed").doesNotThrowAnyException();
                     softly.assertThat(json.path("eventDate").asInt()).as("date").isEqualTo(19785);
                     softly.assertThat(json.path("eventTimeMillis").asInt()).as("time-millis").isEqualTo(3723000);
-                    softly.assertThat(json.path("eventTimestamp").asLong()).as("timestamp-millis is positive").isPositive();
+                    softly.assertThat(json.path("eventTimestamp").asLong()).as("timestamp-millis").isEqualTo(1700000000123L);
+                    softly.assertThat(json.path("eventTimeMicros").asLong()).as("time-micros").isEqualTo(3723000000L);
+                    softly.assertThat(json.path("eventTimestampMicros").asLong()).as("timestamp-micros").isEqualTo(1700000000123456L);
+                    softly.assertThat(json.path("eventLocalTimestamp").asLong()).as("local-timestamp-millis").isEqualTo(1700000000123L);
+                    softly.assertThat(json.path("eventLocalTimestampMicros").asLong()).as("local-timestamp-micros").isEqualTo(1700000000123456L);
                 } catch (Exception e) {
                     softly.fail("Could not parse JSON output: " + consumerRecord.value(), e);
                 }

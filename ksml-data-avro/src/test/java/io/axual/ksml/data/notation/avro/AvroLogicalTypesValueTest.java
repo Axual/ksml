@@ -4,7 +4,7 @@ package io.axual.ksml.data.notation.avro;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,11 +93,31 @@ class AvroLogicalTypesValueTest {
     }
 
     @Test
-    @DisplayName("Reading rejects an inbound value that violates its logical type")
-    void read_rejectsInvalidInbound() {
+    @DisplayName("Reading an invalid inbound value warns and passes it through, it does not stop the app")
+    void read_passesThroughInvalidInbound() {
+        // The default consume error handler is stopOnFail, so throwing here would turn a bad record in an
+        // upstream topic into an outage. The value is logged and handed on; the write path still rejects it.
         final var avroRecord = sampleRecord();
         avroRecord.put("timeMillis", -1);
-        assertThatThrownBy(() -> mapper.toDataObject(avroRecord)).isInstanceOf(DataException.class);
+        avroRecord.put("uuid", "not-a-uuid");
+
+        final var struct = (DataStruct) mapper.toDataObject(avroRecord);
+
+        assertThat(struct.get("timeMillis")).isEqualTo(new DataInteger(-1));
+        assertThat(struct.get("uuid")).isEqualTo(new DataString("not-a-uuid"));
+        assertThatThrownBy(() -> mapper.fromDataObject(struct)).isInstanceOf(DataException.class);
+    }
+
+    @Test
+    @DisplayName("A decimal that the serde already converted to BigDecimal is read, not rejected")
+    void read_acceptsBigDecimalFromAConverter() {
+        // The default Avro data model hands over raw bytes, but a user can enable a decimal converter.
+        final var avroRecord = sampleRecord();
+        avroRecord.put("decimal", new java.math.BigDecimal("123.45"));
+
+        final var struct = (DataStruct) mapper.toDataObject(avroRecord);
+
+        assertThat(struct.get("decimal")).isEqualTo(new DataString("123.45"));
     }
 
     @Test

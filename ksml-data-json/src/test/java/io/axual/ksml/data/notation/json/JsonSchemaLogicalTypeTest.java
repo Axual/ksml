@@ -4,7 +4,7 @@ package io.axual.ksml.data.notation.json;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.logical.DecimalLogicalType;
-import io.axual.ksml.data.schema.logical.LogicalTypeRegistry;
+import io.axual.ksml.data.schema.logical.LogicalTypeConstants;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +51,7 @@ class JsonSchemaLogicalTypeTest {
     @DisplayName("A uuid logical schema is written as a string with format uuid")
     void writesUuidLogicalSchemaAsFormat() {
         final var schema = StructSchema.builder().namespace("ns").name("T")
-                .field(new StructSchema.Field("id", new LogicalSchema(LogicalTypeRegistry.UUID)))
+                .field(new StructSchema.Field("id", new LogicalSchema(LogicalTypeConstants.UUID_TYPE)))
                 .additionalFieldsAllowed(false)
                 .build();
         final var json = mapper.fromDataSchema(schema);
@@ -74,7 +74,7 @@ class JsonSchemaLogicalTypeTest {
     void writesNonUuidLogicalAsRepresentationPrimitive() {
         final var schema = StructSchema.builder().namespace("ns").name("T")
                 .field(new StructSchema.Field("amount", new LogicalSchema(new DecimalLogicalType(10, 2))))
-                .field(new StructSchema.Field("day", new LogicalSchema(LogicalTypeRegistry.DATE)))
+                .field(new StructSchema.Field("day", new LogicalSchema(LogicalTypeConstants.DATE_TYPE)))
                 .additionalFieldsAllowed(false)
                 .build();
         final var back = (StructSchema) mapper.toDataSchema("ns", "T", mapper.fromDataSchema(schema));
