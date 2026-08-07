@@ -1,5 +1,5 @@
 
-Lists of 199 third-party dependencies.
+Lists of 200 third-party dependencies.
      (Apache License, Version 2.0) LZ4 Java Compression (at.yawk.lz4:lz4-java:1.10.2 - https://github.com/yawkat/lz4-java)
      (EPL-2.0) (LGPL-2.1-only) Logback Classic Module (ch.qos.logback:logback-classic:1.5.37 - http://logback.qos.ch/logback-classic)
      (EPL-2.0) (LGPL-2.1-only) Logback Core Module (ch.qos.logback:logback-core:1.5.37 - http://logback.qos.ch/logback-core)
@@ -78,6 +78,7 @@ Lists of 199 third-party dependencies.
      (Apache License Version 2.0) Registry :: Java SDK :: Client V2 (io.apicurio:apicurio-registry-v2-java-sdk:3.3.0 - https://www.apicur.io/apicurio-registry-v2-java-sdk/)
      (Apache 2.0) KSML (io.axual.ksml:ksml:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml)
      (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data)
+     (Apache 2.0) KSML Data Library - Apicurio common (io.axual.ksml:ksml-data-apicurio:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-apicurio)
      (Apache 2.0) KSML Data Library - AVRO (io.axual.ksml:ksml-data-avro:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-avro)
      (Apache 2.0) KSML Data Library - AVRO Apicurio (io.axual.ksml:ksml-data-avro-apicurio:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-avro-apicurio)
      (Apache 2.0) KSML Data Library - AVRO Confluent (io.axual.ksml:ksml-data-avro-confluent:2.0.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-avro-confluent)
