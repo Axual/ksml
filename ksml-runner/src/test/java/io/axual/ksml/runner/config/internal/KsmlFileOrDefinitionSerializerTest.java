@@ -20,8 +20,8 @@ package io.axual.ksml.runner.config.internal;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -73,6 +73,6 @@ class KsmlFileOrDefinitionSerializerTest {
     void deserializeRejectsUnsupportedKind() {
         // A JSON array is neither a file path (string) nor an inline definition (object).
         assertThatThrownBy(() -> mapper.readValue("[1, 2, 3]", KsmlFileOrDefinition.class))
-                .isInstanceOf(JsonMappingException.class);
+                .isInstanceOf(DatabindException.class);
     }
 }

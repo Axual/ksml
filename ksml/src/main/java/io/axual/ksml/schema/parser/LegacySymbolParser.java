@@ -20,12 +20,17 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
 
 public class LegacySymbolParser extends BaseParser<String> {
     @Override
     public String parse(ParseNode node) {
+        // A symbol is a plain name. Reject objects and arrays here: Jackson 3 throws when asked to
+        // render them as a string, and returning an empty symbol name would be worse than failing.
+        if (node == null || node.isObject() || node.isArray())
+            throw new ParseException(node, "Could not parse enum symbol");
         return node.asString();
     }
 }

@@ -27,7 +27,9 @@ import io.axual.ksml.parser.ParseNode;
 public class StructSchemaFieldOrderParser extends BaseParser<StructSchema.Field.Order> {
     @Override
     public StructSchema.Field.Order parse(ParseNode node) {
-        if (node == null) return StructSchema.Field.Order.ASCENDING;
+        // Any value that is not a known order name falls back to ASCENDING. Objects and arrays are
+        // filtered out here because Jackson 3 throws when asked to render them as a string.
+        if (node == null || node.isObject() || node.isArray()) return StructSchema.Field.Order.ASCENDING;
         var order = node.asString();
         if (order != null) order = order.toUpperCase();
         try {

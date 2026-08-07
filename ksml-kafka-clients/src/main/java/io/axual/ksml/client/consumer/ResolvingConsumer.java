@@ -196,7 +196,9 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
         return unresolveTopicPartitionOffsetAndMetadataMap(super.committed(topicResolver.resolveTopicPartitions(partitions), timeout));
     }
 
+    // Only the 4-arg constructor keeps generationId/memberId/groupInstanceId, which EOS needs.
     @Override
+    @SuppressWarnings("removal")
     public ConsumerGroupMetadata groupMetadata() {
         final var groupMetadata = super.groupMetadata();
         return groupMetadata == null ? null : new ConsumerGroupMetadata(

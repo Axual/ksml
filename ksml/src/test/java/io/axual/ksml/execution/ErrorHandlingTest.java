@@ -23,10 +23,10 @@ package io.axual.ksml.execution;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.TopicAuthorizationException;
-import org.apache.kafka.streams.errors.DeserializationExceptionHandler.DeserializationHandlerResponse;
+import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
-import org.apache.kafka.streams.errors.ProcessingExceptionHandler.ProcessingHandlerResponse;
-import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse;
+import org.apache.kafka.streams.errors.ProcessingExceptionHandler;
+import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 import org.apache.kafka.streams.errors.StreamsException;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse;
 import org.apache.kafka.streams.processor.api.Record;
@@ -92,16 +92,16 @@ class ErrorHandlingTest {
     @DisplayName("a continue-on-fail consume handler with payload logging returns CONTINUE")
     void deserializationContinueOnFailWithPayloadLogging() {
         errorHandling.setConsumeHandler(handler(true, true, CONTINUE_ON_FAIL));
-        assertThat(errorHandling.handle(context, consumerRecord(), new RuntimeException("boom")))
-                .isEqualTo(DeserializationHandlerResponse.CONTINUE);
+        assertThat(errorHandling.handle(context, consumerRecord(), new RuntimeException("boom")).result())
+                .isEqualTo(DeserializationExceptionHandler.Result.RESUME);
     }
 
     @Test
     @DisplayName("a stop-on-fail consume handler without payload logging returns FAIL")
     void deserializationStopOnFailWithoutPayloadLogging() {
         errorHandling.setConsumeHandler(handler(true, false, STOP_ON_FAIL));
-        assertThat(errorHandling.handle(context, consumerRecord(), new RuntimeException("boom")))
-                .isEqualTo(DeserializationHandlerResponse.FAIL);
+        assertThat(errorHandling.handle(context, consumerRecord(), new RuntimeException("boom")).result())
+                .isEqualTo(DeserializationExceptionHandler.Result.FAIL);
     }
 
     @Test
@@ -120,16 +120,16 @@ class ErrorHandlingTest {
     @DisplayName("a continue-on-fail process handler returns CONTINUE")
     void processingContinueOnFail() {
         errorHandling.setProcessHandler(handler(true, true, CONTINUE_ON_FAIL));
-        assertThat(errorHandling.handle(context, new Record<>("key", "value", 0L), new RuntimeException("boom")))
-                .isEqualTo(ProcessingHandlerResponse.CONTINUE);
+        assertThat(errorHandling.handle(context, new Record<>("key", "value", 0L), new RuntimeException("boom")).result())
+                .isEqualTo(ProcessingExceptionHandler.Result.RESUME);
     }
 
     @Test
     @DisplayName("a stop-on-fail process handler returns FAIL")
     void processingStopOnFail() {
         errorHandling.setProcessHandler(handler(false, false, STOP_ON_FAIL));
-        assertThat(errorHandling.handle(context, new Record<>("key", "value", 0L), new RuntimeException("boom")))
-                .isEqualTo(ProcessingHandlerResponse.FAIL);
+        assertThat(errorHandling.handle(context, new Record<>("key", "value", 0L), new RuntimeException("boom")).result())
+                .isEqualTo(ProcessingExceptionHandler.Result.FAIL);
     }
 
     @Test
@@ -148,24 +148,24 @@ class ErrorHandlingTest {
     @DisplayName("a continue-on-fail produce handler returns CONTINUE")
     void productionContinueOnFail() {
         errorHandling.setProduceHandler(handler(true, true, CONTINUE_ON_FAIL));
-        assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")))
-                .isEqualTo(ProductionExceptionHandlerResponse.CONTINUE);
+        assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")).result())
+                .isEqualTo(ProductionExceptionHandler.Result.RESUME);
     }
 
     @Test
     @DisplayName("a stop-on-fail produce handler returns FAIL")
     void productionStopOnFail() {
         errorHandling.setProduceHandler(handler(false, false, STOP_ON_FAIL));
-        assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")))
-                .isEqualTo(ProductionExceptionHandlerResponse.FAIL);
+        assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")).result())
+                .isEqualTo(ProductionExceptionHandler.Result.FAIL);
     }
 
     @Test
     @DisplayName("a retry-on-fail produce handler returns RETRY")
     void productionRetryOnFail() {
         errorHandling.setProduceHandler(handler(true, true, RETRY_ON_FAIL));
-        assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")))
-                .isEqualTo(ProductionExceptionHandlerResponse.RETRY);
+        assertThat(errorHandling.handle(context, producerRecord(), new RuntimeException("boom")).result())
+                .isEqualTo(ProductionExceptionHandler.Result.RETRY);
     }
 
     // --- uncaught exceptions ---------------------------------------------------------------------

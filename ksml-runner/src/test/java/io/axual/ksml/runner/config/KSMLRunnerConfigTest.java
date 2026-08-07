@@ -20,33 +20,27 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.junit.jupiter.api.BeforeEach;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KSMLRunnerConfigTest {
 
-    private ObjectMapper objectMapper;
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-
-    @BeforeEach
-    void setup() {
-        objectMapper = new ObjectMapper(new YAMLFactory());
-    }
+    // Use the exact mapper the runner uses to read its config, so this test validates real behavior.
+    private final ObjectMapper objectMapper = RunnerConfigMapper.INSTANCE;
 
     @Test
     @DisplayName("complete config should load without exceptions")
-    void shouldLoadWithoutExceptions() throws IOException {
+    void shouldLoadWithoutExceptions() {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-runner-config.yaml");
         final var ksmlRunnerConfig = objectMapper.readValue(yaml, KSMLRunnerConfig.class);
 
@@ -74,7 +68,7 @@ class KSMLRunnerConfigTest {
             definitions:
               foo: {}
             """;
-        var cfg = mapper.readValue(yaml, KSMLConfig.class);
+        var cfg = objectMapper.readValue(yaml, KSMLConfig.class);
 
         var pyCfg = cfg.pythonContextConfig();
         // all flags should be default false
@@ -103,7 +97,7 @@ class KSMLRunnerConfigTest {
               allowCreateThread: true
               inheritEnvironmentVariables: true
             """;
-        var cfg = mapper.readValue(yaml, KSMLConfig.class);
+        var cfg = objectMapper.readValue(yaml, KSMLConfig.class);
 
         var pyCfg = cfg.pythonContextConfig();
         assertTrue(pyCfg.allowHostFileAccess(),     "should pick up allowHostFileAccess=true");
@@ -112,5 +106,21 @@ class KSMLRunnerConfigTest {
         assertFalse(pyCfg.allowCreateProcess(),     "should pick up allowCreateProcess=false");
         assertTrue(pyCfg.allowCreateThread(),       "should pick up allowCreateThread=true");
         assertTrue(pyCfg.inheritEnvironmentVariables(), "should pick up inheritEnvironmentVariables=true");
+    }
+
+    @Test
+    @DisplayName("An unknown key in the runner config fails instead of being silently ignored")
+    void unknownKeyFails() {
+        final var yaml = """
+            ksml:
+              configDirectory: /tmp/config
+              schemaRegsitry: oops
+            kafka:
+              application.id: test
+            """;
+
+        assertThatThrownBy(() -> objectMapper.readValue(yaml, KSMLRunnerConfig.class))
+                .isInstanceOf(DatabindException.class)
+                .hasMessageContaining("schemaRegsitry");
     }
 }

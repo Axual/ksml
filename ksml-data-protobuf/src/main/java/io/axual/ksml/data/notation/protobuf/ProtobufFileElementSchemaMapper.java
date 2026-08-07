@@ -391,6 +391,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                     ProtobufConstants.DEFAULT_SYNTAX,
                     Collections.emptyList(),
                     Collections.emptyList(),
+                    Collections.emptyList(),
                     types.reversed(),
                     Collections.emptyList(),
                     Collections.emptyList(),

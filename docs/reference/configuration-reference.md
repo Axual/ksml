@@ -20,6 +20,19 @@ kafka:
   application.id: "my-ksml-app"
 ```
 
+### Unknown and duplicate keys are rejected
+
+KSML checks the configuration file strictly:
+
+* An unknown or misspelled key makes KSML stop at startup with an error. A typo such as
+  `schemaRegsitry` is reported instead of quietly disabling the setting.
+* A key that appears twice in the same block is an error as well, instead of the last one
+  quietly winning.
+
+The same duplicate-key rule applies to KSML definition files. A definition file that KSML cannot
+parse stops startup as well, rather than being skipped. See
+[Upgrading to 2.0.0](../migration-to-2.0.0.md) if you are coming from the 1.x line.
+
 ## Minimal Working Configurations
 
 ### Without Schema Registry
@@ -232,7 +245,7 @@ ksml:
     # Apicurio Schema Registry
     apicurio:
       config:
-        apicurio.registry.url: "http://apicurio:8080/apis/registry/v2"
+        apicurio.registry.url: "http://apicurio:8080/apis/registry/v3"
 ```
 
 #### SSL-Enabled Schema Registry
@@ -253,7 +266,7 @@ ksml:
 
     apicurio_secure:
       config:
-        apicurio.registry.url: "https://apicurio:8080/apis/registry/v2"
+        apicurio.registry.url: "https://apicurio:8080/apis/registry/v3"
         apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
         apicurio.registry.request.ssl.keystore.type: JKS
         apicurio.registry.request.ssl.keystore.password: "${KEYSTORE_PASSWORD}"

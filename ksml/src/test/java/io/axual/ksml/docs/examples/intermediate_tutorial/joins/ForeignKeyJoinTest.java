@@ -20,8 +20,8 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.joins;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
@@ -81,14 +81,14 @@ public class ForeignKeyJoinTest {
         JsonNode enriched = objectMapper.readTree(result);
 
         // Verify order data preserved
-        assertThat(enriched.get("order_id").asText()).isEqualTo("ORD0001");
-        assertThat(enriched.get("product_id").asText()).isEqualTo("PROD001");
+        assertThat(enriched.get("order_id").asString()).isEqualTo("ORD0001");
+        assertThat(enriched.get("product_id").asString()).isEqualTo("PROD001");
         assertThat(enriched.get("quantity").asInt()).isEqualTo(2);
 
         // Verify product details added
         assertThat(enriched.has("product_details")).isTrue();
-        assertThat(enriched.get("product_details").get("name").asText()).isEqualTo("Laptop");
-        assertThat(enriched.get("product_details").get("category").asText()).isEqualTo("Electronics");
+        assertThat(enriched.get("product_details").get("name").asString()).isEqualTo("Laptop");
+        assertThat(enriched.get("product_details").get("category").asString()).isEqualTo("Electronics");
         assertThat(enriched.get("product_details").get("price").asDouble()).isEqualTo(999.99);
     }
 
@@ -107,12 +107,12 @@ public class ForeignKeyJoinTest {
         // Verify first order matched correct product
         String result1 = enrichedOutput.readValue();
         JsonNode enriched1 = objectMapper.readTree(result1);
-        assertThat(enriched1.get("product_details").get("name").asText()).isEqualTo("Headphones");
+        assertThat(enriched1.get("product_details").get("name").asString()).isEqualTo("Headphones");
 
         // Verify second order matched correct product
         String result2 = enrichedOutput.readValue();
         JsonNode enriched2 = objectMapper.readTree(result2);
-        assertThat(enriched2.get("product_details").get("name").asText()).isEqualTo("Coffee Maker");
+        assertThat(enriched2.get("product_details").get("name").asString()).isEqualTo("Coffee Maker");
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-foreign-key-join.yaml")
@@ -151,18 +151,18 @@ public class ForeignKeyJoinTest {
         // Verify each order got correct product details
         String result1 = enrichedOutput.readValue();
         JsonNode enriched1 = objectMapper.readTree(result1);
-        assertThat(enriched1.get("product_details").get("name").asText()).isEqualTo("Laptop");
-        assertThat(enriched1.get("product_details").get("category").asText()).isEqualTo("Electronics");
+        assertThat(enriched1.get("product_details").get("name").asString()).isEqualTo("Laptop");
+        assertThat(enriched1.get("product_details").get("category").asString()).isEqualTo("Electronics");
 
         String result2 = enrichedOutput.readValue();
         JsonNode enriched2 = objectMapper.readTree(result2);
-        assertThat(enriched2.get("product_details").get("name").asText()).isEqualTo("Coffee Maker");
-        assertThat(enriched2.get("product_details").get("category").asText()).isEqualTo("Appliances");
+        assertThat(enriched2.get("product_details").get("name").asString()).isEqualTo("Coffee Maker");
+        assertThat(enriched2.get("product_details").get("category").asString()).isEqualTo("Appliances");
 
         String result3 = enrichedOutput.readValue();
         JsonNode enriched3 = objectMapper.readTree(result3);
-        assertThat(enriched3.get("product_details").get("name").asText()).isEqualTo("Desk Lamp");
-        assertThat(enriched3.get("product_details").get("category").asText()).isEqualTo("Furniture");
+        assertThat(enriched3.get("product_details").get("name").asString()).isEqualTo("Desk Lamp");
+        assertThat(enriched3.get("product_details").get("category").asString()).isEqualTo("Furniture");
     }
 
     private String createOrderJson(String orderId, String customerId, String productId, int quantity) throws Exception {

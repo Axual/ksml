@@ -20,13 +20,21 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotation;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for {@link ApicurioJsonSchemaNotationProvider} ensuring provider metadata and
@@ -56,5 +64,42 @@ class ApicurioJsonSchemaNotationProviderTest {
                 .asInstanceOf(InstanceOfAssertFactories.type(VendorNotation.class))
                 .extracting(VendorNotation::serdeSupplier)
                 .asInstanceOf(InstanceOfAssertFactories.type(ApicurioJsonSchemaSerdeSupplier.class));
+    }
+
+    @Test
+    @DisplayName("createNotation fails fast on the deprecated Apicurio v2 auth keys")
+    void createNotation_withDeprecatedV2AuthKeys_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.auth.password", "secret");
+        final var prov = new ApicurioJsonSchemaNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("apicurio.auth.password")
+                .hasMessageContaining(SchemaResolverConfig.AUTH_PASSWORD);
+    }
+
+    @Test
+    @DisplayName("createNotation fails fast on the removed Apicurio v2 as-confluent key")
+    void createNotation_withRemovedAsConfluentKey_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.registry.as-confluent", "true");
+        final var prov = new ApicurioJsonSchemaNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("apicurio.registry.as-confluent");
+    }
+
+    @Test
+    @DisplayName("createNotation fails fast on the removed Legacy4ByteIdHandler value")
+    void createNotation_withRemovedIdHandlerValue_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put("apicurio.registry.id-handler", ApicurioConfigChecks.LEGACY_4_BYTE_ID_HANDLER);
+        final var prov = new ApicurioJsonSchemaNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Default4ByteIdHandler");
     }
 }

@@ -20,57 +20,51 @@ package io.axual.ksml.data.notation.avro.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.client.resolving.Resolver;
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.RemoteSchemaAvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
-import io.axual.ksml.data.schema.DataSchema;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Apicurio-backed AvroNotation that supports fetching schemas from a schema registry.
  * <p>
- * This extends AvroNotation to override {@link #fetchRemoteSchema(String, boolean)}, enabling
- * deferred schema resolution for stream definitions that omit an explicit schema name.
+ * Extends {@link RemoteSchemaAvroNotation}, providing the Apicurio-specific registry client and fetch.
  */
-@Slf4j
-public class ApicurioAvroNotation extends AvroNotation {
-    private final RegistryClient registryClient;
-    private final Resolver topicResolver;
+public class ApicurioAvroNotation extends RemoteSchemaAvroNotation {
+    /** Apicurio v3 version expression for the newest version of an artifact. */
+    static final String LATEST_VERSION = "branch=latest";
+
+    private final RegistryClientFacade registryClient;
+    private final String artifactGroupId;
 
     /**
      * Construct an AvroNotation with the provided vendor context.
      *
-     * @param context the vendor notation context providing serde supplier, native mapper, and configs
+     * @param context         the vendor notation context providing serde supplier, native mapper, and configs
+     * @param registryClient  the Apicurio registry client, or null when no registry is configured
+     * @param topicResolver   resolves a topic name to the name used on the broker and in the registry
+     * @param artifactGroupId the Apicurio group the schemas live in, never null
      */
-    public ApicurioAvroNotation(VendorNotationContext context, RegistryClient registryClient, Resolver topicResolver) {
-        super(context);
+    public ApicurioAvroNotation(VendorNotationContext context, RegistryClientFacade registryClient, Resolver topicResolver, String artifactGroupId) {
+        super(context, topicResolver::resolve);
         this.registryClient = registryClient;
-        this.topicResolver = topicResolver;
+        this.artifactGroupId = artifactGroupId;
     }
 
     @Override
-    public boolean supportsRemoteSchema() {
-        if (registryClient != null) return true;
-        log.warn("Apicurio registry not configured, remote schema resolution is disabled");
-        return false;
+    protected boolean hasRegistryClient() {
+        return registryClient != null;
     }
 
     @Override
-    public DataSchema fetchRemoteSchema(String topic, boolean isKey) {
-        if (registryClient == null) {
-            throw new SchemaException("Cannot fetch remote schema: no schema registry client configured");
-        }
+    protected String registryDescription() {
+        return "Apicurio registry";
+    }
 
-        final var subject = topicResolver.resolve(topic) + (isKey ? "-key" : "-value");
-        try {
-            log.info("Fetching latest schema for subject '{}' from schema registry", subject);
-            final var schemaStream = registryClient.getLatestArtifact(null, subject);
-            final var schema = new String(schemaStream.readAllBytes());
-            return schemaParser().parse(subject, subject, schema);
-        } catch (Exception e) {
-            throw new SchemaException("Failed to fetch schema for subject '" + subject + "' from schema registry", e);
-        }
+    @Override
+    protected String fetchSchemaString(String subject) {
+        // The v3 client puts group and version in the URL path and rejects null for either, so both
+        // must be given here. The v2 client accepted nulls and looked up the latest in the default group.
+        return registryClient.getSchemaByGAV(artifactGroupId, subject, LATEST_VERSION);
     }
 }

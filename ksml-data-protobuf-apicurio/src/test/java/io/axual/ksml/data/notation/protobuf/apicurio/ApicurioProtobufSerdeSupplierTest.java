@@ -2,9 +2,9 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - PROTOBUF Apicurio
+ * KSML Data Library - Protobuf Apicurio
  * %%
- * Copyright (C) 2021 - 2025 Axual B.V.
+ * Copyright (C) 2021 - 2026 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,71 +20,84 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.serde.HeaderFilterSerde;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
+import io.apicurio.registry.serde.Default4ByteIdHandler;
+import io.apicurio.registry.serde.config.SerdeConfig;
+import io.apicurio.registry.serde.kafka.config.KafkaSerdeConfig;
+import io.apicurio.registry.serde.strategy.TopicIdStrategy;
 import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class ApicurioProtobufSerdeSupplierTest {
+
     @Test
-    void testSuppliedPropertiesNotOverwritten() {
-        // Set up mocks
-        HeaderFilterSerde headerFilterSerde = mock(HeaderFilterSerde.class);
-        Serializer<Object> delegateSerializer = mock(Serializer.class);
-        Deserializer<Object> delegateDeserializer = mock(Deserializer.class);
-        ArgumentCaptor<Map<String, Object>> configCaptor = ArgumentCaptor.forClass(Map.class);
-        when(headerFilterSerde.serializer()).thenReturn(delegateSerializer);
-        when(headerFilterSerde.deserializer()).thenReturn(delegateDeserializer);
-        // Set up the serde we want to test
-        final var serde = new ApicurioProtobufSerdeSupplier.ApicurioProtobufSerde(headerFilterSerde);
-        // Call the serde with prefilled config map
-        final var configs = new HashMap<String, String>();
-        configs.put("apicurio.registry.artifact-resolver-strategy", "myconfig");
-        configs.putIfAbsent("apicurio.registry.headers.enabled", "myconfig");
-        configs.putIfAbsent("apicurio.registry.as-confluent", "myconfig");
-        configs.putIfAbsent("apicurio.registry.use-id", "myconfig");
-        serde.configure(configs, false);
-        // Capture the config map passed into the delegate serializer
-        verify(delegateSerializer).configure(configCaptor.capture(), any(Boolean.class));
-        final var modifiedConfigs = configCaptor.getValue();
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.artifact-resolver-strategy"));
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.headers.enabled"));
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.as-confluent"));
-        assertEquals("myconfig", modifiedConfigs.get("apicurio.registry.use-id"));
+    @DisplayName("get() builds a Serde using the default Apicurio serializers when no client is set")
+    void getWithoutRegistryClient() {
+        assertThat(new ApicurioProtobufSerdeSupplier().get(null, false)).isNotNull();
     }
+
     @Test
-    void testSuppliedPropertiesExtendedWithDefaults() {
-        // Set up mocks
-        HeaderFilterSerde headerFilterSerde = mock(HeaderFilterSerde.class);
-        Serializer<Object> delegateSerializer = mock(Serializer.class);
-        Deserializer<Object> delegateDeserializer = mock(Deserializer.class);
-        ArgumentCaptor<Map<String, Object>> configCaptor = ArgumentCaptor.forClass(Map.class);
-        when(headerFilterSerde.serializer()).thenReturn(delegateSerializer);
-        when(headerFilterSerde.deserializer()).thenReturn(delegateDeserializer);
-        // Set up the serde we want to test
-        final var serde = new ApicurioProtobufSerdeSupplier.ApicurioProtobufSerde(headerFilterSerde);
-        // Call the serde with empty config map
-        serde.configure(new HashMap<String, String>(), false);
-        // Capture the config map passed into the delegate serializer
-        verify(delegateSerializer).configure(configCaptor.capture(), any(Boolean.class));
-        // Verify whether the serializer's configure was called with empty config map
-        assertFalse(configCaptor.getValue().isEmpty(), "Expected a non-empty map to be passed to delegate serializer");
-        final var modifiedConfigs = configCaptor.getValue();
-        // Validate if default properties were added to the empty config map
-        assertEquals( "io.apicurio.registry.serde.strategy.TopicIdStrategy", modifiedConfigs.get("apicurio.registry.artifact-resolver-strategy"));
-        assertEquals(false, modifiedConfigs.get("apicurio.registry.headers.enabled"), "Expected default config enabling payload encoding");
-        assertEquals(true, modifiedConfigs.get("apicurio.registry.as-confluent"), "Expected default config enabling Confluent compatibility");
-        assertEquals("contentId", modifiedConfigs.get("apicurio.registry.use-id"), "Expected default config using contentId as schema id");
+    @DisplayName("get() builds a Serde around the supplied registry client")
+    void getWithRegistryClient() {
+        final var client = mock(RegistryClientFacade.class);
+        assertThat(new ApicurioProtobufSerdeSupplier(client).get(null, true)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Pins the Confluent-compatible 4-byte content-id format")
+    @SuppressWarnings("unchecked")
+    void injectsConfluentCompatibleDefaults() {
+        final var injected = configureAndCapture(new HashMap<>());
+        assertThat(injected)
+                .containsEntry(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, TopicIdStrategy.class.getCanonicalName())
+                .containsEntry(KafkaSerdeConfig.ENABLE_HEADERS, false)
+                .containsEntry(SerdeConfig.USE_ID, "contentId")
+                .containsEntry(SerdeConfig.ID_HANDLER, Default4ByteIdHandler.class.getCanonicalName());
+    }
+
+    @Test
+    @DisplayName("User-supplied values are never overwritten")
+    @SuppressWarnings("unchecked")
+    void userValuesPreserved() {
+        final Map<String, Object> configs = new HashMap<>();
+        configs.put(SerdeConfig.USE_ID, "globalId");
+        configs.put(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, "my.custom.Strategy");
+        final var injected = configureAndCapture(configs);
+        assertThat(injected)
+                .containsEntry(SerdeConfig.USE_ID, "globalId")
+                .containsEntry(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, "my.custom.Strategy");
+    }
+
+    @Test
+    @DisplayName("When the user enables headers, the payload id config is not injected")
+    @SuppressWarnings("unchecked")
+    void headersEnabledSkipsPayloadIdConfig() {
+        final Map<String, Object> configs = new HashMap<>();
+        configs.put(KafkaSerdeConfig.ENABLE_HEADERS, true);
+        assertThat(configureAndCapture(configs)).doesNotContainKey(SerdeConfig.USE_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> configureAndCapture(Map<String, Object> configs) {
+        final Serializer<Object> serializer = mock(Serializer.class);
+        final Deserializer<Object> deserializer = mock(Deserializer.class);
+        final var serde = new ApicurioProtobufSerdeSupplier.ApicurioProtobufSerde(Serdes.serdeFrom(serializer, deserializer));
+        serde.configure(configs, false);
+        final ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+        verify(serializer).configure(captor.capture(), anyBoolean());
+        return captor.getValue();
     }
 }

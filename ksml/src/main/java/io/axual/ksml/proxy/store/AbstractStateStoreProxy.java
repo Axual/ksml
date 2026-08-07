@@ -54,6 +54,9 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
 
     @HostAccess.Export
     @Override
+    // StateStore.flush() is deprecated in Kafka Streams 4.x, but this proxy exposes it to KSML's
+    // Python API (@HostAccess.Export) and must keep delegating to the wrapped store for compatibility.
+    @SuppressWarnings("deprecation")
     public void flush() {
         delegate.flush();
     }

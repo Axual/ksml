@@ -20,12 +20,12 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.string.StringMapper;
 import io.axual.ksml.data.util.JsonNodeUtil;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.io.StringWriter;
 
 /**
@@ -99,7 +99,7 @@ public class JsonStringMapper implements StringMapper<Object> {
                     : MAPPER.createGenerator(writer);
             MAPPER.writeTree(generator, JsonNodeUtil.convertNativeToJsonNode(value));
             return writer.toString();
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new DataException("Can not convert object to JSON string: " + value, e);
         }
     }

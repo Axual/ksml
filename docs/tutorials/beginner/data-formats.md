@@ -104,9 +104,9 @@ Use this configuration when working with Apicurio Schema Registry's native capab
 
 **Key features:**
 
-- Uses Apicurio native API (`/apis/registry/v2`)
+- Uses Apicurio native API (`/apis/registry/v3`)
 - Apicurio-specific features and configuration options
-- **KSML 1.1.0 supports `/v2` endpoint only** (does not support `/v3` endpoint)
+- **KSML 2.0.0 supports `/v3` endpoint only** (does not support `/v2` endpoint)
 
 **Important Notes:**
 

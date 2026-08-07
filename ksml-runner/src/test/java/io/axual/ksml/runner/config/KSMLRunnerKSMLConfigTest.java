@@ -20,14 +20,12 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.internal.KsmlFilePath;
 import io.axual.ksml.runner.config.internal.KsmlInlineDefinition;
 import io.axual.ksml.runner.exception.ConfigException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -40,12 +38,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class KSMLRunnerKSMLConfigTest {
 
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setup() {
-        objectMapper = new ObjectMapper(new YAMLFactory());
-    }
+    // Use the exact mapper the runner uses to read its config, so this test validates real behavior.
+    private final ObjectMapper objectMapper = RunnerConfigMapper.INSTANCE;
 
     @Test
     @DisplayName("validate of complete config should not throw exceptions")
@@ -229,8 +223,8 @@ class KSMLRunnerKSMLConfigTest {
     }
 
     @Test
-    @DisplayName("definitions() skips a referenced file that cannot be parsed")
-    void definitionsSkipUnparseableFile(@TempDir Path tempDir) throws Exception {
+    @DisplayName("definitions() fails when a referenced file cannot be parsed")
+    void definitionsFailOnUnparseableFile(@TempDir Path tempDir) throws Exception {
         final var badFile = tempDir.resolve("broken.yaml");
         Files.writeString(badFile, "foo: [1, 2, 3"); // unterminated flow sequence -> parse error
         final var defs = new KSMLConfig.KsmlDefinitionMap();
@@ -239,8 +233,35 @@ class KSMLRunnerKSMLConfigTest {
         ksmlConfig.configDirectory(tempDir.toString());
         ksmlConfig.definitions(defs);
 
-        // The IOException while reading is caught and logged, so the entry is simply absent.
-        assertThat(ksmlConfig.definitions()).as("an unparseable definition file is skipped").isEmpty();
+        // Starting without the definition would look like an idle topic rather than a broken config,
+        // so a file KSML cannot read stops startup and the message names the file.
+        assertThatThrownBy(ksmlConfig::definitions)
+                .isInstanceOf(ConfigException.class)
+                .hasMessageContaining("broken.yaml")
+                .hasMessageContaining("Could not read the KSML definition");
+    }
+
+    @Test
+    @DisplayName("definitions() fails when a referenced file repeats a key")
+    void definitionsFailOnDuplicateKey(@TempDir Path tempDir) throws Exception {
+        // The case the migration guide calls out: 1.x accepted this and the last value quietly won.
+        final var dupFile = tempDir.resolve("duplicate.yaml");
+        Files.writeString(dupFile, """
+                streams:
+                  input:
+                    topic: first_topic
+                    topic: second_topic
+                """);
+        final var defs = new KSMLConfig.KsmlDefinitionMap();
+        defs.add("duplicate", new KsmlFilePath("duplicate.yaml"));
+        final var ksmlConfig = new KSMLConfig();
+        ksmlConfig.configDirectory(tempDir.toString());
+        ksmlConfig.definitions(defs);
+
+        assertThatThrownBy(ksmlConfig::definitions)
+                .isInstanceOf(ConfigException.class)
+                .hasMessageContaining("duplicate.yaml")
+                .hasMessageContaining("topic");
     }
 
     @Test

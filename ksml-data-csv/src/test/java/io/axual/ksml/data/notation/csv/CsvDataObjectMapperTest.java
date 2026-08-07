@@ -191,6 +191,27 @@ class CsvDataObjectMapperTest {
     }
 
     @Test
+    @DisplayName("Escapes quote and control characters on write and round-trips them intact")
+    void escapesQuoteAndControlCharsRoundTrip() {
+        // Values containing a quote and a newline. They are escaped RFC-4180 style: the whole field is
+        // quoted and an inner quote is doubled. The exact text is asserted below so a change in the
+        // writer configuration cannot slip through a round-trip that is merely self-consistent.
+        var original = new DataList(DataString.DATATYPE);
+        original.add(DataString.from("say \"hi\""));
+        original.add(DataString.from("line1\nline2"));
+
+        var csv = mapper.fromDataObject(original);
+        assertThat(csv).isEqualTo("\"say \"\"hi\"\"\",\"line1\nline2\"");
+
+        var result = mapper.toDataObject(null, csv);
+        assertThat(result).isInstanceOf(DataList.class);
+        var list = (DataList) result;
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.get(0)).hasToString("say \"hi\"");
+        assertThat(list.get(1)).hasToString("line1\nline2");
+    }
+
+    @Test
     @DisplayName("Handles missing fields gracefully - fewer fields than schema expects")
     void missingFieldsHandling() {
         // Given: schema with 3 fields

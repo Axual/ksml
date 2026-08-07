@@ -27,47 +27,59 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.jackson.Jacksonized;
 
 @Getter
-@Builder
-@Jacksonized
 @ToString
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = false)
 @JsonClassDescription("Control Python execution security and permissions")
 public class PythonContextConfig {
     @JsonProperty(value = "allowHostFileAccess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to access host file system. Default is false.")
-    @Builder.Default
-    private boolean allowHostFileAccess = false;
-
+    private final boolean allowHostFileAccess;
     @JsonProperty(value = "allowHostSocketAccess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to open network sockets. Default is false.")
-    @Builder.Default
-    private boolean allowHostSocketAccess = false;
-
+    private final boolean allowHostSocketAccess;
     @JsonProperty(value = "allowNativeAccess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Graal native access / JNI. Default is false.")
-    @Builder.Default
-    private boolean allowNativeAccess = false;
-
+    private final boolean allowNativeAccess;
     @JsonProperty(value = "allowCreateProcess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to execute external processes. Default is false.")
-    @Builder.Default
-    private boolean allowCreateProcess = false;
-
+    private final boolean allowCreateProcess;
     @JsonProperty(value = "allowCreateThread", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to create new Java threads. Default is false.")
-    @Builder.Default
-    private boolean allowCreateThread = false;
-
+    private final boolean allowCreateThread;
     @JsonProperty(value = "inheritEnvironmentVariables", required = false, defaultValue = "false")
     @JsonPropertyDescription("Inherit JVM process environment in Python context. Default is false.")
-    @Builder.Default
-    private boolean inheritEnvironmentVariables = false;
-
+    private final boolean inheritEnvironmentVariables;
     @JsonProperty(value = "modulePath", required = false)
     @JsonPropertyDescription("Path to additional Python modules to be loaded. Default is empty, meaning 'no user modules'.")
-    @Builder.Default
-    private String modulePath = null;
+    private final String modulePath;
+
+    // Jackson 3 binds through this constructor. @Jacksonized cannot be used: it emits
+    // @JsonDeserialize(builder = ...) from com.fasterxml.jackson.databind.annotation, which
+    // Jackson 3 moved to tools.jackson.databind.annotation.
+    public PythonContextConfig(
+            @JsonProperty(value = "allowHostFileAccess")
+            boolean allowHostFileAccess,
+            @JsonProperty(value = "allowHostSocketAccess")
+            boolean allowHostSocketAccess,
+            @JsonProperty(value = "allowNativeAccess")
+            boolean allowNativeAccess,
+            @JsonProperty(value = "allowCreateProcess")
+            boolean allowCreateProcess,
+            @JsonProperty(value = "allowCreateThread")
+            boolean allowCreateThread,
+            @JsonProperty(value = "inheritEnvironmentVariables")
+            boolean inheritEnvironmentVariables,
+            @JsonProperty(value = "modulePath")
+            String modulePath) {
+        this.allowHostFileAccess = allowHostFileAccess;
+        this.allowHostSocketAccess = allowHostSocketAccess;
+        this.allowNativeAccess = allowNativeAccess;
+        this.allowCreateProcess = allowCreateProcess;
+        this.allowCreateThread = allowCreateThread;
+        this.inheritEnvironmentVariables = inheritEnvironmentVariables;
+        this.modulePath = modulePath;
+    }
 }

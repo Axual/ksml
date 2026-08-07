@@ -20,7 +20,7 @@ package io.axual.ksml.testutil;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
@@ -32,7 +32,7 @@ import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.jsonschema.apicurio.ApicurioJsonSchemaNotationProvider;
-import io.axual.ksml.data.notation.jsonschema.apicurio.MockApicurioSchemaRegistryClient;
+import io.axual.ksml.notation.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.protobuf.apicurio.ApicurioProtobufNotationProvider;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;

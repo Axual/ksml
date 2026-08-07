@@ -21,23 +21,23 @@ Module relationships
 
 Key behavior
 - Default notation name: "jsonschema"; vendor name: "apicurio".
-- JsonSchemaDataObjectMapper bridges vendor boundary (native JsonNode/Map/List/primitives) ↔ KSML DataObject.
+- ApicurioJsonSchemaDataObjectMapper bridges the vendor boundary ↔ KSML DataObject. It keeps plain native Java (Map/List/primitives) on the KSML side, because Apicurio 3.x still uses Jackson 2 while KSML core is on Jackson 3, and a Jackson 2 JsonNode is not the same type as a Jackson 3 one.
 - ConfigInjectionSerde wrapper ensures default Apicurio configs are applied only when user hasn’t provided them (putIfAbsent).
   - apicurio.registry.artifact-resolver-strategy = TopicIdStrategy
   - apicurio.registry.headers.enabled = false (payload encoding)
-  - apicurio.registry.as-confluent = true
   - apicurio.registry.use-id = contentId
-  - apicurio.registry.id-handler = Legacy4ByteIdHandler
+  - apicurio.registry.id-handler = Default4ByteIdHandler
+  - apicurio.registry.serdes.json-schema.validation-enabled = true
 
 Class reference
 - io.axual.ksml.data.notation.jsonschema.apicurio.ApicurioJsonSchemaNotationProvider
   - Extends VendorNotationProvider.
   - notationName() = "jsonschema"; vendorName() = "apicurio" (via base class fields).
-  - createNotation(context): builds VendorNotationContext with ApicurioJsonSchemaSerdeSupplier and JsonSchemaDataObjectMapper, then returns JsonSchemaNotation.
+  - createNotation(context): rejects the Apicurio v2 auth keys, then builds VendorNotationContext with ApicurioJsonSchemaSerdeSupplier and ApicurioJsonSchemaDataObjectMapper, and returns JsonSchemaNotation.
 
 - io.axual.ksml.data.notation.jsonschema.apicurio.ApicurioJsonSchemaSerdeSupplier
   - Implements JsonSchemaSerdeSupplier.
-  - Optional constructor arg: io.apicurio.registry.rest.client.RegistryClient (mainly for tests).
+  - Optional constructor arg: io.apicurio.registry.resolver.client.RegistryClientFacade (mainly for tests).
   - get(type, isKey): returns a Serde<Object> wrapped in ConfigInjectionSerde that delegates to Apicurio JsonSchema serializer/deserializer.
   - vendorName() = "apicurio".
 

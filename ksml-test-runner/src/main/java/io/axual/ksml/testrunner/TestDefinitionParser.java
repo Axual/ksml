@@ -20,12 +20,12 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamReadFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,8 +57,9 @@ public class TestDefinitionParser {
     // STRICT_DUPLICATE_DETECTION makes Jackson throw on duplicate keys at any nesting level
     // instead of silently keeping one of them. The thrown JsonParseException carries line/column
     // info we surface in the error message.
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory())
-            .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+    private static final ObjectMapper YAML_MAPPER = YAMLMapper.builder()
+            .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+            .build();
 
     /**
      * Parse a test suite definition file into a {@link TestSuiteDefinition}.
@@ -74,7 +75,7 @@ public class TestDefinitionParser {
         JsonNode root;
         try {
             root = YAML_MAPPER.readTree(content);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             // Catches duplicate-key detection and other YAML-level malformation
             throw new TestDefinitionException(
                     "Invalid YAML in " + testFile + ": " + e.getOriginalMessage(), e);
@@ -212,7 +213,7 @@ public class TestDefinitionParser {
             }
 
             // Reject suite-level fields appearing inside a test entry
-            entryNode.fieldNames().forEachRemaining(field -> {
+            entryNode.forEachEntry((field, ignored) -> {
                 if (SUITE_LEVEL_FIELDS.contains(field)) {
                     throw new TestDefinitionException(
                             "Field '" + field + "' is a suite-level field and cannot appear under test '"
@@ -333,7 +334,7 @@ public class TestDefinitionParser {
         if (node == null || node.isNull()) {
             return null;
         }
-        return node.asText();
+        return node.asString();
     }
 
     private static void validateIdentifier(String kind, String key, Path testFile) {

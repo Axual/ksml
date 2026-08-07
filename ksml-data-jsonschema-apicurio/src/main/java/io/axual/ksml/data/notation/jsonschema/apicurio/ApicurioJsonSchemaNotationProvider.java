@@ -20,10 +20,10 @@ package io.axual.ksml.data.notation.jsonschema.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.jsonschema.JsonSchemaDataObjectMapper;
+import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
@@ -35,18 +35,18 @@ import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
  * the {@link VendorNotationProvider} base class.</p>
  *
  * <p>When asked to create a notation, this provider wires a {@link JsonSchemaNotation}
- * with an {@link ApicurioJsonSchemaSerdeSupplier} and a {@link JsonSchemaDataObjectMapper}
+ * with an {@link ApicurioJsonSchemaSerdeSupplier} and an {@link ApicurioJsonSchemaDataObjectMapper}
  * using the {@link io.axual.ksml.data.mapper.NativeDataObjectMapper} from the provided
  * {@link NotationContext}.</p>
  */
 public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioJsonSchemaNotationProvider() {
         this(null);
     }
 
-    public ApicurioJsonSchemaNotationProvider(RegistryClient registryClient) {
+    public ApicurioJsonSchemaNotationProvider(RegistryClientFacade registryClient) {
         super(JsonSchemaNotation.NOTATION_NAME, "apicurio");
         this.registryClient = registryClient;
     }
@@ -54,11 +54,12 @@ public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
     @Override
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
+        ApicurioConfigChecks.rejectV2Configs(context.serdeConfigs());
         return new JsonSchemaNotation(
                 new VendorNotationContext(
                         vendorName(),
                         context,
                         new ApicurioJsonSchemaSerdeSupplier(registryClient),
-                        new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
+                        new ApicurioJsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
     }
 }

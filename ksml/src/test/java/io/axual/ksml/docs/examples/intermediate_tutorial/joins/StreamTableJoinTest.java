@@ -20,8 +20,8 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.joins;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
@@ -81,15 +81,15 @@ public class StreamTableJoinTest {
         JsonNode enriched = objectMapper.readTree(result);
 
         // Verify order data preserved
-        assertThat(enriched.get("order_id").asText()).isEqualTo("ORD0001");
-        assertThat(enriched.get("customer_id").asText()).isEqualTo("CUST001");
+        assertThat(enriched.get("order_id").asString()).isEqualTo("ORD0001");
+        assertThat(enriched.get("customer_id").asString()).isEqualTo("CUST001");
         assertThat(enriched.get("quantity").asInt()).isEqualTo(2);
 
         // Verify customer data added
         assertThat(enriched.has("customer")).isTrue();
-        assertThat(enriched.get("customer").get("name").asText()).isEqualTo("Alice Johnson");
-        assertThat(enriched.get("customer").get("email").asText()).isEqualTo("alice@email.com");
-        assertThat(enriched.get("customer").get("region").asText()).isEqualTo("US-WEST");
+        assertThat(enriched.get("customer").get("name").asString()).isEqualTo("Alice Johnson");
+        assertThat(enriched.get("customer").get("email").asString()).isEqualTo("alice@email.com");
+        assertThat(enriched.get("customer").get("region").asString()).isEqualTo("US-WEST");
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml")
@@ -106,7 +106,7 @@ public class StreamTableJoinTest {
         JsonNode enriched = objectMapper.readTree(result);
 
         // Verify rekeying worked - customer data matched by customer_id
-        assertThat(enriched.get("customer").get("name").asText()).isEqualTo("Bob Smith");
+        assertThat(enriched.get("customer").get("name").asString()).isEqualTo("Bob Smith");
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml")
@@ -126,7 +126,7 @@ public class StreamTableJoinTest {
         assertThat(outputRecord.getKey()).isEqualTo("ORD0003");
 
         JsonNode enriched = objectMapper.readTree(outputRecord.getValue());
-        assertThat(enriched.get("order_id").asText()).isEqualTo("ORD0003");
+        assertThat(enriched.get("order_id").asString()).isEqualTo("ORD0003");
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-stream-table-join.yaml")
@@ -146,8 +146,8 @@ public class StreamTableJoinTest {
         for (int i = 0; i < 3; i++) {
             String result = enrichedOutput.readValue();
             JsonNode enriched = objectMapper.readTree(result);
-            assertThat(enriched.get("customer").get("name").asText()).isEqualTo("David Wilson");
-            assertThat(enriched.get("customer").get("region").asText()).isEqualTo("ASIA-PACIFIC");
+            assertThat(enriched.get("customer").get("name").asString()).isEqualTo("David Wilson");
+            assertThat(enriched.get("customer").get("region").asString()).isEqualTo("ASIA-PACIFIC");
         }
     }
 

@@ -97,4 +97,5 @@ nav:
       - State Store Reference: reference/state-store-reference.md
       - Configuration Reference: reference/configuration-reference.md
       - Metrics Reference: reference/metrics-reference.md
+  - Upgrading to 2.0.0: migration-to-2.0.0.md
   - Release Notes: release-notes.md

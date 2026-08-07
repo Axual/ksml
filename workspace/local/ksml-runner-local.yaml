@@ -59,7 +59,7 @@ ksml:
       type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
       ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
       config:
-        apicurio.registry.url: http://localhost:8082/apis/registry/v2
+        apicurio.registry.url: http://localhost:8082/apis/registry/v3
         apicurio.registry.auto-register: "true"
 
   # Section where you specify which KSML definitions to load, parse and execute.

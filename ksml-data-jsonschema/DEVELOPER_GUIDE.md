@@ -14,7 +14,7 @@ Overview (what this module provides)
 - It centralizes the integration of vendor serdes (e.g., Confluent, Apicurio) with a consistent KSML data model while reusing the generic JSON data/schema mapping implemented in ksml-data-json.
 - Core responsibilities:
   - Provide a Notation implementation (JsonSchemaNotation) that delegates schema parsing and data conversion to the shared JSON components and obtains serdes from a vendor-specific supplier.
-  - Offer a mapper (JsonSchemaDataObjectMapper) for vendor serdes that expose Jackson JsonNode at their boundary, bridging to KSML DataObjects.
+  - Offer a mapper (JsonSchemaDataObjectMapper) for vendor serdes that expose a Jackson 3 JsonNode at their boundary, bridging to KSML DataObjects. The Apicurio module does not use it: Apicurio 3.x is still on Jackson 2, so it has its own ApicurioJsonSchemaDataObjectMapper.
   - Define a marker interface (JsonSchemaSerdeSupplier) so vendor modules can contribute concrete serdes.
 
 Module relationships

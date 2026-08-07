@@ -88,13 +88,21 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
         final var child = node.get(childName);
         String childValue = defaultValue;
         if (child != null) {
+            // Jackson 3 throws when asked to render an object or array as a string, so check the kind
+            // first and report a parse error that names the file and the accepted values.
+            if (child.isObject() || child.isArray())
+                throw new ParseException(child, "Expected a string for \"" + childName + "\", but found " + child.nodeTypeName() + ", choose one of " + choices());
             childValue = child.asString();
             childValue = childValue != null ? childValue : defaultValue;
         }
         if (!parsers.containsKey(childValue)) {
-            throw new ParseException(child, "Unknown " + parsedType + " \"" + childName + "\", choose one of " + parsers.keySet().stream().sorted().collect(Collectors.joining(", ")));
+            throw new ParseException(child, "Unknown " + parsedType + " \"" + childName + "\", choose one of " + choices());
         }
         return parsers.get(childValue).parse(node);
+    }
+
+    private String choices() {
+        return parsers.keySet().stream().sorted().collect(Collectors.joining(", "));
     }
 
     @Override

@@ -20,9 +20,10 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
@@ -32,13 +33,13 @@ import lombok.Getter;
 public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     // Registry Client is mocked by tests
     @Getter
-    private final RegistryClient registryClient;
+    private final RegistryClientFacade registryClient;
 
     public ApicurioProtobufNotationProvider() {
         this(null);
     }
 
-    public ApicurioProtobufNotationProvider(RegistryClient registryClient) {
+    public ApicurioProtobufNotationProvider(RegistryClientFacade registryClient) {
         super(ProtobufNotation.NOTATION_NAME, "apicurio");
         this.registryClient = registryClient;
     }
@@ -46,6 +47,7 @@ public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     @Override
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
+        ApicurioConfigChecks.rejectV2Configs(context.serdeConfigs());
         return new ProtobufNotation(
                 new VendorNotationContext(
                         vendorName(),

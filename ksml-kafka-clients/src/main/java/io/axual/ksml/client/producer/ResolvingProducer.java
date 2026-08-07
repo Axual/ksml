@@ -58,7 +58,9 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
                 input.serializedValueSize());
     }
 
+    // Only the 4-arg constructor keeps generationId/memberId/groupInstanceId, which EOS needs.
     @Override
+    @SuppressWarnings("removal")
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets,
                                          ConsumerGroupMetadata groupMetadata) throws ProducerFencedException {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
