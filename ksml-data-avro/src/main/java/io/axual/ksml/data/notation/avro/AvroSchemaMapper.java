@@ -204,6 +204,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // Returns a record with
         //   1. the DataSchema representation of the schema parameter
         //   2. a boolean indicating whether the field is required
+        if (schema == null) throw new SchemaException("Can not convert a null Avro schema");
+
         final var logicalType = AvroLogicalTypes.resolve(schema);
         if (logicalType != null) return new SchemaAndRequired(new LogicalSchema(logicalType), true);
 

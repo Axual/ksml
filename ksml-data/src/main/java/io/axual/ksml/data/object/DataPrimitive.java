@@ -63,7 +63,7 @@ public class DataPrimitive<T> implements DataObject {
                 ? type.isAssignableFrom(dataObject)
                 : type.isAssignableFrom(value);
         if (assignable.isNotAssignable())
-            throw new DataException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable.message());
+            throw new DataException("Value assigned to " + type + " can not be \"" + this + "\": " + assignable);
     }
 
     /**
