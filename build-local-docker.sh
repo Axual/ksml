@@ -9,6 +9,9 @@ mvn clean package -DskipITs=true -P '!sonarqube'
 
 # Prepare build artifacts
 echo "  - Creating build-output/ directory"
+# Start from a clean directory. Leftovers from an earlier build put several versions of the same
+# library in the image, which breaks class loading in ways that are hard to spot.
+rm -rf build-output
 echo "  - Copying ksml-runner JAR, ksml-test-runner JAR, libraries, and license files"
 
 mkdir -p build-output
