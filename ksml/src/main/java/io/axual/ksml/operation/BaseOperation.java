@@ -265,7 +265,9 @@ public abstract class BaseOperation implements StreamOperation {
     protected void checkType(String subject, DataType type, TypeComparator comparator) {
         final var assignable = comparator.checker.isAssignableFrom(type);
         if (assignable.isNotAssignable()) {
-            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + assignable.message() + ")");
+            // Use the full explanation chain, not just the top message. Without the causes, a nested
+            // mismatch reads as "Reading is not assignable from Reading" with no way to tell why.
+            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + assignable + ")");
         }
     }
 

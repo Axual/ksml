@@ -58,6 +58,11 @@ import java.util.function.Function;
 public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
     public static final String CONFIG_FILE_ENV_PROPERTY = "LOGBACK_CONFIGURATION_FILE";
     public static final String CONFIG_FILE_SYS_PROPERTY = ClassicConstants.CONFIG_FILE_PROPERTY;
+    /** Property that logback.xml reads to decide which appender style to include. */
+    static final String STYLE_FILE_PROPERTY = "KSML_LOGBACK_STYLE_FILE";
+    static final String USE_JSON_PROPERTY = "LOGBACK_USE_JSON";
+    static final String STD_STYLE_FILE = "logback-ksml-std.xml";
+    static final String JSON_STYLE_FILE = "logback-ksml-json.xml";
 
     /**
      * Environment-variable lookup, exposed as a package-private seam for testing. Tests can supply a value
@@ -68,6 +73,13 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
 
     @Override
     public ExecutionStatus configure(LoggerContext context) {
+        // Pick the appender style up front. logback.xml cannot decide this itself: an <include> inside an
+        // <if> branch parses but never registers its appenders, which left KSML with no logging at all.
+        // A system property rather than a context property, so it does not show up as a field on every
+        // JSON log line.
+        if (System.getProperty(STYLE_FILE_PROPERTY) == null)
+            System.setProperty(STYLE_FILE_PROPERTY, useJsonLogging() ? JSON_STYLE_FILE : STD_STYLE_FILE);
+
         ClassLoader classLoader = Loader.getClassLoaderOfObject(this);
         // System properties should take precedence
         URL url = findConfigFileURLFromSystemProperties(classLoader);
@@ -148,5 +160,12 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
             }
         }
         return null;
+    }
+
+    /** Reads LOGBACK_USE_JSON from the system properties first, then the environment. */
+    boolean useJsonLogging() {
+        final var systemProperty = System.getProperty(USE_JSON_PROPERTY);
+        final var value = systemProperty != null ? systemProperty : environmentVariableLookup.apply(USE_JSON_PROPERTY);
+        return Boolean.parseBoolean(value);
     }
 }

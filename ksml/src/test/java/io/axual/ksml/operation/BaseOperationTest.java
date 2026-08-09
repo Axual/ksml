@@ -20,16 +20,23 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.LogicalSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.logical.DecimalLogicalType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.exception.TopologyException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Covers {@link BaseOperation} behaviour shared by all operations: name validation and the
- * {@code toString()} rendering.
+ * Covers {@link BaseOperation} behaviour shared by all operations: name validation, the
+ * {@code toString()} rendering, and the wording of the type-check error.
  */
 class BaseOperationTest {
 
@@ -48,5 +55,36 @@ class BaseOperationTest {
         final var config = storeConfig("invalid name!");
         assertThatThrownBy(() -> new CountOperation(config))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("a type-check error names the field and the reason, not only the record")
+    void typeCheckErrorCarriesTheFullReason() {
+        // Two records that differ only in the scale of a nested decimal field. Both are called
+        // "Reading", so the top line of the error cannot tell the user anything useful on its own.
+        final var pipelineType = structWithDecimal(10, 2);
+        final var topicType = structWithDecimal(10, 3);
+
+        final var operation = new TypeCheckingOperation();
+        assertThatThrownBy(() -> operation.check(pipelineType, topicType))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("amount")
+                .hasMessageContaining("decimal(10,3) is not assignable from decimal(10,2)");
+    }
+
+    private static StructType structWithDecimal(int precision, int scale) {
+        final var field = new StructSchema.Field("amount", new LogicalSchema(new DecimalLogicalType(precision, scale)), null, 0);
+        return new StructType(new StructSchema("io.ksml.example", "Reading", null, List.of(field)));
+    }
+
+    /** Minimal operation that exposes the protected type check so the error wording can be asserted. */
+    private static class TypeCheckingOperation extends BaseOperation {
+        TypeCheckingOperation() {
+            super(storeConfig("typeCheck"));
+        }
+
+        void check(StructType pipelineType, StructType topicType) {
+            checkType("Target topic valueType", topicType, superOf(pipelineType));
+        }
     }
 }

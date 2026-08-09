@@ -140,16 +140,18 @@ class DataSchemaParserTest {
 
     @Test
     @DisplayName("parsing an unrecognised type name throws ParseException")
-    void rejectsUnknownSchemaType() {
-        assertThatThrownBy(() -> parser.parse(nodeOf("type: bogus")))
+    void rejectsUnknownSchemaType() throws Exception {
+        final var node = nodeOf("type: bogus");
+        assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class);
     }
 
     @Test
     @DisplayName("parsing a recognised type with no schema branch throws ParseException about an unknown schema type")
-    void rejectsTypeWithoutSwitchMapping() {
+    void rejectsTypeWithoutSwitchMapping() throws Exception {
         // "tuple" is a recognised type but has no dedicated schema branch.
-        assertThatThrownBy(() -> parser.parse(nodeOf("type: tuple")))
+        final var node = nodeOf("type: tuple");
+        assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Unknown schema type");
     }

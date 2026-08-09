@@ -40,6 +40,7 @@ import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.data.schema.StructSchema;
@@ -151,6 +152,13 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     }
 
     private String getSimpleSchemaType(DataSchema schema) {
+        // A logical type is presented to the runtime and to Python as its representation primitive.
+        if (schema instanceof LogicalSchema logicalSchema)
+            return primitiveSchemaTypeName(logicalSchema.logicalType().representationSchema());
+        return primitiveSchemaTypeName(schema);
+    }
+
+    private String primitiveSchemaTypeName(DataSchema schema) {
         if (schema == ANY_SCHEMA) return DataSchemaConstants.ANY_TYPE;
         if (schema == DataSchema.NULL_SCHEMA) return DataSchemaConstants.NULL_TYPE;
         if (schema == DataSchema.BOOLEAN_SCHEMA) return DataSchemaConstants.BOOLEAN_TYPE;

@@ -2,14 +2,7 @@
 <configuration scan="false">
     <variable resource="logback-defaults.properties"/>
 
-    <if condition='"true".equalsIgnoreCase( property( "LOGBACK_USE_JSON" ) )'>
-        <then>
-            <include resource="logback-ksml-json.xml"/>
-        </then>
-        <else>
-            <include resource="logback-ksml-std.xml"/>
-        </else>
-    </if>
+    <include resource="${KSML_LOGBACK_STYLE_FILE:-logback-ksml-std.xml}"/>
 
     <root level="INFO">
         <appender-ref ref="${STD_OUT_APPENDER_NAME}"/>

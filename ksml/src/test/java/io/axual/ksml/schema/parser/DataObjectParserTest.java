@@ -82,8 +82,9 @@ class DataObjectParserTest {
 
     @Test
     @DisplayName("parsing an unsupported node type such as an array throws ParseException")
-    void rejectsUnsupportedType() {
-        assertThatThrownBy(() -> parser.parse(nodeOf("[1, 2, 3]")))
+    void rejectsUnsupportedType() throws Exception {
+        final var node = nodeOf("[1, 2, 3]");
+        assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class);
     }
 }

@@ -34,6 +34,7 @@ import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -81,6 +82,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (schema == null) {
             return DataSchema.NULL_SCHEMA;
         }
+
+        final var logicalType = AvroLogicalTypes.resolve(schema);
+        if (logicalType != null) return new LogicalSchema(logicalType);
 
         return switch (schema.getType()) {
             case STRING -> DataSchema.STRING_SCHEMA;
@@ -142,6 +146,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (schema == null) {
             return AVRO_NULL_TYPE;
         }
+        if (schema instanceof LogicalSchema logical)
+            return AvroLogicalTypes.apply(fromDataSchema(logical.baseSchema()), logical.logicalType());
         if (schema instanceof StructSchema structSchema) {
             final var fields = convertFieldsToAvroFields(structSchema.fields());
             return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, fields);
@@ -198,6 +204,11 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // Returns a record with
         //   1. the DataSchema representation of the schema parameter
         //   2. a boolean indicating whether the field is required
+        if (schema == null) throw new SchemaException("Can not convert a null Avro schema");
+
+        final var logicalType = AvroLogicalTypes.resolve(schema);
+        if (logicalType != null) return new SchemaAndRequired(new LogicalSchema(logicalType), true);
+
         return switch (schema.getType()) {
             case NULL -> new SchemaAndRequired(DataSchema.NULL_SCHEMA, false);
 
@@ -279,6 +290,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     }
 
     private Schema convertDataSchemaToAvroSchema(DataSchema schema) {
+        if (schema instanceof LogicalSchema logical)
+            return AvroLogicalTypes.apply(convertDataSchemaToAvroSchema(logical.baseSchema()), logical.logicalType());
         if (schema == DataSchema.ANY_SCHEMA) throw new SchemaException("AVRO schema do not support ANY types");
         if (schema == DataSchema.NULL_SCHEMA) return Schema.create(Schema.Type.NULL);
         if (schema == DataSchema.BOOLEAN_SCHEMA) return Schema.create(Schema.Type.BOOLEAN);
