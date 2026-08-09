@@ -1,0 +1,23 @@
+ksml:
+  definitions:
+    producer: producer-logical-types.yaml
+    processor: processor-logical-types.yaml
+  schemaRegistries:
+    my_schema_registry:
+      config:
+        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
+  notations:
+    avro:
+      type: confluent_avro
+      schemaRegistry: my_schema_registry
+      config:
+        normalize.schemas: true
+        auto.register.schemas: true
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.confluent.logicaltypes.docs.test
+  security.protocol: PLAINTEXT
+  acks: all

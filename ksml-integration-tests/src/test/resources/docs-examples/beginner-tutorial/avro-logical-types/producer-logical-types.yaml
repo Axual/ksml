@@ -1,0 +1,30 @@
+functions:
+  generate_sensor_reading:
+    type: generator
+    globalCode: |
+      counter = 0
+    code: |
+      global counter
+      counter = (counter + 1) % 10
+      key = "sensor" + str(counter)
+
+      # Every logical value is written as the plain value you would expect.
+      # The decimal is written as text, never as a float, so no digit is lost.
+      value = {
+        "readingId": "123e4567-e89b-12d3-a456-426614174000",
+        "sensor": key,
+        "value": "123.45",
+        "measuredOn": 19785,
+        "measuredAt": 1700000000123
+      }
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  sensor_reading_producer:
+    generator: generate_sensor_reading
+    interval: 3s
+    to:
+      topic: logical_types_avro
+      keyType: string
+      valueType: avro:SensorReading

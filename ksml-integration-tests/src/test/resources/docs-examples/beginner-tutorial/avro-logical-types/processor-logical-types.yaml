@@ -1,0 +1,55 @@
+streams:
+  reading_input:
+    topic: logical_types_avro
+    keyType: string
+    valueType: avro:SensorReading
+    offsetResetPolicy: earliest
+
+  reading_output:
+    topic: logical_types_json
+    keyType: string
+    valueType: json
+
+functions:
+  show_what_python_receives:
+    type: forEach
+    code: |
+      log.info("readingId  = {}   (uuid, a string)", value.get("readingId"))
+      log.info("value      = {}   (decimal, a STRING so no digit is lost)", value.get("value"))
+      log.info("measuredOn = {}   (date, days since 1970-01-01)", value.get("measuredOn"))
+      log.info("measuredAt = {}   (timestamp-millis)", value.get("measuredAt"))
+
+  apply_calibration:
+    type: valueTransformer
+    globalCode: |
+      from decimal import Decimal
+    code: |
+      # The decimal arrives as text, so convert it before doing arithmetic.
+      # Decimal keeps every digit exact; float would not.
+      measured = Decimal(value.get("value"))
+      calibrated = measured + Decimal("0.05")
+
+      result = dict(value)
+      # Write it back as text, with 2 fraction digits to match the schema scale.
+      result["value"] = str(calibrated.quantize(Decimal("0.01")))
+    expression: result
+    resultType: avro:SensorReading
+
+pipelines:
+  main:
+    from: reading_input
+    via:
+      - type: peek
+        forEach: show_what_python_receives
+
+      - type: transformValue
+        mapper: apply_calibration
+
+      - type: peek
+        forEach:
+          code: |
+            log.info("calibrated value = {}   (still exact, still text)", value.get("value"))
+
+      - type: convertValue
+        into: json
+    to: reading_output

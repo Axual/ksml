@@ -1,0 +1,33 @@
+{
+  "namespace": "io.ksml.example",
+  "name": "SensorReading",
+  "type": "record",
+  "doc": "A sensor reading whose measured value must stay exact",
+  "fields": [
+    {
+      "name": "readingId",
+      "doc": "uuid logical type: a string that must be a real UUID",
+      "type": { "type": "string", "logicalType": "uuid" }
+    },
+    {
+      "name": "sensor",
+      "doc": "A plain string, with no logical type",
+      "type": "string"
+    },
+    {
+      "name": "value",
+      "doc": "decimal logical type: bytes on the wire, exact digits for the reader",
+      "type": { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 }
+    },
+    {
+      "name": "measuredOn",
+      "doc": "date logical type: days since 1970-01-01",
+      "type": { "type": "int", "logicalType": "date" }
+    },
+    {
+      "name": "measuredAt",
+      "doc": "timestamp-millis logical type: milliseconds since 1970-01-01",
+      "type": { "type": "long", "logicalType": "timestamp-millis" }
+    }
+  ]
+}
