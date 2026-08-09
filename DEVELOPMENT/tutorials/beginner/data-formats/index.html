@@ -16,7 +16,7 @@
         <link rel="prev" href="../filtering-transforming/">
       
       
-        <link rel="next" href="../logging-monitoring/">
+        <link rel="next" href="../avro-logical-types/">
       
       
         
@@ -1073,6 +1073,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../avro-logical-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Avro Logical Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2692,7 +2720,9 @@
 <a id="__codelineno-1-112" name="__codelineno-1-112" href="#__codelineno-1-112"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bash</span><span class="nv"> </span><span class="s">-c</span><span class="nv"> </span><span class="s">&#39;echo</span><span class="nv"> </span><span class="s">Creating</span><span class="nv"> </span><span class="s">topics</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">formats</span><span class="nv"> </span><span class="s">tutorial...</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
 <a id="__codelineno-1-113" name="__codelineno-1-113" href="#__codelineno-1-113"></a><span class="w">                       </span><span class="s">/opt/kafka/bin/kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">sensor_data_avro</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
 <a id="__codelineno-1-114" name="__codelineno-1-114" href="#__codelineno-1-114"></a><span class="w">                       </span><span class="s">/opt/kafka/bin/kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">sensor_data_json</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
-<a id="__codelineno-1-115" name="__codelineno-1-115" href="#__codelineno-1-115"></a><span class="w">                       </span><span class="s">/opt/kafka/bin/kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">sensor_data_transformed&#39;&quot;</span>
+<a id="__codelineno-1-115" name="__codelineno-1-115" href="#__codelineno-1-115"></a><span class="w">                       </span><span class="s">/opt/kafka/bin/kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">sensor_data_transformed</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-1-116" name="__codelineno-1-116" href="#__codelineno-1-116"></a><span class="w">                       </span><span class="s">/opt/kafka/bin/kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">logical_types_avro</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">\</span>
+<a id="__codelineno-1-117" name="__codelineno-1-117" href="#__codelineno-1-117"></a><span class="w">                       </span><span class="s">/opt/kafka/bin/kafka-topics.sh</span><span class="nv"> </span><span class="s">--create</span><span class="nv"> </span><span class="s">--if-not-exists</span><span class="nv"> </span><span class="s">--bootstrap-server</span><span class="nv"> </span><span class="s">broker:9093</span><span class="nv"> </span><span class="s">--partitions</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--replication-factor</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">--topic</span><span class="nv"> </span><span class="s">logical_types_json&#39;&quot;</span>
 </code></pre></div>
 </details>
 <p>Create <code>kowl-ui-config.yaml</code> for Kafka UI:</p>

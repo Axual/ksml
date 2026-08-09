@@ -687,6 +687,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../tutorials/beginner/avro-logical-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Avro Logical Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorials/beginner/logging-monitoring/" class="md-nav__link">
         
   
@@ -2827,6 +2855,11 @@
 <li>Runner config validation is strict again: an unknown or misspelled key in <code>ksml-runner.yaml</code> fails at startup instead of being silently ignored (Jackson 3 changed this default, so KSML re-enables the strict check).</li>
 <li>Moved off the deprecated Kafka Streams error-handler and admin APIs. The Kafka client version is unchanged: it stays on the same 4.x version that KSML 1.3.0 already used.</li>
 <li>Upgraded Protobuf and Wire to their 4.x and 6.x major versions.</li>
+<li>Added first-class support for Avro logical types (<code>uuid</code>, <code>decimal</code>, <code>date</code>, <code>time-millis</code>, <code>time-micros</code>, <code>timestamp-millis</code>, <code>timestamp-micros</code>, <code>local-timestamp-millis</code>, <code>local-timestamp-micros</code>). KSML keeps the logical type on read and write. See <a href="https://github.com/Axual/ksml/issues/415">issue #415</a> and <a href="https://github.com/Axual/ksml/issues/583">issue #583</a>.</li>
+<li>Breaking change: an Avro <code>decimal</code> field is now a string in KSML, for example <code>"123.45"</code>, where it used to be raw bytes. Python code that treated the field as bytes must be updated. See <a href="../migration-to-2.0.0/">Upgrading to 2.0.0</a>.</li>
+<li>KSML checks a value against its logical type. Writing an invalid value fails; reading one is logged as a warning and passed through, so a bad record in an upstream topic does not stop your application.</li>
+<li>An Avro <code>decimal</code> may grow its precision between schema versions as long as the scale stays the same. Narrowing the precision or changing the scale is rejected.</li>
+<li>JSON Schema now reads the <code>format: uuid</code> string format as a <code>uuid</code> logical type and keeps it on read and write.</li>
 </ul>
 <h2 id="130-2026-06-23">1.3.0 (2026-06-23)</h2>
 <ul>

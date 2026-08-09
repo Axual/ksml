@@ -689,6 +689,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../tutorials/beginner/avro-logical-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Avro Logical Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorials/beginner/logging-monitoring/" class="md-nav__link">
         
   
@@ -1882,6 +1910,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#avro-logical-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Avro logical types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Avro logical types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-decimal-is-now-a-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A decimal is now a string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#values-are-checked-against-their-logical-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Values are checked against their logical type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decimal-precision-may-grow-scale-may-not-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decimal precision may grow, scale may not change
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#kafka-streams-error-handlers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2092,6 +2181,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#avro-logical-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Avro logical types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Avro logical types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-decimal-is-now-a-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A decimal is now a string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#values-are-checked-against-their-logical-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Values are checked against their logical type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decimal-precision-may-grow-scale-may-not-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decimal precision may grow, scale may not change
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#kafka-streams-error-handlers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2153,6 +2303,7 @@
 <li>Replace any <code>apicurio.registry.auto-register.if-exists: RETURN</code> with a valid v3 value such as <code>FIND_OR_CREATE_VERSION</code>.</li>
 <li>Remove <code>apicurio.registry.as-confluent</code>, and replace <code>Legacy4ByteIdHandler</code> with <code>Default4ByteIdHandler</code> if you set <code>apicurio.registry.id-handler</code> yourself.</li>
 <li>Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.</li>
+<li>If you read an Avro <code>decimal</code> field in Python, change the code to expect a string instead of bytes.</li>
 <li>If you build your own code on top of the KSML libraries, update the Jackson package names.</li>
 </ul>
 <h2 id="apicurio-registry-3">Apicurio Registry 3</h2>
@@ -2218,6 +2369,41 @@
 </code></pre></div>
 <p>This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.</p>
 <p>What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.</p>
+<h2 id="avro-logical-types">Avro logical types</h2>
+<p>KSML now understands Avro logical types (<code>uuid</code>, <code>decimal</code>, <code>date</code>, <code>time-millis</code>, <code>time-micros</code>,
+<code>timestamp-millis</code>, <code>timestamp-micros</code>, <code>local-timestamp-millis</code>, <code>local-timestamp-micros</code>). It keeps
+the logical type when it reads and writes a record. One of these changes what your Python code sees.</p>
+<h3 id="a-decimal-is-now-a-string">A decimal is now a string</h3>
+<p>An Avro <code>decimal</code> used to arrive in Python as raw bytes, because KSML treated it as its base <code>bytes</code>
+type. It is now a string holding the exact number.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;amount&quot;</span><span class="p">]</span>          <span class="c1"># b&#39;\x30\x39&#39;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;amount&quot;</span><span class="p">]</span>          <span class="c1"># &quot;123.45&quot;</span>
+</code></pre></div>
+<p>What you need to do: if a Python function reads a <code>decimal</code> field, treat it as a string. Use
+<code>float(value["amount"])</code> or Python's <code>decimal.Decimal</code> when you need to calculate with it. When you
+write the field, write a string such as <code>"123.45"</code>.</p>
+<h3 id="values-are-checked-against-their-logical-type">Values are checked against their logical type</h3>
+<p>KSML checks that a value fits its logical type, for example that a <code>uuid</code> is a real UUID and that a
+<code>time-millis</code> is between <code>0</code> and <code>86399999</code>.</p>
+<p>Writing an invalid value fails, which points at the mistake in your own pipeline. Reading an invalid
+value only writes a warning to the log and passes the value on. That is on purpose: a bad record in a
+topic comes from another system, and the default consume error handler is <code>stopOnFail</code>, so failing
+there would stop your application because of someone else's data.</p>
+<p>What you need to do: nothing to upgrade, but watch the log for these warnings after you upgrade.</p>
+<h3 id="decimal-precision-may-grow-scale-may-not-change">Decimal precision may grow, scale may not change</h3>
+<p>Two versions of a schema whose <code>decimal</code> differs only in precision are compatible, as long as the
+scale is the same and the precision grows. Narrowing the precision or changing the scale is rejected,
+because both can lose digits.</p>
+<h3 id="limits">Limits</h3>
+<ul>
+<li>Only a <code>bytes</code>-backed decimal is supported. A <code>fixed</code>-backed decimal is treated as a plain <code>fixed</code>
+  and reaches Python as bytes.</li>
+<li>Logical types come from the schema, so they work when the schema is loaded from a <code>.avsc</code> file or
+  from the schema registry. An inline KSML schema cannot express one.</li>
+</ul>
 <h2 id="kafka-streams-error-handlers">Kafka Streams error handlers</h2>
 <p>For pipeline authors who write KSML YAML, there is nothing to change here. The Kafka client version is unchanged in KSML 2.0.0: it stays on the same 4.x version that KSML 1.3.0 already used.</p>
 <p>KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you implement your own Kafka Streams error handler against the KSML libraries, <code>handle</code> became <code>handleError</code>, and the enum results were replaced by <code>Response.resume()</code>, <code>Response.fail()</code> and <code>Response.retry()</code>.</p>
