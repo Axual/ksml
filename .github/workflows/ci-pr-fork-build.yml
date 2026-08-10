@@ -46,7 +46,7 @@ jobs:
           printf '%s' "$BASE_REF"  > pr-metadata/base-ref
 
       - name: Upload Sonar inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sonar-inputs-${{ github.event.pull_request.head.sha }}
           retention-days: 1
