@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download Sonar inputs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: sonar-inputs-${{ github.event.workflow_run.head_sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
