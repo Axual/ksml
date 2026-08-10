@@ -2,18 +2,28 @@
 # package ecosystems to update and where the package manifests are located.
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+#
+# Keep a "groups" block on every ecosystem. Without one, every package gets its
+# own pull request.
+#
+# Do not add "update-types" to split majors into their own group. Groups match
+# on "patterns" only, so the second group stays empty and majors can be dropped
+# with no warning. See dependabot-core #13665 and #14202. Majors are batched
+# with the rest; use "ignore" for one we do not want.
+#
+# Security updates ignore "schedule" and are still raised right away.
 
 version: 2
 updates:
   - package-ecosystem: "maven" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
     groups:
       dev-deps:
         dependency-type: "development"
       prod-deps:
-        dependency-type: "production"      
+        dependency-type: "production"
     ignore:
     - dependency-name: "com.google.protobuf:protobuf-java"
       versions: [ ">=4.0.0" ]   # 4.x has breaking lite-runtime semantics; KSML on 3.25.9
@@ -24,20 +34,24 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
+      interval: "weekly"
     allow:
       # Allow both direct and indirect updates for all packages
       - dependency-type: "all"
+    groups:
+      python-deps:
+        patterns: [ "*" ]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    groups:
+      actions-deps:
+        patterns: [ "*" ]
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     groups:
-      actions-deps:
-        patterns:
-          - "*"
+      docker-images:
+        patterns: [ "*" ]
