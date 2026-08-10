@@ -547,9 +547,12 @@ public class KSMLRunner {
      */
     static void setupErrorHandling(ErrorHandlingConfig errorHandling) {
         if (errorHandling != null) {
-            ExecutionContext.INSTANCE.errorHandling().setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
-            ExecutionContext.INSTANCE.errorHandling().setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
-            ExecutionContext.INSTANCE.errorHandling().setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig()));
+            // Only the produce (serialization) path has a Kafka Streams RETRY response; consume
+            // (deserialization) and process handlers only support CONTINUE/STOP and must reject
+            // retryOnFail here rather than let it crash the Streams thread on first use.
+            ExecutionContext.INSTANCE.errorHandling().setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig(), false));
+            ExecutionContext.INSTANCE.errorHandling().setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig(), true));
+            ExecutionContext.INSTANCE.errorHandling().setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig(), false));
         }
     }
 
@@ -754,11 +757,16 @@ public class KSMLRunner {
         throw new ConfigException("No configuration found in " + configFile);
     }
 
-    static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config) {
+    static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config, boolean retrySupported) {
         final var handlerType = switch (config.handler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
-            case RETRY -> ErrorHandler.HandlerType.RETRY_ON_FAIL;
+            case RETRY -> {
+                if (!retrySupported) {
+                    throw new ConfigException("retryOnFail is not a supported error handler here; only stopOnFail or continueOnFail are allowed");
+                }
+                yield ErrorHandler.HandlerType.RETRY_ON_FAIL;
+            }
             // An explicit "handler:" (null) in the config overrides the Handler.STOP field default,
             // fall back to the documented default rather than throwing a NullPointerException here.
             case null -> ErrorHandler.HandlerType.STOP_ON_FAIL;

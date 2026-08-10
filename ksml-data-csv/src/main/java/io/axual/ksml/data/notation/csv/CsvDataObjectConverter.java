@@ -24,6 +24,7 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
@@ -37,8 +38,8 @@ public class CsvDataObjectConverter implements Notation.Converter {
 
     @Override
     public DataObject convert(DataObject value, DataType targetType) {
-        // Convert from structured CSV
-        if (value instanceof DataList valueList && DEFAULT_TYPE.equals(valueList.type())) {
+        // Convert from structured CSV (list or struct)
+        if ((value instanceof DataList || value instanceof DataStruct) && DEFAULT_TYPE.isAssignableFrom(value.type()).isAssignable()) {
             // Convert to String
             if (targetType == DataString.DATATYPE) {
                 return new DataString(MAPPER.fromDataObject(value));

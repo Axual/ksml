@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 import io.axual.ksml.exception.ParseException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.operation.FilterNotOperation;
@@ -118,6 +119,36 @@ class OperationParsersTest {
         final var op = new ReduceOperationParser(resources).parser()
                 .parse(nodeOf("name: reduceOp\nadder:\n  expression: value1\n  resultType: string\nsubtractor:\n  expression: value2\n  resultType: string"));
         assertThat(op).isInstanceOf(ReduceOperation.class);
+    }
+
+    @Test
+    @DisplayName("a reduce configuration with neither a reducer nor an adder/subtractor is rejected")
+    void rejectsReduceWithoutReducerOrAdderSubtractor() throws Exception {
+        final var parser = new ReduceOperationParser(resources).parser();
+        final var node = nodeOf("name: reduceOp");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("reducer")
+                .hasMessageContaining("adder")
+                .hasMessageContaining("subtractor");
+    }
+
+    @Test
+    @DisplayName("a reduce configuration with only an adder (no subtractor) is rejected")
+    void rejectsReduceWithAdderButNoSubtractor() throws Exception {
+        final var parser = new ReduceOperationParser(resources).parser();
+        final var node = nodeOf("name: reduceOp\nadder:\n  expression: value1\n  resultType: string");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(TopologyException.class);
+    }
+
+    @Test
+    @DisplayName("a reduce configuration mixing a reducer with an adder is rejected")
+    void rejectsReduceMixingReducerAndAdder() throws Exception {
+        final var parser = new ReduceOperationParser(resources).parser();
+        final var node = nodeOf("name: reduceOp\nreducer:\n  expression: value1\n  resultType: string\nadder:\n  expression: value2\n  resultType: string");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(TopologyException.class);
     }
 
     @Test

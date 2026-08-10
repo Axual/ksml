@@ -98,18 +98,20 @@ retryOnFail`, have it pass validation, and then hit `UnsupportedOperationExcepti
 Kafka Streams thread the first time a real deserialization or processing error actually occurs.
 
 ### 3. Two modules effectively disabled by empty SPI registration files **(verified directly)**
+_Won't fix: this is intentional_
 
 - `ksml-data-jsonschema-confluent/src/main/resources/META-INF/services/io.axual.ksml.data.notation.NotationProvider` — confirmed 0 bytes (`wc -c`)
 - `ksml-data-protobuf-confluent/src/main/resources/META-INF/services/io.axual.ksml.data.notation.NotationProvider` — confirmed 0 bytes
 
-A working sibling (`ksml-data-avro-confluent`'s equivalent file) correctly contains
+~~A working sibling (`ksml-data-avro-confluent`'s equivalent file) correctly contains
 `io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider`. Notation providers
 are only discovered via `ServiceLoader` (see `NotationFactories` in `ksml-runner`), so
 `ConfluentJsonSchemaNotationProvider` and `ConfluentProtobufNotationProvider` — and everything
 they construct — are never instantiated in production. There's an acknowledged TODO about this
-gap at `ksml-runner/src/main/java/io/axual/ksml/runner/config/NotationConfig.java:70-74`.
+gap at `ksml-runner/src/main/java/io/axual/ksml/runner/config/NotationConfig.java:70-74`.~~
 
 ### 4. `ConfluentProtobufSchemaParser.parse()` is a permanent no-op **(verified directly)**
+_Won't fix for now - intentional_
 
 `ksml-data-protobuf-confluent/src/main/java/io/axual/ksml/data/notation/protobuf/confluent/ConfluentProtobufSchemaParser.java:33-35`
 
