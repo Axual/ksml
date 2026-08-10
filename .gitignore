@@ -16,6 +16,9 @@ CLAUDE.md
 .vscode/
 diff-coverage.html
 
+__pycache__/
+*.pyc
+
 workspace/*
 /packaging/helm-charts/**/*.tgz
 /packaging/helm-charts/workspace/*
