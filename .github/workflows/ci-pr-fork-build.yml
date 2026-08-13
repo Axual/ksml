@@ -23,11 +23,17 @@ jobs:
       - name: Check GraalVM JDK tarballs exist
         run: scripts/graalvm-tarballs.sh check
 
+      # Same JVM the Docker image ships, from the same single source. Note "graalvm"
+      # would be Oracle GraalVM, a different product under a different licence.
+      - name: Read GraalVM version
+        id: graalvm
+        run: echo "version=$(cat .graalvm-jdk-version)" >> "$GITHUB_OUTPUT"
+
       - name: Set up GraalVM
         uses: actions/setup-java@v5
         with:
-          distribution: graalvm
-          java-version: '25'
+          distribution: graalvm-community
+          java-version: ${{ steps.graalvm.outputs.version }}
           cache: maven
 
       - name: Build and test
