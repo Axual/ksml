@@ -106,7 +106,7 @@
         <saaj.version>3.0.6</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
         <victools.version>5.0.0</victools.version>
-        <wire.version>6.4.1</wire.version>
+        <wire.version>6.4.5</wire.version>
 
         <!-- KSML schema generation -->
         <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
