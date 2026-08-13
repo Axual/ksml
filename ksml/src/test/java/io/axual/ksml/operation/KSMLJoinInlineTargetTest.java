@@ -32,17 +32,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Regression tests for developerdocs/bugs-and-dead-code-candidates.md finding 6:
- * {@code JoinTargetDefinitionParser} rejects inline {@code table:}/{@code globalTable:} join
- * targets with a "Expected type string, found object" parse error, even though the language
- * spec documents inline definitions as supported for both fields (matching the behaviour that
- * already works for inline {@code stream:} join targets).
- * <p>
- * Both tests below are currently expected to fail at topology-load time with a
- * {@code ParseException}, not at the assertions - the assertions describe the intended,
- * documented behaviour once the parser is fixed.
+ * {@code JoinTargetDefinitionParser} used to reject inline {@code table:}/{@code globalTable:}
+ * join targets with an "Expected type string, found object" parse error, even though the
+ * language spec documents inline definitions as supported for both fields (matching the
+ * behaviour that already worked for inline {@code stream:} join targets).
  */
 @ExtendWith(KSMLTestExtension.class)
-@SuppressWarnings("java:S2187")
 public class KSMLJoinInlineTargetTest {
 
     @KSMLTopic(topic = "streamIn")

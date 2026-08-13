@@ -3,7 +3,7 @@
 # Regression fixture for developerdocs/bugs-and-dead-code-candidates.md finding 6:
 # the join's "globalTable" field is defined inline (no top-level `globalTables:` entry),
 # which the language spec documents as supported ("a reference to the globalTable, or an
-# inline definition of the globalTable to join with") but which currently fails to parse.
+# inline definition of the globalTable to join with").
 
 streams:
   streamIn:

@@ -3,7 +3,7 @@
 # Regression fixture for developerdocs/bugs-and-dead-code-candidates.md finding 6:
 # the join's "table" field is defined inline (no top-level `tables:` entry), which the
 # language spec documents as supported ("a reference to the table, or an inline definition
-# of the table to join with") but which currently fails to parse.
+# of the table to join with").
 
 streams:
   streamIn:
