@@ -25,12 +25,8 @@ updates:
       prod-deps:
         dependency-type: "production"
     ignore:
-    - dependency-name: "com.google.protobuf:protobuf-java"
-      versions: [ ">=4.0.0" ]   # 4.x has breaking lite-runtime semantics; KSML on 3.25.9
-    - dependency-name: "com.github.victools:*"
-      versions: [ ">=5.0.0" ]   # 5.0 requires Jackson 3 + Java 17
-    - dependency-name: "com.squareup.wire:*"
-      versions: [ ">=5.3.0" ]   # 5.3 changed ProtoFileElement constructor (added a param)
+      - dependency-name: "org.graalvm.*:*"
+        versions: [ ">=25.1.0, <25.3.0" ]   # GraalVM 25.2.4 has a critical bug that breaks native access
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
