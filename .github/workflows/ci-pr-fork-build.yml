@@ -17,11 +17,23 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Fork PRs skip build-and-test.yml, whose docker-build-test job is the only
+      # place on that path that fetches these tarballs. Runs before the build so a
+      # bad version fails in seconds instead of after the merge.
+      - name: Check GraalVM JDK tarballs exist
+        run: scripts/graalvm-tarballs.sh check
+
+      # Same JVM the Docker image ships, from the same single source. Note "graalvm"
+      # would be Oracle GraalVM, a different product under a different licence.
+      - name: Read GraalVM version
+        id: graalvm
+        run: echo "version=$(cat .graalvm-jdk-version)" >> "$GITHUB_OUTPUT"
+
       - name: Set up GraalVM
         uses: actions/setup-java@v5
         with:
-          distribution: graalvm
-          java-version: '25'
+          distribution: graalvm-community
+          java-version: ${{ steps.graalvm.outputs.version }}
           cache: maven
 
       - name: Build and test

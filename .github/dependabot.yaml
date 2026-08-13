@@ -25,12 +25,16 @@ updates:
       prod-deps:
         dependency-type: "production"
     ignore:
-    - dependency-name: "com.google.protobuf:protobuf-java"
-      versions: [ ">=4.0.0" ]   # 4.x has breaking lite-runtime semantics; KSML on 3.25.9
-    - dependency-name: "com.github.victools:*"
-      versions: [ ">=5.0.0" ]   # 5.0 requires Jackson 3 + Java 17
-    - dependency-name: "com.squareup.wire:*"
-      versions: [ ">=5.3.0" ]   # 5.3 changed ProtoFileElement constructor (added a param)
+      # GraalPy 25.1 and 25.2 cannot load Python C extension modules such as
+      # _ctypes, which PythonContextTest.testNativeAccess catches (see #688).
+      # Fixed upstream by https://github.com/oracle/graalpython/pull/1018, but
+      # we do not know if that reached 25.2.5, so the range stops there and
+      # Dependabot may offer it once it exists. These jars are only half of
+      # GraalVM: going past 25.0.x also needs GRAALVM_JDK_VERSION bumped in the
+      # workflows, or polyglot's version check quietly drops Python to the
+      # slow interpreter.
+      - dependency-name: "org.graalvm.*:*"
+        versions: [ ">=25.1.0, <25.2.5" ]
   - package-ecosystem: "pip"
     directory: "/"
     schedule:

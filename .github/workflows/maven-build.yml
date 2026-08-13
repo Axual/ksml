@@ -25,11 +25,18 @@ jobs:
         with:
           fetch-depth: 0  # Fetch full history for SonarCloud analysis, because SonarCloud needs full git history to properly analyze changes.
 
+      # Build and test on the same JVM the Docker image ships, read from the same
+      # single source, so the two cannot drift apart. Note "graalvm" would be Oracle
+      # GraalVM, a different product under a different licence.
+      - name: Read GraalVM version
+        id: graalvm
+        run: echo "version=$(cat .graalvm-jdk-version)" >> "$GITHUB_OUTPUT"
+
       - name: Set up GraalVM
         uses: actions/setup-java@v5
         with:
-          distribution: 'graalvm'
-          java-version: '25'
+          distribution: 'graalvm-community'
+          java-version: ${{ steps.graalvm.outputs.version }}
           cache: 'maven'
 
       - name: Log in to Docker Hub
