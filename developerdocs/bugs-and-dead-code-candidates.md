@@ -140,6 +140,57 @@ if (value instanceof DataList valueList && DEFAULT_TYPE.equals(valueList.type())
 conversion silently falls back to generic bracket-`toString()` formatting instead of proper
 CSV-escaped text. No test exercises this class.
 
+### 6. `JoinTargetDefinitionParser` rejects inline `table:`/`globalTable:` join targets **(verified directly)**
+
+`ksml/src/main/java/io/axual/ksml/definition/parser/JoinTargetDefinitionParser.java:44-51`
+
+```java
+if (node.get(Operations.Join.WITH_STREAM) != null) {
+    return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, ...).parse(node);
+}
+if (parseString(node, Operations.Join.WITH_TABLE) != null) {
+    return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, ...).parse(node);
+}
+if (parseString(node, Operations.Join.WITH_GLOBAL_TABLE) != null) {
+    return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, ...).parse(node);
+}
+```
+
+The `stream:` field is checked for presence with `node.get(...) != null` (line 44), which is
+satisfied whether the field is a plain string reference *or* an inline object — both are valid
+per `TopologyResourceParser`'s own two-way handling (string lookup vs. inline definition). But
+`table:`/`globalTable:` (lines 47, 50) are instead checked with `parseString(node, ...)`, which
+only recognizes a plain string value. Per `BaseParser.isValue` (`BaseParser.java:54-57`),
+`parseString` doesn't just fail to match an inline object — it actively **throws**
+`ParseException("Expected type string, found object")` the moment the child is present but is an
+object rather than a string, before the code can even reach the branch that would parse it as an
+inline definition.
+
+**Effect:** an inline (non-reference) `table:` or `globalTable:` join target — e.g.
+
+```yaml
+table:
+  topic: other
+  keyType: string
+  valueType: string
+```
+
+— fails immediately with a confusing "Expected type string, found object" parse error, even
+though the exact same inline-object shape works correctly for `stream:` joins. Reproduced
+directly by parsing the snippet above through `JoinOperationParser`; confirmed the same code path
+is shared by `LeftJoinOperationParser` and `OuterJoinOperationParser`, so all join-operation
+variants are affected for `table`/`globalTable` (only `stream` supports inline definitions in
+practice; named references to a previously-declared `table`/`globalTable` still work fine, since
+those are plain strings). No test exercises an inline `table:`/`globalTable:` join target —
+`JoinOperationParsersTest` only covers named references (`table: theTable`,
+`globalTable: theGlobalTable`).
+
+Found while tracing whether `JoinTargetDefinitionParser` could return a null/incomplete result
+that would make the `JoinOperationParser`/`LeftJoinOperationParser` `instanceof`-cascade fallback
+(their entries in the dead-code table below) reachable after all — it can't (every path either
+throws or constructs a concrete `TopicDefinition` subtype first), but this inconsistency turned up
+adjacent to that investigation.
+
 ## Confirmed unreachable/dead code (no behavioral bug, just code that can't run)
 
 | Location | Why it's dead |
