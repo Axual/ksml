@@ -22,17 +22,9 @@ cp -r ksml-runner/target/libs build-output/
 cp ksml-test-runner/target/libs/*.jar build-output/libs/
 cp ksml-runner/NOTICE.txt build-output/
 cp LICENSE.txt build-output/
-GRAALVM_JDK_VERSION=${GRAALVM_JDK_VERSION:-25.0.4}
-
-# Download graalvm tarfiles
-if [ ! -f graalvm-amd64.tar.gz ]; then
-  echo "Downloading GraalVM for AMD64"
-  wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_JDK_VERSION}/graalvm-community-jdk-${GRAALVM_JDK_VERSION}_linux-x64_bin.tar.gz -O graalvm-amd64.tar.gz
-fi
-if [ ! -f graalvm-arm64.tar.gz ]; then
-  echo "Downloading GraalVM for ARM64"
-  wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_JDK_VERSION}/graalvm-community-jdk-${GRAALVM_JDK_VERSION}_linux-aarch64_bin.tar.gz -O graalvm-arm64.tar.gz
-fi
+# Download graalvm tarfiles. Version comes from .graalvm-jdk-version; override it with
+# GRAALVM_JDK_VERSION=... to try another one.
+scripts/graalvm-tarballs.sh download
 
 # Create builder if it doesn't exist
 if ! docker buildx ls --format {{.Name}} | grep -E "^ksml$"; then

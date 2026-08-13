@@ -17,6 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Fork PRs skip build-and-test.yml, whose docker-build-test job is the only
+      # place on that path that fetches these tarballs. Runs before the build so a
+      # bad version fails in seconds instead of after the merge.
+      - name: Check GraalVM JDK tarballs exist
+        run: scripts/graalvm-tarballs.sh check
+
       - name: Set up GraalVM
         uses: actions/setup-java@v5
         with:
