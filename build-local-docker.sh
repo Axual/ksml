@@ -22,7 +22,7 @@ cp -r ksml-runner/target/libs build-output/
 cp ksml-test-runner/target/libs/*.jar build-output/libs/
 cp ksml-runner/NOTICE.txt build-output/
 cp LICENSE.txt build-output/
-GRAALVM_JDK_VERSION=${GRAALVM_JDK_VERSION:-25.0.2}
+GRAALVM_JDK_VERSION=${GRAALVM_JDK_VERSION:-25.0.4}
 
 # Download graalvm tarfiles
 if [ ! -f graalvm-amd64.tar.gz ]; then
