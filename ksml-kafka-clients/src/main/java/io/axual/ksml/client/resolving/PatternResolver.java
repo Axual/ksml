@@ -240,7 +240,7 @@ public class PatternResolver implements Resolver {
             pos += element.length();
             if (element.startsWith(FIELD_NAME_PREFIX) && element.endsWith(FIELD_NAME_SUFFIX)) {
                 // Treat the element as a placeholder
-                if (count > 0 && lastElementWasPlaceholder) {
+                if (lastElementWasPlaceholder) {
                     throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
                 }
                 var field = element.substring(1, element.length() - 1);
@@ -249,7 +249,7 @@ public class PatternResolver implements Resolver {
                 lastElementWasPlaceholder = true;
             } else {
                 // Treat the element as a string literal
-                if (count > 0 && !lastElementWasPlaceholder) {
+                if (!lastElementWasPlaceholder) {
                     throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
                 }
                 pat.append(escape(element));

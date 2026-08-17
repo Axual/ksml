@@ -21,6 +21,7 @@ package io.axual.ksml.client.resolving;
  */
 
 import io.axual.ksml.client.exception.ClientException;
+import io.axual.ksml.client.exception.ConfigException;
 import org.apache.kafka.common.Configurable;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
@@ -161,6 +162,21 @@ class ResolvingClientConfigTest {
         final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, 42));
 
         assertThatThrownBy(() -> config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class))
+                .isInstanceOf(ClientException.class)
+                .hasMessageContaining("Marker");
+    }
+
+    @Test
+    @DisplayName("An incompatible value wraps the failure in a ConfigException with key/value context and the original as cause")
+    void getConfiguredInstanceWrapsFailureAsConfigException() {
+        final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, 42));
+
+        assertThatThrownBy(() -> config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class))
+                .isInstanceOf(ConfigException.class)
+                .hasMessageContaining("Marker")
+                .hasMessageContaining(INSTANCE_CONFIG)
+                .hasMessageContaining("42")
+                .cause()
                 .isInstanceOf(ClientException.class)
                 .hasMessageContaining("Marker");
     }

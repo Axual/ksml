@@ -192,7 +192,7 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
 
             if (raw != null) {
                 // Non-null value: convert based on runtime type and schema
-                final var fieldDataSchema = structSchema.field(name) != null ? structSchema.field(name).schema() : null;
+                final var fieldDataSchema = structSchema.field(name).schema();
                 final var fieldExpectedType = TYPE_SCHEMA_MAPPER.fromDataSchema(fieldDataSchema);
                 final var conv = toDataObject(fieldExpectedType, raw, field.schema());
                 result.put(name, conv);

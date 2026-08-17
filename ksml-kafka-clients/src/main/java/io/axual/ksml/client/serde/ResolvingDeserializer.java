@@ -45,17 +45,17 @@ public class ResolvingDeserializer<T> implements Deserializer<T> {
 
     @Override
     public T deserialize(String topic, byte[] data) {
-        return backingDeserializer.deserialize(topicResolver != null ? topicResolver.resolve(topic) : topic, data);
+        return backingDeserializer.deserialize(topicResolver.resolve(topic), data);
     }
 
     @Override
     public T deserialize(String topic, Headers headers, byte[] data) {
-        return backingDeserializer.deserialize(topicResolver != null ? topicResolver.resolve(topic) : topic, headers, data);
+        return backingDeserializer.deserialize(topicResolver.resolve(topic), headers, data);
     }
 
     @Override
     public T deserialize(String topic, Headers headers, ByteBuffer data) {
-        return backingDeserializer.deserialize(topicResolver != null ? topicResolver.resolve(topic) : topic, headers, data);
+        return backingDeserializer.deserialize(topicResolver.resolve(topic), headers, data);
     }
 
     @Override

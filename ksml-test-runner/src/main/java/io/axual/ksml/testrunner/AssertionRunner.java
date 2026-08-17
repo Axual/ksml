@@ -96,10 +96,6 @@ public class AssertionRunner {
             // If 'on:' is specified, collect output records from the referenced stream's topic
             if (block.on() != null) {
                 var stream = streams.get(block.on());
-                if (stream == null) {
-                    return TestResult.error(suiteName, testName,
-                            "Assert block references undeclared stream '" + block.on() + "'");
-                }
                 var records = recordCache.computeIfAbsent(stream.topic(), k -> collectOutputRecords(stream));
                 args.add(Pair.of("records", ProxyUtil.toPython(records)));
             }
@@ -232,16 +228,10 @@ public class AssertionRunner {
 
     private String extractAssertionMessage(org.graalvm.polyglot.PolyglotException e) {
         var message = e.getMessage();
-        if (message != null && message.contains(ASSERTION_ERROR)) {
-            // Try to extract the user-provided assertion message
-            var idx = message.indexOf(ASSERTION_ERROR + ":");
-            if (idx >= 0) {
-                return message.substring(idx);
-            }
-            idx = message.indexOf(ASSERTION_ERROR);
-            if (idx >= 0) {
-                return message.substring(idx);
-            }
+        // Extract the user-provided assertion message by stripping anything in front
+        var idx = message.indexOf(ASSERTION_ERROR);
+        if (idx > 0) {
+            return message.substring(idx);
         }
         return message;
     }

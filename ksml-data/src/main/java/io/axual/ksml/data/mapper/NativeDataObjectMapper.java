@@ -113,24 +113,26 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
      * @throws io.axual.ksml.data.exception.DataException if the value type cannot be represented
      */
     private DataObject convertObjectToDataObject(DataType expected, Object value) {
-        if (value == null) return ConvertUtil.convertNullToDataObject(expected);
-        if (value instanceof DataObject val) return val;
-        if (value instanceof Boolean val && (expected == null || expected == DataType.UNKNOWN || expected == DataBoolean.DATATYPE)) {
-            return new DataBoolean(val);
-        }
-        if (value instanceof Byte val) return convertByteToDataObject(val, expected);
-        if (value instanceof Short val) return convertShortToDataObject(val, expected);
-        if (value instanceof Integer val) return convertIntegerToDataObject(val, expected);
-        if (value instanceof Long val) return convertLongToDataObject(val, expected);
-        if (value instanceof Double val) return convertDoubleToDataObject(val, expected);
-        if (value instanceof Float val) return convertFloatToDataObject(val, expected);
-        if (value instanceof byte[] val) return convertByteArrayToDataObject(val, expected);
-        if (value instanceof CharSequence val) return new DataString(val.toString());
-        if (value instanceof Tuple<?> val) return convertTupleToDataTuple(val);
-        if (value instanceof List<?> val) return convertListToDataObject(val, expected);
-        if (value instanceof Map<?, ?> val) return convertMapToDataObject(val, expected);
-        if (value instanceof Tuple<?> val) return convertTupleToDataTuple(val);
-        throw new DataException("Can not convert value to DataObject: " + value.getClass().getSimpleName());
+        return switch (value) {
+            case null -> ConvertUtil.convertNullToDataObject(expected);
+            case DataObject val -> val;
+            case
+                Boolean val when (expected == null || expected == DataType.UNKNOWN || expected == DataBoolean.DATATYPE) ->
+                new DataBoolean(val);
+            case Byte val -> convertByteToDataObject(val, expected);
+            case Short val -> convertShortToDataObject(val, expected);
+            case Integer val -> convertIntegerToDataObject(val, expected);
+            case Long val -> convertLongToDataObject(val, expected);
+            case Double val -> convertDoubleToDataObject(val, expected);
+            case Float val -> convertFloatToDataObject(val, expected);
+            case byte[] val -> convertByteArrayToDataObject(val, expected);
+            case CharSequence val -> new DataString(val.toString());
+            case Tuple<?> val -> convertTupleToDataTuple(val);
+            case List<?> val -> convertListToDataObject(val, expected);
+            case Map<?, ?> val -> convertMapToDataObject(val, expected);
+            default ->
+                throw new DataException("Can not convert value to DataObject: " + value.getClass().getSimpleName());
+        };
     }
 
     private DataObject convertByteToDataObject(Byte val, DataType expected) {
@@ -235,20 +237,22 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
      * @return the inferred {@code DataType}
      */
     private DataType inferDataTypeFromObject(Object value) {
-        if (value == null) return DataNull.DATATYPE;
-        if (value instanceof Boolean) return DataBoolean.DATATYPE;
-        if (value instanceof Byte) return DataByte.DATATYPE;
-        if (value instanceof Short) return DataShort.DATATYPE;
-        if (value instanceof Integer) return DataInteger.DATATYPE;
-        if (value instanceof Long) return DataLong.DATATYPE;
-        if (value instanceof Double) return DataDouble.DATATYPE;
-        if (value instanceof Float) return DataFloat.DATATYPE;
-        if (value instanceof byte[]) return DataBytes.DATATYPE;
-        if (value instanceof String) return DataString.DATATYPE;
-        if (value instanceof List<?> val) return inferListTypeFromList(val);
-        if (value instanceof Map<?, ?> val) return inferDataTypeFromNativeMap(val, null);
-        if (value instanceof Tuple<?> val) return inferTupleTypeFromTuple(val);
-        return DataType.UNKNOWN;
+        return switch (value) {
+            case null -> DataNull.DATATYPE;
+            case Boolean b -> DataBoolean.DATATYPE;
+            case Byte b -> DataByte.DATATYPE;
+            case Short i -> DataShort.DATATYPE;
+            case Integer i -> DataInteger.DATATYPE;
+            case Long l -> DataLong.DATATYPE;
+            case Double v -> DataDouble.DATATYPE;
+            case Float v -> DataFloat.DATATYPE;
+            case byte[] bytes -> DataBytes.DATATYPE;
+            case String s -> DataString.DATATYPE;
+            case List<?> val -> inferListTypeFromList(val);
+            case Map<?, ?> val -> inferDataTypeFromNativeMap(val, null);
+            case Tuple<?> val -> inferTupleTypeFromTuple(val);
+            default -> DataType.UNKNOWN;
+        };
     }
 
     /**
@@ -313,8 +317,8 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
     protected DataList convertByteArrayToList(byte[] bytes, DataType valueType) {
         final var result = new DataList(valueType);
-        for (var index = 0; index < bytes.length; index++) {
-            result.add(new DataByte(bytes[index]));
+        for (byte aByte : bytes) {
+            result.add(new DataByte(aByte));
         }
         return result;
     }

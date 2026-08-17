@@ -31,7 +31,7 @@ public class ExtendableCreateTopicsResult extends CreateTopicsResult {
 
     public ExtendableCreateTopicsResult(CreateTopicsResult createTopicsResult) {
         super(Collections.emptyMap());
-        this.createTopicsResult = createTopicsResult == null ? new CreateTopicsResult(Collections.emptyMap()) : createTopicsResult;
+        this.createTopicsResult = createTopicsResult;
     }
 
     @Override
