@@ -2213,8 +2213,8 @@
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="no">event_counter = 0</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="no">user_ids = [&quot;user_001&quot;, &quot;user_002&quot;, &quot;user_003&quot;, &quot;user_004&quot;, &quot;user_005&quot;]</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="no">event_types = [&quot;login&quot;, &quot;view_product&quot;, &quot;add_to_cart&quot;, &quot;purchase&quot;]</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="no">user_ids = ["user_001", "user_002", "user_003", "user_004", "user_005"]</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="no">event_types = ["login", "view_product", "add_to_cart", "purchase"]</span>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="no">global event_counter, user_ids, event_types</span>
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
@@ -2224,30 +2224,30 @@
 <a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
 <a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="no"># Create structured JSON user event for better readability in Kowl UI</span>
 <a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="no">user_event = {</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="no">&quot;event_id&quot;: f&quot;event_{event_counter:06d}&quot;,</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="no">&quot;event_type&quot;: event_type,</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">        </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000),</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">        </span><span class="no">&quot;sequence_number&quot;: event_counter,</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">        </span><span class="no">&quot;session_id&quot;: f&quot;session_{user_id}_{event_counter // 5}&quot;,  # Change session every 5 events</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">        </span><span class="no">&quot;device_info&quot;: {</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">          </span><span class="no">&quot;platform&quot;: random.choice([&quot;web&quot;, &quot;mobile&quot;, &quot;tablet&quot;]),</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">          </span><span class="no">&quot;user_agent&quot;: random.choice([&quot;Chrome&quot;, &quot;Firefox&quot;, &quot;Safari&quot;, &quot;Edge&quot;]),</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">          </span><span class="no">&quot;ip_address&quot;: f&quot;192.168.1.{random.randint(1, 255)}&quot;</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="no">"event_id": f"event_{event_counter:06d}",</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="no">"event_type": event_type,</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">        </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">        </span><span class="no">"timestamp": int(time.time() * 1000),</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">        </span><span class="no">"sequence_number": event_counter,</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">        </span><span class="no">"session_id": f"session_{user_id}_{event_counter // 5}",  # Change session every 5 events</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">        </span><span class="no">"device_info": {</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">          </span><span class="no">"platform": random.choice(["web", "mobile", "tablet"]),</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">          </span><span class="no">"user_agent": random.choice(["Chrome", "Firefox", "Safari", "Edge"]),</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">          </span><span class="no">"ip_address": f"192.168.1.{random.randint(1, 255)}"</span>
 <a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">        </span><span class="no">&quot;context&quot;: {</span>
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">          </span><span class="no">&quot;page_url&quot;: random.choice([&quot;/home&quot;, &quot;/products&quot;, &quot;/cart&quot;, &quot;/checkout&quot;]),</span>
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">          </span><span class="no">&quot;referrer&quot;: random.choice([None, &quot;google.com&quot;, &quot;facebook.com&quot;, &quot;direct&quot;]),</span>
-<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">          </span><span class="no">&quot;campaign&quot;: random.choice([None, &quot;summer_sale&quot;, &quot;new_user&quot;, &quot;retargeting&quot;])</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">        </span><span class="no">"context": {</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">          </span><span class="no">"page_url": random.choice(["/home", "/products", "/cart", "/checkout"]),</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">          </span><span class="no">"referrer": random.choice([None, "google.com", "facebook.com", "direct"]),</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">          </span><span class="no">"campaign": random.choice([None, "summer_sale", "new_user", "retargeting"])</span>
 <a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">        </span><span class="no">&quot;metadata&quot;: {</span>
-<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="w">          </span><span class="no">&quot;simulation&quot;: True,</span>
-<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="w">          </span><span class="no">&quot;api_enrichment&quot;: True,</span>
-<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">          </span><span class="no">&quot;needs_external_data&quot;: True</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">        </span><span class="no">"metadata": {</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="w">          </span><span class="no">"simulation": True,</span>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="w">          </span><span class="no">"api_enrichment": True,</span>
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">          </span><span class="no">"needs_external_data": True</span>
 <a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>
-<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(f&quot;event_{event_counter:06d}&quot;, user_event)</span>
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(f"event_{event_counter:06d}", user_event)</span>
 <a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
 <a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>
 <a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="nt">producers</span><span class="p">:</span>
@@ -2279,49 +2279,49 @@
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
 <a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">      </span><span class="no"># Mock API client (simulates external REST API)</span>
 <a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">      </span><span class="no">def get_user_profile(user_id):</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="no">&quot;&quot;&quot;Simulate API call to get user profile&quot;&quot;&quot;</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="no">"""Simulate API call to get user profile"""</span>
 <a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">        </span><span class="no">try:</span>
 <a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">          </span><span class="no"># Simulate API latency</span>
 <a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">          </span><span class="no">time.sleep(0.1)</span>
 <a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>
 <a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">          </span><span class="no"># Mock user profiles based on user_id</span>
 <a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">          </span><span class="no">profiles = {</span>
-<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">            </span><span class="no">&quot;user_001&quot;: {</span>
-<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">              </span><span class="no">&quot;name&quot;: &quot;Alice Johnson&quot;, &quot;tier&quot;: &quot;premium&quot;, &quot;location&quot;: &quot;New York&quot;,</span>
-<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">              </span><span class="no">&quot;age&quot;: 32, &quot;email&quot;: &quot;alice@example.com&quot;, &quot;preferences&quot;: [&quot;tech&quot;, &quot;gaming&quot;],</span>
-<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">              </span><span class="no">&quot;lifetime_value&quot;: 2500.00, &quot;registration_date&quot;: &quot;2022-01-15&quot;</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">            </span><span class="no">"user_001": {</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">              </span><span class="no">"name": "Alice Johnson", "tier": "premium", "location": "New York",</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">              </span><span class="no">"age": 32, "email": "alice@example.com", "preferences": ["tech", "gaming"],</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">              </span><span class="no">"lifetime_value": 2500.00, "registration_date": "2022-01-15"</span>
 <a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">            </span><span class="no">},</span>
-<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">            </span><span class="no">&quot;user_002&quot;: {</span>
-<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">              </span><span class="no">&quot;name&quot;: &quot;Bob Smith&quot;, &quot;tier&quot;: &quot;standard&quot;, &quot;location&quot;: &quot;London&quot;, </span>
-<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">              </span><span class="no">&quot;age&quot;: 28, &quot;email&quot;: &quot;bob@example.com&quot;, &quot;preferences&quot;: [&quot;sports&quot;, &quot;music&quot;],</span>
-<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">              </span><span class="no">&quot;lifetime_value&quot;: 850.00, &quot;registration_date&quot;: &quot;2023-03-22&quot;</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">            </span><span class="no">"user_002": {</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">              </span><span class="no">"name": "Bob Smith", "tier": "standard", "location": "London", </span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">              </span><span class="no">"age": 28, "email": "bob@example.com", "preferences": ["sports", "music"],</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">              </span><span class="no">"lifetime_value": 850.00, "registration_date": "2023-03-22"</span>
 <a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">            </span><span class="no">},</span>
-<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">            </span><span class="no">&quot;user_003&quot;: {</span>
-<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">              </span><span class="no">&quot;name&quot;: &quot;Charlie Davis&quot;, &quot;tier&quot;: &quot;premium&quot;, &quot;location&quot;: &quot;Tokyo&quot;,</span>
-<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">              </span><span class="no">&quot;age&quot;: 45, &quot;email&quot;: &quot;charlie@example.com&quot;, &quot;preferences&quot;: [&quot;travel&quot;, &quot;food&quot;],</span>
-<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">              </span><span class="no">&quot;lifetime_value&quot;: 3200.00, &quot;registration_date&quot;: &quot;2021-11-08&quot;</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">            </span><span class="no">"user_003": {</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">              </span><span class="no">"name": "Charlie Davis", "tier": "premium", "location": "Tokyo",</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">              </span><span class="no">"age": 45, "email": "charlie@example.com", "preferences": ["travel", "food"],</span>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">              </span><span class="no">"lifetime_value": 3200.00, "registration_date": "2021-11-08"</span>
 <a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="w">            </span><span class="no">},</span>
-<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">            </span><span class="no">&quot;user_004&quot;: {</span>
-<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">              </span><span class="no">&quot;name&quot;: &quot;Diana Wilson&quot;, &quot;tier&quot;: &quot;basic&quot;, &quot;location&quot;: &quot;Sydney&quot;,</span>
-<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">              </span><span class="no">&quot;age&quot;: 24, &quot;email&quot;: &quot;diana@example.com&quot;, &quot;preferences&quot;: [&quot;fashion&quot;, &quot;art&quot;],</span>
-<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">              </span><span class="no">&quot;lifetime_value&quot;: 320.00, &quot;registration_date&quot;: &quot;2024-01-10&quot;</span>
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">            </span><span class="no">"user_004": {</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">              </span><span class="no">"name": "Diana Wilson", "tier": "basic", "location": "Sydney",</span>
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">              </span><span class="no">"age": 24, "email": "diana@example.com", "preferences": ["fashion", "art"],</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">              </span><span class="no">"lifetime_value": 320.00, "registration_date": "2024-01-10"</span>
 <a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="w">            </span><span class="no">},</span>
-<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w">            </span><span class="no">&quot;user_005&quot;: {</span>
-<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">              </span><span class="no">&quot;name&quot;: &quot;Eve Brown&quot;, &quot;tier&quot;: &quot;standard&quot;, &quot;location&quot;: &quot;Berlin&quot;,</span>
-<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">              </span><span class="no">&quot;age&quot;: 35, &quot;email&quot;: &quot;eve@example.com&quot;, &quot;preferences&quot;: [&quot;books&quot;, &quot;movies&quot;],</span>
-<a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">              </span><span class="no">&quot;lifetime_value&quot;: 1150.00, &quot;registration_date&quot;: &quot;2022-08-17&quot;</span>
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w">            </span><span class="no">"user_005": {</span>
+<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">              </span><span class="no">"name": "Eve Brown", "tier": "standard", "location": "Berlin",</span>
+<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">              </span><span class="no">"age": 35, "email": "eve@example.com", "preferences": ["books", "movies"],</span>
+<a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">              </span><span class="no">"lifetime_value": 1150.00, "registration_date": "2022-08-17"</span>
 <a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="w">            </span><span class="no">}</span>
 <a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="w">          </span><span class="no">}</span>
 <a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a>
 <a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a><span class="w">          </span><span class="no">profile = profiles.get(user_id, {</span>
-<a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="w">            </span><span class="no">&quot;name&quot;: &quot;Unknown User&quot;, &quot;tier&quot;: &quot;basic&quot;, &quot;location&quot;: &quot;Unknown&quot;,</span>
-<a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a><span class="w">            </span><span class="no">&quot;age&quot;: 0, &quot;email&quot;: &quot;unknown@example.com&quot;, &quot;preferences&quot;: [],</span>
-<a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a><span class="w">            </span><span class="no">&quot;lifetime_value&quot;: 0.0, &quot;registration_date&quot;: &quot;unknown&quot;</span>
+<a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="w">            </span><span class="no">"name": "Unknown User", "tier": "basic", "location": "Unknown",</span>
+<a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a><span class="w">            </span><span class="no">"age": 0, "email": "unknown@example.com", "preferences": [],</span>
+<a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a><span class="w">            </span><span class="no">"lifetime_value": 0.0, "registration_date": "unknown"</span>
 <a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a><span class="w">          </span><span class="no">})</span>
-<a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a><span class="w">          </span><span class="no">log.info(&quot;Fetched profile for user {}: {}&quot;, user_id, profile[&quot;name&quot;])</span>
+<a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a><span class="w">          </span><span class="no">log.info("Fetched profile for user {}: {}", user_id, profile["name"])</span>
 <a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a><span class="w">          </span><span class="no">return profile</span>
 <a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a><span class="w">        </span><span class="no">except Exception as e:</span>
-<a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a><span class="w">          </span><span class="no">log.warn(&quot;API request failed for user {}: {}&quot;, user_id, str(e))</span>
+<a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a><span class="w">          </span><span class="no">log.warn("API request failed for user {}: {}", user_id, str(e))</span>
 <a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a><span class="w">          </span><span class="no">return None</span>
 <a id="__codelineno-2-62" name="__codelineno-2-62" href="#__codelineno-2-62"></a>
 <a id="__codelineno-2-63" name="__codelineno-2-63" href="#__codelineno-2-63"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
@@ -2331,15 +2331,15 @@
 <a id="__codelineno-2-67" name="__codelineno-2-67" href="#__codelineno-2-67"></a><span class="w">      </span><span class="no">if not value:</span>
 <a id="__codelineno-2-68" name="__codelineno-2-68" href="#__codelineno-2-68"></a><span class="w">        </span><span class="no">return None</span>
 <a id="__codelineno-2-69" name="__codelineno-2-69" href="#__codelineno-2-69"></a>
-<a id="__codelineno-2-70" name="__codelineno-2-70" href="#__codelineno-2-70"></a><span class="w">      </span><span class="no">event_id = value.get(&quot;event_id&quot;)</span>
-<a id="__codelineno-2-71" name="__codelineno-2-71" href="#__codelineno-2-71"></a><span class="w">      </span><span class="no">event_type = value.get(&quot;event_type&quot;)</span>
-<a id="__codelineno-2-72" name="__codelineno-2-72" href="#__codelineno-2-72"></a><span class="w">      </span><span class="no">user_id = value.get(&quot;user_id&quot;)</span>
-<a id="__codelineno-2-73" name="__codelineno-2-73" href="#__codelineno-2-73"></a><span class="w">      </span><span class="no">timestamp = value.get(&quot;timestamp&quot;)</span>
-<a id="__codelineno-2-74" name="__codelineno-2-74" href="#__codelineno-2-74"></a><span class="w">      </span><span class="no">sequence_number = value.get(&quot;sequence_number&quot;)</span>
-<a id="__codelineno-2-75" name="__codelineno-2-75" href="#__codelineno-2-75"></a><span class="w">      </span><span class="no">session_id = value.get(&quot;session_id&quot;)</span>
-<a id="__codelineno-2-76" name="__codelineno-2-76" href="#__codelineno-2-76"></a><span class="w">      </span><span class="no">device_info = value.get(&quot;device_info&quot;, {})</span>
-<a id="__codelineno-2-77" name="__codelineno-2-77" href="#__codelineno-2-77"></a><span class="w">      </span><span class="no">context = value.get(&quot;context&quot;, {})</span>
-<a id="__codelineno-2-78" name="__codelineno-2-78" href="#__codelineno-2-78"></a><span class="w">      </span><span class="no">metadata = value.get(&quot;metadata&quot;, {})</span>
+<a id="__codelineno-2-70" name="__codelineno-2-70" href="#__codelineno-2-70"></a><span class="w">      </span><span class="no">event_id = value.get("event_id")</span>
+<a id="__codelineno-2-71" name="__codelineno-2-71" href="#__codelineno-2-71"></a><span class="w">      </span><span class="no">event_type = value.get("event_type")</span>
+<a id="__codelineno-2-72" name="__codelineno-2-72" href="#__codelineno-2-72"></a><span class="w">      </span><span class="no">user_id = value.get("user_id")</span>
+<a id="__codelineno-2-73" name="__codelineno-2-73" href="#__codelineno-2-73"></a><span class="w">      </span><span class="no">timestamp = value.get("timestamp")</span>
+<a id="__codelineno-2-74" name="__codelineno-2-74" href="#__codelineno-2-74"></a><span class="w">      </span><span class="no">sequence_number = value.get("sequence_number")</span>
+<a id="__codelineno-2-75" name="__codelineno-2-75" href="#__codelineno-2-75"></a><span class="w">      </span><span class="no">session_id = value.get("session_id")</span>
+<a id="__codelineno-2-76" name="__codelineno-2-76" href="#__codelineno-2-76"></a><span class="w">      </span><span class="no">device_info = value.get("device_info", {})</span>
+<a id="__codelineno-2-77" name="__codelineno-2-77" href="#__codelineno-2-77"></a><span class="w">      </span><span class="no">context = value.get("context", {})</span>
+<a id="__codelineno-2-78" name="__codelineno-2-78" href="#__codelineno-2-78"></a><span class="w">      </span><span class="no">metadata = value.get("metadata", {})</span>
 <a id="__codelineno-2-79" name="__codelineno-2-79" href="#__codelineno-2-79"></a>
 <a id="__codelineno-2-80" name="__codelineno-2-80" href="#__codelineno-2-80"></a><span class="w">      </span><span class="no">if not event_type or not user_id or not timestamp:</span>
 <a id="__codelineno-2-81" name="__codelineno-2-81" href="#__codelineno-2-81"></a><span class="w">        </span><span class="no">return None</span>
@@ -2353,77 +2353,77 @@
 <a id="__codelineno-2-89" name="__codelineno-2-89" href="#__codelineno-2-89"></a><span class="w">      </span><span class="no"># Create enriched event with comprehensive data structure</span>
 <a id="__codelineno-2-90" name="__codelineno-2-90" href="#__codelineno-2-90"></a><span class="w">      </span><span class="no">if profile_data:</span>
 <a id="__codelineno-2-91" name="__codelineno-2-91" href="#__codelineno-2-91"></a><span class="w">        </span><span class="no">enriched_event = {</span>
-<a id="__codelineno-2-92" name="__codelineno-2-92" href="#__codelineno-2-92"></a><span class="w">          </span><span class="no">&quot;enrichment_status&quot;: &quot;SUCCESS&quot;,</span>
-<a id="__codelineno-2-93" name="__codelineno-2-93" href="#__codelineno-2-93"></a><span class="w">          </span><span class="no">&quot;enrichment_type&quot;: &quot;API_PROFILE_DATA&quot;,</span>
-<a id="__codelineno-2-94" name="__codelineno-2-94" href="#__codelineno-2-94"></a><span class="w">          </span><span class="no">&quot;original_event&quot;: {</span>
-<a id="__codelineno-2-95" name="__codelineno-2-95" href="#__codelineno-2-95"></a><span class="w">            </span><span class="no">&quot;event_id&quot;: event_id,</span>
-<a id="__codelineno-2-96" name="__codelineno-2-96" href="#__codelineno-2-96"></a><span class="w">            </span><span class="no">&quot;event_type&quot;: event_type,</span>
-<a id="__codelineno-2-97" name="__codelineno-2-97" href="#__codelineno-2-97"></a><span class="w">            </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-2-98" name="__codelineno-2-98" href="#__codelineno-2-98"></a><span class="w">            </span><span class="no">&quot;timestamp&quot;: timestamp,</span>
-<a id="__codelineno-2-99" name="__codelineno-2-99" href="#__codelineno-2-99"></a><span class="w">            </span><span class="no">&quot;sequence_number&quot;: sequence_number,</span>
-<a id="__codelineno-2-100" name="__codelineno-2-100" href="#__codelineno-2-100"></a><span class="w">            </span><span class="no">&quot;session_id&quot;: session_id,</span>
-<a id="__codelineno-2-101" name="__codelineno-2-101" href="#__codelineno-2-101"></a><span class="w">            </span><span class="no">&quot;device_info&quot;: device_info,</span>
-<a id="__codelineno-2-102" name="__codelineno-2-102" href="#__codelineno-2-102"></a><span class="w">            </span><span class="no">&quot;context&quot;: context</span>
+<a id="__codelineno-2-92" name="__codelineno-2-92" href="#__codelineno-2-92"></a><span class="w">          </span><span class="no">"enrichment_status": "SUCCESS",</span>
+<a id="__codelineno-2-93" name="__codelineno-2-93" href="#__codelineno-2-93"></a><span class="w">          </span><span class="no">"enrichment_type": "API_PROFILE_DATA",</span>
+<a id="__codelineno-2-94" name="__codelineno-2-94" href="#__codelineno-2-94"></a><span class="w">          </span><span class="no">"original_event": {</span>
+<a id="__codelineno-2-95" name="__codelineno-2-95" href="#__codelineno-2-95"></a><span class="w">            </span><span class="no">"event_id": event_id,</span>
+<a id="__codelineno-2-96" name="__codelineno-2-96" href="#__codelineno-2-96"></a><span class="w">            </span><span class="no">"event_type": event_type,</span>
+<a id="__codelineno-2-97" name="__codelineno-2-97" href="#__codelineno-2-97"></a><span class="w">            </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-2-98" name="__codelineno-2-98" href="#__codelineno-2-98"></a><span class="w">            </span><span class="no">"timestamp": timestamp,</span>
+<a id="__codelineno-2-99" name="__codelineno-2-99" href="#__codelineno-2-99"></a><span class="w">            </span><span class="no">"sequence_number": sequence_number,</span>
+<a id="__codelineno-2-100" name="__codelineno-2-100" href="#__codelineno-2-100"></a><span class="w">            </span><span class="no">"session_id": session_id,</span>
+<a id="__codelineno-2-101" name="__codelineno-2-101" href="#__codelineno-2-101"></a><span class="w">            </span><span class="no">"device_info": device_info,</span>
+<a id="__codelineno-2-102" name="__codelineno-2-102" href="#__codelineno-2-102"></a><span class="w">            </span><span class="no">"context": context</span>
 <a id="__codelineno-2-103" name="__codelineno-2-103" href="#__codelineno-2-103"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-2-104" name="__codelineno-2-104" href="#__codelineno-2-104"></a><span class="w">          </span><span class="no">&quot;enriched_data&quot;: {</span>
-<a id="__codelineno-2-105" name="__codelineno-2-105" href="#__codelineno-2-105"></a><span class="w">            </span><span class="no">&quot;user_profile&quot;: profile_data,</span>
-<a id="__codelineno-2-106" name="__codelineno-2-106" href="#__codelineno-2-106"></a><span class="w">            </span><span class="no">&quot;computed_metrics&quot;: {</span>
-<a id="__codelineno-2-107" name="__codelineno-2-107" href="#__codelineno-2-107"></a><span class="w">              </span><span class="no">&quot;user_tier_level&quot;: {&quot;premium&quot;: 3, &quot;standard&quot;: 2, &quot;basic&quot;: 1}.get(profile_data.get(&quot;tier&quot;), 0),</span>
-<a id="__codelineno-2-108" name="__codelineno-2-108" href="#__codelineno-2-108"></a><span class="w">              </span><span class="no">&quot;is_high_value&quot;: profile_data.get(&quot;lifetime_value&quot;, 0) &gt; 1000,</span>
-<a id="__codelineno-2-109" name="__codelineno-2-109" href="#__codelineno-2-109"></a><span class="w">              </span><span class="no">&quot;account_age_days&quot;: (timestamp - 1640995200000) // (24 * 60 * 60 * 1000) if profile_data.get(&quot;registration_date&quot;) != &quot;unknown&quot; else 0</span>
+<a id="__codelineno-2-104" name="__codelineno-2-104" href="#__codelineno-2-104"></a><span class="w">          </span><span class="no">"enriched_data": {</span>
+<a id="__codelineno-2-105" name="__codelineno-2-105" href="#__codelineno-2-105"></a><span class="w">            </span><span class="no">"user_profile": profile_data,</span>
+<a id="__codelineno-2-106" name="__codelineno-2-106" href="#__codelineno-2-106"></a><span class="w">            </span><span class="no">"computed_metrics": {</span>
+<a id="__codelineno-2-107" name="__codelineno-2-107" href="#__codelineno-2-107"></a><span class="w">              </span><span class="no">"user_tier_level": {"premium": 3, "standard": 2, "basic": 1}.get(profile_data.get("tier"), 0),</span>
+<a id="__codelineno-2-108" name="__codelineno-2-108" href="#__codelineno-2-108"></a><span class="w">              </span><span class="no">"is_high_value": profile_data.get("lifetime_value", 0) &gt; 1000,</span>
+<a id="__codelineno-2-109" name="__codelineno-2-109" href="#__codelineno-2-109"></a><span class="w">              </span><span class="no">"account_age_days": (timestamp - 1640995200000) // (24 * 60 * 60 * 1000) if profile_data.get("registration_date") != "unknown" else 0</span>
 <a id="__codelineno-2-110" name="__codelineno-2-110" href="#__codelineno-2-110"></a><span class="w">            </span><span class="no">},</span>
-<a id="__codelineno-2-111" name="__codelineno-2-111" href="#__codelineno-2-111"></a><span class="w">            </span><span class="no">&quot;recommendations&quot;: {</span>
-<a id="__codelineno-2-112" name="__codelineno-2-112" href="#__codelineno-2-112"></a><span class="w">              </span><span class="no">&quot;personalized&quot;: profile_data.get(&quot;preferences&quot;, [])[:2] if profile_data.get(&quot;preferences&quot;) else [],</span>
-<a id="__codelineno-2-113" name="__codelineno-2-113" href="#__codelineno-2-113"></a><span class="w">              </span><span class="no">&quot;tier_benefits&quot;: f&quot;Available benefits for {profile_data.get(&#39;tier&#39;, &#39;basic&#39;)} tier&quot;,</span>
-<a id="__codelineno-2-114" name="__codelineno-2-114" href="#__codelineno-2-114"></a><span class="w">              </span><span class="no">&quot;location_offers&quot;: f&quot;Special offers in {profile_data.get(&#39;location&#39;, &#39;Unknown&#39;)}&quot;</span>
+<a id="__codelineno-2-111" name="__codelineno-2-111" href="#__codelineno-2-111"></a><span class="w">            </span><span class="no">"recommendations": {</span>
+<a id="__codelineno-2-112" name="__codelineno-2-112" href="#__codelineno-2-112"></a><span class="w">              </span><span class="no">"personalized": profile_data.get("preferences", [])[:2] if profile_data.get("preferences") else [],</span>
+<a id="__codelineno-2-113" name="__codelineno-2-113" href="#__codelineno-2-113"></a><span class="w">              </span><span class="no">"tier_benefits": f"Available benefits for {profile_data.get('tier', 'basic')} tier",</span>
+<a id="__codelineno-2-114" name="__codelineno-2-114" href="#__codelineno-2-114"></a><span class="w">              </span><span class="no">"location_offers": f"Special offers in {profile_data.get('location', 'Unknown')}"</span>
 <a id="__codelineno-2-115" name="__codelineno-2-115" href="#__codelineno-2-115"></a><span class="w">            </span><span class="no">}</span>
 <a id="__codelineno-2-116" name="__codelineno-2-116" href="#__codelineno-2-116"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-2-117" name="__codelineno-2-117" href="#__codelineno-2-117"></a><span class="w">          </span><span class="no">&quot;api_metrics&quot;: {</span>
-<a id="__codelineno-2-118" name="__codelineno-2-118" href="#__codelineno-2-118"></a><span class="w">            </span><span class="no">&quot;api_call_duration_ms&quot;: api_latency,</span>
-<a id="__codelineno-2-119" name="__codelineno-2-119" href="#__codelineno-2-119"></a><span class="w">            </span><span class="no">&quot;api_endpoint&quot;: &quot;mock_user_profile_api&quot;,</span>
-<a id="__codelineno-2-120" name="__codelineno-2-120" href="#__codelineno-2-120"></a><span class="w">            </span><span class="no">&quot;api_success&quot;: True,</span>
-<a id="__codelineno-2-121" name="__codelineno-2-121" href="#__codelineno-2-121"></a><span class="w">            </span><span class="no">&quot;cache_hit&quot;: False  # This is a live API call</span>
+<a id="__codelineno-2-117" name="__codelineno-2-117" href="#__codelineno-2-117"></a><span class="w">          </span><span class="no">"api_metrics": {</span>
+<a id="__codelineno-2-118" name="__codelineno-2-118" href="#__codelineno-2-118"></a><span class="w">            </span><span class="no">"api_call_duration_ms": api_latency,</span>
+<a id="__codelineno-2-119" name="__codelineno-2-119" href="#__codelineno-2-119"></a><span class="w">            </span><span class="no">"api_endpoint": "mock_user_profile_api",</span>
+<a id="__codelineno-2-120" name="__codelineno-2-120" href="#__codelineno-2-120"></a><span class="w">            </span><span class="no">"api_success": True,</span>
+<a id="__codelineno-2-121" name="__codelineno-2-121" href="#__codelineno-2-121"></a><span class="w">            </span><span class="no">"cache_hit": False  # This is a live API call</span>
 <a id="__codelineno-2-122" name="__codelineno-2-122" href="#__codelineno-2-122"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-2-123" name="__codelineno-2-123" href="#__codelineno-2-123"></a><span class="w">          </span><span class="no">&quot;processing_info&quot;: {</span>
-<a id="__codelineno-2-124" name="__codelineno-2-124" href="#__codelineno-2-124"></a><span class="w">            </span><span class="no">&quot;enrichment_timestamp&quot;: api_end_time,</span>
-<a id="__codelineno-2-125" name="__codelineno-2-125" href="#__codelineno-2-125"></a><span class="w">            </span><span class="no">&quot;processor_version&quot;: &quot;1.0&quot;,</span>
-<a id="__codelineno-2-126" name="__codelineno-2-126" href="#__codelineno-2-126"></a><span class="w">            </span><span class="no">&quot;enrichment_rules&quot;: [&quot;basic_profile&quot;, &quot;tier_computation&quot;, &quot;recommendations&quot;]</span>
+<a id="__codelineno-2-123" name="__codelineno-2-123" href="#__codelineno-2-123"></a><span class="w">          </span><span class="no">"processing_info": {</span>
+<a id="__codelineno-2-124" name="__codelineno-2-124" href="#__codelineno-2-124"></a><span class="w">            </span><span class="no">"enrichment_timestamp": api_end_time,</span>
+<a id="__codelineno-2-125" name="__codelineno-2-125" href="#__codelineno-2-125"></a><span class="w">            </span><span class="no">"processor_version": "1.0",</span>
+<a id="__codelineno-2-126" name="__codelineno-2-126" href="#__codelineno-2-126"></a><span class="w">            </span><span class="no">"enrichment_rules": ["basic_profile", "tier_computation", "recommendations"]</span>
 <a id="__codelineno-2-127" name="__codelineno-2-127" href="#__codelineno-2-127"></a><span class="w">          </span><span class="no">}</span>
 <a id="__codelineno-2-128" name="__codelineno-2-128" href="#__codelineno-2-128"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-2-129" name="__codelineno-2-129" href="#__codelineno-2-129"></a><span class="w">        </span><span class="no">return enriched_event</span>
 <a id="__codelineno-2-130" name="__codelineno-2-130" href="#__codelineno-2-130"></a><span class="w">      </span><span class="no">else:</span>
 <a id="__codelineno-2-131" name="__codelineno-2-131" href="#__codelineno-2-131"></a><span class="w">        </span><span class="no"># Return event with failure information if API fails</span>
 <a id="__codelineno-2-132" name="__codelineno-2-132" href="#__codelineno-2-132"></a><span class="w">        </span><span class="no">fallback_event = {</span>
-<a id="__codelineno-2-133" name="__codelineno-2-133" href="#__codelineno-2-133"></a><span class="w">          </span><span class="no">&quot;enrichment_status&quot;: &quot;FAILED&quot;, </span>
-<a id="__codelineno-2-134" name="__codelineno-2-134" href="#__codelineno-2-134"></a><span class="w">          </span><span class="no">&quot;enrichment_type&quot;: &quot;API_PROFILE_DATA&quot;,</span>
-<a id="__codelineno-2-135" name="__codelineno-2-135" href="#__codelineno-2-135"></a><span class="w">          </span><span class="no">&quot;original_event&quot;: {</span>
-<a id="__codelineno-2-136" name="__codelineno-2-136" href="#__codelineno-2-136"></a><span class="w">            </span><span class="no">&quot;event_id&quot;: event_id,</span>
-<a id="__codelineno-2-137" name="__codelineno-2-137" href="#__codelineno-2-137"></a><span class="w">            </span><span class="no">&quot;event_type&quot;: event_type,</span>
-<a id="__codelineno-2-138" name="__codelineno-2-138" href="#__codelineno-2-138"></a><span class="w">            </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-2-139" name="__codelineno-2-139" href="#__codelineno-2-139"></a><span class="w">            </span><span class="no">&quot;timestamp&quot;: timestamp,</span>
-<a id="__codelineno-2-140" name="__codelineno-2-140" href="#__codelineno-2-140"></a><span class="w">            </span><span class="no">&quot;sequence_number&quot;: sequence_number,</span>
-<a id="__codelineno-2-141" name="__codelineno-2-141" href="#__codelineno-2-141"></a><span class="w">            </span><span class="no">&quot;session_id&quot;: session_id,</span>
-<a id="__codelineno-2-142" name="__codelineno-2-142" href="#__codelineno-2-142"></a><span class="w">            </span><span class="no">&quot;device_info&quot;: device_info,</span>
-<a id="__codelineno-2-143" name="__codelineno-2-143" href="#__codelineno-2-143"></a><span class="w">            </span><span class="no">&quot;context&quot;: context</span>
+<a id="__codelineno-2-133" name="__codelineno-2-133" href="#__codelineno-2-133"></a><span class="w">          </span><span class="no">"enrichment_status": "FAILED", </span>
+<a id="__codelineno-2-134" name="__codelineno-2-134" href="#__codelineno-2-134"></a><span class="w">          </span><span class="no">"enrichment_type": "API_PROFILE_DATA",</span>
+<a id="__codelineno-2-135" name="__codelineno-2-135" href="#__codelineno-2-135"></a><span class="w">          </span><span class="no">"original_event": {</span>
+<a id="__codelineno-2-136" name="__codelineno-2-136" href="#__codelineno-2-136"></a><span class="w">            </span><span class="no">"event_id": event_id,</span>
+<a id="__codelineno-2-137" name="__codelineno-2-137" href="#__codelineno-2-137"></a><span class="w">            </span><span class="no">"event_type": event_type,</span>
+<a id="__codelineno-2-138" name="__codelineno-2-138" href="#__codelineno-2-138"></a><span class="w">            </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-2-139" name="__codelineno-2-139" href="#__codelineno-2-139"></a><span class="w">            </span><span class="no">"timestamp": timestamp,</span>
+<a id="__codelineno-2-140" name="__codelineno-2-140" href="#__codelineno-2-140"></a><span class="w">            </span><span class="no">"sequence_number": sequence_number,</span>
+<a id="__codelineno-2-141" name="__codelineno-2-141" href="#__codelineno-2-141"></a><span class="w">            </span><span class="no">"session_id": session_id,</span>
+<a id="__codelineno-2-142" name="__codelineno-2-142" href="#__codelineno-2-142"></a><span class="w">            </span><span class="no">"device_info": device_info,</span>
+<a id="__codelineno-2-143" name="__codelineno-2-143" href="#__codelineno-2-143"></a><span class="w">            </span><span class="no">"context": context</span>
 <a id="__codelineno-2-144" name="__codelineno-2-144" href="#__codelineno-2-144"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-2-145" name="__codelineno-2-145" href="#__codelineno-2-145"></a><span class="w">          </span><span class="no">&quot;enriched_data&quot;: {</span>
-<a id="__codelineno-2-146" name="__codelineno-2-146" href="#__codelineno-2-146"></a><span class="w">            </span><span class="no">&quot;user_profile&quot;: None,</span>
-<a id="__codelineno-2-147" name="__codelineno-2-147" href="#__codelineno-2-147"></a><span class="w">            </span><span class="no">&quot;fallback_data&quot;: {</span>
-<a id="__codelineno-2-148" name="__codelineno-2-148" href="#__codelineno-2-148"></a><span class="w">              </span><span class="no">&quot;default_tier&quot;: &quot;basic&quot;,</span>
-<a id="__codelineno-2-149" name="__codelineno-2-149" href="#__codelineno-2-149"></a><span class="w">              </span><span class="no">&quot;estimated_location&quot;: &quot;Unknown&quot;,</span>
-<a id="__codelineno-2-150" name="__codelineno-2-150" href="#__codelineno-2-150"></a><span class="w">              </span><span class="no">&quot;default_preferences&quot;: []</span>
+<a id="__codelineno-2-145" name="__codelineno-2-145" href="#__codelineno-2-145"></a><span class="w">          </span><span class="no">"enriched_data": {</span>
+<a id="__codelineno-2-146" name="__codelineno-2-146" href="#__codelineno-2-146"></a><span class="w">            </span><span class="no">"user_profile": None,</span>
+<a id="__codelineno-2-147" name="__codelineno-2-147" href="#__codelineno-2-147"></a><span class="w">            </span><span class="no">"fallback_data": {</span>
+<a id="__codelineno-2-148" name="__codelineno-2-148" href="#__codelineno-2-148"></a><span class="w">              </span><span class="no">"default_tier": "basic",</span>
+<a id="__codelineno-2-149" name="__codelineno-2-149" href="#__codelineno-2-149"></a><span class="w">              </span><span class="no">"estimated_location": "Unknown",</span>
+<a id="__codelineno-2-150" name="__codelineno-2-150" href="#__codelineno-2-150"></a><span class="w">              </span><span class="no">"default_preferences": []</span>
 <a id="__codelineno-2-151" name="__codelineno-2-151" href="#__codelineno-2-151"></a><span class="w">            </span><span class="no">}</span>
 <a id="__codelineno-2-152" name="__codelineno-2-152" href="#__codelineno-2-152"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-2-153" name="__codelineno-2-153" href="#__codelineno-2-153"></a><span class="w">          </span><span class="no">&quot;api_metrics&quot;: {</span>
-<a id="__codelineno-2-154" name="__codelineno-2-154" href="#__codelineno-2-154"></a><span class="w">            </span><span class="no">&quot;api_call_duration_ms&quot;: api_latency,</span>
-<a id="__codelineno-2-155" name="__codelineno-2-155" href="#__codelineno-2-155"></a><span class="w">            </span><span class="no">&quot;api_endpoint&quot;: &quot;mock_user_profile_api&quot;, </span>
-<a id="__codelineno-2-156" name="__codelineno-2-156" href="#__codelineno-2-156"></a><span class="w">            </span><span class="no">&quot;api_success&quot;: False,</span>
-<a id="__codelineno-2-157" name="__codelineno-2-157" href="#__codelineno-2-157"></a><span class="w">            </span><span class="no">&quot;error_reason&quot;: &quot;Profile not found or API unavailable&quot;</span>
+<a id="__codelineno-2-153" name="__codelineno-2-153" href="#__codelineno-2-153"></a><span class="w">          </span><span class="no">"api_metrics": {</span>
+<a id="__codelineno-2-154" name="__codelineno-2-154" href="#__codelineno-2-154"></a><span class="w">            </span><span class="no">"api_call_duration_ms": api_latency,</span>
+<a id="__codelineno-2-155" name="__codelineno-2-155" href="#__codelineno-2-155"></a><span class="w">            </span><span class="no">"api_endpoint": "mock_user_profile_api", </span>
+<a id="__codelineno-2-156" name="__codelineno-2-156" href="#__codelineno-2-156"></a><span class="w">            </span><span class="no">"api_success": False,</span>
+<a id="__codelineno-2-157" name="__codelineno-2-157" href="#__codelineno-2-157"></a><span class="w">            </span><span class="no">"error_reason": "Profile not found or API unavailable"</span>
 <a id="__codelineno-2-158" name="__codelineno-2-158" href="#__codelineno-2-158"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-2-159" name="__codelineno-2-159" href="#__codelineno-2-159"></a><span class="w">          </span><span class="no">&quot;processing_info&quot;: {</span>
-<a id="__codelineno-2-160" name="__codelineno-2-160" href="#__codelineno-2-160"></a><span class="w">            </span><span class="no">&quot;enrichment_timestamp&quot;: api_end_time,</span>
-<a id="__codelineno-2-161" name="__codelineno-2-161" href="#__codelineno-2-161"></a><span class="w">            </span><span class="no">&quot;processor_version&quot;: &quot;1.0&quot;,</span>
-<a id="__codelineno-2-162" name="__codelineno-2-162" href="#__codelineno-2-162"></a><span class="w">            </span><span class="no">&quot;fallback_applied&quot;: True</span>
+<a id="__codelineno-2-159" name="__codelineno-2-159" href="#__codelineno-2-159"></a><span class="w">          </span><span class="no">"processing_info": {</span>
+<a id="__codelineno-2-160" name="__codelineno-2-160" href="#__codelineno-2-160"></a><span class="w">            </span><span class="no">"enrichment_timestamp": api_end_time,</span>
+<a id="__codelineno-2-161" name="__codelineno-2-161" href="#__codelineno-2-161"></a><span class="w">            </span><span class="no">"processor_version": "1.0",</span>
+<a id="__codelineno-2-162" name="__codelineno-2-162" href="#__codelineno-2-162"></a><span class="w">            </span><span class="no">"fallback_applied": True</span>
 <a id="__codelineno-2-163" name="__codelineno-2-163" href="#__codelineno-2-163"></a><span class="w">          </span><span class="no">}</span>
 <a id="__codelineno-2-164" name="__codelineno-2-164" href="#__codelineno-2-164"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-2-165" name="__codelineno-2-165" href="#__codelineno-2-165"></a><span class="w">        </span><span class="no">return fallback_event</span>
@@ -2458,7 +2458,7 @@
 <p><strong>What happens in this example:</strong></p>
 <p>Imagine you have an e-commerce website. Users view products, add them to cart, and make purchases. Your stream only has basic event data like <code>{"product_id": "PROD001", "event_type": "purchased", "quantity": 2}</code>. But you want to know the product name, price, and category too.</p>
 <p><strong>The Producer</strong> creates these basic product events every 2 seconds:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">&quot;product_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PROD001&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;event_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;purchased&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user_1234&quot;</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">"product_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PROD001"</span><span class="p">,</span><span class="w"> </span><span class="nt">"event_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"purchased"</span><span class="p">,</span><span class="w"> </span><span class="nt">"quantity"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">"user_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"user_1234"</span><span class="p">}</span>
 </code></pre></div></p>
 <p><strong>The Processor</strong> enriches each event by:</p>
 <ol>
@@ -2469,14 +2469,14 @@
 </li>
 <li><strong>For each event</strong>: Looks up the product_id and adds the details:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;product_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PROD001&quot;</span><span class="p">,</span><span class="w"> </span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;event_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;purchased&quot;</span><span class="p">,</span><span class="w"> </span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">&quot;quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">&quot;enriched_data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Wireless Headphones&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Electronics&quot;</span><span class="p">,</span><span class="w"> </span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">&quot;unit_price&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">99.99</span><span class="p">,</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">&quot;total_price&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">199.98</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"product_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PROD001"</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">"event_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"purchased"</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">"quantity"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">"enriched_data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Wireless Headphones"</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">"category"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Electronics"</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">"unit_price"</span><span class="p">:</span><span class="w"> </span><span class="mf">99.99</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">"total_price"</span><span class="p">:</span><span class="w"> </span><span class="mf">199.98</span>
 <a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="p">}</span>
 </code></pre></div></li>
@@ -2493,30 +2493,30 @@
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">      </span><span class="no">event_counter = 0</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">      </span><span class="no">product_ids = [&quot;PROD001&quot;, &quot;PROD002&quot;, &quot;PROD003&quot;, &quot;PROD004&quot;, &quot;PROD005&quot;]</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="no">event_types = [&quot;viewed&quot;, &quot;added_to_cart&quot;, &quot;purchased&quot;, &quot;removed_from_cart&quot;]</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">      </span><span class="no">product_ids = ["PROD001", "PROD002", "PROD003", "PROD004", "PROD005"]</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="no">event_types = ["viewed", "added_to_cart", "purchased", "removed_from_cart"]</span>
 <a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">      </span><span class="no">global event_counter, product_ids, event_types</span>
 <a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
 <a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">      </span><span class="no">event_counter += 1</span>
 <a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">      </span><span class="no">product_id = random.choice(product_ids)</span>
 <a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">      </span><span class="no">event_type = random.choice(event_types)</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">      </span><span class="no">quantity = random.randint(1, 5) if event_type in [&quot;added_to_cart&quot;, &quot;purchased&quot;] else 1</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">      </span><span class="no">quantity = random.randint(1, 5) if event_type in ["added_to_cart", "purchased"] else 1</span>
 <a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">      </span><span class="no">current_timestamp = int(time.time() * 1000)</span>
 <a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
 <a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">      </span><span class="no"># Create structured JSON product event for better readability in Kowl UI</span>
 <a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">      </span><span class="no">product_event = {</span>
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">        </span><span class="no">&quot;event_id&quot;: f&quot;product_event_{event_counter:06d}&quot;,</span>
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">        </span><span class="no">&quot;event_type&quot;: event_type,</span>
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">        </span><span class="no">&quot;product_id&quot;: product_id,</span>
-<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="w">        </span><span class="no">&quot;quantity&quot;: quantity,</span>
-<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: current_timestamp,</span>
-<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">        </span><span class="no">&quot;user_id&quot;: f&quot;user_{random.randint(1000, 9999)}&quot;,</span>
-<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="w">        </span><span class="no">&quot;session_id&quot;: f&quot;session_{event_counter // 10}_{random.randint(100, 999)}&quot;,</span>
-<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="w">        </span><span class="no">&quot;page_location&quot;: random.choice([&quot;/products&quot;, &quot;/category&quot;, &quot;/search&quot;]),</span>
-<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="w">        </span><span class="no">&quot;metadata&quot;: {</span>
-<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="w">          </span><span class="no">&quot;simulation&quot;: True,</span>
-<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="w">          </span><span class="no">&quot;database_lookup&quot;: True</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">        </span><span class="no">"event_id": f"product_event_{event_counter:06d}",</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">        </span><span class="no">"event_type": event_type,</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">        </span><span class="no">"product_id": product_id,</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="w">        </span><span class="no">"quantity": quantity,</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">        </span><span class="no">"timestamp": current_timestamp,</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">        </span><span class="no">"user_id": f"user_{random.randint(1000, 9999)}",</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="w">        </span><span class="no">"session_id": f"session_{event_counter // 10}_{random.randint(100, 999)}",</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="w">        </span><span class="no">"page_location": random.choice(["/products", "/category", "/search"]),</span>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="w">        </span><span class="no">"metadata": {</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="w">          </span><span class="no">"simulation": True,</span>
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="w">          </span><span class="no">"database_lookup": True</span>
 <a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a>
@@ -2557,21 +2557,21 @@
 <a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">      </span><span class="no">import json</span>
 <a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>
-<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">      </span><span class="no"># Track if we&#39;ve already loaded the data</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">      </span><span class="no"># Track if we've already loaded the data</span>
 <a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">      </span><span class="no">data_loaded = False</span>
 <a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>
 <a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">      </span><span class="no">def load_product_catalog():</span>
-<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="no">&quot;&quot;&quot;Simulate loading product data from database&quot;&quot;&quot;</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="no">"""Simulate loading product data from database"""</span>
 <a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">        </span><span class="no"># Mock product catalog (simulates database query results)</span>
 <a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">        </span><span class="no">products = {</span>
-<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">          </span><span class="no">&quot;PROD001&quot;: {&quot;name&quot;: &quot;Wireless Headphones&quot;, &quot;price&quot;: 99.99, &quot;category&quot;: &quot;Electronics&quot;},</span>
-<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">          </span><span class="no">&quot;PROD002&quot;: {&quot;name&quot;: &quot;Coffee Mug&quot;, &quot;price&quot;: 12.50, &quot;category&quot;: &quot;Kitchen&quot;},</span>
-<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">          </span><span class="no">&quot;PROD003&quot;: {&quot;name&quot;: &quot;Running Shoes&quot;, &quot;price&quot;: 129.99, &quot;category&quot;: &quot;Sports&quot;},</span>
-<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">          </span><span class="no">&quot;PROD004&quot;: {&quot;name&quot;: &quot;Notebook&quot;, &quot;price&quot;: 5.99, &quot;category&quot;: &quot;Office&quot;},</span>
-<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">          </span><span class="no">&quot;PROD005&quot;: {&quot;name&quot;: &quot;Smartphone&quot;, &quot;price&quot;: 699.99, &quot;category&quot;: &quot;Electronics&quot;}</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">          </span><span class="no">"PROD001": {"name": "Wireless Headphones", "price": 99.99, "category": "Electronics"},</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">          </span><span class="no">"PROD002": {"name": "Coffee Mug", "price": 12.50, "category": "Kitchen"},</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">          </span><span class="no">"PROD003": {"name": "Running Shoes", "price": 129.99, "category": "Sports"},</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">          </span><span class="no">"PROD004": {"name": "Notebook", "price": 5.99, "category": "Office"},</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">          </span><span class="no">"PROD005": {"name": "Smartphone", "price": 699.99, "category": "Electronics"}</span>
 <a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a>
-<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="w">        </span><span class="no">log.info(&quot;Loaded {} products into reference data store&quot;, len(products))</span>
+<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="w">        </span><span class="no">log.info("Loaded {} products into reference data store", len(products))</span>
 <a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="w">        </span><span class="no">return products</span>
 <a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a>
 <a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
@@ -2587,7 +2587,7 @@
 <a id="__codelineno-6-50" name="__codelineno-6-50" href="#__codelineno-6-50"></a><span class="w">          </span><span class="no">product_reference_store.put(product_id, json.dumps(product_data))</span>
 <a id="__codelineno-6-51" name="__codelineno-6-51" href="#__codelineno-6-51"></a>
 <a id="__codelineno-6-52" name="__codelineno-6-52" href="#__codelineno-6-52"></a><span class="w">        </span><span class="no">data_loaded = True</span>
-<a id="__codelineno-6-53" name="__codelineno-6-53" href="#__codelineno-6-53"></a><span class="w">        </span><span class="no">log.info(&quot;Product reference data loaded into state store&quot;)</span>
+<a id="__codelineno-6-53" name="__codelineno-6-53" href="#__codelineno-6-53"></a><span class="w">        </span><span class="no">log.info("Product reference data loaded into state store")</span>
 <a id="__codelineno-6-54" name="__codelineno-6-54" href="#__codelineno-6-54"></a><span class="w">    </span><span class="nt">stores</span><span class="p">:</span>
 <a id="__codelineno-6-55" name="__codelineno-6-55" href="#__codelineno-6-55"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_reference_store</span>
 <a id="__codelineno-6-56" name="__codelineno-6-56" href="#__codelineno-6-56"></a>
@@ -2600,14 +2600,14 @@
 <a id="__codelineno-6-63" name="__codelineno-6-63" href="#__codelineno-6-63"></a><span class="w">      </span><span class="no">if not value:</span>
 <a id="__codelineno-6-64" name="__codelineno-6-64" href="#__codelineno-6-64"></a><span class="w">        </span><span class="no">return None</span>
 <a id="__codelineno-6-65" name="__codelineno-6-65" href="#__codelineno-6-65"></a>
-<a id="__codelineno-6-66" name="__codelineno-6-66" href="#__codelineno-6-66"></a><span class="w">      </span><span class="no">event_id = str(value.get(&quot;event_id&quot;, &quot;&quot;))</span>
-<a id="__codelineno-6-67" name="__codelineno-6-67" href="#__codelineno-6-67"></a><span class="w">      </span><span class="no">event_type = str(value.get(&quot;event_type&quot;, &quot;&quot;))</span>
-<a id="__codelineno-6-68" name="__codelineno-6-68" href="#__codelineno-6-68"></a><span class="w">      </span><span class="no">product_id = str(value.get(&quot;product_id&quot;, &quot;&quot;))</span>
-<a id="__codelineno-6-69" name="__codelineno-6-69" href="#__codelineno-6-69"></a><span class="w">      </span><span class="no">quantity = int(value.get(&quot;quantity&quot;, 0))</span>
-<a id="__codelineno-6-70" name="__codelineno-6-70" href="#__codelineno-6-70"></a><span class="w">      </span><span class="no">timestamp = int(value.get(&quot;timestamp&quot;, 0))</span>
-<a id="__codelineno-6-71" name="__codelineno-6-71" href="#__codelineno-6-71"></a><span class="w">      </span><span class="no">user_id = str(value.get(&quot;user_id&quot;, &quot;&quot;))</span>
-<a id="__codelineno-6-72" name="__codelineno-6-72" href="#__codelineno-6-72"></a><span class="w">      </span><span class="no">session_id = str(value.get(&quot;session_id&quot;, &quot;&quot;))</span>
-<a id="__codelineno-6-73" name="__codelineno-6-73" href="#__codelineno-6-73"></a><span class="w">      </span><span class="no">page_location = str(value.get(&quot;page_location&quot;, &quot;&quot;))</span>
+<a id="__codelineno-6-66" name="__codelineno-6-66" href="#__codelineno-6-66"></a><span class="w">      </span><span class="no">event_id = str(value.get("event_id", ""))</span>
+<a id="__codelineno-6-67" name="__codelineno-6-67" href="#__codelineno-6-67"></a><span class="w">      </span><span class="no">event_type = str(value.get("event_type", ""))</span>
+<a id="__codelineno-6-68" name="__codelineno-6-68" href="#__codelineno-6-68"></a><span class="w">      </span><span class="no">product_id = str(value.get("product_id", ""))</span>
+<a id="__codelineno-6-69" name="__codelineno-6-69" href="#__codelineno-6-69"></a><span class="w">      </span><span class="no">quantity = int(value.get("quantity", 0))</span>
+<a id="__codelineno-6-70" name="__codelineno-6-70" href="#__codelineno-6-70"></a><span class="w">      </span><span class="no">timestamp = int(value.get("timestamp", 0))</span>
+<a id="__codelineno-6-71" name="__codelineno-6-71" href="#__codelineno-6-71"></a><span class="w">      </span><span class="no">user_id = str(value.get("user_id", ""))</span>
+<a id="__codelineno-6-72" name="__codelineno-6-72" href="#__codelineno-6-72"></a><span class="w">      </span><span class="no">session_id = str(value.get("session_id", ""))</span>
+<a id="__codelineno-6-73" name="__codelineno-6-73" href="#__codelineno-6-73"></a><span class="w">      </span><span class="no">page_location = str(value.get("page_location", ""))</span>
 <a id="__codelineno-6-74" name="__codelineno-6-74" href="#__codelineno-6-74"></a>
 <a id="__codelineno-6-75" name="__codelineno-6-75" href="#__codelineno-6-75"></a><span class="w">      </span><span class="no">if not event_type or not product_id or quantity == 0:</span>
 <a id="__codelineno-6-76" name="__codelineno-6-76" href="#__codelineno-6-76"></a><span class="w">        </span><span class="no">return None</span>
@@ -2620,51 +2620,51 @@
 <a id="__codelineno-6-83" name="__codelineno-6-83" href="#__codelineno-6-83"></a><span class="w">        </span><span class="no">product_data = json.loads(product_data_str)</span>
 <a id="__codelineno-6-84" name="__codelineno-6-84" href="#__codelineno-6-84"></a>
 <a id="__codelineno-6-85" name="__codelineno-6-85" href="#__codelineno-6-85"></a><span class="w">        </span><span class="no"># Calculate total price for purchase events</span>
-<a id="__codelineno-6-86" name="__codelineno-6-86" href="#__codelineno-6-86"></a><span class="w">        </span><span class="no">unit_price = product_data.get(&quot;price&quot;, 0.0)</span>
-<a id="__codelineno-6-87" name="__codelineno-6-87" href="#__codelineno-6-87"></a><span class="w">        </span><span class="no">total_price = unit_price * quantity if event_type in [&quot;purchased&quot;, &quot;added_to_cart&quot;] else 0.0</span>
+<a id="__codelineno-6-86" name="__codelineno-6-86" href="#__codelineno-6-86"></a><span class="w">        </span><span class="no">unit_price = product_data.get("price", 0.0)</span>
+<a id="__codelineno-6-87" name="__codelineno-6-87" href="#__codelineno-6-87"></a><span class="w">        </span><span class="no">total_price = unit_price * quantity if event_type in ["purchased", "added_to_cart"] else 0.0</span>
 <a id="__codelineno-6-88" name="__codelineno-6-88" href="#__codelineno-6-88"></a>
 <a id="__codelineno-6-89" name="__codelineno-6-89" href="#__codelineno-6-89"></a><span class="w">        </span><span class="no"># Create enriched event with product details</span>
 <a id="__codelineno-6-90" name="__codelineno-6-90" href="#__codelineno-6-90"></a><span class="w">        </span><span class="no">enriched_event = {</span>
-<a id="__codelineno-6-91" name="__codelineno-6-91" href="#__codelineno-6-91"></a><span class="w">          </span><span class="no">&quot;event_id&quot;: event_id,</span>
-<a id="__codelineno-6-92" name="__codelineno-6-92" href="#__codelineno-6-92"></a><span class="w">          </span><span class="no">&quot;event_type&quot;: event_type,</span>
-<a id="__codelineno-6-93" name="__codelineno-6-93" href="#__codelineno-6-93"></a><span class="w">          </span><span class="no">&quot;product_id&quot;: product_id,</span>
-<a id="__codelineno-6-94" name="__codelineno-6-94" href="#__codelineno-6-94"></a><span class="w">          </span><span class="no">&quot;quantity&quot;: quantity,</span>
-<a id="__codelineno-6-95" name="__codelineno-6-95" href="#__codelineno-6-95"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: timestamp,</span>
-<a id="__codelineno-6-96" name="__codelineno-6-96" href="#__codelineno-6-96"></a><span class="w">          </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-6-97" name="__codelineno-6-97" href="#__codelineno-6-97"></a><span class="w">          </span><span class="no">&quot;session_id&quot;: session_id,</span>
-<a id="__codelineno-6-98" name="__codelineno-6-98" href="#__codelineno-6-98"></a><span class="w">          </span><span class="no">&quot;page_location&quot;: page_location,</span>
-<a id="__codelineno-6-99" name="__codelineno-6-99" href="#__codelineno-6-99"></a><span class="w">          </span><span class="no">&quot;enriched_data&quot;: {</span>
-<a id="__codelineno-6-100" name="__codelineno-6-100" href="#__codelineno-6-100"></a><span class="w">            </span><span class="no">&quot;name&quot;: product_data.get(&quot;name&quot;, &quot;Unknown&quot;),</span>
-<a id="__codelineno-6-101" name="__codelineno-6-101" href="#__codelineno-6-101"></a><span class="w">            </span><span class="no">&quot;category&quot;: product_data.get(&quot;category&quot;, &quot;Unknown&quot;),</span>
-<a id="__codelineno-6-102" name="__codelineno-6-102" href="#__codelineno-6-102"></a><span class="w">            </span><span class="no">&quot;unit_price&quot;: unit_price,</span>
-<a id="__codelineno-6-103" name="__codelineno-6-103" href="#__codelineno-6-103"></a><span class="w">            </span><span class="no">&quot;total_price&quot;: total_price</span>
+<a id="__codelineno-6-91" name="__codelineno-6-91" href="#__codelineno-6-91"></a><span class="w">          </span><span class="no">"event_id": event_id,</span>
+<a id="__codelineno-6-92" name="__codelineno-6-92" href="#__codelineno-6-92"></a><span class="w">          </span><span class="no">"event_type": event_type,</span>
+<a id="__codelineno-6-93" name="__codelineno-6-93" href="#__codelineno-6-93"></a><span class="w">          </span><span class="no">"product_id": product_id,</span>
+<a id="__codelineno-6-94" name="__codelineno-6-94" href="#__codelineno-6-94"></a><span class="w">          </span><span class="no">"quantity": quantity,</span>
+<a id="__codelineno-6-95" name="__codelineno-6-95" href="#__codelineno-6-95"></a><span class="w">          </span><span class="no">"timestamp": timestamp,</span>
+<a id="__codelineno-6-96" name="__codelineno-6-96" href="#__codelineno-6-96"></a><span class="w">          </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-6-97" name="__codelineno-6-97" href="#__codelineno-6-97"></a><span class="w">          </span><span class="no">"session_id": session_id,</span>
+<a id="__codelineno-6-98" name="__codelineno-6-98" href="#__codelineno-6-98"></a><span class="w">          </span><span class="no">"page_location": page_location,</span>
+<a id="__codelineno-6-99" name="__codelineno-6-99" href="#__codelineno-6-99"></a><span class="w">          </span><span class="no">"enriched_data": {</span>
+<a id="__codelineno-6-100" name="__codelineno-6-100" href="#__codelineno-6-100"></a><span class="w">            </span><span class="no">"name": product_data.get("name", "Unknown"),</span>
+<a id="__codelineno-6-101" name="__codelineno-6-101" href="#__codelineno-6-101"></a><span class="w">            </span><span class="no">"category": product_data.get("category", "Unknown"),</span>
+<a id="__codelineno-6-102" name="__codelineno-6-102" href="#__codelineno-6-102"></a><span class="w">            </span><span class="no">"unit_price": unit_price,</span>
+<a id="__codelineno-6-103" name="__codelineno-6-103" href="#__codelineno-6-103"></a><span class="w">            </span><span class="no">"total_price": total_price</span>
 <a id="__codelineno-6-104" name="__codelineno-6-104" href="#__codelineno-6-104"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-6-105" name="__codelineno-6-105" href="#__codelineno-6-105"></a><span class="w">          </span><span class="no">&quot;cache_hit&quot;: True</span>
+<a id="__codelineno-6-105" name="__codelineno-6-105" href="#__codelineno-6-105"></a><span class="w">          </span><span class="no">"cache_hit": True</span>
 <a id="__codelineno-6-106" name="__codelineno-6-106" href="#__codelineno-6-106"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-6-107" name="__codelineno-6-107" href="#__codelineno-6-107"></a>
-<a id="__codelineno-6-108" name="__codelineno-6-108" href="#__codelineno-6-108"></a><span class="w">        </span><span class="no">log.info(&quot;Enriched {} event for product: {} ({})&quot;, event_type, product_data.get(&quot;name&quot;), product_id)</span>
+<a id="__codelineno-6-108" name="__codelineno-6-108" href="#__codelineno-6-108"></a><span class="w">        </span><span class="no">log.info("Enriched {} event for product: {} ({})", event_type, product_data.get("name"), product_id)</span>
 <a id="__codelineno-6-109" name="__codelineno-6-109" href="#__codelineno-6-109"></a><span class="w">        </span><span class="no">return enriched_event</span>
 <a id="__codelineno-6-110" name="__codelineno-6-110" href="#__codelineno-6-110"></a><span class="w">      </span><span class="no">else:</span>
 <a id="__codelineno-6-111" name="__codelineno-6-111" href="#__codelineno-6-111"></a><span class="w">        </span><span class="no"># Product not found in cache</span>
 <a id="__codelineno-6-112" name="__codelineno-6-112" href="#__codelineno-6-112"></a><span class="w">        </span><span class="no">fallback_event = {</span>
-<a id="__codelineno-6-113" name="__codelineno-6-113" href="#__codelineno-6-113"></a><span class="w">          </span><span class="no">&quot;event_id&quot;: event_id,</span>
-<a id="__codelineno-6-114" name="__codelineno-6-114" href="#__codelineno-6-114"></a><span class="w">          </span><span class="no">&quot;event_type&quot;: event_type,</span>
-<a id="__codelineno-6-115" name="__codelineno-6-115" href="#__codelineno-6-115"></a><span class="w">          </span><span class="no">&quot;product_id&quot;: product_id,</span>
-<a id="__codelineno-6-116" name="__codelineno-6-116" href="#__codelineno-6-116"></a><span class="w">          </span><span class="no">&quot;quantity&quot;: quantity,</span>
-<a id="__codelineno-6-117" name="__codelineno-6-117" href="#__codelineno-6-117"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: timestamp,</span>
-<a id="__codelineno-6-118" name="__codelineno-6-118" href="#__codelineno-6-118"></a><span class="w">          </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-6-119" name="__codelineno-6-119" href="#__codelineno-6-119"></a><span class="w">          </span><span class="no">&quot;session_id&quot;: session_id,</span>
-<a id="__codelineno-6-120" name="__codelineno-6-120" href="#__codelineno-6-120"></a><span class="w">          </span><span class="no">&quot;page_location&quot;: page_location,</span>
-<a id="__codelineno-6-121" name="__codelineno-6-121" href="#__codelineno-6-121"></a><span class="w">          </span><span class="no">&quot;enriched_data&quot;: {</span>
-<a id="__codelineno-6-122" name="__codelineno-6-122" href="#__codelineno-6-122"></a><span class="w">            </span><span class="no">&quot;name&quot;: &quot;Unknown Product&quot;,</span>
-<a id="__codelineno-6-123" name="__codelineno-6-123" href="#__codelineno-6-123"></a><span class="w">            </span><span class="no">&quot;category&quot;: &quot;Unknown&quot;,</span>
-<a id="__codelineno-6-124" name="__codelineno-6-124" href="#__codelineno-6-124"></a><span class="w">            </span><span class="no">&quot;unit_price&quot;: 0.0,</span>
-<a id="__codelineno-6-125" name="__codelineno-6-125" href="#__codelineno-6-125"></a><span class="w">            </span><span class="no">&quot;total_price&quot;: 0.0</span>
+<a id="__codelineno-6-113" name="__codelineno-6-113" href="#__codelineno-6-113"></a><span class="w">          </span><span class="no">"event_id": event_id,</span>
+<a id="__codelineno-6-114" name="__codelineno-6-114" href="#__codelineno-6-114"></a><span class="w">          </span><span class="no">"event_type": event_type,</span>
+<a id="__codelineno-6-115" name="__codelineno-6-115" href="#__codelineno-6-115"></a><span class="w">          </span><span class="no">"product_id": product_id,</span>
+<a id="__codelineno-6-116" name="__codelineno-6-116" href="#__codelineno-6-116"></a><span class="w">          </span><span class="no">"quantity": quantity,</span>
+<a id="__codelineno-6-117" name="__codelineno-6-117" href="#__codelineno-6-117"></a><span class="w">          </span><span class="no">"timestamp": timestamp,</span>
+<a id="__codelineno-6-118" name="__codelineno-6-118" href="#__codelineno-6-118"></a><span class="w">          </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-6-119" name="__codelineno-6-119" href="#__codelineno-6-119"></a><span class="w">          </span><span class="no">"session_id": session_id,</span>
+<a id="__codelineno-6-120" name="__codelineno-6-120" href="#__codelineno-6-120"></a><span class="w">          </span><span class="no">"page_location": page_location,</span>
+<a id="__codelineno-6-121" name="__codelineno-6-121" href="#__codelineno-6-121"></a><span class="w">          </span><span class="no">"enriched_data": {</span>
+<a id="__codelineno-6-122" name="__codelineno-6-122" href="#__codelineno-6-122"></a><span class="w">            </span><span class="no">"name": "Unknown Product",</span>
+<a id="__codelineno-6-123" name="__codelineno-6-123" href="#__codelineno-6-123"></a><span class="w">            </span><span class="no">"category": "Unknown",</span>
+<a id="__codelineno-6-124" name="__codelineno-6-124" href="#__codelineno-6-124"></a><span class="w">            </span><span class="no">"unit_price": 0.0,</span>
+<a id="__codelineno-6-125" name="__codelineno-6-125" href="#__codelineno-6-125"></a><span class="w">            </span><span class="no">"total_price": 0.0</span>
 <a id="__codelineno-6-126" name="__codelineno-6-126" href="#__codelineno-6-126"></a><span class="w">          </span><span class="no">},</span>
-<a id="__codelineno-6-127" name="__codelineno-6-127" href="#__codelineno-6-127"></a><span class="w">          </span><span class="no">&quot;cache_hit&quot;: False</span>
+<a id="__codelineno-6-127" name="__codelineno-6-127" href="#__codelineno-6-127"></a><span class="w">          </span><span class="no">"cache_hit": False</span>
 <a id="__codelineno-6-128" name="__codelineno-6-128" href="#__codelineno-6-128"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-6-129" name="__codelineno-6-129" href="#__codelineno-6-129"></a>
-<a id="__codelineno-6-130" name="__codelineno-6-130" href="#__codelineno-6-130"></a><span class="w">        </span><span class="no">log.warn(&quot;Product not found in reference data: {}&quot;, product_id)</span>
+<a id="__codelineno-6-130" name="__codelineno-6-130" href="#__codelineno-6-130"></a><span class="w">        </span><span class="no">log.warn("Product not found in reference data: {}", product_id)</span>
 <a id="__codelineno-6-131" name="__codelineno-6-131" href="#__codelineno-6-131"></a><span class="w">        </span><span class="no">return fallback_event</span>
 <a id="__codelineno-6-132" name="__codelineno-6-132" href="#__codelineno-6-132"></a>
 <a id="__codelineno-6-133" name="__codelineno-6-133" href="#__codelineno-6-133"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result if result else None</span>
@@ -2724,13 +2724,13 @@
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">      </span><span class="no">order_counter = 0</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">      </span><span class="no">customer_ids = [&quot;CUST001&quot;, &quot;CUST002&quot;, &quot;CUST003&quot;, &quot;CUST004&quot;]</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="no">statuses = [&quot;created&quot;, &quot;paid&quot;, &quot;shipped&quot;, &quot;delivered&quot;]</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">      </span><span class="no">customer_ids = ["CUST001", "CUST002", "CUST003", "CUST004"]</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="no">statuses = ["created", "paid", "shipped", "delivered"]</span>
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">      </span><span class="no">global order_counter, customer_ids, statuses</span>
 <a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
 <a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">      </span><span class="no">order_counter += 1</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">      </span><span class="no">order_id = f&quot;ORDER_{order_counter:04d}&quot;</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">      </span><span class="no">order_id = f"ORDER_{order_counter:04d}"</span>
 <a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">      </span><span class="no">customer_id = random.choice(customer_ids)</span>
 <a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">      </span><span class="no">status = random.choice(statuses)</span>
 <a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">      </span><span class="no">amount = round(random.uniform(10.0, 500.0), 2)</span>
@@ -2738,42 +2738,42 @@
 <a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
 <a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">      </span><span class="no"># Create structured JSON order event for better readability in Kowl UI</span>
 <a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">      </span><span class="no">order_event = {</span>
-<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">        </span><span class="no">&quot;order_id&quot;: order_id,</span>
-<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">        </span><span class="no">&quot;customer_id&quot;: customer_id,</span>
-<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">        </span><span class="no">&quot;status&quot;: status,</span>
-<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">        </span><span class="no">&quot;amount&quot;: amount,</span>
-<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: current_timestamp,</span>
-<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">        </span><span class="no">&quot;sequence_number&quot;: order_counter,</span>
-<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">        </span><span class="no">&quot;order_details&quot;: {</span>
-<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">          </span><span class="no">&quot;currency&quot;: &quot;USD&quot;,</span>
-<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="w">          </span><span class="no">&quot;payment_method&quot;: random.choice([&quot;credit_card&quot;, &quot;debit_card&quot;, &quot;paypal&quot;, &quot;bank_transfer&quot;]),</span>
-<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">          </span><span class="no">&quot;shipping_method&quot;: random.choice([&quot;standard&quot;, &quot;express&quot;, &quot;overnight&quot;, &quot;pickup&quot;]),</span>
-<a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="w">          </span><span class="no">&quot;order_source&quot;: random.choice([&quot;web&quot;, &quot;mobile&quot;, &quot;phone&quot;, &quot;store&quot;])</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">        </span><span class="no">"order_id": order_id,</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">        </span><span class="no">"customer_id": customer_id,</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">        </span><span class="no">"status": status,</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">        </span><span class="no">"amount": amount,</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">        </span><span class="no">"timestamp": current_timestamp,</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">        </span><span class="no">"sequence_number": order_counter,</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">        </span><span class="no">"order_details": {</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">          </span><span class="no">"currency": "USD",</span>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="w">          </span><span class="no">"payment_method": random.choice(["credit_card", "debit_card", "paypal", "bank_transfer"]),</span>
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">          </span><span class="no">"shipping_method": random.choice(["standard", "express", "overnight", "pickup"]),</span>
+<a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="w">          </span><span class="no">"order_source": random.choice(["web", "mobile", "phone", "store"])</span>
 <a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="w">        </span><span class="no">&quot;customer_info&quot;: {</span>
-<a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="w">          </span><span class="no">&quot;customer_tier&quot;: random.choice([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;, &quot;platinum&quot;]),</span>
-<a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="w">          </span><span class="no">&quot;loyalty_points&quot;: random.randint(0, 5000),</span>
-<a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a><span class="w">          </span><span class="no">&quot;previous_orders&quot;: random.randint(0, 50)</span>
+<a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="w">        </span><span class="no">"customer_info": {</span>
+<a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="w">          </span><span class="no">"customer_tier": random.choice(["bronze", "silver", "gold", "platinum"]),</span>
+<a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="w">          </span><span class="no">"loyalty_points": random.randint(0, 5000),</span>
+<a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a><span class="w">          </span><span class="no">"previous_orders": random.randint(0, 50)</span>
 <a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a><span class="w">        </span><span class="no">&quot;fulfillment&quot;: {</span>
-<a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a><span class="w">          </span><span class="no">&quot;warehouse_id&quot;: f&quot;WH_{random.randint(1, 5):02d}&quot;,</span>
-<a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a><span class="w">          </span><span class="no">&quot;estimated_ship_date&quot;: current_timestamp + random.randint(1, 7) * 24 * 60 * 60 * 1000,  # 1-7 days</span>
-<a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a><span class="w">          </span><span class="no">&quot;shipping_address&quot;: {</span>
-<a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a><span class="w">            </span><span class="no">&quot;country&quot;: random.choice([&quot;US&quot;, &quot;CA&quot;, &quot;UK&quot;, &quot;DE&quot;, &quot;FR&quot;]),</span>
-<a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a><span class="w">            </span><span class="no">&quot;region&quot;: random.choice([&quot;North&quot;, &quot;South&quot;, &quot;East&quot;, &quot;West&quot;, &quot;Central&quot;])</span>
+<a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a><span class="w">        </span><span class="no">"fulfillment": {</span>
+<a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a><span class="w">          </span><span class="no">"warehouse_id": f"WH_{random.randint(1, 5):02d}",</span>
+<a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a><span class="w">          </span><span class="no">"estimated_ship_date": current_timestamp + random.randint(1, 7) * 24 * 60 * 60 * 1000,  # 1-7 days</span>
+<a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a><span class="w">          </span><span class="no">"shipping_address": {</span>
+<a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a><span class="w">            </span><span class="no">"country": random.choice(["US", "CA", "UK", "DE", "FR"]),</span>
+<a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a><span class="w">            </span><span class="no">"region": random.choice(["North", "South", "East", "West", "Central"])</span>
 <a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a><span class="w">          </span><span class="no">}</span>
 <a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a><span class="w">        </span><span class="no">&quot;business_context&quot;: {</span>
-<a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a><span class="w">          </span><span class="no">&quot;requires_external_processing&quot;: status == &quot;paid&quot;,</span>
-<a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a><span class="w">          </span><span class="no">&quot;high_value&quot;: amount &gt; 200,</span>
-<a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a><span class="w">          </span><span class="no">&quot;priority&quot;: &quot;high&quot; if amount &gt; 300 else &quot;normal&quot;,</span>
-<a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a><span class="w">          </span><span class="no">&quot;async_processing_needed&quot;: True</span>
+<a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a><span class="w">        </span><span class="no">"business_context": {</span>
+<a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a><span class="w">          </span><span class="no">"requires_external_processing": status == "paid",</span>
+<a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a><span class="w">          </span><span class="no">"high_value": amount &gt; 200,</span>
+<a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a><span class="w">          </span><span class="no">"priority": "high" if amount &gt; 300 else "normal",</span>
+<a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a><span class="w">          </span><span class="no">"async_processing_needed": True</span>
 <a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a><span class="w">        </span><span class="no">&quot;metadata&quot;: {</span>
-<a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a><span class="w">          </span><span class="no">&quot;simulation&quot;: True,</span>
-<a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a><span class="w">          </span><span class="no">&quot;async_integration&quot;: True,</span>
-<a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a><span class="w">          </span><span class="no">&quot;correlation_id&quot;: f&quot;corr_{order_id}_{current_timestamp}&quot;,</span>
-<a id="__codelineno-7-59" name="__codelineno-7-59" href="#__codelineno-7-59"></a><span class="w">          </span><span class="no">&quot;processing_version&quot;: &quot;1.0&quot;</span>
+<a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a><span class="w">        </span><span class="no">"metadata": {</span>
+<a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a><span class="w">          </span><span class="no">"simulation": True,</span>
+<a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a><span class="w">          </span><span class="no">"async_integration": True,</span>
+<a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a><span class="w">          </span><span class="no">"correlation_id": f"corr_{order_id}_{current_timestamp}",</span>
+<a id="__codelineno-7-59" name="__codelineno-7-59" href="#__codelineno-7-59"></a><span class="w">          </span><span class="no">"processing_version": "1.0"</span>
 <a id="__codelineno-7-60" name="__codelineno-7-60" href="#__codelineno-7-60"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-7-61" name="__codelineno-7-61" href="#__codelineno-7-61"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-7-62" name="__codelineno-7-62" href="#__codelineno-7-62"></a>
@@ -2811,9 +2811,9 @@
 <a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">      </span><span class="no"># Extract status from JSON order event</span>
 <a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">      </span><span class="no">if not value:</span>
 <a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">        </span><span class="no">return False</span>
-<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">      </span><span class="no">status = value.get(&quot;status&quot;)</span>
-<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">      </span><span class="no"># Only process &#39;paid&#39; orders</span>
-<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">      </span><span class="no">return status == &quot;paid&quot;</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">      </span><span class="no">status = value.get("status")</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">      </span><span class="no"># Only process 'paid' orders</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">      </span><span class="no">return status == "paid"</span>
 <a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
 <a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>
 <a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">  </span><span class="nt">create_external_request</span><span class="p">:</span>
@@ -2825,61 +2825,61 @@
 <a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">      </span><span class="no">if not value:</span>
 <a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="w">        </span><span class="no">return None</span>
 <a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a>
-<a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a><span class="w">      </span><span class="no">order_id = value.get(&quot;order_id&quot;)</span>
-<a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a><span class="w">      </span><span class="no">customer_id = value.get(&quot;customer_id&quot;)</span>
-<a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a><span class="w">      </span><span class="no">status = value.get(&quot;status&quot;)</span>
-<a id="__codelineno-8-37" name="__codelineno-8-37" href="#__codelineno-8-37"></a><span class="w">      </span><span class="no">amount = value.get(&quot;amount&quot;)</span>
-<a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a><span class="w">      </span><span class="no">timestamp = value.get(&quot;timestamp&quot;)</span>
-<a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a><span class="w">      </span><span class="no">sequence_number = value.get(&quot;sequence_number&quot;)</span>
-<a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a><span class="w">      </span><span class="no">order_details = value.get(&quot;order_details&quot;, {})</span>
-<a id="__codelineno-8-41" name="__codelineno-8-41" href="#__codelineno-8-41"></a><span class="w">      </span><span class="no">customer_info = value.get(&quot;customer_info&quot;, {})</span>
-<a id="__codelineno-8-42" name="__codelineno-8-42" href="#__codelineno-8-42"></a><span class="w">      </span><span class="no">fulfillment = value.get(&quot;fulfillment&quot;, {})</span>
-<a id="__codelineno-8-43" name="__codelineno-8-43" href="#__codelineno-8-43"></a><span class="w">      </span><span class="no">business_context = value.get(&quot;business_context&quot;, {})</span>
-<a id="__codelineno-8-44" name="__codelineno-8-44" href="#__codelineno-8-44"></a><span class="w">      </span><span class="no">metadata = value.get(&quot;metadata&quot;, {})</span>
+<a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a><span class="w">      </span><span class="no">order_id = value.get("order_id")</span>
+<a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a><span class="w">      </span><span class="no">customer_id = value.get("customer_id")</span>
+<a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a><span class="w">      </span><span class="no">status = value.get("status")</span>
+<a id="__codelineno-8-37" name="__codelineno-8-37" href="#__codelineno-8-37"></a><span class="w">      </span><span class="no">amount = value.get("amount")</span>
+<a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a><span class="w">      </span><span class="no">timestamp = value.get("timestamp")</span>
+<a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a><span class="w">      </span><span class="no">sequence_number = value.get("sequence_number")</span>
+<a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a><span class="w">      </span><span class="no">order_details = value.get("order_details", {})</span>
+<a id="__codelineno-8-41" name="__codelineno-8-41" href="#__codelineno-8-41"></a><span class="w">      </span><span class="no">customer_info = value.get("customer_info", {})</span>
+<a id="__codelineno-8-42" name="__codelineno-8-42" href="#__codelineno-8-42"></a><span class="w">      </span><span class="no">fulfillment = value.get("fulfillment", {})</span>
+<a id="__codelineno-8-43" name="__codelineno-8-43" href="#__codelineno-8-43"></a><span class="w">      </span><span class="no">business_context = value.get("business_context", {})</span>
+<a id="__codelineno-8-44" name="__codelineno-8-44" href="#__codelineno-8-44"></a><span class="w">      </span><span class="no">metadata = value.get("metadata", {})</span>
 <a id="__codelineno-8-45" name="__codelineno-8-45" href="#__codelineno-8-45"></a>
 <a id="__codelineno-8-46" name="__codelineno-8-46" href="#__codelineno-8-46"></a><span class="w">      </span><span class="no"># Create comprehensive request for external payment processing system</span>
-<a id="__codelineno-8-47" name="__codelineno-8-47" href="#__codelineno-8-47"></a><span class="w">      </span><span class="no">request_id = f&quot;REQ_{order_id}_{timestamp}&quot;</span>
+<a id="__codelineno-8-47" name="__codelineno-8-47" href="#__codelineno-8-47"></a><span class="w">      </span><span class="no">request_id = f"REQ_{order_id}_{timestamp}"</span>
 <a id="__codelineno-8-48" name="__codelineno-8-48" href="#__codelineno-8-48"></a>
 <a id="__codelineno-8-49" name="__codelineno-8-49" href="#__codelineno-8-49"></a><span class="w">      </span><span class="no">external_request = {</span>
-<a id="__codelineno-8-50" name="__codelineno-8-50" href="#__codelineno-8-50"></a><span class="w">        </span><span class="no">&quot;request_id&quot;: request_id,</span>
-<a id="__codelineno-8-51" name="__codelineno-8-51" href="#__codelineno-8-51"></a><span class="w">        </span><span class="no">&quot;request_type&quot;: &quot;PAYMENT_PROCESSING&quot;,</span>
-<a id="__codelineno-8-52" name="__codelineno-8-52" href="#__codelineno-8-52"></a><span class="w">        </span><span class="no">&quot;original_order&quot;: {</span>
-<a id="__codelineno-8-53" name="__codelineno-8-53" href="#__codelineno-8-53"></a><span class="w">          </span><span class="no">&quot;order_id&quot;: order_id,</span>
-<a id="__codelineno-8-54" name="__codelineno-8-54" href="#__codelineno-8-54"></a><span class="w">          </span><span class="no">&quot;customer_id&quot;: customer_id,</span>
-<a id="__codelineno-8-55" name="__codelineno-8-55" href="#__codelineno-8-55"></a><span class="w">          </span><span class="no">&quot;amount&quot;: amount,</span>
-<a id="__codelineno-8-56" name="__codelineno-8-56" href="#__codelineno-8-56"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: timestamp,</span>
-<a id="__codelineno-8-57" name="__codelineno-8-57" href="#__codelineno-8-57"></a><span class="w">          </span><span class="no">&quot;sequence_number&quot;: sequence_number</span>
+<a id="__codelineno-8-50" name="__codelineno-8-50" href="#__codelineno-8-50"></a><span class="w">        </span><span class="no">"request_id": request_id,</span>
+<a id="__codelineno-8-51" name="__codelineno-8-51" href="#__codelineno-8-51"></a><span class="w">        </span><span class="no">"request_type": "PAYMENT_PROCESSING",</span>
+<a id="__codelineno-8-52" name="__codelineno-8-52" href="#__codelineno-8-52"></a><span class="w">        </span><span class="no">"original_order": {</span>
+<a id="__codelineno-8-53" name="__codelineno-8-53" href="#__codelineno-8-53"></a><span class="w">          </span><span class="no">"order_id": order_id,</span>
+<a id="__codelineno-8-54" name="__codelineno-8-54" href="#__codelineno-8-54"></a><span class="w">          </span><span class="no">"customer_id": customer_id,</span>
+<a id="__codelineno-8-55" name="__codelineno-8-55" href="#__codelineno-8-55"></a><span class="w">          </span><span class="no">"amount": amount,</span>
+<a id="__codelineno-8-56" name="__codelineno-8-56" href="#__codelineno-8-56"></a><span class="w">          </span><span class="no">"timestamp": timestamp,</span>
+<a id="__codelineno-8-57" name="__codelineno-8-57" href="#__codelineno-8-57"></a><span class="w">          </span><span class="no">"sequence_number": sequence_number</span>
 <a id="__codelineno-8-58" name="__codelineno-8-58" href="#__codelineno-8-58"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-59" name="__codelineno-8-59" href="#__codelineno-8-59"></a><span class="w">        </span><span class="no">&quot;payment_details&quot;: {</span>
-<a id="__codelineno-8-60" name="__codelineno-8-60" href="#__codelineno-8-60"></a><span class="w">          </span><span class="no">&quot;amount&quot;: amount,</span>
-<a id="__codelineno-8-61" name="__codelineno-8-61" href="#__codelineno-8-61"></a><span class="w">          </span><span class="no">&quot;currency&quot;: order_details.get(&quot;currency&quot;, &quot;USD&quot;),</span>
-<a id="__codelineno-8-62" name="__codelineno-8-62" href="#__codelineno-8-62"></a><span class="w">          </span><span class="no">&quot;payment_method&quot;: order_details.get(&quot;payment_method&quot;),</span>
-<a id="__codelineno-8-63" name="__codelineno-8-63" href="#__codelineno-8-63"></a><span class="w">          </span><span class="no">&quot;customer_tier&quot;: customer_info.get(&quot;customer_tier&quot;),</span>
-<a id="__codelineno-8-64" name="__codelineno-8-64" href="#__codelineno-8-64"></a><span class="w">          </span><span class="no">&quot;loyalty_points&quot;: customer_info.get(&quot;loyalty_points&quot;)</span>
+<a id="__codelineno-8-59" name="__codelineno-8-59" href="#__codelineno-8-59"></a><span class="w">        </span><span class="no">"payment_details": {</span>
+<a id="__codelineno-8-60" name="__codelineno-8-60" href="#__codelineno-8-60"></a><span class="w">          </span><span class="no">"amount": amount,</span>
+<a id="__codelineno-8-61" name="__codelineno-8-61" href="#__codelineno-8-61"></a><span class="w">          </span><span class="no">"currency": order_details.get("currency", "USD"),</span>
+<a id="__codelineno-8-62" name="__codelineno-8-62" href="#__codelineno-8-62"></a><span class="w">          </span><span class="no">"payment_method": order_details.get("payment_method"),</span>
+<a id="__codelineno-8-63" name="__codelineno-8-63" href="#__codelineno-8-63"></a><span class="w">          </span><span class="no">"customer_tier": customer_info.get("customer_tier"),</span>
+<a id="__codelineno-8-64" name="__codelineno-8-64" href="#__codelineno-8-64"></a><span class="w">          </span><span class="no">"loyalty_points": customer_info.get("loyalty_points")</span>
 <a id="__codelineno-8-65" name="__codelineno-8-65" href="#__codelineno-8-65"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-66" name="__codelineno-8-66" href="#__codelineno-8-66"></a><span class="w">        </span><span class="no">&quot;processing_context&quot;: {</span>
-<a id="__codelineno-8-67" name="__codelineno-8-67" href="#__codelineno-8-67"></a><span class="w">          </span><span class="no">&quot;priority&quot;: business_context.get(&quot;priority&quot;, &quot;normal&quot;),</span>
-<a id="__codelineno-8-68" name="__codelineno-8-68" href="#__codelineno-8-68"></a><span class="w">          </span><span class="no">&quot;high_value&quot;: business_context.get(&quot;high_value&quot;, False),</span>
-<a id="__codelineno-8-69" name="__codelineno-8-69" href="#__codelineno-8-69"></a><span class="w">          </span><span class="no">&quot;customer_previous_orders&quot;: customer_info.get(&quot;previous_orders&quot;, 0),</span>
-<a id="__codelineno-8-70" name="__codelineno-8-70" href="#__codelineno-8-70"></a><span class="w">          </span><span class="no">&quot;order_source&quot;: order_details.get(&quot;order_source&quot;)</span>
+<a id="__codelineno-8-66" name="__codelineno-8-66" href="#__codelineno-8-66"></a><span class="w">        </span><span class="no">"processing_context": {</span>
+<a id="__codelineno-8-67" name="__codelineno-8-67" href="#__codelineno-8-67"></a><span class="w">          </span><span class="no">"priority": business_context.get("priority", "normal"),</span>
+<a id="__codelineno-8-68" name="__codelineno-8-68" href="#__codelineno-8-68"></a><span class="w">          </span><span class="no">"high_value": business_context.get("high_value", False),</span>
+<a id="__codelineno-8-69" name="__codelineno-8-69" href="#__codelineno-8-69"></a><span class="w">          </span><span class="no">"customer_previous_orders": customer_info.get("previous_orders", 0),</span>
+<a id="__codelineno-8-70" name="__codelineno-8-70" href="#__codelineno-8-70"></a><span class="w">          </span><span class="no">"order_source": order_details.get("order_source")</span>
 <a id="__codelineno-8-71" name="__codelineno-8-71" href="#__codelineno-8-71"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-72" name="__codelineno-8-72" href="#__codelineno-8-72"></a><span class="w">        </span><span class="no">&quot;async_metadata&quot;: {</span>
-<a id="__codelineno-8-73" name="__codelineno-8-73" href="#__codelineno-8-73"></a><span class="w">          </span><span class="no">&quot;correlation_id&quot;: metadata.get(&quot;correlation_id&quot;, f&quot;corr_{request_id}&quot;),</span>
-<a id="__codelineno-8-74" name="__codelineno-8-74" href="#__codelineno-8-74"></a><span class="w">          </span><span class="no">&quot;created_at&quot;: int(time.time() * 1000),</span>
-<a id="__codelineno-8-75" name="__codelineno-8-75" href="#__codelineno-8-75"></a><span class="w">          </span><span class="no">&quot;timeout_ms&quot;: 30000,  # 30 second timeout</span>
-<a id="__codelineno-8-76" name="__codelineno-8-76" href="#__codelineno-8-76"></a><span class="w">          </span><span class="no">&quot;retry_count&quot;: 0,</span>
-<a id="__codelineno-8-77" name="__codelineno-8-77" href="#__codelineno-8-77"></a><span class="w">          </span><span class="no">&quot;expected_response_topic&quot;: &quot;external_responses&quot;</span>
+<a id="__codelineno-8-72" name="__codelineno-8-72" href="#__codelineno-8-72"></a><span class="w">        </span><span class="no">"async_metadata": {</span>
+<a id="__codelineno-8-73" name="__codelineno-8-73" href="#__codelineno-8-73"></a><span class="w">          </span><span class="no">"correlation_id": metadata.get("correlation_id", f"corr_{request_id}"),</span>
+<a id="__codelineno-8-74" name="__codelineno-8-74" href="#__codelineno-8-74"></a><span class="w">          </span><span class="no">"created_at": int(time.time() * 1000),</span>
+<a id="__codelineno-8-75" name="__codelineno-8-75" href="#__codelineno-8-75"></a><span class="w">          </span><span class="no">"timeout_ms": 30000,  # 30 second timeout</span>
+<a id="__codelineno-8-76" name="__codelineno-8-76" href="#__codelineno-8-76"></a><span class="w">          </span><span class="no">"retry_count": 0,</span>
+<a id="__codelineno-8-77" name="__codelineno-8-77" href="#__codelineno-8-77"></a><span class="w">          </span><span class="no">"expected_response_topic": "external_responses"</span>
 <a id="__codelineno-8-78" name="__codelineno-8-78" href="#__codelineno-8-78"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-79" name="__codelineno-8-79" href="#__codelineno-8-79"></a><span class="w">        </span><span class="no">&quot;external_system_info&quot;: {</span>
-<a id="__codelineno-8-80" name="__codelineno-8-80" href="#__codelineno-8-80"></a><span class="w">          </span><span class="no">&quot;target_system&quot;: &quot;payment_processor&quot;,</span>
-<a id="__codelineno-8-81" name="__codelineno-8-81" href="#__codelineno-8-81"></a><span class="w">          </span><span class="no">&quot;api_version&quot;: &quot;v2.1&quot;,</span>
-<a id="__codelineno-8-82" name="__codelineno-8-82" href="#__codelineno-8-82"></a><span class="w">          </span><span class="no">&quot;request_format&quot;: &quot;async_json&quot;,</span>
-<a id="__codelineno-8-83" name="__codelineno-8-83" href="#__codelineno-8-83"></a><span class="w">          </span><span class="no">&quot;callback_required&quot;: True</span>
+<a id="__codelineno-8-79" name="__codelineno-8-79" href="#__codelineno-8-79"></a><span class="w">        </span><span class="no">"external_system_info": {</span>
+<a id="__codelineno-8-80" name="__codelineno-8-80" href="#__codelineno-8-80"></a><span class="w">          </span><span class="no">"target_system": "payment_processor",</span>
+<a id="__codelineno-8-81" name="__codelineno-8-81" href="#__codelineno-8-81"></a><span class="w">          </span><span class="no">"api_version": "v2.1",</span>
+<a id="__codelineno-8-82" name="__codelineno-8-82" href="#__codelineno-8-82"></a><span class="w">          </span><span class="no">"request_format": "async_json",</span>
+<a id="__codelineno-8-83" name="__codelineno-8-83" href="#__codelineno-8-83"></a><span class="w">          </span><span class="no">"callback_required": True</span>
 <a id="__codelineno-8-84" name="__codelineno-8-84" href="#__codelineno-8-84"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-8-85" name="__codelineno-8-85" href="#__codelineno-8-85"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-8-86" name="__codelineno-8-86" href="#__codelineno-8-86"></a>
-<a id="__codelineno-8-87" name="__codelineno-8-87" href="#__codelineno-8-87"></a><span class="w">      </span><span class="no">log.info(&quot;Created external payment request for order {}: amount=${:.2f}, priority={}&quot;, </span>
-<a id="__codelineno-8-88" name="__codelineno-8-88" href="#__codelineno-8-88"></a><span class="w">               </span><span class="no">order_id, amount, business_context.get(&quot;priority&quot;, &quot;normal&quot;))</span>
+<a id="__codelineno-8-87" name="__codelineno-8-87" href="#__codelineno-8-87"></a><span class="w">      </span><span class="no">log.info("Created external payment request for order {}: amount=${:.2f}, priority={}", </span>
+<a id="__codelineno-8-88" name="__codelineno-8-88" href="#__codelineno-8-88"></a><span class="w">               </span><span class="no">order_id, amount, business_context.get("priority", "normal"))</span>
 <a id="__codelineno-8-89" name="__codelineno-8-89" href="#__codelineno-8-89"></a>
 <a id="__codelineno-8-90" name="__codelineno-8-90" href="#__codelineno-8-90"></a><span class="w">      </span><span class="no">return (request_id, external_request)</span>
 <a id="__codelineno-8-91" name="__codelineno-8-91" href="#__codelineno-8-91"></a>
@@ -2899,65 +2899,65 @@
 <a id="__codelineno-8-105" name="__codelineno-8-105" href="#__codelineno-8-105"></a><span class="w">        </span><span class="no">return None</span>
 <a id="__codelineno-8-106" name="__codelineno-8-106" href="#__codelineno-8-106"></a>
 <a id="__codelineno-8-107" name="__codelineno-8-107" href="#__codelineno-8-107"></a><span class="w">      </span><span class="no"># Extract request information</span>
-<a id="__codelineno-8-108" name="__codelineno-8-108" href="#__codelineno-8-108"></a><span class="w">      </span><span class="no">request_id = value.get(&quot;request_id&quot;)</span>
-<a id="__codelineno-8-109" name="__codelineno-8-109" href="#__codelineno-8-109"></a><span class="w">      </span><span class="no">request_type = value.get(&quot;request_type&quot;)</span>
-<a id="__codelineno-8-110" name="__codelineno-8-110" href="#__codelineno-8-110"></a><span class="w">      </span><span class="no">original_order = value.get(&quot;original_order&quot;, {})</span>
-<a id="__codelineno-8-111" name="__codelineno-8-111" href="#__codelineno-8-111"></a><span class="w">      </span><span class="no">payment_details = value.get(&quot;payment_details&quot;, {})</span>
-<a id="__codelineno-8-112" name="__codelineno-8-112" href="#__codelineno-8-112"></a><span class="w">      </span><span class="no">processing_context = value.get(&quot;processing_context&quot;, {})</span>
-<a id="__codelineno-8-113" name="__codelineno-8-113" href="#__codelineno-8-113"></a><span class="w">      </span><span class="no">async_metadata = value.get(&quot;async_metadata&quot;, {})</span>
+<a id="__codelineno-8-108" name="__codelineno-8-108" href="#__codelineno-8-108"></a><span class="w">      </span><span class="no">request_id = value.get("request_id")</span>
+<a id="__codelineno-8-109" name="__codelineno-8-109" href="#__codelineno-8-109"></a><span class="w">      </span><span class="no">request_type = value.get("request_type")</span>
+<a id="__codelineno-8-110" name="__codelineno-8-110" href="#__codelineno-8-110"></a><span class="w">      </span><span class="no">original_order = value.get("original_order", {})</span>
+<a id="__codelineno-8-111" name="__codelineno-8-111" href="#__codelineno-8-111"></a><span class="w">      </span><span class="no">payment_details = value.get("payment_details", {})</span>
+<a id="__codelineno-8-112" name="__codelineno-8-112" href="#__codelineno-8-112"></a><span class="w">      </span><span class="no">processing_context = value.get("processing_context", {})</span>
+<a id="__codelineno-8-113" name="__codelineno-8-113" href="#__codelineno-8-113"></a><span class="w">      </span><span class="no">async_metadata = value.get("async_metadata", {})</span>
 <a id="__codelineno-8-114" name="__codelineno-8-114" href="#__codelineno-8-114"></a>
 <a id="__codelineno-8-115" name="__codelineno-8-115" href="#__codelineno-8-115"></a><span class="w">      </span><span class="no"># Simulate external system processing with realistic delays and outcomes</span>
 <a id="__codelineno-8-116" name="__codelineno-8-116" href="#__codelineno-8-116"></a><span class="w">      </span><span class="no">processing_time_ms = random.randint(100, 2000)  # 0.1 to 2 seconds</span>
-<a id="__codelineno-8-117" name="__codelineno-8-117" href="#__codelineno-8-117"></a><span class="w">      </span><span class="no">success_rate = 0.9 if processing_context.get(&quot;high_value&quot;) else 0.95</span>
+<a id="__codelineno-8-117" name="__codelineno-8-117" href="#__codelineno-8-117"></a><span class="w">      </span><span class="no">success_rate = 0.9 if processing_context.get("high_value") else 0.95</span>
 <a id="__codelineno-8-118" name="__codelineno-8-118" href="#__codelineno-8-118"></a><span class="w">      </span><span class="no">is_successful = random.random() &lt; success_rate</span>
 <a id="__codelineno-8-119" name="__codelineno-8-119" href="#__codelineno-8-119"></a>
 <a id="__codelineno-8-120" name="__codelineno-8-120" href="#__codelineno-8-120"></a><span class="w">      </span><span class="no">current_timestamp = int(time.time() * 1000)</span>
 <a id="__codelineno-8-121" name="__codelineno-8-121" href="#__codelineno-8-121"></a>
 <a id="__codelineno-8-122" name="__codelineno-8-122" href="#__codelineno-8-122"></a><span class="w">      </span><span class="no"># Create comprehensive response</span>
 <a id="__codelineno-8-123" name="__codelineno-8-123" href="#__codelineno-8-123"></a><span class="w">      </span><span class="no">response_data = {</span>
-<a id="__codelineno-8-124" name="__codelineno-8-124" href="#__codelineno-8-124"></a><span class="w">        </span><span class="no">&quot;response_id&quot;: f&quot;RESP_{request_id}_{current_timestamp}&quot;,</span>
-<a id="__codelineno-8-125" name="__codelineno-8-125" href="#__codelineno-8-125"></a><span class="w">        </span><span class="no">&quot;request_id&quot;: request_id,</span>
-<a id="__codelineno-8-126" name="__codelineno-8-126" href="#__codelineno-8-126"></a><span class="w">        </span><span class="no">&quot;response_type&quot;: &quot;PAYMENT_PROCESSING_RESULT&quot;,</span>
-<a id="__codelineno-8-127" name="__codelineno-8-127" href="#__codelineno-8-127"></a><span class="w">        </span><span class="no">&quot;status&quot;: &quot;success&quot; if is_successful else &quot;failed&quot;,</span>
-<a id="__codelineno-8-128" name="__codelineno-8-128" href="#__codelineno-8-128"></a><span class="w">        </span><span class="no">&quot;original_request&quot;: {</span>
-<a id="__codelineno-8-129" name="__codelineno-8-129" href="#__codelineno-8-129"></a><span class="w">          </span><span class="no">&quot;order_id&quot;: original_order.get(&quot;order_id&quot;),</span>
-<a id="__codelineno-8-130" name="__codelineno-8-130" href="#__codelineno-8-130"></a><span class="w">          </span><span class="no">&quot;customer_id&quot;: original_order.get(&quot;customer_id&quot;),</span>
-<a id="__codelineno-8-131" name="__codelineno-8-131" href="#__codelineno-8-131"></a><span class="w">          </span><span class="no">&quot;amount&quot;: payment_details.get(&quot;amount&quot;),</span>
-<a id="__codelineno-8-132" name="__codelineno-8-132" href="#__codelineno-8-132"></a><span class="w">          </span><span class="no">&quot;request_timestamp&quot;: original_order.get(&quot;timestamp&quot;)</span>
+<a id="__codelineno-8-124" name="__codelineno-8-124" href="#__codelineno-8-124"></a><span class="w">        </span><span class="no">"response_id": f"RESP_{request_id}_{current_timestamp}",</span>
+<a id="__codelineno-8-125" name="__codelineno-8-125" href="#__codelineno-8-125"></a><span class="w">        </span><span class="no">"request_id": request_id,</span>
+<a id="__codelineno-8-126" name="__codelineno-8-126" href="#__codelineno-8-126"></a><span class="w">        </span><span class="no">"response_type": "PAYMENT_PROCESSING_RESULT",</span>
+<a id="__codelineno-8-127" name="__codelineno-8-127" href="#__codelineno-8-127"></a><span class="w">        </span><span class="no">"status": "success" if is_successful else "failed",</span>
+<a id="__codelineno-8-128" name="__codelineno-8-128" href="#__codelineno-8-128"></a><span class="w">        </span><span class="no">"original_request": {</span>
+<a id="__codelineno-8-129" name="__codelineno-8-129" href="#__codelineno-8-129"></a><span class="w">          </span><span class="no">"order_id": original_order.get("order_id"),</span>
+<a id="__codelineno-8-130" name="__codelineno-8-130" href="#__codelineno-8-130"></a><span class="w">          </span><span class="no">"customer_id": original_order.get("customer_id"),</span>
+<a id="__codelineno-8-131" name="__codelineno-8-131" href="#__codelineno-8-131"></a><span class="w">          </span><span class="no">"amount": payment_details.get("amount"),</span>
+<a id="__codelineno-8-132" name="__codelineno-8-132" href="#__codelineno-8-132"></a><span class="w">          </span><span class="no">"request_timestamp": original_order.get("timestamp")</span>
 <a id="__codelineno-8-133" name="__codelineno-8-133" href="#__codelineno-8-133"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-134" name="__codelineno-8-134" href="#__codelineno-8-134"></a><span class="w">        </span><span class="no">&quot;processing_result&quot;: {</span>
-<a id="__codelineno-8-135" name="__codelineno-8-135" href="#__codelineno-8-135"></a><span class="w">          </span><span class="no">&quot;transaction_id&quot;: f&quot;TXN_{current_timestamp}_{random.randint(1000, 9999)}&quot; if is_successful else None,</span>
-<a id="__codelineno-8-136" name="__codelineno-8-136" href="#__codelineno-8-136"></a><span class="w">          </span><span class="no">&quot;authorization_code&quot;: f&quot;AUTH_{random.randint(100000, 999999)}&quot; if is_successful else None,</span>
-<a id="__codelineno-8-137" name="__codelineno-8-137" href="#__codelineno-8-137"></a><span class="w">          </span><span class="no">&quot;processing_status&quot;: &quot;approved&quot; if is_successful else &quot;declined&quot;,</span>
-<a id="__codelineno-8-138" name="__codelineno-8-138" href="#__codelineno-8-138"></a><span class="w">          </span><span class="no">&quot;reason_code&quot;: &quot;000&quot; if is_successful else random.choice([&quot;051&quot;, &quot;061&quot;, &quot;065&quot;, &quot;075&quot;]),</span>
-<a id="__codelineno-8-139" name="__codelineno-8-139" href="#__codelineno-8-139"></a><span class="w">          </span><span class="no">&quot;reason_message&quot;: &quot;Transaction approved&quot; if is_successful else random.choice([</span>
-<a id="__codelineno-8-140" name="__codelineno-8-140" href="#__codelineno-8-140"></a><span class="w">            </span><span class="no">&quot;Insufficient funds&quot;, &quot;Invalid card&quot;, &quot;Expired card&quot;, &quot;Fraud suspected&quot;</span>
+<a id="__codelineno-8-134" name="__codelineno-8-134" href="#__codelineno-8-134"></a><span class="w">        </span><span class="no">"processing_result": {</span>
+<a id="__codelineno-8-135" name="__codelineno-8-135" href="#__codelineno-8-135"></a><span class="w">          </span><span class="no">"transaction_id": f"TXN_{current_timestamp}_{random.randint(1000, 9999)}" if is_successful else None,</span>
+<a id="__codelineno-8-136" name="__codelineno-8-136" href="#__codelineno-8-136"></a><span class="w">          </span><span class="no">"authorization_code": f"AUTH_{random.randint(100000, 999999)}" if is_successful else None,</span>
+<a id="__codelineno-8-137" name="__codelineno-8-137" href="#__codelineno-8-137"></a><span class="w">          </span><span class="no">"processing_status": "approved" if is_successful else "declined",</span>
+<a id="__codelineno-8-138" name="__codelineno-8-138" href="#__codelineno-8-138"></a><span class="w">          </span><span class="no">"reason_code": "000" if is_successful else random.choice(["051", "061", "065", "075"]),</span>
+<a id="__codelineno-8-139" name="__codelineno-8-139" href="#__codelineno-8-139"></a><span class="w">          </span><span class="no">"reason_message": "Transaction approved" if is_successful else random.choice([</span>
+<a id="__codelineno-8-140" name="__codelineno-8-140" href="#__codelineno-8-140"></a><span class="w">            </span><span class="no">"Insufficient funds", "Invalid card", "Expired card", "Fraud suspected"</span>
 <a id="__codelineno-8-141" name="__codelineno-8-141" href="#__codelineno-8-141"></a><span class="w">          </span><span class="no">])</span>
 <a id="__codelineno-8-142" name="__codelineno-8-142" href="#__codelineno-8-142"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-143" name="__codelineno-8-143" href="#__codelineno-8-143"></a><span class="w">        </span><span class="no">&quot;financial_details&quot;: {</span>
-<a id="__codelineno-8-144" name="__codelineno-8-144" href="#__codelineno-8-144"></a><span class="w">          </span><span class="no">&quot;processed_amount&quot;: payment_details.get(&quot;amount&quot;) if is_successful else 0.0,</span>
-<a id="__codelineno-8-145" name="__codelineno-8-145" href="#__codelineno-8-145"></a><span class="w">          </span><span class="no">&quot;currency&quot;: payment_details.get(&quot;currency&quot;, &quot;USD&quot;),</span>
-<a id="__codelineno-8-146" name="__codelineno-8-146" href="#__codelineno-8-146"></a><span class="w">          </span><span class="no">&quot;fee_amount&quot;: round(payment_details.get(&quot;amount&quot;, 0) * 0.029, 2) if is_successful else 0.0,  # 2.9% fee</span>
-<a id="__codelineno-8-147" name="__codelineno-8-147" href="#__codelineno-8-147"></a><span class="w">          </span><span class="no">&quot;settlement_date&quot;: current_timestamp + 86400000 if is_successful else None  # Next day</span>
+<a id="__codelineno-8-143" name="__codelineno-8-143" href="#__codelineno-8-143"></a><span class="w">        </span><span class="no">"financial_details": {</span>
+<a id="__codelineno-8-144" name="__codelineno-8-144" href="#__codelineno-8-144"></a><span class="w">          </span><span class="no">"processed_amount": payment_details.get("amount") if is_successful else 0.0,</span>
+<a id="__codelineno-8-145" name="__codelineno-8-145" href="#__codelineno-8-145"></a><span class="w">          </span><span class="no">"currency": payment_details.get("currency", "USD"),</span>
+<a id="__codelineno-8-146" name="__codelineno-8-146" href="#__codelineno-8-146"></a><span class="w">          </span><span class="no">"fee_amount": round(payment_details.get("amount", 0) * 0.029, 2) if is_successful else 0.0,  # 2.9% fee</span>
+<a id="__codelineno-8-147" name="__codelineno-8-147" href="#__codelineno-8-147"></a><span class="w">          </span><span class="no">"settlement_date": current_timestamp + 86400000 if is_successful else None  # Next day</span>
 <a id="__codelineno-8-148" name="__codelineno-8-148" href="#__codelineno-8-148"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-149" name="__codelineno-8-149" href="#__codelineno-8-149"></a><span class="w">        </span><span class="no">&quot;system_metadata&quot;: {</span>
-<a id="__codelineno-8-150" name="__codelineno-8-150" href="#__codelineno-8-150"></a><span class="w">          </span><span class="no">&quot;external_system&quot;: &quot;payment_processor_v2.1&quot;,</span>
-<a id="__codelineno-8-151" name="__codelineno-8-151" href="#__codelineno-8-151"></a><span class="w">          </span><span class="no">&quot;processing_time_ms&quot;: processing_time_ms,</span>
-<a id="__codelineno-8-152" name="__codelineno-8-152" href="#__codelineno-8-152"></a><span class="w">          </span><span class="no">&quot;processed_at&quot;: current_timestamp,</span>
-<a id="__codelineno-8-153" name="__codelineno-8-153" href="#__codelineno-8-153"></a><span class="w">          </span><span class="no">&quot;correlation_id&quot;: async_metadata.get(&quot;correlation_id&quot;),</span>
-<a id="__codelineno-8-154" name="__codelineno-8-154" href="#__codelineno-8-154"></a><span class="w">          </span><span class="no">&quot;retry_attempt&quot;: async_metadata.get(&quot;retry_count&quot;, 0) + 1,</span>
-<a id="__codelineno-8-155" name="__codelineno-8-155" href="#__codelineno-8-155"></a><span class="w">          </span><span class="no">&quot;final_response&quot;: True</span>
+<a id="__codelineno-8-149" name="__codelineno-8-149" href="#__codelineno-8-149"></a><span class="w">        </span><span class="no">"system_metadata": {</span>
+<a id="__codelineno-8-150" name="__codelineno-8-150" href="#__codelineno-8-150"></a><span class="w">          </span><span class="no">"external_system": "payment_processor_v2.1",</span>
+<a id="__codelineno-8-151" name="__codelineno-8-151" href="#__codelineno-8-151"></a><span class="w">          </span><span class="no">"processing_time_ms": processing_time_ms,</span>
+<a id="__codelineno-8-152" name="__codelineno-8-152" href="#__codelineno-8-152"></a><span class="w">          </span><span class="no">"processed_at": current_timestamp,</span>
+<a id="__codelineno-8-153" name="__codelineno-8-153" href="#__codelineno-8-153"></a><span class="w">          </span><span class="no">"correlation_id": async_metadata.get("correlation_id"),</span>
+<a id="__codelineno-8-154" name="__codelineno-8-154" href="#__codelineno-8-154"></a><span class="w">          </span><span class="no">"retry_attempt": async_metadata.get("retry_count", 0) + 1,</span>
+<a id="__codelineno-8-155" name="__codelineno-8-155" href="#__codelineno-8-155"></a><span class="w">          </span><span class="no">"final_response": True</span>
 <a id="__codelineno-8-156" name="__codelineno-8-156" href="#__codelineno-8-156"></a><span class="w">        </span><span class="no">},</span>
-<a id="__codelineno-8-157" name="__codelineno-8-157" href="#__codelineno-8-157"></a><span class="w">        </span><span class="no">&quot;business_context&quot;: {</span>
-<a id="__codelineno-8-158" name="__codelineno-8-158" href="#__codelineno-8-158"></a><span class="w">          </span><span class="no">&quot;customer_impact&quot;: &quot;order_confirmed&quot; if is_successful else &quot;order_cancelled&quot;,</span>
-<a id="__codelineno-8-159" name="__codelineno-8-159" href="#__codelineno-8-159"></a><span class="w">          </span><span class="no">&quot;requires_notification&quot;: True,</span>
-<a id="__codelineno-8-160" name="__codelineno-8-160" href="#__codelineno-8-160"></a><span class="w">          </span><span class="no">&quot;follow_up_actions&quot;: [&quot;send_confirmation_email&quot;, &quot;update_inventory&quot;] if is_successful else [&quot;send_decline_email&quot;, &quot;release_inventory&quot;],</span>
-<a id="__codelineno-8-161" name="__codelineno-8-161" href="#__codelineno-8-161"></a><span class="w">          </span><span class="no">&quot;priority_level&quot;: processing_context.get(&quot;priority&quot;, &quot;normal&quot;)</span>
+<a id="__codelineno-8-157" name="__codelineno-8-157" href="#__codelineno-8-157"></a><span class="w">        </span><span class="no">"business_context": {</span>
+<a id="__codelineno-8-158" name="__codelineno-8-158" href="#__codelineno-8-158"></a><span class="w">          </span><span class="no">"customer_impact": "order_confirmed" if is_successful else "order_cancelled",</span>
+<a id="__codelineno-8-159" name="__codelineno-8-159" href="#__codelineno-8-159"></a><span class="w">          </span><span class="no">"requires_notification": True,</span>
+<a id="__codelineno-8-160" name="__codelineno-8-160" href="#__codelineno-8-160"></a><span class="w">          </span><span class="no">"follow_up_actions": ["send_confirmation_email", "update_inventory"] if is_successful else ["send_decline_email", "release_inventory"],</span>
+<a id="__codelineno-8-161" name="__codelineno-8-161" href="#__codelineno-8-161"></a><span class="w">          </span><span class="no">"priority_level": processing_context.get("priority", "normal")</span>
 <a id="__codelineno-8-162" name="__codelineno-8-162" href="#__codelineno-8-162"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-8-163" name="__codelineno-8-163" href="#__codelineno-8-163"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-8-164" name="__codelineno-8-164" href="#__codelineno-8-164"></a>
-<a id="__codelineno-8-165" name="__codelineno-8-165" href="#__codelineno-8-165"></a><span class="w">      </span><span class="no">log.info(&quot;Processed external system response for order {}: status={}, amount=${:.2f}&quot;, </span>
-<a id="__codelineno-8-166" name="__codelineno-8-166" href="#__codelineno-8-166"></a><span class="w">               </span><span class="no">original_order.get(&quot;order_id&quot;), response_data[&quot;status&quot;], payment_details.get(&quot;amount&quot;, 0))</span>
+<a id="__codelineno-8-165" name="__codelineno-8-165" href="#__codelineno-8-165"></a><span class="w">      </span><span class="no">log.info("Processed external system response for order {}: status={}, amount=${:.2f}", </span>
+<a id="__codelineno-8-166" name="__codelineno-8-166" href="#__codelineno-8-166"></a><span class="w">               </span><span class="no">original_order.get("order_id"), response_data["status"], payment_details.get("amount", 0))</span>
 <a id="__codelineno-8-167" name="__codelineno-8-167" href="#__codelineno-8-167"></a>
 <a id="__codelineno-8-168" name="__codelineno-8-168" href="#__codelineno-8-168"></a><span class="w">      </span><span class="no">return response_data</span>
 <a id="__codelineno-8-169" name="__codelineno-8-169" href="#__codelineno-8-169"></a>
@@ -3061,8 +3061,8 @@
 <a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>
 <a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">      </span><span class="no"># Return multiple outputs for different external systems</span>
 <a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">      </span><span class="no">return [</span>
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">        </span><span class="no">(f&quot;payment_{correlation_id}&quot;, payment_request),</span>
-<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">        </span><span class="no">(f&quot;inventory_{correlation_id}&quot;, inventory_request)</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">        </span><span class="no">(f"payment_{correlation_id}", payment_request),</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">        </span><span class="no">(f"inventory_{correlation_id}", inventory_request)</span>
 <a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">      </span><span class="no">]</span>
 </code></pre></div>
 <h2 id="conclusion">Conclusion</h2>

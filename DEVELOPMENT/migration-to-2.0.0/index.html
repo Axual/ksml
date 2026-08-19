@@ -2362,9 +2362,9 @@
 <p>KSML now rejects a definition file that uses the same key twice, instead of silently keeping the last value. This catches copy-and-paste mistakes early.</p>
 <p>On the 1.x line a repeated key was accepted and the last one quietly won, which could hide a real mistake in a pipeline or function definition.</p>
 <p>KSML stops at startup and names the file and the position:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Configuration Key   : &#39;definitionFile&#39;
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Configuration Value : &#39;/ksml/processor.yaml&#39;
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Could not read the KSML definition: Duplicate field &#39;topic&#39;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Configuration Key   : 'definitionFile'
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Configuration Value : '/ksml/processor.yaml'
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Could not read the KSML definition: Duplicate field 'topic'
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a> at [Source: (File); line: 4, column: 12]
 </code></pre></div>
 <p>This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.</p>
@@ -2377,10 +2377,10 @@ the logical type when it reads and writes a record. One of these changes what yo
 <p>An Avro <code>decimal</code> used to arrive in Python as raw bytes, because KSML treated it as its base <code>bytes</code>
 type. It is now a string holding the exact number.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;amount&quot;</span><span class="p">]</span>          <span class="c1"># b&#39;\x30\x39&#39;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># b'\x30\x39'</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;amount&quot;</span><span class="p">]</span>          <span class="c1"># &quot;123.45&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># "123.45"</span>
 </code></pre></div>
 <p>What you need to do: if a Python function reads a <code>decimal</code> field, treat it as a string. Use
 <code>float(value["amount"])</code> or Python's <code>decimal.Decimal</code> when you need to calculate with it. When you

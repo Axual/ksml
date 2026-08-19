@@ -2392,9 +2392,9 @@
 <h3 id="stream-processing-applications">Stream Processing Applications</h3>
 <p>Process data from input topics to output topics:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Application metadata (optional)</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;order-processor&quot;</span><span class="w">         </span><span class="c1"># Optional</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0.0&quot;</span><span class="w">               </span><span class="c1"># Optional  </span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Process</span><span class="nv"> </span><span class="s">orders&quot;</span><span class="w">  </span><span class="c1"># Optional</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"order-processor"</span><span class="w">         </span><span class="c1"># Optional</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.0"</span><span class="w">               </span><span class="c1"># Optional  </span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Process</span><span class="nv"> </span><span class="s">orders"</span><span class="w">  </span><span class="c1"># Optional</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Data sources and sinks (optional - can be inlined)</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">streams</span><span class="p">:</span><span class="w">       </span><span class="c1"># KStream definitions (optional)</span>
@@ -2413,9 +2413,9 @@
 <h3 id="data-generation-applications">Data Generation Applications</h3>
 <p>Generate and produce data to Kafka topics:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Application metadata (optional)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sensor-data-generator&quot;</span><span class="w">   </span><span class="c1"># Optional</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0.0&quot;</span><span class="w">               </span><span class="c1"># Optional</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Generate</span><span class="nv"> </span><span class="s">sensor</span><span class="nv"> </span><span class="s">data&quot;</span><span class="w">  </span><span class="c1"># Optional</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"sensor-data-generator"</span><span class="w">   </span><span class="c1"># Optional</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.0"</span><span class="w">               </span><span class="c1"># Optional</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Generate</span><span class="nv"> </span><span class="s">sensor</span><span class="nv"> </span><span class="s">data"</span><span class="w">  </span><span class="c1"># Optional</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Processing logic</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">functions</span><span class="p">:</span><span class="w">     </span><span class="c1"># Python function definitions (REQUIRED - must include generator functions)</span>
@@ -2456,9 +2456,9 @@
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;order-processing-app&quot;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.2.3&quot;</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Processes</span><span class="nv"> </span><span class="s">orders</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">enriches</span><span class="nv"> </span><span class="s">them</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">customer</span><span class="nv"> </span><span class="s">data&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"order-processing-app"</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.2.3"</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Processes</span><span class="nv"> </span><span class="s">orders</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">enriches</span><span class="nv"> </span><span class="s">them</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">customer</span><span class="nv"> </span><span class="s">data"</span>
 </code></pre></div>
 <h2 id="data-sources-and-targets">Data Sources and Targets</h2>
 <p>KSML supports three types of data streams based on Kafka Streams concepts. Each stream type has different characteristics and use cases for processing streaming data.</p>
@@ -2641,18 +2641,18 @@
 <a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
 <a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">      </span><span class="no"># Generate realistic user profile data</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">      </span><span class="no">user_id = &quot;user_&quot; + str(random.randint(1, 1000))</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">      </span><span class="no">departments = [&quot;engineering&quot;, &quot;marketing&quot;, &quot;sales&quot;, &quot;support&quot;, &quot;hr&quot;]</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">      </span><span class="no">locations = [&quot;new_york&quot;, &quot;london&quot;, &quot;tokyo&quot;, &quot;sydney&quot;]</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">      </span><span class="no">user_id = "user_" + str(random.randint(1, 1000))</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">      </span><span class="no">departments = ["engineering", "marketing", "sales", "support", "hr"]</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">      </span><span class="no">locations = ["new_york", "london", "tokyo", "sydney"]</span>
 <a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
 <a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">      </span><span class="no">profile = {</span>
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">        </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">        </span><span class="no">&quot;name&quot;: f&quot;User {user_id.split(&#39;_&#39;)[1]}&quot;,</span>
-<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">        </span><span class="no">&quot;email&quot;: f&quot;{user_id}@company.com&quot;,</span>
-<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">        </span><span class="no">&quot;department&quot;: random.choice(departments),</span>
-<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">        </span><span class="no">&quot;location&quot;: random.choice(locations),</span>
-<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">        </span><span class="no">&quot;created_at&quot;: int(time.time() * 1000),</span>
-<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="no">&quot;is_active&quot;: True</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">        </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">        </span><span class="no">"name": f"User {user_id.split('_')[1]}",</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">        </span><span class="no">"email": f"{user_id}@company.com",</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">        </span><span class="no">"department": random.choice(departments),</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">        </span><span class="no">"location": random.choice(locations),</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">        </span><span class="no">"created_at": int(time.time() * 1000),</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="no">"is_active": True</span>
 <a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>
 <a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">      </span><span class="no">return (user_id, profile)</span>
@@ -2701,9 +2701,9 @@
 <a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>
 <a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="w">      </span><span class="no"># Look up user profile from the custom store</span>
-<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">      </span><span class="no">user_id = value.get(&quot;user_id&quot;)</span>
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">      </span><span class="no">user_id = value.get("user_id")</span>
 <a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="w">      </span><span class="no">if not user_id:</span>
-<a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="w">        </span><span class="no">log.warn(&quot;No user_id found in activity event&quot;)</span>
+<a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="w">        </span><span class="no">log.warn("No user_id found in activity event")</span>
 <a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="w">        </span><span class="no">return value</span>
 <a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a>
 <a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="w">      </span><span class="no"># Access the table which uses the custom store</span>
@@ -2712,21 +2712,21 @@
 <a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a><span class="w">        </span><span class="no"># Enrich activity with user profile data</span>
 <a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a><span class="w">        </span><span class="no">enriched_activity = {</span>
 <a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a><span class="w">          </span><span class="no">**value,</span>
-<a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a><span class="w">          </span><span class="no">&quot;user_name&quot;: profile.get(&quot;name&quot;, &quot;Unknown&quot;),</span>
-<a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a><span class="w">          </span><span class="no">&quot;user_department&quot;: profile.get(&quot;department&quot;, &quot;Unknown&quot;),</span>
-<a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a><span class="w">          </span><span class="no">&quot;user_location&quot;: profile.get(&quot;location&quot;, &quot;Unknown&quot;),</span>
-<a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a><span class="w">          </span><span class="no">&quot;enriched_at&quot;: int(time.time() * 1000),</span>
-<a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a><span class="w">          </span><span class="no">&quot;store_used&quot;: &quot;custom_inline_store&quot;</span>
+<a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a><span class="w">          </span><span class="no">"user_name": profile.get("name", "Unknown"),</span>
+<a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a><span class="w">          </span><span class="no">"user_department": profile.get("department", "Unknown"),</span>
+<a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a><span class="w">          </span><span class="no">"user_location": profile.get("location", "Unknown"),</span>
+<a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a><span class="w">          </span><span class="no">"enriched_at": int(time.time() * 1000),</span>
+<a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a><span class="w">          </span><span class="no">"store_used": "custom_inline_store"</span>
 <a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a><span class="w">        </span><span class="no">}</span>
-<a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a><span class="w">        </span><span class="no">log.info(&quot;Enriched activity for user: {}, department: {}, location: {}&quot;, </span>
-<a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a><span class="w">                 </span><span class="no">user_id, profile.get(&quot;department&quot;), profile.get(&quot;location&quot;))</span>
+<a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a><span class="w">        </span><span class="no">log.info("Enriched activity for user: {}, department: {}, location: {}", </span>
+<a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a><span class="w">                 </span><span class="no">user_id, profile.get("department"), profile.get("location"))</span>
 <a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a><span class="w">        </span><span class="no">return enriched_activity</span>
 <a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a><span class="w">      </span><span class="no">else:</span>
-<a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a><span class="w">        </span><span class="no">log.warn(&quot;User profile not found for user_id: {}&quot;, user_id)</span>
+<a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a><span class="w">        </span><span class="no">log.warn("User profile not found for user_id: {}", user_id)</span>
 <a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a><span class="w">        </span><span class="no">return {</span>
 <a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a><span class="w">          </span><span class="no">**value,</span>
-<a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a><span class="w">          </span><span class="no">&quot;enriched_at&quot;: int(time.time() * 1000),</span>
-<a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a><span class="w">          </span><span class="no">&quot;enrichment_status&quot;: &quot;profile_not_found&quot;</span>
+<a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a><span class="w">          </span><span class="no">"enriched_at": int(time.time() * 1000),</span>
+<a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a><span class="w">          </span><span class="no">"enrichment_status": "profile_not_found"</span>
 <a id="__codelineno-7-59" name="__codelineno-7-59" href="#__codelineno-7-59"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-7-60" name="__codelineno-7-60" href="#__codelineno-7-60"></a>
 <a id="__codelineno-7-61" name="__codelineno-7-61" href="#__codelineno-7-61"></a><span class="nt">producers</span><span class="p">:</span>
@@ -2742,14 +2742,14 @@
 <a id="__codelineno-7-71" name="__codelineno-7-71" href="#__codelineno-7-71"></a><span class="w">        </span><span class="no">import time</span>
 <a id="__codelineno-7-72" name="__codelineno-7-72" href="#__codelineno-7-72"></a>
 <a id="__codelineno-7-73" name="__codelineno-7-73" href="#__codelineno-7-73"></a><span class="w">        </span><span class="no"># Generate activity events referencing existing users</span>
-<a id="__codelineno-7-74" name="__codelineno-7-74" href="#__codelineno-7-74"></a><span class="w">        </span><span class="no">user_id = &quot;user_&quot; + str(random.randint(1, 1000))</span>
-<a id="__codelineno-7-75" name="__codelineno-7-75" href="#__codelineno-7-75"></a><span class="w">        </span><span class="no">activities = [&quot;login&quot;, &quot;logout&quot;, &quot;page_view&quot;, &quot;document_upload&quot;, &quot;meeting_join&quot;]</span>
+<a id="__codelineno-7-74" name="__codelineno-7-74" href="#__codelineno-7-74"></a><span class="w">        </span><span class="no">user_id = "user_" + str(random.randint(1, 1000))</span>
+<a id="__codelineno-7-75" name="__codelineno-7-75" href="#__codelineno-7-75"></a><span class="w">        </span><span class="no">activities = ["login", "logout", "page_view", "document_upload", "meeting_join"]</span>
 <a id="__codelineno-7-76" name="__codelineno-7-76" href="#__codelineno-7-76"></a>
 <a id="__codelineno-7-77" name="__codelineno-7-77" href="#__codelineno-7-77"></a><span class="w">        </span><span class="no">activity = {</span>
-<a id="__codelineno-7-78" name="__codelineno-7-78" href="#__codelineno-7-78"></a><span class="w">          </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-7-79" name="__codelineno-7-79" href="#__codelineno-7-79"></a><span class="w">          </span><span class="no">&quot;activity_type&quot;: random.choice(activities),</span>
-<a id="__codelineno-7-80" name="__codelineno-7-80" href="#__codelineno-7-80"></a><span class="w">          </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000),</span>
-<a id="__codelineno-7-81" name="__codelineno-7-81" href="#__codelineno-7-81"></a><span class="w">          </span><span class="no">&quot;session_id&quot;: &quot;session_&quot; + str(random.randint(1000, 9999))</span>
+<a id="__codelineno-7-78" name="__codelineno-7-78" href="#__codelineno-7-78"></a><span class="w">          </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-7-79" name="__codelineno-7-79" href="#__codelineno-7-79"></a><span class="w">          </span><span class="no">"activity_type": random.choice(activities),</span>
+<a id="__codelineno-7-80" name="__codelineno-7-80" href="#__codelineno-7-80"></a><span class="w">          </span><span class="no">"timestamp": int(time.time() * 1000),</span>
+<a id="__codelineno-7-81" name="__codelineno-7-81" href="#__codelineno-7-81"></a><span class="w">          </span><span class="no">"session_id": "session_" + str(random.randint(1000, 9999))</span>
 <a id="__codelineno-7-82" name="__codelineno-7-82" href="#__codelineno-7-82"></a><span class="w">        </span><span class="no">}</span>
 <a id="__codelineno-7-83" name="__codelineno-7-83" href="#__codelineno-7-83"></a>
 <a id="__codelineno-7-84" name="__codelineno-7-84" href="#__codelineno-7-84"></a><span class="w">        </span><span class="no">return (user_id, activity)</span>
@@ -2762,8 +2762,8 @@
 <a id="__codelineno-7-91" name="__codelineno-7-91" href="#__codelineno-7-91"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-7-92" name="__codelineno-7-92" href="#__codelineno-7-92"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-7-93" name="__codelineno-7-93" href="#__codelineno-7-93"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-7-94" name="__codelineno-7-94" href="#__codelineno-7-94"></a><span class="w">            </span><span class="no">log.info(&quot;Processing activity: {} for user: {}&quot;, </span>
-<a id="__codelineno-7-95" name="__codelineno-7-95" href="#__codelineno-7-95"></a><span class="w">                     </span><span class="no">value.get(&quot;activity_type&quot;), value.get(&quot;user_id&quot;))</span>
+<a id="__codelineno-7-94" name="__codelineno-7-94" href="#__codelineno-7-94"></a><span class="w">            </span><span class="no">log.info("Processing activity: {} for user: {}", </span>
+<a id="__codelineno-7-95" name="__codelineno-7-95" href="#__codelineno-7-95"></a><span class="w">                     </span><span class="no">value.get("activity_type"), value.get("user_id"))</span>
 <a id="__codelineno-7-96" name="__codelineno-7-96" href="#__codelineno-7-96"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
 <a id="__codelineno-7-97" name="__codelineno-7-97" href="#__codelineno-7-97"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enrich_with_user_profile</span>
 <a id="__codelineno-7-98" name="__codelineno-7-98" href="#__codelineno-7-98"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enriched_activity_output</span>
@@ -2903,7 +2903,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">is_valid_order</span><span class="p">:</span>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predicate</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;total&quot;) &gt; 0</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get("total") &gt; 0</span>
 </code></pre></div>
 <p>For complete function documentation, see <a href="../function-reference/">Function Reference</a>.</p>
 <h2 id="operations">Operations</h2>

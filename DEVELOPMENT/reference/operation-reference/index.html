@@ -5284,13 +5284,13 @@
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(tuple(string, json))</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">            </span><span class="no">return [(f&quot;{value[&#39;order_id&#39;]}_{i[&#39;item_id&#39;]}&quot;, {</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">              </span><span class="no">&quot;order_id&quot;: value[&#39;order_id&#39;],</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">              </span><span class="no">&quot;customer_id&quot;: value[&#39;customer_id&#39;],</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">              </span><span class="no">&quot;item_id&quot;: i[&#39;item_id&#39;],</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">              </span><span class="no">&quot;quantity&quot;: i[&#39;quantity&#39;],</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">              </span><span class="no">&quot;total&quot;: i[&#39;quantity&#39;] * i[&#39;price&#39;]</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">            </span><span class="no">}) for i in value[&#39;items&#39;]]</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">            </span><span class="no">return [(f"{value['order_id']}_{i['item_id']}", {</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">              </span><span class="no">"order_id": value['order_id'],</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">              </span><span class="no">"customer_id": value['customer_id'],</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">              </span><span class="no">"item_id": i['item_id'],</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">              </span><span class="no">"quantity": i['quantity'],</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">              </span><span class="no">"total": i['quantity'] * i['price']</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">            </span><span class="no">}) for i in value['items']]</span>
 </code></pre></div>
 <p>This example splits order batches containing multiple items into individual item records:</p>
 <details class="info">
@@ -5304,14 +5304,14 @@
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="no">global counter</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="no">counter += 1</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="no">cust = random.choice([&quot;alice&quot;, &quot;bob&quot;, &quot;charlie&quot;])</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="no">cust = random.choice(["alice", "bob", "charlie"])</span>
 <a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">      </span><span class="no">batch = {</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="no">&quot;order_id&quot;: f&quot;ord-{counter}&quot;,</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">        </span><span class="no">&quot;customer_id&quot;: cust,</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">        </span><span class="no">&quot;items&quot;: [</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">          </span><span class="no">{&quot;item_id&quot;: &quot;laptop&quot;, &quot;quantity&quot;: 1, &quot;price&quot;: 999.99},</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">          </span><span class="no">{&quot;item_id&quot;: &quot;mouse&quot;, &quot;quantity&quot;: 2, &quot;price&quot;: 29.99},</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">          </span><span class="no">{&quot;item_id&quot;: &quot;keyboard&quot;, &quot;quantity&quot;: 1, &quot;price&quot;: 79.99}</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="no">"order_id": f"ord-{counter}",</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">        </span><span class="no">"customer_id": cust,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">        </span><span class="no">"items": [</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">          </span><span class="no">{"item_id": "laptop", "quantity": 1, "price": 999.99},</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">          </span><span class="no">{"item_id": "mouse", "quantity": 2, "price": 29.99},</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">          </span><span class="no">{"item_id": "keyboard", "quantity": 1, "price": 79.99}</span>
 <a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">        </span><span class="no">]</span>
 <a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">      </span><span class="no">return cust, json.dumps(batch)</span>
@@ -5343,13 +5343,13 @@
 <a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">list(tuple(string, json))</span>
 <a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">            </span><span class="no">return [(f&quot;{value[&#39;order_id&#39;]}_{i[&#39;item_id&#39;]}&quot;, {</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">              </span><span class="no">&quot;order_id&quot;: value[&#39;order_id&#39;],</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">              </span><span class="no">&quot;customer_id&quot;: value[&#39;customer_id&#39;],</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">              </span><span class="no">&quot;item_id&quot;: i[&#39;item_id&#39;],</span>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">              </span><span class="no">&quot;quantity&quot;: i[&#39;quantity&#39;],</span>
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">              </span><span class="no">&quot;total&quot;: i[&#39;quantity&#39;] * i[&#39;price&#39;]</span>
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">            </span><span class="no">}) for i in value[&#39;items&#39;]]</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">            </span><span class="no">return [(f"{value['order_id']}_{i['item_id']}", {</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">              </span><span class="no">"order_id": value['order_id'],</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">              </span><span class="no">"customer_id": value['customer_id'],</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">              </span><span class="no">"item_id": i['item_id'],</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">              </span><span class="no">"quantity": i['quantity'],</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">              </span><span class="no">"total": i['quantity'] * i['price']</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">            </span><span class="no">}) for i in value['items']]</span>
 <a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
 <a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">individual_items</span>
 <a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
@@ -5391,7 +5391,7 @@
 <h4 id="example_4">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">selectKey</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;user_id&quot;)</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get("user_id")</span>
 </code></pre></div>
 <p>This example demonstrates changing the key from session_id to user_id for better data organization:</p>
 <details class="info">
@@ -5408,17 +5408,17 @@
 <a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string,json)</span>
 <a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">      </span><span class="no">import random, time</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">      </span><span class="no">uid = random.choice([&quot;u01&quot;, &quot;u02&quot;, &quot;u03&quot;])</span>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">      </span><span class="no">evt = random.choice([&quot;login&quot;, &quot;purchase&quot;, &quot;view&quot;])</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">      </span><span class="no">sid = f&quot;s{random.randint(100, 999)}&quot;</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">      </span><span class="no">uid = random.choice(["u01", "u02", "u03"])</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">      </span><span class="no">evt = random.choice(["login", "purchase", "view"])</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">      </span><span class="no">sid = f"s{random.randint(100, 999)}"</span>
 <a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">      </span><span class="no">data = {</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">        </span><span class="no">&quot;user_id&quot;: uid,</span>
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">        </span><span class="no">&quot;event_type&quot;: evt,</span>
-<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">        </span><span class="no">&quot;session_id&quot;: sid,</span>
-<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time())</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">        </span><span class="no">"user_id": uid,</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">        </span><span class="no">"event_type": evt,</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">        </span><span class="no">"session_id": sid,</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">        </span><span class="no">"timestamp": int(time.time())</span>
 <a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">      </span><span class="no">if evt == &quot;purchase&quot;:</span>
-<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">        </span><span class="no">data[&quot;amount&quot;] = round(random.uniform(10, 500), 2)</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">      </span><span class="no">if evt == "purchase":</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">        </span><span class="no">data["amount"] = round(random.uniform(10, 500), 2)</span>
 <a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">      </span><span class="no">return (sid, data)</span>
 <a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>
 <a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="nt">producers</span><span class="p">:</span>
@@ -5448,7 +5448,7 @@
 <a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
 <a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">selectKey</span>
 <a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;user_id&quot;)</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get("user_id")</span>
 <a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_keyed_events</span>
 </code></pre></div>
 </details>
@@ -5590,12 +5590,12 @@
 <a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">      </span><span class="no">global counter</span>
 <a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">      </span><span class="no">counter += 1</span>
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">      </span><span class="no">pid = f&quot;p{counter:03d}&quot;</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">      </span><span class="no">pid = f"p{counter:03d}"</span>
 <a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">      </span><span class="no">return pid, {</span>
-<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">        </span><span class="no">&quot;product_id&quot;: pid,</span>
-<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">        </span><span class="no">&quot;name&quot;: random.choice([&quot;laptop&quot;, &quot;phone&quot;, &quot;tablet&quot;]),</span>
-<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">        </span><span class="no">&quot;status&quot;: random.choice([&quot;active&quot;, &quot;inactive&quot;, &quot;pending&quot;]),</span>
-<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">        </span><span class="no">&quot;price&quot;: round(random.uniform(50, 1500), 2)</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">        </span><span class="no">"product_id": pid,</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">        </span><span class="no">"name": random.choice(["laptop", "phone", "tablet"]),</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">        </span><span class="no">"status": random.choice(["active", "inactive", "pending"]),</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">        </span><span class="no">"price": round(random.uniform(50, 1500), 2)</span>
 <a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
 <a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>
@@ -5624,9 +5624,9 @@
 <a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">      </span><span class="no">if value is None:</span>
 <a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">        </span><span class="no">return False</span>
 <a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
-<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">      </span><span class="no">status = value.get(&quot;status&quot;, &quot;&quot;)</span>
-<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">      </span><span class="no">if status == &quot;inactive&quot;:</span>
-<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">        </span><span class="no">print(f&quot;Filtering out inactive product: {value.get(&#39;product_id&#39;)} - {value.get(&#39;name&#39;)}&quot;)</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">      </span><span class="no">status = value.get("status", "")</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">      </span><span class="no">if status == "inactive":</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">        </span><span class="no">print(f"Filtering out inactive product: {value.get('product_id')} - {value.get('name')}")</span>
 <a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">        </span><span class="no">return True</span>
 <a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
 <a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="w">      </span><span class="no">return False</span>
@@ -5640,7 +5640,7 @@
 <a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a><span class="w">            </span><span class="no">print(f&quot;Active product kept: {key} - {value[&#39;name&#39;]} (status: {value[&#39;status&#39;]}, price: ${value[&#39;price&#39;]})&quot;)</span>
+<a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a><span class="w">            </span><span class="no">print(f"Active product kept: {key} - {value['name']} (status: {value['status']}, price: ${value['price']})")</span>
 <a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
 <a id="__codelineno-14-32" name="__codelineno-14-32" href="#__codelineno-14-32"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">active_products</span>
 <a id="__codelineno-14-33" name="__codelineno-14-33" href="#__codelineno-14-33"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
@@ -5745,10 +5745,10 @@
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
 <a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">            </span><span class="no">if value is None:</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">              </span><span class="no">return &quot;unknown&quot;  </span>
-<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">            </span><span class="no">if not &quot;sensor_type&quot; in value:</span>
-<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">              </span><span class="no">return &quot;unknown&quot;</span>
-<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value[&quot;sensor_type&quot;]</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">              </span><span class="no">return "unknown"  </span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">            </span><span class="no">if not "sensor_type" in value:</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">              </span><span class="no">return "unknown"</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value["sensor_type"]</span>
 <a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 <p><strong>Full example for <code>groupBy</code></strong>:</p>
@@ -5814,9 +5814,9 @@
 <a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="w">      </span><span class="no">activity_id = 0</span>
-<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">      </span><span class="no">user_ids = [&quot;user_001&quot;, &quot;user_002&quot;, &quot;user_003&quot;, &quot;user_004&quot;, &quot;user_005&quot;]</span>
-<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">      </span><span class="no">activity_types = [&quot;login&quot;, &quot;purchase&quot;, &quot;browse&quot;, &quot;logout&quot;, &quot;search&quot;]</span>
-<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="w">      </span><span class="no">regions = [&quot;north&quot;, &quot;south&quot;, &quot;east&quot;, &quot;west&quot;]</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">      </span><span class="no">user_ids = ["user_001", "user_002", "user_003", "user_004", "user_005"]</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">      </span><span class="no">activity_types = ["login", "purchase", "browse", "logout", "search"]</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="w">      </span><span class="no">regions = ["north", "south", "east", "west"]</span>
 <a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="w">      </span><span class="no">global activity_id</span>
 <a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>
@@ -5825,16 +5825,16 @@
 <a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a><span class="w">      </span><span class="no"># Generate user activity with region as initial key</span>
 <a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a><span class="w">      </span><span class="no">region = random.choice(regions)</span>
 <a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="w">      </span><span class="no">activity = {</span>
-<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a><span class="w">        </span><span class="no">&quot;activity_id&quot;: f&quot;activity_{activity_id:04d}&quot;,</span>
-<a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a><span class="w">        </span><span class="no">&quot;user_id&quot;: random.choice(user_ids),</span>
-<a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="w">        </span><span class="no">&quot;activity_type&quot;: random.choice(activity_types),</span>
-<a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000),</span>
-<a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a><span class="w">        </span><span class="no">&quot;region&quot;: region</span>
+<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a><span class="w">        </span><span class="no">"activity_id": f"activity_{activity_id:04d}",</span>
+<a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a><span class="w">        </span><span class="no">"user_id": random.choice(user_ids),</span>
+<a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="w">        </span><span class="no">"activity_type": random.choice(activity_types),</span>
+<a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a><span class="w">        </span><span class="no">"timestamp": int(time.time() * 1000),</span>
+<a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a><span class="w">        </span><span class="no">"region": region</span>
 <a id="__codelineno-21-24" name="__codelineno-21-24" href="#__codelineno-21-24"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-21-25" name="__codelineno-21-25" href="#__codelineno-21-25"></a>
 <a id="__codelineno-21-26" name="__codelineno-21-26" href="#__codelineno-21-26"></a><span class="w">      </span><span class="no"># Log the activity generation</span>
-<a id="__codelineno-21-27" name="__codelineno-21-27" href="#__codelineno-21-27"></a><span class="w">      </span><span class="no">log.info(&quot;Generated activity: {} for user {} in region {} - type: {}&quot;, </span>
-<a id="__codelineno-21-28" name="__codelineno-21-28" href="#__codelineno-21-28"></a><span class="w">               </span><span class="no">activity[&quot;activity_id&quot;], activity[&quot;user_id&quot;], region, activity[&quot;activity_type&quot;])</span>
+<a id="__codelineno-21-27" name="__codelineno-21-27" href="#__codelineno-21-27"></a><span class="w">      </span><span class="no">log.info("Generated activity: {} for user {} in region {} - type: {}", </span>
+<a id="__codelineno-21-28" name="__codelineno-21-28" href="#__codelineno-21-28"></a><span class="w">               </span><span class="no">activity["activity_id"], activity["user_id"], region, activity["activity_type"])</span>
 <a id="__codelineno-21-29" name="__codelineno-21-29" href="#__codelineno-21-29"></a>
 <a id="__codelineno-21-30" name="__codelineno-21-30" href="#__codelineno-21-30"></a><span class="w">      </span><span class="no"># Use region as key initially (will be repartitioned by user_id later)</span>
 <a id="__codelineno-21-31" name="__codelineno-21-31" href="#__codelineno-21-31"></a><span class="w">      </span><span class="no">key = region</span>
@@ -5875,10 +5875,10 @@
 <a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a><span class="w">      </span><span class="no"># Custom partitioning logic based on user_id pattern</span>
 <a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a><span class="w">      </span><span class="no"># This demonstrates intelligent partitioning for user-based processing</span>
 <a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a>
-<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="w">      </span><span class="no">if value and &quot;user_id&quot; in value:</span>
-<a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a><span class="w">        </span><span class="no">user_id = value[&quot;user_id&quot;]</span>
+<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="w">      </span><span class="no">if value and "user_id" in value:</span>
+<a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a><span class="w">        </span><span class="no">user_id = value["user_id"]</span>
 <a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a><span class="w">        </span><span class="no"># Extract user number from user_001, user_002, etc.</span>
-<a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a><span class="w">        </span><span class="no">user_num = int(user_id.split(&quot;_&quot;)[-1])</span>
+<a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a><span class="w">        </span><span class="no">user_num = int(user_id.split("_")[-1])</span>
 <a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a>
 <a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a><span class="w">        </span><span class="no"># Even user numbers (002, 004, 006, ...) -&gt; partitions 0-1</span>
 <a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a><span class="w">        </span><span class="no"># Odd user numbers (001, 003, 005, ...) -&gt; partitions 2-3</span>
@@ -5889,7 +5889,7 @@
 <a id="__codelineno-22-33" name="__codelineno-22-33" href="#__codelineno-22-33"></a><span class="w">          </span><span class="no"># Distribute odd users across partitions 2 and 3</span>
 <a id="__codelineno-22-34" name="__codelineno-22-34" href="#__codelineno-22-34"></a><span class="w">          </span><span class="no">partition = 2 + ((user_num // 2) % 2)  # 001-&gt;2, 003-&gt;3, 005-&gt;2, 007-&gt;3</span>
 <a id="__codelineno-22-35" name="__codelineno-22-35" href="#__codelineno-22-35"></a>
-<a id="__codelineno-22-36" name="__codelineno-22-36" href="#__codelineno-22-36"></a><span class="w">        </span><span class="no">log.debug(&quot;Routing user {} (num:{}) to partition {}&quot;, </span>
+<a id="__codelineno-22-36" name="__codelineno-22-36" href="#__codelineno-22-36"></a><span class="w">        </span><span class="no">log.debug("Routing user {} (num:{}) to partition {}", </span>
 <a id="__codelineno-22-37" name="__codelineno-22-37" href="#__codelineno-22-37"></a><span class="w">                  </span><span class="no">user_id, user_num, partition)</span>
 <a id="__codelineno-22-38" name="__codelineno-22-38" href="#__codelineno-22-38"></a>
 <a id="__codelineno-22-39" name="__codelineno-22-39" href="#__codelineno-22-39"></a><span class="w">        </span><span class="no">return partition</span>
@@ -5907,9 +5907,9 @@
 <a id="__codelineno-22-51" name="__codelineno-22-51" href="#__codelineno-22-51"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
 <a id="__codelineno-22-52" name="__codelineno-22-52" href="#__codelineno-22-52"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-22-53" name="__codelineno-22-53" href="#__codelineno-22-53"></a><span class="w">            </span><span class="no"># Extract user_id from the activity to become the new key</span>
-<a id="__codelineno-22-54" name="__codelineno-22-54" href="#__codelineno-22-54"></a><span class="w">            </span><span class="no">if value and &quot;user_id&quot; in value:</span>
-<a id="__codelineno-22-55" name="__codelineno-22-55" href="#__codelineno-22-55"></a><span class="w">              </span><span class="no">user_key = value[&quot;user_id&quot;]</span>
-<a id="__codelineno-22-56" name="__codelineno-22-56" href="#__codelineno-22-56"></a><span class="w">              </span><span class="no">log.info(&quot;Changing key from region &#39;{}&#39; to user_id &#39;{}&#39;&quot;, key, user_key)</span>
+<a id="__codelineno-22-54" name="__codelineno-22-54" href="#__codelineno-22-54"></a><span class="w">            </span><span class="no">if value and "user_id" in value:</span>
+<a id="__codelineno-22-55" name="__codelineno-22-55" href="#__codelineno-22-55"></a><span class="w">              </span><span class="no">user_key = value["user_id"]</span>
+<a id="__codelineno-22-56" name="__codelineno-22-56" href="#__codelineno-22-56"></a><span class="w">              </span><span class="no">log.info("Changing key from region '{}' to user_id '{}'", key, user_key)</span>
 <a id="__codelineno-22-57" name="__codelineno-22-57" href="#__codelineno-22-57"></a><span class="w">              </span><span class="no">result = user_key</span>
 <a id="__codelineno-22-58" name="__codelineno-22-58" href="#__codelineno-22-58"></a><span class="w">            </span><span class="no">else:</span>
 <a id="__codelineno-22-59" name="__codelineno-22-59" href="#__codelineno-22-59"></a><span class="w">              </span><span class="no">result = key</span>
@@ -5922,8 +5922,8 @@
 <a id="__codelineno-22-66" name="__codelineno-22-66" href="#__codelineno-22-66"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-22-67" name="__codelineno-22-67" href="#__codelineno-22-67"></a><span class="w">            </span><span class="no"># Add repartitioning info to track the transformation</span>
 <a id="__codelineno-22-68" name="__codelineno-22-68" href="#__codelineno-22-68"></a><span class="w">            </span><span class="no">if value:</span>
-<a id="__codelineno-22-69" name="__codelineno-22-69" href="#__codelineno-22-69"></a><span class="w">              </span><span class="no">value[&quot;processing_info&quot;] = f&quot;Repartitioned by user: {value.get(&#39;user_id&#39;, &#39;unknown&#39;)}&quot;</span>
-<a id="__codelineno-22-70" name="__codelineno-22-70" href="#__codelineno-22-70"></a><span class="w">              </span><span class="no">value[&quot;original_region&quot;] = key  # Keep track of original region</span>
+<a id="__codelineno-22-69" name="__codelineno-22-69" href="#__codelineno-22-69"></a><span class="w">              </span><span class="no">value["processing_info"] = f"Repartitioned by user: {value.get('user_id', 'unknown')}"</span>
+<a id="__codelineno-22-70" name="__codelineno-22-70" href="#__codelineno-22-70"></a><span class="w">              </span><span class="no">value["original_region"] = key  # Keep track of original region</span>
 <a id="__codelineno-22-71" name="__codelineno-22-71" href="#__codelineno-22-71"></a><span class="w">            </span><span class="no">result = value</span>
 <a id="__codelineno-22-72" name="__codelineno-22-72" href="#__codelineno-22-72"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
 <a id="__codelineno-22-73" name="__codelineno-22-73" href="#__codelineno-22-73"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
@@ -5938,8 +5938,8 @@
 <a id="__codelineno-22-82" name="__codelineno-22-82" href="#__codelineno-22-82"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-22-83" name="__codelineno-22-83" href="#__codelineno-22-83"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-22-84" name="__codelineno-22-84" href="#__codelineno-22-84"></a><span class="w">            </span><span class="no">if value:</span>
-<a id="__codelineno-22-85" name="__codelineno-22-85" href="#__codelineno-22-85"></a><span class="w">              </span><span class="no">log.info(&quot;Repartitioned activity {}: {} -&gt; user-based partitioning applied&quot;, </span>
-<a id="__codelineno-22-86" name="__codelineno-22-86" href="#__codelineno-22-86"></a><span class="w">                       </span><span class="no">key, value.get(&quot;processing_info&quot;, &quot;unknown&quot;))</span>
+<a id="__codelineno-22-85" name="__codelineno-22-85" href="#__codelineno-22-85"></a><span class="w">              </span><span class="no">log.info("Repartitioned activity {}: {} -&gt; user-based partitioning applied", </span>
+<a id="__codelineno-22-86" name="__codelineno-22-86" href="#__codelineno-22-86"></a><span class="w">                       </span><span class="no">key, value.get("processing_info", "unknown"))</span>
 <a id="__codelineno-22-87" name="__codelineno-22-87" href="#__codelineno-22-87"></a>
 <a id="__codelineno-22-88" name="__codelineno-22-88" href="#__codelineno-22-88"></a><span class="w">    </span><span class="c1"># Send to output topic to observe the repartitioning results</span>
 <a id="__codelineno-22-89" name="__codelineno-22-89" href="#__codelineno-22-89"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
@@ -6267,20 +6267,20 @@
 <a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="w">      </span><span class="no">message_id = 0</span>
-<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="w">      </span><span class="no">colors = [&quot;red&quot;, &quot;blue&quot;, &quot;green&quot;]</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="w">      </span><span class="no">colors = ["red", "blue", "green"]</span>
 <a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="w">      </span><span class="no">global message_id</span>
 <a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="w">      </span><span class="no">message_id += 1</span>
 <a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>
 <a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a><span class="w">      </span><span class="no">message = {</span>
-<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a><span class="w">        </span><span class="no">&quot;id&quot;: f&quot;stream_a_{message_id}&quot;,</span>
-<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a><span class="w">        </span><span class="no">&quot;color&quot;: random.choice(colors),</span>
-<a id="__codelineno-29-15" name="__codelineno-29-15" href="#__codelineno-29-15"></a><span class="w">        </span><span class="no">&quot;source&quot;: &quot;stream_a&quot;</span>
+<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a><span class="w">        </span><span class="no">"id": f"stream_a_{message_id}",</span>
+<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a><span class="w">        </span><span class="no">"color": random.choice(colors),</span>
+<a id="__codelineno-29-15" name="__codelineno-29-15" href="#__codelineno-29-15"></a><span class="w">        </span><span class="no">"source": "stream_a"</span>
 <a id="__codelineno-29-16" name="__codelineno-29-16" href="#__codelineno-29-16"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-29-17" name="__codelineno-29-17" href="#__codelineno-29-17"></a>
-<a id="__codelineno-29-18" name="__codelineno-29-18" href="#__codelineno-29-18"></a><span class="w">      </span><span class="no">log.info(&quot;Generated message from stream A: {} - color: {}&quot;, message[&quot;id&quot;], message[&quot;color&quot;])</span>
+<a id="__codelineno-29-18" name="__codelineno-29-18" href="#__codelineno-29-18"></a><span class="w">      </span><span class="no">log.info("Generated message from stream A: {} - color: {}", message["id"], message["color"])</span>
 <a id="__codelineno-29-19" name="__codelineno-29-19" href="#__codelineno-29-19"></a>
-<a id="__codelineno-29-20" name="__codelineno-29-20" href="#__codelineno-29-20"></a><span class="w">      </span><span class="no">key = message[&quot;color&quot;]</span>
+<a id="__codelineno-29-20" name="__codelineno-29-20" href="#__codelineno-29-20"></a><span class="w">      </span><span class="no">key = message["color"]</span>
 <a id="__codelineno-29-21" name="__codelineno-29-21" href="#__codelineno-29-21"></a><span class="w">      </span><span class="no">value = message</span>
 <a id="__codelineno-29-22" name="__codelineno-29-22" href="#__codelineno-29-22"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value)</span>
 <a id="__codelineno-29-23" name="__codelineno-29-23" href="#__codelineno-29-23"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
@@ -6290,20 +6290,20 @@
 <a id="__codelineno-29-27" name="__codelineno-29-27" href="#__codelineno-29-27"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-29-28" name="__codelineno-29-28" href="#__codelineno-29-28"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-29-29" name="__codelineno-29-29" href="#__codelineno-29-29"></a><span class="w">      </span><span class="no">message_id = 0</span>
-<a id="__codelineno-29-30" name="__codelineno-29-30" href="#__codelineno-29-30"></a><span class="w">      </span><span class="no">colors = [&quot;red&quot;, &quot;blue&quot;, &quot;green&quot;]</span>
+<a id="__codelineno-29-30" name="__codelineno-29-30" href="#__codelineno-29-30"></a><span class="w">      </span><span class="no">colors = ["red", "blue", "green"]</span>
 <a id="__codelineno-29-31" name="__codelineno-29-31" href="#__codelineno-29-31"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-29-32" name="__codelineno-29-32" href="#__codelineno-29-32"></a><span class="w">      </span><span class="no">global message_id</span>
 <a id="__codelineno-29-33" name="__codelineno-29-33" href="#__codelineno-29-33"></a><span class="w">      </span><span class="no">message_id += 1</span>
 <a id="__codelineno-29-34" name="__codelineno-29-34" href="#__codelineno-29-34"></a>
 <a id="__codelineno-29-35" name="__codelineno-29-35" href="#__codelineno-29-35"></a><span class="w">      </span><span class="no">message = {</span>
-<a id="__codelineno-29-36" name="__codelineno-29-36" href="#__codelineno-29-36"></a><span class="w">        </span><span class="no">&quot;id&quot;: f&quot;stream_b_{message_id}&quot;,</span>
-<a id="__codelineno-29-37" name="__codelineno-29-37" href="#__codelineno-29-37"></a><span class="w">        </span><span class="no">&quot;color&quot;: random.choice(colors),</span>
-<a id="__codelineno-29-38" name="__codelineno-29-38" href="#__codelineno-29-38"></a><span class="w">        </span><span class="no">&quot;source&quot;: &quot;stream_b&quot;</span>
+<a id="__codelineno-29-36" name="__codelineno-29-36" href="#__codelineno-29-36"></a><span class="w">        </span><span class="no">"id": f"stream_b_{message_id}",</span>
+<a id="__codelineno-29-37" name="__codelineno-29-37" href="#__codelineno-29-37"></a><span class="w">        </span><span class="no">"color": random.choice(colors),</span>
+<a id="__codelineno-29-38" name="__codelineno-29-38" href="#__codelineno-29-38"></a><span class="w">        </span><span class="no">"source": "stream_b"</span>
 <a id="__codelineno-29-39" name="__codelineno-29-39" href="#__codelineno-29-39"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-29-40" name="__codelineno-29-40" href="#__codelineno-29-40"></a>
-<a id="__codelineno-29-41" name="__codelineno-29-41" href="#__codelineno-29-41"></a><span class="w">      </span><span class="no">log.info(&quot;Generated message from stream B: {} - color: {}&quot;, message[&quot;id&quot;], message[&quot;color&quot;])</span>
+<a id="__codelineno-29-41" name="__codelineno-29-41" href="#__codelineno-29-41"></a><span class="w">      </span><span class="no">log.info("Generated message from stream B: {} - color: {}", message["id"], message["color"])</span>
 <a id="__codelineno-29-42" name="__codelineno-29-42" href="#__codelineno-29-42"></a>
-<a id="__codelineno-29-43" name="__codelineno-29-43" href="#__codelineno-29-43"></a><span class="w">      </span><span class="no">key = message[&quot;color&quot;]</span>
+<a id="__codelineno-29-43" name="__codelineno-29-43" href="#__codelineno-29-43"></a><span class="w">      </span><span class="no">key = message["color"]</span>
 <a id="__codelineno-29-44" name="__codelineno-29-44" href="#__codelineno-29-44"></a><span class="w">      </span><span class="no">value = message</span>
 <a id="__codelineno-29-45" name="__codelineno-29-45" href="#__codelineno-29-45"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value)</span>
 <a id="__codelineno-29-46" name="__codelineno-29-46" href="#__codelineno-29-46"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
@@ -6359,10 +6359,10 @@
 <a id="__codelineno-30-29" name="__codelineno-30-29" href="#__codelineno-30-29"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-30-30" name="__codelineno-30-30" href="#__codelineno-30-30"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-30-31" name="__codelineno-30-31" href="#__codelineno-30-31"></a><span class="w">            </span><span class="no">if value:</span>
-<a id="__codelineno-30-32" name="__codelineno-30-32" href="#__codelineno-30-32"></a><span class="w">              </span><span class="no">log.info(&quot;Merged message: {} from {} - color: {}&quot;, </span>
-<a id="__codelineno-30-33" name="__codelineno-30-33" href="#__codelineno-30-33"></a><span class="w">                       </span><span class="no">value.get(&quot;id&quot;, &quot;unknown&quot;), </span>
-<a id="__codelineno-30-34" name="__codelineno-30-34" href="#__codelineno-30-34"></a><span class="w">                       </span><span class="no">value.get(&quot;source&quot;, &quot;unknown&quot;), </span>
-<a id="__codelineno-30-35" name="__codelineno-30-35" href="#__codelineno-30-35"></a><span class="w">                       </span><span class="no">value.get(&quot;color&quot;, &quot;unknown&quot;))</span>
+<a id="__codelineno-30-32" name="__codelineno-30-32" href="#__codelineno-30-32"></a><span class="w">              </span><span class="no">log.info("Merged message: {} from {} - color: {}", </span>
+<a id="__codelineno-30-33" name="__codelineno-30-33" href="#__codelineno-30-33"></a><span class="w">                       </span><span class="no">value.get("id", "unknown"), </span>
+<a id="__codelineno-30-34" name="__codelineno-30-34" href="#__codelineno-30-34"></a><span class="w">                       </span><span class="no">value.get("source", "unknown"), </span>
+<a id="__codelineno-30-35" name="__codelineno-30-35" href="#__codelineno-30-35"></a><span class="w">                       </span><span class="no">value.get("color", "unknown"))</span>
 <a id="__codelineno-30-36" name="__codelineno-30-36" href="#__codelineno-30-36"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
 <a id="__codelineno-30-37" name="__codelineno-30-37" href="#__codelineno-30-37"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">merged_stream</span>
 <a id="__codelineno-30-38" name="__codelineno-30-38" href="#__codelineno-30-38"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
@@ -6673,21 +6673,21 @@ to the same session.</p>
 <a id="__codelineno-37-10" name="__codelineno-37-10" href="#__codelineno-37-10"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string,json)</span>
 <a id="__codelineno-37-11" name="__codelineno-37-11" href="#__codelineno-37-11"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-37-12" name="__codelineno-37-12" href="#__codelineno-37-12"></a><span class="w">      </span><span class="no">import random, time</span>
-<a id="__codelineno-37-13" name="__codelineno-37-13" href="#__codelineno-37-13"></a><span class="w">      </span><span class="no">sev = random.choice([&quot;INFO&quot;, &quot;WARNING&quot;, &quot;ERROR&quot;, &quot;CRITICAL&quot;])</span>
+<a id="__codelineno-37-13" name="__codelineno-37-13" href="#__codelineno-37-13"></a><span class="w">      </span><span class="no">sev = random.choice(["INFO", "WARNING", "ERROR", "CRITICAL"])</span>
 <a id="__codelineno-37-14" name="__codelineno-37-14" href="#__codelineno-37-14"></a><span class="w">      </span><span class="no">msgs = {</span>
-<a id="__codelineno-37-15" name="__codelineno-37-15" href="#__codelineno-37-15"></a><span class="w">        </span><span class="no">&quot;CRITICAL&quot;: [&quot;System failure&quot;, &quot;Service down&quot;],</span>
-<a id="__codelineno-37-16" name="__codelineno-37-16" href="#__codelineno-37-16"></a><span class="w">        </span><span class="no">&quot;ERROR&quot;: [&quot;Request timeout&quot;, &quot;DB failed&quot;],</span>
-<a id="__codelineno-37-17" name="__codelineno-37-17" href="#__codelineno-37-17"></a><span class="w">        </span><span class="no">&quot;WARNING&quot;: [&quot;High CPU&quot;, &quot;Disk low&quot;],</span>
-<a id="__codelineno-37-18" name="__codelineno-37-18" href="#__codelineno-37-18"></a><span class="w">        </span><span class="no">&quot;INFO&quot;: [&quot;Service started&quot;, &quot;Health OK&quot;]</span>
+<a id="__codelineno-37-15" name="__codelineno-37-15" href="#__codelineno-37-15"></a><span class="w">        </span><span class="no">"CRITICAL": ["System failure", "Service down"],</span>
+<a id="__codelineno-37-16" name="__codelineno-37-16" href="#__codelineno-37-16"></a><span class="w">        </span><span class="no">"ERROR": ["Request timeout", "DB failed"],</span>
+<a id="__codelineno-37-17" name="__codelineno-37-17" href="#__codelineno-37-17"></a><span class="w">        </span><span class="no">"WARNING": ["High CPU", "Disk low"],</span>
+<a id="__codelineno-37-18" name="__codelineno-37-18" href="#__codelineno-37-18"></a><span class="w">        </span><span class="no">"INFO": ["Service started", "Health OK"]</span>
 <a id="__codelineno-37-19" name="__codelineno-37-19" href="#__codelineno-37-19"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-37-20" name="__codelineno-37-20" href="#__codelineno-37-20"></a><span class="w">      </span><span class="no">eid = f&quot;e{random.randint(1000, 9999)}&quot;</span>
+<a id="__codelineno-37-20" name="__codelineno-37-20" href="#__codelineno-37-20"></a><span class="w">      </span><span class="no">eid = f"e{random.randint(1000, 9999)}"</span>
 <a id="__codelineno-37-21" name="__codelineno-37-21" href="#__codelineno-37-21"></a><span class="w">      </span><span class="no">return eid, {</span>
-<a id="__codelineno-37-22" name="__codelineno-37-22" href="#__codelineno-37-22"></a><span class="w">        </span><span class="no">&quot;event_id&quot;: eid,</span>
-<a id="__codelineno-37-23" name="__codelineno-37-23" href="#__codelineno-37-23"></a><span class="w">        </span><span class="no">&quot;severity&quot;: sev,</span>
-<a id="__codelineno-37-24" name="__codelineno-37-24" href="#__codelineno-37-24"></a><span class="w">        </span><span class="no">&quot;component&quot;: random.choice([&quot;api&quot;, &quot;db&quot;, &quot;cache&quot;]),</span>
-<a id="__codelineno-37-25" name="__codelineno-37-25" href="#__codelineno-37-25"></a><span class="w">        </span><span class="no">&quot;message&quot;: random.choice(msgs[sev]),</span>
-<a id="__codelineno-37-26" name="__codelineno-37-26" href="#__codelineno-37-26"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time()),</span>
-<a id="__codelineno-37-27" name="__codelineno-37-27" href="#__codelineno-37-27"></a><span class="w">        </span><span class="no">&quot;cpu&quot;: random.uniform(10 if sev==&quot;INFO&quot; else 70, 100)</span>
+<a id="__codelineno-37-22" name="__codelineno-37-22" href="#__codelineno-37-22"></a><span class="w">        </span><span class="no">"event_id": eid,</span>
+<a id="__codelineno-37-23" name="__codelineno-37-23" href="#__codelineno-37-23"></a><span class="w">        </span><span class="no">"severity": sev,</span>
+<a id="__codelineno-37-24" name="__codelineno-37-24" href="#__codelineno-37-24"></a><span class="w">        </span><span class="no">"component": random.choice(["api", "db", "cache"]),</span>
+<a id="__codelineno-37-25" name="__codelineno-37-25" href="#__codelineno-37-25"></a><span class="w">        </span><span class="no">"message": random.choice(msgs[sev]),</span>
+<a id="__codelineno-37-26" name="__codelineno-37-26" href="#__codelineno-37-26"></a><span class="w">        </span><span class="no">"timestamp": int(time.time()),</span>
+<a id="__codelineno-37-27" name="__codelineno-37-27" href="#__codelineno-37-27"></a><span class="w">        </span><span class="no">"cpu": random.uniform(10 if sev=="INFO" else 70, 100)</span>
 <a id="__codelineno-37-28" name="__codelineno-37-28" href="#__codelineno-37-28"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-37-29" name="__codelineno-37-29" href="#__codelineno-37-29"></a>
 <a id="__codelineno-37-30" name="__codelineno-37-30" href="#__codelineno-37-30"></a><span class="nt">producers</span><span class="p">:</span>
@@ -6730,12 +6730,12 @@ to the same session.</p>
 <a id="__codelineno-38-28" name="__codelineno-38-28" href="#__codelineno-38-28"></a><span class="w">  </span><span class="nt">route_by_severity</span><span class="p">:</span>
 <a id="__codelineno-38-29" name="__codelineno-38-29" href="#__codelineno-38-29"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">topicNameExtractor</span>
 <a id="__codelineno-38-30" name="__codelineno-38-30" href="#__codelineno-38-30"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-38-31" name="__codelineno-38-31" href="#__codelineno-38-31"></a><span class="w">      </span><span class="no">if value is None: return &quot;info_logs&quot;</span>
-<a id="__codelineno-38-32" name="__codelineno-38-32" href="#__codelineno-38-32"></a><span class="w">      </span><span class="no">sev = value.get(&quot;severity&quot;, &quot;INFO&quot;)</span>
-<a id="__codelineno-38-33" name="__codelineno-38-33" href="#__codelineno-38-33"></a><span class="w">      </span><span class="no">if sev == &quot;CRITICAL&quot;:</span>
-<a id="__codelineno-38-34" name="__codelineno-38-34" href="#__codelineno-38-34"></a><span class="w">        </span><span class="no">log.error(&quot;CRITICAL: {}&quot;, value.get(&quot;message&quot;))</span>
-<a id="__codelineno-38-35" name="__codelineno-38-35" href="#__codelineno-38-35"></a><span class="w">      </span><span class="no">return {&quot;CRITICAL&quot;: &quot;critical_alerts&quot;, &quot;ERROR&quot;: &quot;error_logs&quot;, </span>
-<a id="__codelineno-38-36" name="__codelineno-38-36" href="#__codelineno-38-36"></a><span class="w">              </span><span class="no">&quot;WARNING&quot;: &quot;warning_logs&quot;}.get(sev, &quot;info_logs&quot;)</span>
+<a id="__codelineno-38-31" name="__codelineno-38-31" href="#__codelineno-38-31"></a><span class="w">      </span><span class="no">if value is None: return "info_logs"</span>
+<a id="__codelineno-38-32" name="__codelineno-38-32" href="#__codelineno-38-32"></a><span class="w">      </span><span class="no">sev = value.get("severity", "INFO")</span>
+<a id="__codelineno-38-33" name="__codelineno-38-33" href="#__codelineno-38-33"></a><span class="w">      </span><span class="no">if sev == "CRITICAL":</span>
+<a id="__codelineno-38-34" name="__codelineno-38-34" href="#__codelineno-38-34"></a><span class="w">        </span><span class="no">log.error("CRITICAL: {}", value.get("message"))</span>
+<a id="__codelineno-38-35" name="__codelineno-38-35" href="#__codelineno-38-35"></a><span class="w">      </span><span class="no">return {"CRITICAL": "critical_alerts", "ERROR": "error_logs", </span>
+<a id="__codelineno-38-36" name="__codelineno-38-36" href="#__codelineno-38-36"></a><span class="w">              </span><span class="no">"WARNING": "warning_logs"}.get(sev, "info_logs")</span>
 <a id="__codelineno-38-37" name="__codelineno-38-37" href="#__codelineno-38-37"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-38-38" name="__codelineno-38-38" href="#__codelineno-38-38"></a>
 <a id="__codelineno-38-39" name="__codelineno-38-39" href="#__codelineno-38-39"></a><span class="nt">pipelines</span><span class="p">:</span>
@@ -6831,21 +6831,21 @@ to the same session.</p>
 <a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string,json)</span>
 <a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a><span class="w">      </span><span class="no">import random, time</span>
-<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="w">      </span><span class="no">lvl = random.choice([&quot;INFO&quot;, &quot;WARNING&quot;, &quot;ERROR&quot;, &quot;DEBUG&quot;])</span>
+<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="w">      </span><span class="no">lvl = random.choice(["INFO", "WARNING", "ERROR", "DEBUG"])</span>
 <a id="__codelineno-41-14" name="__codelineno-41-14" href="#__codelineno-41-14"></a><span class="w">      </span><span class="no">msgs = {</span>
-<a id="__codelineno-41-15" name="__codelineno-41-15" href="#__codelineno-41-15"></a><span class="w">        </span><span class="no">&quot;ERROR&quot;: [&quot;DB timeout&quot;, &quot;Payment failed&quot;],</span>
-<a id="__codelineno-41-16" name="__codelineno-41-16" href="#__codelineno-41-16"></a><span class="w">        </span><span class="no">&quot;WARNING&quot;: [&quot;High CPU&quot;, &quot;Rate limit near&quot;],</span>
-<a id="__codelineno-41-17" name="__codelineno-41-17" href="#__codelineno-41-17"></a><span class="w">        </span><span class="no">&quot;DEBUG&quot;: [&quot;Auth check&quot;, &quot;Loading config&quot;],</span>
-<a id="__codelineno-41-18" name="__codelineno-41-18" href="#__codelineno-41-18"></a><span class="w">        </span><span class="no">&quot;INFO&quot;: [&quot;Service started&quot;, &quot;Request done&quot;]</span>
+<a id="__codelineno-41-15" name="__codelineno-41-15" href="#__codelineno-41-15"></a><span class="w">        </span><span class="no">"ERROR": ["DB timeout", "Payment failed"],</span>
+<a id="__codelineno-41-16" name="__codelineno-41-16" href="#__codelineno-41-16"></a><span class="w">        </span><span class="no">"WARNING": ["High CPU", "Rate limit near"],</span>
+<a id="__codelineno-41-17" name="__codelineno-41-17" href="#__codelineno-41-17"></a><span class="w">        </span><span class="no">"DEBUG": ["Auth check", "Loading config"],</span>
+<a id="__codelineno-41-18" name="__codelineno-41-18" href="#__codelineno-41-18"></a><span class="w">        </span><span class="no">"INFO": ["Service started", "Request done"]</span>
 <a id="__codelineno-41-19" name="__codelineno-41-19" href="#__codelineno-41-19"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-41-20" name="__codelineno-41-20" href="#__codelineno-41-20"></a><span class="w">      </span><span class="no">rid = f&quot;r{random.randint(100, 999)}&quot;</span>
+<a id="__codelineno-41-20" name="__codelineno-41-20" href="#__codelineno-41-20"></a><span class="w">      </span><span class="no">rid = f"r{random.randint(100, 999)}"</span>
 <a id="__codelineno-41-21" name="__codelineno-41-21" href="#__codelineno-41-21"></a><span class="w">      </span><span class="no">return rid, {</span>
-<a id="__codelineno-41-22" name="__codelineno-41-22" href="#__codelineno-41-22"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time()),</span>
-<a id="__codelineno-41-23" name="__codelineno-41-23" href="#__codelineno-41-23"></a><span class="w">        </span><span class="no">&quot;level&quot;: lvl,</span>
-<a id="__codelineno-41-24" name="__codelineno-41-24" href="#__codelineno-41-24"></a><span class="w">        </span><span class="no">&quot;component&quot;: random.choice([&quot;UserSvc&quot;, &quot;PaySvc&quot;]),</span>
-<a id="__codelineno-41-25" name="__codelineno-41-25" href="#__codelineno-41-25"></a><span class="w">        </span><span class="no">&quot;message&quot;: random.choice(msgs[lvl]),</span>
-<a id="__codelineno-41-26" name="__codelineno-41-26" href="#__codelineno-41-26"></a><span class="w">        </span><span class="no">&quot;request_id&quot;: rid,</span>
-<a id="__codelineno-41-27" name="__codelineno-41-27" href="#__codelineno-41-27"></a><span class="w">        </span><span class="no">&quot;thread_id&quot;: f&quot;t{random.randint(1, 5)}&quot;</span>
+<a id="__codelineno-41-22" name="__codelineno-41-22" href="#__codelineno-41-22"></a><span class="w">        </span><span class="no">"timestamp": int(time.time()),</span>
+<a id="__codelineno-41-23" name="__codelineno-41-23" href="#__codelineno-41-23"></a><span class="w">        </span><span class="no">"level": lvl,</span>
+<a id="__codelineno-41-24" name="__codelineno-41-24" href="#__codelineno-41-24"></a><span class="w">        </span><span class="no">"component": random.choice(["UserSvc", "PaySvc"]),</span>
+<a id="__codelineno-41-25" name="__codelineno-41-25" href="#__codelineno-41-25"></a><span class="w">        </span><span class="no">"message": random.choice(msgs[lvl]),</span>
+<a id="__codelineno-41-26" name="__codelineno-41-26" href="#__codelineno-41-26"></a><span class="w">        </span><span class="no">"request_id": rid,</span>
+<a id="__codelineno-41-27" name="__codelineno-41-27" href="#__codelineno-41-27"></a><span class="w">        </span><span class="no">"thread_id": f"t{random.randint(1, 5)}"</span>
 <a id="__codelineno-41-28" name="__codelineno-41-28" href="#__codelineno-41-28"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-41-29" name="__codelineno-41-29" href="#__codelineno-41-29"></a>
 <a id="__codelineno-41-30" name="__codelineno-41-30" href="#__codelineno-41-30"></a><span class="nt">producers</span><span class="p">:</span>
@@ -6868,11 +6868,11 @@ to the same session.</p>
 <a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="w">  </span><span class="nt">format_debug_output</span><span class="p">:</span>
 <a id="__codelineno-42-9" name="__codelineno-42-9" href="#__codelineno-42-9"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValuePrinter</span>
 <a id="__codelineno-42-10" name="__codelineno-42-10" href="#__codelineno-42-10"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-42-11" name="__codelineno-42-11" href="#__codelineno-42-11"></a><span class="w">      </span><span class="no">if value is None: return f&quot;[NULL] {key}&quot;</span>
-<a id="__codelineno-42-12" name="__codelineno-42-12" href="#__codelineno-42-12"></a><span class="w">      </span><span class="no">lvl = value.get(&quot;level&quot;, &quot;?&quot;)</span>
-<a id="__codelineno-42-13" name="__codelineno-42-13" href="#__codelineno-42-13"></a><span class="w">      </span><span class="no">colors = {&quot;ERROR&quot;: &quot;red&quot;, &quot;WARNING&quot;: &quot;yellow&quot;, &quot;INFO&quot;: &quot;green&quot;, &quot;DEBUG&quot;: &quot;blue&quot;}</span>
+<a id="__codelineno-42-11" name="__codelineno-42-11" href="#__codelineno-42-11"></a><span class="w">      </span><span class="no">if value is None: return f"[NULL] {key}"</span>
+<a id="__codelineno-42-12" name="__codelineno-42-12" href="#__codelineno-42-12"></a><span class="w">      </span><span class="no">lvl = value.get("level", "?")</span>
+<a id="__codelineno-42-13" name="__codelineno-42-13" href="#__codelineno-42-13"></a><span class="w">      </span><span class="no">colors = {"ERROR": "red", "WARNING": "yellow", "INFO": "green", "DEBUG": "blue"}</span>
 <a id="__codelineno-42-14" name="__codelineno-42-14" href="#__codelineno-42-14"></a><span class="w">      </span><span class="no"># Include prefix in the output string</span>
-<a id="__codelineno-42-15" name="__codelineno-42-15" href="#__codelineno-42-15"></a><span class="w">      </span><span class="no">return f&quot;DEBUG_CONSOLE: {colors.get(lvl, &#39;white&#39;)} [{lvl}] {value.get(&#39;component&#39;)} | {value.get(&#39;message&#39;)} | {value.get(&#39;request_id&#39;)}&quot;</span>
+<a id="__codelineno-42-15" name="__codelineno-42-15" href="#__codelineno-42-15"></a><span class="w">      </span><span class="no">return f"DEBUG_CONSOLE: {colors.get(lvl, 'white')} [{lvl}] {value.get('component')} | {value.get('message')} | {value.get('request_id')}"</span>
 <a id="__codelineno-42-16" name="__codelineno-42-16" href="#__codelineno-42-16"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-42-17" name="__codelineno-42-17" href="#__codelineno-42-17"></a>
 <a id="__codelineno-42-18" name="__codelineno-42-18" href="#__codelineno-42-18"></a><span class="nt">pipelines</span><span class="p">:</span>
@@ -6946,8 +6946,8 @@ to the same session.</p>
 <a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="w">            </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="w">              </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="w">                </span><span class="no">log.info(&quot;PRIORITY: Order {} - ${} premium order&quot;, </span>
-<a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="w">                       </span><span class="no">value.get(&quot;order_id&quot;), value.get(&quot;total_amount&quot;))</span>
+<a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="w">                </span><span class="no">log.info("PRIORITY: Order {} - ${} premium order", </span>
+<a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="w">                       </span><span class="no">value.get("order_id"), value.get("total_amount"))</span>
 <a id="__codelineno-43-12" name="__codelineno-43-12" href="#__codelineno-43-12"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">priority_orders</span>
 <a id="__codelineno-43-13" name="__codelineno-43-13" href="#__codelineno-43-13"></a>
 <a id="__codelineno-43-14" name="__codelineno-43-14" href="#__codelineno-43-14"></a><span class="w">      </span><span class="c1"># Branch 2: Regional orders (US/EU, not priority)</span>
@@ -6958,8 +6958,8 @@ to the same session.</p>
 <a id="__codelineno-43-19" name="__codelineno-43-19" href="#__codelineno-43-19"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-43-20" name="__codelineno-43-20" href="#__codelineno-43-20"></a><span class="w">            </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-43-21" name="__codelineno-43-21" href="#__codelineno-43-21"></a><span class="w">              </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-43-22" name="__codelineno-43-22" href="#__codelineno-43-22"></a><span class="w">                </span><span class="no">log.info(&quot;REGIONAL: Order {} from {}&quot;, </span>
-<a id="__codelineno-43-23" name="__codelineno-43-23" href="#__codelineno-43-23"></a><span class="w">                       </span><span class="no">value.get(&quot;order_id&quot;), value.get(&quot;region&quot;))</span>
+<a id="__codelineno-43-22" name="__codelineno-43-22" href="#__codelineno-43-22"></a><span class="w">                </span><span class="no">log.info("REGIONAL: Order {} from {}", </span>
+<a id="__codelineno-43-23" name="__codelineno-43-23" href="#__codelineno-43-23"></a><span class="w">                       </span><span class="no">value.get("order_id"), value.get("region"))</span>
 <a id="__codelineno-43-24" name="__codelineno-43-24" href="#__codelineno-43-24"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">regional_orders</span>
 <a id="__codelineno-43-25" name="__codelineno-43-25" href="#__codelineno-43-25"></a>
 <a id="__codelineno-43-26" name="__codelineno-43-26" href="#__codelineno-43-26"></a><span class="w">      </span><span class="c1"># Branch 3: International orders  </span>
@@ -6970,8 +6970,8 @@ to the same session.</p>
 <a id="__codelineno-43-31" name="__codelineno-43-31" href="#__codelineno-43-31"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-43-32" name="__codelineno-43-32" href="#__codelineno-43-32"></a><span class="w">            </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-43-33" name="__codelineno-43-33" href="#__codelineno-43-33"></a><span class="w">              </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-43-34" name="__codelineno-43-34" href="#__codelineno-43-34"></a><span class="w">                </span><span class="no">log.info(&quot;INTERNATIONAL: Order {} from {} (customs required)&quot;, </span>
-<a id="__codelineno-43-35" name="__codelineno-43-35" href="#__codelineno-43-35"></a><span class="w">                       </span><span class="no">value.get(&quot;order_id&quot;), value.get(&quot;region&quot;))</span>
+<a id="__codelineno-43-34" name="__codelineno-43-34" href="#__codelineno-43-34"></a><span class="w">                </span><span class="no">log.info("INTERNATIONAL: Order {} from {} (customs required)", </span>
+<a id="__codelineno-43-35" name="__codelineno-43-35" href="#__codelineno-43-35"></a><span class="w">                       </span><span class="no">value.get("order_id"), value.get("region"))</span>
 <a id="__codelineno-43-36" name="__codelineno-43-36" href="#__codelineno-43-36"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">international_orders</span>
 </code></pre></div>
 <p><strong>Full example for <code>branch</code></strong>:</p>
@@ -7008,8 +7008,8 @@ to the same session.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="w">            </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="w">              </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="w">                </span><span class="no">log.info(&quot;PRIORITY: Order {} - ${} premium order&quot;, </span>
-<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a><span class="w">                       </span><span class="no">value.get(&quot;order_id&quot;), value.get(&quot;total_amount&quot;))</span>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="w">                </span><span class="no">log.info("PRIORITY: Order {} - ${} premium order", </span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a><span class="w">                       </span><span class="no">value.get("order_id"), value.get("total_amount"))</span>
 </code></pre></div>
 <p><strong>Full example for <code>peek</code></strong>:</p>
 <ul>
@@ -7025,14 +7025,14 @@ to the same session.</p>
 <a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
 <a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">filter</span>
 <a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a><span class="w">        </span><span class="nt">if</span><span class="p">:</span>
-<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;amount&quot;) &gt; 0</span>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get("amount") &gt; 0</span>
 <a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformValue</span>
 <a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span>
 <a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enrich_transaction(value)</span>
 <a id="__codelineno-45-11" name="__codelineno-45-11" href="#__codelineno-45-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-45-12" name="__codelineno-45-12" href="#__codelineno-45-12"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
 <a id="__codelineno-45-13" name="__codelineno-45-13" href="#__codelineno-45-13"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-45-14" name="__codelineno-45-14" href="#__codelineno-45-14"></a><span class="w">            </span><span class="no">log.info(&quot;Processed transaction: {}&quot;, value)</span>
+<a id="__codelineno-45-14" name="__codelineno-45-14" href="#__codelineno-45-14"></a><span class="w">            </span><span class="no">log.info("Processed transaction: {}", value)</span>
 <a id="__codelineno-45-15" name="__codelineno-45-15" href="#__codelineno-45-15"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_stream</span>
 </code></pre></div>
 <h3 id="branching-and-merging">Branching and Merging</h3>
@@ -7042,10 +7042,10 @@ to the same session.</p>
 <a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input_stream</span>
 <a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span>
 <a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
-<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;type&quot;) == &quot;A&quot;</span>
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get("type") == "A"</span>
 <a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a><span class="w">        </span><span class="nt">as</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type_a_stream</span>
 <a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">if</span><span class="p">:</span>
-<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get(&quot;type&quot;) == &quot;B&quot;</span>
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get("type") == "B"</span>
 <a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a><span class="w">        </span><span class="nt">as</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type_b_stream</span>
 <a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>
 <a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a><span class="w">  </span><span class="nt">process_a_pipeline</span><span class="p">:</span>

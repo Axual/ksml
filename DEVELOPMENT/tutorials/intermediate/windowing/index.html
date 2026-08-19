@@ -2566,8 +2566,8 @@
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">      </span><span class="no">click_counter = 0</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="no">users = [&quot;alice&quot;, &quot;bob&quot;, &quot;charlie&quot;, &quot;diana&quot;, &quot;eve&quot;]</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="no">pages = [&quot;/home&quot;, &quot;/products&quot;, &quot;/about&quot;, &quot;/contact&quot;, &quot;/checkout&quot;]</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="no">users = ["alice", "bob", "charlie", "diana", "eve"]</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="no">pages = ["/home", "/products", "/about", "/contact", "/checkout"]</span>
 <a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">      </span><span class="no">global click_counter, users, pages</span>
 <a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
@@ -2575,11 +2575,11 @@
 <a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">      </span><span class="no">user_id = random.choice(users)</span>
 <a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
 <a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">      </span><span class="no">value = {</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">        </span><span class="no">&quot;click_id&quot;: f&quot;click_{click_counter:06d}&quot;,</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">        </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">        </span><span class="no">&quot;page&quot;: random.choice(pages),</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">        </span><span class="no">&quot;session_id&quot;: f&quot;session_{user_id}_{random.randint(1, 3)}&quot;,</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">        </span><span class="no">"click_id": f"click_{click_counter:06d}",</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">        </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">        </span><span class="no">"page": random.choice(pages),</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">        </span><span class="no">"session_id": f"session_{user_id}_{random.randint(1, 3)}",</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">        </span><span class="no">"timestamp": int(time.time() * 1000)</span>
 <a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>
 <a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">      </span><span class="no">key = user_id</span>
@@ -2630,7 +2630,7 @@
 <a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json:windowed(string)</span>
 <a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;TUMBLING COUNT (5min) - user={}, count={}&quot;, key, value)</span>
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info("TUMBLING COUNT (5min) - user={}, count={}", key, value)</span>
 <a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">click_counts</span>
 </code></pre></div>
 </details>
@@ -2651,13 +2651,13 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span>--from-beginning<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>--max-messages<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span>--property<span class="w"> </span>print.key<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span>--property<span class="w"> </span>key.separator<span class="o">=</span><span class="s2">&quot; | &quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span>--property<span class="w"> </span>key.separator<span class="o">=</span><span class="s2">" | "</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span>--key-deserializer<span class="w"> </span>org.apache.kafka.common.serialization.StringDeserializer<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span>--value-deserializer<span class="w"> </span>org.apache.kafka.common.serialization.LongDeserializer
 </code></pre></div></p>
 <p><strong>Example output:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>{&quot;end&quot;:1755042000000,&quot;endTime&quot;:&quot;2025-08-12T23:40:00Z&quot;,&quot;key&quot;:&quot;alice&quot;,&quot;start&quot;:1755041700000,&quot;startTime&quot;:&quot;2025-08-12T23:35:00Z&quot;} | 8
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>{&quot;end&quot;:1755042000000,&quot;endTime&quot;:&quot;2025-08-12T23:40:00Z&quot;,&quot;key&quot;:&quot;bob&quot;,&quot;start&quot;:1755041700000,&quot;startTime&quot;:&quot;2025-08-12T23:35:00Z&quot;} | 12
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>{"end":1755042000000,"endTime":"2025-08-12T23:40:00Z","key":"alice","start":1755041700000,"startTime":"2025-08-12T23:35:00Z"} | 8
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>{"end":1755042000000,"endTime":"2025-08-12T23:40:00Z","key":"bob","start":1755041700000,"startTime":"2025-08-12T23:35:00Z"} | 12
 </code></pre></div></p>
 <h3 id="hopping-window-moving-averages">Hopping Window: Moving Averages</h3>
 <p>This example calculates moving averages using overlapping 2-minute windows that advance every 30 seconds.</p>
@@ -2685,7 +2685,7 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">      </span><span class="no">reading_counter = 0</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">      </span><span class="no">sensors = [&quot;temp_01&quot;, &quot;temp_02&quot;, &quot;humidity_01&quot;, &quot;pressure_01&quot;]</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">      </span><span class="no">sensors = ["temp_01", "temp_02", "humidity_01", "pressure_01"]</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">      </span><span class="no">global reading_counter, sensors</span>
 <a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
@@ -2693,22 +2693,22 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">      </span><span class="no">sensor_id = random.choice(sensors)</span>
 <a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
 <a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">      </span><span class="no"># Generate realistic sensor values</span>
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">      </span><span class="no">if &quot;temp&quot; in sensor_id:</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">      </span><span class="no">if "temp" in sensor_id:</span>
 <a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">        </span><span class="no">value_reading = round(random.uniform(18.0, 25.0), 2)</span>
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">        </span><span class="no">unit = &quot;celsius&quot;</span>
-<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">      </span><span class="no">elif &quot;humidity&quot; in sensor_id:</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">        </span><span class="no">unit = "celsius"</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">      </span><span class="no">elif "humidity" in sensor_id:</span>
 <a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">        </span><span class="no">value_reading = round(random.uniform(30.0, 70.0), 1)</span>
-<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">        </span><span class="no">unit = &quot;percent&quot;</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">        </span><span class="no">unit = "percent"</span>
 <a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">      </span><span class="no">else:  # pressure</span>
 <a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">        </span><span class="no">value_reading = round(random.uniform(1010.0, 1030.0), 1)</span>
-<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">        </span><span class="no">unit = &quot;hPa&quot;</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">        </span><span class="no">unit = "hPa"</span>
 <a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>
 <a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">      </span><span class="no">value = {</span>
-<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">        </span><span class="no">&quot;reading_id&quot;: reading_counter,</span>
-<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="w">        </span><span class="no">&quot;sensor_id&quot;: sensor_id,</span>
-<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="w">        </span><span class="no">&quot;value&quot;: value_reading,</span>
-<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="w">        </span><span class="no">&quot;unit&quot;: unit,</span>
-<a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">        </span><span class="no">"reading_id": reading_counter,</span>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="w">        </span><span class="no">"sensor_id": sensor_id,</span>
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="w">        </span><span class="no">"value": value_reading,</span>
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="w">        </span><span class="no">"unit": unit,</span>
+<a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">        </span><span class="no">"timestamp": int(time.time() * 1000)</span>
 <a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a>
 <a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a><span class="w">      </span><span class="no">key = sensor_id</span>
@@ -2742,7 +2742,7 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">  </span><span class="nt">initialize_average</span><span class="p">:</span>
 <a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
 <a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">      </span><span class="no">result = {&quot;sum&quot;: 0.0, &quot;count&quot;: 0}</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">      </span><span class="no">result = {"sum": 0.0, "count": 0}</span>
 <a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
 <a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>
@@ -2751,11 +2751,11 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="w">      </span><span class="no"># Initialize if first time</span>
 <a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="w">      </span><span class="no">if aggregatedValue is None:</span>
-<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">        </span><span class="no">aggregatedValue = {&quot;sum&quot;: 0.0, &quot;count&quot;: 0}</span>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">        </span><span class="no">aggregatedValue = {"sum": 0.0, "count": 0}</span>
 <a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>
 <a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="w">      </span><span class="no"># Update sum and count</span>
-<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;sum&quot;] += value.get(&quot;value&quot;, 0.0)</span>
-<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="w">      </span><span class="no">aggregatedValue[&quot;count&quot;] += 1</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="w">      </span><span class="no">aggregatedValue["sum"] += value.get("value", 0.0)</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="w">      </span><span class="no">aggregatedValue["count"] += 1</span>
 <a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>
 <a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="w">      </span><span class="no">new_value = aggregatedValue</span>
 <a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value</span>
@@ -2764,16 +2764,16 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="w">  </span><span class="nt">calculate_final_average</span><span class="p">:</span>
 <a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueTransformer</span>
 <a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="w">      </span><span class="no">if value is None or value.get(&quot;count&quot;, 0) == 0:</span>
+<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="w">      </span><span class="no">if value is None or value.get("count", 0) == 0:</span>
 <a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a><span class="w">        </span><span class="no">return None</span>
 <a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a>
 <a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="w">      </span><span class="no"># Calculate average</span>
-<a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="w">      </span><span class="no">average = value[&quot;sum&quot;] / value[&quot;count&quot;]</span>
+<a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="w">      </span><span class="no">average = value["sum"] / value["count"]</span>
 <a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a>
 <a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a><span class="w">      </span><span class="no">result = {</span>
-<a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a><span class="w">        </span><span class="no">&quot;average&quot;: round(average, 2),</span>
-<a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="w">        </span><span class="no">&quot;sample_count&quot;: value[&quot;count&quot;],</span>
-<a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="w">        </span><span class="no">&quot;total_sum&quot;: round(value[&quot;sum&quot;], 2)</span>
+<a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a><span class="w">        </span><span class="no">"average": round(average, 2),</span>
+<a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="w">        </span><span class="no">"sample_count": value["count"],</span>
+<a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="w">        </span><span class="no">"total_sum": round(value["sum"], 2)</span>
 <a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
 <a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
@@ -2804,16 +2804,16 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-9-75" name="__codelineno-9-75" href="#__codelineno-9-75"></a><span class="w">        </span><span class="nt">mapper</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">calculate_final_average</span>
 <a id="__codelineno-9-76" name="__codelineno-9-76" href="#__codelineno-9-76"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-9-77" name="__codelineno-9-77" href="#__codelineno-9-77"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;HOPPING AVERAGE (2min/30s) - sensor={}, avg={}&quot;, key, value.get(&quot;average&quot;) if value else None)</span>
+<a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info("HOPPING AVERAGE (2min/30s) - sensor={}, avg={}", key, value.get("average") if value else None)</span>
 <a id="__codelineno-9-79" name="__codelineno-9-79" href="#__codelineno-9-79"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor_averages</span>
 </code></pre></div>
 </details>
 <p><strong>Example output:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># Raw sensor readings:
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>temp_01 | {&quot;reading_id&quot;:1,&quot;sensor_id&quot;:&quot;temp_01&quot;,&quot;value&quot;:21.57,&quot;unit&quot;:&quot;celsius&quot;,&quot;timestamp&quot;:1755042846167}
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>temp_01 | {"reading_id":1,"sensor_id":"temp_01","value":21.57,"unit":"celsius","timestamp":1755042846167}
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a># Moving averages:
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>{&quot;end&quot;:1755043080000,&quot;endTime&quot;:&quot;2025-08-12T23:58:00Z&quot;,&quot;key&quot;:&quot;temp_01&quot;,&quot;start&quot;:1755042960000,&quot;startTime&quot;:&quot;2025-08-12T23:56:00Z&quot;} | {&quot;average&quot;:21.49,&quot;sample_count&quot;:4,&quot;total_sum&quot;:85.96}
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>{"end":1755043080000,"endTime":"2025-08-12T23:58:00Z","key":"temp_01","start":1755042960000,"startTime":"2025-08-12T23:56:00Z"} | {"average":21.49,"sample_count":4,"total_sum":85.96}
 </code></pre></div></p>
 <p><strong>Understanding the hopping window output:</strong></p>
 <ul>
@@ -2865,8 +2865,8 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">      </span><span class="no">import random</span>
 <a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">      </span><span class="no">import time</span>
 <a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">      </span><span class="no">click_counter = 0</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">      </span><span class="no">users = [&quot;alice&quot;, &quot;bob&quot;, &quot;charlie&quot;, &quot;diana&quot;, &quot;eve&quot;]</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">      </span><span class="no">pages = [&quot;/home&quot;, &quot;/products&quot;, &quot;/about&quot;, &quot;/contact&quot;, &quot;/checkout&quot;]</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">      </span><span class="no">users = ["alice", "bob", "charlie", "diana", "eve"]</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">      </span><span class="no">pages = ["/home", "/products", "/about", "/contact", "/checkout"]</span>
 <a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">      </span><span class="no">global click_counter, users, pages</span>
 <a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
@@ -2874,11 +2874,11 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">      </span><span class="no">user_id = random.choice(users)</span>
 <a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>
 <a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">      </span><span class="no">value = {</span>
-<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">        </span><span class="no">&quot;click_id&quot;: f&quot;click_{click_counter:06d}&quot;,</span>
-<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">        </span><span class="no">&quot;user_id&quot;: user_id,</span>
-<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">        </span><span class="no">&quot;page&quot;: random.choice(pages),</span>
-<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="w">        </span><span class="no">&quot;session_id&quot;: f&quot;session_{user_id}_{random.randint(1, 3)}&quot;,</span>
-<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="w">        </span><span class="no">&quot;timestamp&quot;: int(time.time() * 1000)</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">        </span><span class="no">"click_id": f"click_{click_counter:06d}",</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">        </span><span class="no">"user_id": user_id,</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">        </span><span class="no">"page": random.choice(pages),</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="w">        </span><span class="no">"session_id": f"session_{user_id}_{random.randint(1, 3)}",</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="w">        </span><span class="no">"timestamp": int(time.time() * 1000)</span>
 <a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>
 <a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a><span class="w">      </span><span class="no">key = user_id</span>
@@ -2927,7 +2927,7 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">        </span><span class="nt">into</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json:windowed(string)</span>
 <a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
 <a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info(&quot;USER SESSION - user={}, clicks={}&quot;, key, value)</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log.info("USER SESSION - user={}, clicks={}", key, value)</span>
 <a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_sessions</span>
 </code></pre></div>
 </details>
@@ -2947,12 +2947,12 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <p>This shows how Alice had two separate sessions with an inactivity gap between them, while Bob had one continuous session.</p>
 <p><strong>Example output:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a># Input clicks (user_clicks topic):
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>alice | {&quot;click_id&quot;:&quot;click_000001&quot;,&quot;user_id&quot;:&quot;alice&quot;,&quot;page&quot;:&quot;/home&quot;,&quot;session_id&quot;:&quot;session_alice_1&quot;,&quot;timestamp&quot;:1755043944188}
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>alice | {&quot;click_id&quot;:&quot;click_000002&quot;,&quot;user_id&quot;:&quot;alice&quot;,&quot;page&quot;:&quot;/products&quot;,&quot;session_id&quot;:&quot;session_alice_1&quot;,&quot;timestamp&quot;:1755043945189}
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>alice | {"click_id":"click_000001","user_id":"alice","page":"/home","session_id":"session_alice_1","timestamp":1755043944188}
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>alice | {"click_id":"click_000002","user_id":"alice","page":"/products","session_id":"session_alice_1","timestamp":1755043945189}
 <a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
 <a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a># Session summary (user_session_summary topic):  
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>{&quot;end&quot;:1755043970189,&quot;endTime&quot;:&quot;2025-08-13T00:12:50.189Z&quot;,&quot;key&quot;:&quot;alice&quot;,&quot;start&quot;:1755043944188,&quot;startTime&quot;:&quot;2025-08-13T00:12:24.188Z&quot;} | 15
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>{&quot;end&quot;:1755043938275,&quot;endTime&quot;:&quot;2025-08-13T00:12:18.275Z&quot;,&quot;key&quot;:&quot;diana&quot;,&quot;start&quot;:1755043938275,&quot;startTime&quot;:&quot;2025-08-13T00:12:18.275Z&quot;} | 1
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>{"end":1755043970189,"endTime":"2025-08-13T00:12:50.189Z","key":"alice","start":1755043944188,"startTime":"2025-08-13T00:12:24.188Z"} | 15
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>{"end":1755043938275,"endTime":"2025-08-13T00:12:18.275Z","key":"diana","start":1755043938275,"startTime":"2025-08-13T00:12:18.275Z"} | 1
 </code></pre></div></p>
 <p>The session summary shows:</p>
 <ul>

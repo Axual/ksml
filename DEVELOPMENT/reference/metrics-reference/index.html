@@ -2123,7 +2123,7 @@ the metrics are served at:</p>
 </code></pre></div>
 <p>Every metric carries a <code># HELP</code> line describing what it measures, so the quickest way to discover the
 metrics exposed by a running pipeline is:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>localhost:9999/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;^# HELP&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>localhost:9999/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">'^# HELP'</span>
 </code></pre></div>
 <h2 id="ksml-custom-metrics">KSML Custom Metrics</h2>
 <p>KSML publishes its own metrics under the <code>ksml_</code> prefix. Each metric is labelled so that values can be
@@ -2219,15 +2219,15 @@ every Python function. These appear under the <code>ksml_user_defined_*</code> p
 </table>
 <p>The <code>metrics</code> object exposes three factory methods, each with an optional tags map:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># A counter that increments on every invocation</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">calls</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">counter</span><span class="p">(</span><span class="s2">&quot;log_message-calls&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">calls</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">counter</span><span class="p">(</span><span class="s2">"log_message-calls"</span><span class="p">)</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">calls</span><span class="o">.</span><span class="n">increment</span><span class="p">()</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># A meter that tracks the rate of processed records, tagged by format</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">rate</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">meter</span><span class="p">(</span><span class="s2">&quot;records-in&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;AVRO&quot;</span><span class="p">})</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">rate</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">meter</span><span class="p">(</span><span class="s2">"records-in"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"format"</span><span class="p">:</span> <span class="s2">"AVRO"</span><span class="p">})</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">rate</span><span class="o">.</span><span class="n">mark</span><span class="p">()</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># A timer that records processing durations, tagged by format</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">duration</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">timer</span><span class="p">(</span><span class="s2">&quot;received-records-processing-time&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;AVRO&quot;</span><span class="p">})</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">duration</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">timer</span><span class="p">(</span><span class="s2">"received-records-processing-time"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"format"</span><span class="p">:</span> <span class="s2">"AVRO"</span><span class="p">})</span>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">duration</span><span class="o">.</span><span class="n">updateMillis</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </code></pre></div>
 <p>The <code>name</code> argument becomes the <code>custom_name</code> label and the tags map adds further labels, so the same
@@ -2302,15 +2302,15 @@ rather than individually:</p>
 <summary>Example /metrics output (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># HELP ksml_execution_time_count Execution time statistics of a KSML user function per invocation; durations are in milliseconds and rates are per second
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a># TYPE ksml_execution_time_count gauge
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>ksml_execution_time_count{function_name=&quot;pipelines_consume_avro_forEach&quot;,function_type=&quot;forEach&quot;,namespace=&quot;inspect&quot;,operation_name=&quot;inspect_pipelines_consume_avro_forEach&quot;,pipeline=&quot;consume_avro&quot;} 18.0
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>ksml_execution_time_count{function_name="pipelines_consume_avro_forEach",function_type="forEach",namespace="inspect",operation_name="inspect_pipelines_consume_avro_forEach",pipeline="consume_avro"} 18.0
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a># HELP ksml_record_e2e_latency_avg_ms_value Average end-to-end latency of records from the source topic to this KSML processor node, in milliseconds
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a># TYPE ksml_record_e2e_latency_avg_ms_value gauge
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>ksml_record_e2e_latency_avg_ms_value{namespace=&quot;inspect&quot;,operation_name=&quot;peek&quot;,pipeline=&quot;consume_avro&quot;,processor_node_id=&quot;...&quot;,task_id=&quot;0_0&quot;,unit=&quot;ms&quot;} 12.5
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>ksml_record_e2e_latency_avg_ms_value{namespace="inspect",operation_name="peek",pipeline="consume_avro",processor_node_id="...",task_id="0_0",unit="ms"} 12.5
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a># HELP ksml_user_defined_counter_count User-defined counter metric registered from KSML user code
 <a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a># TYPE ksml_user_defined_counter_count counter
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>ksml_user_defined_counter_count{custom_name=&quot;received-records&quot;,format=&quot;AVRO&quot;} 18.0
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>ksml_user_defined_counter_count{custom_name="received-records",format="AVRO"} 18.0
 </code></pre></div>
 </details>
 <h2 id="related-documentation">Related Documentation</h2>
