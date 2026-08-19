@@ -75,7 +75,7 @@
 
     <properties>
         <!-- Compile, runtime and provided dependency versions -->
-        <apache.avro.version>1.12.1</apache.avro.version>
+        <apache.avro.version>1.12.2</apache.avro.version>
         <apache.commons.compress.version>1.28.0</apache.commons.compress.version>
         <apache.commons.csv.version>1.14.1</apache.commons.csv.version>
         <apache.commons.text.version>1.15.0</apache.commons.text.version>
