@@ -20,9 +20,6 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataObject;
-import org.apache.kafka.streams.kstream.Window;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,18 +30,8 @@ public class WindowedKeyValueBeans {
         return elements;
     }
 
-    public WindowedKeyValueBeans add(Window window, DataObject key, DataObject value) {
-        elements.add(new WindowedKeyValueBean(window, key, value));
-        return this;
-    }
-
     public WindowedKeyValueBeans add(WindowedKeyValueBean element) {
         elements.add(element);
-        return this;
-    }
-
-    public WindowedKeyValueBeans add(WindowedKeyValueBeans otherBeans) {
-        elements.addAll(otherBeans.elements);
         return this;
     }
 

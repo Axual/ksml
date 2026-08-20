@@ -28,7 +28,6 @@ import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.type.UserType;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -44,7 +43,6 @@ import java.util.Map;
 @Slf4j
 public class TestExecutionContext {
 
-    @Getter
     private MockConfluentSchemaRegistryClient registryClient;
 
     /**

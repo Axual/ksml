@@ -220,18 +220,26 @@ there's no line left to delete.
 
 ## Confirmed unused (zero references anywhere in the repo)
 
-- `io.axual.ksml.parser.StructParser` **(verified directly)** — dead interface, superseded by `StructsParser`; see the parser architecture discussion.
-- `KSMLRunnerConfig.mapper` field and `.getKafkaConfig()` **(verified directly via grep)** — actual config loading uses a separate `ObjectMapper`; all real callers use `getKafkaConfigMap()` instead.
-- `ksml-query` REST helpers: `HostDiscovery.discoverLocal()`, `RestClient.getHostIPForDiscovery()` (dead duplicate of `Utils.getHostIPForDiscovery()`), `Utils.getRemoteStoreData(...)` (both overloads) + `closeRESTClient()`, `WindowedKeyValueBeans.add(...)` (both overloads).
-- `TestExecutionContext.registryClient()` (ksml-test-runner) — Lombok-generated accessor, zero callers.
-- `DataException.validationFailed(String, Object)`.
-- `getRegistryClient()` accessors on `ConfluentProtobufSerdeSupplier`, `ApicurioProtobufNotationProvider`, and `ConfluentJsonSchemaSerdeSupplier`.
-- `TransactionalIdResolver`'s 4 convenience methods (`resolveTransactionalId(s)`/`unresolveTransactionalId(s)`).
-- The entire `ResolvingStrategy` interface — no implementers anywhere.
+- ~~`io.axual.ksml.parser.StructParser` **(verified directly)** — dead interface, superseded by `StructsParser`; see the parser architecture discussion.~~ **(Fixed 2026-08-20)** — deleted.
+- ~~`KSMLRunnerConfig.mapper` field and `.getKafkaConfig()` **(verified directly via grep)** — actual config loading uses a separate `ObjectMapper`; all real callers use `getKafkaConfigMap()` instead.~~ **(Already resolved)** — gone by the time this pass started, superseded by the unrelated `Refactor parsers (#669)` commit; no action needed.
+- `ksml-query` REST helpers, re-verified item by item:
+  - ~~`HostDiscovery.discoverLocal()`~~ **(Fixed 2026-08-20)** — removed, along with its test (the only caller).
+  - ~~`RestClient.getHostIPForDiscovery()` (dead duplicate of `Utils.getHostIPForDiscovery()`)~~ **(Already resolved)** — no longer present; `RestClient` was cleaned up separately at some point before this pass.
+  - ~~`Utils.getRemoteStoreData(...)` (both overloads) + `closeRESTClient()`~~ **(Already resolved)** — neither exists anymore.
+  - ~~`WindowedKeyValueBeans.add(...)` (both overloads)~~ **(Fixed 2026-08-20)** — the class actually had 3 `add` overloads by now (mirroring `KeyValueBeans`); the 3-arg convenience and the `add(WindowedKeyValueBeans)` merge overload had zero production callers (only their own unit test), so both were removed. The remaining `add(WindowedKeyValueBean)` overload is genuinely used by `StoreResource` and was kept.
+- ~~`TestExecutionContext.registryClient()` (ksml-test-runner) — Lombok-generated accessor, zero callers.~~ **(Fixed 2026-08-20)** — dropped `@Getter`, field stays private.
+- ~~`DataException.validationFailed(String, Object)`.~~ **(Fixed 2026-08-20)** — removed; had zero callers anywhere, not even a test.
+- `getRegistryClient()` accessors, re-verified item by item:
+  - ~~`ConfluentProtobufSerdeSupplier`~~ **(Fixed 2026-08-20)** — dropped `@Getter` (and the stale "mocked by tests" comment above it), field stays private.
+  - ~~`ApicurioProtobufNotationProvider` and `ConfluentJsonSchemaSerdeSupplier`~~ **(Already resolved)** — neither class exposes this accessor anymore.
+- ~~`TransactionalIdResolver`'s 4 convenience methods (`resolveTransactionalId(s)`/`unresolveTransactionalId(s)`).~~ **(Fixed 2026-08-20)** — removed. Unlike the sibling `GroupResolver`/`TopicResolver` interfaces, whose equivalent collection-resolving methods *are* called in production (e.g. `ResolvingAdmin`), nothing ever called these — the two real transactional-id call sites use the base `resolve()`/`unresolve()` directly. `TransactionalIdResolver` is now a documented empty marker interface (`extends Resolver`, no added methods). Digging into this also turned up a related duplication bug: `ResolvingProducerConfig` was building its own throwaway `TransactionalIdPatternResolver` instead of using the one already built by its `ResolvingClientConfig` superclass — fixed to delegate to the inherited `transactionalIdResolver()`, matching how `ResolvingConsumerConfig` already used `groupResolver()`. As part of the same cleanup, `ResolvingClientConfig`'s three resolver fields were tightened from `public` to `private` (with existing `@Getter`s), and call sites updated accordingly.
+- ~~The entire `ResolvingStrategy` interface — no implementers anywhere.~~ **(Already resolved)** — the interface no longer exists in the codebase.
+
+All fixes dated 2026-08-20 above are uncommitted in the working tree as of this writing; verified via the full test suites of `ksml-kafka-clients`, `ksml-query`, `ksml-test-runner`, `ksml-data`, and `ksml-data-protobuf-confluent`.
 
 ## Repo hygiene (not dead code, but worth fixing)
 
-**`ksml-data/src/main/java/io/axual/ksml/data/util/MapUtil.java:6-10`** **(verified directly)** —
+~~**`ksml-data/src/main/java/io/axual/ksml/data/util/MapUtil.java:6-10`** **(verified directly)** —
 a literal, committed, unresolved git merge-conflict marker sitting inside the license header
 comment:
 
@@ -244,7 +252,8 @@ comment:
 ```
 
 Harmless at compile time (inside `/* */`), but should never have been committed and should be
-cleaned up.
+cleaned up.~~ **(Already resolved)** — re-checked 2026-08-20: the license header is clean, no
+conflict markers remain.
 
 ## Lower confidence / worth a look, not conclusively dead
 
@@ -267,8 +276,13 @@ cleaned up.
 
 ## Adjacent finding, out of scope for this review
 
-**`ksml-query/.../WindowedKeyValueStoreResource.java` (`getKey`, ~line 100)** — the
+~~**`ksml-query/.../WindowedKeyValueStoreResource.java` (`getKey`, ~line 100)** — the
 remote-dispatch branch builds the wrong REST URL (a plain key-value path instead of the windowed
 path with a timestamp segment) and deserializes the response as the wrong bean type. This is a
 *live* bug (the code runs and has an effect, just an incorrect one) rather than dead code, so
-it's out of scope for this document, but worth a follow-up ticket.
+it's out of scope for this document, but worth a follow-up ticket.~~ **(Already resolved)** —
+re-checked 2026-08-20: fixed in commit `a2b3b378` ("Applied changes after reviewing the changes",
+2026-07-01), which predates this document's cleanup pass and is already an ancestor of every
+branch here. The URL now correctly targets `/state/windowed/{store}/local/get/{key}/{timestamp}`
+and deserializes as `WindowedKeyValueBean`, with explicit regression coverage in
+`WindowedKeyValueStoreResourceTest.getKeyRoutesToRemoteInstance`. No action needed.

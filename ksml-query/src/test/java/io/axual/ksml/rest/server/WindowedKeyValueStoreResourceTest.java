@@ -164,11 +164,11 @@ class WindowedKeyValueStoreResourceTest {
         when(streamsMetadata.host()).thenReturn(REMOTE.host());
         when(streamsMetadata.port()).thenReturn(REMOTE.port());
         when(querier.allMetadataForStore(STORE)).thenReturn(List.of(streamsMetadata));
-        final var remoteBeans = new WindowedKeyValueBeans().add(new TimeWindow(0L, 100L), new DataString("k2"), new DataString("v2"));
+        final var remoteBeans = new WindowedKeyValueBeans().add(new WindowedKeyValueBean(new TimeWindow(0L, 100L), new DataString("k2"), new DataString("v2")));
         final var url = ArgumentCaptor.forClass(String.class);
 
         try (var _ = mockConstruction(RestClient.class,
-                (mock, ctx) -> when(mock.getRemoteWindowedKeyValueBeans(url.capture())).thenReturn(remoteBeans))) {
+                (mock, _) -> when(mock.getRemoteWindowedKeyValueBeans(url.capture())).thenReturn(remoteBeans))) {
             final var result = new WindowedKeyValueStoreResource().getAll(STORE);
 
             assertThat(result).hasSize(2);
@@ -184,7 +184,7 @@ class WindowedKeyValueStoreResourceTest {
         when(querier.queryMetadataForKey(any(), any(), any())).thenReturn(metadataOnHost(REMOTE));
 
         try (var _ = mockConstruction(RestClient.class,
-                (mock, ctx) -> when(mock.getRemoteKeyValueBean(url.capture(), any())).thenReturn(remoteBean))) {
+                (mock, _) -> when(mock.getRemoteKeyValueBean(url.capture(), any())).thenReturn(remoteBean))) {
             final var result = new WindowedKeyValueStoreResource().getKey(STORE, "k1", 50L);
 
             assertThat(result).isSameAs(remoteBean);

@@ -70,11 +70,4 @@ public class DataException extends BaseException {
     public static DataException conversionFailed(String fromType, String toType) {
         return new DataException("Can not convert object from dataType \"" + fromType + "\" to \"" + toType + "\"");
     }
-
-    /**
-     * Convenience constructor for field validation errors.
-     */
-    public static DataException validationFailed(String key, Object value) {
-        return new DataException("Field validation failed for key \"" + key + "\": value=" + value);
-    }
 }

@@ -114,8 +114,8 @@ public class ResolvingAdmin extends ForwardingAdmin {
     public ResolvingAdmin(Map<String, Object> configs) {
         super(configs);
         final var config = new ResolvingClientConfig(configs);
-        topicResolver = config.topicResolver;
-        groupResolver = config.groupResolver;
+        topicResolver = config.topicResolver();
+        groupResolver = config.groupResolver();
     }
 
     protected void operationNotSupported(String operation) {
