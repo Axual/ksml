@@ -314,6 +314,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, convertFieldsToAvroFields(structSchema.fields()));
         if (schema instanceof UnionSchema unionSchema)
             return Schema.createUnion(convertUnionMemberSchemasToAvro(Arrays.stream(unionSchema.members()).map(UnionSchema.Member::schema).toArray(DataSchema[]::new)));
+
+        // the above is currently exhaustive, so this should never occur:
         throw new SchemaException("Can not convert schema to AVRO: " + schema);
     }
 
@@ -397,36 +399,47 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // A null (either a Java null or KSML's DataNull) becomes Avro's null sentinel.
         // We use this anywhere null shows up *inside* a default value — at the top
         // level the caller (convertDataObjectToAvroDefaultValue) handles null first.
-        if (value == null || value instanceof DataNull) return JsonProperties.NULL_VALUE;
-
-        // KSML record (struct) -> plain Map. Recurse on each field value so that a
-        // record-inside-a-record default also turns into nested Maps, not Avro
-        // record objects.
-        if (value instanceof DataStruct struct) {
-            final var result = new LinkedHashMap<String, Object>();
-            for (var entry : struct.entrySet()) {
-                result.put(entry.getKey(), toJsonShapedDefault(entry.getValue()));
+        switch (value) {
+            case null -> {
+                return JsonProperties.NULL_VALUE;
             }
-            return result;
-        }
-
-        // KSML map -> plain Map. Same idea as struct.
-        if (value instanceof DataMap map) {
-            final var result = new LinkedHashMap<String, Object>();
-            for (var entry : map.entrySet()) {
-                result.put(entry.getKey(), toJsonShapedDefault(entry.getValue()));
+            case DataNull dataNull -> {
+                return JsonProperties.NULL_VALUE;
             }
-            return result;
-        }
 
-        // KSML list -> plain List. Recurse on each element so a list of records
-        // also becomes a list of Maps.
-        if (value instanceof DataList list) {
-            final var result = new ArrayList<>(list.size());
-            for (var item : list) {
-                result.add(toJsonShapedDefault(item));
+            // KSML record (struct) -> plain Map. Recurse on each field value so that a
+            // record-inside-a-record default also turns into nested Maps, not Avro
+            // record objects.
+            case DataStruct struct -> {
+                final var result = new LinkedHashMap<String, Object>();
+                for (var entry : struct.entrySet()) {
+                    result.put(entry.getKey(), toJsonShapedDefault(entry.getValue()));
+                }
+                return result;
             }
-            return result;
+
+
+            // KSML map -> plain Map. Same idea as struct.
+            case DataMap map -> {
+                final var result = new LinkedHashMap<String, Object>();
+                for (var entry : map.entrySet()) {
+                    result.put(entry.getKey(), toJsonShapedDefault(entry.getValue()));
+                }
+                return result;
+            }
+
+
+            // KSML list -> plain List. Recurse on each element so a list of records
+            // also becomes a list of Maps.
+            case DataList list -> {
+                final var result = new ArrayList<>(list.size());
+                for (var item : list) {
+                    result.add(toJsonShapedDefault(item));
+                }
+                return result;
+            }
+            default -> {
+            }
         }
 
         // Anything else (string, int, long, boolean, bytes, enum, ...) — let the

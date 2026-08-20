@@ -195,22 +195,28 @@ adjacent to that investigation.
 
 | Location | Why it's dead |
 |---|---|
-| `ksml/.../operation/parser/JoinOperationParser.java:86-88` **(verified directly)** | All 3 `instanceof` checks (`StreamDefinition`/`TableDefinition`/`GlobalTableDefinition`) cover everything `JoinTargetDefinitionParser` can produce without throwing first — traced through `TopologyResourceParser`'s return paths and confirmed no other `TopicDefinition` subtype is ever registered under a name this lookup can find |
-| `ksml/.../operation/parser/LeftJoinOperationParser.java:86-88` **(verified directly)** | Same pattern, same reasoning as above |
-| `ksml-data/.../mapper/NativeDataObjectMapper.java:129,132` **(verified directly)** | Byte-identical duplicate `instanceof Tuple<?>` check; line 129 always matches first |
-| `ksml-data-avro/.../AvroDataObjectMapper.java:182` | `: null` fallback for a field lookup that's provably always found, since `structSchema` is a 1:1 map of the same `avroSchema`'s fields |
-| `ksml-data-avro/.../AvroSchemaMapper.java:304` | Final `throw` in a cascade covering all 6 concrete `DataSchema` subtypes plus fixed singletons — nothing else is ever constructed |
-| `ksml-data-csv/.../CsvSchemaMapper.java:38-45` | `return null` after a cascade that, traced exhaustively, always returns a `DataList` |
-| `ksml-kafka-clients/.../PatternResolver.java:243,252` | `count > 0` checked redundantly, one line after `count` was unconditionally incremented |
-| `ksml-kafka-clients/.../ResolvingClientConfig.java:84-91` | Catches `ConfigException`, but the called overload only ever throws the broader `ClientException` |
-| `ksml-kafka-clients/.../ResolvingSerializer.java` / `ResolvingDeserializer.java` (several lines) | Null-fallback for `topicResolver`, which is always assigned non-null at every real construction site |
-| `ksml-kafka-clients/.../ExtendableCreateTopicsResult.java:32-35` | The one subclass dereferences the same parameter immediately after `super(result)`, so a null would NPE there regardless of the substitution logic |
-| `ksml-test-runner/.../AssertionRunner.java:246` | `return message;` after a redundant re-check of a condition the only caller already guaranteed |
-| `ksml-test-runner/.../AssertionRunner.java:99-101` | "Undeclared stream" guard already enforced upstream by `TestDefinitionParser.parseAssertBlocks()` before an `AssertBlock` can exist |
-| `ksml-test-runner/.../KSMLTestRunner.java:75-79` | Manual "no test paths" check after picocli's own `arity="1..*"` already throws (and is already caught) for that case |
+| `ksml/.../operation/parser/JoinOperationParser.java:86-89` **(verified directly)** | All 3 `instanceof` checks (`StreamDefinition`/`TableDefinition`/`GlobalTableDefinition`) cover everything `JoinTargetDefinitionParser` can produce without throwing first — traced through `TopologyResourceParser`'s return paths and confirmed no other `TopicDefinition` subtype is ever registered under a name this lookup can find. Still present: the compiler can't verify the cascade is exhaustive, so the trailing `throw` is a required terminal, not deletable dead code. |
+| `ksml/.../operation/parser/LeftJoinOperationParser.java:86-88` **(verified directly)** | Same pattern, same reasoning as above. Still present for the same compiler-mandated reason. |
+| ~~`ksml-data/.../mapper/NativeDataObjectMapper.java:129,132` **(verified directly)** — Byte-identical duplicate `instanceof Tuple<?>` check; line 129 always matches first~~ **(Fixed 2026-08-17)** — the duplicate line was removed, and the surrounding method was later rewritten as a Java `switch` pattern-match expression, where a duplicate `case Tuple<?>` would be a compile error; the finding can no longer recur in this form. |
+| ~~`ksml-data-avro/.../AvroDataObjectMapper.java:182` — `: null` fallback for a field lookup that's provably always found, since `structSchema` is a 1:1 map of the same `avroSchema`'s fields~~ **(Fixed 2026-08-17)** — replaced with a direct `structSchema.field(name).schema()` call. |
+| `ksml-data-avro/.../AvroSchemaMapper.java:304` | Final `throw` in a cascade covering all 6 concrete `DataSchema` subtypes plus fixed singletons — nothing else is ever constructed. Still present: same compiler-mandated-terminal reasoning as the two `JoinOperationParser` entries above. |
+| ~~`ksml-data-csv/.../CsvSchemaMapper.java:38-45` — `return null` after a cascade that, traced exhaustively, always returns a `DataList`~~ **(Fixed 2026-08-17)** — replaced with a direct `(DataList)` cast plus a comment explaining the invariant. |
+| ~~`ksml-kafka-clients/.../PatternResolver.java:243,252` — `count > 0` checked redundantly, one line after `count` was unconditionally incremented~~ **(Fixed 2026-08-17)** — dropped the redundant `count > 0 &&` from both conditions. |
+| ~~`ksml-kafka-clients/.../ResolvingClientConfig.java:84-91` — Catches `ConfigException`, but the called overload only ever throws the broader `ClientException`~~ **(Fixed 2026-08-17)** — this was actually a mislabeled bug, not just dead code: fixed to catch `ClientException`, fold the original message in, and preserve it as `initCause`; added a regression test (`getConfiguredInstanceWrapsFailureAsConfigException`). |
+| ~~`ksml-kafka-clients/.../ResolvingSerializer.java` / `ResolvingDeserializer.java` (several lines) — Null-fallback for `topicResolver`, which is always assigned non-null at every real construction site~~ **(Fixed 2026-08-17)** — all 5 call sites simplified to a direct `topicResolver.resolve(topic)`. |
+| ~~`ksml-kafka-clients/.../ExtendableCreateTopicsResult.java:32-35` — The one subclass dereferences the same parameter immediately after `super(result)`, so a null would NPE there regardless of the substitution logic~~ **(Fixed 2026-08-17)** — removed the dead null-substitution; `ResolvingCreateTopicsResult` also switched to reading the inherited `createTopicsResult` field instead of its own constructor parameter. |
+| ~~`ksml-test-runner/.../AssertionRunner.java:246` — `return message;` after a redundant re-check of a condition the only caller already guaranteed~~ **(Fixed 2026-08-17)** — collapsed the two redundant checks; the extraction logic now uses a single `idx > 0` guard. |
+| ~~`ksml-test-runner/.../AssertionRunner.java:99-101` — "Undeclared stream" guard already enforced upstream by `TestDefinitionParser.parseAssertBlocks()` before an `AssertBlock` can exist~~ **(Fixed 2026-08-17)** — removed the dead null-check and error return. |
+| ~~`ksml-test-runner/.../KSMLTestRunner.java:75-79` — Manual "no test paths" check after picocli's own `arity="1..*"` already throws (and is already caught) for that case~~ **(Fixed 2026-08-17)** — removed the redundant check. |
 
 Not personally re-verified line-by-line beyond `JoinOperationParser`/`LeftJoinOperationParser`/
 `NativeDataObjectMapper`, but traced with the same producer/caller/subtype methodology.
+
+10 of the 13 rows above were fixed in commit `45f3ae2d` ("Fixed unreachable/dead code items"); the
+remaining 3 (`JoinOperationParser`, `LeftJoinOperationParser`, `AvroSchemaMapper`) were re-verified
+against current source on 2026-08-17 and left as-is, since in each case the `throw` is a
+compiler-mandated terminal for an `instanceof`/cascade Java can't statically prove exhaustive —
+there's no line left to delete.
 
 ## Confirmed unused (zero references anywhere in the repo)
 
