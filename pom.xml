@@ -87,12 +87,12 @@
         <confluent.version>8.3.1</confluent.version>
         <dropwizard.version>4.2.39</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
-        <graalvm.version>25.0.4</graalvm.version>
+        <graalvm.version>25.0.4.1</graalvm.version>
         <guava.version>33.7.1-jre</guava.version>
         <jackson.version>3.2.2</jackson.version>
         <!-- KSML itself is on Jackson 3. Apicurio, Confluent and victools still pull in Jackson 2,
              so that line has to stay version-aligned as well until they move over. -->
-        <jackson2.version>2.22.1</jackson2.version>
+        <jackson2.version>2.22.2</jackson2.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.2</jersey.version>
@@ -102,11 +102,11 @@
         <picocli.version>4.7.7</picocli.version>
         <prometheus.version>1.0.1</prometheus.version>
         <prometheus-instrumentation.version>1.8.0</prometheus-instrumentation.version>
-        <protobuf.version>4.35.1</protobuf.version>
+        <protobuf.version>4.36.0</protobuf.version>
         <saaj.version>3.0.6</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
         <victools.version>5.0.0</victools.version>
-        <wire.version>6.4.5</wire.version>
+        <wire.version>6.4.6</wire.version>
 
         <!-- KSML schema generation -->
         <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
