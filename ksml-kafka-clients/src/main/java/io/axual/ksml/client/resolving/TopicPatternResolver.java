@@ -23,35 +23,35 @@ package io.axual.ksml.client.resolving;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TopicPatternResolver extends CachedPatternResolver implements TopicResolver {
+public class TopicPatternResolver implements TopicResolver {
     public static final String DEFAULT_PLACEHOLDER_VALUE = "topic";
-    public static final String DEFAULT_PLACEHOLDER_PATTERN = FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + FIELD_NAME_SUFFIX;
+    public static final String DEFAULT_PLACEHOLDER_PATTERN = PatternResolver.FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + PatternResolver.FIELD_NAME_SUFFIX;
     private static final String INTERNAL_TOPIC_PREFIX = "_";
+    private final CachedPatternResolver delegate;
 
     public TopicPatternResolver(String topicPattern, Map<String, String> defaultValues) {
-        super(topicPattern, DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+        delegate = new CachedPatternResolver(topicPattern, DEFAULT_PLACEHOLDER_VALUE, defaultValues);
     }
 
     @Override
     public String resolve(String name) {
         if (isInternalUnresolvedTopic(name)) return name;
-        return super.resolve(name);
+        return delegate.resolve(name);
     }
 
     @Override
     public String unresolve(String name) {
         if (isInternalResolvedTopic(name)) return name;
-        return super.unresolve(name);
+        return delegate.unresolve(name);
     }
 
-    @Override
     public Map<String, String> unresolveContext(String name) {
         if (isInternalResolvedTopic(name)) {
             var result = new HashMap<String, String>();
             result.put(DEFAULT_PLACEHOLDER_VALUE, name);
             return result;
         }
-        return super.unresolveContext(name);
+        return delegate.unresolveContext(name);
     }
 
     private boolean isInternalUnresolvedTopic(String name) {

@@ -54,13 +54,11 @@ public class PatternResolver implements Resolver {
     private static final String FIELD_NAME_OR_LITERAL_MATCH_REGEX = "(" + FIELD_NAME_REGEX + "|" + LITERAL_REGEX + ")";
     private static final Pattern FIELD_NAME_OR_LITERAL_PATTERN = Pattern.compile(FIELD_NAME_OR_LITERAL_MATCH_REGEX);
     private final Map<String, String> defaultFieldValues;
-    protected final String defaultFieldName;
+    @Getter(value = AccessLevel.PACKAGE)
+    private final String defaultFieldName;
     private final List<String> fields;
     private final String resolvePattern;
     private final Pattern unresolvePattern;
-
-    @Getter(value = AccessLevel.PACKAGE)
-    private final String pattern;
 
     @Builder
     private record PatternParseResult(String resolvePattern, Pattern unresolvePattern, List<String> fields) {
@@ -101,8 +99,6 @@ public class PatternResolver implements Resolver {
         if (defaultFieldName.contains(FIELD_NAME_PREFIX) || defaultFieldName.contains(FIELD_NAME_SUFFIX)) {
             throw new IllegalArgumentException("defaultFieldName cannot contain opening or closing braces");
         }
-        this.pattern = pattern;
-
         final PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
 
         this.resolvePattern = parseResult.resolvePattern;

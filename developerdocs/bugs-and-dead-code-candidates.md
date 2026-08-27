@@ -347,3 +347,5 @@ Csv/Xml/Json because every real caller only ever supplies `null`. Whether that a
 the parameter (or the whole 3-arg method) from the interface, keeping it as documented-but-unused
 API surface (matching `AvroSchemaMapper`'s existing javadoc precedent), or something else, is the
 open question for discussion — no code changes have been made for this finding.
+
+_Note: discussed, holding back on this for now._

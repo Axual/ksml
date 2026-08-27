@@ -20,21 +20,34 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.commons.lang3.Strings;
+
 import java.util.Map;
 
-public class GroupPatternResolver extends CachedPatternResolver implements GroupResolver {
+public class GroupPatternResolver implements GroupResolver {
     public static final String DEFAULT_PLACEHOLDER_VALUE = "group.id";
-    public static final String DEFAULT_PLACEHOLDER_PATTERN = FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + FIELD_NAME_SUFFIX;
+    public static final String DEFAULT_PLACEHOLDER_PATTERN = PatternResolver.FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + PatternResolver.FIELD_NAME_SUFFIX;
     private static final String PLACEHOLDER_ALIAS = "group";
-    private static final String PLACEHOLDER_ALIAS_PATTERN = FIELD_NAME_PREFIX + PLACEHOLDER_ALIAS + FIELD_NAME_SUFFIX;
+    private static final String PLACEHOLDER_ALIAS_PATTERN = PatternResolver.FIELD_NAME_PREFIX + PLACEHOLDER_ALIAS + PatternResolver.FIELD_NAME_SUFFIX;
+    private final CachedPatternResolver delegate;
 
     public GroupPatternResolver(String groupPattern, Map<String, String> defaultValues) {
-        super(replaceAliases(groupPattern), DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+        delegate = new CachedPatternResolver(replaceAliases(groupPattern), DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+    }
+
+    @Override
+    public String resolve(String name) {
+        return delegate.resolve(name);
+    }
+
+    @Override
+    public String unresolve(String name) {
+        return delegate.unresolve(name);
     }
 
     private static String replaceAliases(String pattern) {
         // Some systems use "group" instead of "group.id" in their consumer group pattern. This method allows
         // for both, replacing "{group}" with "{group.id}"
-        return pattern == null ? null : pattern.replace(PLACEHOLDER_ALIAS_PATTERN, DEFAULT_PLACEHOLDER_PATTERN);
+        return pattern == null ? null : Strings.CS.replace(pattern, PLACEHOLDER_ALIAS_PATTERN, DEFAULT_PLACEHOLDER_PATTERN);
     }
 }
