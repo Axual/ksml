@@ -286,3 +286,64 @@ re-checked 2026-08-20: fixed in commit `a2b3b378` ("Applied changes after review
 branch here. The URL now correctly targets `/state/windowed/{store}/local/get/{key}/{timestamp}`
 and deserializes as `WindowedKeyValueBean`, with explicit regression coverage in
 `WindowedKeyValueStoreResourceTest.getKeyRoutesToRemoteInstance`. No action needed.
+
+## Possible clean up of DataSchemaMapper
+
+The "namespace parameter is superfluous" observation on `ProtobufFileElementSchemaMapper` (in the
+"Lower confidence" section above) turned out to be one instance of a wider pattern once traced
+across every implementor of `DataSchemaMapper<T>`:
+
+```java
+public interface DataSchemaMapper<T> {
+    DataSchema toDataSchema(String namespace, String name, T value);
+    default DataSchema toDataSchema(String name, T value) { return toDataSchema(null, name, value); }
+    default DataSchema toDataSchema(T value) { return toDataSchema(null, null, value); }
+    T fromDataSchema(DataSchema schema);
+}
+```
+
+It may be possible to simplify this interface by getting rid of the three-parameter
+`toDataSchema(String namespace, String name, T value)` method (or its `namespace` parameter
+specifically) — **(verified directly, traced 2026-08-27)**. This is not a proposal to act on yet;
+it's meant as the basis for a discussion on whether to refactor, so the breakdown below is
+deliberately precise about what each implementor's method body actually does with `namespace`
+versus what real (non-test) production call sites actually pass into it.
+
+**Implementors that genuinely read `namespace` to build the returned schema:**
+
+- `CsvSchemaMapper.toDataSchema` — `new StructSchema(namespace, name, "CSV schema", fields, false)`.
+- `XmlSchemaMapper.toDataSchema` — wraps it into a private `XMLSchemaParseContext`, then
+  `new StructSchema(context.namespace, element.getName(), ...)` for the top-level struct.
+- `JsonSchemaMapper.toDataSchema` — `StructSchema.builder().namespace(namespace)...build()`.
+
+**Implementors where `namespace` is dead — never read, or only forwarded to a recursive self-call:**
+
+- `DataTypeDataSchemaMapper.toDataSchema` — the only appearance of `namespace` in the body is a
+  recursive self-call for the `MapType` branch (`toDataSchema(namespace, name, mapType.valueType())`);
+  it's never used to construct a schema. `StructType`/`TupleType` branches ignore it entirely.
+- `NativeDataSchemaMapper.toDataSchema` — `namespace` isn't referenced at all, not even forwarded;
+  `name` is dead too (`ParseNode.fromRoot(json, "Schema")` hardcodes the literal string `"Schema"`).
+- `AvroSchemaMapper.toDataSchema` — already documented via its own javadoc as ignored, using
+  `schema.getNamespace()`/`schema.getName()` from the Avro `Schema` object instead.
+- `ProtobufFileElementSchemaMapper.toDataSchema` — uses `context.namespace` (derived from
+  `fileElement.getPackageName()`) instead of the parameter.
+- `ProtobufSchemaMapper.toDataSchema` — pure passthrough to the call above, so dead transitively.
+
+**What real call sites actually pass:**
+
+- `CsvSchemaParser.parse`, `XmlSchemaParser.parse`, `JsonSchemaLoader.parse`,
+  `ApicurioProtobufSchemaParser.parse` all go through the 2-arg convenience default
+  (`toDataSchema(name, value)` → `toDataSchema(null, name, value)`), so `namespace` is always
+  `null` at every one of these entry points today — even for Csv/Xml/Json, whose method bodies are
+  wired to use it.
+- `AvroDataObjectMapper.java:173,294` and `ProtobufDataObjectMapper.java:70` are the only call
+  sites that pass a genuine, non-null `namespace` (`avroSchema.getNamespace()`,
+  `descriptor.getFile().getPackage()`) — and in both cases the callee silently discards it,
+  re-deriving the same value internally from the schema/descriptor object it was also given.
+
+**Net effect:** no code path anywhere in the repo today produces a different result because of the
+`namespace` parameter — for Avro/Protobuf because the implementation ignores it outright, and for
+Csv/Xml/Json because every real caller only ever supplies `null`. Whether that argues for dropping
+the parameter (or the whole 3-arg method) from the interface, keeping it as documented-but-unused
+API surface (matching `AvroSchemaMapper`'s existing javadoc precedent), or something else, is the
+open question for discussion — no code changes have been made for this finding.
