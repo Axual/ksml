@@ -104,7 +104,7 @@ public class ErrorHandlingConfig {
         @JsonPropertyDescription("Sets the logger name used for handling. Setting these combined with setting specific logger configuration allows the log entries to be filtered, or written to another location.")
         private String loggerName;
         @JsonProperty(value = "handler", required = false)
-        @JsonPropertyDescription("Controls the behaviour of handling the error, which can be Stop KSML (stopOnFail), Continue KSML (continueOnFail) and Retry (retryOnFail)")
+        @JsonPropertyDescription("Controls the behaviour of handling the error, which can be Stop KSML (stopOnFail), Continue KSML (continueOnFail) and, for 'produce' only, Retry (retryOnFail)")
         private Handler handler = Handler.STOP;
 
         @JsonClassDescription("Enumeration controlling error handling behaviour.")

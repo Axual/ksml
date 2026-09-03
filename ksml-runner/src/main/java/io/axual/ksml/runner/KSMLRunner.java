@@ -151,6 +151,28 @@ public class KSMLRunner {
         }
     }
 
+    /**
+     * Identifies which error-handling channel a {@link ErrorHandler} is being built for. Only the
+     * {@code produce} (serialization) path has a Kafka Streams RETRY response; {@code consume}
+     * (deserialization) and {@code process} only support CONTINUE/STOP and must reject
+     * {@code retryOnFail} rather than let it crash the Streams thread on first use. Carrying this
+     * as an enum (rather than a hand-typed boolean at each call site) means a new call site gets
+     * the right answer by construction, and the rejection error can name the offending channel.
+     */
+    enum ErrorChannel {
+        CONSUME("consume", false),
+        PRODUCE("produce", true),
+        PROCESS("process", false);
+
+        private final String configKey;
+        private final boolean retrySupported;
+
+        ErrorChannel(String configKey, boolean retrySupported) {
+            this.configKey = configKey;
+            this.retrySupported = retrySupported;
+        }
+    }
+
     public static void main(String[] args) {
         var cmd = Arguments.populate(args);
 
@@ -547,12 +569,9 @@ public class KSMLRunner {
      */
     static void setupErrorHandling(ErrorHandlingConfig errorHandling) {
         if (errorHandling != null) {
-            // Only the produce (serialization) path has a Kafka Streams RETRY response; consume
-            // (deserialization) and process handlers only support CONTINUE/STOP and must reject
-            // retryOnFail here rather than let it crash the Streams thread on first use.
-            ExecutionContext.INSTANCE.errorHandling().setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig(), false));
-            ExecutionContext.INSTANCE.errorHandling().setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig(), true));
-            ExecutionContext.INSTANCE.errorHandling().setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig(), false));
+            ExecutionContext.INSTANCE.errorHandling().setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig(), ErrorChannel.CONSUME));
+            ExecutionContext.INSTANCE.errorHandling().setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig(), ErrorChannel.PRODUCE));
+            ExecutionContext.INSTANCE.errorHandling().setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig(), ErrorChannel.PROCESS));
         }
     }
 
@@ -757,13 +776,13 @@ public class KSMLRunner {
         throw new ConfigException("No configuration found in " + configFile);
     }
 
-    static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config, boolean retrySupported) {
+    static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config, ErrorChannel channel) {
         final var handlerType = switch (config.handler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
             case RETRY -> {
-                if (!retrySupported) {
-                    throw new ConfigException("retryOnFail is not a supported error handler here; only stopOnFail or continueOnFail are allowed");
+                if (!channel.retrySupported) {
+                    throw new ConfigException("retryOnFail is not a supported error handler for '" + channel.configKey + "'; only stopOnFail or continueOnFail are allowed");
                 }
                 yield ErrorHandler.HandlerType.RETRY_ON_FAIL;
             }

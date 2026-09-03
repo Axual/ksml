@@ -126,7 +126,11 @@ All three parameters are ignored. Git history shows a real implementation was re
 cleanup commit. Combined with finding #3, this module's schema-parsing path is currently
 entirely non-functional in production.
 
-### 5. `CsvDataObjectConverter`'s structured-CSV branch is dead due to a type-mismatched `equals`
+### 5. ~~`CsvDataObjectConverter`'s structured-CSV branch is dead due to a type-mismatched `equals`~~ **(Fixed 2026-09-03)**
+
+_Fixed_ — the `equals` check was replaced with `DEFAULT_TYPE.isAssignableFrom(value.type()).isAssignable()`,
+and the guard now also accepts `DataStruct` alongside `DataList`; `CsvDataObjectConverterTest` was
+added to cover the branch, which is now reachable.
 
 `ksml-data-csv/src/main/java/io/axual/ksml/data/notation/csv/CsvDataObjectConverter.java:39-46`
 
@@ -140,7 +144,12 @@ if (value instanceof DataList valueList && DEFAULT_TYPE.equals(valueList.type())
 conversion silently falls back to generic bracket-`toString()` formatting instead of proper
 CSV-escaped text. No test exercises this class.
 
-### 6. `JoinTargetDefinitionParser` rejects inline `table:`/`globalTable:` join targets **(verified directly)**
+### 6. ~~`JoinTargetDefinitionParser` rejects inline `table:`/`globalTable:` join targets~~ **(Fixed 2026-09-03)** **(verified directly)**
+
+_Fixed_ — `parseString(node, ...)` was replaced with `node.get(...) != null` for both `table:` and
+`globalTable:`, matching the check already used for `stream:`; `KSMLJoinInlineTargetTest` (plus the
+`test-join-inline-table.yaml`/`test-join-inline-globaltable.yaml` fixtures) was added to cover
+inline join targets.
 
 `ksml/src/main/java/io/axual/ksml/definition/parser/JoinTargetDefinitionParser.java:44-51`
 
@@ -257,9 +266,11 @@ conflict markers remain.
 
 ## Lower confidence / worth a look, not conclusively dead
 
-- `CachedPatternResolver` (ksml-kafka-clients) configures its Guava caches with
+- ~~`CachedPatternResolver` (ksml-kafka-clients) configures its Guava caches with
   `expireAfterAccess`/`expireAfterWrite(Duration.ZERO)`, which per Guava semantics makes caching
-  a no-op. It runs and is wired in — it just delivers none of its intended benefit.
+  a no-op. It runs and is wired in — it just delivers none of its intended benefit.~~ **(Fixed
+  2026-09-03)** — both durations changed to a 365-day expiry; also refactored from extending
+  `PatternResolver` to holding it as a `delegate`, replacing inheritance with encapsulation.
 - `ProtobufFileElementSchemaMapper.toDataSchema`'s `namespace` parameter appears to have no
   effect on the returned schema (namespace always comes from `fileElement.getPackageName()`);
   same root cause likely makes `ApicurioProtobufSchemaParser.parse`'s `contextName` parameter

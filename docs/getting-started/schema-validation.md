@@ -78,7 +78,7 @@ Using KSML schemas in your IDE provides:
 4. Verification that YAML structure is correct and required fields are present
 5. Early detection of configuration mistakes before deployment
 6. Type checking for strings, numbers, booleans, objects, and arrays
-7. Valid value suggestions for enumerated fields like error handlers (`stopOnFail`, `continueOnFail`, `retryOnFail`)
+7. Valid value suggestions for enumerated fields like error handlers (`stopOnFail`, `continueOnFail`, and for `produce` only, `retryOnFail`)
 
 ## Setting Up Schema Validation
 
@@ -344,7 +344,9 @@ The schema validator will:
 
 - Highlight the missing required field `application.id`
 - Show that port `99999` exceeds the maximum allowed value of `65535`
-- Suggest valid handler values: `stopOnFail`, `continueOnFail`, or `retryOnFail`
+- Suggest valid handler values: `stopOnFail`, `continueOnFail`, or `retryOnFail` (note: the schema
+  cannot express it, but `retryOnFail` is only accepted at runtime for `produce`; setting it on
+  `consume` or `process`, as in this example, fails with a `ConfigException` at startup)
 - Display descriptions for each configuration option when hovering
 
 ## Generating Schema Files

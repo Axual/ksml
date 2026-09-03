@@ -50,7 +50,7 @@
       "properties" : {
         "handler" : {
           "$ref" : "#/$defs/Handler",
-          "description" : "Controls the behaviour of handling the error, which can be Stop KSML (stopOnFail), Continue KSML (continueOnFail) and Retry (retryOnFail)"
+          "description" : "Controls the behaviour of handling the error, which can be Stop KSML (stopOnFail), Continue KSML (continueOnFail) and, for 'produce' only, Retry (retryOnFail)"
         },
         "log" : {
           "type" : "boolean",

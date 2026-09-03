@@ -21,6 +21,7 @@ package io.axual.ksml.runner;
  */
 
 import io.axual.ksml.execution.ErrorHandler;
+import io.axual.ksml.runner.KSMLRunner.ErrorChannel;
 import io.axual.ksml.runner.config.ErrorHandlingConfig.ErrorTypeHandlingConfig;
 import io.axual.ksml.runner.config.ErrorHandlingConfig.ErrorTypeHandlingConfig.Handler;
 import io.axual.ksml.runner.exception.ConfigException;
@@ -43,7 +44,7 @@ class KSMLRunnerErrorHandlerTest {
     void mapsEveryHandlerToItsHandlerTypeWhenRetryIsSupported(Handler handler, ErrorHandler.HandlerType expected) {
         final var cfg = new ErrorTypeHandlingConfig();
         cfg.handler(handler);
-        assertThat(KSMLRunner.getErrorHandler(cfg, true).handlerType()).isEqualTo(expected);
+        assertThat(KSMLRunner.getErrorHandler(cfg, ErrorChannel.PRODUCE).handlerType()).isEqualTo(expected);
     }
 
     @ParameterizedTest(name = "handler {0} -> {1}, non-retry-capable")
@@ -54,24 +55,25 @@ class KSMLRunnerErrorHandlerTest {
     void mapsNonRetryHandlersEvenWhenRetryIsUnsupported(Handler handler, ErrorHandler.HandlerType expected) {
         final var cfg = new ErrorTypeHandlingConfig();
         cfg.handler(handler);
-        assertThat(KSMLRunner.getErrorHandler(cfg, false).handlerType()).isEqualTo(expected);
+        assertThat(KSMLRunner.getErrorHandler(cfg, ErrorChannel.CONSUME).handlerType()).isEqualTo(expected);
     }
 
     @Test
     void rejectsRetryOnFailWhenNotSupported() {
         final var cfg = new ErrorTypeHandlingConfig();
         cfg.handler(Handler.RETRY); // e.g. configured for consume or process, which cannot retry
-        assertThatThrownBy(() -> KSMLRunner.getErrorHandler(cfg, false))
+        assertThatThrownBy(() -> KSMLRunner.getErrorHandler(cfg, ErrorChannel.CONSUME))
                 .isInstanceOf(ConfigException.class)
-                .hasMessageContaining("retryOnFail");
+                .hasMessageContaining("retryOnFail")
+                .hasMessageContaining("consume");
     }
 
     @Test
     void nullHandlerFallsBackToStopWithoutThrowing() {
         final var cfg = new ErrorTypeHandlingConfig();
         cfg.handler(null); // mirrors an empty "handler:" entry in the YAML config
-        assertThatCode(() -> KSMLRunner.getErrorHandler(cfg, false)).doesNotThrowAnyException();
-        assertThat(KSMLRunner.getErrorHandler(cfg, false).handlerType())
+        assertThatCode(() -> KSMLRunner.getErrorHandler(cfg, ErrorChannel.CONSUME)).doesNotThrowAnyException();
+        assertThat(KSMLRunner.getErrorHandler(cfg, ErrorChannel.CONSUME).handlerType())
                 .isEqualTo(ErrorHandler.HandlerType.STOP_ON_FAIL);
     }
 }

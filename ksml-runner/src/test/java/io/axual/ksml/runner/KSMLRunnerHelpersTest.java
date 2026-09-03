@@ -34,6 +34,8 @@ import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.backend.Runner;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
+import io.axual.ksml.runner.config.ErrorHandlingConfig.ErrorTypeHandlingConfig;
+import io.axual.ksml.runner.config.ErrorHandlingConfig.ErrorTypeHandlingConfig.Handler;
 import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.config.NotationConfig;
@@ -386,5 +388,45 @@ class KSMLRunnerHelpersTest {
         assertThat(reflectHandler("consumeHandler").loggerName()).isEqualTo("ConsumeError");
         assertThat(reflectHandler("produceHandler").loggerName()).isEqualTo("ProduceError");
         assertThat(reflectHandler("processHandler").loggerName()).isEqualTo("ProcessError");
+    }
+
+    @Test
+    @DisplayName("setupErrorHandling rejects retryOnFail configured on the consume channel")
+    void setupErrorHandlingRejectsRetryOnConsume() {
+        final var consume = new ErrorTypeHandlingConfig();
+        consume.handler(Handler.RETRY);
+        final var config = new ErrorHandlingConfig();
+        config.consume(consume);
+
+        assertThatThrownBy(() -> KSMLRunner.setupErrorHandling(config))
+                .isInstanceOf(ConfigException.class)
+                .hasMessageContaining("retryOnFail")
+                .hasMessageContaining("consume");
+    }
+
+    @Test
+    @DisplayName("setupErrorHandling rejects retryOnFail configured on the process channel")
+    void setupErrorHandlingRejectsRetryOnProcess() {
+        final var process = new ErrorTypeHandlingConfig();
+        process.handler(Handler.RETRY);
+        final var config = new ErrorHandlingConfig();
+        config.process(process);
+
+        assertThatThrownBy(() -> KSMLRunner.setupErrorHandling(config))
+                .isInstanceOf(ConfigException.class)
+                .hasMessageContaining("retryOnFail")
+                .hasMessageContaining("process");
+    }
+
+    @Test
+    @DisplayName("setupErrorHandling accepts retryOnFail configured on the produce channel")
+    void setupErrorHandlingAcceptsRetryOnProduce() throws Exception {
+        final var produce = new ErrorTypeHandlingConfig();
+        produce.handler(Handler.RETRY);
+        final var config = new ErrorHandlingConfig();
+        config.produce(produce);
+
+        assertThatCode(() -> KSMLRunner.setupErrorHandling(config)).doesNotThrowAnyException();
+        assertThat(reflectHandler("produceHandler").handlerType()).isEqualTo(ErrorHandler.HandlerType.RETRY_ON_FAIL);
     }
 }
