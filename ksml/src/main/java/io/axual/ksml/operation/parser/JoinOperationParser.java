@@ -83,6 +83,7 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
                 if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
                 if (joinTopic.definition() instanceof GlobalTableDefinition) return joinGlobalTableParser.parse(node);
 
+                // Note: the above instanceof checks always return something, but Java can't infer that, hence we throw an exception here:
                 final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
                 final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
                 throw new ParseException(node, "Join stream not found: " + description);

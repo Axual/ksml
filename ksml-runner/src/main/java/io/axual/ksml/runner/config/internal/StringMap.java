@@ -23,7 +23,8 @@ package io.axual.ksml.runner.config.internal;
 import java.util.HashMap;
 
 /**
- * A basic String Map, allows for proper Json Schema Naming
+ * A basic String Map, allows for proper Json Schema Naming.
+ * Kept as a distinct type so {@link StringMapDefinitionPropertiesResolver} can target it, and so {@code KafkaConfig} can extend it for open-ended passthrough properties.
  */
 public class StringMap extends HashMap<String, String> {
 }

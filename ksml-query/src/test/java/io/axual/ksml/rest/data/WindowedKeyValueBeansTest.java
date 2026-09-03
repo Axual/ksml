@@ -34,34 +34,21 @@ class WindowedKeyValueBeansTest {
     }
 
     @Test
-    @DisplayName("add(window, key, value) wraps the entry into a windowed bean")
-    void addWindowKeyValueWrapsBean() {
-        final var beans = new WindowedKeyValueBeans().add(window(), new DataString("k"), new DataString("v"));
+    @DisplayName("add(WindowedKeyValueBean) appends the entry")
+    void addAppendsBean() {
+        final var beans = new WindowedKeyValueBeans().add(new WindowedKeyValueBean(window(), new DataString("k"), new DataString("v")));
 
         assertThat(beans.elements()).hasSize(1);
-        final var bean = beans.elements().get(0);
+        final var bean = beans.elements().getFirst();
         assertThat(bean.key()).isEqualTo(new DataString("k"));
         assertThat(bean.window().end()).isEqualTo(100L);
     }
 
     @Test
-    @DisplayName("add(WindowedKeyValueBeans) merges all elements from another collection")
-    void addMergesOtherBeans() {
-        final var first = new WindowedKeyValueBeans().add(window(), new DataString("k1"), new DataString("v1"));
-        final var second = new WindowedKeyValueBeans()
-                .add(window(), new DataString("k2"), new DataString("v2"))
-                .add(new WindowedKeyValueBean(window(), new DataString("k3"), new DataString("v3")));
-
-        first.add(second);
-
-        assertThat(first.elements()).hasSize(3);
-    }
-
-    @Test
     @DisplayName("toString embeds the string representation of the contained elements")
     void toStringContainsElements() {
-        final var beans = new WindowedKeyValueBeans().add(window(), new DataString("k"), new DataString("v"));
+        final var beans = new WindowedKeyValueBeans().add(new WindowedKeyValueBean(window(), new DataString("k"), new DataString("v")));
 
-        assertThat(beans.toString()).contains(beans.elements().get(0).toString());
+        assertThat(beans.toString()).contains(beans.elements().getFirst().toString());
     }
 }

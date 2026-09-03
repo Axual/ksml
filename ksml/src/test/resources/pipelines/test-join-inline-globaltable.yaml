@@ -1,0 +1,33 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Regression fixture for developerdocs/bugs-and-dead-code-candidates.md finding 6:
+# the join's "globalTable" field is defined inline (no top-level `globalTables:` entry),
+# which the language spec documents as supported ("a reference to the globalTable, or an
+# inline definition of the globalTable to join with").
+
+streams:
+  streamIn:
+    topic: streamIn
+    keyType: string
+    valueType: string
+  joinOut:
+    topic: joinOut
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: streamIn
+    via:
+      - type: join
+        globalTable:
+          topic: joinTargetIn
+          keyType: string
+          valueType: string
+        mapper:
+          resultType: string
+          expression: key
+        valueJoiner:
+          resultType: string
+          expression: value1 + "-" + value2
+    to: joinOut

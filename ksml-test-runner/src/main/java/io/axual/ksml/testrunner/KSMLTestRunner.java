@@ -72,12 +72,6 @@ public class KSMLTestRunner {
             return;
         }
 
-        if (arguments.testPaths == null || arguments.testPaths.isEmpty()) {
-            cmd.usage(System.out);
-            System.exit(1);
-            return;
-        }
-
         // Check GraalVM availability
         if (!Version.getCurrent().isRelease()) {
             System.err.println("ERROR: KSML Test Runner requires GraalVM to run.");

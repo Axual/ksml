@@ -1,0 +1,30 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Regression fixture for developerdocs/bugs-and-dead-code-candidates.md finding 6:
+# the join's "table" field is defined inline (no top-level `tables:` entry), which the
+# language spec documents as supported ("a reference to the table, or an inline definition
+# of the table to join with").
+
+streams:
+  streamIn:
+    topic: streamIn
+    keyType: string
+    valueType: string
+  joinOut:
+    topic: joinOut
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: streamIn
+    via:
+      - type: join
+        table:
+          topic: joinTargetIn
+          keyType: string
+          valueType: string
+        valueJoiner:
+          resultType: string
+          expression: value1 + "-" + value2
+    to: joinOut

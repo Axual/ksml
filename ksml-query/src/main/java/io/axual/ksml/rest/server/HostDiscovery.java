@@ -24,13 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class HostDiscovery {
-    private static final String LOCALHOST = "localhost";
-
     private HostDiscovery() {
-    }
-
-    public static String discoverLocal() {
-        return LOCALHOST;
     }
 
     public static String discoverDocker() {

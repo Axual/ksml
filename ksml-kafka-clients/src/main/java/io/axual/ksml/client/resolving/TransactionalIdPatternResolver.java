@@ -21,11 +21,26 @@ package io.axual.ksml.client.resolving;
  */
 
 import java.util.Map;
-public class TransactionalIdPatternResolver extends CachedPatternResolver implements TransactionalIdResolver {
+public class TransactionalIdPatternResolver implements TransactionalIdResolver {
     public static final String DEFAULT_PLACEHOLDER_VALUE = "transactional.id";
-    public static final String DEFAULT_PLACEHOLDER_PATTERN = FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + FIELD_NAME_SUFFIX;
+    public static final String DEFAULT_PLACEHOLDER_PATTERN = PatternResolver.FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + PatternResolver.FIELD_NAME_SUFFIX;
+    private final CachedPatternResolver delegate;
 
     public TransactionalIdPatternResolver(String pattern, Map<String, String> defaultValues) {
-        super(pattern, DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+        delegate = new CachedPatternResolver(pattern, DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+    }
+
+    @Override
+    public String resolve(String name) {
+        return delegate.resolve(name);
+    }
+
+    @Override
+    public String unresolve(String name) {
+        return delegate.unresolve(name);
+    }
+
+    public Map<String, String> unresolveContext(String name) {
+        return delegate.unresolveContext(name);
     }
 }

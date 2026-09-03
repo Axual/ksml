@@ -21,6 +21,7 @@ package io.axual.ksml.client.resolving;
  */
 
 import io.axual.ksml.client.exception.ClientException;
+import io.axual.ksml.client.exception.ConfigException;
 import org.apache.kafka.common.Configurable;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
@@ -44,9 +45,9 @@ class ResolvingClientConfigTest {
     private static final String GROUP_ID_PATTERN = "{instance}-{group.id}";
     private static final String TRANSACTIONAL_ID_PATTERN = "{instance}-{transactional.id}";
 
-    private static final String EXPECTED_DEFAULT_TOPIC_PATTERN = "{topic}";
-    private static final String EXPECTED_DEFAULT_GROUP_ID_PATTERN = "{group.id}";
-    private static final String EXPECTED_DEFAULT_TRANSACTIONAL_ID_PATTERN = "{transactional.id}";
+    private static final String RESOLVE_TOPIC = "topic";
+    private static final String RESOLVE_GROUP = "group";
+    private static final String RESOLVE_TRANSACTIONAL_ID = "transid";
 
     @Test
     @DisplayName("Pattern Resolvers use provided patterns")
@@ -63,7 +64,8 @@ class ResolvingClientConfigTest {
         assertThat(clientConfig)
                 .isNotNull();
 
-        verifyPatterns(clientConfig, TOPIC_PATTERN, GROUP_ID_PATTERN, TRANSACTIONAL_ID_PATTERN);
+        // instance="" so "{instance}-{topic}" (and the group/transactional-id equivalents) resolve to "-" + input
+        verifyPatterns(clientConfig, "-" + RESOLVE_TOPIC, "-" + RESOLVE_GROUP, "-" + RESOLVE_TRANSACTIONAL_ID);
     }
 
     @Test
@@ -74,35 +76,43 @@ class ResolvingClientConfigTest {
         assertThat(clientConfig)
                 .isNotNull();
 
-        verifyPatterns(clientConfig, EXPECTED_DEFAULT_TOPIC_PATTERN, EXPECTED_DEFAULT_GROUP_ID_PATTERN, EXPECTED_DEFAULT_TRANSACTIONAL_ID_PATTERN);
+        // default patterns are bare placeholders ("{topic}" etc.), so resolving is the identity function
+        verifyPatterns(clientConfig, RESOLVE_TOPIC, RESOLVE_GROUP, RESOLVE_TRANSACTIONAL_ID);
     }
 
-    static void verifyPatterns(ResolvingClientConfig clientConfig, String expectedTopicPattern, String expectedGroupIdPattern, String expectedTransactionalIdPattern) {
+    /**
+     * Verify the configured patterns by calling resolve and checking the result.
+     * @param clientConfig a clioent config with the configured patterns
+     * @param expectedResolvedTopic the expected resolved topic name.
+     * @param expectedResolvedGroupId the expected resolved group id.
+     * @param expectedResolvedTransactionalId the expected resolved transactional id.
+     */
+    static void verifyPatterns(ResolvingClientConfig clientConfig, String expectedResolvedTopic, String expectedResolvedGroupId, String expectedResolvedTransactionalId) {
         assertThat(clientConfig)
                 .isNotNull();
 
         final var softly = new SoftAssertions();
 
         softly.assertThat(clientConfig.topicResolver())
-                .as("Verify the topic resolver is a pattern resolver with the provided pattern")
-                .isNotNull()
-                .isInstanceOf(CachedPatternResolver.class)
-                .asInstanceOf(InstanceOfAssertFactories.type(CachedPatternResolver.class))
-                .returns(expectedTopicPattern, CachedPatternResolver::pattern);
+                .as("Verify the topic resolver is a TopicPatternResolver")
+                .isInstanceOf(TopicPatternResolver.class);
+        softly.assertThat(clientConfig.topicResolver().resolve(RESOLVE_TOPIC))
+                .as("Verify the topic resolver was configured with the provided pattern")
+                .isEqualTo(expectedResolvedTopic);
 
         softly.assertThat(clientConfig.groupResolver())
-                .as("Verify the group resolver is a pattern resolver with the provided pattern")
-                .isNotNull()
-                .isInstanceOf(CachedPatternResolver.class)
-                .asInstanceOf(InstanceOfAssertFactories.type(CachedPatternResolver.class))
-                .returns(expectedGroupIdPattern, CachedPatternResolver::pattern);
+                .as("Verify the group resolver is a GroupPatternResolver")
+                .isInstanceOf(GroupPatternResolver.class);
+        softly.assertThat(clientConfig.groupResolver().resolve(RESOLVE_GROUP))
+                .as("Verify the group resolver was configured with the provided pattern")
+                .isEqualTo(expectedResolvedGroupId);
 
         softly.assertThat(clientConfig.transactionalIdResolver())
-                .as("Verify the transactional id resolver is a pattern resolver with the provided pattern")
-                .isNotNull()
-                .isInstanceOf(CachedPatternResolver.class)
-                .asInstanceOf(InstanceOfAssertFactories.type(CachedPatternResolver.class))
-                .returns(expectedTransactionalIdPattern, CachedPatternResolver::pattern);
+                .as("Verify the transactional id resolver is a TransactionalIdPatternResolver")
+                .isInstanceOf(TransactionalIdPatternResolver.class);
+        softly.assertThat(clientConfig.transactionalIdResolver().resolve(RESOLVE_TRANSACTIONAL_ID))
+                .as("Verify the transactional id resolver was configured with the provided pattern")
+                .isEqualTo(expectedResolvedTransactionalId);
 
         softly.assertAll();
     }
@@ -161,6 +171,21 @@ class ResolvingClientConfigTest {
         final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, 42));
 
         assertThatThrownBy(() -> config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class))
+                .isInstanceOf(ClientException.class)
+                .hasMessageContaining("Marker");
+    }
+
+    @Test
+    @DisplayName("An incompatible value wraps the failure in a ConfigException with key/value context and the original as cause")
+    void getConfiguredInstanceWrapsFailureAsConfigException() {
+        final var config = new ResolvingClientConfig(Map.of(INSTANCE_CONFIG, 42));
+
+        assertThatThrownBy(() -> config.getConfiguredInstance(INSTANCE_CONFIG, Marker.class))
+                .isInstanceOf(ConfigException.class)
+                .hasMessageContaining("Marker")
+                .hasMessageContaining(INSTANCE_CONFIG)
+                .hasMessageContaining("42")
+                .cause()
                 .isInstanceOf(ClientException.class)
                 .hasMessageContaining("Marker");
     }

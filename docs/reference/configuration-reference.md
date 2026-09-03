@@ -165,7 +165,7 @@ Each error type (`consume`, `process`, `produce`) supports these properties:
 | `log`        | Boolean | true           | Whether to log errors                                                   |
 | `logPayload` | Boolean | false          | Whether to include message payload in error logs                        |
 | `loggerName` | String  | Auto-generated | Custom logger name for this error type                                  |
-| `handler`    | String  | stopOnFail     | Error handling strategy (`continueOnFail`, `stopOnFail`, `retryOnFail`) |
+| `handler`    | String  | stopOnFail     | Error handling strategy (`continueOnFail`, `stopOnFail`, and for `produce` only, `retryOnFail`) |
 
 ```yaml
 ksml:

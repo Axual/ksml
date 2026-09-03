@@ -25,18 +25,11 @@ import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
-import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 
 public class ConfluentProtobufSerdeSupplier implements ProtobufSerdeSupplier {
-    // Registry Client is mocked by tests
-    @Getter
     private final SchemaRegistryClient registryClient;
-
-    public ConfluentProtobufSerdeSupplier() {
-        this(null);
-    }
 
     public ConfluentProtobufSerdeSupplier(SchemaRegistryClient registryClient) {
         this.registryClient = registryClient;

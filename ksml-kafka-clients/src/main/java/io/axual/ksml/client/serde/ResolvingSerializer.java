@@ -44,12 +44,12 @@ public class ResolvingSerializer<T> implements Serializer<T> {
 
     @Override
     public byte[] serialize(String topic, T object) {
-        return backingSerializer.serialize(topicResolver != null ? topicResolver.resolve(topic) : topic, object);
+        return backingSerializer.serialize(topicResolver.resolve(topic), object);
     }
 
     @Override
     public byte[] serialize(String topic, Headers headers, T object) {
-        return backingSerializer.serialize(topicResolver != null ? topicResolver.resolve(topic) : topic, headers, object);
+        return backingSerializer.serialize(topicResolver.resolve(topic), headers, object);
     }
 
     @Override

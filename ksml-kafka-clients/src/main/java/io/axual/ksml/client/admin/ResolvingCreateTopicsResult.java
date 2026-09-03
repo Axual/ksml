@@ -39,7 +39,7 @@ public class ResolvingCreateTopicsResult extends ExtendableCreateTopicsResult {
         super(result);
         this.topicResolver = resolver;
         this.values = new HashMap<>();
-        result.values().forEach((k, v) -> values.put(topicResolver.unresolve(k), v));
+        createTopicsResult.values().forEach((k, v) -> values.put(topicResolver.unresolve(k), v));
     }
 
     @Override

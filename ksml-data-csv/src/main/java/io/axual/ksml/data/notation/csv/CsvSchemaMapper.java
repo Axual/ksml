@@ -36,12 +36,11 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, String value) {
-        // Convert CSV to internal DataObject format
-        final var line = MAPPER.toDataObject(value);
-        if (line instanceof DataList fieldNames) {
-            return toDataSchema(namespace, name, fieldNames);
-        }
-        return null;
+        // Convert CSV to internal DataObject format. The single-arg toDataObject(value) call
+        // passes expected=null downstream, which makes CsvDataObjectMapper.toDataObject always
+        // take its DataList branch (never DataStruct), so this cast is safe.
+        final var fieldNames = (DataList) MAPPER.toDataObject(value);
+        return toDataSchema(namespace, name, fieldNames);
     }
 
     private DataSchema toDataSchema(String namespace, String name, DataList fieldNames) {

@@ -32,13 +32,13 @@ public class ResolvingConsumerConfig extends ResolvingClientConfig {
         // Apply resolved group id to downstream consumer
         var configuredGroupId = configs.get(ConsumerConfig.GROUP_ID_CONFIG);
         if (configuredGroupId instanceof String groupId) {
-            downstreamConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, groupResolver.resolve(groupId));
+            downstreamConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, groupResolver().resolve(groupId));
         }
 
         // Apply resolving partition assignment strategy to downstream consumer
         if (configs.containsKey(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG)) {
             downstreamConfigs.put(ResolvingConsumerPartitionAssignorConfig.BACKING_ASSIGNOR_CONFIG, configs.get(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG));
-            downstreamConfigs.put(ResolvingConsumerPartitionAssignorConfig.ASSIGNOR_TOPIC_RESOLVER_CONFIG, topicResolver);
+            downstreamConfigs.put(ResolvingConsumerPartitionAssignorConfig.ASSIGNOR_TOPIC_RESOLVER_CONFIG, topicResolver());
             downstreamConfigs.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, ResolvingConsumerPartitionAssignor.class.getName());
         }
     }

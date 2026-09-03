@@ -68,11 +68,16 @@ public class ReduceOperationParser extends OperationParser<ReduceOperation> {
     public StructsParser<ReduceOperation> parser() {
         return StructsParser.of(
                 node -> {
-                    final var result1 = reducerParser.parse(node);
-                    if (result1 != null) return result1;
-                    final var result2 = addedSubtractorParser.parse(node);
-                    if (result2 != null) return result2;
-                    throw new TopologyException("Error in reducer operation: " + node);
+                    final var hasReducer = node.get(KSMLDSL.Operations.Reduce.REDUCER) != null;
+                    final var hasAdder = node.get(KSMLDSL.Operations.Reduce.ADDER) != null;
+                    final var hasSubtractor = node.get(KSMLDSL.Operations.Reduce.SUBTRACTOR) != null;
+
+                    if (hasReducer && !hasAdder && !hasSubtractor) return reducerParser.parse(node);
+                    if (!hasReducer && hasAdder && hasSubtractor) return addedSubtractorParser.parse(node);
+
+                    throw new TopologyException("Error in reduce operation: expected either a '" + KSMLDSL.Operations.Reduce.REDUCER
+                            + "' field, or both '" + KSMLDSL.Operations.Reduce.ADDER + "' and '" + KSMLDSL.Operations.Reduce.SUBTRACTOR
+                            + "' fields, but not a mix: " + node);
                 },
                 schemas);
     }
