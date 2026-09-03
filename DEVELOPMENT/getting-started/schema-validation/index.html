@@ -2859,7 +2859,7 @@
 <li>Verification that YAML structure is correct and required fields are present</li>
 <li>Early detection of configuration mistakes before deployment</li>
 <li>Type checking for strings, numbers, booleans, objects, and arrays</li>
-<li>Valid value suggestions for enumerated fields like error handlers (<code>stopOnFail</code>, <code>continueOnFail</code>, <code>retryOnFail</code>)</li>
+<li>Valid value suggestions for enumerated fields like error handlers (<code>stopOnFail</code>, <code>continueOnFail</code>, and for <code>produce</code> only, <code>retryOnFail</code>)</li>
 </ol>
 <h2 id="setting-up-schema-validation">Setting Up Schema Validation</h2>
 <p>There are two ways to enable schema validation:</p>
@@ -3085,7 +3085,9 @@
 <ul>
 <li>Highlight the missing required field <code>application.id</code></li>
 <li>Show that port <code>99999</code> exceeds the maximum allowed value of <code>65535</code></li>
-<li>Suggest valid handler values: <code>stopOnFail</code>, <code>continueOnFail</code>, or <code>retryOnFail</code></li>
+<li>Suggest valid handler values: <code>stopOnFail</code>, <code>continueOnFail</code>, or <code>retryOnFail</code> (note: the schema
+  cannot express it, but <code>retryOnFail</code> is only accepted at runtime for <code>produce</code>; setting it on
+  <code>consume</code> or <code>process</code>, as in this example, fails with a <code>ConfigException</code> at startup)</li>
 <li>Display descriptions for each configuration option when hovering</li>
 </ul>
 <h2 id="generating-schema-files">Generating Schema Files</h2>
