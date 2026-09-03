@@ -143,41 +143,46 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
      */
     @Override
     public Schema fromDataSchema(DataSchema schema) {
-        if (schema == null) {
-            return AVRO_NULL_TYPE;
-        }
-        if (schema instanceof LogicalSchema logical)
-            return AvroLogicalTypes.apply(fromDataSchema(logical.baseSchema()), logical.logicalType());
-        if (schema instanceof StructSchema structSchema) {
-            final var fields = convertFieldsToAvroFields(structSchema.fields());
-            return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, fields);
-        }
-        if (schema instanceof MapSchema mapSchema) {
-            var avroMapValueSchema = fromDataSchema(mapSchema.valueSchema());
-            return Schema.createMap(avroMapValueSchema);
-        }
-        if (schema instanceof ListSchema listSchema) {
-            var avroListValueSchema = fromDataSchema(listSchema.valueSchema());
-            return Schema.createArray(avroListValueSchema);
-        }
-        if (schema instanceof EnumSchema enumSchema) {
-            var symbols = enumSchema.symbols().stream()
+        switch (schema) {
+            case null -> {
+                return AVRO_NULL_TYPE;
+            }
+            case LogicalSchema logical -> {
+                return AvroLogicalTypes.apply(fromDataSchema(logical.baseSchema()), logical.logicalType());
+            }
+            case StructSchema structSchema -> {
+                final var fields = convertFieldsToAvroFields(structSchema.fields());
+                return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, fields);
+            }
+            case MapSchema mapSchema -> {
+                var avroMapValueSchema = fromDataSchema(mapSchema.valueSchema());
+                return Schema.createMap(avroMapValueSchema);
+            }
+            case ListSchema listSchema -> {
+                var avroListValueSchema = fromDataSchema(listSchema.valueSchema());
+                return Schema.createArray(avroListValueSchema);
+            }
+            case EnumSchema enumSchema -> {
+                var symbols = enumSchema.symbols().stream()
                     .map(EnumSchema.Symbol::name)
                     .toList();
-            var enumDefault = enumSchema.defaultValue();
+                var enumDefault = enumSchema.defaultValue();
 
-            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), symbols, enumDefault == null ? null : enumDefault.name());
-        }
-        if (schema instanceof FixedSchema fixedSchema) {
-            return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
-        }
-        if (schema instanceof UnionSchema unionSchema) {
-            var members = unionSchema.members();
-            var avroMembers = new Schema[members.length];
-            for (var i = 0; i < members.length; i++) {
-                avroMembers[i] = fromDataSchema(members[i].schema());
+                return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), symbols, enumDefault == null ? null : enumDefault.name());
             }
-            return Schema.createUnion(avroMembers);
+            case FixedSchema fixedSchema -> {
+                return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
+            }
+            case UnionSchema unionSchema -> {
+                var members = unionSchema.members();
+                var avroMembers = new Schema[members.length];
+                for (var i = 0; i < members.length; i++) {
+                    avroMembers[i] = fromDataSchema(members[i].schema());
+                }
+                return Schema.createUnion(avroMembers);
+            }
+            default -> {
+            }
         }
 
         return switch (schema.type()) {
@@ -327,9 +332,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // Build a nullable union ordered so that the default's type comes first.
         // Avro rule: the default of a union must be valid for the FIRST type in the union.
         // So null defaults require null-first; non-null defaults require the value's type first.
-        final var types = result.getType() == Schema.Type.UNION
-                ? new ArrayList<>(result.getTypes())
-                : new ArrayList<>(List.of(result));
+        final var types = new ArrayList<>(result.getType() == Schema.Type.UNION
+                ? result.getTypes()
+                : List.of(result));
         types.remove(AVRO_NULL_TYPE);
         if (nullDefault) {
             types.addFirst(AVRO_NULL_TYPE);
@@ -403,7 +408,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case null -> {
                 return JsonProperties.NULL_VALUE;
             }
-            case DataNull dataNull -> {
+            case DataNull _ -> {
                 return JsonProperties.NULL_VALUE;
             }
 
@@ -439,6 +444,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                 return result;
             }
             default -> {
+                // Scalars (string, int, long, boolean, bytes, enum, ...) fall through to the
+                // generic unwrapping below instead of being handled here.
             }
         }
 
