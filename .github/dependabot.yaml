@@ -25,16 +25,14 @@ updates:
       prod-deps:
         dependency-type: "production"
     ignore:
-      # GraalPy 25.1 and 25.2 cannot load Python C extension modules such as
-      # _ctypes, which PythonContextTest.testNativeAccess catches (see #688).
-      # Fixed upstream by https://github.com/oracle/graalpython/pull/1018, but
-      # we do not know if that reached 25.2.5, so the range stops there and
-      # Dependabot may offer it once it exists. These jars are only half of
-      # GraalVM: going past 25.0.x also needs GRAALVM_JDK_VERSION bumped in the
-      # workflows, or polyglot's version check quietly drops Python to the
-      # slow interpreter.
+      # All GraalVM library bumps past 25.0.x are blocked on purpose, with no upper
+      # end to the range. Do not narrow this range without reading
+      # developerdocs/graalvm-version-pinning.md first - it explains a second,
+      # deeper problem found in GraalVM 25.3.4.1 (PR #701) on top of the original
+      # GraalPy 25.1/25.2 native-extension bug (#688), and what needs to be true
+      # before it is safe to widen this again.
       - dependency-name: "org.graalvm.*:*"
-        versions: [ ">=25.1.0, <25.2.5" ]
+        versions: [ ">=25.1.0" ]
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
