@@ -21,6 +21,7 @@ package io.axual.ksml.python;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -166,6 +168,12 @@ class PythonContextTest {
             if (allowCreateThread) {
                 // ✅ Threading should work
                 fn.execute();
+                // Python's t.join() can return slightly before GraalVM has finished disposing
+                // of the underlying host thread (see oracle/graal PolyglotLanguageContext#dispose,
+                // which tracks "owned alive polyglot threads" separately). Closing the context
+                // immediately after can then race and throw IllegalStateException. Wait for the
+                // host thread to actually be gone before letting try-with-resources close it.
+                awaitNoLingeringPolyglotThreads();
             } else {
                 // ❌ Thread creation should be denied
                 assertThatThrownBy(fn::execute)
@@ -173,6 +181,14 @@ class PythonContextTest {
                         .hasMessageContaining("Creating threads is not allowed");
             }
         }
+    }
+
+    private static void awaitNoLingeringPolyglotThreads() {
+        Awaitility.await("Wait for GraalVM's polyglot thread to fully finish")
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(10))
+                .until(() -> Thread.getAllStackTraces().keySet().stream()
+                        .noneMatch(t -> t.getName().startsWith("Polyglot-python-")));
     }
 
     // Confirms whether native library access using ctypes is permitted
