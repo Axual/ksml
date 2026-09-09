@@ -96,13 +96,19 @@ public class KSMLStateStoreTest {
                 .build().toRecord());
 
         // second message for the same key: forces a real read-back from the store, which is
-        // where copy.deepcopy() runs
+        // where copy.deepcopy() runs. The pipeline stores the copy under "sensor1_backup" so we
+        // can confirm here that it is a real, independent snapshot of the first message.
         sensorIn.pipeInput("sensor1", SensorData.builder()
                 .city("Amsterdam")
                 .type(SensorData.SensorType.HUMIDITY)
                 .unit("%")
                 .value("70")
                 .build().toRecord());
+
+        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+        DataStruct backup = (DataStruct) lastSensorDataStore.get("sensor1_backup");
+        assertThat(backup.get("city")).isEqualTo(new DataString("Amsterdam"));
+        assertThat(backup.get("value")).isEqualTo(new DataString("80"));
     }
 
     @KSMLTest(topology = "pipelines/test-state-store-timestamped.yaml", schemaDirectory = "schemas")

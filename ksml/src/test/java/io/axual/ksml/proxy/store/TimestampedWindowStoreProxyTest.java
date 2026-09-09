@@ -50,8 +50,6 @@ class TimestampedWindowStoreProxyTest {
     @DisplayName("fetch exposes the value and timestamp of the fetched record as a real dict")
     void fetchConvertsResultToDict() {
         when(delegate.fetch("key", 5L)).thenReturn(ValueAndTimestamp.make("value", 5L));
-        // Called from inside a real Python context, like a real KSML pipeline does, since
-        // ProxyUtil.toPython() only builds a real dict when a context is entered.
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
             pythonContext.context().getBindings("python").putMember("store", proxy());
             assertThat(pythonContext.context().eval("python", "type(store.fetch('key', 5)) is dict").asBoolean()).isTrue();

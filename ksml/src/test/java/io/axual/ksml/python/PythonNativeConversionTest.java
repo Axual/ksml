@@ -87,12 +87,10 @@ class PythonNativeConversionTest {
                         assert type(value["nested"]) is dict, f"expected real nested dict, got {type(value['nested'])}"
                         assert type(value["numbers"]) is list, f"expected real list, got {type(value['numbers'])}"
                         assert value["owner"] is None, f"expected real None, got {value['owner']!r}"
-                        'OK'
                         """),
                 Arguments.of("deepcopy works on value", """
                         import copy
                         copy.deepcopy(value)
-                        'OK'
                         """),
                 // A null field must be a genuine None, not a foreign/interop null - deepcopy on a
                 // dict/list only fails on the null field itself, so this needs its own check.
@@ -100,26 +98,21 @@ class PythonNativeConversionTest {
                         import copy
                         backup = copy.deepcopy(value)
                         assert backup["owner"] is None
-                        'OK'
                         """),
-                // Confirms the billing app's exact pattern: dict(value) at the top level, then an
-                // explicit copy of the nested part before mutating it, must not affect the original.
+                // A shallow copy of a nested dict must not change the original.
                 Arguments.of("shallow copy of an explicit dict does not leak into the original", """
                         shallow = dict(value)
                         shallow["nested"] = dict(shallow["nested"])
                         shallow["nested"]["tag"] = "mutated"
                         assert value["nested"]["tag"] == "hello", "mutating an explicit copy must not change the original"
-                        'OK'
                         """),
-                // The exact style the billing app used before this fix (plain copy.deepcopy(), no
-                // to_native() helper), confirming users do not need the workaround any more.
-                Arguments.of("the original to_native() workaround is no longer needed", """
+                // Plain copy.deepcopy() works, no extra helper needed.
+                Arguments.of("deepcopy needs no extra helper", """
                         import copy
                         backup = copy.deepcopy(value)
                         backup["nested"]["tag"] = "changed"
                         assert value["nested"]["tag"] == "hello"
                         assert backup["nested"]["tag"] == "changed"
-                        'OK'
                         """)
         );
     }

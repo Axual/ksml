@@ -27,12 +27,12 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.kstream.internals.SessionWindow;
 import org.apache.kafka.streams.state.KeyValueIterator;
-import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
-import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +43,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/** ProxyUtil.toPython() needs an entered Python context; one is entered once for the whole class. */
 class ProxyUtilTest {
+    private static PythonContext pythonContext;
+
+    @BeforeAll
+    static void enterContext() {
+        pythonContext = new PythonContext(PythonContextConfig.builder().build());
+        pythonContext.context().enter();
+    }
+
+    @AfterAll
+    static void leaveContext() {
+        pythonContext.context().leave();
+        pythonContext.close();
+    }
 
     @Test
     @DisplayName("a null input converts to null")
@@ -58,48 +72,37 @@ class ProxyUtilTest {
                 value -> assertThat(value.asString()).isEqualTo("value"));
     }
 
-    // These three tests call the proxy method from inside a real Python context (like real KSML
-    // pipelines do), since ProxyUtil.toPython() only builds a real dict when a context is entered.
-
     @Test
     @DisplayName("a value-and-timestamp converts to a real dict holding the value and timestamp")
     void valueAndTimestampConvertsToDict() {
-        final TimestampedKeyValueStore<Object, Object> delegate = mock();
-        when(delegate.get("key")).thenReturn(ValueAndTimestamp.make("value", 100L));
-        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            pythonContext.context().getBindings("python").putMember("store", new TimestampedKeyValueStoreProxy(delegate));
-            assertThat(pythonContext.context().eval("python", "type(store.get('key')) is dict").asBoolean()).isTrue();
-            assertThat(pythonContext.context().eval("python", "store.get('key')")).asString().contains("value").contains("100");
-        }
+        final var vat = ValueAndTimestamp.make("value", 100L);
+        final var result = (Value) ProxyUtil.toPython(vat);
+        assertThat(result.getMetaObject().getMetaSimpleName()).isEqualTo("dict");
+        assertThat(result.getHashValue("value").asString()).isEqualTo("value");
+        assertThat(result.getHashValue("timestamp").asLong()).isEqualTo(100L);
     }
 
     @Test
     @DisplayName("a key-value pair converts to a real dict holding the key and value")
     void keyValueConvertsToDict() {
-        final KeyValueIterator<Object, Object> iterator = mock();
-        when(iterator.hasNext()).thenReturn(true);
-        when(iterator.next()).thenReturn(new KeyValue<>("key", "value"));
-        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            pythonContext.context().getBindings("python").putMember("iterator", new KeyValueIteratorProxy(iterator));
-            assertThat(pythonContext.context().eval("python", "type(iterator.next()) is dict").asBoolean()).isTrue();
-            assertThat(pythonContext.context().eval("python", "iterator.next()")).asString().contains("key").contains("value");
-        }
+        final var result = (Value) ProxyUtil.toPython(new KeyValue<>("key", "value"));
+        assertThat(result.getMetaObject().getMetaSimpleName()).isEqualTo("dict");
+        assertThat(result.getHashValue("key").asString()).isEqualTo("key");
+        assertThat(result.getHashValue("value").asString()).isEqualTo("value");
     }
 
     @Test
     @DisplayName("a versioned record converts to a real dict holding the value, timestamp and validTo")
     void versionedRecordConvertsToDict() {
-        final VersionedKeyValueStore<Object, Object> delegate = mock();
         final VersionedRecord<Object> versionedRecord = mock();
         when(versionedRecord.value()).thenReturn("value");
         when(versionedRecord.timestamp()).thenReturn(100L);
         when(versionedRecord.validTo()).thenReturn(Optional.of(200L));
-        when(delegate.get("key")).thenReturn(versionedRecord);
-        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            pythonContext.context().getBindings("python").putMember("store", new VersionedKeyValueStoreProxy(delegate));
-            assertThat(pythonContext.context().eval("python", "type(store.get('key')) is dict").asBoolean()).isTrue();
-            assertThat(pythonContext.context().eval("python", "store.get('key')")).asString().contains("value").contains("100").contains("200");
-        }
+        final var result = (Value) ProxyUtil.toPython(versionedRecord);
+        assertThat(result.getMetaObject().getMetaSimpleName()).isEqualTo("dict");
+        assertThat(result.getHashValue("value").asString()).isEqualTo("value");
+        assertThat(result.getHashValue("timestamp").asLong()).isEqualTo(100L);
+        assertThat(result.getHashValue("validTo").asLong()).isEqualTo(200L);
     }
 
     @Test
@@ -135,14 +138,8 @@ class ProxyUtilTest {
     @DisplayName("a windowed key converts to a real dict")
     void windowedKeyConvertsToPython() {
         final var windowed = new Windowed<>("key", new SessionWindow(0L, 10L));
-        // A windowed key flattens to a struct, so building it needs a real Python context, like a
-        // real KSML pipeline provides - wrap it in a trivial iterator proxy to call from Python.
-        final KeyValueIterator<Object, Object> iterator = mock();
-        when(iterator.hasNext()).thenReturn(true, false);
-        when(iterator.next()).thenReturn(new KeyValue<>(windowed, "value"));
-        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            pythonContext.context().getBindings("python").putMember("iterator", new KeyValueIteratorProxy(iterator));
-            assertThat(pythonContext.context().eval("python", "iterator.next()")).isInstanceOf(Value.class);
-        }
+        final var result = (Value) ProxyUtil.toPython(windowed);
+        assertThat(result.getMetaObject().getMetaSimpleName()).isEqualTo("dict");
+        assertThat(result.getHashValue("key").asString()).isEqualTo("key");
     }
 }

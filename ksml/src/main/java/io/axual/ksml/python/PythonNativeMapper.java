@@ -44,9 +44,20 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonNativeMapper {
-    private static final String PYTHON_LANGUAGE_ID = "python";
+    // One entry per Python context (a context lives for as long as its topology runs)
+    private final Map<Context, PythonTypes> typesByContext = new ConcurrentHashMap<>();
+
+    private record PythonTypes(Value dict, Value list, Value none) {
+        static PythonTypes of(Context context) {
+            return new PythonTypes(
+                    context.eval(PythonContext.PYTHON, "dict"),
+                    context.eval(PythonContext.PYTHON, "list"),
+                    context.eval(PythonContext.PYTHON, "type(None)").execute());
+        }
+    }
 
     public Object fromPython(Object object) {
         return fromPython(null, object);
@@ -151,12 +162,7 @@ public class PythonNativeMapper {
         return ExecutionUtil.tryThis(() -> MapUtil.stringKeys(object.as(Map.class)));
     }
 
-    /**
-     * Converts a scalar (or an already-converted Value); null if not a scalar. {@code null} is
-     * deliberately not handled here - {@code Value.asValue(null)} builds a foreign null, which
-     * fails {@code copy.deepcopy()} the same way a proxy dict/list did. A genuine Python
-     * {@code None} needs the Python context, so {@link #toRealPythonValue} handles it directly.
-     */
+    /** Converts a scalar, or returns null. Java null is not a scalar here - a real Python None needs the context. */
     private static Value scalarToPythonValue(Object object) {
         return switch (object) {
             case Value value -> value;
@@ -179,43 +185,48 @@ public class PythonNativeMapper {
 
     /**
      * Like {@link #toRealPythonValue(Context, Object)}, but looks up the currently entered
-     * context lazily - only if object turns out to be a container that actually needs one.
-     * Scalars and proxies never touch it, so this is safe to call with no context entered.
+     * context lazily - only if object turns out to need one. Scalars and proxies never touch it.
+     * Every real caller runs from inside Python already, so a context is always entered; if one
+     * somehow isn't, that is a bug in the caller, not something to paper over.
      */
     public Value toRealPythonValue(Object object) {
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
         final var scalar = scalarToPythonValue(object);
         if (scalar != null) return scalar;
-        return toRealPythonValue(Context.getCurrent(), object);
+        return toRealPythonValue(currentContext(), object);
     }
 
-    /**
-     * Builds a genuine Python dict/list (not a Java object pretending to be one), by filling in
-     * Python's own dict/list type one entry at a time. Never exposes a Java object to Python, so
-     * it doesn't need HostAccess.EXPLICIT relaxed.
-     */
+    private static Context currentContext() {
+        try {
+            return Context.getCurrent();
+        } catch (IllegalStateException e) {
+            throw new DataException("Converting a value to Python needs an entered Python context", e);
+        }
+    }
+
+    /** Builds a genuine Python dict/list/None, by filling in Python's own types. Never exposes a Java object to Python. */
     public Value toRealPythonValue(Context context, Object object) {
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
-        // context.eval(PYTHON_LANGUAGE_ID, "None") does not return the None singleton (it returns
-        // the enclosing module instead) - type(None)() does, the same way "dict"/"list" below are
-        // fetched as types and then constructed.
-        if (object == null) return context.eval(PYTHON_LANGUAGE_ID, "type(None)").execute();
         final var scalar = scalarToPythonValue(object);
         if (scalar != null) return scalar;
+        final var types = typesByContext.computeIfAbsent(context, PythonTypes::of);
+        if (object == null) return types.none();
         return switch (object) {
             case byte[] value -> {
-                final var pyList = context.eval(PYTHON_LANGUAGE_ID, "list").execute();
+                final var pyList = types.list().execute();
                 for (byte b : value) pyList.invokeMember("append", b >= 0 ? (short) b : (short) (256 + b));
                 yield pyList;
             }
             case List<?> value -> {
-                final var pyList = context.eval(PYTHON_LANGUAGE_ID, "list").execute();
+                final var pyList = types.list().execute();
                 for (var element : value) pyList.invokeMember("append", toRealPythonValue(context, element));
                 yield pyList;
             }
             case Map<?, ?> value -> {
-                final var pyDict = context.eval(PYTHON_LANGUAGE_ID, "dict").execute();
-                value.forEach((k, v) -> pyDict.invokeMember("__setitem__", k, toRealPythonValue(context, v)));
+                final var pyDict = types.dict().execute();
+                // Keys are always strings in KSML's data model (DataStruct/DataMap); force it so a
+                // caller can never silently insert a non-string key.
+                value.forEach((k, v) -> pyDict.putHashEntry(String.valueOf(k), toRealPythonValue(context, v)));
                 yield pyDict;
             }
             default -> throw unsupportedType(object);

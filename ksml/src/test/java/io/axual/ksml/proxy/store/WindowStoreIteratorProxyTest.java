@@ -45,8 +45,6 @@ class WindowStoreIteratorProxyTest {
         when(iterator.hasNext()).thenReturn(true);
         when(iterator.next()).thenReturn(new KeyValue<>(1L, "value"));
         final var proxy = new WindowStoreIteratorProxy(iterator);
-        // Called from inside a real Python context, like a real KSML pipeline does, since
-        // ProxyUtil.toPython() only builds a real dict when a context is entered.
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
             pythonContext.context().getBindings("python").putMember("iterator", proxy);
             assertThat(pythonContext.context().eval("python", "type(iterator.next()) is dict").asBoolean()).isTrue();

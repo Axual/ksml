@@ -49,15 +49,17 @@ public class ProxyUtil {
     private static final String VALUE_FIELD = "value";
     private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
+    // Looks the Python context up lazily (see PythonDataObjectMapper), so this can stay a shared
+    // instance rather than being rebuilt on every call
+    private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
 
     private ProxyUtil() {
     }
 
     /**
-     * Converts a value for Python. Always builds a real dict/list (see
-     * {@link PythonNativeMapper#toRealPythonValue}), so {@code copy.deepcopy()} works. The
-     * currently entered Python context is looked up lazily, only if actually needed - a scalar
-     * result never touches it, so this stays safe to call for those even with none entered.
+     * Converts a value for Python. Always builds a real dict/list, so {@code copy.deepcopy()}
+     * works. Every method that calls this runs as a callback from Python code already running,
+     * so the Python context it needs is always available to look up.
      *
      * @param object the Object to convert to polyglot / Python
      * @return a proxy object, a genuine Python value, or another wrapper that Python can directly use
@@ -74,7 +76,7 @@ public class ProxyUtil {
         if (object instanceof Windowed<?> windowed)
             object = FLATTENER.toDataObject(windowed);
         if (object instanceof DataObject dataObject)
-            return new PythonDataObjectMapper(true).fromDataObject(dataObject);
+            return DATA_OBJECT_MAPPER.fromDataObject(dataObject);
         return NATIVE_MAPPER.toRealPythonValue(object);
     }
 
@@ -106,7 +108,14 @@ public class ProxyUtil {
         return NATIVE_MAPPER.toRealPythonValue(converted);
     }
 
-    /** Wraps a state store in a proxy that's safe to expose to Python. */
+    /**
+     * Static method for creating proxy wrappers around Kafka Streams state stores.
+     * The proxies delegate all operations to the underlying store while providing
+     * a controlled interface that can be safely exposed to user code (e.g., Python functions).
+     *
+     * @param store the state store to wrap
+     * @return a proxy wrapper around the store, or the original store if no proxy is available
+     */
     @SuppressWarnings("unchecked")
     public static StateStore wrapStateStore(StateStore store) {
         if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {

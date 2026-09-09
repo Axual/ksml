@@ -435,4 +435,48 @@ class PythonDataObjectMapperTest {
         }
     }
 
+    // PythonDict/PythonList are gone, but the two things they guaranteed still have to hold: a
+    // struct handed to Python renders as a real Python dict in log output, and Python code can use
+    // it the normal way (subscript, 'in', len(), nested access, assignment).
+
+    @Test
+    @DisplayName("a struct handed to Python renders as a Python dict in log output")
+    void structRendersAsPythonDict() {
+        final var struct = new DataStruct();
+        struct.put("key", new DataString("value"));
+        struct.put("count", new DataInteger(42));
+        assertThat(mapper.fromDataObject(struct)).hasToString("{'count': 42, 'key': 'value'}");
+    }
+
+    @Test
+    @DisplayName("a struct handed to Python supports subscript, 'in' and len()")
+    void structIsUsableFromPython() {
+        final var struct = new DataStruct();
+        struct.put("key", new DataString("value"));
+        context.getBindings("python").putMember("data", mapper.fromDataObject(struct));
+        assertThat(context.eval("python", "data['key']").asString()).isEqualTo("value");
+        assertThat(context.eval("python", "'key' in data").asBoolean()).isTrue();
+        assertThat(context.eval("python", "len(data)").asInt()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("a nested struct with a list is fully accessible from Python")
+    void nestedStructureIsUsableFromPython() {
+        final var numbers = new DataList(DataInteger.DATATYPE);
+        numbers.add(new DataInteger(1), new DataInteger(2), new DataInteger(3));
+        final var struct = new DataStruct();
+        struct.put("numbers", numbers);
+        context.getBindings("python").putMember("data", mapper.fromDataObject(struct));
+        assertThat(context.eval("python", "sum(data['numbers'])").asInt()).isEqualTo(6);
+    }
+
+    @Test
+    @DisplayName("a struct handed to Python supports assignment from Python")
+    void structSupportsAssignmentFromPython() {
+        final var struct = new DataStruct();
+        struct.put("existing", new DataString("value"));
+        context.getBindings("python").putMember("data", mapper.fromDataObject(struct));
+        context.eval("python", "data['new_key'] = 'new_value'");
+        assertThat(context.eval("python", "data['new_key']").asString()).isEqualTo("new_value");
+    }
 }

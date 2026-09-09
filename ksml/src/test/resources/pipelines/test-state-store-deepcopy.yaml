@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
 # Checks that copy.deepcopy() works on a value read back from a key/value store, through a real
-# running topology. See notes/2026-09-09-1703-state-store-deepcopy-check.md.
+# running topology.
 streams:
   sensor_source_avro:
     topic: ksml_sensordata_avro
@@ -14,7 +14,6 @@ stores:
     keyType: string
     valueType: json
     persistent: false
-    historyRetention: 1h
     caching: false
     logging: false
 
@@ -26,8 +25,10 @@ functions:
     code: |
       last_value = last_sensor_data_store.get(key)
       if last_value != None:
+        # A real deep copy, independent from last_value, stored under its own key so the test can
+        # read it back and confirm it captured the value before this message overwrote it.
         backup = copy.deepcopy(last_value)
-        log.info("Deep-copied last value for key {}: {}", key, backup)
+        last_sensor_data_store.put(key + "_backup", backup)
       last_sensor_data_store.put(key, value)
     stores:
       - last_sensor_data_store
