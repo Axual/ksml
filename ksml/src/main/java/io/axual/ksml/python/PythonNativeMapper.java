@@ -151,11 +151,16 @@ public class PythonNativeMapper {
         return ExecutionUtil.tryThis(() -> MapUtil.stringKeys(object.as(Map.class)));
     }
 
-    /** Converts a scalar (or null, or an already-converted Value); null if not a scalar. */
+    /**
+     * Converts a scalar (or an already-converted Value); null if not a scalar. {@code null} is
+     * deliberately not handled here - {@code Value.asValue(null)} builds a foreign null, which
+     * fails {@code copy.deepcopy()} the same way a proxy dict/list did. A genuine Python
+     * {@code None} needs the Python context, so {@link #toRealPythonValue} handles it directly.
+     */
     private static Value scalarToPythonValue(Object object) {
         return switch (object) {
             case Value value -> value;
-            case null -> Value.asValue(null);
+            case null -> null;
             case Boolean value -> Value.asValue(value);
             case Byte value -> Value.asValue(value);
             case Short value -> Value.asValue(value);
@@ -191,6 +196,10 @@ public class PythonNativeMapper {
      */
     public Value toRealPythonValue(Context context, Object object) {
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
+        // context.eval(PYTHON_LANGUAGE_ID, "None") does not return the None singleton (it returns
+        // the enclosing module instead) - type(None)() does, the same way "dict"/"list" below are
+        // fetched as types and then constructed.
+        if (object == null) return context.eval(PYTHON_LANGUAGE_ID, "type(None)").execute();
         final var scalar = scalarToPythonValue(object);
         if (scalar != null) return scalar;
         return switch (object) {

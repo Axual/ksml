@@ -22,6 +22,7 @@ package io.axual.ksml.python;
 
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
@@ -63,6 +64,7 @@ class PythonNativeConversionTest {
         payload.put("day", new DataString("2026-01-01"));
         payload.put("nested", nested);
         payload.put("numbers", numbers);
+        payload.put("owner", DataNull.INSTANCE);
         return payload;
     }
 
@@ -84,11 +86,20 @@ class PythonNativeConversionTest {
                         assert type(value) is dict, f"expected real dict, got {type(value)}"
                         assert type(value["nested"]) is dict, f"expected real nested dict, got {type(value['nested'])}"
                         assert type(value["numbers"]) is list, f"expected real list, got {type(value['numbers'])}"
+                        assert value["owner"] is None, f"expected real None, got {value['owner']!r}"
                         'OK'
                         """),
                 Arguments.of("deepcopy works on value", """
                         import copy
                         copy.deepcopy(value)
+                        'OK'
+                        """),
+                // A null field must be a genuine None, not a foreign/interop null - deepcopy on a
+                // dict/list only fails on the null field itself, so this needs its own check.
+                Arguments.of("deepcopy works on a null field nested in value", """
+                        import copy
+                        backup = copy.deepcopy(value)
+                        assert backup["owner"] is None
                         'OK'
                         """),
                 // Confirms the billing app's exact pattern: dict(value) at the top level, then an
