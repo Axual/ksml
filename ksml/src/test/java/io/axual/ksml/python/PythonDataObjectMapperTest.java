@@ -63,7 +63,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -73,7 +72,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,8 +79,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 class PythonDataObjectMapperTest {
-    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true);
     private Context context;
+    private PythonDataObjectMapper mapper;
 
     @BeforeAll
     static void setup() {
@@ -110,6 +108,7 @@ class PythonDataObjectMapperTest {
         context = Context.newBuilder("python")
                 .allowHostAccess(HostAccess.EXPLICIT)
                 .build();
+        mapper = new PythonDataObjectMapper(true, context);
     }
 
     @AfterEach
@@ -123,7 +122,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - Boolean")
     void toDataObjectBoolean() {
         Value val = context.eval("python", "True");
-        DataObject result = MAPPER.toDataObject(DataBoolean.DATATYPE, val);
+        DataObject result = mapper.toDataObject(DataBoolean.DATATYPE, val);
         assertThat(result).isInstanceOf(DataBoolean.class);
         assertThat(((DataBoolean) result).value()).isTrue();
     }
@@ -132,7 +131,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - Integer")
     void toDataObjectInteger() {
         Value val = context.eval("python", "42");
-        DataObject result = MAPPER.toDataObject(DataInteger.DATATYPE, val);
+        DataObject result = mapper.toDataObject(DataInteger.DATATYPE, val);
         assertThat(result).isInstanceOf(DataInteger.class);
         assertThat(((DataInteger) result).value()).isEqualTo(42);
     }
@@ -141,7 +140,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - Long (default for numbers)")
     void toDataObjectLong() {
         Value val = context.eval("python", "1234567890123");
-        DataObject result = MAPPER.toDataObject(DataLong.DATATYPE, val);
+        DataObject result = mapper.toDataObject(DataLong.DATATYPE, val);
         assertThat(result).isInstanceOf(DataLong.class);
         assertThat(((DataLong) result).value()).isEqualTo(1234567890123L);
     }
@@ -151,7 +150,7 @@ class PythonDataObjectMapperTest {
     void toDataObjectFloat() {
         Value val = context.eval("python", "3.0");
         // Using 3.0 instead of 3.14 to ensure it fits exactly in a float and avoid GraalVM coercion errors
-        DataObject result = MAPPER.toDataObject(DataFloat.DATATYPE, val);
+        DataObject result = mapper.toDataObject(DataFloat.DATATYPE, val);
         assertThat(result).isInstanceOf(DataFloat.class);
         assertThat(((DataFloat) result).value()).isCloseTo(3.0f, org.assertj.core.data.Offset.offset(0.001f));
     }
@@ -160,7 +159,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - String")
     void toDataObjectString() {
         Value val = context.eval("python", "'hello'");
-        DataObject result = MAPPER.toDataObject(DataString.DATATYPE, val);
+        DataObject result = mapper.toDataObject(DataString.DATATYPE, val);
         assertThat(result).isInstanceOf(DataString.class);
         assertThat(((DataString) result).value()).isEqualTo("hello");
     }
@@ -169,7 +168,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - Bytes")
     void toDataObjectBytes() {
         Value val = context.eval("python", "[1, 2, 3, 255]");
-        DataObject result = MAPPER.toDataObject(DataBytes.DATATYPE, val);
+        DataObject result = mapper.toDataObject(DataBytes.DATATYPE, val);
         assertThat(result).isInstanceOf(DataBytes.class);
         assertThat(((DataBytes) result).value()).containsExactly(1, 2, 3, -1);
     }
@@ -179,7 +178,7 @@ class PythonDataObjectMapperTest {
     void toDataObjectBytes_outOfRangeFailsLoudly() {
         // 300 does not fit in [-128, 255]; previously this silently truncated to (byte) 44.
         Value val = context.eval("python", "[1, 2, 300]");
-        assertThatCode(() -> MAPPER.toDataObject(DataBytes.DATATYPE, val))
+        assertThatCode(() -> mapper.toDataObject(DataBytes.DATATYPE, val))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("does not fit");
     }
@@ -188,7 +187,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - Bytes: accepts both signed (-128..127) and unsigned (0..255) values")
     void toDataObjectBytes_acceptsSignedAndUnsignedRange() {
         Value val = context.eval("python", "[-128, -1, 0, 127, 128, 255]");
-        DataObject result = MAPPER.toDataObject(DataBytes.DATATYPE, val);
+        DataObject result = mapper.toDataObject(DataBytes.DATATYPE, val);
         assertThat(((DataBytes) result).value())
                 .containsExactly((byte) -128, (byte) -1, (byte) 0, (byte) 127, (byte) -128, (byte) -1);
     }
@@ -225,7 +224,7 @@ class PythonDataObjectMapperTest {
         // Python int 300 → Long(300) survives that step but is then rejected by
         // NativeDataObjectMapper's narrowing check when constructing a DataByte.
         Value val = context.eval("python", "300");
-        assertThatCode(() -> MAPPER.toDataObject(DataByte.DATATYPE, val))
+        assertThatCode(() -> mapper.toDataObject(DataByte.DATATYPE, val))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("exceeds BYTE range");
     }
@@ -234,7 +233,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - List")
     void toDataObjectList() {
         Value val = context.eval("python", "[1, 2, 3]");
-        DataObject result = MAPPER.toDataObject(new ListType(DataInteger.DATATYPE), val);
+        DataObject result = mapper.toDataObject(new ListType(DataInteger.DATATYPE), val);
         assertThat(result).isInstanceOf(DataList.class);
         DataList list = (DataList) result;
         assertThat(list.size()).isEqualTo(3);
@@ -245,7 +244,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - Tuple")
     void toDataObjectTuple() {
         Value val = context.eval("python", "(1, 'two')");
-        DataObject result = MAPPER.toDataObject(new TupleType(DataInteger.DATATYPE, DataString.DATATYPE), val);
+        DataObject result = mapper.toDataObject(new TupleType(DataInteger.DATATYPE, DataString.DATATYPE), val);
         assertThat(result).isInstanceOf(DataTuple.class);
         DataTuple tuple = (DataTuple) result;
         assertThat(tuple.elements().get(0)).isEqualTo(new DataInteger(1));
@@ -256,7 +255,7 @@ class PythonDataObjectMapperTest {
     @DisplayName("toDataObject - Map")
     void toDataObjectMap() {
         Value val = context.eval("python", "{'a': 1, 'b': 2}");
-        DataObject result = MAPPER.toDataObject(new MapType(DataInteger.DATATYPE), val);
+        DataObject result = mapper.toDataObject(new MapType(DataInteger.DATATYPE), val);
         assertThat(result).isInstanceOf(DataMap.class);
         DataMap map = (DataMap) result;
         assertThat(map.get("a")).isEqualTo(new DataInteger(1));
@@ -268,11 +267,11 @@ class PythonDataObjectMapperTest {
     void toDataObjectUnion() {
         UnionType unionType = new UnionType(new UnionType.Member(DataInteger.DATATYPE), new UnionType.Member(DataString.DATATYPE));
         Value valInt = context.eval("python", "42");
-        DataObject resultInt = MAPPER.toDataObject(unionType, valInt);
+        DataObject resultInt = mapper.toDataObject(unionType, valInt);
         assertThat(resultInt).isEqualTo(new DataInteger(42));
 
         Value valStr = context.eval("python", "'hello'");
-        DataObject resultStr = MAPPER.toDataObject(unionType, valStr);
+        DataObject resultStr = mapper.toDataObject(unionType, valStr);
         assertThat(resultStr).isEqualTo(new DataString("hello"));
     }
 
@@ -295,7 +294,7 @@ class PythonDataObjectMapperTest {
         // Test a dict with @type, should preserve field1
         final var structType = new UserTypeParser().parse("avro:" + schemaName).result().dataType();
         final var val = context.eval("python", "{'field1': 10, '@type': 'MyAvroSchema'}");
-        final var result = MAPPER.toDataObject(structType, val);
+        final var result = mapper.toDataObject(structType, val);
         assertThat(result).isInstanceOf(DataStruct.class);
         final var struct = (DataStruct) result;
         assertThat(struct.get("field1")).isEqualTo(new DataInteger(10));
@@ -318,7 +317,7 @@ class PythonDataObjectMapperTest {
         // For now, let's test a Struct without @type (plain map to struct)
         final var structType = new StructType(schema);
         final var val = context.eval("python", "{'field1': 10, 'field2': 'test'}");
-        final var result = MAPPER.toDataObject(structType, val);
+        final var result = mapper.toDataObject(structType, val);
         assertThat(result).isInstanceOf(DataStruct.class);
         final var struct = (DataStruct) result;
         assertThat(struct.get("field1")).isEqualTo(new DataInteger(10));
@@ -328,13 +327,13 @@ class PythonDataObjectMapperTest {
     @Test
     @DisplayName("fromDataObject - Primitive types")
     void fromDataObjectPrimitives() {
-        assertThat(MAPPER.fromDataObject(DataNull.INSTANCE).isNull()).isTrue();
-        assertThat(MAPPER.fromDataObject(new DataBoolean(true)).asBoolean()).isTrue();
-        assertThat(MAPPER.fromDataObject(new DataInteger(42)).asInt()).isEqualTo(42);
-        assertThat(MAPPER.fromDataObject(new DataLong(123L)).asLong()).isEqualTo(123L);
-        assertThat(MAPPER.fromDataObject(new DataFloat(1.2f)).asFloat()).isEqualTo(1.2f);
-        assertThat(Value.asValue(MAPPER.fromDataObject(new DataDouble(3.4))).asDouble()).isEqualTo(3.4);
-        assertThat(MAPPER.fromDataObject(new DataString("test")).asString()).isEqualTo("test");
+        assertThat(mapper.fromDataObject(DataNull.INSTANCE).isNull()).isTrue();
+        assertThat(mapper.fromDataObject(new DataBoolean(true)).asBoolean()).isTrue();
+        assertThat(mapper.fromDataObject(new DataInteger(42)).asInt()).isEqualTo(42);
+        assertThat(mapper.fromDataObject(new DataLong(123L)).asLong()).isEqualTo(123L);
+        assertThat(mapper.fromDataObject(new DataFloat(1.2f)).asFloat()).isEqualTo(1.2f);
+        assertThat(Value.asValue(mapper.fromDataObject(new DataDouble(3.4))).asDouble()).isEqualTo(3.4);
+        assertThat(mapper.fromDataObject(new DataString("test")).asString()).isEqualTo("test");
     }
 
     @Test
@@ -342,7 +341,7 @@ class PythonDataObjectMapperTest {
     void fromDataObjectBytes() {
         byte[] bytes = {1, 2, -1}; // -1 byte is 255 unsigned
         final var dataBytes = new DataBytes(bytes);
-        final var result = MAPPER.fromDataObject(dataBytes);
+        final var result = mapper.fromDataObject(dataBytes);
         assertThat(result.hasArrayElements()
                 || (result.isHostObject() && result.asHostObject() instanceof List)
                 || (result.isProxyObject() && result.asProxyObject() instanceof ProxyArray)).isTrue();
@@ -373,7 +372,7 @@ class PythonDataObjectMapperTest {
         DataList list = new DataList(DataInteger.DATATYPE);
         list.add(new DataInteger(1));
         list.add(new DataInteger(2));
-        Value result = MAPPER.fromDataObject(list);
+        Value result = mapper.fromDataObject(list);
         assertThat(result.hasArrayElements()
                 || (result.isHostObject() && result.asHostObject() instanceof List)
                 || (result.isProxyObject() && result.asProxyObject() instanceof ProxyArray)).isTrue();
@@ -405,7 +404,7 @@ class PythonDataObjectMapperTest {
     void fromDataObjectMap() {
         DataMap map = new DataMap(DataInteger.DATATYPE);
         map.put("a", new DataInteger(1));
-        Value result = MAPPER.fromDataObject(map);
+        Value result = mapper.fromDataObject(map);
         assertThat(result.hasHashEntries()
                 || (result.isHostObject() && result.asHostObject() instanceof Map)
                 || (result.isProxyObject() && result.asProxyObject() instanceof ProxyHashMap)).isTrue();
@@ -436,229 +435,4 @@ class PythonDataObjectMapperTest {
         }
     }
 
-    @Nested
-    @DisplayName("PythonDict and PythonList toString() rendering")
-    class ToStringTests {
-
-        @Test
-        @DisplayName("PythonDict renders as Python dict in sorted key order")
-        void dictToString() {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("key", "value");
-            map.put("count", 42);
-
-            PythonDict dict = new PythonDict(map);
-
-            assertThat(dict).hasToString("{'count': 42, 'key': 'value'}");
-        }
-
-        @Test
-        @DisplayName("PythonList renders as Python list")
-        void listToString() {
-            List<Object> list = new ArrayList<>();
-            list.add(1);
-            list.add("two");
-            list.add(3);
-
-            PythonList pythonList = new PythonList(list);
-
-            assertThat(pythonList).hasToString("[1, 'two', 3]");
-        }
-
-        @Test
-        @DisplayName("null value renders as None")
-        void nullRendersAsNone() {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("value", null);
-
-            PythonDict dict = new PythonDict(map);
-
-            assertThat(dict).hasToString("{'value': None}");
-        }
-
-        @Test
-        @DisplayName("booleans render as True/False")
-        void booleansRenderAsPython() {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("active", true);
-            map.put("deleted", false);
-
-            PythonDict dict = new PythonDict(map);
-
-            assertThat(dict).hasToString("{'active': True, 'deleted': False}");
-        }
-
-        @Test
-        @DisplayName("nested map renders recursively as Python dict")
-        void nestedDictToString() {
-            Map<String, Object> inner = new LinkedHashMap<>();
-            inner.put("nested", "value");
-
-            Map<String, Object> outer = new LinkedHashMap<>();
-            outer.put("inner", inner);
-
-            PythonDict dict = new PythonDict(outer);
-
-            assertThat(dict).hasToString("{'inner': {'nested': 'value'}}");
-        }
-
-        @Test
-        @DisplayName("nested list in map renders recursively as Python list")
-        void nestedListInDictToString() {
-            List<Object> list = new ArrayList<>();
-            list.add(1);
-            list.add(2);
-            list.add(3);
-
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("numbers", list);
-
-            PythonDict dict = new PythonDict(map);
-
-            assertThat(dict).hasToString("{'numbers': [1, 2, 3]}");
-        }
-
-        @Test
-        @DisplayName("empty dict renders as {}")
-        void emptyDictToString() {
-            PythonDict dict = new PythonDict(new LinkedHashMap<>());
-
-            assertThat(dict).hasToString("{}");
-        }
-
-        @Test
-        @DisplayName("empty list renders as []")
-        void emptyListToString() {
-            PythonList list = new PythonList(new ArrayList<>());
-
-            assertThat(list).hasToString("[]");
-        }
-    }
-
-    @Nested
-    @DisplayName("PythonDict and PythonList accessibility from Python")
-    class PythonProxyAccessibilityTests {
-
-        @Test
-        @DisplayName("PythonDict is accessible from Python with subscript notation")
-        void proxyHashMapAccessibleFromPython() {
-            Map<String, String> map = new HashMap<>();
-            map.put("key", "value");
-            PythonDict proxy = new PythonDict(map);
-
-            context.getBindings("python").putMember("test_map", proxy);
-            Value result = context.eval("python", "test_map['key']");
-
-            assertThat(result.asString()).isEqualTo("value");
-        }
-
-        @Test
-        @DisplayName("PythonList is accessible from Python with index notation")
-        void proxyArrayAccessibleFromPython() {
-            List<String> list = new ArrayList<>();
-            list.add("first");
-            list.add("second");
-            PythonList proxy = new PythonList(list);
-
-            context.getBindings("python").putMember("test_list", proxy);
-            Value result = context.eval("python", "test_list[1]");
-
-            assertThat(result.asString()).isEqualTo("second");
-        }
-
-        @Test
-        @DisplayName("PythonDict supports 'in' operator in Python")
-        void proxyHashMapSupportsInOperator() {
-            Map<String, String> map = new HashMap<>();
-            map.put("exists", "yes");
-            PythonDict proxy = new PythonDict(map);
-
-            context.getBindings("python").putMember("test_map", proxy);
-            Value existsResult = context.eval("python", "'exists' in test_map");
-            Value notExistsResult = context.eval("python", "'missing' in test_map");
-
-            assertThat(existsResult.asBoolean()).isTrue();
-            assertThat(notExistsResult.asBoolean()).isFalse();
-        }
-
-        @Test
-        @DisplayName("PythonList supports len() in Python")
-        void proxyArraySupportsLen() {
-            List<Integer> list = new ArrayList<>();
-            list.add(1);
-            list.add(2);
-            list.add(3);
-            PythonList proxy = new PythonList(list);
-
-            context.getBindings("python").putMember("test_list", proxy);
-            Value result = context.eval("python", "len(test_list)");
-
-            assertThat(result.asInt()).isEqualTo(3);
-        }
-
-        @Test
-        @DisplayName("PythonDict supports key iteration in Python")
-        void proxyHashMapSupportsIteration() {
-            Map<String, Integer> map = new HashMap<>();
-            map.put("a", 1);
-            map.put("b", 2);
-            PythonDict proxy = new PythonDict(map);
-
-            context.getBindings("python").putMember("test_map", proxy);
-            Value result = context.eval("python", "sorted(list(test_map.keys()))");
-
-            assertThat(result.getArraySize()).isEqualTo(2);
-        }
-
-        @Test
-        @DisplayName("PythonList supports iteration in Python")
-        void proxyArraySupportsIteration() {
-            List<Integer> list = new ArrayList<>();
-            list.add(1);
-            list.add(2);
-            list.add(3);
-            PythonList proxy = new PythonList(list);
-
-            context.getBindings("python").putMember("test_list", proxy);
-            Value result = context.eval("python", "sum(test_list)");
-
-            assertThat(result.asInt()).isEqualTo(6);
-        }
-
-        @Test
-        @DisplayName("Nested PythonDict with list values is fully accessible from Python")
-        void nestedStructuresAccessibleFromPython() {
-            List<Integer> numbers = new ArrayList<>();
-            numbers.add(10);
-            numbers.add(20);
-            numbers.add(30);
-
-            Map<String, Object> outer = new HashMap<>();
-            outer.put("numbers", numbers);
-            outer.put("name", "test");
-
-            PythonDict proxy = new PythonDict(outer);
-
-            context.getBindings("python").putMember("data", proxy);
-            Value sumResult = context.eval("python", "sum(data['numbers'])");
-            Value nameResult = context.eval("python", "data['name']");
-
-            assertThat(sumResult.asInt()).isEqualTo(60);
-            assertThat(nameResult.asString()).isEqualTo("test");
-        }
-
-        @Test
-        @DisplayName("PythonDict supports assignment from Python")
-        void proxyHashMapSupportsAssignment() {
-            Map<String, String> map = new HashMap<>();
-            map.put("existing", "value");
-            PythonDict proxy = new PythonDict(map);
-
-            context.getBindings("python").putMember("test_map", proxy);
-            context.eval("python", "test_map['new_key'] = 'new_value'");
-            Value result = context.eval("python", "test_map['new_key']");
-
-            assertThat(result.asString()).isEqualTo("new_value");
-        }
-    }
 }

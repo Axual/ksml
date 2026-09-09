@@ -20,7 +20,8 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.python.PythonDict;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.junit.jupiter.api.DisplayName;
@@ -52,11 +53,16 @@ class KeyValueIteratorProxyTest {
     }
 
     @Test
-    @DisplayName("next converts the iterator entry into a Python dict")
+    @DisplayName("next converts the iterator entry into a real Python dict")
     void nextConvertsEntryToDict() {
         when(iterator.hasNext()).thenReturn(true);
         when(iterator.next()).thenReturn(new KeyValue<>("key", "value"));
-        assertThat(proxy().next()).isInstanceOf(PythonDict.class);
+        // Called from inside a real Python context, like a real KSML pipeline does, since
+        // ProxyUtil.toPython() only builds a real dict when a context is entered.
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("iterator", proxy());
+            assertThat(pythonContext.context().eval("python", "type(iterator.next()) is dict").asBoolean()).isTrue();
+        }
     }
 
     @Test

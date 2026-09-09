@@ -20,7 +20,8 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.python.PythonDict;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.junit.jupiter.api.DisplayName;
@@ -56,31 +57,43 @@ class VersionedKeyValueStoreProxyTest {
         lenient().when(versionedRecord.validTo()).thenReturn(Optional.empty());
     }
 
+    // Called from inside a real Python context, like a real KSML pipeline does, since
+    // ProxyUtil.toPython() only builds a real dict when a context is entered.
+
     @Test
-    @DisplayName("get by key exposes the versioned record as a dict")
+    @DisplayName("get by key exposes the versioned record as a real dict")
     void getByKeyConvertsResult() {
         stubRecord();
         when(delegate.get("key")).thenReturn(versionedRecord);
-        assertThat(proxy().get("key")).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            assertThat(pythonContext.context().eval("python", "type(store.get('key')) is dict").asBoolean()).isTrue();
+            assertThat(pythonContext.context().eval("python", "store.get('key')")).asString().contains("value").contains("100");
+        }
     }
 
     @Test
-    @DisplayName("get by key and timestamp exposes the versioned record as a dict")
+    @DisplayName("get by key and timestamp exposes the versioned record as a real dict")
     void getByKeyAndTimestampConvertsResult() {
         stubRecord();
         when(delegate.get("key", 50L)).thenReturn(versionedRecord);
-        assertThat(proxy().get("key", 50L)).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            assertThat(pythonContext.context().eval("python", "type(store.get('key', 50)) is dict").asBoolean()).isTrue();
+            assertThat(pythonContext.context().eval("python", "store.get('key', 50)")).asString().contains("value").contains("100");
+        }
     }
 
     @Test
-    @DisplayName("delete exposes the removed versioned record as a dict")
+    @DisplayName("delete exposes the removed versioned record as a real dict")
     void deleteConvertsResult() {
         stubRecord();
         when(delegate.delete("key", 50L)).thenReturn(versionedRecord);
-        assertThat(proxy().delete("key", 50L)).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            assertThat(pythonContext.context().eval("python", "type(store.delete('key', 50)) is dict").asBoolean()).isTrue();
+            assertThat(pythonContext.context().eval("python", "store.delete('key', 50)")).asString().contains("value").contains("100");
+        }
     }
 
     @Test

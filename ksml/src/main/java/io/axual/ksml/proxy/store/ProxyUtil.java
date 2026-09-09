@@ -24,7 +24,6 @@ import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.python.PythonDataObjectMapper;
-import io.axual.ksml.python.PythonDict;
 import io.axual.ksml.python.PythonNativeMapper;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
@@ -39,7 +38,6 @@ import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
-import org.graalvm.polyglot.Context;
 
 /**
  * Utility class for creating proxy objects and converted values returned to Python
@@ -50,26 +48,25 @@ public class ProxyUtil {
     private static final String VALID_TO_FIELD = "validTo";
     private static final String VALUE_FIELD = "value";
     private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
-    private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
 
     private ProxyUtil() {
     }
 
     /**
-     * Converts a value for Python. Builds a real dict/list when a Python context is entered
-     * (see {@link PythonNativeMapper#toRealPythonValue}), so {@code copy.deepcopy()} works.
-     * Falls back to the old proxy wrapping when called from plain Java.
+     * Converts a value for Python. Always builds a real dict/list (see
+     * {@link PythonNativeMapper#toRealPythonValue}), so {@code copy.deepcopy()} works. The
+     * currently entered Python context is looked up lazily, only if actually needed - a scalar
+     * result never touches it, so this stays safe to call for those even with none entered.
      *
      * @param object the Object to convert to polyglot / Python
      * @return a proxy object, a genuine Python value, or another wrapper that Python can directly use
      */
     public static Object toPython(Object object) {
         if (object == null) return null;
-        final var context = currentContextOrNull();
-        if (object instanceof ValueAndTimestamp<?> vat) return resultFrom(context, vat);
-        if (object instanceof VersionedRecord<?> vr) return resultFrom(context, vr);
-        if (object instanceof KeyValue<?, ?> kv) return resultFrom(context, kv);
+        if (object instanceof ValueAndTimestamp<?> vat) return resultFrom(vat);
+        if (object instanceof VersionedRecord<?> vr) return resultFrom(vr);
+        if (object instanceof KeyValue<?, ?> kv) return resultFrom(kv);
         if (object instanceof WindowStoreIterator<?> wis) return new WindowStoreIteratorProxy(wis);
         if (object instanceof KeyValueIterator<?, ?> kvi) return new KeyValueIteratorProxy(kvi);
 
@@ -77,53 +74,36 @@ public class ProxyUtil {
         if (object instanceof Windowed<?> windowed)
             object = FLATTENER.toDataObject(windowed);
         if (object instanceof DataObject dataObject)
-            return dataObjectMapperFor(context).fromDataObject(dataObject);
-        return context != null ? NATIVE_MAPPER.toRealPythonValue(context, object) : NATIVE_MAPPER.toPython(object);
-    }
-
-    /**
-     * {@link Context#getCurrent()}, normalized to {@code null} instead of throwing when no
-     * context is entered.
-     */
-    private static Context currentContextOrNull() {
-        try {
-            return Context.getCurrent();
-        } catch (IllegalStateException e) {
-            return null;
-        }
-    }
-
-    /** A {@link PythonDataObjectMapper} bound to the given context, or the shared one if none. */
-    private static PythonDataObjectMapper dataObjectMapperFor(Context context) {
-        return context != null ? new PythonDataObjectMapper(true, context) : DATA_OBJECT_MAPPER;
+            return new PythonDataObjectMapper(true).fromDataObject(dataObject);
+        return NATIVE_MAPPER.toRealPythonValue(object);
     }
 
     /** Converts a ValueAndTimestamp to a Python value. */
-    private static Object resultFrom(Context context, ValueAndTimestamp<?> vat) {
+    private static Object resultFrom(ValueAndTimestamp<?> vat) {
         if (vat == null) return null;
         final var converted = new Struct<>();
         converted.put(VALUE_FIELD, toPython(vat.value()));
         converted.put(TIMESTAMP_FIELD, toPython(vat.timestamp()));
-        return context != null ? NATIVE_MAPPER.toRealPythonValue(context, converted) : new PythonDict(converted);
+        return NATIVE_MAPPER.toRealPythonValue(converted);
     }
 
     /** Converts a VersionedRecord to a Python value. */
-    private static Object resultFrom(Context context, VersionedRecord<?> vr) {
+    private static Object resultFrom(VersionedRecord<?> vr) {
         if (vr == null) return null;
         final var converted = new Struct<>();
         converted.put(VALUE_FIELD, toPython(vr.value()));
         converted.put(TIMESTAMP_FIELD, toPython(vr.timestamp()));
         vr.validTo().ifPresent(validTo -> converted.put(VALID_TO_FIELD, toPython(validTo)));
-        return context != null ? NATIVE_MAPPER.toRealPythonValue(context, converted) : new PythonDict(converted);
+        return NATIVE_MAPPER.toRealPythonValue(converted);
     }
 
     /** Converts a KeyValue to a Python value. */
-    private static Object resultFrom(Context context, KeyValue<?, ?> kv) {
+    private static Object resultFrom(KeyValue<?, ?> kv) {
         if (kv == null) return null;
         final var converted = new Struct<>();
         converted.put(KEY_FIELD, toPython(kv.key));
         converted.put(VALUE_FIELD, toPython(kv.value));
-        return context != null ? NATIVE_MAPPER.toRealPythonValue(context, converted) : new PythonDict(converted);
+        return NATIVE_MAPPER.toRealPythonValue(converted);
     }
 
     /** Wraps a state store in a proxy that's safe to expose to Python. */

@@ -151,28 +151,6 @@ public class PythonNativeMapper {
         return ExecutionUtil.tryThis(() -> MapUtil.stringKeys(object.as(Map.class)));
     }
 
-    public Object toPython(Object object) {
-        // Copy all KSML proxy objects without further translation or wrapping
-        if (object instanceof AbstractProxy value) return value;
-        return toPythonValue(object);
-    }
-
-    public Value toPythonValue(Object object) {
-        final var scalar = scalarToPythonValue(object);
-        if (scalar != null) return scalar;
-        return switch (object) {
-            case byte[] value -> {
-                // Convert the contained byte array to a list of unsigned bytes (as short)
-                final var values = new ArrayList<Short>(value.length);
-                for (byte b : value) values.add(b >= 0 ? (short) b : (short) (256 + b));
-                yield Value.asValue(new PythonList(values));
-            }
-            case List<?> value -> Value.asValue(new PythonList(value));
-            case Map<?, ?> value -> Value.asValue(new PythonDict(value));
-            default -> throw unsupportedType(object);
-        };
-    }
-
     /** Converts a scalar (or null, or an already-converted Value); null if not a scalar. */
     private static Value scalarToPythonValue(Object object) {
         return switch (object) {
@@ -192,6 +170,18 @@ public class PythonNativeMapper {
 
     private static DataException unsupportedType(Object object) {
         return new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
+    }
+
+    /**
+     * Like {@link #toRealPythonValue(Context, Object)}, but looks up the currently entered
+     * context lazily - only if object turns out to be a container that actually needs one.
+     * Scalars and proxies never touch it, so this is safe to call with no context entered.
+     */
+    public Value toRealPythonValue(Object object) {
+        if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
+        final var scalar = scalarToPythonValue(object);
+        if (scalar != null) return scalar;
+        return toRealPythonValue(Context.getCurrent(), object);
     }
 
     /**

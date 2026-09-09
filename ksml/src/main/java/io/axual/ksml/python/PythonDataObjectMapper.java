@@ -34,7 +34,7 @@ import java.util.Arrays;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
-    // When set, fromDataObject() builds a genuine Python dict/list instead of a proxy
+    // Explicit context for fromDataObject(); null means "look up the current one lazily" instead
     private final Context context;
 
     public PythonDataObjectMapper(boolean includeSchemaInfo) {
@@ -83,9 +83,8 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     @Override
     public Value fromDataObject(DataObject object) {
         final var nativeValue = super.fromDataObject(object);
-        final var result = context != null
+        return context != null
                 ? NATIVE_MAPPER.toRealPythonValue(context, nativeValue)
-                : NATIVE_MAPPER.toPython(nativeValue);
-        return result instanceof Value value ? value : null;
+                : NATIVE_MAPPER.toRealPythonValue(nativeValue);
     }
 }
