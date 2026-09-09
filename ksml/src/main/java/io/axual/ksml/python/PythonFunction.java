@@ -34,6 +34,7 @@ import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
@@ -50,8 +51,8 @@ public class PythonFunction extends UserFunction {
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
-    // Tied to this function's own PythonContext, so key/value/aggregatedValue arrive in Python as
-    // genuine dict/list values instead of Java proxies - see PythonDataObjectMapper's context field.
+    private final Context context;
+    // Bound to this function's own context, so parameters arrive as genuine dict/list values
     private final PythonDataObjectMapper dataObjectMapper;
     private final Value function;
 
@@ -70,7 +71,8 @@ public class PythonFunction extends UserFunction {
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
         converter = context.converter();
-        dataObjectMapper = new PythonDataObjectMapper(true, context.context());
+        this.context = context.context();
+        dataObjectMapper = new PythonDataObjectMapper(true, this.context);
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
@@ -142,8 +144,7 @@ public class PythonFunction extends UserFunction {
 
     private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
         Object[] result = new Object[parameters.length + 1];
-        // Convert globalVariables (which contains stores map) to Python-compatible ProxyHashMap
-        result[0] = NATIVE_MAPPER.toPython(globalVariables);
+        result[0] = NATIVE_MAPPER.toRealPythonValue(context, globalVariables);
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
             // Convert DataObject to Python value

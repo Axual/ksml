@@ -34,12 +34,7 @@ import java.util.Arrays;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
-    // Only set for the mapper that converts real message data (key/value/aggregatedValue) for a
-    // Python function call. When present, fromDataObject() hands Python a genuine dict/list built by
-    // Python's own dict/list types, instead of a Java proxy pretending to be one - see
-    // PythonNativeMapper#toRealPythonValue for why. Left null for every other use of this class
-    // (KSML's own internal objects, such as state store handles), which keep working exactly as
-    // before.
+    // When set, fromDataObject() builds a genuine Python dict/list instead of a proxy
     private final Context context;
 
     public PythonDataObjectMapper(boolean includeSchemaInfo) {

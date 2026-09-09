@@ -39,11 +39,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Confirms that key/value/aggregatedValue arrive in Python as genuine dict/list values, not the
- * PythonDict/PythonList proxies described in notes/2026-09-08-1233-foreigndict-code-walkthrough.md.
- * This is the regression test the earlier investigation recommended adding.
- */
+/** Confirms key/value/aggregatedValue arrive in Python as genuine dict/list values, not proxies. */
 class PythonNativeConversionTest {
     @BeforeAll
     static void warmupGraalVM() {

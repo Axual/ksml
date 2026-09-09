@@ -83,6 +83,28 @@ public class KSMLStateStoreTest {
         assertThat(sensor1Data.get("value")).isEqualTo(new DataString("70"));
     }
 
+    @KSMLTest(topology = "pipelines/test-state-store-deepcopy.yaml", schemaDirectory = "schemas")
+    @DisplayName("copy.deepcopy() on a value read back from a key/value store")
+    void testDeepcopyOnStateStoreRead() {
+
+        // first message for this key: nothing in the store yet
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+
+        // second message for the same key: forces a real read-back from the store, which is
+        // where copy.deepcopy() runs
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("70")
+                .build().toRecord());
+    }
+
     @KSMLTest(topology = "pipelines/test-state-store-timestamped.yaml", schemaDirectory = "schemas")
     @DisplayName("A timestamped key/value store works")
     void testJoinTimestamped() {

@@ -173,15 +173,7 @@ public class PythonNativeMapper {
         };
     }
 
-    /**
-     * Convert a plain scalar (or {@code null}, or an already-converted {@link Value}) to a Python
-     * value. Shared by {@link #toPythonValue(Object)} and {@link #toRealPythonValue(Context, Object)},
-     * since a scalar converts the same way regardless of how the caller handles containers.
-     *
-     * @param object the Java object to convert.
-     * @return the converted value, or {@code null} if {@code object} is not one of these scalar types
-     * (the caller then handles its own container types).
-     */
+    /** Converts a scalar (or null, or an already-converted Value); null if not a scalar. */
     private static Value scalarToPythonValue(Object object) {
         return switch (object) {
             case Value value -> value;
@@ -203,21 +195,11 @@ public class PythonNativeMapper {
     }
 
     /**
-     * Convert a native Java value into a genuine Python value (a real {@code dict}/{@code list} built
-     * by Python's own {@code dict}/{@code list} types, not a Java object pretending to be one), by
-     * asking the given Python context for its own {@code dict}/{@code list} type and filling it in one
-     * entry at a time. This never exposes a Java object to Python, so it does not need Python's
-     * strict {@code HostAccess.EXPLICIT} restriction to be relaxed. Use this only for real message
-     * data (key/value/aggregatedValue); {@link #toPython(Object)} still handles KSML's own internal
-     * objects (state store handles and similar), unchanged.
-     *
-     * @param context the Python context to build the value in.
-     * @param object  the Java object to convert.
-     * @return a real Python value.
+     * Builds a genuine Python dict/list (not a Java object pretending to be one), by filling in
+     * Python's own dict/list type one entry at a time. Never exposes a Java object to Python, so
+     * it doesn't need HostAccess.EXPLICIT relaxed.
      */
     public Value toRealPythonValue(Context context, Object object) {
-        // KSML's own proxy objects (e.g. a state store handle nested inside a value) are already
-        // Python-safe as-is; do not try to convert them further.
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
         final var scalar = scalarToPythonValue(object);
         if (scalar != null) return scalar;
