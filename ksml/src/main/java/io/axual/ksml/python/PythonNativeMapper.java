@@ -158,10 +158,33 @@ public class PythonNativeMapper {
     }
 
     public Value toPythonValue(Object object) {
+        final var scalar = scalarToPythonValue(object);
+        if (scalar != null) return scalar;
         return switch (object) {
-            // Value remains untranslated
+            case byte[] value -> {
+                // Convert the contained byte array to a list of unsigned bytes (as short)
+                final var values = new ArrayList<Short>(value.length);
+                for (byte b : value) values.add(b >= 0 ? (short) b : (short) (256 + b));
+                yield Value.asValue(new PythonList(values));
+            }
+            case List<?> value -> Value.asValue(new PythonList(value));
+            case Map<?, ?> value -> Value.asValue(new PythonDict(value));
+            default -> throw unsupportedType(object);
+        };
+    }
+
+    /**
+     * Convert a plain scalar (or {@code null}, or an already-converted {@link Value}) to a Python
+     * value. Shared by {@link #toPythonValue(Object)} and {@link #toRealPythonValue(Context, Object)},
+     * since a scalar converts the same way regardless of how the caller handles containers.
+     *
+     * @param object the Java object to convert.
+     * @return the converted value, or {@code null} if {@code object} is not one of these scalar types
+     * (the caller then handles its own container types).
+     */
+    private static Value scalarToPythonValue(Object object) {
+        return switch (object) {
             case Value value -> value;
-            // Below we convert all we can to Value types
             case null -> Value.asValue(null);
             case Boolean value -> Value.asValue(value);
             case Byte value -> Value.asValue(value);
@@ -171,17 +194,12 @@ public class PythonNativeMapper {
             case Float value -> Value.asValue(value);
             case Double value -> Value.asValue(value);
             case String value -> Value.asValue(value);
-            case byte[] value -> {
-                // Convert the contained byte array to a list of unsigned bytes (as short)
-                final var values = new ArrayList<Short>(value.length);
-                for (byte b : value) values.add(b >= 0 ? (short) b : (short) (256 + b));
-                yield Value.asValue(new PythonList(values));
-            }
-            case List<?> value -> Value.asValue(new PythonList(value));
-            case Map<?, ?> value -> Value.asValue(new PythonDict(value));
-            default ->
-                    throw new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
+            default -> null;
         };
+    }
+
+    private static DataException unsupportedType(Object object) {
+        return new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
     }
 
     /**
@@ -201,17 +219,9 @@ public class PythonNativeMapper {
         // KSML's own proxy objects (e.g. a state store handle nested inside a value) are already
         // Python-safe as-is; do not try to convert them further.
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
+        final var scalar = scalarToPythonValue(object);
+        if (scalar != null) return scalar;
         return switch (object) {
-            case Value value -> value;
-            case null -> Value.asValue(null);
-            case Boolean value -> Value.asValue(value);
-            case Byte value -> Value.asValue(value);
-            case Short value -> Value.asValue(value);
-            case Integer value -> Value.asValue(value);
-            case Long value -> Value.asValue(value);
-            case Float value -> Value.asValue(value);
-            case Double value -> Value.asValue(value);
-            case String value -> Value.asValue(value);
             case byte[] value -> {
                 final var pyList = context.eval(PYTHON_LANGUAGE_ID, "list").execute();
                 for (byte b : value) pyList.invokeMember("append", b >= 0 ? (short) b : (short) (256 + b));
@@ -227,8 +237,7 @@ public class PythonNativeMapper {
                 value.forEach((k, v) -> pyDict.invokeMember("__setitem__", k, toRealPythonValue(context, v)));
                 yield pyDict;
             }
-            default ->
-                    throw new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
+            default -> throw unsupportedType(object);
         };
     }
 }
