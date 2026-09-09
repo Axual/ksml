@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -272,8 +273,7 @@ public class TestDefinitionParser {
             var generator = f.optionalMap(KSMLTestDSL.Produce.GENERATOR);
             var count = f.optionalLong(KSMLTestDSL.Produce.COUNT);
 
-            var block = new ProduceBlock(to, messages, generator, count);
-            block.validate();
+            var block = ProduceBlock.of(to, messages, generator, count);
             blocks.add(block);
         }
         return blocks;
@@ -298,7 +298,7 @@ public class TestDefinitionParser {
                         "Assert block in test '" + testKey + "' references stream '" + on
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES);
+            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES).orElse(null);
             var code = f.requireString(KSMLTestDSL.Assert.CODE);
 
             var block = new AssertBlock(on, stores, code);
@@ -311,11 +311,11 @@ public class TestDefinitionParser {
     /**
      * Parse a list of messages from a YAML messages array.
      * @param messagesNode the messages array node in the YAML test definition.
-     * @return a list of {@link TestMessage}.
+     * @return the parsed {@link TestMessage} list, or empty if {@code messagesNode} is absent.
      */
-    private List<TestMessage> parseMessages(JsonNode messagesNode) {
+    private Optional<List<TestMessage>> parseMessages(JsonNode messagesNode) {
         if (messagesNode == null || !messagesNode.isArray()) {
-            return null;
+            return Optional.empty();
         }
         var messages = new ArrayList<TestMessage>();
         for (var msgNode : messagesNode) {
@@ -327,7 +327,7 @@ public class TestDefinitionParser {
             }
             messages.add(new TestMessage(key, value, timestamp));
         }
-        return messages;
+        return Optional.of(messages);
     }
 
     private static String optionalText(JsonNode node) {

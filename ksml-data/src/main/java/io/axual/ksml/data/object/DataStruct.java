@@ -81,21 +81,6 @@ public class DataStruct implements DataObject {
     private final StructType type;
 
     /**
-     * Functional interface for applying custom operations on certain struct values of a specific type.
-     *
-     * @param <T> The type of the value to be applied.
-     */
-    public interface DataStructApplier<T> {
-        /**
-         * Applies the operation to the specified value.
-         *
-         * @param value the value to be processed.
-         * @throws Exception if the operation fails.
-         */
-        void apply(T value) throws Exception;
-    }
-
-    /**
      * Constructs a {@code DataStruct} with no schema and an empty content map.
      */
     public DataStruct() {
@@ -172,27 +157,6 @@ public class DataStruct implements DataObject {
     }
 
     /**
-     * Retrieves a value of the specified type for the given key and applies the provided operation.
-     *
-     * @param <T>     The type of the value.
-     * @param key     The key for which the value is to be retrieved.
-     * @param clazz   The expected type of the value.
-     * @param applier The operation to apply on the value.
-     * @throws DataException If the operation fails.
-     */
-    @SuppressWarnings("unchecked")
-    public <T> void getIfPresent(String key, Class<T> clazz, DataStructApplier<T> applier) {
-        final var value = get(key);
-        if (value != null && clazz.isAssignableFrom(value.getClass())) {
-            try {
-                applier.apply((T) value);
-            } catch (Exception e) {
-                throw new DataException("Exception thrown while getting and applying DataStruct value for key \"" + key + "\"", e);
-            }
-        }
-    }
-
-    /**
      * Retrieves a value of a given key and return that if it matches the specified type, null otherwise.
      *
      * @param <T>   The type of the value.
@@ -261,7 +225,7 @@ public class DataStruct implements DataObject {
     public DataObject putIfAbsent(String key, DataObject value) {
         if (contents == null)
             throw new DataException("Can not add item to a NULL Struct: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
-        return contents.computeIfAbsent(key, k -> value);
+        return contents.computeIfAbsent(key, _ -> value);
     }
 
     /**

@@ -25,6 +25,9 @@ import org.apache.kafka.common.Uuid;
 
 import java.util.Map;
 
+/**
+ * Bridge class to allow extending the DescribeTopicsResult class from Kafka..
+ */
 public class ExtendableDescribeTopicsResult extends DescribeTopicsResult {
     public ExtendableDescribeTopicsResult(Map<Uuid, KafkaFuture<TopicDescription>> topicIdFutures, Map<String, KafkaFuture<TopicDescription>> nameFutures) {
         super(topicIdFutures, nameFutures);

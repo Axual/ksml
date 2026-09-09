@@ -22,6 +22,7 @@ package io.axual.ksml.testrunner;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A block that defines test data to be produced into a stream declared in the
@@ -54,6 +55,18 @@ public record ProduceBlock(
                 description = "Number of times to invoke the generator function")
         Long count
 ) {
+    /**
+     * Build and validate a produce block from the {@link java.util.Optional} values returned by
+     * {@link FieldExtractor}, unwrapping them to the record's plain nullable fields.
+     * @throws TestDefinitionException if the produce block is invalid.
+     */
+    public static ProduceBlock of(String to, Optional<List<TestMessage>> messages,
+                                   Optional<Map<String, Object>> generator, Optional<Long> count) {
+        var block = new ProduceBlock(to, messages.orElse(null), generator.orElse(null), count.orElse(null));
+        block.validate();
+        return block;
+    }
+
     /**
      * Validate that the produce block has either messages or a generator, but not both.
      */
