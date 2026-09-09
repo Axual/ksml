@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.util.ExecutionUtil;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
@@ -33,9 +34,21 @@ import java.util.Arrays;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
+    // Only set for the mapper that converts real message data (key/value/aggregatedValue) for a
+    // Python function call. When present, fromDataObject() hands Python a genuine dict/list built by
+    // Python's own dict/list types, instead of a Java proxy pretending to be one - see
+    // PythonNativeMapper#toRealPythonValue for why. Left null for every other use of this class
+    // (KSML's own internal objects, such as state store handles), which keep working exactly as
+    // before.
+    private final Context context;
 
     public PythonDataObjectMapper(boolean includeSchemaInfo) {
-        super(includeSchemaInfo, includeSchemaInfo ? new PythonDataObjectMapper(false) : null);
+        this(includeSchemaInfo, null);
+    }
+
+    public PythonDataObjectMapper(boolean includeSchemaInfo, Context context) {
+        super(includeSchemaInfo, includeSchemaInfo ? new PythonDataObjectMapper(false, context) : null);
+        this.context = context;
     }
 
     @Override
@@ -74,7 +87,10 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
 
     @Override
     public Value fromDataObject(DataObject object) {
-        final var result = NATIVE_MAPPER.toPython(super.fromDataObject(object));
+        final var nativeValue = super.fromDataObject(object);
+        final var result = context != null
+                ? NATIVE_MAPPER.toRealPythonValue(context, nativeValue)
+                : NATIVE_MAPPER.toPython(nativeValue);
         return result instanceof Value value ? value : null;
     }
 }

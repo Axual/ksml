@@ -1,0 +1,142 @@
+package io.axual.ksml.python;
+
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2026 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.definition.PythonSource;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Confirms that key/value/aggregatedValue arrive in Python as genuine dict/list values, not the
+ * PythonDict/PythonList proxies described in notes/2026-09-08-1233-foreigndict-code-walkthrough.md.
+ * This is the regression test the earlier investigation recommended adding.
+ */
+class PythonNativeConversionTest {
+    @BeforeAll
+    static void warmupGraalVM() {
+        try {
+            new PythonContext(PythonContextConfig.builder().build());
+        } catch (Exception _) {
+            // Warmup only.
+        }
+    }
+
+    final PythonContext context = new PythonContext(PythonContextConfig.builder().build());
+    final ParameterDefinition valueParam = new ParameterDefinition("value", DataType.UNKNOWN);
+    final UserType stringResultType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
+
+    private DataStruct nestedPayload() {
+        var nested = new DataStruct();
+        nested.put("tag", new DataString("hello"));
+        var numbers = new DataList(DataInteger.DATATYPE);
+        numbers.add(new DataInteger(1), new DataInteger(2), new DataInteger(3));
+        var payload = new DataStruct();
+        payload.put("day", new DataString("2026-01-01"));
+        payload.put("nested", nested);
+        payload.put("numbers", numbers);
+        return payload;
+    }
+
+    @Test
+    void valueIsGenuineNativeTypeNotProxy() {
+        var code = """
+                assert type(value) is dict, f"expected real dict, got {type(value)}"
+                assert type(value["nested"]) is dict, f"expected real nested dict, got {type(value['nested'])}"
+                assert type(value["numbers"]) is list, f"expected real list, got {type(value['numbers'])}"
+                'OK'
+                """;
+        var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "check", new ParameterDefinition[]{valueParam},
+                PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null);
+        var fn = PythonFunction.forFunction(context, "test", "check", def);
+
+        var result = fn.call(nestedPayload());
+        assertThat(result).isInstanceOf(DataString.class);
+        assertThat(((DataString) result).value()).isEqualTo("OK");
+    }
+
+    @Test
+    void deepcopyWorksOnValue() {
+        var code = """
+                import copy
+                copy.deepcopy(value)
+                'OK'
+                """;
+        var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "check", new ParameterDefinition[]{valueParam},
+                PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null);
+        var fn = PythonFunction.forFunction(context, "test", "check", def);
+
+        var result = fn.call(nestedPayload());
+        assertThat(result).isInstanceOf(DataString.class);
+        assertThat(((DataString) result).value()).isEqualTo("OK");
+    }
+
+    @Test
+    void shallowCopyOfExplicitDictDoesNotLeakIntoOriginal() {
+        // Confirms the billing app's exact pattern: dict(value) at the top level, then an explicit
+        // copy of the nested part before mutating it, must not affect the original.
+        var code = """
+                shallow = dict(value)
+                shallow["nested"] = dict(shallow["nested"])
+                shallow["nested"]["tag"] = "mutated"
+                assert value["nested"]["tag"] == "hello", "mutating an explicit copy must not change the original"
+                'OK'
+                """;
+        var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "check", new ParameterDefinition[]{valueParam},
+                PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null);
+        var fn = PythonFunction.forFunction(context, "test", "check", def);
+
+        var result = fn.call(nestedPayload());
+        assertThat(result).isInstanceOf(DataString.class);
+        assertThat(((DataString) result).value()).isEqualTo("OK");
+    }
+
+    @Test
+    void originalToNativeWorkaroundIsNoLongerNeeded() {
+        // The exact style the billing app used before this fix (plain copy.deepcopy(), no to_native()
+        // helper), confirming users do not need the workaround any more.
+        var code = """
+                import copy
+                backup = copy.deepcopy(value)
+                backup["nested"]["tag"] = "changed"
+                assert value["nested"]["tag"] == "hello"
+                assert backup["nested"]["tag"] == "changed"
+                'OK'
+                """;
+        var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "check", new ParameterDefinition[]{valueParam},
+                PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null);
+        var fn = PythonFunction.forFunction(context, "test", "check", def);
+
+        var result = fn.call(nestedPayload());
+        assertThat(result).isInstanceOf(DataString.class);
+        assertThat(((DataString) result).value()).isEqualTo("OK");
+    }
+}

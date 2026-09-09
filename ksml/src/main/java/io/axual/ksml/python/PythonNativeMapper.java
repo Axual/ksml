@@ -37,6 +37,7 @@ import io.axual.ksml.data.util.NumericRangeChecker;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.proxy.base.AbstractProxy;
 import io.axual.ksml.util.ExecutionUtil;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import javax.annotation.Nullable;
@@ -45,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 
 public class PythonNativeMapper {
+    private static final String PYTHON_LANGUAGE_ID = "python";
+
     public Object fromPython(Object object) {
         return fromPython(null, object);
     }
@@ -176,6 +179,54 @@ public class PythonNativeMapper {
             }
             case List<?> value -> Value.asValue(new PythonList(value));
             case Map<?, ?> value -> Value.asValue(new PythonDict(value));
+            default ->
+                    throw new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
+        };
+    }
+
+    /**
+     * Convert a native Java value into a genuine Python value (a real {@code dict}/{@code list} built
+     * by Python's own {@code dict}/{@code list} types, not a Java object pretending to be one), by
+     * asking the given Python context for its own {@code dict}/{@code list} type and filling it in one
+     * entry at a time. This never exposes a Java object to Python, so it does not need Python's
+     * strict {@code HostAccess.EXPLICIT} restriction to be relaxed. Use this only for real message
+     * data (key/value/aggregatedValue); {@link #toPython(Object)} still handles KSML's own internal
+     * objects (state store handles and similar), unchanged.
+     *
+     * @param context the Python context to build the value in.
+     * @param object  the Java object to convert.
+     * @return a real Python value.
+     */
+    public Value toRealPythonValue(Context context, Object object) {
+        // KSML's own proxy objects (e.g. a state store handle nested inside a value) are already
+        // Python-safe as-is; do not try to convert them further.
+        if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
+        return switch (object) {
+            case Value value -> value;
+            case null -> Value.asValue(null);
+            case Boolean value -> Value.asValue(value);
+            case Byte value -> Value.asValue(value);
+            case Short value -> Value.asValue(value);
+            case Integer value -> Value.asValue(value);
+            case Long value -> Value.asValue(value);
+            case Float value -> Value.asValue(value);
+            case Double value -> Value.asValue(value);
+            case String value -> Value.asValue(value);
+            case byte[] value -> {
+                final var pyList = context.eval(PYTHON_LANGUAGE_ID, "list").execute();
+                for (byte b : value) pyList.invokeMember("append", b >= 0 ? (short) b : (short) (256 + b));
+                yield pyList;
+            }
+            case List<?> value -> {
+                final var pyList = context.eval(PYTHON_LANGUAGE_ID, "list").execute();
+                for (var element : value) pyList.invokeMember("append", toRealPythonValue(context, element));
+                yield pyList;
+            }
+            case Map<?, ?> value -> {
+                final var pyDict = context.eval(PYTHON_LANGUAGE_ID, "dict").execute();
+                value.forEach((k, v) -> pyDict.invokeMember("__setitem__", k, toRealPythonValue(context, v)));
+                yield pyDict;
+            }
             default ->
                     throw new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
         };

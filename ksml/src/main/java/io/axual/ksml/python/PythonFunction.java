@@ -48,9 +48,11 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 public class PythonFunction extends UserFunction {
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
-    private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
+    // Tied to this function's own PythonContext, so key/value/aggregatedValue arrive in Python as
+    // genuine dict/list values instead of Java proxies - see PythonDataObjectMapper's context field.
+    private final PythonDataObjectMapper dataObjectMapper;
     private final Value function;
 
     public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
@@ -68,6 +70,7 @@ public class PythonFunction extends UserFunction {
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
         converter = context.converter();
+        dataObjectMapper = new PythonDataObjectMapper(true, context.context());
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
@@ -121,7 +124,7 @@ public class PythonFunction extends UserFunction {
 
             // Check if the function is supposed to return a result value
             if (resultType != null) {
-                DataObject result = DATA_OBJECT_MAPPER.toDataObject(resultType.dataType(), pyResult);
+                DataObject result = dataObjectMapper.toDataObject(resultType.dataType(), pyResult);
                 logCall(parameters, result);
                 if (converter != null)
                     result = converter.convert(DEFAULT_NOTATION, result, resultType);
@@ -144,7 +147,7 @@ public class PythonFunction extends UserFunction {
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
             // Convert DataObject to Python value
-            result[index + 1] = DATA_OBJECT_MAPPER.fromDataObject(parameters[index]);
+            result[index + 1] = dataObjectMapper.fromDataObject(parameters[index]);
         }
         return result;
     }
