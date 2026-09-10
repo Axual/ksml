@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -298,7 +297,7 @@ public class TestDefinitionParser {
                         "Assert block in test '" + testKey + "' references stream '" + on
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES).orElse(null);
+            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES);
             var code = f.requireString(KSMLTestDSL.Assert.CODE);
 
             var block = new AssertBlock(on, stores, code);
@@ -311,11 +310,11 @@ public class TestDefinitionParser {
     /**
      * Parse a list of messages from a YAML messages array.
      * @param messagesNode the messages array node in the YAML test definition.
-     * @return the parsed {@link TestMessage} list, or empty if {@code messagesNode} is absent.
+     * @return the parsed {@link TestMessage} list, or an empty list if {@code messagesNode} is absent.
      */
-    private Optional<List<TestMessage>> parseMessages(JsonNode messagesNode) {
+    private List<TestMessage> parseMessages(JsonNode messagesNode) {
         if (messagesNode == null || !messagesNode.isArray()) {
-            return Optional.empty();
+            return List.of();
         }
         var messages = new ArrayList<TestMessage>();
         for (var msgNode : messagesNode) {
@@ -327,7 +326,7 @@ public class TestDefinitionParser {
             }
             messages.add(new TestMessage(key, value, timestamp));
         }
-        return Optional.of(messages);
+        return messages;
     }
 
     private static String optionalText(JsonNode node) {

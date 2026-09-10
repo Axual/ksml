@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @param on     optional key into the suite's {@code streams:} map identifying the output stream;
  *               when set, output records become a {@code records} Python list in the assertion code
- * @param stores optional list of state store names to inject as Python globals into the assertion code
+ * @param stores state store names to inject as Python globals into the assertion code, empty if absent
  * @param code   Python assertion code to execute
  */
 @JsonSchema(
@@ -51,11 +51,19 @@ public record AssertBlock(
         String code
 ) {
     /**
+     * Normalizes {@code stores} to an empty list when constructed with {@code null}, so every
+     * other method on this record can treat it as never-null.
+     */
+    public AssertBlock {
+        stores = stores != null ? stores : List.of();
+    }
+
+    /**
      * Validate that the assert block has at least an {@code on} reference or {@code stores}.
      */
     public void validate() {
         var hasOnBlock = on != null;
-        var hasStoresBlock = stores != null && !stores.isEmpty();
+        var hasStoresBlock = !stores.isEmpty();
         if (!hasOnBlock && !hasStoresBlock) {
             throw new TestDefinitionException(
                     "Assert block must have at least '" + KSMLTestDSL.Assert.ON

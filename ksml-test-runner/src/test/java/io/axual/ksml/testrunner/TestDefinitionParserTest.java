@@ -63,7 +63,7 @@ class TestDefinitionParserTest {
         var produce = testCase.produce().getFirst();
         assertEquals("sensor_source", produce.to());
         assertEquals(3, produce.messages().size());
-        assertNull(produce.generator());
+        assertTrue(produce.generator().isEmpty());
 
         // First message: no timestamp
         var msg1 = produce.messages().getFirst();
@@ -79,7 +79,7 @@ class TestDefinitionParserTest {
         assertEquals(1, testCase.assertions().size());
         var assertBlock = testCase.assertions().getFirst();
         assertEquals("sensor_filtered", assertBlock.on());
-        assertNull(assertBlock.stores());
+        assertTrue(assertBlock.stores().isEmpty());
         assertNotNull(assertBlock.code());
         assertTrue(assertBlock.code().contains("assert len(records) == 2"));
     }

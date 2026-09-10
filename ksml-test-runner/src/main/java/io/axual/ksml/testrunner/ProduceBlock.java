@@ -29,8 +29,8 @@ import java.util.Optional;
  * suite's {@code streams:} map.
  *
  * @param to        key into the suite's {@code streams:} map identifying the target stream
- * @param messages  inline test messages (mutually exclusive with {@code generator})
- * @param generator optional generator function definition as a map (KSML generator syntax)
+ * @param messages  inline test messages, empty if absent (mutually exclusive with {@code generator})
+ * @param generator generator function definition as a map (KSML generator syntax), empty if absent
  * @param count     optional count for generator-based production
  */
 @JsonSchema(
@@ -56,13 +56,22 @@ public record ProduceBlock(
         Long count
 ) {
     /**
-     * Build and validate a produce block from the {@link java.util.Optional} values returned by
-     * {@link FieldExtractor}, unwrapping them to the record's plain nullable fields.
+     * Normalizes {@code messages}/{@code generator} to an empty collection when constructed with
+     * {@code null}, so every other method on this record can treat them as never-null.
+     */
+    public ProduceBlock {
+        messages = messages != null ? messages : List.of();
+        generator = generator != null ? generator : Map.of();
+    }
+
+    /**
+     * Build and validate a produce block, unwrapping the {@link Optional} count returned by
+     * {@link FieldExtractor} to this record's plain nullable {@code count} field.
      * @throws TestDefinitionException if the produce block is invalid.
      */
-    public static ProduceBlock of(String to, Optional<List<TestMessage>> messages,
-                                   Optional<Map<String, Object>> generator, Optional<Long> count) {
-        var block = new ProduceBlock(to, messages.orElse(null), generator.orElse(null), count.orElse(null));
+    public static ProduceBlock of(String to, List<TestMessage> messages,
+                                   Map<String, Object> generator, Optional<Long> count) {
+        var block = new ProduceBlock(to, messages, generator, count.orElse(null));
         block.validate();
         return block;
     }
@@ -71,12 +80,12 @@ public record ProduceBlock(
      * Validate that the produce block has either messages or a generator, but not both.
      */
     public void validate() {
-        if (messages == null && generator == null) {
+        if (messages.isEmpty() && generator.isEmpty()) {
             throw new TestDefinitionException(
                     "Produce block targeting stream '" + to + "' must have either '"
                             + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "'");
         }
-        if (messages != null && generator != null) {
+        if (!messages.isEmpty() && !generator.isEmpty()) {
             throw new TestDefinitionException(
                     "Produce block targeting stream '" + to + "' must have either '"
                             + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "', not both");

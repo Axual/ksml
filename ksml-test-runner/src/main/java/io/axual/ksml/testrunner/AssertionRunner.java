@@ -100,12 +100,12 @@ public class AssertionRunner {
                     return TestResult.error(suiteName, testName,
                             "Assert block references undeclared stream '" + block.on() + "'");
                 }
-                var records = recordCache.computeIfAbsent(stream.topic(), k -> collectOutputRecords(stream));
+                var records = recordCache.computeIfAbsent(stream.topic(), _ -> collectOutputRecords(stream));
                 args.add(Pair.of("records", ProxyUtil.toPython(records)));
             }
 
             // If stores are specified, inject store proxies
-            if (block.stores() != null) {
+            if (!block.stores().isEmpty()) {
                 for (var storeName : block.stores()) {
                     var store = driver.getKeyValueStore(storeName);
                     if (store == null) {
