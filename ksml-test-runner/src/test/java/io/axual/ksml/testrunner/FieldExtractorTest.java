@@ -149,23 +149,22 @@ class FieldExtractorTest {
         var extractor = new FieldExtractor(node, TEST_FILE);
 
         var result = extractor.optionalMap("generator");
-        assertTrue(result.isPresent());
-        assertEquals("gen1", result.get().get("name"));
-        assertEquals("x = 1", result.get().get("code"));
+        assertEquals("gen1", result.get("name"));
+        assertEquals("x = 1", result.get("code"));
     }
 
     @Test
     void optionalMapReturnsEmptyOnMissing() {
         var node = createNode();
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertEquals(Optional.empty(), extractor.optionalMap("generator"));
+        assertEquals(Map.of(), extractor.optionalMap("generator"));
     }
 
     @Test
     void optionalMapReturnsEmptyOnNonObject() {
         var node = createNode().put("generator", "not-a-map");
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertEquals(Optional.empty(), extractor.optionalMap("generator"));
+        assertEquals(Map.of(), extractor.optionalMap("generator"));
     }
 
     // optionalStringList
@@ -177,14 +176,14 @@ class FieldExtractorTest {
         var extractor = new FieldExtractor(node, TEST_FILE);
 
         var result = extractor.optionalStringList("stores");
-        assertEquals(Optional.of(List.of("store1", "store2")), result);
+        assertEquals(List.of("store1", "store2"), result);
     }
 
     @Test
     void optionalStringListReturnsEmptyOnMissing() {
         var node = createNode();
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertEquals(Optional.empty(), extractor.optionalStringList("stores"));
+        assertEquals(List.of(), extractor.optionalStringList("stores"));
     }
 
     // nodeToObject

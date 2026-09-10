@@ -1,0 +1,31 @@
+name: "Produce block with both messages and generator"
+definition: pipelines/test-passthrough.yaml
+
+streams:
+  input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tests:
+  both_messages_and_generator:
+    description: "Produce block specifies both 'messages' and 'generator'"
+    produce:
+      - to: input
+        messages:
+          - key: "k1"
+            value: "v1"
+        generator:
+          name: test_generator
+          code: |
+            result = [("k2", "v2")]
+          expression: result
+        count: 1
+    assert:
+      - on: output
+        code: |
+          assert len(records) == 0

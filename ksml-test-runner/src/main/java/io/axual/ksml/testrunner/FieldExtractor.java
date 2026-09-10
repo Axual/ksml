@@ -99,30 +99,30 @@ class FieldExtractor {
     }
 
     /**
-     * Get an optional object field as a map, returning empty if absent.
+     * Get an optional object field as a map, returning an empty map if absent.
      */
     @SuppressWarnings("unchecked")
-    Optional<Map<String, Object>> optionalMap(String field) {
+    Map<String, Object> optionalMap(String field) {
         var child = node.get(field);
         if (child == null || !child.isObject()) {
-            return Optional.empty();
+            return Map.of();
         }
-        return Optional.of(YAML_MAPPER.convertValue(child, LinkedHashMap.class));
+        return YAML_MAPPER.convertValue(child, LinkedHashMap.class);
     }
 
     /**
-     * Get an optional array field as a list of strings, returning empty if absent.
+     * Get an optional array field as a list of strings, returning an empty list if absent.
      */
-    Optional<List<String>> optionalStringList(String field) {
+    List<String> optionalStringList(String field) {
         var child = node.get(field);
         if (child == null || !child.isArray()) {
-            return Optional.empty();
+            return List.of();
         }
         var result = new ArrayList<String>();
         for (var element : child) {
             result.add(element.asString());
         }
-        return Optional.of(result);
+        return result;
     }
 
     /**

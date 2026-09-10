@@ -1,0 +1,22 @@
+name: "Produce block missing both messages and generator"
+definition: pipelines/test-passthrough.yaml
+
+streams:
+  input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tests:
+  neither_messages_nor_generator:
+    description: "Produce block specifies neither 'messages' nor 'generator'"
+    produce:
+      - to: input
+    assert:
+      - on: output
+        code: |
+          assert len(records) == 0
