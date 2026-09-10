@@ -47,7 +47,7 @@ class PythonNativeConversionTest {
         try {
             new PythonContext(PythonContextConfig.builder().build());
         } catch (Exception _) {
-            // Warmup only.
+            // warmup only
         }
     }
 
@@ -92,21 +92,18 @@ class PythonNativeConversionTest {
                         import copy
                         copy.deepcopy(value)
                         """),
-                // A null field must be a genuine None, not a foreign/interop null - deepcopy on a
-                // dict/list only fails on the null field itself, so this needs its own check.
+                // deepcopy on a dict can succeed even if a null field inside it wouldn't on its own
                 Arguments.of("deepcopy works on a null field nested in value", """
                         import copy
                         backup = copy.deepcopy(value)
                         assert backup["owner"] is None
                         """),
-                // A shallow copy of a nested dict must not change the original.
                 Arguments.of("shallow copy of an explicit dict does not leak into the original", """
                         shallow = dict(value)
                         shallow["nested"] = dict(shallow["nested"])
                         shallow["nested"]["tag"] = "mutated"
                         assert value["nested"]["tag"] == "hello", "mutating an explicit copy must not change the original"
                         """),
-                // Plain copy.deepcopy() works, no extra helper needed.
                 Arguments.of("deepcopy needs no extra helper", """
                         import copy
                         backup = copy.deepcopy(value)

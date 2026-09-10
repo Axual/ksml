@@ -435,9 +435,7 @@ class PythonDataObjectMapperTest {
         }
     }
 
-    // PythonDict/PythonList are gone, but the two things they guaranteed still have to hold: a
-    // struct handed to Python renders as a real Python dict in log output, and Python code can use
-    // it the normal way (subscript, 'in', len(), nested access, assignment).
+    // Log rendering and Python-side access must still work without PythonDict/PythonList
 
     @Test
     @DisplayName("a struct handed to Python renders as a Python dict in log output")

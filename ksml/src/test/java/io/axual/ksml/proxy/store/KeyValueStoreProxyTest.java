@@ -151,7 +151,6 @@ class KeyValueStoreProxyTest {
         when(delegate.get("sensor1")).thenReturn(nested);
 
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            // Call .get() from Python, like a real pipeline does, not from plain Java
             pythonContext.context().getBindings("python").putMember("store", proxy());
             var isDict = pythonContext.context().eval("python", "type(store.get('sensor1')) is dict");
             assertThat(isDict.asBoolean()).isTrue();

@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonNativeMapper {
-    // One entry per Python context (a context lives for as long as its topology runs)
     private final Map<Context, PythonTypes> typesByContext = new ConcurrentHashMap<>();
 
     private record PythonTypes(Value dict, Value list, Value none) {
@@ -162,7 +161,7 @@ public class PythonNativeMapper {
         return ExecutionUtil.tryThis(() -> MapUtil.stringKeys(object.as(Map.class)));
     }
 
-    /** Converts a scalar, or returns null. Java null is not a scalar here - a real Python None needs the context. */
+    /** Converts a scalar; returns null otherwise (null included, since None needs the context). */
     private static Value scalarToPythonValue(Object object) {
         return switch (object) {
             case Value value -> value;
@@ -183,12 +182,7 @@ public class PythonNativeMapper {
         return new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
     }
 
-    /**
-     * Like {@link #toRealPythonValue(Context, Object)}, but looks up the currently entered
-     * context lazily - only if object turns out to need one. Scalars and proxies never touch it.
-     * Every real caller runs from inside Python already, so a context is always entered; if one
-     * somehow isn't, that is a bug in the caller, not something to paper over.
-     */
+    /** Like {@link #toRealPythonValue(Context, Object)}, but looks the current context up lazily. */
     public Value toRealPythonValue(Object object) {
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
         final var scalar = scalarToPythonValue(object);
@@ -224,8 +218,7 @@ public class PythonNativeMapper {
             }
             case Map<?, ?> value -> {
                 final var pyDict = types.dict().execute();
-                // Keys are always strings in KSML's data model (DataStruct/DataMap); force it so a
-                // caller can never silently insert a non-string key.
+                // KSML map keys are always strings; force it
                 value.forEach((k, v) -> pyDict.putHashEntry(String.valueOf(k), toRealPythonValue(context, v)));
                 yield pyDict;
             }

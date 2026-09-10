@@ -49,17 +49,13 @@ public class ProxyUtil {
     private static final String VALUE_FIELD = "value";
     private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
-    // Looks the Python context up lazily (see PythonDataObjectMapper), so this can stay a shared
-    // instance rather than being rebuilt on every call
     private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
 
     private ProxyUtil() {
     }
 
     /**
-     * Converts a value for Python. Always builds a real dict/list, so {@code copy.deepcopy()}
-     * works. Every method that calls this runs as a callback from Python code already running,
-     * so the Python context it needs is always available to look up.
+     * Converts a value for Python. Always builds a real dict/list, so {@code copy.deepcopy()} works.
      *
      * @param object the Object to convert to polyglot / Python
      * @return a proxy object, a genuine Python value, or another wrapper that Python can directly use

@@ -52,7 +52,6 @@ public class PythonFunction extends UserFunction {
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Context context;
-    // Bound to this function's own context, so parameters arrive as genuine dict/list values
     private final PythonDataObjectMapper dataObjectMapper;
     private final Value function;
 

@@ -34,7 +34,7 @@ import java.util.Arrays;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
-    // Explicit context for fromDataObject(); null means "look up the current one lazily" instead
+    // null means: look up the current context lazily instead
     private final Context context;
 
     public PythonDataObjectMapper(boolean includeSchemaInfo) {

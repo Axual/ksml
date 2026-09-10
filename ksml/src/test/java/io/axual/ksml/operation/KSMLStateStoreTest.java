@@ -87,7 +87,6 @@ public class KSMLStateStoreTest {
     @DisplayName("copy.deepcopy() on a value read back from a key/value store")
     void testDeepcopyOnStateStoreRead() {
 
-        // first message for this key: nothing in the store yet
         sensorIn.pipeInput("sensor1", SensorData.builder()
                 .city("Amsterdam")
                 .type(SensorData.SensorType.HUMIDITY)
@@ -95,9 +94,8 @@ public class KSMLStateStoreTest {
                 .value("80")
                 .build().toRecord());
 
-        // second message for the same key: forces a real read-back from the store, which is
-        // where copy.deepcopy() runs. The pipeline stores the copy under "sensor1_backup" so we
-        // can confirm here that it is a real, independent snapshot of the first message.
+        // second message triggers the store read-back and deepcopy; the pipeline saves the copy
+        // under "sensor1_backup" so this test can check it's a real, independent snapshot
         sensorIn.pipeInput("sensor1", SensorData.builder()
                 .city("Amsterdam")
                 .type(SensorData.SensorType.HUMIDITY)
