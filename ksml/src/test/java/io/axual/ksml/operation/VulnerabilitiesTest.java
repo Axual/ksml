@@ -179,34 +179,32 @@ public class VulnerabilitiesTest {
     @KSMLTest(topology = "pipelines/vulnerable-state-store-value.yaml", schemaDirectory = "schemas")
     @DisplayName("check vulnerabilities in state store values")
     void testVulnerableStateStoreValue() {
-        assertThatThrownBy(() -> {
-            int oldCounter = counter.get();
+        int oldCounter = counter.get();
 
-                // first message: store is empty, so last_value is None and no exploit is attempted
-                sensorIn.pipeInput("sensor1", SensorData.builder()
-                    .city("Amsterdam")
-                    .type(SensorData.SensorType.HUMIDITY)
-                    .unit("%")
-                    .value("80")
-                    .build().toRecord());
+        // first message: store is empty, so last_value is None and no exploit is attempted
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
 
-                // second message: last_value is now the real dict returned by store.get(),
-                // and the exploit tries to call getClass() on it
-                sensorIn.pipeInput("sensor1", SensorData.builder()
-                    .city("Amsterdam")
-                    .type(SensorData.SensorType.HUMIDITY)
-                    .unit("%")
-                    .value("70")
-                    .build().toRecord());
-
-                // and the counter should not have been incremented
-                assertThat(counter.get()).as("No curl request should be received").isEqualTo(oldCounter);
-        })
+        // second message: last_value is now the real dict returned by store.get(),
+        // and the exploit tries to call getClass() on it
+        assertThatThrownBy(() -> sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("70")
+                .build().toRecord()))
                 .as("Trying to exploit a state store's retrieved value should result in RuntimeException")
                 .isInstanceOf(RuntimeException.class)
                 .cause()
                 .as("`getClass' should not be accessible on a genuine Python dict.")
                 .hasMessageContaining("getClass");
+
+        // and the counter should not have been incremented
+        assertThat(counter.get()).as("No curl request should be received").isEqualTo(oldCounter);
     }
 
     @KSMLTest(topology = "pipelines/vulnerable-versioned-state-store.yaml", schemaDirectory = "schemas")
