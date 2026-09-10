@@ -191,12 +191,13 @@ public class VulnerabilitiesTest {
 
         // second message: last_value is now the real dict returned by store.get(),
         // and the exploit tries to call getClass() on it
-        assertThatThrownBy(() -> sensorIn.pipeInput("sensor1", SensorData.builder()
+        var secondMessage = SensorData.builder()
                 .city("Amsterdam")
                 .type(SensorData.SensorType.HUMIDITY)
                 .unit("%")
                 .value("70")
-                .build().toRecord()))
+                .build().toRecord();
+        assertThatThrownBy(() -> sensorIn.pipeInput("sensor1", secondMessage))
                 .as("Trying to exploit a state store's retrieved value should result in RuntimeException")
                 .isInstanceOf(RuntimeException.class)
                 .cause()
