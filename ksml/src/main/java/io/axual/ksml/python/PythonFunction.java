@@ -34,6 +34,7 @@ import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
@@ -48,9 +49,10 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 public class PythonFunction extends UserFunction {
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
-    private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
+    private final Context context;
+    private final PythonDataObjectMapper dataObjectMapper;
     private final Value function;
 
     public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
@@ -68,6 +70,8 @@ public class PythonFunction extends UserFunction {
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
         converter = context.converter();
+        this.context = context.context();
+        dataObjectMapper = new PythonDataObjectMapper(true, this.context);
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
@@ -121,7 +125,7 @@ public class PythonFunction extends UserFunction {
 
             // Check if the function is supposed to return a result value
             if (resultType != null) {
-                DataObject result = DATA_OBJECT_MAPPER.toDataObject(resultType.dataType(), pyResult);
+                DataObject result = dataObjectMapper.toDataObject(resultType.dataType(), pyResult);
                 logCall(parameters, result);
                 if (converter != null)
                     result = converter.convert(DEFAULT_NOTATION, result, resultType);
@@ -139,12 +143,11 @@ public class PythonFunction extends UserFunction {
 
     private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
         Object[] result = new Object[parameters.length + 1];
-        // Convert globalVariables (which contains stores map) to Python-compatible ProxyHashMap
-        result[0] = NATIVE_MAPPER.toPython(globalVariables);
+        result[0] = NATIVE_MAPPER.toRealPythonValue(context, globalVariables);
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
             // Convert DataObject to Python value
-            result[index + 1] = DATA_OBJECT_MAPPER.fromDataObject(parameters[index]);
+            result[index + 1] = dataObjectMapper.fromDataObject(parameters[index]);
         }
         return result;
     }

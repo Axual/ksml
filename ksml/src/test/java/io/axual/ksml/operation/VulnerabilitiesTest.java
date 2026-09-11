@@ -35,8 +35,8 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.BufferedReader;
@@ -61,9 +61,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * which will increase a counter every time a request is received.
  * Verification is a check to see if an exception is thrown when the pipeline is run.
  */
+@DisabledIf(value = "isRunningInGithubActions", disabledReason = "This test is not run on Github Actions b/c it opens a listening port.")
 @ExtendWith(KSMLTestExtension.class)
 @Slf4j
-@Disabled("With a correct Python environment, this test should throw an exception.")
 @SuppressWarnings("java:S2187")
 public class VulnerabilitiesTest {
 
@@ -166,6 +166,43 @@ public class VulnerabilitiesTest {
         assertTrue(rte.getCause().getMessage().contains("foreign object has no attribute 'getClass'"), "`getClass' should be blocked by the sandbox.");
     }
 
+    /**
+     * Test that attacks via getClass() on the value returned by store.get() are blocked.
+     * Unlike testVulnerableStateStore (which attacks the store proxy), this attacks the
+     * genuine Python dict built by PythonNativeMapper.toRealPythonValue for the retrieved value.
+     */
+    @KSMLTest(topology = "pipelines/vulnerable-state-store-value.yaml", schemaDirectory = "schemas")
+    @DisplayName("check vulnerabilities in state store values")
+    void testVulnerableStateStoreValue() {
+        int oldCounter = counter.get();
+
+        // first message: store is empty, so last_value is None and no exploit is attempted
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+
+        // second message: last_value is now the real dict returned by store.get(),
+        // and the exploit tries to call getClass() on it
+        var secondMessage = SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("70")
+                .build().toRecord();
+        assertThatThrownBy(() -> sensorIn.pipeInput("sensor1", secondMessage))
+                .as("Trying to exploit a state store's retrieved value should result in RuntimeException")
+                .isInstanceOf(RuntimeException.class)
+                .cause()
+                .as("`getClass' should not be accessible on a genuine Python dict.")
+                .hasMessageContaining("getClass");
+
+        // and the counter should not have been incremented
+        assertThat(counter.get()).as("No curl request should be received").isEqualTo(oldCounter);
+    }
+
     @KSMLTest(topology = "pipelines/vulnerable-versioned-state-store.yaml", schemaDirectory = "schemas")
     @DisplayName("check vulnerabilities in versioned state stores")
     void testVulnerableVersionedStateStore() {
@@ -249,5 +286,10 @@ public class VulnerabilitiesTest {
         } catch (IOException e) {
             log.error("Error handling request", e);
         }
+    }
+
+    static boolean isRunningInGithubActions() {
+        log.info("Checking for Github Actions environment: System.getEnv(\"CI\") = {}", System.getenv("CI"));
+        return "true".equalsIgnoreCase(System.getenv("CI"));
     }
 }

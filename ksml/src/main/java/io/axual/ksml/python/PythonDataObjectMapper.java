@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.util.ExecutionUtil;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
@@ -33,9 +34,16 @@ import java.util.Arrays;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
+    // null means: look up the current context lazily instead
+    private final Context context;
 
     public PythonDataObjectMapper(boolean includeSchemaInfo) {
-        super(includeSchemaInfo, includeSchemaInfo ? new PythonDataObjectMapper(false) : null);
+        this(includeSchemaInfo, null);
+    }
+
+    public PythonDataObjectMapper(boolean includeSchemaInfo, Context context) {
+        super(includeSchemaInfo, includeSchemaInfo ? new PythonDataObjectMapper(false, context) : null);
+        this.context = context;
     }
 
     @Override
@@ -74,7 +82,9 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
 
     @Override
     public Value fromDataObject(DataObject object) {
-        final var result = NATIVE_MAPPER.toPython(super.fromDataObject(object));
-        return result instanceof Value value ? value : null;
+        final var nativeValue = super.fromDataObject(object);
+        return context != null
+                ? NATIVE_MAPPER.toRealPythonValue(context, nativeValue)
+                : NATIVE_MAPPER.toRealPythonValue(nativeValue);
     }
 }

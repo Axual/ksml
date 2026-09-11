@@ -177,6 +177,7 @@ to:
 
 ### BUG FIXES
 
+* Fixed `copy.deepcopy()` failing with `TypeError: cannot pickle 'ForeignDict' object` on values read from a state store or passed into a Python function. Python now always receives a real `dict` or `list`. Broken since 1.2.1. ([#707](https://github.com/Axual/ksml/pull/707))
 * Fixed AVRO CharSequence crash with nested objects ([#163](https://github.com/Axual/ksml/pull/163))
 * Resolved excessive CPU usage issue ([#157](https://github.com/Axual/ksml/pull/157))
 * Fixed multiple join operation issues ([#136](https://github.com/Axual/ksml/pull/136), [#143](https://github.com/Axual/ksml/pull/143), [#225](https://github.com/Axual/ksml/pull/225))
