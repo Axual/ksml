@@ -45,7 +45,7 @@ public class PythonContext implements AutoCloseable {
 
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
-    private static final String PYTHON = "python";
+    static final String PYTHON = "python";
 
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
     // Java collections (ArrayList, HashMap, TreeMap) are no longer needed since PythonTypeConverter
@@ -63,6 +63,8 @@ public class PythonContext implements AutoCloseable {
             "io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy",
             "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy",
             "io.axual.ksml.proxy.store.KeyValueIteratorProxy");
+    /** For value conversion and the test runner only - bypasses registerFunction(). */
+    @Getter
     private final Context context;
     @Getter
     private final DataObjectConverter converter;

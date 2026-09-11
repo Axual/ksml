@@ -26,6 +26,7 @@ import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.python.PythonNativeMapper;
 import io.axual.ksml.proxy.store.ProxyUtil;
 import io.axual.ksml.util.Pair;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +98,7 @@ public class AssertionRunner {
             if (block.on() != null) {
                 var stream = streams.get(block.on());
                 var records = recordCache.computeIfAbsent(stream.topic(), k -> collectOutputRecords(stream));
-                args.add(Pair.of("records", ProxyUtil.toPython(records)));
+                args.add(Pair.of("records", PYTHON_MAPPER.toRealPythonValue(pythonContext.context(), records)));
             }
 
             // If stores are specified, inject store proxies
@@ -147,6 +148,7 @@ public class AssertionRunner {
     }
 
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private static final PythonNativeMapper PYTHON_MAPPER = new PythonNativeMapper();
     private static final String ASSERTION_ERROR = "AssertionError";
 
     private List<Map<String, Object>> collectOutputRecords(StreamDefinition stream) {

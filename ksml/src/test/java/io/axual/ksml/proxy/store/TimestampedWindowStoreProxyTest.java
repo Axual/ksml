@@ -20,7 +20,8 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.python.PythonDict;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.junit.jupiter.api.DisplayName;
@@ -46,11 +47,14 @@ class TimestampedWindowStoreProxyTest {
     }
 
     @Test
-    @DisplayName("fetch exposes the value and timestamp of the fetched record as a dict")
+    @DisplayName("fetch exposes the value and timestamp of the fetched record as a real dict")
     void fetchConvertsResultToDict() {
         when(delegate.fetch("key", 5L)).thenReturn(ValueAndTimestamp.make("value", 5L));
-        assertThat(proxy().fetch("key", 5L)).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("5");
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            assertThat(pythonContext.context().eval("python", "type(store.fetch('key', 5)) is dict").asBoolean()).isTrue();
+            assertThat(pythonContext.context().eval("python", "store.fetch('key', 5)")).asString().contains("value").contains("5");
+        }
     }
 
     @Test

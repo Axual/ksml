@@ -20,10 +20,13 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.python.PythonDict;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,29 +41,42 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TimestampedKeyValueStoreProxyTest {
+    private static PythonContext pythonContext;
 
     @Mock
     private TimestampedKeyValueStore<Object, Object> delegate;
+
+    @BeforeAll
+    static void setUpContext() {
+        pythonContext = new PythonContext(PythonContextConfig.builder().build());
+    }
+
+    @AfterAll
+    static void tearDownContext() {
+        pythonContext.close();
+    }
 
     private TimestampedKeyValueStoreProxy proxy() {
         return new TimestampedKeyValueStoreProxy(delegate);
     }
 
     @Test
-    @DisplayName("get exposes the value and timestamp of the stored record as a dict")
+    @DisplayName("get exposes the value and timestamp of the stored record as a real dict")
     void getConvertsResultToDict() {
         when(delegate.get("key")).thenReturn(ValueAndTimestamp.make("value", 100L));
-        assertThat(proxy().get("key")).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        var result = pythonContext.context().eval("python", "result = store.get('key')\nassert type(result) is dict\nresult");
+        assertThat(result).asString().contains("value").contains("100");
         verify(delegate).get("key");
     }
 
     @Test
-    @DisplayName("delete exposes the removed value and timestamp as a dict")
+    @DisplayName("delete exposes the removed value and timestamp as a real dict")
     void deleteConvertsResultToDict() {
         when(delegate.delete("key")).thenReturn(ValueAndTimestamp.make("value", 100L));
-        assertThat(proxy().delete("key")).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        var result = pythonContext.context().eval("python", "result = store.delete('key')\nassert type(result) is dict\nresult");
+        assertThat(result).asString().contains("value").contains("100");
     }
 
     @Test

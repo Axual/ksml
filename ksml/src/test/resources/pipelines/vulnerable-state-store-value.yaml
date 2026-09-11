@@ -1,0 +1,39 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# This is a test pipeline that tries to exploit a possible vulnerability in the KSML engine.
+# Unlike vulnerable-state-store.yaml (which attacks the store proxy itself), this attacks the
+# value returned by store.get(), which is built fresh by PythonNativeMapper.toRealPythonValue.
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+stores:
+  last_sensor_data_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+    historyRetention: 1h
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: forEach
+    code: |
+      last_value = last_sensor_data_store.get(key)
+      last_sensor_data_store.put(key, value)
+      if last_value != None:
+        classloader = last_value.getClass().getClassLoader()
+        ProcessBuilder = classloader.loadClass("java.lang.ProcessBuilder")
+        pb = ProcessBuilder('/bin/bash', '-c', 'curl localhost:5555')
+        process = pb.start()
+    stores:
+      - last_sensor_data_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    forEach: process_message

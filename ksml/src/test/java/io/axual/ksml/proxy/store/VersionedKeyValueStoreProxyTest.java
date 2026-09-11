@@ -20,9 +20,12 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.python.PythonDict;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,11 +43,22 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VersionedKeyValueStoreProxyTest {
+    private static PythonContext pythonContext;
 
     @Mock
     private VersionedKeyValueStore<Object, Object> delegate;
     @Mock
     private VersionedRecord<Object> versionedRecord;
+
+    @BeforeAll
+    static void setUpContext() {
+        pythonContext = new PythonContext(PythonContextConfig.builder().build());
+    }
+
+    @AfterAll
+    static void tearDownContext() {
+        pythonContext.close();
+    }
 
     private VersionedKeyValueStoreProxy proxy() {
         return new VersionedKeyValueStoreProxy(delegate);
@@ -57,30 +71,33 @@ class VersionedKeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("get by key exposes the versioned record as a dict")
+    @DisplayName("get by key exposes the versioned record as a real dict")
     void getByKeyConvertsResult() {
         stubRecord();
         when(delegate.get("key")).thenReturn(versionedRecord);
-        assertThat(proxy().get("key")).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        assertThat(pythonContext.context().eval("python", "type(store.get('key')) is dict").asBoolean()).isTrue();
+        assertThat(pythonContext.context().eval("python", "store.get('key')")).asString().contains("value").contains("100");
     }
 
     @Test
-    @DisplayName("get by key and timestamp exposes the versioned record as a dict")
+    @DisplayName("get by key and timestamp exposes the versioned record as a real dict")
     void getByKeyAndTimestampConvertsResult() {
         stubRecord();
         when(delegate.get("key", 50L)).thenReturn(versionedRecord);
-        assertThat(proxy().get("key", 50L)).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        assertThat(pythonContext.context().eval("python", "type(store.get('key', 50)) is dict").asBoolean()).isTrue();
+        assertThat(pythonContext.context().eval("python", "store.get('key', 50)")).asString().contains("value").contains("100");
     }
 
     @Test
-    @DisplayName("delete exposes the removed versioned record as a dict")
+    @DisplayName("delete exposes the removed versioned record as a real dict")
     void deleteConvertsResult() {
         stubRecord();
         when(delegate.delete("key", 50L)).thenReturn(versionedRecord);
-        assertThat(proxy().delete("key", 50L)).isInstanceOf(PythonDict.class)
-                .asString().contains("value").contains("100");
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        assertThat(pythonContext.context().eval("python", "type(store.delete('key', 50)) is dict").asBoolean()).isTrue();
+        assertThat(pythonContext.context().eval("python", "store.delete('key', 50)")).asString().contains("value").contains("100");
     }
 
     @Test

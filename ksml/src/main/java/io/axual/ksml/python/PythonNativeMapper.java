@@ -37,14 +37,27 @@ import io.axual.ksml.data.util.NumericRangeChecker;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.proxy.base.AbstractProxy;
 import io.axual.ksml.util.ExecutionUtil;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonNativeMapper {
+    private final Map<Context, PythonTypes> typesByContext = new ConcurrentHashMap<>();
+
+    private record PythonTypes(Value dict, Value list, Value none) {
+        static PythonTypes of(Context context) {
+            return new PythonTypes(
+                    context.eval(PythonContext.PYTHON, "dict"),
+                    context.eval(PythonContext.PYTHON, "list"),
+                    context.eval(PythonContext.PYTHON, "type(None)").execute());
+        }
+    }
+
     public Object fromPython(Object object) {
         return fromPython(null, object);
     }
@@ -148,18 +161,11 @@ public class PythonNativeMapper {
         return ExecutionUtil.tryThis(() -> MapUtil.stringKeys(object.as(Map.class)));
     }
 
-    public Object toPython(Object object) {
-        // Copy all KSML proxy objects without further translation or wrapping
-        if (object instanceof AbstractProxy value) return value;
-        return toPythonValue(object);
-    }
-
-    public Value toPythonValue(Object object) {
+    /** Converts a scalar; returns null otherwise (null included, since None needs the context). */
+    private static Value scalarToPythonValue(Object object) {
         return switch (object) {
-            // Value remains untranslated
             case Value value -> value;
-            // Below we convert all we can to Value types
-            case null -> Value.asValue(null);
+            case null -> null;
             case Boolean value -> Value.asValue(value);
             case Byte value -> Value.asValue(value);
             case Short value -> Value.asValue(value);
@@ -168,16 +174,55 @@ public class PythonNativeMapper {
             case Float value -> Value.asValue(value);
             case Double value -> Value.asValue(value);
             case String value -> Value.asValue(value);
+            default -> null;
+        };
+    }
+
+    private static DataException unsupportedType(Object object) {
+        return new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
+    }
+
+    /** Like {@link #toRealPythonValue(Context, Object)}, but looks the current context up lazily. */
+    public Value toRealPythonValue(Object object) {
+        if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
+        final var scalar = scalarToPythonValue(object);
+        if (scalar != null) return scalar;
+        return toRealPythonValue(currentContext(), object);
+    }
+
+    private static Context currentContext() {
+        try {
+            return Context.getCurrent();
+        } catch (IllegalStateException e) {
+            throw new DataException("Converting a value to Python needs an entered Python context", e);
+        }
+    }
+
+    /** Builds a genuine Python dict/list/None, by filling in Python's own types. Never exposes a Java object to Python. */
+    public Value toRealPythonValue(Context context, Object object) {
+        if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
+        final var scalar = scalarToPythonValue(object);
+        if (scalar != null) return scalar;
+        final var types = typesByContext.computeIfAbsent(context, PythonTypes::of);
+        if (object == null) return types.none();
+        return switch (object) {
             case byte[] value -> {
-                // Convert the contained byte array to a list of unsigned bytes (as short)
-                final var values = new ArrayList<Short>(value.length);
-                for (byte b : value) values.add(b >= 0 ? (short) b : (short) (256 + b));
-                yield Value.asValue(new PythonList(values));
+                final var pyList = types.list().execute();
+                for (byte b : value) pyList.invokeMember("append", b >= 0 ? (short) b : (short) (256 + b));
+                yield pyList;
             }
-            case List<?> value -> Value.asValue(new PythonList(value));
-            case Map<?, ?> value -> Value.asValue(new PythonDict(value));
-            default ->
-                    throw new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
+            case List<?> value -> {
+                final var pyList = types.list().execute();
+                for (var element : value) pyList.invokeMember("append", toRealPythonValue(context, element));
+                yield pyList;
+            }
+            case Map<?, ?> value -> {
+                final var pyDict = types.dict().execute();
+                // KSML map keys are always strings; force it
+                value.forEach((k, v) -> pyDict.putHashEntry(String.valueOf(k), toRealPythonValue(context, v)));
+                yield pyDict;
+            }
+            default -> throw unsupportedType(object);
         };
     }
 }

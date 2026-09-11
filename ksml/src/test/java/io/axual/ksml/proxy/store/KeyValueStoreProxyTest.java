@@ -20,6 +20,10 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
@@ -137,5 +141,27 @@ class KeyValueStoreProxyTest {
     void toStringIncludesName() {
         when(delegate.name()).thenReturn("myStore");
         assertThat(proxy()).asString().contains("KeyValueStoreProxy").contains("myStore");
+    }
+
+    @Test
+    @DisplayName("a value read back from the store survives copy.deepcopy()")
+    void deepcopyOnAStateStoreReadResult() {
+        var nested = new DataStruct();
+        nested.put("city", new DataString("Amsterdam"));
+        when(delegate.get("sensor1")).thenReturn(nested);
+
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            var isDict = pythonContext.context().eval("python", "type(store.get('sensor1')) is dict");
+            assertThat(isDict.asBoolean()).isTrue();
+
+            var deepcopyResult = pythonContext.context().eval("python", """
+                    import copy
+                    value = store.get('sensor1')
+                    copy.deepcopy(value)
+                    'OK'
+                    """);
+            assertThat(deepcopyResult.asString()).isEqualTo("OK");
+        }
     }
 }
