@@ -4,7 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
-        * [1.3.1 (unreleased)](#131-unreleased)
+        * [1.3.1 (2026-09-11)](#131-2026-09-11)
         * [1.3.0 (2026-06-23)](#130-2026-06-23)
         * [1.2.1 (2026-05-08)](#121-2026-05-08)
         * [1.2.0 (2026-03-25)](#120-2026-03-25)
@@ -30,7 +30,7 @@
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
 
-## 1.3.1 (unreleased)
+## 1.3.1 (2026-09-11)
 
 * Fixed `copy.deepcopy()` failing with `TypeError: cannot pickle 'ForeignDict' object` on values read from a state store or passed into a Python function. Python now always receives a real `dict` or `list`. Broken since 1.2.1. ([#707](https://github.com/Axual/ksml/pull/707))
 
