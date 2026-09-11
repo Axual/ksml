@@ -1,0 +1,87 @@
+networks:
+  ksml:
+    driver: bridge
+
+services:
+  broker:
+    image: apache/kafka:3.8.0
+    hostname: broker
+    container_name: broker
+    ports:
+      - "9092:9092"
+    networks:
+      - ksml
+    restart: always
+    environment:
+      KAFKA_PROCESS_ROLES: 'controller,broker'
+      KAFKA_BROKER_ID: 0
+      KAFKA_NODE_ID: 0
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '0@broker:9090'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_ADVERTISED_LISTENERS: 'INNER://broker:9093,OUTER://localhost:9092'
+      KAFKA_LISTENERS: 'INNER://broker:9093,OUTER://broker:9092,CONTROLLER://broker:9090'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'INNER:PLAINTEXT,OUTER:PLAINTEXT,CONTROLLER:PLAINTEXT'
+      KAFKA_LOG_CLEANUP_POLICY: delete
+      KAFKA_LOG_RETENTION_MINUTES: 10070
+      KAFKA_INTER_BROKER_LISTENER_NAME: INNER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_NUM_PARTITIONS: 1
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    # If the kafka topics can list data, the broker is healthy
+    healthcheck:
+      test: /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:9093 --list
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+
+  ksml:
+    image: registry.axual.io/opensource/images/axual/ksml:1.1.0
+    networks:
+      - ksml
+    container_name: ksml
+    working_dir: /ksml
+    volumes:
+      - ./examples:/ksml
+    depends_on:
+      broker:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+
+  kafka-ui:
+    image: quay.io/cloudhut/kowl:master
+    platform: linux/amd64
+    container_name: kowl
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./kowl-ui-config.yaml:/config/kowl-ui-config.yaml
+    environment:
+      CONFIG_FILEPATH:  "/config/kowl-ui-config.yaml"
+    depends_on:
+      broker:
+        condition: service_healthy
+    networks:
+      - ksml
+
+  # This "container" is a workaround to pre-create topics, because setting KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE to true results in Kafka Streams errors
+  kafka-setup:
+    image: apache/kafka:3.8.0
+    hostname: kafka-setup
+    networks:
+      - ksml
+    depends_on:
+      broker:
+        condition: service_healthy
+    restart: on-failure
+    command: "bash -c 'echo Creating tutorial topics... && \
+                       /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic tutorial_input && \
+                       /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data && \
+                       /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted && \
+                       /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic iot_sensor_data && \
+                       /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic device_health_alerts'"
