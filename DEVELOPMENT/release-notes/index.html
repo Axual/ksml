@@ -2992,6 +2992,7 @@ See example: <a href="https://github.com/Axual/ksml/blob/main/examples/09-exampl
 </code></pre></div></p>
 <h3 id="bug-fixes">BUG FIXES</h3>
 <ul>
+<li>Fixed <code>copy.deepcopy()</code> failing with <code>TypeError: cannot pickle 'ForeignDict' object</code> on values read from a state store or passed into a Python function. Python now always receives a real <code>dict</code> or <code>list</code>. Broken since 1.2.1. (<a href="https://github.com/Axual/ksml/pull/707">#707</a>)</li>
 <li>Fixed AVRO CharSequence crash with nested objects (<a href="https://github.com/Axual/ksml/pull/163">#163</a>)</li>
 <li>Resolved excessive CPU usage issue (<a href="https://github.com/Axual/ksml/pull/157">#157</a>)</li>
 <li>Fixed multiple join operation issues (<a href="https://github.com/Axual/ksml/pull/136">#136</a>, <a href="https://github.com/Axual/ksml/pull/143">#143</a>, <a href="https://github.com/Axual/ksml/pull/225">#225</a>)</li>
