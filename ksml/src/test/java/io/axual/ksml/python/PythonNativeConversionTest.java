@@ -28,7 +28,6 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,7 +71,7 @@ class PythonNativeConversionTest {
     @MethodSource("nativeConversionChecks")
     void valuesPassedToPythonAreGenuineNativeTypes(String description, String code) {
         var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "check", new ParameterDefinition[]{valueParam},
-                PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null);
+                null, code.split("\n"), new String[]{"'OK'"}, stringResultType, null);
         var fn = PythonFunction.forFunction(context, "test", "check", def);
 
         var result = fn.call(nestedPayload());
