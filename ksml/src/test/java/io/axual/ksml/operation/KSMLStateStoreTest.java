@@ -38,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.time.Duration;
 import java.time.Instant;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -82,6 +83,32 @@ public class KSMLStateStoreTest {
         DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
         assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
         assertEquals(new DataString("70"), sensor1Data.get("value"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-state-store-deepcopy.yaml", schemaDirectory = "schemas")
+    @DisplayName("copy.deepcopy() on a value read back from a key/value store")
+    void testDeepcopyOnStateStoreRead() {
+
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord());
+
+        // second message triggers the store read-back and deepcopy; the pipeline saves the copy
+        // under "sensor1_backup" so this test can check it's a real, independent snapshot
+        sensorIn.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("70")
+                .build().toRecord());
+
+        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+        DataStruct backup = (DataStruct) lastSensorDataStore.get("sensor1_backup");
+        assertThat(backup.get("city")).isEqualTo(new DataString("Amsterdam"));
+        assertThat(backup.get("value")).isEqualTo(new DataString("80"));
     }
 
     @KSMLTest(topology = "pipelines/test-state-store-timestamped.yaml", schemaDirectory = "schemas")

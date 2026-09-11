@@ -651,7 +651,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.plugin.version}</version>
                     <configuration>
-                        <argLine>${surefireArgLine} ${jdk24PlusJvmArgs}</argLine>
+                        <argLine>@{surefireArgLine} ${jdk24PlusJvmArgs}</argLine>
                     </configuration>
                 </plugin>
 
@@ -660,7 +660,7 @@
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven.failsafe.plugin.version}</version>
                     <configuration>
-                        <argLine>${failsafeArgLine} ${jdk24PlusJvmArgs}</argLine>
+                        <argLine>@{failsafeArgLine} ${jdk24PlusJvmArgs}</argLine>
                     </configuration>
                 </plugin>
 
@@ -785,6 +785,18 @@
                             <goals>
                                 <goal>prepare-agent</goal>
                             </goals>
+                            <configuration>
+                                <propertyName>surefireArgLine</propertyName>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>prepare-agent-integration</id>
+                            <goals>
+                                <goal>prepare-agent-integration</goal>
+                            </goals>
+                            <configuration>
+                                <propertyName>failsafeArgLine</propertyName>
+                            </configuration>
                         </execution>
                         <execution>
                             <id>report</id>

@@ -1,0 +1,37 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Checks copy.deepcopy() on a value read back from a key/value store.
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+stores:
+  last_sensor_data_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: forEach
+    globalCode: |
+      import copy
+    code: |
+      last_value = last_sensor_data_store.get(key)
+      if last_value != None:
+        # saved under its own key so the test can check the copy is real
+        backup = copy.deepcopy(last_value)
+        last_sensor_data_store.put(key + "_backup", backup)
+      last_sensor_data_store.put(key, value)
+    stores:
+      - last_sensor_data_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    forEach: process_message
