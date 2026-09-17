@@ -269,7 +269,7 @@ public class TestDefinitionParser {
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
             var messages = parseMessages(blockNode.get(KSMLTestDSL.Produce.MESSAGES));
-            var generator = f.optionalMap(KSMLTestDSL.Produce.GENERATOR);
+            var generator = f.mapField(KSMLTestDSL.Produce.GENERATOR);
             var count = f.optionalLong(KSMLTestDSL.Produce.COUNT).orElse(null);
 
             var block = new ProduceBlock(to, messages, generator, count);
@@ -298,7 +298,7 @@ public class TestDefinitionParser {
                         "Assert block in test '" + testKey + "' references stream '" + on
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES);
+            var stores = f.stringListField(KSMLTestDSL.Assert.STORES);
             var code = f.requireString(KSMLTestDSL.Assert.CODE);
 
             var block = new AssertBlock(on, stores, code);

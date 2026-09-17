@@ -138,52 +138,52 @@ class FieldExtractorTest {
         assertEquals(Optional.empty(), extractor.optionalLong("count"));
     }
 
-    // optionalMap
+    // mapField
 
     @Test
-    void optionalMapReturnsMap() {
+    void mapFieldReturnsMap() {
         var node = createNode();
         var generator = node.putObject("generator");
         generator.put("name", "gen1");
         generator.put("code", "x = 1");
         var extractor = new FieldExtractor(node, TEST_FILE);
 
-        var result = extractor.optionalMap("generator");
+        var result = extractor.mapField("generator");
         assertEquals("gen1", result.get("name"));
         assertEquals("x = 1", result.get("code"));
     }
 
     @Test
-    void optionalMapReturnsEmptyOnMissing() {
+    void mapFieldReturnsEmptyOnMissing() {
         var node = createNode();
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertEquals(Map.of(), extractor.optionalMap("generator"));
+        assertEquals(Map.of(), extractor.mapField("generator"));
     }
 
     @Test
-    void optionalMapReturnsEmptyOnNonObject() {
+    void mapFieldReturnsEmptyOnNonObject() {
         var node = createNode().put("generator", "not-a-map");
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertEquals(Map.of(), extractor.optionalMap("generator"));
+        assertEquals(Map.of(), extractor.mapField("generator"));
     }
 
-    // optionalStringList
+    // stringListField
 
     @Test
-    void optionalStringListReturnsList() {
+    void stringListFieldReturnsList() {
         var node = createNode();
         node.putArray("stores").add("store1").add("store2");
         var extractor = new FieldExtractor(node, TEST_FILE);
 
-        var result = extractor.optionalStringList("stores");
+        var result = extractor.stringListField("stores");
         assertEquals(List.of("store1", "store2"), result);
     }
 
     @Test
-    void optionalStringListReturnsEmptyOnMissing() {
+    void stringListFieldReturnsEmptyOnMissing() {
         var node = createNode();
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertEquals(List.of(), extractor.optionalStringList("stores"));
+        assertEquals(List.of(), extractor.stringListField("stores"));
     }
 
     // nodeToObject

@@ -102,7 +102,7 @@ class FieldExtractor {
      * Get an optional object field as a map, returning an empty map if absent.
      */
     @SuppressWarnings("unchecked")
-    Map<String, Object> optionalMap(String field) {
+    Map<String, Object> mapField(String field) {
         var child = node.get(field);
         if (child == null || !child.isObject()) {
             return Map.of();
@@ -113,7 +113,7 @@ class FieldExtractor {
     /**
      * Get an optional array field as a list of strings, returning an empty list if absent.
      */
-    List<String> optionalStringList(String field) {
+    List<String> stringListField(String field) {
         var child = node.get(field);
         if (child == null || !child.isArray()) {
             return List.of();
