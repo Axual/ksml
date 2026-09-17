@@ -211,9 +211,16 @@ public class ResolvingAdmin extends ForwardingAdmin {
                 groupResolver);
     }
 
+    /**
+     * @deprecated Kafka's {@link ListConsumerGroupsResult} and its {@code ConsumerGroupListing}
+     * are themselves deprecated for removal since Kafka 4.1 in favor of {@code Admin#listGroups}.
+     * {@link ResolvingAdmin} does not support this legacy operation.
+     */
+    @Deprecated
     @Override
     public ListConsumerGroupsResult listConsumerGroups(ListConsumerGroupsOptions options) {
-        return new ResolvingListConsumerGroupsResult(super.listConsumerGroups(options), groupResolver);
+        operationNotSupported("listConsumerGroups");
+        return null;
     }
 
     @Override
