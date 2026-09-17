@@ -52,16 +52,18 @@ class KSMLTestRunnerTest {
             "duplicate-stream-topic.yaml",
             "undefined-stream-reference.yaml",
             "bare-vendor-avro.yaml",
-            "generator-bad-field-type-test.yaml"
+            "generator-bad-field-type-test.yaml",
+            "produce-block-neither-messages-nor-generator.yaml",
+            "produce-block-both-messages-and-generator.yaml"
     })
-    void invalidDefinitionsReturnNonPass(String testFile) {
+    void invalidDefinitionsReturnError(String testFile) {
         var runner = new KSMLTestRunner();
         var results = runner.runTestFile(resource(testFile));
 
         assertFalse(results.isEmpty(),
                 () -> "Expected at least one result for invalid file '" + testFile + "'");
-        assertTrue(results.stream().anyMatch(r -> r.status() != TestResult.Status.PASS),
-                () -> "Expected at least one non-PASS result for invalid file '" + testFile
+        assertTrue(results.stream().anyMatch(r -> r.status() == TestResult.Status.ERROR),
+                () -> "Expected at least one ERROR result for invalid file '" + testFile
                         + "', got: " + results);
     }
 

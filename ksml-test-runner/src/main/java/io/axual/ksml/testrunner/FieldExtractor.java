@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Utility for extracting typed fields from a {@link JsonNode} with rich error messages.
@@ -88,34 +89,34 @@ class FieldExtractor {
     }
 
     /**
-     * Get an optional long field, returning null if absent.
+     * Get an optional long field, returning empty if absent.
      */
-    Long optionalLong(String field) {
+    Optional<Long> optionalLong(String field) {
         if (!node.has(field)) {
-            return null;
+            return Optional.empty();
         }
-        return node.get(field).asLong();
+        return Optional.of(node.get(field).asLong());
     }
 
     /**
-     * Get an optional object field as a map, returning null if absent.
+     * Get an optional object field as a map, returning an empty map if absent.
      */
     @SuppressWarnings("unchecked")
-    Map<String, Object> optionalMap(String field) {
+    Map<String, Object> mapField(String field) {
         var child = node.get(field);
         if (child == null || !child.isObject()) {
-            return null;
+            return Map.of();
         }
         return YAML_MAPPER.convertValue(child, LinkedHashMap.class);
     }
 
     /**
-     * Get an optional array field as a list of strings, returning null if absent.
+     * Get an optional array field as a list of strings, returning an empty list if absent.
      */
-    List<String> optionalStringList(String field) {
+    List<String> stringListField(String field) {
         var child = node.get(field);
         if (child == null || !child.isArray()) {
-            return null;
+            return List.of();
         }
         var result = new ArrayList<String>();
         for (var element : child) {

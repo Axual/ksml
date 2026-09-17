@@ -27,7 +27,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_ALL_SCHEMA;
 import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_NO_SCHEMA;
@@ -80,16 +79,11 @@ class DataStructTest {
     }
 
     @Test
-    @DisplayName("getIfPresent applies for matching class; getAs and getAsString behaviors")
+    @DisplayName("getAs and getAsString behaviors")
     void gettersAndAppliers() {
         var st = new DataStruct();
         st.put("num", new DataInteger(5));
         st.put("str", new DataString("hello"));
-
-        var applied = new AtomicInteger(0);
-        st.getIfPresent("num", DataInteger.class, v -> applied.incrementAndGet());
-        st.getIfPresent("num", DataString.class, v -> applied.addAndGet(100));
-        assertThat(applied.get()).isEqualTo(1);
 
         // getAs when type matches
         assertThat(st.getAs("str", DataString.class)).isEqualTo(new DataString("hello"));

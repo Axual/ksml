@@ -269,8 +269,8 @@ public class TestDefinitionParser {
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
             var messages = parseMessages(blockNode.get(KSMLTestDSL.Produce.MESSAGES));
-            var generator = f.optionalMap(KSMLTestDSL.Produce.GENERATOR);
-            var count = f.optionalLong(KSMLTestDSL.Produce.COUNT);
+            var generator = f.mapField(KSMLTestDSL.Produce.GENERATOR);
+            var count = f.optionalLong(KSMLTestDSL.Produce.COUNT).orElse(null);
 
             var block = new ProduceBlock(to, messages, generator, count);
             block.validate();
@@ -298,7 +298,7 @@ public class TestDefinitionParser {
                         "Assert block in test '" + testKey + "' references stream '" + on
                                 + "' that is not declared in '" + KSMLTestDSL.STREAMS + ":' (" + testFile + ")");
             }
-            var stores = f.optionalStringList(KSMLTestDSL.Assert.STORES);
+            var stores = f.stringListField(KSMLTestDSL.Assert.STORES);
             var code = f.requireString(KSMLTestDSL.Assert.CODE);
 
             var block = new AssertBlock(on, stores, code);
@@ -311,11 +311,11 @@ public class TestDefinitionParser {
     /**
      * Parse a list of messages from a YAML messages array.
      * @param messagesNode the messages array node in the YAML test definition.
-     * @return a list of {@link TestMessage}.
+     * @return the parsed {@link TestMessage} list, or an empty list if {@code messagesNode} is absent.
      */
     private List<TestMessage> parseMessages(JsonNode messagesNode) {
         if (messagesNode == null || !messagesNode.isArray()) {
-            return null;
+            return List.of();
         }
         var messages = new ArrayList<TestMessage>();
         for (var msgNode : messagesNode) {

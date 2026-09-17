@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -127,63 +128,62 @@ class FieldExtractorTest {
     void optionalLongReturnsValue() {
         var node = createNode().put("count", 42L);
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertEquals(42L, extractor.optionalLong("count"));
+        assertEquals(Optional.of(42L), extractor.optionalLong("count"));
     }
 
     @Test
-    void optionalLongReturnsNullOnMissing() {
+    void optionalLongReturnsEmptyOnMissing() {
         var node = createNode();
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertNull(extractor.optionalLong("count"));
+        assertEquals(Optional.empty(), extractor.optionalLong("count"));
     }
 
-    // optionalMap
+    // mapField
 
     @Test
-    void optionalMapReturnsMap() {
+    void mapFieldReturnsMap() {
         var node = createNode();
         var generator = node.putObject("generator");
         generator.put("name", "gen1");
         generator.put("code", "x = 1");
         var extractor = new FieldExtractor(node, TEST_FILE);
 
-        var result = extractor.optionalMap("generator");
-        assertNotNull(result);
+        var result = extractor.mapField("generator");
         assertEquals("gen1", result.get("name"));
         assertEquals("x = 1", result.get("code"));
     }
 
     @Test
-    void optionalMapReturnsNullOnMissing() {
+    void mapFieldReturnsEmptyOnMissing() {
         var node = createNode();
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertNull(extractor.optionalMap("generator"));
+        assertEquals(Map.of(), extractor.mapField("generator"));
     }
 
     @Test
-    void optionalMapReturnsNullOnNonObject() {
+    void mapFieldReturnsEmptyOnNonObject() {
         var node = createNode().put("generator", "not-a-map");
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertNull(extractor.optionalMap("generator"));
+        assertEquals(Map.of(), extractor.mapField("generator"));
     }
 
-    // optionalStringList
+    // stringListField
 
     @Test
-    void optionalStringListReturnsList() {
+    void stringListFieldReturnsList() {
         var node = createNode();
         node.putArray("stores").add("store1").add("store2");
         var extractor = new FieldExtractor(node, TEST_FILE);
 
-        var result = extractor.optionalStringList("stores");
+        var result = extractor.stringListField("stores");
         assertEquals(List.of("store1", "store2"), result);
     }
 
     @Test
-    void optionalStringListReturnsNullOnMissing() {
+    void stringListFieldReturnsEmptyOnMissing() {
         var node = createNode();
         var extractor = new FieldExtractor(node, TEST_FILE);
-        assertNull(extractor.optionalStringList("stores"));
+        assertEquals(List.of(), extractor.stringListField("stores"));
     }
 
     // nodeToObject

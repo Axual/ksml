@@ -28,8 +28,8 @@ import java.util.Map;
  * suite's {@code streams:} map.
  *
  * @param to        key into the suite's {@code streams:} map identifying the target stream
- * @param messages  inline test messages (mutually exclusive with {@code generator})
- * @param generator optional generator function definition as a map (KSML generator syntax)
+ * @param messages  inline test messages, empty if absent (mutually exclusive with {@code generator})
+ * @param generator generator function definition as a map (KSML generator syntax), empty if absent
  * @param count     optional count for generator-based production
  */
 @JsonSchema(
@@ -55,15 +55,24 @@ public record ProduceBlock(
         Long count
 ) {
     /**
+     * Normalizes {@code messages}/{@code generator} to an empty collection when constructed with
+     * {@code null}, so every other method on this record can treat them as never-null.
+     */
+    public ProduceBlock {
+        messages = messages != null ? messages : List.of();
+        generator = generator != null ? generator : Map.of();
+    }
+
+    /**
      * Validate that the produce block has either messages or a generator, but not both.
      */
     public void validate() {
-        if (messages == null && generator == null) {
+        if (messages.isEmpty() && generator.isEmpty()) {
             throw new TestDefinitionException(
                     "Produce block targeting stream '" + to + "' must have either '"
                             + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "'");
         }
-        if (messages != null && generator != null) {
+        if (!messages.isEmpty() && !generator.isEmpty()) {
             throw new TestDefinitionException(
                     "Produce block targeting stream '" + to + "' must have either '"
                             + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "', not both");

@@ -97,12 +97,16 @@ public class AssertionRunner {
             // If 'on:' is specified, collect output records from the referenced stream's topic
             if (block.on() != null) {
                 var stream = streams.get(block.on());
-                var records = recordCache.computeIfAbsent(stream.topic(), k -> collectOutputRecords(stream));
+                if (stream == null) {
+                    return TestResult.error(suiteName, testName,
+                            "Assert block references undeclared stream '" + block.on() + "'");
+                }
+                var records = recordCache.computeIfAbsent(stream.topic(), _ -> collectOutputRecords(stream));
                 args.add(Pair.of("records", PYTHON_MAPPER.toRealPythonValue(pythonContext.context(), records)));
             }
 
             // If stores are specified, inject store proxies
-            if (block.stores() != null) {
+            if (!block.stores().isEmpty()) {
                 for (var storeName : block.stores()) {
                     var store = driver.getKeyValueStore(storeName);
                     if (store == null) {

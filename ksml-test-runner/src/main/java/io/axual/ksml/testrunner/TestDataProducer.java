@@ -79,11 +79,11 @@ public class TestDataProducer {
 
     private void produceBlock(ProduceBlock block) {
         var stream = resolveStream(block.to());
-        if (block.messages() != null) {
+        if (!block.messages().isEmpty()) {
             log.debug("Producing {} inline messages to stream '{}' (topic '{}')",
                     block.messages().size(), block.to(), stream.topic());
             produceInlineMessages(block, stream);
-        } else if (block.generator() != null) {
+        } else if (!block.generator().isEmpty()) {
             long count = block.count() != null ? block.count() : 1;
             log.debug("Producing via generator ({} invocations) to stream '{}' (topic '{}')",
                     count, block.to(), stream.topic());
