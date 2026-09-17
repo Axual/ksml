@@ -217,6 +217,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
      * {@link ResolvingAdmin} does not support this legacy operation.
      */
     @Deprecated
+    @SuppressWarnings("java:S1133")
     @Override
     public ListConsumerGroupsResult listConsumerGroups(ListConsumerGroupsOptions options) {
         operationNotSupported("listConsumerGroups");
