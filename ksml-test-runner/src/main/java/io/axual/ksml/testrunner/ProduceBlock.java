@@ -22,7 +22,6 @@ package io.axual.ksml.testrunner;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * A block that defines test data to be produced into a stream declared in the
@@ -62,18 +61,6 @@ public record ProduceBlock(
     public ProduceBlock {
         messages = messages != null ? messages : List.of();
         generator = generator != null ? generator : Map.of();
-    }
-
-    /**
-     * Build and validate a produce block, unwrapping the {@link Optional} count returned by
-     * {@link FieldExtractor} to this record's plain nullable {@code count} field.
-     * @throws TestDefinitionException if the produce block is invalid.
-     */
-    public static ProduceBlock of(String to, List<TestMessage> messages,
-                                   Map<String, Object> generator, Optional<Long> count) {
-        var block = new ProduceBlock(to, messages, generator, count.orElse(null));
-        block.validate();
-        return block;
     }
 
     /**

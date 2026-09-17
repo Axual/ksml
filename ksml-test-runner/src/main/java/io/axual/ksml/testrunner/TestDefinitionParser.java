@@ -270,9 +270,10 @@ public class TestDefinitionParser {
             }
             var messages = parseMessages(blockNode.get(KSMLTestDSL.Produce.MESSAGES));
             var generator = f.optionalMap(KSMLTestDSL.Produce.GENERATOR);
-            var count = f.optionalLong(KSMLTestDSL.Produce.COUNT);
+            var count = f.optionalLong(KSMLTestDSL.Produce.COUNT).orElse(null);
 
-            var block = ProduceBlock.of(to, messages, generator, count);
+            var block = new ProduceBlock(to, messages, generator, count);
+            block.validate();
             blocks.add(block);
         }
         return blocks;
