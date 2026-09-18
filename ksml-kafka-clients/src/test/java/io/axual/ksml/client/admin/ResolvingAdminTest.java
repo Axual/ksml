@@ -25,7 +25,6 @@ import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AlterConsumerGroupOffsetsOptions;
 import org.apache.kafka.clients.admin.AlterConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
-import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.DeleteConsumerGroupOffsetsOptions;
@@ -46,8 +45,6 @@ import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsOptions;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
-import org.apache.kafka.clients.admin.ListConsumerGroupsOptions;
-import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
 import org.apache.kafka.clients.admin.ListOffsetsOptions;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
@@ -122,6 +119,7 @@ class ResolvingAdminTest {
 
     @Test
     @DisplayName("Unsupported operations fail fast with a NotSupportedException")
+    @SuppressWarnings({"deprecation", "removal"}) // listConsumerGroups() itself is deprecated for removal
     void unsupportedOperationsThrow() {
         withAdmin((admin, delegate) -> {
             // Null arguments ensure each lambda contains a single invocation, so a failure
@@ -140,6 +138,7 @@ class ResolvingAdminTest {
                 softly.assertThatThrownBy(() -> admin.listPartitionReassignments(Optional.empty(), null)).isInstanceOf(NotSupportedException.class);
                 softly.assertThatThrownBy(() -> admin.describeClientQuotas(null, null)).isInstanceOf(NotSupportedException.class);
                 softly.assertThatThrownBy(() -> admin.alterClientQuotas(null, null)).isInstanceOf(NotSupportedException.class);
+                softly.assertThatThrownBy(() -> admin.listConsumerGroups(null)).isInstanceOf(NotSupportedException.class);
             });
             verifyNoInteractions(delegate);
         });
@@ -268,24 +267,6 @@ class ResolvingAdminTest {
 
             assertThat(result.describedGroups()).containsOnlyKeys(UNRESOLVED_GROUP);
             verify(delegate).describeConsumerGroups(argThat(g -> g.contains(RESOLVED_GROUP)), any());
-        });
-    }
-
-    @Test
-    @DisplayName("listConsumerGroups unresolves the returned group ids")
-    @SuppressWarnings({"deprecation", "removal"}) // ListConsumerGroupsResult/ConsumerGroupListing deprecated in Kafka 4.1 but still wrapped
-    void listConsumerGroupsUnresolves() {
-        withAdmin((admin, delegate) -> {
-            final var listing = new ConsumerGroupListing(RESOLVED_GROUP, Optional.empty(), false);
-            final var delegateResult = mock(ListConsumerGroupsResult.class);
-            when(delegateResult.all()).thenReturn(KafkaFuture.completedFuture(List.of(listing)));
-            when(delegateResult.valid()).thenReturn(KafkaFuture.completedFuture(List.of(listing)));
-            when(delegate.listConsumerGroups(any())).thenReturn(delegateResult);
-
-            final var result = admin.listConsumerGroups(new ListConsumerGroupsOptions());
-
-            assertThat(await(result.all())).extracting(ConsumerGroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
-            assertThat(await(result.valid())).extracting(ConsumerGroupListing::groupId).containsExactly(UNRESOLVED_GROUP);
         });
     }
 
