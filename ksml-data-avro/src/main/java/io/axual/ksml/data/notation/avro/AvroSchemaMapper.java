@@ -344,9 +344,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // Build a nullable union ordered so that the default's type comes first.
         // Avro rule: the default of a union must be valid for the FIRST type in the union.
         // So null defaults require null-first; non-null defaults require the value's type first.
-        final var types = result.getType() == Schema.Type.UNION
-                ? new ArrayList<>(result.getTypes())
-                : new ArrayList<>(List.of(result));
+        final var types = new ArrayList<>(result.getType() == Schema.Type.UNION
+                ? result.getTypes()
+                : List.of(result));
         types.remove(AVRO_NULL_TYPE);
         if (nullDefault) {
             types.addFirst(AVRO_NULL_TYPE);
