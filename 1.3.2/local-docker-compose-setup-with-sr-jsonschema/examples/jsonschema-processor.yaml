@@ -1,0 +1,46 @@
+streams:
+  jsonschema_input:
+    topic: sensor_data_jsonschema
+    keyType: string
+    valueType: jsonschema:SensorData
+    offsetResetPolicy: earliest
+
+  jsonschema_processed:
+    topic: sensor_data_jsonschema_processed
+    keyType: string
+    valueType: json
+
+functions:
+  enrich_sensor_data:
+    type: valueTransformer
+    code: |
+      # Simple transformation: add processing timestamp
+      import time
+      result = dict(value) if value else {}
+      result["processed_at"] = str(int(time.time() * 1000))
+      # Uppercase the sensor name
+      if result.get("name"):
+        result["sensor_id"] = result["name"].upper()
+    expression: result
+    resultType: json
+
+pipelines:
+  # Main processing pipeline
+  jsonschema_processing:
+    from: jsonschema_input
+    via:      
+      # Apply transformation to enrich data
+      - type: transformValue
+        mapper: enrich_sensor_data
+
+      # Log the processed data
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processed JsonSchema sensor: name={}, sensor_id={}, processed_at={}, full_value={}", 
+                     value.get("name") if value else "null",
+                     value.get("sensor_id") if value else "null",
+                     value.get("processed_at") if value else "null",
+                     str(value))
+
+    to: jsonschema_processed

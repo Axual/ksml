@@ -1,0 +1,73 @@
+streams:
+  service_requests:
+    topic: service_requests
+    keyType: string
+    valueType: json
+    
+  service_responses:
+    topic: service_responses
+    keyType: string
+    valueType: json
+    
+  circuit_events:
+    topic: circuit_events
+    keyType: string
+    valueType: json
+
+functions:
+  circuit_breaker_handler:
+    type: valueTransformer
+    globalCode: |
+      # Circuit breaker state
+      failure_count = 0
+      circuit_state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+      
+    code: |
+      global failure_count, circuit_state
+      
+      request_id = value.get("request_id", "unknown")
+      should_succeed = value.get("should_succeed", True)
+      
+      # Handle request based on circuit state
+      if circuit_state == "OPEN":
+        # Circuit is open - reject request immediately
+        result = {
+          "request_id": request_id,
+          "status": "circuit_open",
+          "circuit_state": circuit_state,
+          "failure_count": failure_count
+        }
+      else:
+        # Try to process request
+        if should_succeed:
+          # Request succeeds - reset failure count
+          failure_count = 0
+          circuit_state = "CLOSED"
+          result = {
+            "request_id": request_id,
+            "status": "success", 
+            "circuit_state": circuit_state
+          }
+        else:
+          # Request fails
+          failure_count += 1
+          if failure_count >= 3:
+            circuit_state = "OPEN"
+            
+          result = {
+            "request_id": request_id,
+            "status": "failure",
+            "circuit_state": circuit_state,
+            "failure_count": failure_count
+          }
+    
+    expression: result
+    resultType: json
+
+pipelines:
+  circuit_breaker_processor:
+    from: service_requests
+    via:
+      - type: transformKeyValueToValueList
+        mapper: explode_order_items
+    to: items_output

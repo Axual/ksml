@@ -1,0 +1,11 @@
+server:
+  listenPort: 8080
+  listenAddress: 0.0.0.0
+
+kafka:
+  brokers:
+    - broker:9093
+  schemaRegistry:
+    enabled: true
+    urls:
+      - http://schema-registry:8081/apis/ccompat/v7

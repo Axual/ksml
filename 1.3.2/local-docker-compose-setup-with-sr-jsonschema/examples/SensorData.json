@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ksml.io/sensordata.json",
+  "title": "SensorData",
+  "description": "Emulated sensor data with a few additional attributes",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "The name of the sensor",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "The timestamp of the sensor reading",
+      "type": "number"
+    },
+    "value": {
+      "description": "The value of the sensor, represented as string",
+      "type": "string"
+    },
+    "type": {
+      "description": "The type of the sensor",
+      "type": "string",
+      "enum": [
+        "AREA",
+        "HUMIDITY",
+        "LENGTH",
+        "STATE",
+        "TEMPERATURE"
+      ]
+    },
+    "unit": {
+      "description": "The unit of the sensor",
+      "type": "string"
+    },
+    "color": {
+      "description": "The color of the sensor",
+      "type": "string",
+      "default": null
+    },
+    "city": {
+      "description": "The city of the sensor",
+      "type": "string",
+      "default": null
+    },
+    "owner": {
+      "description": "The owner of the sensor",
+      "type": "string",
+      "default": null
+    }
+  }
+}
