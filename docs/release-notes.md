@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [1.3.2 (2026-09-21)](#132-2026-09-21)
         * [1.3.1 (2026-09-11)](#131-2026-09-11)
         * [1.3.0 (2026-06-23)](#130-2026-06-23)
         * [1.2.1 (2026-05-08)](#121-2026-05-08)
@@ -29,6 +30,10 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+## 1.3.2 (2026-09-21)
+
+* Fixed KSML dropping the Avro `logicalType` attribute (for example `timestamp-millis`) when producing a message, which could cause schema registry lookups to fail with `error code: 40403` when `auto.register.schemas` is `false` and the correct schema is already registered. ([#714](https://github.com/Axual/ksml/pull/714))
 
 ## 1.3.1 (2026-09-11)
 
