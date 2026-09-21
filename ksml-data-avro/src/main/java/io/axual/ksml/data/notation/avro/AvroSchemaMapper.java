@@ -44,8 +44,10 @@ import org.apache.avro.Schema;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
@@ -64,6 +66,32 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
     private static final DataTypeDataSchemaMapper TYPE_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
+
+    /**
+     * Remembers the exact Avro Schema a DataSchema was parsed from (keyed by identity), so that producing a
+     * message for that DataSchema later reuses this schema as-is instead of rebuilding one from scratch.
+     * <p>
+     * KSML's DataSchema model has no field for Avro-only metadata such as {@code logicalType} (see e.g.
+     * {@link DataSchema#LONG_SCHEMA}), so a Schema rebuilt purely from a DataSchema always loses that
+     * metadata. When Confluent's schema registry already has the correct schema registered (with
+     * {@code logicalType}) and {@code auto.register.schemas} is off, a rebuilt schema without it no longer
+     * matches, and the registry lookup fails with "the given schema does not match any schema under the
+     * subject" (error 40403). Reusing the originally parsed schema avoids that mismatch.
+     */
+    private static final Map<DataSchema, Schema> ORIGINAL_AVRO_SCHEMAS = Collections.synchronizedMap(new IdentityHashMap<>());
+
+    /**
+     * Registers the Avro Schema that a given DataSchema was parsed from, so {@link #fromDataSchema(DataSchema)}
+     * can return it verbatim later. Called by {@link AvroSchemaParser} right after parsing a {@code .avsc} file.
+     *
+     * @param dataSchema the DataSchema produced by {@link #toDataSchema(String, String, Schema)}
+     * @param avroSchema the original Avro Schema it was parsed from
+     */
+    static void rememberOriginalSchema(DataSchema dataSchema, Schema avroSchema) {
+        if (dataSchema != null && avroSchema != null) {
+            ORIGINAL_AVRO_SCHEMAS.put(dataSchema, avroSchema);
+        }
+    }
 
     /**
      * Convert an Avro record Schema into a KSML StructSchema.
@@ -141,6 +169,10 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     public Schema fromDataSchema(DataSchema schema) {
         if (schema == null) {
             return AVRO_NULL_TYPE;
+        }
+        final var original = ORIGINAL_AVRO_SCHEMAS.get(schema);
+        if (original != null) {
+            return original;
         }
         if (schema instanceof StructSchema structSchema) {
             final var fields = convertFieldsToAvroFields(structSchema.fields());
@@ -312,9 +344,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // Build a nullable union ordered so that the default's type comes first.
         // Avro rule: the default of a union must be valid for the FIRST type in the union.
         // So null defaults require null-first; non-null defaults require the value's type first.
-        final var types = result.getType() == Schema.Type.UNION
-                ? new ArrayList<>(result.getTypes())
-                : new ArrayList<>(List.of(result));
+        final var types = new ArrayList<>(result.getType() == Schema.Type.UNION
+                ? result.getTypes()
+                : List.of(result));
         types.remove(AVRO_NULL_TYPE);
         if (nullDefault) {
             types.addFirst(AVRO_NULL_TYPE);

@@ -52,6 +52,10 @@ public class AvroSchemaParser implements Notation.SchemaParser {
         if (!(result instanceof StructSchema)) {
             throw new SchemaException("AVRO schema did not return a StructSchema");
         }
+        // Remember the schema as originally parsed (with any Avro logicalType intact), so that producing a
+        // message for this schema later reuses it verbatim instead of rebuilding it from the DataSchema,
+        // which would lose logicalType. See AvroSchemaMapper.rememberOriginalSchema for why this matters.
+        AvroSchemaMapper.rememberOriginalSchema(result, parsedSchema);
         return result;
     }
 }
