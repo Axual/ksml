@@ -69,6 +69,43 @@ KSML provides access to the full power of Kafka Streams, including:
 
 ## Key Concepts and Terminology
 
+A KSML definition is built from four concepts that work together: **streams** connect to Kafka topics, a **pipeline**
+moves data from one stream to another through a series of **operations**, and operations can call your own Python
+**functions**. The diagram below shows how they fit together, using the example definitions from this section.
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Streams
+    InputStream[(Stream<br/><code>my_input_stream</code>)]
+    OutputStream[(Stream<br/><code>my_output_stream</code>)]
+
+    %% Pipeline with its operations
+    subgraph Pipeline["Pipeline: my_pipeline"]
+        Filter{Operation<br/><code>filter</code>}
+        MapValues[Operation<br/><code>mapValues</code>]
+    end
+
+    %% Python code
+    Functions[[Python functions<br/>and expressions]]
+
+    %% Data Flow
+    InputStream -->|"from"| Filter
+    Filter -->|"via"| MapValues
+    MapValues -->|"to"| OutputStream
+    Functions -.->|"called by"| Filter
+    Functions -.->|"called by"| MapValues
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class InputStream,OutputStream topic
+    class Filter,MapValues operation
+    class Functions external
+```
+
 ### Streams
 
 In KSML, a stream represents a flow of data from or to a Kafka topic. Streams are defined with a name, a topic, and data
@@ -120,6 +157,40 @@ When you run a KSML definition, the KSML runner:
 1. Parses your YAML definition
 2. Translates it into a Kafka Streams topology
 3. Executes the topology using the Kafka Streams runtime
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Your files
+    Definition[KSML definition<br/>YAML + Python]
+    Config[Runner configuration<br/><code>ksml-runner.yaml</code>]
+
+    %% KSML runner steps
+    subgraph Runner["KSML runner"]
+        Parse[1. Parse<br/>YAML definition]
+        Translate[2. Translate into<br/>Kafka Streams topology]
+        Execute[3. Execute with<br/>Kafka Streams runtime]
+    end
+
+    %% Kafka
+    Kafka[(Kafka<br/>topics)]
+
+    %% Flow
+    Config -->|"which definitions,<br/>Kafka connection"| Parse
+    Definition --> Parse
+    Parse --> Translate
+    Translate --> Execute
+    Execute <-->|"consume & produce"| Kafka
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class Kafka topic
+    class Parse,Translate,Execute operation
+    class Definition,Config external
+```
 
 This translation happens automatically, allowing you to focus on your business logic rather than the details of a normal
 Kafka Streams implementation.
