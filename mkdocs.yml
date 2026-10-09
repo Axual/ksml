@@ -37,7 +37,11 @@ markdown_extensions:
         - ksml-integration-tests/src/test/resources      # integration test resources
         - ksml-test-runner/src/test/resources             # test runner resources
       check_paths: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.details
   - admonition
 

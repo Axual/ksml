@@ -177,6 +177,43 @@ Your KSML pipeline performed **real-time device health monitoring** in just a fe
 3. **Categorized** devices as "healthy" or "needs attention" 
 4. **Identified** specific issues (low battery, poor signal, high errors)
 
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input
+    Producer[IoT Devices]
+    InputTopic[(iot_sensor_data)]
+
+    %% Pipeline Operations
+    Filter{<code>filter</code><br/>status == 'online'}
+    Transform[<code>transformValue</code><br/>Add health status]
+    Peek[<code>peek</code><br/>Log device health]
+
+    %% Output
+    OutputTopic[(device_health_alerts)]
+    AlertSystem[Alert System]
+
+    %% Data Flow
+    Producer -->|"All devices"| InputTopic
+    InputTopic --> Filter
+    Filter -->|"Online only"| Transform
+    Filter -.->|"Offline - drop"| Drop[❌ Dropped]
+    Transform -->|"Enriched with health status"| Peek
+    Peek --> OutputTopic
+    OutputTopic --> AlertSystem
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class InputTopic,OutputTopic topic
+    class Filter,Transform,Peek operation
+    class Producer,AlertSystem external
+    class Drop dropped
+```
+
 Check the KSML logs to see the real-time analysis:
 
 ```bash
