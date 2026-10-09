@@ -38,6 +38,49 @@ Before starting this tutorial:
 
 ## Core Aggregation Concepts
 
+Every aggregation in KSML follows the same flow: group the messages by key, optionally split them into time windows,
+and then aggregate them. The aggregation keeps its running result in a state store and emits an updated result for
+each change, which you turn back into a stream with `toStream` to write it to a topic:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    InputTopic[(Input topic)]
+
+    %% Pipeline Operations
+    Group[<code>groupByKey</code><br/>or <code>groupBy</code>]
+    Window[<code>windowByTime</code><br/>or <code>windowBySession</code>]
+    Aggregate[<code>count</code>, <code>reduce</code><br/>or <code>aggregate</code>]
+    ToStream[<code>toStream</code>]
+
+    %% State
+    Store[(State store)]
+    Changelog[(Changelog topic)]
+
+    %% Output
+    OutputTopic[(Output topic)]
+
+    %% Data Flow
+    InputTopic --> Group
+    Group -->|"regular"| Aggregate
+    Group -.->|"windowed"| Window
+    Window -.-> Aggregate
+    Aggregate -->|"updated result"| ToStream
+    ToStream --> OutputTopic
+    Aggregate <-->|"read & update"| Store
+    Store -.->|"every change"| Changelog
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class InputTopic,OutputTopic,Changelog topic
+    class Group,Window,Aggregate,ToStream operation
+    class Store external
+```
+
 ### Grouping Requirements
 
 All aggregations require data to be grouped by key first:
@@ -374,6 +417,49 @@ Both approaches demonstrate the flexibility of the `aggregate` operation. The si
 2. **Aggregator**: Updates state with each new value
 3. **Result**: Continuously updated aggregate in state store
 
+The diagram below shows how this works for the simple sum example, with three payments arriving for the same customer.
+The initializer runs once for the first payment, and every payment after that updates the stored total and emits it:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Incoming payments for one key
+    Payment1[/"CUST001: 500"/]
+    Payment2[/"CUST001: 250"/]
+    Payment3[/"CUST001: 100"/]
+
+    %% Aggregation steps
+    Init["<code>initializer</code><br/>total = 0"]
+    Step1["<code>aggregator</code><br/>0 + 500 = 500"]
+    Step2["<code>aggregator</code><br/>500 + 250 = 750"]
+    Step3["<code>aggregator</code><br/>750 + 100 = 850"]
+
+    %% Output
+    OutputTopic[(payment_totals)]
+
+    %% Data Flow
+    Init --> Step1
+    Payment1 --> Step1
+    Step1 -->|"state: 500"| Step2
+    Payment2 --> Step2
+    Step2 -->|"state: 750"| Step3
+    Payment3 --> Step3
+    Step1 -.->|"emit 500"| OutputTopic
+    Step2 -.->|"emit 750"| OutputTopic
+    Step3 -.->|"emit 850"| OutputTopic
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class OutputTopic topic
+    class Init,Step1,Step2,Step3 operation
+    class Payment1,Payment2,Payment3 external
+```
+
+With caching enabled on the store, Kafka Streams may combine several updates and emit only the latest total.
+
 ## Windowed Aggregations
 
 Aggregations can be windowed to compute time-based analytics:
@@ -533,6 +619,46 @@ The cogroup operation:
 2. Combines the grouped streams using cogroup operations
 3. Each stream contributes to the aggregate with its own aggregator function
 4. Final aggregate operation computes the combined result
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input streams
+    StreamA[(Stream A)]
+    StreamB[(Stream B)]
+    StreamC[(Stream C)]
+
+    %% Grouping and cogrouping
+    GroupA[<code>groupByKey</code>]
+    GroupB[<code>groupByKey</code>]
+    GroupC[<code>groupByKey</code>]
+    Cogroup["<code>cogroup</code><br/>aggregator A, B and C"]
+    Aggregate["<code>aggregate</code><br/>shared initializer"]
+
+    %% State and output
+    Store[(State store)]
+    OutputTopic[(Output topic)]
+
+    %% Data Flow
+    StreamA --> GroupA
+    StreamB --> GroupB
+    StreamC --> GroupC
+    GroupA -->|"aggregator A"| Cogroup
+    GroupB -->|"aggregator B"| Cogroup
+    GroupC -->|"aggregator C"| Cogroup
+    Cogroup --> Aggregate
+    Aggregate <-->|"one result per key"| Store
+    Aggregate -->|"<code>toStream</code>"| OutputTopic
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class StreamA,StreamB,StreamC,OutputTopic topic
+    class GroupA,GroupB,GroupC,Cogroup,Aggregate operation
+    class Store external
+```
 
 > **Note:** Cogroup is an advanced feature that requires careful coordination between multiple streams. Ensure all streams are properly grouped and that aggregator functions handle null values appropriately.
 
