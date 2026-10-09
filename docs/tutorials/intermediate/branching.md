@@ -65,6 +65,45 @@ pipelines:
       - to: default_output_topic
 ```
 
+Each message goes to **one** branch only: the first branch whose condition matches. KSML checks the conditions from
+top to bottom, and the default branch (a branch without `if`) catches everything that matched none of them:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    InputStream[(input_stream)]
+    Via[some_transformer]
+
+    %% Branch conditions, checked in order
+    Condition1{"<code>branch</code> 1<br/>if: condition_predicate"}
+    Condition2{"<code>branch</code> 2<br/>if: another_predicate"}
+    Branch1[branch1_transformer]
+
+    %% Outputs
+    Output1[(output_topic_1)]
+    Output2[(output_topic_2)]
+    DefaultOutput[(default_output_topic)]
+
+    %% Data Flow
+    InputStream --> Via
+    Via --> Condition1
+    Condition1 -->|"yes"| Branch1
+    Branch1 --> Output1
+    Condition1 -->|"no"| Condition2
+    Condition2 -->|"yes"| Output2
+    Condition2 -->|"no: default branch"| DefaultOutput
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+
+    class InputStream,Output1,Output2,DefaultOutput topic
+    class Via,Condition1,Condition2,Branch1 operation
+```
+
+Without a default branch, messages that match no condition are dropped.
+
 ## Example 1: Simple Content-Based Routing
 
 Let's start with a basic example that routes sensor data based on location.
@@ -99,6 +138,38 @@ This example demonstrates:
 - Messages from "office" are routed to `office_sensors` topic
 - All other locations are routed to `unknown_sensors` topic
 
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    InputTopic[(sensor_input)]
+    LogLocation[<code>peek</code><br/>Log location]
+    Branch{"<code>branch</code><br/>on location"}
+
+    %% Outputs
+    DataCenter[(datacenter_sensors)]
+    Warehouse[(warehouse_sensors)]
+    Office[(office_sensors)]
+    Unknown[(unknown_sensors)]
+
+    %% Data Flow
+    InputTopic --> LogLocation
+    LogLocation --> Branch
+    Branch -->|"is_datacenter"| DataCenter
+    Branch -->|"is_warehouse"| Warehouse
+    Branch -->|"is_office"| Office
+    Branch -.->|"default"| Unknown
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+
+    class InputTopic,DataCenter,Warehouse,Office,Unknown topic
+    class LogLocation,Branch operation
+```
+
+Each branch also has its own `peek` operation that logs the routed message before writing it to its topic.
+
 ## Example 2: Multi-Condition Data Processing Pipeline
 
 This example shows more complex branching with data transformation and business logic.
@@ -132,6 +203,51 @@ This example demonstrates:
 - US/EU orders (not priority) are routed to `regional_orders` topic  
 - International orders (APAC/LATAM) are routed to `international_orders` topic
 
+Because the conditions are checked in order, a high-value order from a premium customer goes to `priority_orders`
+even if it comes from an international region:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input
+    InputTopic[(order_input)]
+    LogOrder[<code>peek</code><br/>Log order]
+
+    %% Branch conditions, checked in order
+    IsPriority{"<code>branch</code> 1: is_priority<br/>premium and > $1000"}
+    IsRegional{"<code>branch</code> 2: is_regional<br/>US or EU"}
+    IsInternational{"<code>branch</code> 3: is_international<br/>other regions"}
+
+    %% Branch transformations
+    Priority["<code>mapValues</code><br/>tier: priority, SLA 4h"]
+    Regional["<code>mapValues</code><br/>tier: regional, SLA 24h"]
+    International["<code>mapValues</code><br/>tier: international, SLA 72h,<br/>customs required"]
+
+    %% Outputs
+    PriorityOrders[(priority_orders)]
+    RegionalOrders[(regional_orders)]
+    InternationalOrders[(international_orders)]
+
+    %% Data Flow
+    InputTopic --> LogOrder
+    LogOrder --> IsPriority
+    IsPriority -->|"yes"| Priority
+    Priority --> PriorityOrders
+    IsPriority -->|"no"| IsRegional
+    IsRegional -->|"yes"| Regional
+    Regional --> RegionalOrders
+    IsRegional -->|"no"| IsInternational
+    IsInternational -->|"yes"| International
+    International --> InternationalOrders
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+
+    class InputTopic,PriorityOrders,RegionalOrders,InternationalOrders topic
+    class LogOrder,IsPriority,IsRegional,IsInternational,Priority,Regional,International operation
+```
+
 ## Advanced Branching Patterns
 
 ### Nested Branching
@@ -157,6 +273,42 @@ pipelines:
       - if:
           expression: value.get("category") == "clothing" 
         to: clothing_items
+```
+
+The electronics branch has its own `branch` section that splits electronics by price. The outer branching has no
+default branch, so messages from any other category are dropped:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    InputStream[(input_stream)]
+    Category{"<code>branch</code><br/>on category"}
+    Enrich[<code>transformValue</code><br/>enrich_electronics]
+    Price{"nested <code>branch</code><br/>price > 500"}
+
+    %% Outputs
+    Expensive[(expensive_electronics)]
+    Affordable[(affordable_electronics)]
+    Clothing[(clothing_items)]
+
+    %% Data Flow
+    InputStream --> Category
+    Category -->|"electronics"| Enrich
+    Enrich --> Price
+    Price -->|"yes"| Expensive
+    Price -.->|"no: default"| Affordable
+    Category -->|"clothing"| Clothing
+    Category -.->|"other"| Drop[❌ Dropped]
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class InputStream,Expensive,Affordable,Clothing topic
+    class Category,Enrich,Price operation
+    class Drop dropped
 ```
 
 ### Multiple Output Topics
