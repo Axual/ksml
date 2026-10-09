@@ -148,6 +148,40 @@ Track user shopping behavior by correlating clicks and purchases within a 30-min
 - **Combines with valueJoiner**: When matching user_id found in both streams within time window, combines click and purchase data into single result
 - **Outputs correlations**: Returns JSON showing both events with conversion analysis (did click lead to purchase, what products involved)
 
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input streams
+    Clicks[(product_clicks<br/>key: user_id)]
+    Purchases[(product_purchases<br/>key: user_id)]
+
+    %% Window stores buffering both sides
+    ClickStore[(Window store<br/>clicks, 60m)]
+    PurchaseStore[(Window store<br/>purchases, 60m)]
+
+    %% Join
+    Join["<code>join</code><br/>same user_id, within 30m<br/>correlate_click_and_purchase"]
+
+    %% Output
+    Output[(correlated_user_actions)]
+
+    %% Data Flow
+    Clicks --> Join
+    Purchases --> Join
+    Join -.->|"buffer & look up"| ClickStore
+    Join -.->|"buffer & look up"| PurchaseStore
+    Join -->|"click + purchase"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class Clicks,Purchases,Output topic
+    class Join operation
+    class ClickStore,PurchaseStore external
+```
+
 ??? info "Producer: Clicks and Purchases (click to expand)"
 
     ```yaml
@@ -187,6 +221,39 @@ Enrich order events with customer information by joining the orders stream with 
 - **Joins stream with table**: Uses join operation to combine each order with latest customer data from customers table based on customer_id
 - **Combines data**: valueJoiner function merges order details with customer information into enriched result containing both datasets
 - **Restores original key**: Transforms key back from customer_id to order_id using restore_order_key for downstream processing consistency
+
+The diagram shows how the message key changes along the pipeline, so that each order can be matched with the
+customer table:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Orders[(new_orders<br/>key: order_id)]
+    Customers[(customer_data table<br/>key: customer_id)]
+
+    %% Pipeline Operations
+    Rekey["<code>transformKey</code><br/>extract_customer_id"]
+    Join["<code>join</code> with table<br/>join_order_with_customer"]
+    Restore["<code>transformKey</code><br/>restore_order_key"]
+
+    %% Output
+    Output[(orders_with_customer_data<br/>key: order_id)]
+
+    %% Data Flow
+    Orders --> Rekey
+    Rekey -->|"key: customer_id"| Join
+    Customers -.->|"latest customer<br/>for this key"| Join
+    Join -->|"key: customer_id"| Restore
+    Restore -->|"key: order_id"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+
+    class Orders,Customers,Output topic
+    class Rekey,Join,Restore operation
+```
 
 ??? info "Producer: Orders (click to expand)"
 
@@ -229,6 +296,36 @@ Enrich orders with product details using a foreign key join with a global produc
 - **Joins with globalTable**: No co-partitioning needed - globalTable replicated to all instances, joins orders with product details by product_id
 - **Enriches with product data**: Combines order information with product details (name, price, category) from catalog
 - **Outputs enriched orders**: Returns orders enhanced with full product information for downstream processing
+
+Unlike the stream-table join above, there is no rekeying: the order keeps its key, and the `mapper` only tells the
+join which product to look up:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Orders[(new_orders<br/>key: order_id)]
+    Products[(product_catalog globalTable<br/>key: product_id<br/>copy on every instance)]
+
+    %% Pipeline Operations
+    Join["<code>join</code> with globalTable<br/>mapper: extract_product_id<br/>join_order_with_product"]
+
+    %% Output
+    Output[(orders_with_product_details<br/>key: order_id)]
+
+    %% Data Flow
+    Orders --> Join
+    Join -.->|"look up product_id<br/>from order value"| Products
+    Products -.->|"product details"| Join
+    Join -->|"order + product"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+
+    class Orders,Products,Output topic
+    class Join operation
+```
 
 ??? info "Producer: Orders and Products (click to expand)"
 
@@ -356,6 +453,14 @@ type: outerJoin
 Produces output whenever **either** side has data, with null for missing values.
 
 **Note:** Table and GlobalTable joins don't support outer joins since tables represent current state, not events.
+
+The table below summarizes when each variant produces output:
+
+| Incoming data                    | `join`         | `leftJoin`             | `outerJoin`            |
+|----------------------------------|----------------|------------------------|------------------------|
+| Match found on both sides        | Joined result  | Joined result          | Joined result          |
+| Left side only (no match)        | No output      | Left value, right null | Left value, right null |
+| Right side only (no match)       | No output      | No output              | Left null, right value |
 
 ## Performance Considerations
 
