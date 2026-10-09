@@ -115,6 +115,6 @@
 
 /* Limit the size of Mermaid diagrams and center them */
 .md-typeset .mermaid {
-  max-width: 40%;
+  max-width: 100%;
   margin: 1em auto;
 }

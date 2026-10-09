@@ -13,6 +13,52 @@ A **real-time device health monitoring system** that:
 
 All with just YAML configuration and clear Python logic.
 
+## What Runs Locally
+
+The examples run on your machine using Docker Compose. A single `docker compose up -d` starts a small Kafka environment
+with KSML connected to it. All containers share one Docker network, so they reach the Kafka broker by its name
+(`broker:9093`), while you reach it from your machine through `localhost`.
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Your machine
+    You[💻 You<br/>terminal & browser]
+    Examples[📁 ./examples<br/>KSML definitions]
+
+    %% Docker Compose services
+    subgraph Docker["Docker Compose (network: ksml)"]
+        Setup[<code>kafka-setup</code><br/>creates topics, then exits]
+        Broker[(<code>broker</code><br/>Apache Kafka)]
+        KSML[<code>ksml</code><br/>KSML runner]
+        UI[<code>kowl</code><br/>Kafka UI]
+    end
+
+    %% Connections
+    Setup -->|"create topics"| Broker
+    KSML <-->|"consume & produce"| Broker
+    UI -->|"read topics"| Broker
+    Examples -.->|"mounted as /ksml"| KSML
+    You -->|"localhost:9092"| Broker
+    You -->|"localhost:8080"| UI
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+    class Broker topic
+    class KSML operation
+    class Setup,UI external
+    class You,Examples host
+```
+
+- **broker**: a single Kafka broker that stores the topics your pipeline reads from and writes to
+- **kafka-setup**: a short-lived container that creates the topics used in this guide and then exits
+- **ksml**: the KSML runner, which loads the definitions from your local `examples` folder and runs your pipeline
+- **kowl**: a web UI at [http://localhost:8080](http://localhost:8080) for browsing topics and messages
+
 ## Prerequisites
 
 You'll need:
@@ -177,6 +223,8 @@ Your KSML pipeline performed **real-time device health monitoring** in just a fe
 3. **Categorized** devices as "healthy" or "needs attention" 
 4. **Identified** specific issues (low battery, poor signal, high errors)
 
+<div style="width: 40%; margin: 0 auto;" markdown>
+
 ```mermaid
 %%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
 graph TB
@@ -213,6 +261,8 @@ graph TB
     class Producer,AlertSystem external
     class Drop dropped
 ```
+
+</div>
 
 Check the KSML logs to see the real-time analysis:
 
