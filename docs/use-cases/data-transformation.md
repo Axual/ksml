@@ -25,6 +25,16 @@ Before starting this tutorial, you should:
 - Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
 - Be familiar with [Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
 - Have a basic understanding of [Joins](../tutorials/intermediate/joins.md) for data enrichment
+- Have [Docker Compose KSML environment setup running](../getting-started/basics-tutorial.md#choose-your-setup-method)
+- Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
+
+??? info "Topic creation commands - click to expand"
+
+    ```yaml
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic legacy_customer_data && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic customer_segments && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic standardized_customer_data && \
+    ```
 
 ## The Use Case
 
@@ -107,6 +117,83 @@ You want to transform the data into this format:
 }
 ```
 
+The diagram below shows where each target field comes from. Most fields are copied or renamed from the XML, the
+segment details come from the reference table, and a few fields are generated:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Sources
+    subgraph XML["Source XML"]
+        direction TB
+        X1["cust_id"]
+        X2["fname, lname"]
+        X3["dob"]
+        X4["account_created"]
+        X5["phone"]
+        X6["addr: street, city, state, zip"]
+        X7["legacy_segment"]
+    end
+    subgraph REF["Reference table"]
+        direction TB
+        R1["segment_name"]
+        R2["marketing_group, discount_tier"]
+    end
+    subgraph GEN["Generated"]
+        direction TB
+        G1["first.last@example.com"]
+        G2["country: USA"]
+        G3["source, current time"]
+    end
+
+    %% Target
+    subgraph JSON["Target JSON"]
+        direction TB
+        T1["customer_id"]
+        T2["name.first, name.last"]
+        T3["birth_date"]
+        T4["customer_since"]
+        T5["contact_info.phone"]
+        T6["contact_info.address<br/>street, city, state, postal_code"]
+        T9["contact_info.email"]
+        T10["contact_info.address.country"]
+        T7["segment"]
+        T8["marketing_preferences<br/>group, discount_tier"]
+        T11["metadata<br/>source, last_updated"]
+    end
+
+    %% Mappings
+    X1 --> T1
+    X2 --> T2
+    X3 --> T3
+    X4 --> T4
+    X5 --> T5
+    X6 -->|"zip renamed"| T6
+    X7 -.->|"join key"| REF
+    R1 --> T7
+    R2 --> T8
+    G1 --> T9
+    G2 --> T10
+    G3 --> T11
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+
+    class X1,X2,X3,X4,X5,X6,X7 message
+    class R1,R2 topic
+    class G1,G2,G3 partial
+    class T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11 result
+    style XML fill:none,stroke:#616161,stroke-dasharray:5 5
+    style REF fill:none,stroke:#616161,stroke-dasharray:5 5
+    style GEN fill:none,stroke:#616161,stroke-dasharray:5 5
+    style JSON fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
 ## Creating the KSML Definition
 
 Now, let's create our KSML definition file:
@@ -116,6 +203,71 @@ Now, let's create our KSML definition file:
     ```yaml
     {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/data-transformation.yaml" %}
     ```
+
+The pipeline changes the message key twice. It first uses the segment code as the key, so the message can be joined
+with the `customer_segments` table, and then sets the key back to the customer ID. The diagram below follows one
+example customer through the pipeline:
+
+<div style="width: 50%; margin: 0 auto;" markdown>
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input
+    Input[(legacy_customer_data)]
+    M1@{ shape: doc, label: "<b>key: 12345</b><br/>XML customer, John Doe<br/>legacy_segment: A" }
+
+    %% Re-key for the join
+    Rekey1["<code>transformKey</code><br/>key = legacy_segment"]
+    M2@{ shape: doc, label: "<b>key: A</b><br/>same XML customer" }
+
+    %% Join with the reference table
+    Table[(customer_segments<br/>table)]
+    Ref@{ shape: docs, label: "<b>A</b>: Premium, Tier 1<br/><b>B</b>: Standard, Tier 2<br/><b>C</b>: Basic, Tier 3" }
+    Join["<code>leftJoin</code><br/>segment_reference"]
+    M3@{ shape: doc, label: "<b>key: A</b><br/>customer + segment_info<br/>Premium, Tier 1, High Value" }
+
+    %% Restructure
+    Transform["<code>transformValue</code><br/>transform_customer<br/>rename, nest,<br/>add email and country"]
+    M4@{ shape: doc, label: "<b>key: A</b><br/>target JSON<br/>segment: Premium" }
+
+    %% Re-key back
+    Rekey2["<code>transformKey</code><br/>key = customer_id"]
+    M5@{ shape: doc, label: "<b>key: 12345</b><br/>target JSON" }
+    Output[(standardized_customer_data)]
+
+    %% Data Flow
+    Input --> M1
+    M1 --> Rekey1
+    Rekey1 --> M2
+    M2 --> Join
+    Table --> Ref
+    Ref -.->|"lookup by key A"| Join
+    Join --> M3
+    M3 --> Transform
+    Transform --> M4
+    M4 --> Rekey2
+    Rekey2 --> M5
+    M5 --> Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+
+    class Input,Output,Table topic
+    class Rekey1,Join,Transform,Rekey2 operation
+    class M1,M2,M3,Ref message
+    class M4,M5 result
+```
+
+</div>
+
+The two `peek` steps that only log the message are left out of the diagram. Because it is a left join, a customer whose
+segment is not in the table yet is still processed: its `segment` and marketing fields are set to `Unknown`.
 
 ## Setting up two producers for test data
 
@@ -143,7 +295,7 @@ segment:
 To run the application:
 
 1. Save the processor definition to
-   [`data_transformation.yaml`](#creating-the-ksml-definition).
+   [`data-transformation.yaml`](#creating-the-ksml-definition).
 2. Save the producers to
    [`segment-data-producer.yaml`](#setting-up-two-producers-for-test-data)
    and
@@ -159,7 +311,7 @@ To run the application:
 4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.
 5. Start the `legacy_customer_data_producer` to produce some sample data to the input topic.
 6. Start the `data_transformation` topology to initiate the continuous data transformation logic.
-7. Monitor the output topic to see the transformed data.
+7. Monitor the `standardized_customer_data` output topic to see the transformed data.
 
 ## Advanced Transformation Techniques
 
