@@ -30,6 +30,49 @@ State stores serve several critical purposes in stream processing:
 
 State stores can be backed by RocksDB (persistent) or kept in memory (non-persistent). Both types can optionally use changelog topics for fault tolerance and recovery.
 
+The diagram below shows where a state store lives and how the optional settings fit together. The store itself is
+local to the KSML application; the changelog topic in Kafka is its backup:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Input[(Input topic)]
+
+    %% Inside the KSML application
+    subgraph App["KSML application"]
+        Operation["Stateful operation<br/><code>count</code>, <code>aggregate</code>, <code>join</code>, ..."]
+        Cache["Cache<br/>(caching: true)"]
+        Store[("State store<br/>RocksDB on disk (persistent: true)<br/>or in memory (persistent: false)")]
+    end
+
+    %% In Kafka
+    Changelog[("Changelog topic<br/>(logging: true)")]
+    Output[(Output topic)]
+
+    %% Data Flow
+    Input --> Operation
+    Operation <-->|"read & update"| Cache
+    Cache <-->|"flush"| Store
+    Operation -->|"results"| Output
+    Store -.->|"every change"| Changelog
+    Changelog -.->|"restore after restart<br/>or moving to another instance"| Store
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class Input,Output,Changelog topic
+    class Operation operation
+    class Cache,Store external
+    style App fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+Without caching, the operation reads and writes the store directly. Without logging, there is no changelog topic: a
+persistent store still survives a restart on the same machine, but its state is lost if the application moves to
+another machine or the local files are deleted.
+
 ## State Store Types
 
 KSML supports three types of state stores. For detailed information about each type and their parameters, see the [State Store Reference](../../reference/state-store-reference.md#state-store-types).
@@ -60,6 +103,47 @@ This example demonstrates:
 - **Store reference**: The `count` operation references the predefined store by name
 - **Persistent storage**: Data survives application restarts (`persistent: true`)
 - **Changelog logging**: State changes are replicated to a Kafka changelog topic for fault tolerance and recovery (`logging: true`)
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Input[(sensor_ownership_data<br/>key: sensor_id)]
+
+    %% Pipeline Operations
+    Group["<code>groupBy</code><br/>owner from value"]
+    Count["<code>count</code><br/>store: owner_count_store"]
+    ToStream[<code>toStream</code>]
+    Log["<code>peek</code><br/>Log count"]
+
+    %% Store defined in the global stores section
+    subgraph Stores["stores section"]
+        Store[("owner_count_store<br/>keyValue, persistent: true<br/>caching: false, logging: true")]
+    end
+    Changelog[(Changelog topic)]
+
+    %% Output
+    Output[(owner_sensor_counts<br/>key: owner)]
+
+    %% Data Flow
+    Input --> Group
+    Group -->|"key: owner"| Count
+    Count <-.->|"read & update"| Store
+    Store -.->|"every change"| Changelog
+    Count -->|"count per owner"| ToStream
+    ToStream --> Log
+    Log --> Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class Input,Output,Changelog topic
+    class Group,Count,ToStream,Log operation
+    class Store external
+    style Stores fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 You won't be able to read the output in `owner_sensor_counts` topic because it is binary, to read it you can consume the messages like this:
 
@@ -98,6 +182,47 @@ This example demonstrates:
 - **Custom aggregation**: Uses initializer and aggregator functions for complex calculations
 - **Memory-only storage**: Non-persistent storage for temporary calculations (`persistent: false`)
 - **Caching enabled**: Improves performance by batching state updates (`caching: true`)
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Input[(sensor_ownership_data<br/>key: sensor_id)]
+
+    %% Pipeline Operations
+    Group["<code>groupBy</code><br/>sensor_type from value"]
+    Aggregate["<code>aggregate</code><br/>initialize_sum + update_sum<br/>with inline store"]
+    ToStream[<code>toStream</code>]
+    Log["<code>peek</code><br/>Log totals"]
+
+    %% Inline store, part of the aggregate operation
+    Cache["Cache<br/>(caching: true)"]
+    Store[("sensor_type_aggregates<br/>keyValue, in memory (persistent: false)<br/>no changelog (logging: false)")]
+
+    %% Output
+    Output[(sensor_type_totals<br/>key: sensor_type)]
+
+    %% Data Flow
+    Input --> Group
+    Group -->|"key: sensor_type"| Aggregate
+    Aggregate <-.->|"read & update"| Cache
+    Cache <-.->|"flush"| Store
+    Aggregate -->|"total, count, average<br/>per sensor type"| ToStream
+    ToStream --> Log
+    Log --> Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    class Input,Output topic
+    class Group,Aggregate,ToStream,Log operation
+    class Cache,Store external
+```
+
+Compared to the predefined store above, this store has no changelog topic and lives only in memory: after a restart,
+the totals start again from zero.
 
 ## Configuration Parameters
 
