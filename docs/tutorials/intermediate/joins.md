@@ -182,6 +182,54 @@ graph LR
     class ClickStore,PurchaseStore external
 ```
 
+The diagram below follows example clicks and purchases through the join. A click and a purchase are joined only when
+they have the same key (user) **and** happened at most 30 minutes apart. Everything else produces no output:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input topics
+    ClickTopic[(product_clicks)]
+    PurchaseTopic[(product_purchases)]
+    Clicks@{ shape: docs, label: "<b>user1</b>: click PROD001 at 10:00<br/><b>user2</b>: click PROD003 at 10:05<br/><b>user3</b>: click PROD002 at 10:10" }
+    Purchases@{ shape: docs, label: "<b>user1</b>: buy PROD001 at 10:12<br/><b>user2</b>: buy PROD003 at 11:00<br/><b>user4</b>: buy PROD005 at 10:20" }
+
+    %% Join
+    Join["<code>join</code><br/>same user, at most 30m apart<br/>correlate_click_and_purchase"]
+
+    %% Results
+    subgraph Results["Join results"]
+        User1["<b>user1</b><br/>click 10:00 + purchase 10:12<br/>converted, 12 minutes"]
+        User2["<b>user2</b><br/>55 minutes apart:<br/>no output"]
+        User3["<b>user3</b><br/>click without purchase:<br/>no output"]
+        User4["<b>user4</b><br/>purchase without click:<br/>no output"]
+    end
+
+    %% Output
+    Output[(correlated_user_actions)]
+
+    %% Data Flow
+    ClickTopic --> Clicks
+    PurchaseTopic --> Purchases
+    Clicks & Purchases --> Join
+    Join --> User1 & User2 & User3 & User4
+    User1 -->|"key: user1<br/>value: {click: {...}, purchase: {...},<br/>converted: true, conversion_time_ms: 720000}"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class ClickTopic,PurchaseTopic,Output topic
+    class Join operation
+    class Clicks,Purchases message
+    class User1 result
+    class User2,User3,User4 dropped
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
 ??? info "Producer: Clicks and Purchases (click to expand)"
 
     ```yaml
@@ -253,6 +301,62 @@ graph LR
 
     class Orders,Customers,Output topic
     class Rekey,Join,Restore operation
+```
+
+The diagram below follows four example orders through the pipeline. Each order is rekeyed by its customer, looked up
+in the customer table, and rekeyed back. Because this is an inner join, an order whose customer is not in the table
+yet produces no output:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input stream and table
+    OrderTopic[(new_orders)]
+    Orders@{ shape: docs, label: "<b>key: ORD0001</b> customer CUST001<br/><b>key: ORD0002</b> customer CUST003<br/><b>key: ORD0003</b> customer CUST001<br/><b>key: ORD0004</b> customer CUST005" }
+    CustomerTopic[(customer_data)]
+    Customers@{ shape: docs, label: "<b>Table contents</b><br/><b>CUST001</b>: Alice Johnson, US-WEST<br/><b>CUST003</b>: Carol Davis, EU-WEST" }
+
+    %% Step 1: rekey by customer
+    Rekey["<code>transformKey</code><br/>extract_customer_id"]
+    Rekeyed@{ shape: docs, label: "<b>key: CUST001</b> ORD0001<br/><b>key: CUST003</b> ORD0002<br/><b>key: CUST001</b> ORD0003<br/><b>key: CUST005</b> ORD0004" }
+
+    %% Step 2: look up the customer
+    Join["<code>join</code> with table<br/>join_order_with_customer"]
+    subgraph Results["Join results"]
+        Order1["<b>key: CUST001</b><br/>ORD0001 + Alice Johnson"]
+        Order2["<b>key: CUST003</b><br/>ORD0002 + Carol Davis"]
+        Order3["<b>key: CUST001</b><br/>ORD0003 + Alice Johnson"]
+        Order4["<b>key: CUST005</b><br/>not in table:<br/>no output"]
+    end
+
+    %% Step 3: restore the order key
+    Restore["<code>transformKey</code><br/>restore_order_key"]
+    Output[(orders_with_customer_data)]
+
+    %% Data Flow
+    OrderTopic --> Orders
+    Orders --> Rekey
+    Rekey --> Rekeyed
+    CustomerTopic --> Customers
+    Rekeyed --> Join
+    Customers -.->|"lookup by key"| Join
+    Join --> Order1 & Order2 & Order3 & Order4
+    Order1 & Order2 & Order3 --> Restore
+    Restore -->|"key: ORD0001<br/>value: {order_id: ORD0001, ...,<br/>customer: {name: Alice Johnson, ...}}"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class OrderTopic,CustomerTopic,Output topic
+    class Rekey,Join,Restore operation
+    class Orders,Customers,Rekeyed message
+    class Order1,Order2,Order3 result
+    class Order4 dropped
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
 ??? info "Producer: Orders (click to expand)"
@@ -327,6 +431,53 @@ graph LR
     class Join operation
 ```
 
+The diagram below follows two example orders through the join. The order keeps its key; the `mapper` only picks the
+`product_id` used for the lookup, and the `valueJoiner` adds the product details and computes the total price:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input stream and global table
+    OrderTopic[(new_orders)]
+    Orders@{ shape: docs, label: "<b>key: ORD0001</b> product PROD001, quantity 2<br/><b>key: ORD0002</b> product PROD003, quantity 1" }
+    ProductTopic[(product_catalog)]
+    Products@{ shape: docs, label: "<b>Global table contents</b><br/><b>PROD001</b>: Laptop, 999.99<br/><b>PROD003</b>: Coffee Maker, 79.99" }
+
+    %% Join
+    Join["<code>join</code> with globalTable<br/>mapper: extract_product_id<br/>join_order_with_product"]
+
+    %% Results
+    subgraph Results["Join results"]
+        Order1["<b>key: ORD0001</b><br/>looked up PROD001: Laptop<br/>total_price: 2 x 999.99 = 1999.98"]
+        Order2["<b>key: ORD0002</b><br/>looked up PROD003: Coffee Maker<br/>total_price: 1 x 79.99 = 79.99"]
+    end
+
+    %% Output
+    Output[(orders_with_product_details)]
+
+    %% Data Flow
+    OrderTopic --> Orders
+    ProductTopic --> Products
+    Orders --> Join
+    Products -.->|"lookup by product_id"| Join
+    Join --> Order1 & Order2
+    Order1 -->|"key: ORD0001<br/>value: {order_id: ORD0001, ...,<br/>product_details: {name: Laptop, ...}, total_price: 1999.98}"| Output
+    Order2 --> Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class OrderTopic,ProductTopic,Output topic
+    class Join operation
+    class Orders,Products message
+    class Order1,Order2 result
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
 ??? info "Producer: Orders and Products (click to expand)"
 
     ```yaml
@@ -389,6 +540,57 @@ This example demonstrates:
 - Activities for users without location data get "UNKNOWN" placeholders
 - All activities are preserved regardless of location availability
 
+The diagram below follows three example activities through the left join. `user004` has no location data, but unlike
+an inner join, its activity is still written to the output, with `UNKNOWN` location values:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input stream and table
+    ActivityTopic[(user_activity_events)]
+    Activities@{ shape: docs, label: "<b>key: user001</b> login<br/><b>key: user004</b> page_view<br/><b>key: user002</b> purchase" }
+    LocationTopic[(user_location_data)]
+    Locations@{ shape: docs, label: "<b>Table contents</b><br/><b>user001</b>: New York, USA<br/><b>user002</b>: London, UK<br/>(no entry for user004)" }
+
+    %% Join
+    Join["<code>leftJoin</code> with table<br/>join_activity_with_location"]
+
+    %% Results
+    subgraph Results["Join results: one per activity"]
+        User1["<b>user001</b> login<br/>location: New York, USA<br/>enriched: true"]
+        User4["<b>user004</b> page_view<br/>location: UNKNOWN<br/>enriched: false"]
+        User2["<b>user002</b> purchase<br/>location: London, UK<br/>enriched: true"]
+    end
+
+    %% Output
+    Output[(activity_with_location)]
+
+    %% Data Flow
+    ActivityTopic --> Activities
+    LocationTopic --> Locations
+    Activities --> Join
+    Locations -.->|"lookup by key"| Join
+    Join --> User1 & User4 & User2
+    User4 -->|"key: user004<br/>value: {activity_type: page_view, ...,<br/>location: {country: UNKNOWN, city: UNKNOWN, ...}, enriched: false}"| Output
+    User1 & User2 --> Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+
+    class ActivityTopic,LocationTopic,Output topic
+    class Join operation
+    class Activities,Locations message
+    class User1,User2 result
+    class User4 partial
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
 ## Stream-Stream Outer Join
 
 Outer joins capture events from either stream, making them ideal for tracking incomplete or partial interactions between two event types.
@@ -429,6 +631,59 @@ This example demonstrates:
 - **COMPLETE sessions**: When both login and logout events occur within the time window
 - **LOGIN_ONLY sessions**: Users who logged in but no logout was captured (active sessions)
 - **LOGOUT_ONLY sessions**: Logout events without corresponding login (users already logged in)
+
+The diagram below follows example logins and logouts through the outer join. A login and a logout for the same user
+at most 10 minutes apart become one `COMPLETE` session. Unlike an inner join, events without a match are not dropped:
+they produce a `LOGIN_ONLY` or `LOGOUT_ONLY` result once the time window (plus grace period) has passed:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input topics
+    LoginTopic[(user_login_events)]
+    LogoutTopic[(user_logout_events)]
+    Logins@{ shape: docs, label: "<b>alice</b>: login at 10:00<br/><b>bob</b>: login at 10:02" }
+    Logouts@{ shape: docs, label: "<b>frank</b>: logout at 10:04<br/><b>alice</b>: logout at 10:08" }
+
+    %% Join
+    Join["<code>outerJoin</code><br/>same user, at most 10m apart<br/>analyze_user_session"]
+
+    %% Results
+    subgraph Results["Join results"]
+        Alice["<b>alice</b><br/>login 10:00 + logout 10:08<br/>session_type: COMPLETE"]
+        Bob["<b>bob</b><br/>login, no logout<br/>session_type: LOGIN_ONLY"]
+        Frank["<b>frank</b><br/>logout, no login<br/>session_type: LOGOUT_ONLY"]
+    end
+
+    %% Output
+    Output[(user_session_analysis)]
+
+    %% Data Flow
+    LoginTopic --> Logins
+    LogoutTopic --> Logouts
+    Logins & Logouts --> Join
+    Join -->|"match"| Alice
+    Join -->|"after window + grace"| Bob
+    Join -->|"after window + grace"| Frank
+    Alice -->|"key: alice<br/>value: {session_type: COMPLETE,<br/>login_event: {...}, logout_event: {...}, ...}"| Output
+    Bob & Frank --> Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+
+    class LoginTopic,LogoutTopic,Output topic
+    class Join operation
+    class Logins,Logouts message
+    class Alice result
+    class Bob,Frank partial
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 ## Join Type Variants
 
