@@ -67,6 +67,46 @@ Proactively validate data and filter out problematic messages before they cause 
 - **Categorizes errors**: Adds specific error_reason (malformed_data, missing_required_fields, invalid_quantity, validation_failed) to invalid orders
 - **Logs decisions**: Tracks processing with logging for valid/invalid determinations and specific error reasons for debugging
 
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Input[(incoming_orders)]
+    LogIn["<code>peek</code><br/>Log order"]
+
+    %% Validation
+    Branch{"<code>branch</code><br/>valid order?"}
+
+    %% Valid path
+    AddStatus["<code>transformValue</code><br/>add_validation_status"]
+    LogValid["<code>peek</code><br/>Log valid"]
+    Valid[(valid_orders)]
+
+    %% Invalid path
+    AddError["<code>transformValue</code><br/>add_error_details<br/>error_reason: malformed_data,<br/>missing_required_fields,<br/>invalid_quantity, validation_failed"]
+    LogInvalid["<code>peek</code><br/>Log error reason"]
+    Invalid[(invalid_orders)]
+
+    %% Data Flow
+    Input --> LogIn
+    LogIn --> Branch
+    Branch -->|"not malformed, has product_id,<br/>quantity > 0"| AddStatus
+    AddStatus --> LogValid
+    LogValid --> Valid
+    Branch -->|"default branch"| AddError
+    AddError --> LogInvalid
+    LogInvalid --> Invalid
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class Input,Valid topic
+    class LogIn,Branch,AddStatus,LogValid,AddError,LogInvalid operation
+    class Invalid errorTopic
+```
+
 ### 2. Try-Catch Error Handling
 
 Use try-catch blocks in Python functions to handle exceptions gracefully and provide fallback behavior.
@@ -90,6 +130,43 @@ Use try-catch blocks in Python functions to handle exceptions gracefully and pro
 - **Processes safely**: Attempts to convert temperature to float, validate sensor_id, set default humidity values within exception handling
 - **Creates error objects**: When exceptions occur, returns error object with sensor_id, error message, status="error", original_data for debugging
 - **Routes by success**: Uses branch to send successful processing to processed_sensors, errors to sensor_errors topic based on status field
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Input[(sensor_readings)]
+
+    %% Processing with try/except inside the function
+    Process["<code>transformValue</code><br/>process_sensor_reading<br/><br/><b>try</b>: convert temperature,<br/>validate sensor_id, set defaults<br/><b>except</b> ValueError, TypeError:<br/>return an error object"]
+    Log["<code>peek</code><br/>Log result"]
+
+    %% Routing by status
+    Branch{"<code>branch</code><br/>status != error?"}
+
+    %% Outputs
+    Processed[(processed_sensors)]
+    Errors[(sensor_errors)]
+
+    %% Data Flow
+    Input --> Process
+    Process --> Log
+    Log --> Branch
+    Branch -->|"yes"| Processed
+    Branch -->|"default branch:<br/>error object with<br/>original_data"| Errors
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class Input,Processed topic
+    class Process,Log,Branch operation
+    class Errors errorTopic
+```
+
+The exception never leaves the function: instead of crashing the pipeline, the function returns a normal message with
+`status: "error"`, and the `branch` decides where it goes.
 
 ### 3. Dead Letter Queue Pattern
 
@@ -115,6 +192,42 @@ Route messages that cannot be processed to dedicated error topics for later anal
 - **Enriches with context**: Adds processing metadata, error classification, retry recommendations, original request data to failed messages
 - **Routes by result**: Uses branch to send successful payments to processed_payments, failures to failed_payments topic with full error context
 
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Input[(payment_requests)]
+
+    %% Processing and classification
+    Process["<code>transformValue</code><br/>process_payment"]
+    Log["<code>peek</code><br/>Log result"]
+    Branch{"<code>branch</code><br/>status == processed?"}
+
+    %% Outputs
+    Processed[(processed_payments)]
+    Failed[("failed_payments<br/>(dead letter queue)")]
+
+    %% Data Flow
+    Input --> Process
+    Process --> Log
+    Log --> Branch
+    Branch -->|"processed"| Processed
+    Branch -->|"permanent_failure, retry_eligible: false<br/>malformed_request, invalid_amount,<br/>missing_required_fields, unsupported_currency"| Failed
+    Branch -->|"temporary_failure, retry_eligible: true<br/>network_timeout"| Failed
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class Input,Processed topic
+    class Process,Log,Branch operation
+    class Failed errorTopic
+```
+
+Every failed payment ends up in the same dead letter queue, but the `retry_eligible` field tells a later consumer
+which messages are worth sending again.
+
 ### 4. Retry Strategies with Exponential Backoff
 
 Implement sophisticated retry logic for transient failures with exponential backoff and jitter.
@@ -139,6 +252,56 @@ Implement sophisticated retry logic for transient failures with exponential back
 - **Tracks attempts**: Maintains retry count, determines retry eligibility based on error type and max attempts (3), stores original operation data
 - **Routes by outcome**: Successful operations go to successful_operations, failed/exhausted retries go to failed_operations with retry history
 
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph TB
+    %% Input
+    Input[(api_operations)]
+
+    %% Processing with retry decision
+    Process["<code>transformValue</code><br/>process_with_retry"]
+    Decide{"Operation<br/>failed?"}
+    Retryable{"Retryable error<br/>and retry_count < 3?"}
+
+    %% Outcomes
+    Success["status: success"]
+    SuccessRetry["status: success_after_retry"]
+    RetryNeeded["status: retry_needed<br/>backoff_delay: 1s, 2s, 4s<br/>(± 20% jitter)"]
+    Permanent["status: permanent_failure"]
+
+    %% Routing
+    Branch{"<code>branch</code><br/>success or<br/>success_after_retry?"}
+    Succeeded[(successful_operations)]
+    Failed[(failed_operations)]
+
+    %% Data Flow
+    Input --> Process
+    Process --> Decide
+    Decide -->|"no"| Success
+    Decide -->|"yes"| Retryable
+    Retryable -->|"yes, simulated retry works"| SuccessRetry
+    Retryable -->|"yes, still failing"| RetryNeeded
+    Retryable -->|"no"| Permanent
+    Success & SuccessRetry & RetryNeeded & Permanent --> Branch
+    Branch -->|"yes"| Succeeded
+    Branch -->|"default branch"| Failed
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef outcome fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+
+    class Input,Succeeded topic
+    class Process,Decide,Retryable,Branch operation
+    class Success,SuccessRetry,RetryNeeded,Permanent outcome
+    class Failed errorTopic
+```
+
+Note that this example only **decides** whether an operation should be retried and calculates the delay: it simulates
+the outcome of a retry within the same function call. Messages with `status: retry_needed` are written to
+`failed_operations` together with their `retry_count` and `backoff_delay`, and are not sent through the pipeline again.
+
 ### 5. Circuit Breaker Pattern
 
 Prevent cascading failures by temporarily stopping calls to failing services, allowing them to recover.
@@ -162,6 +325,72 @@ Prevent cascading failures by temporarily stopping calls to failing services, al
 - **Opens on failures**: After 3 consecutive failures, circuit transitions from CLOSED to OPEN state to protect failing service
 - **Rejects when open**: In OPEN state, immediately returns circuit_open status without attempting processing, showing current failure count
 - **Processes requests**: In CLOSED state, simulates service calls with success/failure scenarios, updating failure counter and circuit state accordingly
+
+The circuit breaker is a state machine that is shared by all requests. The diagram below shows its states and the
+events that move it from one state to another:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Circuit states
+    Start(( )) --> Closed
+    Closed(["CLOSED<br/>requests are processed"])
+    Open(["OPEN<br/>requests are rejected"])
+    HalfOpen(["HALF_OPEN<br/>requests are processed again"])
+
+    %% Transitions
+    Closed -->|"success, or failure<br/>with failure_count below 3"| Closed
+    Closed -->|"failure_count reaches 3"| Open
+    Open -->|"request rejected<br/>(status circuit_open)"| Open
+    Open -->|"next request more than<br/>10s after the last failure"| HalfOpen
+    HalfOpen -->|"2 successes,<br/>counters reset"| Closed
+    HalfOpen -->|"failure"| Open
+
+    %% Styling
+    classDef closed fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef open fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef halfOpen fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef start fill:#616161,stroke:#616161
+
+    class Closed closed
+    class Open open
+    class HalfOpen halfOpen
+    class Start start
+```
+
+Every request then goes through the same pipeline, and the `status` set by the circuit breaker decides where it goes:
+
+```mermaid
+%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+graph LR
+    %% Input
+    Input[(service_requests)]
+
+    %% Processing
+    Handler["<code>transformValue</code><br/>circuit_breaker_handler"]
+    Log["<code>peek</code><br/>Log status and state"]
+    Branch{"<code>branch</code><br/>status == success?"}
+
+    %% Outputs
+    Responses[(service_responses)]
+    Events[(circuit_events)]
+
+    %% Data Flow
+    Input --> Handler
+    Handler --> Log
+    Log --> Branch
+    Branch -->|"success"| Responses
+    Branch -->|"failure or circuit_open"| Events
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+
+    class Input,Responses topic
+    class Handler,Log,Branch operation
+    class Events errorTopic
+```
 
 ## Error Handling Best Practices
 
