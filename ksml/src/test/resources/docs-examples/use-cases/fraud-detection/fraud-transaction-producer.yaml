@@ -1,0 +1,95 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Test data producer for the Fraud Detection use case.
+# It writes a fixed list of credit card transactions once, one per second, and then stops.
+# Each card triggers one of the detection rules:
+#   card-001: normal transaction, no alert
+#   card-002: unusual location (new state within 2 hours, then a new country)
+#   card-003: high-value transaction
+#   card-004: "test then charge" pattern
+#   card-005: high transaction velocity (6 transactions within 1 hour)
+#   card-006: high machine learning fraud score
+# The detection rules use the "timestamp" field in the data, which starts at 2025-10-12 23:00 UTC.
+
+streams:
+  transactions:
+    topic: credit_card_transactions
+    keyType: string  # transaction_id
+    valueType: json  # transaction data
+
+functions:
+  generate_transactions:
+    type: generic
+    resultType: boolean
+    expression: False
+    globalCode: |
+      base_time = 1760310000000  # 2025-10-12 23:00:00 UTC
+      minute = 60000
+
+      def merchant(merchant_id, name, category, country, state, city):
+        return {
+          "id": merchant_id,
+          "name": name,
+          "category": category,
+          "location": {"country": country, "state": state, "city": city}
+        }
+
+      grocery_ca = merchant("merch-101", "Fresh Market", "groceries", "US", "CA", "San Francisco")
+      clothing_ca = merchant("merch-102", "Fashion Outlet", "clothing", "US", "CA", "Los Angeles")
+      clothing_ny = merchant("merch-103", "City Style", "clothing", "US", "NY", "New York")
+      clothing_fr = merchant("merch-104", "Boutique Paris", "clothing", "FR", "IDF", "Paris")
+      electronics_ca = merchant("merch-105", "Online Electronics Store", "electronics", "US", "CA", "San Francisco")
+      digital_ca = merchant("merch-106", "App Store Credits", "digital_goods", "US", "CA", "San Jose")
+      coffee_ca = merchant("merch-107", "Corner Coffee", "coffee", "US", "CA", "Oakland")
+      jewelry_de = merchant("merch-108", "Juwelier Berlin", "jewelry", "DE", "BE", "Berlin")
+
+      # (card_id, customer_id, merchant, amount, transaction_type, minutes after base_time)
+      script = [
+        ("card-001", "cust-001", grocery_ca, 45.20, "in_store", 0),
+        ("card-002", "cust-002", clothing_ca, 120.00, "in_store", 0),
+        ("card-002", "cust-002", clothing_ny, 80.00, "in_store", 30),
+        ("card-002", "cust-002", clothing_fr, 60.00, "online", 60),
+        ("card-003", "cust-003", electronics_ca, 1499.00, "online", 5),
+        ("card-004", "cust-004", digital_ca, 1.00, "online", 10),
+        ("card-004", "cust-004", digital_ca, 450.00, "online", 20),
+        ("card-005", "cust-005", coffee_ca, 4.50, "in_store", 0),
+        ("card-005", "cust-005", coffee_ca, 6.20, "in_store", 8),
+        ("card-005", "cust-005", coffee_ca, 5.10, "in_store", 16),
+        ("card-005", "cust-005", coffee_ca, 7.80, "in_store", 24),
+        ("card-005", "cust-005", coffee_ca, 3.90, "in_store", 32),
+        ("card-005", "cust-005", coffee_ca, 9.40, "in_store", 40),
+        ("card-006", "cust-006", jewelry_de, 1899.00, "online", 15)
+      ]
+
+      count = 0
+      done = False
+
+      def next_transaction():
+        global count, done
+        card_id, customer_id, merch, amount, transaction_type, minutes = script[count]
+        count += 1
+        if count >= len(script):
+          done = True
+        return {
+          "transaction_id": f"tx-{count:06d}",
+          "timestamp": base_time + minutes * minute,
+          "card_id": card_id,
+          "customer_id": customer_id,
+          "merchant": merch,
+          "amount": amount,
+          "currency": "USD",
+          "transaction_type": transaction_type,
+          "ip_address": f"203.0.113.{count}"
+        }
+
+producers:
+  fraud_transaction_producer:
+    to: transactions
+    interval: 1s
+    until:
+      expression: done
+    generator:
+      code: |
+        transaction = next_transaction()
+      expression: (transaction.get("transaction_id"), transaction)
+      resultType: (string, json)
