@@ -80,33 +80,33 @@
         <apache.commons.csv.version>1.14.1</apache.commons.csv.version>
         <apache.commons.text.version>1.15.0</apache.commons.text.version>
         <apache.kafka.version>4.3.1</apache.kafka.version>
-        <apache.xmlschema.version>2.3.2</apache.xmlschema.version>
+        <apache.xmlschema.version>2.3.3</apache.xmlschema.version>
         <apicurio.version>3.3.0</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
         <commons.io.version>2.22.0</commons.io.version>
-        <confluent.version>8.3.1</confluent.version>
+        <confluent.version>8.3.2</confluent.version>
         <dropwizard.version>4.2.40</dropwizard.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
-        <graalvm.version>25.0.4.1</graalvm.version>
-        <guava.version>33.7.1-jre</guava.version>
-        <jackson.version>3.2.2</jackson.version>
+        <graalvm.version>25.0.4.1.1</graalvm.version>
+        <guava.version>33.7.2-jre</guava.version>
+        <jackson.version>3.2.3</jackson.version>
         <!-- KSML itself is on Jackson 3. Apicurio, Confluent and victools still pull in Jackson 2,
              so that line has to stay version-aligned as well until they move over. -->
-        <jackson2.version>2.22.2</jackson2.version>
+        <jackson2.version>2.22.3</jackson2.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
-        <jersey.version>4.0.2</jersey.version>
-        <logback.version>1.6.3</logback.version>
+        <jersey.version>4.0.3</jersey.version>
+        <logback.version>1.6.5</logback.version>
         <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <lombok.version>1.18.48</lombok.version>
         <picocli.version>4.7.7</picocli.version>
         <prometheus.version>1.0.1</prometheus.version>
-        <prometheus-instrumentation.version>1.8.0</prometheus-instrumentation.version>
-        <protobuf.version>4.36.1</protobuf.version>
+        <prometheus-instrumentation.version>1.9.0</prometheus-instrumentation.version>
+        <protobuf.version>4.36.2</protobuf.version>
         <saaj.version>3.0.6</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
         <victools.version>5.0.0</victools.version>
-        <wire.version>7.0.1</wire.version>
+        <wire.version>7.1.0</wire.version>
 
         <!-- KSML schema generation -->
         <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
@@ -119,7 +119,7 @@
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
         <junit.version>6.1.3</junit.version>
         <mockito-core.version>5.23.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
+        <mockito-junit-jupiter.version>5.24.0</mockito-junit-jupiter.version>
         <testcontainers.version>2.0.5</testcontainers.version>
 
         <!-- Project and java version settings -->
