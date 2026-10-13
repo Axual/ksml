@@ -32,7 +32,7 @@ The examples below show three ways to bring external data into a stream. They di
 contacted and who waits for it:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     subgraph API["API enrichment"]
         direction TB
@@ -57,13 +57,7 @@ graph LR
     API ~~~ DB ~~~ ASYNC
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class A1,A4,B1,B4,C1,C3,C5 topic
     class A2,B2,C2 operation
@@ -88,7 +82,7 @@ The API enrichment pattern calls external REST APIs to add additional data to st
 The diagram below follows two example events. Each event waits for its own API call before the next one is processed:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example events
     Topic[(user_events)]
@@ -118,13 +112,7 @@ graph TB
     Filter -->|"event + profile,<br/>metrics, recommendations"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Function,Filter operation
@@ -203,7 +191,7 @@ The diagram below follows three example events. The first event also triggers lo
 store; after that, every event is enriched with a local lookup:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example events
     Topic[(product_events)]
@@ -238,13 +226,7 @@ graph TB
     Filter -->|"3 enriched events"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Load,Function,Filter operation
@@ -289,10 +271,10 @@ The example runs two pipelines. The first one (`external_request_pipeline`) turn
 The second one (`external_response_pipeline`) stands in for the external payment system: it reads the requests, simulates a payment result and writes the responses. The diagram
 below follows four example orders:
 
-<div style="width: 55%; margin: 0 auto;" markdown>
+<div class="diagram-w55" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example events
     Topic[(order_events)]
@@ -326,13 +308,7 @@ graph TB
     ResponseCards --> ResponseTopic
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,RequestTopic,ResponseTopic topic
     class Filter,Create,Process operation

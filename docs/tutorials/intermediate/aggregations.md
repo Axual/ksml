@@ -43,7 +43,7 @@ and then aggregate them. The aggregation keeps its running result in a state sto
 each change, which you turn back into a stream with `toStream` to write it to a topic:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     InputTopic[(Input topic)]
@@ -72,9 +72,7 @@ graph LR
     Store -.->|"every change"| Changelog
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputTopic,OutputTopic,Changelog topic
     class Group,Window,Aggregate,ToStream operation
@@ -252,7 +250,7 @@ The diagram below follows five example actions through the pipeline. Unlike a wi
 never resets: every new action updates the stored count and emits the new value:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with five actions
     Topic[(user_actions)]
@@ -286,10 +284,7 @@ graph TB
     Convert -->|"latest message for alice<br/>key: alice, value: 3"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Group,Count,Convert operation
@@ -324,7 +319,7 @@ The diagram below follows four example transactions (amounts in cents) through t
 initial value: the first amount for an account is stored as is, and every next amount is added to it:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with four transactions
     Topic[(financial_transactions)]
@@ -358,10 +353,7 @@ graph TB
     ToStream -->|"latest message for ACC001<br/>key: ACC001, value: 5000"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Group,Reduce,ToStream operation
@@ -506,7 +498,7 @@ The diagram below follows four example payments through the pipeline. The initia
 object for each new account, and the aggregator updates all fields with every payment:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with four payments
     Topic[(payment_stream)]
@@ -540,10 +532,7 @@ graph TB
     ToStream -->|"latest message for ACC001<br/>key: ACC001<br/>value: {count: 3, total_amount: 150.0, min_amount: 25.0,<br/>max_amount: 75.0, average_amount: 50.0}"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Group,Aggregate,ToStream operation
@@ -577,7 +566,7 @@ The diagram below shows how this works for the simple sum example, with three pa
 The initializer runs once for the first payment, and every payment after that updates the stored total and emits it:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Incoming payments for one key
     Payment1[/"CUST001: 500"/]
@@ -605,9 +594,7 @@ graph LR
     Step3 -.->|"emit 850"| OutputTopic
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class OutputTopic topic
     class Init,Step1,Step2,Step3 operation
@@ -682,7 +669,7 @@ The diagram below follows four example readings through the pipeline. Each senso
 30-second windows, and every window gets its own statistics:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with four readings
     Topic[(sensor_temperatures)]
@@ -727,10 +714,7 @@ graph TB
     Map -->|"key: temp001_...T18:58:00Z_...T18:58:30Z<br/>value: {sensor_id: temp001, window_start, window_end,<br/>stats: {count: 2, avg: 25.4, min: 24.5, max: 26.3}}"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Group,Window,Aggregate,Map operation
@@ -840,7 +824,7 @@ The cogroup operation:
 4. Final aggregate operation computes the combined result
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input streams
     StreamA[(Stream A)]
@@ -870,9 +854,7 @@ graph LR
     Aggregate -->|"<code>toStream</code>"| OutputTopic
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class StreamA,StreamB,StreamC,OutputTopic topic
     class GroupA,GroupB,GroupC,Cogroup,Aggregate operation
@@ -926,7 +908,7 @@ The diagram below follows four example sales through the pipeline. The messages 
 pipeline first replaces the key with the region. Only then can `groupByKey` collect all sales of one region together:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with four sales, keyed by product
     Topic[(retail_sales)]
@@ -977,10 +959,7 @@ graph TB
     Convert -->|"key: {key: North, startTime: 10:00, endTime: 10:01, ...}<br/>value: {region: North, window_start, window_end, stats: {...}}"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class SelectKey,Group,Window,Aggregate,Convert operation

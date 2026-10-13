@@ -68,7 +68,7 @@ Proactively validate data and filter out problematic messages before they cause 
 - **Logs decisions**: Tracks processing with logging for valid/invalid determinations and specific error reasons for debugging
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(incoming_orders)]
@@ -98,8 +98,7 @@ graph LR
     LogInvalid --> Invalid
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Valid topic
@@ -132,7 +131,7 @@ Use try-catch blocks in Python functions to handle exceptions gracefully and pro
 - **Routes by success**: Uses branch to send successful processing to processed_sensors, errors to sensor_errors topic based on status field
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(sensor_readings)]
@@ -156,8 +155,7 @@ graph LR
     Branch -->|"default branch:<br/>error object with<br/>original_data"| Errors
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Processed topic
@@ -193,7 +191,7 @@ Route messages that cannot be processed to dedicated error topics for later anal
 - **Routes by result**: Uses branch to send successful payments to processed_payments, failures to failed_payments topic with full error context
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(payment_requests)]
@@ -216,8 +214,7 @@ graph LR
     Branch -->|"temporary_failure, retry_eligible: true<br/>network_timeout"| Failed
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Processed topic
@@ -253,7 +250,7 @@ Implement sophisticated retry logic for transient failures with exponential back
 - **Routes by outcome**: Successful operations go to successful_operations, failed/exhausted retries go to failed_operations with retry history
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Input[(api_operations)]
@@ -287,8 +284,7 @@ graph TB
     Branch -->|"default branch"| Failed
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
     classDef outcome fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
@@ -330,7 +326,7 @@ The circuit breaker is a state machine that is shared by all requests. The diagr
 events that move it from one state to another:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Circuit states
     Start(( )) --> Closed
@@ -361,7 +357,7 @@ graph LR
 Every request then goes through the same pipeline, and the `status` set by the circuit breaker decides where it goes:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(service_requests)]
@@ -383,8 +379,7 @@ graph LR
     Branch -->|"failure or circuit_open"| Events
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Responses topic

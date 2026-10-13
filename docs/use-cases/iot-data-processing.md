@@ -97,7 +97,7 @@ This guide contains five KSML definitions and a sample data generator. All defin
 are chained through `edge_processed_readings`:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Generator["sample-data-generator.yaml<br/>one reading per second"]
@@ -135,13 +135,7 @@ graph LR
     Cloud --> RoomStats
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Readings,TempAlerts,DeviceStatus,DeviceState,Energy,Proximity,EdgeOut,RoomStats topic
     class Main,Geo,State,Edge,Cloud operation
@@ -166,7 +160,7 @@ Now, let's create our KSML definition file:
 The definition runs three independent pipelines on every reading. The diagram below follows three example readings:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example readings
     Topic[(iot_sensor_readings)]
@@ -213,13 +207,7 @@ graph TB
     E --> Energy
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,TempAlerts,DeviceStatus,Energy topic
     class TFilter,TAlert,BFilter,BAlert,EFilter,EGroup,EAgg operation
@@ -250,10 +238,10 @@ The pipeline adds the distance between the device and a fixed reference point (l
 to every reading, and only keeps readings from devices within 100 meters of that point. The diagram below follows readings
 from two rooms:
 
-<div style="width: 50%; margin: 0 auto;" markdown>
+<div class="diagram-w50" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example readings
     Topic[(iot_sensor_readings)]
@@ -279,13 +267,7 @@ graph TB
     Near --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Distance,Filter operation
@@ -315,7 +297,7 @@ The function keeps the last state of every device in `device_state_store`. From 
 new reading with the stored one. The diagram below follows two readings of one device, 6 seconds apart:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example readings
     Topic[(iot_sensor_readings)]
@@ -340,13 +322,7 @@ graph TB
     Steps -->|"new state for every reading"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Function operation
@@ -385,10 +361,10 @@ In the cloud, you can perform more complex analytics and aggregations:
 The edge definition writes a small payload to `edge_processed_readings`, and the cloud definition reads it from there.
 The diagram below follows one reading through both definitions:
 
-<div style="width: 60%; margin: 0 auto;" markdown>
+<div class="diagram-w60" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Topic[(iot_sensor_readings)]
@@ -428,13 +404,7 @@ graph TB
     Stats --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,EdgeOut,Output topic
     class Filter,Shrink,Expand,Group,Window,Agg operation

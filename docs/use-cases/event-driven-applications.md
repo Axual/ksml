@@ -144,10 +144,10 @@ The definition contains five pipelines that work together through topics and one
 stock is written to `inventory_updates`, and three pipelines react to it. A reorder also leads to a restock, which is
 written back to `inventory_updates`:
 
-<div style="width: 75%; margin: 0 auto;" markdown>
+<div class="diagram-w75" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Topics and reference data
     Orders[(order_events)]
@@ -180,13 +180,7 @@ graph TB
     Store <-.->|"get & put"| RestockP
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Orders,Updates,Reorders,Alerts,Catalog topic
     class OrderP,ReorderP,AlertP,RestockP,Monitor operation
@@ -198,10 +192,10 @@ graph TB
 The `order_pipeline` splits each order into one message per ordered item and uses the `product_id` as the new key, so
 the stock of each product is updated separately. The diagram below follows one example order with two items:
 
-<div style="width: 50%; margin: 0 auto;" markdown>
+<div class="diagram-w50" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Orders[(order_events)]
@@ -231,13 +225,7 @@ graph TB
     Result2 --> Updates
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Orders,Updates topic
     class Split,Update operation
@@ -252,10 +240,10 @@ The diagram below follows the stock of one product, `prod-123` (reorder threshol
 threshold 5), through a series of updates. The store starts empty, so the first order always triggers a reorder and an
 alert:
 
-<div style="width: 40%; margin: 0 auto;" markdown>
+<div class="diagram-w40" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Stock changes of prod-123
     S1["<b>Order: 3 × prod-123</b><br/>store empty: stock 0<br/>new stock 0, never negative<br/><br/>0 ≤ 10: urgent reorder of 50<br/>0 ≤ 5: critical alert"]
@@ -269,13 +257,7 @@ graph TB
     S3 -->|"reorder_events → restock_pipeline"| S4
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class S1 dropped
     class S2,S4 message

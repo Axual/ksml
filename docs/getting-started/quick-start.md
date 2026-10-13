@@ -20,7 +20,7 @@ with KSML connected to it. All containers share one Docker network, so they reac
 (`broker:9093`), while you reach it from your machine through `localhost`.
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Your machine
     You[💻 You<br/>terminal & browser]
@@ -43,9 +43,7 @@ graph LR
     You -->|"localhost:8080"| UI
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
 
     class Broker topic
@@ -223,10 +221,10 @@ Your KSML pipeline performed **real-time device health monitoring** in just a fe
 3. **Categorized** devices as "healthy" or "needs attention" 
 4. **Identified** specific issues (low battery, poor signal, high errors)
 
-<div style="width: 40%; margin: 0 auto;" markdown>
+<div class="diagram-w40" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Producer[IoT Devices]
@@ -251,10 +249,7 @@ graph TB
     OutputTopic --> AlertSystem
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputTopic,OutputTopic topic
     class Filter,Transform,Peek operation

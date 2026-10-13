@@ -15,10 +15,10 @@ In this tutorial, you'll build a simple data pipeline that:
 
 Here's a visual representation of what we'll build:
 
-<div style="width: 40%; margin: 0 auto;" markdown>
+<div class="diagram-w40" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     InputTopic[(temperature_data)]
@@ -41,10 +41,7 @@ graph TB
     Peek -.->|"log.info"| Logs
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputTopic,OutputTopic topic
     class Filter,Transform,Peek operation
@@ -89,7 +86,7 @@ The pipeline ties the other two sections together: it refers to streams and func
 below shows how the pipeline in this tutorial uses the streams and functions you'll define in the next steps.
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Streams section
     subgraph Streams["streams"]
@@ -117,9 +114,7 @@ graph LR
     Pipeline -->|"peek calls"| Logger
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputStream,OutputStream topic
     class Pipeline operation
@@ -416,7 +411,7 @@ messages will appear on the `temperature_data_converted` topic.
 With both definitions loaded, the KSML runner now produces the test data and processes it:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% KSML runner definitions
     subgraph Runner["KSML runner"]
@@ -434,9 +429,7 @@ graph LR
     Pipeline -->|"Filtered & converted"| OutputTopic
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputTopic,OutputTopic topic
     class Producer,Pipeline operation

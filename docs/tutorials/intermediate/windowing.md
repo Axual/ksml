@@ -206,7 +206,7 @@ The diagram below follows six example clicks through the same pipeline, showing 
 step: first by user, then by 5-minute window, until each group is reduced to a single count:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with six clicks
     Topic[(user_clicks)]
@@ -253,10 +253,7 @@ graph TB
     Convert -->|"key: {key: alice, startTime: 10:00, endTime: 10:05, ...}<br/>value: 2"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Group,Window,Count,Convert operation
@@ -334,7 +331,7 @@ reading is counted in several windows, so each window produces its own average. 
 follows `temp_01` and shows three of its windows:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with five readings
     Topic[(sensor_readings)]
@@ -390,10 +387,7 @@ graph TB
     Avg2 & Avg3 --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
 
     class Topic,Output topic
@@ -476,7 +470,7 @@ between 10:01:30 and 10:05:00, so her clicks form two separate sessions. Bob nev
 stay in one session that keeps growing:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with seven clicks
     Topic[(user_clicks)]
@@ -523,10 +517,7 @@ graph TB
     Convert -->|"key: {key: alice, startTime: 10:00:00, endTime: 10:01:30, ...}<br/>value: 3"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Group,Window,Count,Convert operation
@@ -612,7 +603,7 @@ The session summary shows:
 **Example**: A 5-minute window ending at 10:05 AM will accept data timestamped before 10:05 AM until 10:06 AM (1-minute grace), then close permanently.
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Late event
     LateEvent[/"Late event<br/>timestamp 10:04"/]
@@ -630,9 +621,7 @@ graph LR
     Check -.->|"no: window closed"| Drop
 
     %% Styling
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Check,Accepted operation
     class LateEvent external

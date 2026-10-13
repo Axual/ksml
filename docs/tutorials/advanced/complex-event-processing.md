@@ -19,7 +19,7 @@ state store, and returns a result only when it recognizes a pattern. For all oth
 `filter` drops those:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(Input topic)]
@@ -41,11 +41,7 @@ graph LR
     Filter -.->|"None"| Drop
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
     class Input,Output topic
@@ -98,7 +94,7 @@ store keeps the progress for each key (session), and every event either moves th
 breaks it:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with six events for one session
     Topic[(pattern_events)]
@@ -131,12 +127,7 @@ graph TB
     Filter -.->|"None"| Drop
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Output topic
     class Detect,Filter operation
@@ -181,7 +172,7 @@ Temporal patterns add time constraints to event sequences. This example detects 
 - **Outputs results**: Only emits a message when both cart and checkout events are found, showing the time difference and classification
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Incoming event
     Event[/"Event for a user"/]
@@ -209,11 +200,7 @@ graph LR
     TimeCheck -->|"no"| Slow
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
     class Event state
@@ -260,7 +247,7 @@ as a table, so for each user it always holds the latest user activity. The diagr
 events through the pipeline:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% User activity, read as a table
     UserTopic[(user_events)]
@@ -306,12 +293,7 @@ graph TB
     Filter -->|"key: alice<br/>value: {pattern_type: FORM_ERROR_CORRELATION, status: CRITICAL, ...}"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class UserTopic,SystemTopic,Output topic
     class Join,Correlate,Filter operation
@@ -362,7 +344,7 @@ Anomaly detection identifies unusual patterns using statistical analysis.
 - **Outputs anomalies**: Only emits detection messages when statistical threshold is exceeded, showing z-score, mean, and severity level
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Incoming reading
     Reading[/"Sensor reading"/]
@@ -390,11 +372,7 @@ graph TB
     NoOutput --> Update
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
     class Reading state
@@ -437,7 +415,7 @@ A practical example combining multiple CEP techniques for real-time fraud detect
 - **Outputs alerts**: Only emits results when fraud score thresholds are met, showing detected patterns, risk factors, and recommended actions
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Incoming transaction
     Txn[/"Transaction for a card"/]
@@ -466,11 +444,7 @@ graph LR
     Score -.->|"below 30"| NoOutput
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
     classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
     class Txn state

@@ -5,6 +5,7 @@ site_description: Documentation for the KSML project
 site_dir: _site
 exclude_docs: |
   ksml-language-spec.md
+  snippets/
 theme:
   name: material
   features:

@@ -82,7 +82,7 @@ own grouping key and calculates one metric. The diagram below follows the four t
 (further down this page):
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example transactions
     Topic[(ecommerce_transactions)]
@@ -130,13 +130,7 @@ graph TB
     R --> Region
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Sales,Avg,Region topic
     class CKey,CAgg,AKey,AWin,AAgg,AAvg,RKey,RCount operation
@@ -161,10 +155,10 @@ they start at whole multiples of 10 seconds. The example producer writes a trans
 contains one or two transactions. Which transactions share a window depends on when the producer starts. The diagram
 below shows the windows from one test run:
 
-<div style="width: 80%; margin: 0 auto;" markdown>
+<div class="diagram-w80" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Windows
     subgraph W3["Window 13:58:00–13:58:10"]
@@ -193,13 +187,7 @@ graph TB
     W1 --> R1
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class T1,T2,T3,T4 message
     class R1,R2 result

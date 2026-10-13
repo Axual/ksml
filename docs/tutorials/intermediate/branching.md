@@ -69,7 +69,7 @@ Each message goes to **one** branch only: the first branch whose condition match
 top to bottom, and the default branch (a branch without `if`) catches everything that matched none of them:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     InputStream[(input_stream)]
@@ -95,8 +95,7 @@ graph LR
     Condition2 -->|"no: default branch"| DefaultOutput
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputStream,Output1,Output2,DefaultOutput topic
     class Via,Condition1,Condition2,Branch1 operation
@@ -139,7 +138,7 @@ This example demonstrates:
 - All other locations are routed to `unknown_sensors` topic
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     InputTopic[(sensor_input)]
@@ -161,8 +160,7 @@ graph LR
     Branch -.->|"default"| Unknown
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputTopic,DataCenter,Warehouse,Office,Unknown topic
     class LogLocation,Branch operation
@@ -207,7 +205,7 @@ Because the conditions are checked in order, a high-value order from a premium c
 even if it comes from an international region:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     InputTopic[(order_input)]
@@ -241,8 +239,7 @@ graph TB
     International --> InternationalOrders
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputTopic,PriorityOrders,RegionalOrders,InternationalOrders topic
     class LogOrder,IsPriority,IsRegional,IsInternational,Priority,Regional,International operation
@@ -279,7 +276,7 @@ The electronics branch has its own `branch` section that splits electronics by p
 default branch, so messages from any other category are dropped:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     InputStream[(input_stream)]
@@ -302,9 +299,7 @@ graph LR
     Category -.->|"other"| Drop[❌ Dropped]
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputStream,Expensive,Affordable,Clothing topic
     class Category,Enrich,Price operation

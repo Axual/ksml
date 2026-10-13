@@ -113,8 +113,31 @@
   }
 }
 
-/* Limit the size of Mermaid diagrams and center them */
+/* Vertical space around Mermaid diagrams */
 .md-typeset .mermaid {
-  max-width: 100%;
   margin: 1em auto;
+}
+
+/* Narrower, centered diagrams: <div class="diagram-w40" markdown> */
+.diagram-w40 { width: 40%; margin: 0 auto; }
+.diagram-w45 { width: 45%; margin: 0 auto; }
+.diagram-w50 { width: 50%; margin: 0 auto; }
+.diagram-w55 { width: 55%; margin: 0 auto; }
+.diagram-w60 { width: 60%; margin: 0 auto; }
+.diagram-w70 { width: 70%; margin: 0 auto; }
+.diagram-w75 { width: 75%; margin: 0 auto; }
+.diagram-w80 { width: 80%; margin: 0 auto; }
+
+/* Full width on small screens, so diagram text stays readable */
+@media screen and (max-width: 44.9375em) {
+  .diagram-w40,
+  .diagram-w45,
+  .diagram-w50,
+  .diagram-w55,
+  .diagram-w60,
+  .diagram-w70,
+  .diagram-w75,
+  .diagram-w80 {
+    width: 100%;
+  }
 }

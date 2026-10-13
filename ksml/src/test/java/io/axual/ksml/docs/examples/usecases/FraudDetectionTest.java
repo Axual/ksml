@@ -239,8 +239,8 @@ public class FraudDetectionTest {
 
         assertThat(locationAlert.get("alert_type").asString()).isEqualTo("unusual_location");
         assertThat(locationAlert.get("current_location").get("state").asString()).isEqualTo("NY");
-        // Verify risk score is calculated (value depends on location history state)
-        assertThat(locationAlert.get("risk_score").asInt()).isGreaterThan(0);
+        // Verify risk score (40 for a new state in a known country)
+        assertThat(locationAlert.get("risk_score").asInt()).isEqualTo(40);
     }
 
     /**

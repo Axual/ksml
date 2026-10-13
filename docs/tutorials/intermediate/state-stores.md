@@ -34,7 +34,7 @@ The diagram below shows where a state store lives and how the optional settings 
 local to the KSML application; the changelog topic in Kafka is its backup:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(Input topic)]
@@ -59,9 +59,7 @@ graph LR
     Changelog -.->|"restore after restart<br/>or moving to another instance"| Store
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Input,Output,Changelog topic
     class Operation operation
@@ -105,7 +103,7 @@ This example demonstrates:
 - **Changelog logging**: State changes are replicated to a Kafka changelog topic for fault tolerance and recovery (`logging: true`)
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(sensor_ownership_data<br/>key: sensor_id)]
@@ -135,9 +133,7 @@ graph LR
     Log --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Input,Output,Changelog topic
     class Group,Count,ToStream,Log operation
@@ -184,7 +180,7 @@ This example demonstrates:
 - **Caching enabled**: Improves performance by batching state updates (`caching: true`)
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Input[(sensor_ownership_data<br/>key: sensor_id)]
@@ -212,9 +208,7 @@ graph LR
     Log --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Input,Output topic
     class Group,Aggregate,ToStream,Log operation

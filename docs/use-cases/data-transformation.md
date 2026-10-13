@@ -121,7 +121,7 @@ The diagram below shows where each target field comes from. Most fields are copi
 segment details come from the reference table, and a few fields are generated:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Sources
     subgraph XML["Source XML"]
@@ -177,12 +177,7 @@ graph LR
     G3 --> T11
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class X1,X2,X3,X4,X5,X6,X7 message
     class R1,R2 topic
@@ -208,10 +203,10 @@ The pipeline changes the message key twice. It first uses the segment code as th
 with the `customer_segments` table, and then sets the key back to the customer ID. The diagram below follows one
 example customer through the pipeline:
 
-<div style="width: 50%; margin: 0 auto;" markdown>
+<div class="diagram-w50" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Input[(legacy_customer_data)]
@@ -251,12 +246,7 @@ graph TB
     M5 --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Input,Output,Table topic
     class Rekey1,Join,Transform,Rekey2 operation

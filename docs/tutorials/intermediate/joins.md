@@ -149,7 +149,7 @@ Track user shopping behavior by correlating clicks and purchases within a 30-min
 - **Outputs correlations**: Returns JSON showing both events with conversion analysis (did click lead to purchase, what products involved)
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input streams
     Clicks[(product_clicks<br/>key: user_id)]
@@ -173,9 +173,7 @@ graph LR
     Join -->|"click + purchase"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Clicks,Purchases,Output topic
     class Join operation
@@ -186,7 +184,7 @@ The diagram below follows example clicks and purchases through the join. A click
 they have the same key (user) **and** happened at most 30 minutes apart. Everything else produces no output:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topics
     ClickTopic[(product_clicks)]
@@ -216,11 +214,7 @@ graph TB
     User1 -->|"key: user1<br/>value: {click: {...}, purchase: {...},<br/>converted: true, conversion_time_ms: 720000}"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class ClickTopic,PurchaseTopic,Output topic
     class Join operation
@@ -274,7 +268,7 @@ The diagram shows how the message key changes along the pipeline, so that each o
 customer table:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Orders[(new_orders<br/>key: order_id)]
@@ -296,8 +290,7 @@ graph LR
     Restore -->|"key: order_id"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Orders,Customers,Output topic
     class Rekey,Join,Restore operation
@@ -308,7 +301,7 @@ in the customer table, and rekeyed back. Because this is an inner join, an order
 yet produces no output:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input stream and table
     OrderTopic[(new_orders)]
@@ -345,11 +338,7 @@ graph TB
     Restore -->|"key: ORD0001<br/>value: {order_id: ORD0001, ...,<br/>customer: {name: Alice Johnson, ...}}"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class OrderTopic,CustomerTopic,Output topic
     class Rekey,Join,Restore operation
@@ -405,7 +394,7 @@ Unlike the stream-table join above, there is no rekeying: the order keeps its ke
 join which product to look up:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Orders[(new_orders<br/>key: order_id)]
@@ -424,8 +413,7 @@ graph LR
     Join -->|"order + product"| Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Orders,Products,Output topic
     class Join operation
@@ -435,7 +423,7 @@ The diagram below follows two example orders through the join. The order keeps i
 `product_id` used for the lookup, and the `valueJoiner` adds the product details and computes the total price:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input stream and global table
     OrderTopic[(new_orders)]
@@ -465,11 +453,7 @@ graph TB
     Order2 --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class OrderTopic,ProductTopic,Output topic
     class Join operation
@@ -544,7 +528,7 @@ The diagram below follows three example activities through the left join. `user0
 an inner join, its activity is still written to the output, with `UNKNOWN` location values:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input stream and table
     ActivityTopic[(user_activity_events)]
@@ -575,13 +559,8 @@ graph TB
     User1 & User2 --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
 
     class ActivityTopic,LocationTopic,Output topic
     class Join operation
@@ -637,7 +616,7 @@ at most 10 minutes apart become one `COMPLETE` session. Unlike an inner join, ev
 they produce a `LOGIN_ONLY` or `LOGOUT_ONLY` result once the time window (plus grace period) has passed:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topics
     LoginTopic[(user_login_events)]
@@ -669,13 +648,8 @@ graph TB
     Bob & Frank --> Output
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
 
     class LoginTopic,LogoutTopic,Output topic
     class Join operation

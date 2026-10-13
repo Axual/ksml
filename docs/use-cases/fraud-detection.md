@@ -98,7 +98,7 @@ scoring pipelines then read those topics, calculate a final risk score, and writ
 pattern recognition, machine learning and alerting definitions further down this page also use `fraud_alerts`:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Input
     Tx[(credit_card_transactions)]
@@ -141,13 +141,7 @@ graph LR
     Notify -.-> Notifications
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Tx,HVT,LocT,VelT,Alerts,Notifications topic
     class HV,Loc,Vel,Score operation
@@ -161,7 +155,7 @@ The diagram below follows one card through the basic definition. The card first 
 30 minutes later, it pays 1,499.00 in a store in New York:
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Topic[(credit_card_transactions)]
@@ -203,13 +197,7 @@ graph TB
     R2 --> Alerts
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Topic,Alerts topic
     class Score operation
@@ -247,10 +235,8 @@ The pattern detector looks for a "test then charge" pattern: a small transaction
 30 minutes by a transaction of more than 100. Fraudsters often test a stolen card with a small amount first. The
 diagram below follows three transactions of one card:
 
-<div style="width: 100%; margin: 0 auto;" markdown>
-
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Transactions of one card
     T1["<b>09:00</b><br/>45.00"]
@@ -266,13 +252,7 @@ graph LR
     Alert -->|"via transaction_pattern_alerts<br/>and scoring"| Alerts
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class T1 message
     class T2 partial
@@ -280,8 +260,6 @@ graph LR
     class Alert result
     class Alerts topic
 ```
-
-</div>
 
 The card's recent transactions (last 24 hours) are kept in the `card_pattern_history` store. The pattern alert keeps the
 merchant and transaction type, so the scoring step can add points for online and high-risk transactions.
@@ -302,10 +280,10 @@ For more advanced fraud detection, you can integrate machine learning models:
 The example replaces a real model with simple rules: every risk feature adds points, and a transaction with more than
 60 points is written to `fraud_alerts`. The diagram below scores one example transaction:
 
-<div style="width: 45%; margin: 0 auto;" markdown>
+<div class="diagram-w45" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Tx@{ shape: doc, label: "<b>tx-123457</b><br/>1,499.00, electronics, Germany<br/>online, 23:15 UTC" }
@@ -325,13 +303,7 @@ graph TB
     Filter -->|"70 > 60"| Alerts
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Tx message
     class Features operation
@@ -359,10 +331,10 @@ To make your fraud detection system actionable, you need to generate alerts:
 The alerting pipeline turns every alert with a `final_risk_score` above 30 into a notification, with an alert level and
 a recommended action:
 
-<div style="width: 70%; margin: 0 auto;" markdown>
+<div class="diagram-w70" markdown>
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
     Alerts[(fraud_alerts)]
@@ -386,13 +358,7 @@ graph TB
     Low --> Out
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
-    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
-    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Alerts,Out topic
     class Filter,Gen operation

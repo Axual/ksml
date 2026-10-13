@@ -74,7 +74,7 @@ moves data from one stream to another through a series of **operations**, and op
 **functions**. The diagram below shows how they fit together, using the example definitions from this section.
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Streams
     InputStream[(Stream<br/><code>my_input_stream</code>)]
@@ -97,9 +97,7 @@ graph LR
     Functions -.->|"called by"| MapValues
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class InputStream,OutputStream topic
     class Filter,MapValues operation
@@ -159,7 +157,7 @@ When you run a KSML definition, the KSML runner:
 3. Executes the topology using the Kafka Streams runtime
 
 ```mermaid
-%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+--8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Your files
     Definition[KSML definition<br/>YAML + Python]
@@ -183,9 +181,7 @@ graph LR
     Execute <-->|"consume & produce"| Kafka
 
     %% Styling
-    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef external fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    --8<-- "snippets/mermaid-classes.txt"
 
     class Kafka topic
     class Parse,Translate,Execute operation
