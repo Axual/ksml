@@ -23,30 +23,30 @@ functions:
       
         # Check if temperature data exists and has a value
         if 'temperature' not in sensors or 'value' not in sensors['temperature']:
-          print(f"Missing temperature data in message: {value}")
+          log.warn("Missing temperature data in message: {}", value)
           result = False
         elif 'humidity' not in sensors or 'value' not in sensors['humidity']:
-          print(f"Missing humidity data in message: {value}")
+          log.warn("Missing humidity data in message: {}", value)
           result = False
         elif 'timestamp' not in metadata:
-          print(f"Missing timestamp in message: {value}")
+          log.warn("Missing timestamp in message: {}", value)
           result = False
         else:
           # Validate temperature range
           temp_value = sensors['temperature']['value']
           if not isinstance(temp_value, (int, float)) or temp_value < -100 or temp_value > 200:
-            print(f"Invalid temperature value: {temp_value}")
+            log.warn("Invalid temperature value: {}", temp_value)
             result = False
           else:
             # Validate humidity range
             humidity_value = sensors['humidity']['value']
             if not isinstance(humidity_value, (int, float)) or humidity_value < 0 or humidity_value > 100:
-              print(f"Invalid humidity value: {humidity_value}")
+              log.warn("Invalid humidity value: {}", humidity_value)
               result = False
             else:
               result = True
       except Exception as e:
-        print(f"Error validating sensor data: {str(e)} - Message: {value}")
+        log.error("Error validating sensor data: {} - Message: {}", str(e), value)
         result = False
     expression: result
     resultType: boolean
@@ -69,8 +69,8 @@ functions:
         # Get humidity
         humidity = sensors.get('humidity', {}).get('value', 0)
       
-        # Calculate heat index (simplified formula)
-        heat_index = temp_c * 1.8 + 32 - 0.55 * (1 - humidity / 100)
+        # Calculate heat index in F (simplified formula)
+        heat_index = temp_f - 0.55 * (1 - humidity / 100) * (temp_f - 58)
       
         # Get location
         location = sensors.get('location', {}).get('value', 'unknown')
@@ -118,7 +118,7 @@ functions:
       temp = readings.get('temperature', {}).get('celsius')
       humidity = readings.get('humidity')
       sensor_id = value.get('sensor_id')
-      print(f"Processed sensor data for {sensor_id}: temp={temp}C, humidity={humidity}%")
+      log.info("Processed sensor data for {}: temp={}C, humidity={}%", sensor_id, temp, humidity)
 
 pipelines:
   process_sensor_data:

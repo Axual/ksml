@@ -92,9 +92,7 @@ Our IoT sensor data will have the following structure:
 
 ## Overview of the Definitions
 
-This guide contains five KSML definitions and a sample data generator. All definitions read the same
-`iot_sensor_readings` topic, and each one writes its results to its own output topic. The edge and cloud definitions
-are chained through `edge_processed_readings`:
+This guide contains five KSML definitions and a sample data generator. Four definitions read `iot_sensor_readings`. The cloud definition reads `edge_processed_readings`, which the edge definition writes:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -142,9 +140,7 @@ graph LR
     class Generator external
 ```
 
-The sample generator cycles through three rooms (`conference-a`, `conference-b`, `conference-c`) and two device types
-(`temperature_sensor`, `energy_meter`), so there are six devices, such as `temperature_sensor-conference-a`. Every
-reading contains a temperature, a humidity and an energy value, whatever the device type.
+The sample generator cycles through three rooms (`conference-a`, `conference-b`, `conference-c`) and two device types (`temperature_sensor`, `energy_meter`), so there are six devices, such as `temperature_sensor-conference-a`. Every reading contains a temperature, a humidity and an energy value, whatever the device type.
 
 ## Creating the KSML Definition
 
@@ -219,9 +215,7 @@ graph TB
     style E fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The temperature check applies to all device types, not only to temperature sensors. Temperatures between 30 and 35 (or
-between 5 and 10) create a `warning` alert; further out of range, the alert is `critical`. All rooms in the sample data
-are on floor 3 of the same building, so the energy aggregation has a single key, `headquarters-3`.
+The temperature check applies to all device types, not only to temperature sensors. Temperatures between 30 and 35 (or between 5 and 10) create a `warning` alert; further out of range, the alert is `critical`. All rooms in the sample data are on floor 3 of the same building, so the energy aggregation has a single key, `headquarters-3`.
 
 ## Processing Geospatial Data
 
@@ -234,9 +228,7 @@ IoT applications often involve geospatial data processing. Here's how to handle 
     ```
 
 
-The pipeline adds the distance between the device and a fixed reference point (latitude 52.0903, longitude 5.1063)
-to every reading, and only keeps readings from devices within 100 meters of that point. The diagram below follows readings
-from two rooms:
+The pipeline adds the distance between the device and a fixed reference point (latitude 52.0903, longitude 5.1063) to every reading, and only keeps readings from devices within 100 meters of that point. The diagram below follows readings from two rooms:
 
 <div class="diagram-w50" markdown>
 
@@ -279,8 +271,7 @@ graph TB
 
 </div>
 
-The sample data generator places the three rooms about 60, 200 and 440 meters from the reference point, so only the
-readings from `conference-a` are written to `proximity_alerts`.
+The sample data generator places the three rooms about 60, 200 and 440 meters from the reference point, so only the readings from `conference-a` are written to `proximity_alerts`.
 
 ## Implementing Device State Tracking
 
@@ -293,8 +284,7 @@ For many IoT applications, tracking device state over time is crucial. Here's ho
     ```
 
 
-The function keeps the last state of every device in `device_state_store`. From the second reading on, it compares the
-new reading with the stored one. The diagram below follows two readings of one device, 6 seconds apart:
+The function keeps the last state of every device in `device_state_store`. From the second reading on, it compares the new reading with the stored one. The diagram below follows two readings of one device, 6 seconds apart:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -328,7 +318,7 @@ graph TB
     class Function operation
     class Events,Step1 message
     class Step2 result
-    class Store external
+    class Store store
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
@@ -338,8 +328,7 @@ IoT architectures often involve processing at the edge before sending data to th
 
 ### Edge Processing
 
-At the edge, you might want to reduce the amount of data before sending it to the cloud. This example only forwards
-temperatures outside the comfortable range, and shortens the payload:
+At the edge, you might want to reduce the amount of data before sending it to the cloud. This example only forwards temperatures outside the comfortable range, and shortens the payload:
 
 ??? info "Edge processing pipeline (click to expand)"
 
@@ -358,8 +347,7 @@ In the cloud, you can perform more complex analytics and aggregations:
     ```
 
 
-The edge definition writes a small payload to `edge_processed_readings`, and the cloud definition reads it from there.
-The diagram below follows one reading through both definitions:
+The edge definition writes a small payload to `edge_processed_readings`, and the cloud definition reads it from there. The diagram below follows one reading through both definitions:
 
 <div class="diagram-w60" markdown>
 
@@ -417,9 +405,7 @@ graph TB
 
 </div>
 
-The sample data generator produces temperatures between 19 and 24, and an out-of-range value (4.0, 8.0, 32.0 or 36.0)
-every 50th reading. Only those values pass the edge filter, so `room_temperature_stats` gets a new result about once every
-50 seconds.
+The sample data generator produces temperatures between 19 and 24, and an out-of-range value (4.0, 8.0, 32.0 or 36.0) every 50th reading. Only those values pass the edge filter, so `room_temperature_stats` gets a new result about once every 50 seconds.
 
 ## Testing and Validation
 

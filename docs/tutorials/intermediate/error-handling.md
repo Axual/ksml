@@ -99,7 +99,6 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Valid topic
     class LogIn,Branch,AddStatus,LogValid,AddError,LogInvalid operation
@@ -156,15 +155,13 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Processed topic
     class Process,Log,Branch operation
     class Errors errorTopic
 ```
 
-The exception never leaves the function: instead of crashing the pipeline, the function returns a normal message with
-`status: "error"`, and the `branch` decides where it goes.
+The exception never leaves the function: instead of crashing the pipeline, the function returns a normal message with `status: "error"`, and the `branch` decides where it goes.
 
 ### 3. Dead Letter Queue Pattern
 
@@ -185,7 +182,7 @@ Route messages that cannot be processed to dedicated error topics for later anal
 **What it does:**
 
 - **Produces payment requests**: Creates payment events with varying scenarios - some successful, some with insufficient funds, some with invalid cards, some with network issues
-- **Simulates processing**: Mock payment processing with different failure types - permanent (invalid_card, insufficient_funds) vs transient (network_error, timeout)
+- **Simulates processing**: Mock payment processing with different failure types - permanent (malformed_request, invalid_amount, missing_required_fields, unsupported_currency) vs temporary (network_timeout)
 - **Classifies errors**: Determines retry eligibility based on error type - network/timeout errors are retryable, invalid card/insufficient funds are permanent
 - **Enriches with context**: Adds processing metadata, error classification, retry recommendations, original request data to failed messages
 - **Routes by result**: Uses branch to send successful payments to processed_payments, failures to failed_payments topic with full error context
@@ -215,15 +212,13 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Processed topic
     class Process,Log,Branch operation
     class Failed errorTopic
 ```
 
-Every failed payment ends up in the same dead letter queue, but the `retry_eligible` field tells a later consumer
-which messages are worth sending again.
+Every failed payment ends up in the same dead letter queue, but the `retry_eligible` field tells a later consumer which messages are worth sending again.
 
 ### 4. Retry Strategies with Exponential Backoff
 
@@ -245,7 +240,7 @@ Implement sophisticated retry logic for transient failures with exponential back
 
 - **Produces API operations**: Creates operations (fetch_user, update_profile, delete_account) with deliberate failures for some operations to test retry logic
 - **Simulates API calls**: Mock external API with different failure scenarios (timeout, rate_limit, server_error) and success cases  
-- **Implements retry logic**: Calculates exponential backoff delays (1s, 2s, 4s, 8s) with added jitter to prevent retry storms
+- **Implements retry logic**: Calculates exponential backoff delays (1s, 2s, 4s) with added jitter to prevent retry storms
 - **Tracks attempts**: Maintains retry count, determines retry eligibility based on error type and max attempts (3), stores original operation data
 - **Routes by outcome**: Successful operations go to successful_operations, failed/exhausted retries go to failed_operations with retry history
 
@@ -285,18 +280,14 @@ graph TB
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
-    classDef outcome fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
     class Input,Succeeded topic
     class Process,Decide,Retryable,Branch operation
-    class Success,SuccessRetry,RetryNeeded,Permanent outcome
+    class Success,SuccessRetry,RetryNeeded,Permanent message
     class Failed errorTopic
 ```
 
-Note that this example only **decides** whether an operation should be retried and calculates the delay: it simulates
-the outcome of a retry within the same function call. Messages with `status: retry_needed` are written to
-`failed_operations` together with their `retry_count` and `backoff_delay`, and are not sent through the pipeline again.
+Note that this example only **decides** whether an operation should be retried and calculates the delay: it simulates the outcome of a retry within the same function call. Messages with `status: retry_needed` are written to `failed_operations` together with their `retry_count` and `backoff_delay`, and are not sent through the pipeline again.
 
 ### 5. Circuit Breaker Pattern
 
@@ -318,12 +309,11 @@ Prevent cascading failures by temporarily stopping calls to failing services, al
 
 - **Produces service requests**: Creates requests with request_ids, some designed to fail to trigger circuit breaker state changes  
 - **Tracks circuit state**: Uses global variables (failure_count, circuit_state) to maintain CLOSED/OPEN/HALF_OPEN states across all requests
-- **Opens on failures**: After 3 consecutive failures, circuit transitions from CLOSED to OPEN state to protect failing service
+- **Opens on failures**: After 3 failures, circuit transitions from CLOSED to OPEN state to protect failing service
 - **Rejects when open**: In OPEN state, immediately returns circuit_open status without attempting processing, showing current failure count
 - **Processes requests**: In CLOSED state, simulates service calls with success/failure scenarios, updating failure counter and circuit state accordingly
 
-The circuit breaker is a state machine that is shared by all requests. The diagram below shows its states and the
-events that move it from one state to another:
+The circuit breaker is a state machine that is shared by all requests. The diagram below shows its states and the events that move it from one state to another:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -380,7 +370,6 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef errorTopic fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
 
     class Input,Responses topic
     class Handler,Log,Branch operation

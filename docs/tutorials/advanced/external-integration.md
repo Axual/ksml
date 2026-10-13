@@ -28,8 +28,7 @@ Before starting this tutorial:
 ## Integration Patterns
 
 
-The examples below show three ways to bring external data into a stream. They differ in when the external system is
-contacted and who waits for it:
+The examples below show three ways to bring external data into a stream. They differ in when the external system is contacted and who waits for it:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -61,7 +60,8 @@ graph LR
 
     class A1,A4,B1,B4,C1,C3,C5 topic
     class A2,B2,C2 operation
-    class A3,B0,B3,C4 external
+    class A3,B0,C4 external
+    class B3 store
     style API fill:none,stroke:#616161,stroke-dasharray:5 5
     style DB fill:none,stroke:#616161,stroke-dasharray:5 5
     style ASYNC fill:none,stroke:#616161,stroke-dasharray:5 5
@@ -187,8 +187,7 @@ Imagine you have an e-commerce website. Users view products, add them to cart, a
 
 This way you get rich product information without hitting a database for every single event.
 
-The diagram below follows three example events. The first event also triggers loading the catalog into the state
-store; after that, every event is enriched with a local lookup:
+The diagram below follows three example events. The first event also triggers loading the catalog into the state store; after that, every event is enriched with a local lookup:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -231,7 +230,8 @@ graph TB
     class Topic,Output topic
     class Load,Function,Filter operation
     class Events message
-    class Catalog,Store external
+    class Catalog external
+    class Store store
     class Step1,Step2,Step3 result
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
@@ -264,12 +264,10 @@ The async integration pattern uses separate Kafka topics for communication with 
 - **Produces order events**: Creates orders with status (created, paid, shipped) containing customer info, amounts, payment methods, business context
 - **Filters paid orders**: Only processes orders with status="paid", creates external payment processing requests with correlation IDs
 - **Sends to request topic**: Outputs JSON payment requests to external_requests topic with order details, customer tier, processing priority
-- **Processes responses**: Reads responses from external_responses topic, matches by correlation_id, handles success/failure scenarios
+- **Simulates responses**: A second pipeline reads the requests, simulates a payment result, and writes it to `external_responses`
 - **Outputs results**: Returns JSON combining original order with external processing results, transaction IDs, and follow-up actions
 
-The example runs two pipelines. The first one (`external_request_pipeline`) turns paid orders into payment requests.
-The second one (`external_response_pipeline`) stands in for the external payment system: it reads the requests, simulates a payment result and writes the responses. The diagram
-below follows four example orders:
+The example runs two pipelines. The first one (`external_request_pipeline`) turns paid orders into payment requests. The second one (`external_response_pipeline`) stands in for the external payment system: it reads the requests, simulates a payment result and writes the responses. The diagram below follows four example orders:
 
 <div class="diagram-w55" markdown>
 
@@ -321,8 +319,7 @@ graph TB
 
 </div>
 
-Both pipelines keep the request key (`REQ_...`), and each response carries the `correlation_id` of its order. In a real
-setup, the second pipeline is replaced by the external system, and another KSML pipeline reads `external_responses`.
+Both pipelines keep the request key (`REQ_...`), and each response carries the `correlation_id` of its order. In a real setup, the second pipeline is replaced by the external system, and another KSML pipeline reads `external_responses`.
 
 
 **Key concepts demonstrated:**

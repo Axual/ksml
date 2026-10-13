@@ -14,9 +14,7 @@ Key capabilities of CEP in KSML:
 - **Anomaly detection**: Identify unusual patterns or deviations
 - **Stateful processing**: Maintain context across multiple events
 
-Most examples in this tutorial share the same pipeline shape. A Python function remembers what it has seen so far in a
-state store, and returns a result only when it recognizes a pattern. For all other events it returns `None`, and a
-`filter` drops those:
+Most examples in this tutorial share the same pipeline shape. A Python function remembers what it has seen so far in a state store, and returns a result only when it recognizes a pattern. For all other events it returns `None`, and a `filter` drops those:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -42,16 +40,14 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
     class Input,Output topic
     class Detect,Filter operation
-    class Store external
+    class Store store
     class Drop dropped
 ```
 
-The sections below show, for each example, what the detection function keeps in its state store and when it returns
-a result.
+The sections below show, for each example, what the detection function keeps in its state store and when it returns a result.
 
 ## Prerequisites
 
@@ -89,16 +85,14 @@ Pattern detection identifies specific sequences of events within a stream. This 
 - **Outputs results**: Only emits a detection message when the complete pattern A→B→C is found, otherwise filters out partial matches
 - **Resets state**: Clears the pattern tracking after successful detection or if the sequence breaks (e.g., gets A→D instead of A→B)
 
-The diagram below follows six example events for the same session through the pipeline. The `pattern_tracker`
-store keeps the progress for each key (session), and every event either moves the pattern forward, starts it over, or
-breaks it:
+The diagram below follows an example sequence of six events for the same session through the pipeline (the producer sends its own sequence). The `pattern_tracker` store keeps the progress for each key (session), and every event either moves the pattern forward, starts it over, or breaks it:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with six events for one session
     Topic[(pattern_events)]
-    Events@{ shape: docs, label: "<b>key: session_001</b> (all six events)<br/>evt_0001: A, evt_0002: B, evt_0003: D,<br/>evt_0004: A, evt_0005: B, evt_0006: C" }
+    Events@{ shape: docs, label: "<b>key: session_001</b> (all six events)<br/>A, B, D, A, B, C" }
 
     %% detect_abc_pattern, one event at a time
     Detect["<code>mapValues</code><br/>detect_abc_pattern"]
@@ -123,7 +117,7 @@ graph TB
     Events --> Detect
     Detect --> Steps
     Steps --> Filter
-    Filter -->|"key: session_001<br/>value: {pattern_type: ABC_SEQUENCE, status: DETECTED,<br/>completing_event: {event_id: evt_0006, event_type: C, ...}, ...}"| Output
+    Filter -->|"key: session_001<br/>value: {pattern_type: ABC_SEQUENCE, status: DETECTED,<br/>completing_event: {event_type: C, ...}, ...}"| Output
     Filter -.->|"None"| Drop
 
     %% Styling
@@ -138,8 +132,7 @@ graph TB
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-Out of six events, only the `C` that completes `A → B → C` produces an output message. Event `D` breaks the first
-attempt, so the pattern has to start again from `A`.
+Out of six events, only the `C` that completes `A → B → C` produces an output message. Event `D` breaks the first attempt, so the pattern has to start again from `A`.
 
 ??? info "Pattern Events Producer - click to expand"
 
@@ -201,9 +194,8 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
-    class Event state
+    class Event message
     class Action,HasCart,TimeCheck,SaveCart operation
     class Quick external
     class Slow partial
@@ -242,9 +234,7 @@ Event correlation combines related events from different streams to provide enri
 - **Measures timing**: Calculates milliseconds between user action and system response to determine correlation strength (HIGH/MEDIUM)
 - **Outputs correlations**: Only emits results when it finds the specific patterns, showing both events with timing analysis and relationship details
 
-Unlike the other examples, this pipeline uses a join instead of its own state store. The `user_events` topic is read
-as a table, so for each user it always holds the latest user activity. The diagram below follows three example system
-events through the pipeline:
+Unlike the other examples, this pipeline uses a join instead of its own state store. The `user_events` topic is read as a table, so for each user it always holds the latest user activity. The diagram below follows three example system events through the pipeline:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -304,8 +294,7 @@ graph TB
     style Results fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The `correlate_events` function only reports three combinations of user activity and system event. The correlation
-strength depends on how soon the system event followed the user activity:
+The `correlate_events` function only reports three combinations of user activity and system event. The correlation strength depends on how soon the system event followed the user activity:
 
 | User activity | System event | Pattern type             | Status   | HIGH strength if within |
 |---------------|--------------|--------------------------|----------|-------------------------|
@@ -373,16 +362,14 @@ graph TB
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
-    class Reading state
+    class Reading message
     class Stats,Enough,ZScore,Outlier,Update operation
     class Anomaly partial
     class NoOutput dropped
 ```
 
-Every reading, including an anomaly, is added to the statistics afterwards, so the mean and standard deviation keep
-adapting to the sensor.
+Every reading, including an anomaly, is added to the statistics afterwards, so the mean and standard deviation keep adapting to the sensor.
 
 ??? info "Metrics Producer (with occasional anomalies) - click to expand"
 
@@ -445,18 +432,16 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef state fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
 
-    class Txn state
+    class Txn message
     class History,Amount,Rapid,Location,Merchant,Score operation
-    class Alert dropped
+    class Alert alert
     class Suspicious partial
-    class NoOutput state
+    class NoOutput message
     style Checks fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-After the checks, the transaction's location and time are stored as the new "last" values for the card, whatever the
-score.
+After the checks, the transaction's location and time are stored as the new "last" values for the card, whatever the score.
 
 ??? info "Credit Card Transactions Producer - click to expand"
 

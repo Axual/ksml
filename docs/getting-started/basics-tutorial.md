@@ -15,8 +15,6 @@ In this tutorial, you'll build a simple data pipeline that:
 
 Here's a visual representation of what we'll build:
 
-<div class="diagram-w40" markdown>
-
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph TB
@@ -49,8 +47,6 @@ graph TB
     class Drop dropped
 ```
 
-</div>
-
 ## Prerequisites
 
 Before you begin, make sure you have:
@@ -82,8 +78,7 @@ A KSML definition file consists of three main sections:
 2. **Functions**: Define reusable code snippets
 3. **Pipelines**: Define the data processing flow
 
-The pipeline ties the other two sections together: it refers to streams and functions by their names. The diagram
-below shows how the pipeline in this tutorial uses the streams and functions you'll define in the next steps.
+The pipeline ties the other two sections together: it refers to streams and functions by their names. The diagram below shows how the pipeline in this tutorial uses the streams and functions you'll define in the next steps.
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -412,19 +407,17 @@ With both definitions loaded, the KSML runner now produces the test data and pro
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
-graph LR
-    %% KSML runner definitions
-    subgraph Runner["KSML runner"]
-        Producer[<code>temperature_producer</code><br/>producer.yaml]
-        Pipeline[<code>tutorial_pipeline</code><br/>tutorial.yaml]
-    end
+graph TB
+    %% Definitions run by the KSML runner
+    Producer[<code>temperature_producer</code><br/>producer.yaml]
+    Pipeline[<code>tutorial_pipeline</code><br/>tutorial.yaml]
 
     %% Topics
     InputTopic[(temperature_data)]
     OutputTopic[(temperature_data_converted)]
 
     %% Data Flow
-    Producer -->|"Writes a random temperature every 3s"| InputTopic
+    Producer -->|"writes a random<br/>temperature every 3s"| InputTopic
     InputTopic --> Pipeline
     Pipeline -->|"Filtered & converted"| OutputTopic
 

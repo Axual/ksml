@@ -15,9 +15,7 @@ All with just YAML configuration and clear Python logic.
 
 ## What Runs Locally
 
-The examples run on your machine using Docker Compose. A single `docker compose up -d` starts a small Kafka environment
-with KSML connected to it. All containers share one Docker network, so they reach the Kafka broker by its name
-(`broker:9093`), while you reach it from your machine through `localhost`.
+The examples run on your machine using Docker Compose. A single `docker compose up -d` starts a small Kafka environment with KSML connected to it. All containers share one Docker network, so they reach the Kafka broker by its name (`broker:9093`), while you reach it from your machine through `localhost`.
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -31,7 +29,7 @@ graph LR
         Setup[<code>kafka-setup</code><br/>creates topics, then exits]
         Broker[(<code>broker</code><br/>Apache Kafka)]
         KSML[<code>ksml</code><br/>KSML runner]
-        UI[<code>kowl</code><br/>Kafka UI]
+        UI[<code>kafka-ui</code><br/>Kafka UI]
     end
 
     %% Connections
@@ -44,18 +42,12 @@ graph LR
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
 
     class Broker topic
     class KSML operation
     class Setup,UI external
     class You,Examples host
 ```
-
-- **broker**: a single Kafka broker that stores the topics your pipeline reads from and writes to
-- **kafka-setup**: a short-lived container that creates the topics used in this guide and then exits
-- **ksml**: the KSML runner, which loads the definitions from your local `examples` folder and runs your pipeline
-- **kowl**: a web UI at [http://localhost:8080](http://localhost:8080) for browsing topics and messages
 
 ## Prerequisites
 

@@ -10,8 +10,6 @@ Simply define your data processing pipelines in easy-to-read YAML files and writ
 
 Whether you're filtering data, transforming events, performing aggregations, or building real-time analytics, KSML lets you focus on your business logic without worrying about Java code, compilation, or complex build pipelines.
 
-<div class="diagram-w70" markdown>
-
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph LR
@@ -37,8 +35,6 @@ graph LR
     class KSML operation
     class Definition external
 ```
-
-</div>
 
 ## 1. Getting Started
 - [Quick Start](getting-started/quick-start.md)

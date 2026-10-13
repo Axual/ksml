@@ -38,9 +38,7 @@ Before starting this tutorial:
 
 ## Core Aggregation Concepts
 
-Every aggregation in KSML follows the same flow: group the messages by key, optionally split them into time windows,
-and then aggregate them. The aggregation keeps its running result in a state store and emits an updated result for
-each change, which you turn back into a stream with `toStream` to write it to a topic:
+Every aggregation in KSML follows the same flow: group the messages by key, optionally split them into time windows, and then aggregate them. The aggregation keeps its running result in a state store and emits an updated result for each change. If the store caches updates, the topic only gets the latest result at each commit (by default every 30 seconds). You turn the results back into a stream with `toStream` to write them to a topic:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -76,7 +74,7 @@ graph LR
 
     class InputTopic,OutputTopic,Changelog topic
     class Group,Window,Aggregate,ToStream operation
-    class Store external
+    class Store store
 ```
 
 ### Grouping Requirements
@@ -246,8 +244,7 @@ The count operation:
 3. Increments the counter for each message
 4. Outputs the current count as a KTable
 
-The diagram below follows five example actions through the pipeline. Unlike a windowed count, the count for a user
-never resets: every new action updates the stored count and emits the new value:
+The diagram below follows five example actions through the pipeline. Unlike a windowed count, the count for a user never resets: every new action updates the stored count. This store caches updates, so the topic gets the latest count about every 30 seconds:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -266,8 +263,8 @@ graph TB
     %% Step 2: running count per key
     Count[<code>count</code>]
     subgraph Counts["Running count per key, updated with every action"]
-        AliceCount["<b>alice</b><br/>emits 1, then 2, then 3"]
-        BobCount["<b>bob</b><br/>emits 1, then 2"]
+        AliceCount["<b>alice</b><br/>count 1, then 2, then 3"]
+        BobCount["<b>bob</b><br/>count 1, then 2"]
     end
 
     %% Step 3: write to the output topic
@@ -315,8 +312,7 @@ This example demonstrates the core reduce concept with minimal complexity, using
 - `reduce` operation for stateful aggregation
 - Binary data types for processing efficiency
 
-The diagram below follows four example transactions (amounts in cents) through the pipeline. The reducer has no
-initial value: the first amount for an account is stored as is, and every next amount is added to it:
+The diagram below follows four example transactions (amounts in cents) through the pipeline. The reducer has no initial value: the first amount for an account is stored as is, and every next amount is added to it:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -363,8 +359,7 @@ graph TB
     style Totals fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The JSON version below works the same way, with one `transformValue` before grouping to extract `amount_cents` from
-each message, and one after `toStream` to format the total as JSON.
+The JSON version below works the same way, with one `transformValue` before grouping to extract `amount_cents` from each message, and one after `toStream` to format the total as JSON.
 
 ??? info "Simple producer (binary long values) - click to expand"
 
@@ -494,8 +489,7 @@ This example shows advanced aggregation with comprehensive statistics using JSON
 4. **Calculates average**: Dynamically computes the average amount per customer
 5. **Outputs comprehensive stats**: Produces JSON messages with complete payment statistics
 
-The diagram below follows four example payments through the pipeline. The initializer creates an empty statistics
-object for each new account, and the aggregator updates all fields with every payment:
+The diagram below follows four example payments through the pipeline. The initializer creates an empty statistics object for each new account, and the aggregator updates all fields with every payment:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -562,8 +556,7 @@ Both approaches demonstrate the flexibility of the `aggregate` operation. The si
 2. **Aggregator**: Updates state with each new value
 3. **Result**: Continuously updated aggregate in state store
 
-The diagram below shows how this works for the simple sum example, with three payments arriving for the same customer.
-The initializer runs once for the first payment, and every payment after that updates the stored total and emits it:
+The diagram below shows how this works for the simple sum example, with three payments arriving for the same customer. The initializer runs once for the first payment, and every payment after that updates the stored total and emits it:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -665,8 +658,7 @@ This example demonstrates windowed aggregation by calculating temperature statis
 - Transforming WindowedString keys using `map` with `keyValueMapper`
 - Complex aggregation state using JSON
 
-The diagram below follows four example readings through the pipeline. Each sensor's readings are split into
-30-second windows, and every window gets its own statistics:
+The diagram below follows four example readings through the pipeline. Each sensor's readings are split into 30-second windows, and every window gets its own statistics. Every reading sends updated statistics for its window, and the diagram shows the last one:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -692,7 +684,7 @@ graph TB
 
     %% Step 3: statistics per key and window
     Aggregate["<code>aggregate</code><br/>init_stats + update_stats"]
-    subgraph Stats["One result per key and window"]
+    subgraph Stats["Latest result per key and window"]
         Temp1W1Stats["<b>temp001</b> 18:58:00 to 18:58:30<br/>count 2, avg 25.4, min 24.5, max 26.3"]
         Temp1W2Stats["<b>temp001</b> 18:58:30 to 18:59:00<br/>count 1, avg 22.7, min 22.7, max 22.7"]
         Temp2W1Stats["<b>temp002</b> 18:58:00 to 18:58:30<br/>count 1, avg 31.2, min 31.2, max 31.2"]
@@ -858,7 +850,7 @@ graph LR
 
     class StreamA,StreamB,StreamC,OutputTopic topic
     class GroupA,GroupB,GroupC,Cogroup,Aggregate operation
-    class Store external
+    class Store store
 ```
 
 > **Note:** Cogroup is an advanced feature that requires careful coordination between multiple streams. Ensure all streams are properly grouped and that aggregator functions handle null values appropriately.
@@ -877,7 +869,7 @@ This example demonstrates rekeying (changing the grouping key) and windowed aggr
 
 **Key KSML concepts demonstrated:**
 
-- `map` with `keyValueMapper` to change the message key (rekeying)
+- `selectKey` to change the message key (rekeying)
 - `groupByKey` after rekeying to group by the new key
 - `windowByTime` for time-based regional analytics
 - Complex aggregation state with nested data structures
@@ -898,14 +890,13 @@ This example demonstrates rekeying (changing the grouping key) and windowed aggr
 **Pipeline flow:**
 
 1. **Input**: Sales events with product_id as key
-2. **Rekey**: Map operation changes key to region
+2. **Rekey**: `selectKey` changes the key to the region
 3. **Group**: Group by the new region key
 4. **Window**: Apply 1-minute tumbling windows
 5. **Aggregate**: Calculate regional statistics per window
 6. **Output**: Windowed regional sales summaries
 
-The diagram below follows four example sales through the pipeline. The messages arrive keyed by product, so the
-pipeline first replaces the key with the region. Only then can `groupByKey` collect all sales of one region together:
+The diagram below follows four example sales through the pipeline. The messages arrive keyed by product, so the pipeline first replaces the key with the region. Only then can `groupByKey` collect all sales of one region together. Every sale sends an updated result for its region and window, and the diagram shows the last one:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -935,7 +926,7 @@ graph TB
 
     %% Step 4: sales statistics per region and window
     Aggregate["<code>aggregate</code><br/>aggregate_sales"]
-    subgraph Stats["One result per region and window"]
+    subgraph Stats["Latest result per region and window"]
         NorthW1Stats["<b>North</b> 10:00 to 10:01<br/>total_sales 1700.00, transactions 2<br/>products: laptop, tablet"]
         NorthW2Stats["<b>North</b> 10:01 to 10:02<br/>total_sales 25.00, transactions 1<br/>products: mouse"]
         SouthW1Stats["<b>South</b> 10:00 to 10:01<br/>total_sales 800.00, transactions 1<br/>products: phone"]

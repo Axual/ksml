@@ -69,9 +69,7 @@ KSML provides access to the full power of Kafka Streams, including:
 
 ## Key Concepts and Terminology
 
-A KSML definition is built from four concepts that work together: **streams** connect to Kafka topics, a **pipeline**
-moves data from one stream to another through a series of **operations**, and operations can call your own Python
-**functions**. The diagram below shows how they fit together, using the example definitions from this section.
+A KSML definition is built from four concepts that work together: **streams** connect to Kafka topics, a **pipeline** moves data from one stream to another through a series of **operations**, and operations can call your own Python **functions**. The diagram below shows how they fit together, using the example definitions from this section.
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -158,7 +156,7 @@ When you run a KSML definition, the KSML runner:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
-graph LR
+graph TB
     %% Your files
     Definition[KSML definition<br/>YAML + Python]
     Config[Runner configuration<br/><code>ksml-runner.yaml</code>]

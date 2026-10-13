@@ -15,7 +15,7 @@ stores:
   device_state_store:
     type: keyValue
     keyType: string
-    valueType: string  # state as a JSON string, so it is read back as plain Python values
+    valueType: string  # JSON string
     persistent: true
 
 functions:

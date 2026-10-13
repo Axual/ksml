@@ -52,6 +52,7 @@ KSML supports three types of time windows, each suited for different use cases:
 Each event falls into exactly one window, based on its timestamp:
 
 ```mermaid
+--8<-- "snippets/mermaid-init.txt"
 gantt
     title Tumbling windows (duration 5m)
     dateFormat HH:mm
@@ -97,10 +98,10 @@ gantt
   grace: 1m         # Late data tolerance
 ```
 
-A new window starts every 2 minutes and each one lasts 10 minutes, so a single event falls into
-`duration / advanceBy` = 5 windows at the same time:
+A new window starts every 2 minutes and each one lasts 10 minutes, so a single event falls into `duration / advanceBy` = 5 windows at the same time:
 
 ```mermaid
+--8<-- "snippets/mermaid-init.txt"
 gantt
     title Hopping windows (duration 10m, advanceBy 2m)
     dateFormat HH:mm
@@ -143,10 +144,10 @@ gantt
   grace: 10s          # Accept late arrivals
 ```
 
-A session starts with the first event for a key and grows with every event that follows within 30 minutes. A gap
-longer than 30 minutes closes the session, and the next event starts a new one:
+A session starts with the first event for a key and grows with every event that follows within 30 minutes. A gap longer than 30 minutes closes the session, and the next event starts a new one:
 
 ```mermaid
+--8<-- "snippets/mermaid-init.txt"
 gantt
     title Session windows for one user (inactivityGap 30m)
     dateFormat HH:mm
@@ -202,8 +203,7 @@ This example demonstrates tumbling windows by counting user clicks in 5-minute n
 - `convertKey` for windowed key compatibility
 - Grace periods for late-arriving data
 
-The diagram below follows six example clicks through the same pipeline, showing how the messages are grouped at each
-step: first by user, then by 5-minute window, until each group is reduced to a single count:
+The diagram below follows six example clicks through the same pipeline, showing how the messages are grouped at each step: first by user, then by 5-minute window. Every click sends an updated count for its window. The diagram shows the last one:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -230,7 +230,7 @@ graph TB
 
     %% Step 3: one count per key and window
     Count[<code>count</code>]
-    subgraph Counts["One result per key and window"]
+    subgraph Counts["Latest result per key and window"]
         AliceCount1["<b>alice</b> 10:00 to 10:05<br/>count: 2"]
         AliceCount2["<b>alice</b> 10:05 to 10:10<br/>count: 1"]
         BobCount1["<b>bob</b> 10:00 to 10:05<br/>count: 1"]
@@ -326,9 +326,7 @@ This example calculates moving averages using overlapping 2-minute windows that 
 - `mapValues` for post-aggregation processing
 - Multiple overlapping windows for the same data
 
-The diagram below follows five example readings through the same pipeline. Because the windows overlap, the same
-reading is counted in several windows, so each window produces its own average. To keep the diagram readable, it only
-follows `temp_01` and shows three of its windows:
+The diagram below follows five example readings through the same pipeline. Because the windows overlap, the same reading is counted in several windows, so each window has its own average. Every reading sends an updated average for each of its windows, and the diagram shows the last one. To keep the diagram readable, it only follows `temp_01` and shows three of its windows:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -363,7 +361,7 @@ graph TB
 
     %% Step 4: turn sum and count into an average
     Average["<code>toStream</code> + <code>convertKey</code><br/>+ <code>mapValues</code> calculate_final_average"]
-    subgraph Averages["One average per key and window"]
+    subgraph Averages["Latest average per key and window"]
         Avg1["<b>temp_01</b> 10:00:00 to 10:02:00<br/>average: 22.0"]
         Avg2["<b>temp_01</b> 10:00:30 to 10:02:30<br/>average: 23.0"]
         Avg3["<b>temp_01</b> 10:01:00 to 10:03:00<br/>average: 23.5"]
@@ -388,7 +386,6 @@ graph TB
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
-    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
 
     class Topic,Output topic
     class Group,Window,Aggregate,Average operation
@@ -465,9 +462,7 @@ This example uses session windows to analyze user browsing patterns by grouping 
 - **Activity-based**: Perfect for user behavior analysis
 - **Variable retention**: Different sessions can have different lifespans
 
-The diagram below follows seven example clicks through the same pipeline. Alice pauses for more than 2 minutes
-between 10:01:30 and 10:05:00, so her clicks form two separate sessions. Bob never pauses that long, so all his clicks
-stay in one session that keeps growing:
+The diagram below follows seven example clicks through the same pipeline. Alice pauses for more than 2 minutes between 10:01:30 and 10:05:00, so her clicks form two separate sessions. Bob never pauses that long, so all his clicks stay in one session that keeps growing. Every click sends an updated count for its session, and the diagram shows the last one. When a click merges two sessions, the old session key also gets a `null` value:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -493,7 +488,7 @@ graph TB
 
     %% Step 3: one count per key and session
     Count[<code>count</code>]
-    subgraph Counts["One result per key and session"]
+    subgraph Counts["Latest result per key and session"]
         AliceCount1["<b>alice</b> 10:00:00 to 10:01:30<br/>count: 3"]
         AliceCount2["<b>alice</b> 10:05:00 to 10:05:00<br/>count: 1"]
         BobCount1["<b>bob</b> 10:00:20 to 10:03:10<br/>count: 3"]

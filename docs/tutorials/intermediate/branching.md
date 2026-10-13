@@ -65,8 +65,7 @@ pipelines:
       - to: default_output_topic
 ```
 
-Each message goes to **one** branch only: the first branch whose condition matches. KSML checks the conditions from
-top to bottom, and the default branch (a branch without `if`) catches everything that matched none of them:
+Each message goes to **one** branch only: the first branch whose condition matches. KSML checks the conditions from top to bottom, and the default branch (a branch without `if`) catches everything that matched none of them:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -201,8 +200,7 @@ This example demonstrates:
 - US/EU orders (not priority) are routed to `regional_orders` topic  
 - International orders (APAC/LATAM) are routed to `international_orders` topic
 
-Because the conditions are checked in order, a high-value order from a premium customer goes to `priority_orders`
-even if it comes from an international region:
+Because the conditions are checked in order, a high-value order from a premium customer goes to `priority_orders` even if it comes from an international region:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -272,8 +270,7 @@ pipelines:
         to: clothing_items
 ```
 
-The electronics branch has its own `branch` section that splits electronics by price. The outer branching has no
-default branch, so messages from any other category are dropped:
+The electronics branch has its own `branch` section that splits electronics by price. The outer branching has no default branch, so messages from any other category are dropped:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"

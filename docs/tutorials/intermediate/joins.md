@@ -177,11 +177,10 @@ graph LR
 
     class Clicks,Purchases,Output topic
     class Join operation
-    class ClickStore,PurchaseStore external
+    class ClickStore,PurchaseStore store
 ```
 
-The diagram below follows example clicks and purchases through the join. A click and a purchase are joined only when
-they have the same key (user) **and** happened at most 30 minutes apart. Everything else produces no output:
+The diagram below follows example clicks and purchases through the join. A click and a purchase are joined only when they have the same key (user) **and** happened at most 30 minutes apart. Everything else produces no output:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -264,8 +263,7 @@ Enrich order events with customer information by joining the orders stream with 
 - **Combines data**: valueJoiner function merges order details with customer information into enriched result containing both datasets
 - **Restores original key**: Transforms key back from customer_id to order_id using restore_order_key for downstream processing consistency
 
-The diagram shows how the message key changes along the pipeline, so that each order can be matched with the
-customer table:
+The diagram shows how the message key changes along the pipeline, so that each order can be matched with the customer table:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -296,9 +294,7 @@ graph LR
     class Rekey,Join,Restore operation
 ```
 
-The diagram below follows four example orders through the pipeline. Each order is rekeyed by its customer, looked up
-in the customer table, and rekeyed back. Because this is an inner join, an order whose customer is not in the table
-yet produces no output:
+The diagram below follows four example orders through the pipeline. Each order is rekeyed by its customer, looked up in the customer table, and rekeyed back. Because this is an inner join, an order whose customer is not in the table yet produces no output:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -390,8 +386,7 @@ Enrich orders with product details using a foreign key join with a global produc
 - **Enriches with product data**: Combines order information with product details (name, price, category) from catalog
 - **Outputs enriched orders**: Returns orders enhanced with full product information for downstream processing
 
-Unlike the stream-table join above, there is no rekeying: the order keeps its key, and the `mapper` only tells the
-join which product to look up:
+Unlike the stream-table join above, there is no rekeying: the order keeps its key, and the `mapper` only tells the join which product to look up:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -419,8 +414,7 @@ graph LR
     class Join operation
 ```
 
-The diagram below follows two example orders through the join. The order keeps its key; the `mapper` only picks the
-`product_id` used for the lookup, and the `valueJoiner` adds the product details and computes the total price:
+The diagram below follows two example orders through the join. The order keeps its key; the `mapper` only picks the `product_id` used for the lookup, and the `valueJoiner` adds the product details and computes the total price:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -524,8 +518,7 @@ This example demonstrates:
 - Activities for users without location data get "UNKNOWN" placeholders
 - All activities are preserved regardless of location availability
 
-The diagram below follows three example activities through the left join. `user004` has no location data, but unlike
-an inner join, its activity is still written to the output, with `UNKNOWN` location values:
+The diagram below follows three example activities through the left join. `user004` has no location data, but unlike an inner join, its activity is still written to the output, with `UNKNOWN` location values:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -611,9 +604,7 @@ This example demonstrates:
 - **LOGIN_ONLY sessions**: Users who logged in but no logout was captured (active sessions)
 - **LOGOUT_ONLY sessions**: Logout events without corresponding login (users already logged in)
 
-The diagram below follows example logins and logouts through the outer join. A login and a logout for the same user
-at most 10 minutes apart become one `COMPLETE` session. Unlike an inner join, events without a match are not dropped:
-they produce a `LOGIN_ONLY` or `LOGOUT_ONLY` result once the time window (plus grace period) has passed:
+The diagram below follows example logins and logouts through the outer join. A login and a logout for the same user at most 10 minutes apart become one `COMPLETE` session. Unlike an inner join, events without a match are not dropped: they produce a `LOGIN_ONLY` or `LOGOUT_ONLY` result once the time window (plus grace period) has passed:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"

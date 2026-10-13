@@ -93,9 +93,7 @@ locations, coming at an unusual speed, or are for a high amount:
     ```
 
 
-The definition runs three detection pipelines on every transaction. Each one writes its alerts to its own topic. Three
-scoring pipelines then read those topics, calculate a final risk score, and write all alerts to `fraud_alerts`. The
-pattern recognition, machine learning and alerting definitions further down this page also use `fraud_alerts`:
+The definition runs three detection pipelines on every transaction. Each one writes its alerts to its own topic. Three scoring pipelines then read those topics, calculate a final risk score, and write all alerts to `fraud_alerts`. The pattern recognition, machine learning and alerting definitions further down this page also use `fraud_alerts`:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -145,14 +143,13 @@ graph LR
 
     class Tx,HVT,LocT,VelT,Alerts,Notifications topic
     class HV,Loc,Vel,Score operation
-    class LocStore,VelStore external
+    class LocStore,VelStore store
     class Pattern,ML,Notify partial
 ```
 
 The orange boxes are the other definitions on this page.
 
-The diagram below follows one card through the basic definition. The card first pays 299.99 in a store in California;
-30 minutes later, it pays 1,499.00 in a store in New York:
+The diagram below follows an example card (not from the test data) through the basic definition. The card first pays 299.99 in a store in California; 30 minutes later, it pays 1,499.00 in a store in New York:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -211,10 +208,7 @@ graph TB
     style VEL fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The first transaction only fills the location and velocity history, so it doesn't create any alert. The scoring step
-adds 15 points to both alerts because electronics is a high-risk category: the high-value alert stays at the maximum
-of 100, and the location alert goes from 40 to 55. Both transactions are made in a store, so the 10 extra points for
-online transactions don't apply.
+The first transaction only fills the location and velocity history, so it doesn't create any alert. The scoring step adds 15 points to both alerts because electronics is a high-risk category: the high-value alert stays at the maximum of 100, and the location alert goes from 40 to 55. Both transactions are made in a store, so the 10 extra points for online transactions don't apply.
 
 ## Advanced Fraud Detection Techniques
 
@@ -225,15 +219,11 @@ To detect complex fraud patterns, you can implement more sophisticated algorithm
 ??? info "Pattern recognition processor (click to expand)"
 
     ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-pattern-detection.yaml" start="## Functions"
-      end="## End of Functions"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-pattern-detection.yaml" %}
     ```
 
 
-The pattern detector looks for a "test then charge" pattern: a small transaction of less than 5, followed within
-30 minutes by a transaction of more than 100. Fraudsters often test a stolen card with a small amount first. The
-diagram below follows three transactions of one card:
+The pattern detector looks for a "test then charge" pattern: a small transaction of less than 5, followed within 30 minutes by a transaction of more than 100. Fraudsters often test a stolen card with a small amount first. The diagram below follows three transactions of one card:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -256,13 +246,12 @@ graph LR
 
     class T1 message
     class T2 partial
-    class T3 dropped
+    class T3 alert
     class Alert result
     class Alerts topic
 ```
 
-The card's recent transactions (last 24 hours) are kept in the `card_pattern_history` store. The pattern alert keeps the
-merchant and transaction type, so the scoring step can add points for online and high-risk transactions.
+The card's recent transactions (last 24 hours) are kept in the `card_pattern_history` store. The pattern alert keeps the merchant and transaction type, so the scoring step can add points for online and high-risk transactions.
 
 ### Machine Learning Integration
 
@@ -271,14 +260,11 @@ For more advanced fraud detection, you can integrate machine learning models:
 ??? info "Machine learning fraud detector (click to expand)"
 
     ```yaml
-    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-detection-machine-learning.yaml" start="## Functions"
-      end="## End of Functions"
-    %}
+    {% include "../../ksml/src/test/resources/docs-examples/use-cases/fraud-detection/fraud-detection-machine-learning.yaml" %}
     ```
 
 
-The example replaces a real model with simple rules: every risk feature adds points, and a transaction with more than
-60 points is written to `fraud_alerts`. The diagram below scores one example transaction:
+The example replaces a real model with simple rules: every risk feature adds points, and a transaction with more than 60 points is written to `fraud_alerts`. The diagram below scores transaction `tx-000014` from the test data further down this page:
 
 <div class="diagram-w45" markdown>
 
@@ -286,7 +272,7 @@ The example replaces a real model with simple rules: every risk feature adds poi
 --8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input
-    Tx@{ shape: doc, label: "<b>tx-123457</b><br/>1,499.00, electronics, Germany<br/>online, 23:15 UTC" }
+    Tx@{ shape: doc, label: "<b>tx-000014</b><br/>1,899.00, jewelry, Germany<br/>online, 23:15 UTC" }
 
     %% Features
     Features["<code>ml_fraud_prediction</code><br/>amount above 1,000: +20<br/>outside the US: +15<br/>online: +10<br/>high-risk category: +15<br/>between 22:00 and 06:00: +10"]
@@ -314,8 +300,7 @@ graph TB
 
 </div>
 
-The hour of the day is calculated in UTC from the `timestamp` field. The function also sets `alert_type` and
-`final_risk_score` (equal to the model score), so the alerting pipeline below turns these alerts into notifications too.
+The hour of the day is calculated in UTC from the `timestamp` field. The function also sets `alert_type` and `final_risk_score` (equal to the model score), so the alerting pipeline below turns these alerts into notifications too.
 
 ## Real-time Alerting
 
@@ -328,8 +313,7 @@ To make your fraud detection system actionable, you need to generate alerts:
     ```
 
 
-The alerting pipeline turns every alert with a `final_risk_score` above 30 into a notification, with an alert level and
-a recommended action:
+The alerting pipeline turns every alert with a `final_risk_score` above 30 into a notification, with an alert level and a recommended action:
 
 <div class="diagram-w70" markdown>
 
@@ -344,8 +328,8 @@ graph TB
 
     %% Levels
     High["score above 70<br/><b>high</b>: block"]
-    Medium["score 41 to 70<br/><b>medium</b>: review"]
-    Low["score 31 to 40<br/><b>low</b>: review"]
+    Medium["score above 40, up to 70<br/><b>medium</b>: review"]
+    Low["score above 30, up to 40<br/><b>low</b>: review"]
     Out[(fraud_notifications)]
 
     %% Data Flow
@@ -362,24 +346,20 @@ graph TB
 
     class Alerts,Out topic
     class Filter,Gen operation
-    class High dropped
+    class High alert
     class Medium,Low partial
     class Drop message
 ```
 
 </div>
 
-In the basic definition walkthrough above, the high-value alert (score 100) becomes a `high` notification with the
-action `block`, and the location alert (score 55) becomes a `medium` notification with the action `review`.
+In the basic definition walkthrough above, the high-value alert (score 100) becomes a `high` notification with the action `block`, and the location alert (score 55) becomes a `medium` notification with the action `review`.
 
 ## Testing and Validation
 
-To test your fraud detection system, generate sample transactions with known fraud patterns, monitor the alert
-topics, and adjust thresholds and rules to balance the detection rate and false positives.
+To test your fraud detection system, generate sample transactions with known fraud patterns, monitor the alert topics, and adjust thresholds and rules to balance the detection rate and false positives.
 
-The following producer writes 14 transactions once, one per second, and then stops. Each card triggers one of the
-detection rules. The `timestamp` fields start at 23:00 UTC, so the transactions also fall in the night hours used by
-the machine learning example:
+The following producer writes 14 transactions once, one per second, and then stops. Each card except `card-001` triggers a detection rule. The `timestamp` fields start at 23:00 UTC, so the transactions also fall in the night hours used by the machine learning example:
 
 ??? info "Fraud test data producer (click to expand)"
 
@@ -390,10 +370,8 @@ the machine learning example:
 To run the producer and all four definitions together:
 
 1. Create the topics as described in [Define the topics for the use case](#define-the-topics-for-the-use-case).
-2. Save the definitions from this page as `fraud-detection.yaml`, `fraud-pattern-detection.yaml`,
-   `fraud-detection-machine-learning.yaml` and `fraud-notifications.yaml`, and the producer as
-   `fraud-transaction-producer.yaml`, in your `examples` directory.
-3. Set up your `ksml-runner.yaml` configuration to load all five files:
+2. Save the definitions from this page as `fraud-detection.yaml`, `fraud-pattern-detection.yaml`, `fraud-detection-machine-learning.yaml` and `fraud-notifications.yaml`, and the producer as `fraud-transaction-producer.yaml`, in your `examples` directory.
+3. Set up your `ksml-runner.yaml` configuration to load all five files (see the [Configuration Reference](../reference/configuration-reference.md) for all options):
 
     ??? info "KSML runner configuration (click to expand)"
 
@@ -415,8 +393,7 @@ With this test data, `fraud_alerts` and `fraud_notifications` receive one messag
 | tx-000013 | card-005 | velocity: 6 transactions within 1 hour | 60 | medium, review |
 | tx-000014 | card-006 | machine learning: score 70 | 70 | medium, review |
 
-The other transactions don't create an alert: they are the first transaction of a card, or the earlier transactions
-that the rules compare with.
+The other transactions don't create an alert: they are the first transaction of a card, or the earlier transactions that the rules compare with.
 
 ## Production Considerations
 

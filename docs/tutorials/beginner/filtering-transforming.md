@@ -77,8 +77,7 @@ This filter only passes messages where:
 - The humidity is less than 80%
 - The location is 'warehouse'
 
-The diagram below follows four example messages. Only the message that meets all three conditions reaches the output
-topic:
+The diagram below follows four example messages. Only the message that meets all three conditions reaches the output topic:
 
 <div class="diagram-w45" markdown>
 
@@ -143,8 +142,7 @@ By following the same as in previous section, let's try to create a custom filte
 
 This function implements complex business logic to determine if a sensor reading indicates a critical situation that requires an alert.
 
-The diagram below shows the decisions the `is_critical_sensor` function makes for each message. Only critical readings
-are written to `alerts_stream`:
+The diagram below shows the decisions the `is_critical_sensor` function makes for each message. Only critical readings are written to `alerts_stream`:
 
 <div class="diagram-w60" markdown>
 
@@ -233,13 +231,15 @@ graph TB
 ```
 
 </div>
-The test data always contains both fields, so nothing is logged. To see the warning for missing fields, change the key
-to one that doesn't exist:
+
+The test data always contains both fields, so nothing is logged. To see the warning for missing fields, change the key to one that doesn't exist:
+
 ```python
 sensors = value.get('sensors2', {})
 ```
-To see the error log, make the code raise an exception, for example by reading a field that doesn't exist with `[]`
-instead of `get()`:
+
+To see the error log, make the code raise an exception, for example by reading a field that doesn't exist with `[]` instead of `get()`:
+
 ```python
 temperature = sensors['temperature2']
 ```
@@ -546,8 +546,7 @@ When processing streaming data, it's crucial to handle errors gracefully without
     {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/filtering-transforming/processor-filtering-transforming-error-handling2.yaml" %}
     ```
 
-The diagram below follows the two example messages from this section. The `map` operation always returns a message,
-with a `status` field that the `branch` operation uses to choose the output topic:
+The diagram below follows the two example messages from this section. The `map` operation always returns a message, with a `status` field that the `branch` operation uses to choose the output topic:
 
 <div class="diagram-w60" markdown>
 
@@ -886,7 +885,7 @@ graph TB
         }
     },
     "sensor_id": "sensor0",
-    "timestamp": "2025-07-31T07:31:53.729000"
+    "timestamp": "2025-07-31T08:11:53.729000"
 }
 ```
 
@@ -916,7 +915,7 @@ graph LR
         T4["readings.temperature.celsius<br/>16.67"]
         T5["readings.humidity<br/>88"]
         T6["readings.heat_index<br/>61.74"]
-        T7["timestamp<br/>2025-07-31T07:31:53.729000"]
+        T7["timestamp<br/>2025-07-31T08:11:53.729000"]
         T8["processed_at<br/>current time"]
     end
 
@@ -970,7 +969,7 @@ Processed sensor data for sensor0: temp=16.67C, humidity=88%
 - **Transformations Applied**:
       - **Temperature Conversion**: Converts 62°F to 16.67°C using the formula `(F - 32) × 5/9`
       - **Heat Index Calculation**: Computes the apparent temperature in °F considering humidity (61.74 in this case), with the same simplified formula as in [Applying Multiple Transformations](#applying-multiple-transformations)
-      - **Timestamp Formatting**: Converts Unix timestamp (1753949513729) to ISO format (2025-07-31T07:31:53.729000)
+      - **Timestamp Formatting**: Converts Unix timestamp (1753949513729) to ISO format (2025-07-31T08:11:53.729000)
       - **Structure Flattening**: Extracts values from nested structure into a cleaner format
       - **Metadata Addition**: Adds `processed_at` timestamp to track when the transformation occurred
 

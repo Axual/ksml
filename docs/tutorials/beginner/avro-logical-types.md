@@ -81,7 +81,7 @@ graph LR
     class Producer,OldRead,NewRead operation
     class Topic topic
     class Schema external
-    class OldPy dropped
+    class OldPy alert
     class NewPy result
     style Old fill:none,stroke:#616161,stroke-dasharray:5 5
     style New fill:none,stroke:#616161,stroke-dasharray:5 5

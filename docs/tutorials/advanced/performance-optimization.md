@@ -60,8 +60,7 @@ This example demonstrates optimized Python code and efficient data handling tech
 - **Processes with JSON**: Extracts fields from JSON using `.get()`, builds result objects for Kowl UI readability
 - **Logs selectively**: Only logs high-score events to reduce I/O overhead while maintaining performance visibility
 
-The diagram below follows four example events. Scroll and hover events are discarded before any field is read; the
-other events get a score from the pre-computed tables:
+The diagram below follows four example events. Scroll and hover events are discarded before any field is read; the other events get a score from the pre-computed tables:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -141,8 +140,7 @@ This example shows how to configure and use state stores efficiently for high-pe
 - **Uses optimized store**: Configures state store with increased cache size (16MB) and segments (32) for better performance
 - **Outputs JSON summaries**: Returns readable JSON results with averages and totals while keeping internal storage compact
 
-The diagram below follows three example activities for one user. The store keeps one short string per user; the
-output is a readable JSON summary built from it:
+The diagram below follows three example activities for one user. The store keeps one short string per user; the output is a readable JSON summary built from it:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -180,7 +178,7 @@ graph TB
     class Topic,Output topic
     class Function,Filter operation
     class Events message
-    class Store external
+    class Store store
     class Step1,Step2,Step3 message
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
@@ -217,8 +215,7 @@ This example demonstrates optimized pipeline design with early filtering and sta
 - **Separates concerns**: Lightweight operations (field extraction) happen first, expensive operations (calculations) happen on filtered data only
 - **Outputs progressively**: filtered_events → enriched_events → final_processed_events, each stage adds more data while maintaining JSON readability
 
-The example runs three pipelines connected through topics. Each stage reads the output topic of the previous stage, so
-the expensive stage only sees events that passed the filter:
+The example runs three pipelines connected through topics. Each stage reads the output topic of the previous stage, so the expensive stage only sees events that passed the filter:
 
 <div class="diagram-w50" markdown>
 
@@ -265,8 +262,7 @@ graph TB
 
 </div>
 
-The diagram below follows four example events through the three stages. Two of them never reach the expensive
-calculation:
+The diagram below follows four example events through the three stages. Two of them never reach the expensive calculation:
 
 <div class="diagram-w60" markdown>
 
@@ -310,8 +306,7 @@ graph TB
 
 </div>
 
-The score is base score × priority multiplier (high 3, medium 2, low 1) + type bonus (50 for purchases, 10 otherwise).
-The extra 20 comes from the loop that simulates an expensive calculation.
+The score is base score × priority multiplier (high 3, medium 2, low 1) + type bonus (50 for purchases, 10 otherwise). The extra 20 comes from the loop that simulates an expensive calculation.
 
 ??? info "Mixed events producer (quality testing) - click to expand"
 
@@ -342,8 +337,7 @@ This example shows efficient data format usage and minimal serialization overhea
 - **Filters by score**: Early filtering discards events with score <10 to reduce processing volume
 - **Processes by type**: Applies different logic based on event_type_id (purchases get 10% value bonus + 20 score bonus)
 
-The example runs two pipelines. The first one filters and processes the events, the second one turns the result into
-a readable summary. The diagram below follows three example events:
+The example runs two pipelines. The first one filters and processes the events, the second one turns the result into a readable summary. The diagram below follows three example events:
 
 <div class="diagram-w75" markdown>
 
@@ -557,8 +551,7 @@ stores:
       - `true`: Maintains multiple versions of values with configurable retention
       - `false`: Single version only, more memory efficient
 
-The diagram below shows what the `caching`, `persistent` and `logging` options control when a Python function writes to a
-store:
+The diagram below shows what the `caching`, `persistent` and `logging` options control when a Python function writes to a store:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -584,13 +577,12 @@ graph LR
 
     class Function operation
     class Cache partial
-    class Local external
+    class Local store
     class Changelog topic
     style Store fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-With caching, several updates of the same key between commits are written to the local store and the changelog only
-once. Without logging, there is no changelog to restore from, so an in-memory store starts empty after a restart.
+With caching, several updates of the same key between commits are written to the local store and the changelog only once. Without logging, there is no changelog to restore from, so an in-memory store starts empty after a restart.
 
 **KSML Store Optimizations:**
 

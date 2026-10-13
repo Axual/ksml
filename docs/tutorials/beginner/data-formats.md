@@ -14,7 +14,7 @@ For comprehensive syntax reference and format details, see the [Data Types and F
 - **String**: Plain text (used in the [conversion example](#converting-between-data-formats))
 - **JSON**: Structured data without schema validation
 - **Avro**: Binary format with schema registry integration
-- **JsonSchema**: JSON data validated against a schema in a schema registry
+- **JsonSchema**: JSON data validated against a JSON Schema (local `.json` file or schema registry)
 - **CSV**: Tabular data with optional schema
 - **XML**: Hierarchical data with XSD schema support
 - **Binary**: Raw bytes for custom protocols
@@ -40,8 +40,7 @@ When defining streams in KSML, you specify the data format using the `keyType` a
 
 Schema-based formats (Avro, JsonSchema, XML, CSV) can specify a schema name: `format:SchemaName` (e.g., `avro:SensorData`). For notations backed by a schema registry (e.g., `confluent_avro`), the schema name can be omitted — KSML will fetch the latest schema from the registry using the topic name. See the [Data Types and Notations Reference](../../reference/data-and-formats-reference.md#local-files-vs-schema-registry) for details.
 
-The `keyType` and `valueType` of a stream decide how KSML turns the bytes on a topic into a value for your Python code,
-and back into bytes when it writes:
+The `keyType` and `valueType` of a stream decide how KSML turns the bytes on a topic into a value for your Python code, and back into bytes when it writes:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -54,7 +53,7 @@ graph LR
     Out[("Output topic<br/>bytes")]
 
     %% Where the schema comes from
-    Schema["<b>Schema</b><br/>registry: avro, jsonschema<br/>file in examples/: avro .avsc, csv .csv, xml .xsd<br/>none: json, string, bytes"]
+    Schema["<b>Schema</b><br/>registry: avro, jsonschema<br/>file in examples/: avro .avsc, jsonschema .json,<br/>csv .csv, xml .xsd<br/>none: json, string, bytes"]
 
     %% Data Flow
     In --> Read --> Python --> Write --> Out
@@ -171,8 +170,7 @@ Create `examples/SensorData.avsc` schema file (JSON format, auto-loaded from wor
     %}
     ```
 
-This processor converts Avro messages to JSON using the `convertValue` operation. It is the processor used by the
-`apicurio_avro` runner configuration above:
+This processor converts Avro messages to JSON using the `convertValue` operation. It is the processor used by the `apicurio_avro` runner configuration above:
 
 ??? info "Avro to JSON conversion processor (click to expand)"
 
@@ -182,9 +180,7 @@ This processor converts Avro messages to JSON using the `convertValue` operation
     %}
     ```
 
-This processor transforms Avro data (uppercases sensor names) while maintaining the Avro format. It reads from a
-different topic, `sensor_data_avro_confluent`, and is the processor used by the `confluent_avro` runner configuration
-above. Use this producer for it; it is the same as the producer above, except for the topic:
+This processor transforms Avro data (uppercases sensor names) while maintaining the Avro format. It reads from a different topic, `sensor_data_avro_confluent`, and is the processor used by the `confluent_avro` runner configuration above. Use this producer for it; it is the same as the producer above, except for the topic:
 
 ??? info "Producer definition for the Avro transformation (click to expand)"
 
@@ -347,10 +343,7 @@ This processor demonstrates CSV data manipulation (uppercases city names) while 
     %}
     ```
 
-A CSV message has no field names, only values in a fixed order. KSML takes the names from the header line in
-`SensorData.csv`, so your Python code gets a dict. The diagram below follows one message through the processor:
-
-<div class="diagram-w70" markdown>
+A CSV message has no field names, only values in a fixed order. KSML takes the names from the header line in `SensorData.csv`, so your Python code gets a dict. The diagram below follows one message through the processor:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -360,7 +353,7 @@ graph TB
     In@{ shape: doc, label: "<b>ksml_sensordata_csv</b><br/>sensor6,1754376106863,12,TEMPERATURE,%,black,Rotterdam,Alice" }
 
     %% Python
-    Dict@{ shape: doc, label: "<b>Python dict</b><br/>name: sensor6<br/>value: 12, type: TEMPERATURE<br/>unit: %, color: black<br/>city: Rotterdam, owner: Alice" }
+    Dict@{ shape: doc, label: "<b>Python dict</b><br/>name: sensor6, timestamp: 1754376106863<br/>value: 12, type: TEMPERATURE<br/>unit: %, color: black<br/>city: Rotterdam, owner: Alice" }
     Upper["<code>transformValue</code><br/>uppercase_city"]
     Out@{ shape: doc, label: "<b>ksml_sensordata_csv_processed</b><br/>sensor6,1754376106863,12,TEMPERATURE,%,black,ROTTERDAM,Alice" }
 
@@ -379,10 +372,6 @@ graph TB
     class Out result
 ```
 
-</div>
-
-XML works the same way: `SensorData.xsd` describes the elements, and your Python code gets a dict with one entry per
-element.
 ## Working with XML Data
 
 XML (eXtensible Markup Language) is a structured format for representing hierarchical data with custom tags and attributes.
@@ -394,6 +383,8 @@ XML data processing does not require a schema registry. Make sure there is a run
 - XML data is represented as nested elements with opening and closing tags
 - Elements can contain text content, attributes, and child elements
 - XSD (XML Schema Definition) defines the structure, data types, and constraints for XML documents
+
+Like the CSV example, `SensorData.xsd` describes the fields, and your Python code gets a dict with one entry per element.
 
 ### Requirements for running KSML XML definitions
 

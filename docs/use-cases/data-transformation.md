@@ -117,8 +117,7 @@ You want to transform the data into this format:
 }
 ```
 
-The diagram below shows where each target field comes from. Most fields are copied or renamed from the XML, the
-segment details come from the reference table, and a few fields are generated:
+The diagram below shows where each target field comes from. Most fields are copied or renamed from the XML, the segment details come from the reference table, and a few fields are generated:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -199,9 +198,7 @@ Now, let's create our KSML definition file:
     {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/data-transformation.yaml" %}
     ```
 
-The pipeline changes the message key twice. It first uses the segment code as the key, so the message can be joined
-with the `customer_segments` table, and then sets the key back to the customer ID. The diagram below follows one
-example customer through the pipeline:
+The pipeline changes the message key twice. It first uses the segment code as the key, so the message can be joined with the `customer_segments` table, and then sets the key back to the customer ID. The diagram below follows one example customer through the pipeline:
 
 <div class="diagram-w50" markdown>
 
@@ -256,8 +253,7 @@ graph TB
 
 </div>
 
-The two `peek` steps that only log the message are left out of the diagram. Because it is a left join, a customer whose
-segment is not in the table yet is still processed: its `segment` and marketing fields are set to `Unknown`.
+The two `peek` steps that only log the message are left out of the diagram. Because it is a left join, a customer whose segment is not in the table yet is still processed: its `segment` and marketing fields are set to `Unknown`.
 
 ## Setting up two producers for test data
 
@@ -298,10 +294,13 @@ To run the application:
     {% include "../../ksml/src/test/resources/docs-examples/use-cases/data-transformation/ksml-runner.yaml" %}
     ```
 
-4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.
-5. Start the `legacy_customer_data_producer` to produce some sample data to the input topic.
-6. Start the `data_transformation` topology to initiate the continuous data transformation logic.
-7. Monitor the `standardized_customer_data` output topic to see the transformed data.
+4. Start the KSML runner. It runs all three definitions together:
+
+      - the `customer_segment_producer` writes the three segments to the `customer_segments` topic, one every 10 seconds
+      - the `legacy_customer_data_producer` writes a customer to the `legacy_customer_data` topic every second
+      - the `customer_transformation_pipeline` transforms the customers
+
+5. Monitor the `standardized_customer_data` output topic to see the transformed data.
 
 ## Advanced Transformation Techniques
 

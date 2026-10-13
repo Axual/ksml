@@ -21,7 +21,7 @@ stores:
     type: keyValue
     persistent: true
     keyType: string
-    valueType: string  # history as a JSON string, so it is read back as plain Python values
+    valueType: string  # JSON string
 
 ## Functions
 functions:

@@ -112,7 +112,7 @@ functions:
           new_country = True
 
         # If transaction is in a different state and happened within 2 hours of last transaction
-        elif (current_state not in location_history.get("last_states", []) and time_since_last < 7200000):  # 2 hours in milliseconds
+        elif (current_state not in previous_states and time_since_last < 7200000):  # 2 hours in milliseconds
           unusual_location = True
 
         # Update location history (keep last 3)

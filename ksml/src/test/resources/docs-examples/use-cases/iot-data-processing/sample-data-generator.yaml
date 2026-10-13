@@ -17,7 +17,7 @@ functions:
       
       # Static data
       rooms = ["conference-a", "conference-b", "conference-c"]
-      # Room coordinates, at different distances from the building entrance used in processing-geospatial-data.yaml
+      # Room coordinates, at different distances from the entrance
       room_coordinates = {
         "conference-a": {"lat": 52.0908, "lng": 5.1068},  # about 60 meters from the entrance
         "conference-b": {"lat": 52.0915, "lng": 5.1085},  # about 200 meters from the entrance

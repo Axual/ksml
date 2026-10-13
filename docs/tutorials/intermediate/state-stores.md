@@ -30,8 +30,7 @@ State stores serve several critical purposes in stream processing:
 
 State stores can be backed by RocksDB (persistent) or kept in memory (non-persistent). Both types can optionally use changelog topics for fault tolerance and recovery.
 
-The diagram below shows where a state store lives and how the optional settings fit together. The store itself is
-local to the KSML application; the changelog topic in Kafka is its backup:
+The diagram below shows where a state store lives and how the optional settings fit together. The store itself is local to the KSML application; the changelog topic in Kafka is its backup:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -63,13 +62,12 @@ graph LR
 
     class Input,Output,Changelog topic
     class Operation operation
-    class Cache,Store external
+    class Cache external
+    class Store store
     style App fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-Without caching, the operation reads and writes the store directly. Without logging, there is no changelog topic: a
-persistent store still survives a restart on the same machine, but its state is lost if the application moves to
-another machine or the local files are deleted.
+Without caching, the operation reads and writes the store directly. Without logging, there is no changelog topic: a persistent store still survives a restart on the same machine, but its state is lost if the application moves to another machine or the local files are deleted.
 
 ## State Store Types
 
@@ -137,7 +135,7 @@ graph LR
 
     class Input,Output,Changelog topic
     class Group,Count,ToStream,Log operation
-    class Store external
+    class Store store
     style Stores fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
@@ -212,11 +210,10 @@ graph LR
 
     class Input,Output topic
     class Group,Aggregate,ToStream,Log operation
-    class Cache,Store external
+    class Cache,Store store
 ```
 
-Compared to the predefined store above, this store has no changelog topic and lives only in memory: after a restart,
-the totals start again from zero.
+Compared to the predefined store above, this store has no changelog topic and lives only in memory: after a restart, the totals start again from zero.
 
 ## Configuration Parameters
 

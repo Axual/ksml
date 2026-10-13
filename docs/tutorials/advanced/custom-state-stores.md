@@ -14,8 +14,7 @@ State stores are a critical component of stateful stream processing applications
 
 KSML provides built-in state store capabilities that integrate seamlessly with Kafka Streams, offering exactly-once processing guarantees and automatic state management.
 
-All examples in this tutorial use the same pipeline shape. A Python function reads and updates one or more state stores
-for every incoming message, and returns either a result or `None`. A `filter` then drops the `None` results:
+All examples in this tutorial use the same pipeline shape. A Python function reads and updates one or more state stores for every incoming message, and returns either a result or `None`. A `filter` then drops the `None` results:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -44,12 +43,11 @@ graph LR
 
     class Input,Output topic
     class Function,Filter operation
-    class Store external
+    class Store store
     class Drop dropped
 ```
 
-All examples use a `keyValue` store, including the "Window Store" and "Session Store" examples: those implement time
-windows and sessions themselves in Python, by choosing the store key and deciding when a window or session ends.
+All examples use a `keyValue` store, including the "Window Store" and "Session Store" examples: those implement time windows and sessions themselves in Python, by choosing the store key and deciding when a window or session ends.
 
 ## Prerequisites
 
@@ -86,24 +84,23 @@ Building on the basic key-value concepts from the [State Stores Tutorial](../int
 - **Tracks comprehensive stats**: Updates action counters, adds new pages/devices/countries to lists, calculates total time across all sessions
 - **Outputs session updates**: Returns enriched user profile showing current session, lifetime statistics, and behavioral patterns whenever activity occurs
 
-The diagram below follows three example activities for one user. Every activity updates the stored profile and
-produces an updated profile as output:
+The diagram below follows three example activities for one user. Every activity updates the stored profile and produces an updated profile as output:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example events
     Topic[(user_activity)]
-    Events@{ shape: docs, label: "<b>key: user_1</b><br/>login, session s1, 2s<br/>page_view, session s1, 5s<br/>click, session s2, 1s" }
+    Events@{ shape: docs, label: "<b>key: alice</b><br/>login, session_alice_0, 2s<br/>page_view, session_alice_0, 5s<br/>click, session_alice_1, 1s" }
 
     %% Processing function and its store
     Function["<code>mapValues</code><br/>track_user_sessions"]
-    Store[("user_session_store<br/>key: user_1<br/>value: profile as JSON")]
+    Store[("user_session_store<br/>key: alice<br/>value: profile as JSON")]
     subgraph Steps["Event by event"]
         direction LR
-        Step1["<b>login</b>, session s1<br/>current_session: s1<br/>total_sessions: 0<br/>actions: login 1<br/>total_time: 2s"]
-        Step2["<b>page_view</b>, session s1<br/>same session<br/>actions: login 1, page_view 1<br/>total_time: 7s"]
-        Step3["<b>click</b>, session s2<br/>session changed: s1 ended<br/>total_sessions: 1<br/>current_session: s2<br/>total_time: 8s"]
+        Step1["<b>login</b>, session_alice_0<br/>current_session: session_alice_0<br/>total_sessions: 0<br/>actions: login 1<br/>total_time: 2s"]
+        Step2["<b>page_view</b>, session_alice_0<br/>same session<br/>actions: login 1, page_view 1<br/>total_time: 7s"]
+        Step3["<b>click</b>, session_alice_1<br/>session changed: session_alice_0 ended<br/>total_sessions: 1<br/>current_session: session_alice_1<br/>total_time: 8s"]
         Step1 --> Step2 --> Step3
     end
 
@@ -125,14 +122,13 @@ graph TB
     class Topic,Output topic
     class Function,Filter operation
     class Events message
-    class Store external
+    class Store store
     class Step1,Step2 message
     class Step3 partial
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The `total_sessions` counter only counts sessions that have ended: it goes up when a new `session_id` arrives for the
-user.
+The `total_sessions` counter only counts sessions that have ended: it goes up when a new `session_id` arrives for the user.
 
 ??? info "User Activity Producer - click to expand"
 
@@ -159,31 +155,29 @@ Window stores organize data by time windows, enabling time-based aggregations an
 **What it does**:
 
 - **Produces server metrics**: Creates metrics like cpu_usage, memory_usage, disk_io with varying values (base + sine wave + noise) for different servers
-- **Creates time windows**: Divides timestamps into 5-minute buckets (300,000ms), creates unique window keys like "server1:cpu_usage:1640995200000" 
+- **Creates time windows**: Divides timestamps into 5-minute buckets (300,000ms), creates unique window keys like "server_001:cpu_usage:1640995200000" 
 - **Accumulates window stats**: For each metric in a time window, stores running count, sum, min, max, and recent sample list in state store
 - **Calculates aggregates**: When outputting, computes average from sum/count, range from max-min, tracks categorical data like datacenter/environment
-- **Outputs window results**: Returns complete window statistics only when window has enough samples, showing aggregated metrics with alerting thresholds and metadata
+- **Outputs window results**: Returns the current window statistics for every metric, with alerting thresholds and metadata
 
-The diagram below follows four example metrics for one server. The function puts the 5-minute window start into the
-store key, so every combination of server, metric and window gets its own entry in a `keyValue` store. The diagram
-shows times as `10:00`; the real keys contain the window start in epoch milliseconds:
+The diagram below follows four example metrics for one server. The function puts the 5-minute window start into the store key, so every combination of server, metric and window gets its own entry in a `keyValue` store. The diagram shows times as `10:00`; the real keys contain the window start in epoch milliseconds:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example events
     Topic[(server_metrics)]
-    Events@{ shape: docs, label: "<b>key: server1</b><br/>cpu_usage 40 at 10:01<br/>memory_usage 70 at 10:02<br/>cpu_usage 60 at 10:03<br/>cpu_usage 50 at 10:06" }
+    Events@{ shape: docs, label: "<b>key: server_001</b><br/>cpu_usage 40 at 10:01<br/>memory_usage 70 at 10:02<br/>cpu_usage 60 at 10:03<br/>cpu_usage 50 at 10:06" }
 
     %% Processing function and its store
     Function["<code>mapValues</code><br/>aggregate_metrics"]
     Store[("metrics_window_store<br/>key: server:metric:window_start<br/>value: window statistics as JSON")]
     subgraph Steps["Event by event"]
         direction LR
-        Step1["<b>cpu_usage 40</b> at 10:01<br/>key server1:cpu_usage:10:00<br/>new window<br/>count 1, avg 40"]
-        Step2["<b>memory_usage 70</b> at 10:02<br/>key server1:memory_usage:10:00<br/>new window<br/>count 1, avg 70"]
-        Step3["<b>cpu_usage 60</b> at 10:03<br/>key server1:cpu_usage:10:00<br/>same window<br/>count 2, avg 50, min 40, max 60"]
-        Step4["<b>cpu_usage 50</b> at 10:06<br/>key server1:cpu_usage:10:05<br/>new window<br/>count 1, avg 50"]
+        Step1["<b>cpu_usage 40</b> at 10:01<br/>key server_001:cpu_usage:10:00<br/>new window<br/>count 1, avg 40"]
+        Step2["<b>memory_usage 70</b> at 10:02<br/>key server_001:memory_usage:10:00<br/>new window<br/>count 1, avg 70"]
+        Step3["<b>cpu_usage 60</b> at 10:03<br/>key server_001:cpu_usage:10:00<br/>same window<br/>count 2, avg 50, min 40, max 60"]
+        Step4["<b>cpu_usage 50</b> at 10:06<br/>key server_001:cpu_usage:10:05<br/>new window<br/>count 1, avg 50"]
         Step1 --> Step2 --> Step3 --> Step4
     end
 
@@ -205,14 +199,13 @@ graph TB
     class Topic,Output topic
     class Function,Filter operation
     class Events message
-    class Store external
+    class Store store
     class Step1,Step2,Step4 message
     class Step3 partial
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-Every metric produces an output message with the current statistics of its window, so the same window can appear
-several times in the output topic, each time with more samples.
+Every metric produces an output message with the current statistics of its window, so the same window can appear several times in the output topic, each time with more samples.
 
 ??? info "Metrics Data Producer - click to expand"
 
@@ -244,8 +237,7 @@ Session stores organize data by session windows, automatically handling session 
 - **Detects session boundaries**: When timeout exceeded, logs session end, resets counters, starts fresh session with new session ID
 - **Outputs session analytics**: Returns comprehensive session data showing current session metrics, lifetime totals, device/page patterns, and conversion events
 
-The diagram below follows four example clicks for one user. The function compares each click with the time of the
-previous one: a gap of more than 30 seconds ends the current session and starts a new one:
+The diagram below follows four example clicks for one user. The function compares each click with the time of the previous one: a gap of more than 30 seconds ends the current session and starts a new one:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -284,7 +276,7 @@ graph TB
     class Topic,Output topic
     class Function,Filter operation
     class Events message
-    class Store external
+    class Store store
     class Step1,Step2,Step4 message
     class Step3 partial
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
@@ -322,19 +314,18 @@ For high-volume scenarios, proper store configuration is crucial for performance
 - **Optimizes for volume**: Uses efficient JSON storage, processes fast, emits only critical alerts to reduce downstream message volume  
 - **Tracks device health**: Monitors temperature trends, error accumulation, heartbeat patterns, status transitions with location context
 
-The diagram below follows five example events for one device. The device state is updated for every event, but only
-some events produce an alert:
+The diagram below follows five example events for one device. The device state is updated for every event, but only some events produce an alert:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph TB
     %% Input topic with example events
     Topic[(device_events)]
-    Events@{ shape: docs, label: "<b>key: device_1</b><br/>sensor_reading 72<br/>sensor_reading 78<br/>heartbeat<br/>error<br/>status_update: maintenance" }
+    Events@{ shape: docs, label: "<b>key: device_001</b><br/>sensor_reading 72<br/>sensor_reading 78<br/>heartbeat<br/>error<br/>status_update: maintenance" }
 
     %% Processing function and its store
     Function["<code>mapValues</code><br/>process_device_events"]
-    Store[("device_state_store<br/>key: device_1<br/>value: compact state as JSON")]
+    Store[("device_state_store<br/>key: device_001<br/>value: compact state as JSON")]
     subgraph Steps["Event by event"]
         direction LR
         Step1["<b>sensor_reading 72</b><br/>last_temp 72, status active<br/>75 or lower: returns None"]
@@ -365,15 +356,14 @@ graph TB
     class Topic,Output topic
     class Function,Filter operation
     class Events message
-    class Store external
+    class Store store
     class Step1,Step3 message
     class Step2,Step4,Step5 result
     class Drop dropped
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-Every 10th heartbeat also produces a `HEARTBEAT_SUMMARY`. Because the state is updated even when nothing is emitted,
-the next alert for the device always has the latest temperature, error count and status.
+Every 10th heartbeat also produces a `HEARTBEAT_SUMMARY`. Because the state is updated even when nothing is emitted, the next alert for the device always has the latest temperature, error count and status.
 
 ??? info "High Volume Events Producer - click to expand"
 
@@ -399,14 +389,13 @@ Complex applications often require multiple state stores working together to man
 
 **What it does**:
 
-- **Produces order events**: Creates order status updates (created, shipped, delivered) with product IDs, quantities, prices as pipe-delimited strings
+- **Produces order events**: Creates order status updates (created, shipped, delivered) with product IDs, quantities, prices as colon-separated strings
 - **Uses three state stores**: Updates order_state_store (current order status), customer_metrics_store (totals per customer), product_inventory_store (stock levels)
 - **Coordinates updates**: For each order event, atomically updates all three stores - order status, customer spending totals, inventory levels
 - **Tracks relationships**: Maps orders to customers via hash function, maintains order history lists, tracks inventory changes per product
 - **Outputs comprehensive results**: Returns formatted string combining data from all three stores showing order details, customer analytics, and inventory impact
 
-The diagram below follows two example events for the same order. Each event is a colon-separated string, and the
-function updates all three stores for every event:
+The diagram below follows two example events for the same order. Each event is a colon-separated string, and the function updates all three stores for every event:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -443,13 +432,11 @@ graph TB
     class Topic,Output topic
     class Function,Filter operation
     class Events message
-    class Created,Shipped external
+    class Created,Shipped result
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-Each event also produces one output string, so the two events above produce two `ORDER_PROCESSED` messages. The
-customer is derived from a hash of the order ID, and a product that is seen for the first time starts with a stock of
-100.
+Each event also produces one output string, so the two events above produce two `ORDER_PROCESSED` messages. The customer is derived from a hash of the order ID, and a product that is seen for the first time starts with a stock of 100.
 
 ??? info "Order Events Producer - click to expand"
 

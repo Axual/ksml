@@ -77,9 +77,7 @@ Now, let's create our KSML definition file:
     {% include "../../ksml/src/test/resources/docs-examples/use-cases/real-time-analytics/analytics.yaml" %}
     ```
 
-The definition runs three independent pipelines on the same `ecommerce_transactions` topic. Each pipeline chooses its
-own grouping key and calculates one metric. The diagram below follows the four transactions from the example producer
-(further down this page):
+The definition runs three independent pipelines on the same `ecommerce_transactions` topic. Each pipeline chooses its own grouping key and calculates one metric. The diagram below follows the four transactions from the example producer (further down this page):
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -141,19 +139,11 @@ graph TB
     style R fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The category and region pipelines update their result with every transaction, so the output topics receive running
-totals. Kafka Streams buffers these updates for a short time, so updates that follow each other quickly can be
-combined: in a test run, `sales_by_category` received all four updates, while `transactions_by_region` only received
-the final count of 2 for each region. The counts are written as strings (`"2"`), because the pipeline converts them
-with `convertValue`.
+The category and region pipelines update their result with every transaction. The category pipeline declares its own store, and KSML stores have caching off by default, so every update is written. The region pipeline uses the default Kafka Streams store, which caches updates until the next commit (30 seconds by default), so you may only see the final counts. The counts are written as strings (`"2"`), because the pipeline converts them with `convertValue`.
 
-The average order value pipeline works differently: `suppress` holds back the result of a window until the window has
-closed, so `avg_order_value` receives one final result per 10-second window.
+The average order value pipeline works differently: `suppress` holds back the result of a window until the window has closed, so `avg_order_value` receives one final result per 10-second window.
 
-The windows are based on the time the transactions are written to Kafka, not on the `timestamp` field in the data, and
-they start at whole multiples of 10 seconds. The example producer writes a transaction every 7 seconds, so a window
-contains one or two transactions. Which transactions share a window depends on when the producer starts. The diagram
-below shows the windows from one test run:
+The windows are based on the time the transactions are written to Kafka, not on the `timestamp` field in the data, and they start at whole multiples of 10 seconds. The example producer writes a transaction every 7 seconds, so a window contains one or two transactions. Which transactions share a window depends on when the producer starts. The diagram below shows the windows from one test run:
 
 <div class="diagram-w80" markdown>
 
@@ -199,14 +189,11 @@ graph TB
 
 </div>
 
-A window only closes when a transaction with a later time arrives. The example producer stops after four transactions,
-so the last window never produces a result.
+A window only closes when a transaction with a later time arrives. The example producer stops after four transactions, so the last window never produces a result.
 
 ## Running the Application
 
-You can use the following producer pipeline example as a starting point to write some simulated sale data. It writes
-four hard-coded transactions to the input topic, one every 7 seconds, using the `transaction_id` as the message key, and
-then stops.
+You can use the following producer pipeline example as a starting point to write some simulated sale data. It writes four hard-coded transactions to the input topic, one every 7 seconds, using the `transaction_id` as the message key, and then stops.
 
 ??? info "Transaction data producer (click to expand)"
 
@@ -217,8 +204,7 @@ then stops.
 To run the application:
 
 1. Create the topics as described in [Define the topics for the use case](#define-the-topics-for-the-use-case).
-2. Save the processor definition to `analytics.yaml` and the producer to `example-producer.yaml` in your `examples`
-   directory.
+2. Save the processor definition to `analytics.yaml` and the producer to `example-producer.yaml` in your `examples` directory.
 3. Set up your `ksml-runner.yaml` configuration to load both definitions:
 
     ??? info "KSML runner configuration (click to expand)"

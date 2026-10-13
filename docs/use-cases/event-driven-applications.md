@@ -140,9 +140,7 @@ Now, let's create our KSML definition file:
     {% include "../../ksml/src/test/resources/docs-examples/use-cases/event-driven-applications/inventory-event-processors.yaml" %}
     ```
 
-The definition contains five pipelines that work together through topics and one shared state store. Every change in
-stock is written to `inventory_updates`, and three pipelines react to it. A reorder also leads to a restock, which is
-written back to `inventory_updates`:
+The definition contains five pipelines that work together through topics and one shared state store. Every change in stock is written to `inventory_updates`, and three pipelines react to it. A reorder also leads to a restock, which is written back to `inventory_updates`:
 
 <div class="diagram-w75" markdown>
 
@@ -184,13 +182,12 @@ graph TB
 
     class Orders,Updates,Reorders,Alerts,Catalog topic
     class OrderP,ReorderP,AlertP,RestockP,Monitor operation
-    class Store external
+    class Store store
 ```
 
 </div>
 
-The `order_pipeline` splits each order into one message per ordered item and uses the `product_id` as the new key, so
-the stock of each product is updated separately. The diagram below follows one example order with two items:
+The `order_pipeline` splits each order into one message per ordered item and uses the `product_id` as the new key, so the stock of each product is updated separately. The diagram below follows one example order with two items:
 
 <div class="diagram-w50" markdown>
 
@@ -231,14 +228,12 @@ graph TB
     class Split,Update operation
     class Order,Item1,Item2 message
     class Result1,Result2 result
-    class Store external
+    class Store store
 ```
 
 </div>
 
-The diagram below follows the stock of one product, `prod-123` (reorder threshold 10, reorder quantity 50, critical
-threshold 5), through a series of updates. The store starts empty, so the first order always triggers a reorder and an
-alert:
+The diagram below follows the stock of one product, `prod-123` (reorder threshold 10, reorder quantity 50, critical threshold 5), through a series of updates. The store starts empty, so the first order always triggers a reorder and an alert:
 
 <div class="diagram-w40" markdown>
 
@@ -259,7 +254,7 @@ graph TB
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
 
-    class S1 dropped
+    class S1 alert
     class S2,S4 message
     class S3 partial
 ```
@@ -299,11 +294,12 @@ To run the application:
     ```
 
 4. Start the KSML runner. It runs both definitions together:
+
       - the `product_catalog_producer` writes the three products to the `product_catalog` topic once
       - the `order_event_producer` writes a random order to the `order_events` topic every second
       - the five pipelines process the orders
-5. Monitor the `inventory_updates`, `reorder_events` and `inventory_alerts` topics to see the stock changes, reorders
-   and alerts.
+
+5. Monitor the `inventory_updates`, `reorder_events` and `inventory_alerts` topics to see the stock changes, reorders and alerts.
 
 ## Extending the Event-Driven System
 
