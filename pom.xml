@@ -118,7 +118,7 @@
         <hamcrest.version>3.0</hamcrest.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
         <junit.version>6.1.3</junit.version>
-        <mockito-core.version>5.23.0</mockito-core.version>
+        <mockito-core.version>5.24.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.24.0</mockito-junit-jupiter.version>
         <testcontainers.version>2.0.5</testcontainers.version>
 
