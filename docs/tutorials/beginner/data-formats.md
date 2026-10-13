@@ -11,9 +11,10 @@ For comprehensive syntax reference and format details, see the [Data Types and F
 
 ## Supported Data Formats
 
-- **String**: Plain text
+- **String**: Plain text (used in the [conversion example](#converting-between-data-formats))
 - **JSON**: Structured data without schema validation
 - **Avro**: Binary format with schema registry integration
+- **JsonSchema**: JSON data validated against a schema in a schema registry
 - **CSV**: Tabular data with optional schema
 - **XML**: Hierarchical data with XSD schema support
 - **Binary**: Raw bytes for custom protocols
@@ -37,7 +38,37 @@ When defining streams in KSML, you specify the data format using the `keyType` a
         valueType: avro:SensorData
     ```
 
-Schema-based formats (Avro, XML, CSV) can specify a schema name: `format:SchemaName` (e.g., `avro:SensorData`). For notations backed by a schema registry (e.g., `confluent_avro`), the schema name can be omitted — KSML will fetch the latest schema from the registry using the topic name. See the [Data Types and Notations Reference](../../reference/data-and-formats-reference.md#local-files-vs-schema-registry) for details.
+Schema-based formats (Avro, JsonSchema, XML, CSV) can specify a schema name: `format:SchemaName` (e.g., `avro:SensorData`). For notations backed by a schema registry (e.g., `confluent_avro`), the schema name can be omitted — KSML will fetch the latest schema from the registry using the topic name. See the [Data Types and Notations Reference](../../reference/data-and-formats-reference.md#local-files-vs-schema-registry) for details.
+
+The `keyType` and `valueType` of a stream decide how KSML turns the bytes on a topic into a value for your Python code,
+and back into bytes when it writes:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Reading and writing
+    In[("Input topic<br/>bytes")]
+    Read["<b>Read</b><br/>input stream's<br/>keyType / valueType"]
+    Python["<b>Your Python code</b><br/>json, avro, jsonschema, csv, xml: dict<br/>string: str<br/>bytes: list of numbers"]
+    Write["<b>Write</b><br/>output stream's<br/>keyType / valueType"]
+    Out[("Output topic<br/>bytes")]
+
+    %% Where the schema comes from
+    Schema["<b>Schema</b><br/>registry: avro, jsonschema<br/>file in examples/: avro .avsc, csv .csv, xml .xsd<br/>none: json, string, bytes"]
+
+    %% Data Flow
+    In --> Read --> Python --> Write --> Out
+    Schema -.-> Read
+    Schema -.-> Write
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class In,Out topic
+    class Read,Write operation
+    class Python result
+    class Schema external
+```
 
 
 ## Working with Avro Data
@@ -116,7 +147,7 @@ Use this configuration when working with Apicurio Schema Registry's native capab
 #### Running the Examples
 
 - For each example, create `producer.yaml` and `processor.yaml` files and reference them from your chosen `ksml-runner.yaml`
-- Restart KSML: `docker compose down & docker compose up -d && docker compose logs ksml -f` (which is faster than `docker compose restart ksml`)
+- Restart KSML: `docker compose down && docker compose up -d && docker compose logs ksml -f` (which is faster than `docker compose restart ksml`)
 
 ### Avro Examples
 
@@ -140,7 +171,8 @@ Create `examples/SensorData.avsc` schema file (JSON format, auto-loaded from wor
     %}
     ```
 
-This processor converts Avro messages to JSON using the `convertValue` operation:
+This processor converts Avro messages to JSON using the `convertValue` operation. It is the processor used by the
+`apicurio_avro` runner configuration above:
 
 ??? info "Avro to JSON conversion processor (click to expand)"
 
@@ -150,7 +182,18 @@ This processor converts Avro messages to JSON using the `convertValue` operation
     %}
     ```
 
-This processor transforms Avro data (uppercases sensor names) while maintaining the Avro format:
+This processor transforms Avro data (uppercases sensor names) while maintaining the Avro format. It reads from a
+different topic, `sensor_data_avro_confluent`, and is the processor used by the `confluent_avro` runner configuration
+above. Use this producer for it; it is the same as the producer above, except for the topic:
+
+??? info "Producer definition for the Avro transformation (click to expand)"
+
+    ```yaml
+    {%
+      include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/avro-confluent/producer-avro.yaml"
+    %}
+    ```
+
 
 ??? info "Avro transformation processor (click to expand)"
 
@@ -303,6 +346,43 @@ This processor demonstrates CSV data manipulation (uppercases city names) while 
       include "../../../ksml-integration-tests/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/csv/csv-processor.yaml"
     %}
     ```
+
+A CSV message has no field names, only values in a fixed order. KSML takes the names from the header line in
+`SensorData.csv`, so your Python code gets a dict. The diagram below follows one message through the processor:
+
+<div class="diagram-w70" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Schema and input
+    Schema["<b>SensorData.csv</b><br/>name,timestamp,value,type,unit,color,city,owner"]
+    In@{ shape: doc, label: "<b>ksml_sensordata_csv</b><br/>sensor6,1754376106863,12,TEMPERATURE,%,black,Rotterdam,Alice" }
+
+    %% Python
+    Dict@{ shape: doc, label: "<b>Python dict</b><br/>name: sensor6<br/>value: 12, type: TEMPERATURE<br/>unit: %, color: black<br/>city: Rotterdam, owner: Alice" }
+    Upper["<code>transformValue</code><br/>uppercase_city"]
+    Out@{ shape: doc, label: "<b>ksml_sensordata_csv_processed</b><br/>sensor6,1754376106863,12,TEMPERATURE,%,black,ROTTERDAM,Alice" }
+
+    %% Data Flow
+    In -->|"read with csv:SensorData"| Dict
+    Schema -.->|"column names"| Dict
+    Dict --> Upper
+    Upper -->|"write with csv:SensorData"| Out
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Schema external
+    class In,Dict message
+    class Upper operation
+    class Out result
+```
+
+</div>
+
+XML works the same way: `SensorData.xsd` describes the elements, and your Python code gets a dict with one entry per
+element.
 ## Working with XML Data
 
 XML (eXtensible Markup Language) is a structured format for representing hierarchical data with custom tags and attributes.
@@ -428,6 +508,40 @@ This processor demonstrates multiple format conversions (Avro → JSON → Strin
     {% include "../../../ksml/src/test/resources/docs-examples/beginner-tutorial/different-data-formats/processor-converting.yaml" %}
     ```
 
+The diagram below shows what the value looks like after each `convertValue` step:
+
+<div class="diagram-w40" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Steps
+    In[("sensor_data_avro<br/>Avro")]
+    V1@{ shape: doc, label: "Avro record<br/>name, type, value, unit, ..." }
+    C1["<code>convertValue</code><br/>into: json"]
+    V2@{ shape: doc, label: "JSON object<br/>Python dict" }
+    C2["<code>convertValue</code><br/>into: string"]
+    V3@{ shape: doc, label: "String<br/>#123;#quot;name#quot;: #quot;sensor0#quot;, ...#125;" }
+    C3["<code>convertValue</code><br/>into: json"]
+    V4@{ shape: doc, label: "JSON object<br/>Python dict again" }
+    Out[("sensor_data_converted_formats<br/>JSON")]
+
+    %% Data Flow
+    In --> V1 --> C1 --> V2 --> C2 --> V3 --> C3 --> V4 --> Out
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class In,Out topic
+    class C1,C2,C3 operation
+    class V1,V2,V3 message
+    class V4 result
+```
+
+</div>
+
+Each step is followed by a `peek` that logs the value, so you can see every format in the KSML logs.
+
 ### Format Conversion and Multiple Formats
 
 For comprehensive information on format conversion requirements, chaining conversions, and working with multiple formats in a single pipeline, see the [Data Types and Formats Reference - Type Conversion](../../reference/data-and-formats-reference.md#type-conversion) section.
@@ -435,7 +549,7 @@ For comprehensive information on format conversion requirements, chaining conver
 
 ## Conclusion
 
-You've learned to work with KSML's data formats through practical examples: JSON, Avro, CSV, XML and Binary. Key concepts covered include format specification, schema usage, conversion operations, and multi-format pipelines.
+You've learned to work with KSML's data formats through practical examples: JSON, Avro, JsonSchema, CSV, XML and Binary. Key concepts covered include format specification, schema usage, conversion operations, and multi-format pipelines.
 
 For complete syntax reference, type definitions, and advanced format features, refer to the [Data Types and Formats Reference](../../reference/data-and-formats-reference.md).
 
