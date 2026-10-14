@@ -395,7 +395,7 @@ Complex applications often require multiple state stores working together to man
 - **Tracks relationships**: Maps orders to customers via hash function, maintains order history lists, tracks inventory changes per product
 - **Outputs comprehensive results**: Returns formatted string combining data from all three stores showing order details, customer analytics, and inventory impact
 
-The diagram below follows two example events for the same order. Each event is a colon-separated string, and the function updates all three stores for every event:
+The diagram below follows two example events for the same order. The example producer gives every event a new order ID and a random status, so it never sends two events for the same order: the diagram only shows what would happen if it did. Each event is a colon-separated string, and the function updates all three stores for every event:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"

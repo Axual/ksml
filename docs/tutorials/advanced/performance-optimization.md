@@ -60,7 +60,7 @@ This example demonstrates optimized Python code and efficient data handling tech
 - **Processes with JSON**: Extracts fields from JSON using `.get()`, builds result objects for Kowl UI readability
 - **Logs selectively**: Only logs high-score events to reduce I/O overhead while maintaining performance visibility
 
-The diagram below follows four example events. Scroll and hover events are discarded before any field is read; the other events get a score from the pre-computed tables:
+The diagram below follows four example events. Scroll and hover events are discarded before any other field is read; the other events get a score from the pre-computed tables:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"

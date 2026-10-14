@@ -562,15 +562,15 @@ The diagram below shows how this works for the simple sum example, with three pa
 --8<-- "snippets/mermaid-init.txt"
 graph LR
     %% Incoming payments for one key
-    Payment1[/"CUST001: 500"/]
-    Payment2[/"CUST001: 250"/]
-    Payment3[/"CUST001: 100"/]
+    Payment1[/"CUST001: 5000"/]
+    Payment2[/"CUST001: 2500"/]
+    Payment3[/"CUST001: 1000"/]
 
     %% Aggregation steps
     Init["<code>initializer</code><br/>total = 0"]
-    Step1["<code>aggregator</code><br/>0 + 500 = 500"]
-    Step2["<code>aggregator</code><br/>500 + 250 = 750"]
-    Step3["<code>aggregator</code><br/>750 + 100 = 850"]
+    Step1["<code>aggregator</code><br/>0 + 5000 = 5000"]
+    Step2["<code>aggregator</code><br/>5000 + 2500 = 7500"]
+    Step3["<code>aggregator</code><br/>7500 + 1000 = 8500"]
 
     %% Output
     OutputTopic[(payment_totals)]
@@ -578,13 +578,13 @@ graph LR
     %% Data Flow
     Init --> Step1
     Payment1 --> Step1
-    Step1 -->|"state: 500"| Step2
+    Step1 -->|"state: 5000"| Step2
     Payment2 --> Step2
-    Step2 -->|"state: 750"| Step3
+    Step2 -->|"state: 7500"| Step3
     Payment3 --> Step3
-    Step1 -.->|"emit 500"| OutputTopic
-    Step2 -.->|"emit 750"| OutputTopic
-    Step3 -.->|"emit 850"| OutputTopic
+    Step1 -.->|"emit 5000"| OutputTopic
+    Step2 -.->|"emit 7500"| OutputTopic
+    Step3 -.->|"emit 8500"| OutputTopic
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
@@ -794,7 +794,7 @@ temp002 | 29.8
 
 Cogroup allows combining multiple grouped streams into a single aggregation. This is useful when you need to aggregate data from different sources into one unified result.
 
-??? info "Orders, Refunds, and Bonuses Producer (click to expand)"
+??? info "Customer orders producer (click to expand)"
 
     ```yaml
     {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-cogroup.yaml" %}
@@ -815,42 +815,39 @@ The cogroup operation:
 3. Each stream contributes to the aggregate with its own aggregator function
 4. Final aggregate operation computes the combined result
 
+The example above uses only one stream, `customer_orders`, so it shows the order of the operations rather than the combining of streams. The diagram below follows two orders from the example producer through the pipeline:
+
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph LR
-    %% Input streams
-    StreamA[(Stream A)]
-    StreamB[(Stream B)]
-    StreamC[(Stream C)]
+    %% Input topic with example orders
+    Topic[(customer_orders)]
+    Orders@{ shape: docs, label: "<b>key: alice</b> amount 50.0<br/><b>key: alice</b> amount 30.0" }
 
     %% Grouping and cogrouping
-    GroupA[<code>groupByKey</code>]
-    GroupB[<code>groupByKey</code>]
-    GroupC[<code>groupByKey</code>]
-    Cogroup["<code>cogroup</code><br/>aggregator A, B and C"]
-    Aggregate["<code>aggregate</code><br/>shared initializer"]
+    Group[<code>groupByKey</code>]
+    Cogroup["<code>cogroup</code><br/>aggregator: aggregate_orders"]
+    Aggregate["<code>aggregate</code><br/>initializer: init_order_stats"]
 
     %% State and output
-    Store[(State store)]
-    OutputTopic[(Output topic)]
+    Store[(customer_totals_store)]
+    Result["<b>alice</b><br/>total_amount: 80.0<br/>order_count: 2"]
+    OutputTopic[(customer_totals)]
 
     %% Data Flow
-    StreamA --> GroupA
-    StreamB --> GroupB
-    StreamC --> GroupC
-    GroupA -->|"aggregator A"| Cogroup
-    GroupB -->|"aggregator B"| Cogroup
-    GroupC -->|"aggregator C"| Cogroup
-    Cogroup --> Aggregate
+    Topic --> Orders --> Group --> Cogroup --> Aggregate
     Aggregate <-->|"one result per key"| Store
-    Aggregate -->|"<code>toStream</code>"| OutputTopic
+    Aggregate --> Result
+    Result -->|"<code>toStream</code>"| OutputTopic
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
 
-    class StreamA,StreamB,StreamC,OutputTopic topic
-    class GroupA,GroupB,GroupC,Cogroup,Aggregate operation
+    class Topic,OutputTopic topic
+    class Group,Cogroup,Aggregate operation
     class Store store
+    class Orders message
+    class Result result
 ```
 
 > **Note:** Cogroup is an advanced feature that requires careful coordination between multiple streams. Ensure all streams are properly grouped and that aggregator functions handle null values appropriately.

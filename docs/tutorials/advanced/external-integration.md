@@ -205,7 +205,7 @@ graph TB
         direction LR
         Step1["<b>PROD001</b><br/>purchased, quantity 2<br/>Wireless Headphones<br/>99.99 × 2<br/>total_price 199.98"]
         Step2["<b>PROD002</b><br/>viewed, quantity 1<br/>Coffee Mug<br/>no purchase or cart event<br/>total_price 0.0"]
-        Step3["<b>PROD005</b><br/>added_to_cart, quantity 3<br/>Smartphone<br/>699.99 × 3<br/>total_price 2099.97"]
+        Step3["<b>PROD005</b><br/>added_to_cart, quantity 3<br/>Smartphone<br/>699.99 × 3<br/>total_price 2099.9700000000003"]
         Step1 --> Step2 --> Step3
     end
 
@@ -235,6 +235,8 @@ graph TB
     class Step1,Step2,Step3 result
     style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
+
+The `total_price` is not rounded, so a multiplication like 699.99 × 3 can give a long floating point number such as `2099.9700000000003`.
 
 
 ??? info "Product Events Producer (database lookup demo) - click to expand"

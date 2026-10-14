@@ -287,7 +287,15 @@ JSON provides flexible, human-readable structured data without schema validation
 
 ### Setup Requirements
 
-JSON data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
+JSON data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md). Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
+
+??? info "Topic creation commands - click to expand"
+
+    ```yaml
+    # JSON examples
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_json_raw && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_json_processed && \
+    ```
 
 This producer generates JSON sensor data directly (no format conversion needed):
 
@@ -311,7 +319,15 @@ CSV handles tabular data with schema-based column definitions and structured obj
 
 ### Setup Requirements
 
-CSV data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
+CSV data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md). Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
+
+??? info "Topic creation commands - click to expand"
+
+    ```yaml
+    # CSV examples
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_csv && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_csv_processed && \
+    ```
 
 Create `examples/SensorData.csv` schema file (defines column order):
 
@@ -378,7 +394,15 @@ XML (eXtensible Markup Language) is a structured format for representing hierarc
 
 ### Setup Requirements
 
-XML data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
+XML data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md). Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
+
+??? info "Topic creation commands - click to expand"
+
+    ```yaml
+    # XML examples
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_xml && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_xml_processed && \
+    ```
 
 - XML data is represented as nested elements with opening and closing tags
 - Elements can contain text content, attributes, and child elements
@@ -449,7 +473,15 @@ Binary data represents raw bytes as sequences of numeric values ranging from 0 t
 
 ### Setup Requirements
 
-Binary data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md).
+Binary data processing does not require a schema registry. Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md). Add the following topics to your `kafka-setup` service in docker-compose.yml to run the examples:
+
+??? info "Topic creation commands - click to expand"
+
+    ```yaml
+    # Binary examples
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_binary && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_binary_processed && \
+    ```
 
 - Binary data is represented as arrays of integers where each value corresponds to a single byte
 - Each byte can store values from 0-255, allowing for compact encoding of various data types

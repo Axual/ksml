@@ -68,7 +68,7 @@ Our IoT sensor data will have the following structure:
 
 ```json
 {
-  "device_id": "sensor-123",
+  "device_id": "temperature_sensor-conference-a",
   "timestamp": 1625097600000,
   "device_type": "temperature_sensor",
   "location": {

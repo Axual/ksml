@@ -462,7 +462,7 @@ This example uses session windows to analyze user browsing patterns by grouping 
 - **Activity-based**: Perfect for user behavior analysis
 - **Variable retention**: Different sessions can have different lifespans
 
-The diagram below follows seven example clicks through the same pipeline. Alice pauses for more than 2 minutes between 10:01:30 and 10:05:00, so her clicks form two separate sessions. Bob never pauses that long, so all his clicks stay in one session that keeps growing. Every click sends an updated count for its session, and the diagram shows the last one. When a click merges two sessions, the old session key also gets a `null` value:
+The diagram below follows seven example clicks through the same pipeline. Alice pauses for more than 2 minutes between 10:01:30 and 10:05:00, so her clicks form two separate sessions. Bob never pauses that long, so all his clicks stay in one session that keeps growing. Every click sends an updated count for its session, and the diagram shows the last one. When a click extends a session, the session gets a new end time and so a new key. The old session key then gets a `null` value:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"

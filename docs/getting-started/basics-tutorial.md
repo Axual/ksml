@@ -410,7 +410,7 @@ With both definitions loaded, the KSML runner now produces the test data and pro
 graph TB
     %% Definitions run by the KSML runner
     Producer[<code>temperature_producer</code><br/>producer.yaml]
-    Pipeline[<code>tutorial_pipeline</code><br/>tutorial.yaml]
+    Pipeline[<code>tutorial_pipeline</code><br/>tutorial.yaml<br/>processor.yaml in Option A]
 
     %% Topics
     InputTopic[(temperature_data)]

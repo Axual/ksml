@@ -8,7 +8,7 @@ streams:
 
   pattern_alerts:
     topic: transaction_pattern_alerts
-    keyType: string  # card_id
+    keyType: string  # transaction_id
     valueType: json  # alert data
 
   fraud_alerts:

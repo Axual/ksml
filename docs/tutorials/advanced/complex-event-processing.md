@@ -182,6 +182,9 @@ graph LR
     Slow["SLOW_CHECKOUT"]
     NoOutput2["No output"]
 
+    %% Other actions
+    NoOutput3["No output"]
+
     %% Data Flow
     Event --> Action
     Action -->|"add_to_cart"| SaveCart
@@ -189,6 +192,7 @@ graph LR
     Action -->|"checkout"| HasCart
     HasCart -->|"yes"| TimeCheck
     HasCart -.->|"no"| NoOutput2
+    Action -.->|"login, view_product,<br/>logout"| NoOutput3
     TimeCheck -->|"yes"| Quick
     TimeCheck -->|"no"| Slow
 
@@ -199,7 +203,7 @@ graph LR
     class Action,HasCart,TimeCheck,SaveCart operation
     class Quick external
     class Slow partial
-    class NoOutput1,NoOutput2 dropped
+    class NoOutput1,NoOutput2,NoOutput3 dropped
 ```
 
 In both cases the stored cart event is deleted after the checkout, so the next checkout needs a new `add_to_cart`.
@@ -259,8 +263,8 @@ graph TB
     %% Step 2: look for known combinations
     Correlate["<code>mapValues</code><br/>correlate_events"]
     subgraph Results["Correlation results"]
-        ResultAlice["<b>alice</b><br/>FORM_ERROR_CORRELATION<br/>status CRITICAL<br/>3s after activity: HIGH"]
-        ResultBob["<b>bob</b><br/>PAGE_LOAD_CORRELATION<br/>status NORMAL<br/>3s after activity: MEDIUM"]
+        ResultAlice["<b>alice</b><br/>FORM_ERROR_CORRELATION<br/>status CRITICAL<br/>processed 3s after<br/>activity: HIGH"]
+        ResultBob["<b>bob</b><br/>PAGE_LOAD_CORRELATION<br/>status NORMAL<br/>processed 3s after<br/>activity: MEDIUM"]
         ResultCharlie["<b>charlie</b><br/>scroll + api_call is not<br/>a known combination:<br/>returns None"]
     end
 
@@ -280,7 +284,7 @@ graph TB
     Correlate --> ResultAlice & ResultBob & ResultCharlie
     ResultAlice & ResultBob --> Filter
     ResultCharlie -.->|"None: dropped by the filter"| Drop
-    Filter -->|"key: alice<br/>value: {pattern_type: FORM_ERROR_CORRELATION, status: CRITICAL, ...}"| Output
+    Filter -->|"key: alice<br/>value: {pattern_type: FORM_ERROR_CORRELATION, ...}<br/>key: bob<br/>value: {pattern_type: PAGE_LOAD_CORRELATION, ...}"| Output
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
@@ -294,7 +298,7 @@ graph TB
     style Results fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The `correlate_events` function only reports three combinations of user activity and system event. The correlation strength depends on how soon the system event followed the user activity:
+The `correlate_events` function only reports three combinations of user activity and system event. The correlation strength depends on how soon the system event is processed after the user activity. The time is measured from the `timestamp` of the user activity to the moment the join runs, not to the `timestamp` of the system event:
 
 | User activity | System event | Pattern type             | Status   | HIGH strength if within |
 |---------------|--------------|--------------------------|----------|-------------------------|

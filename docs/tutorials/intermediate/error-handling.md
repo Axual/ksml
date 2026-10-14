@@ -258,7 +258,7 @@ graph TB
     %% Outcomes
     Success["status: success"]
     SuccessRetry["status: success_after_retry"]
-    RetryNeeded["status: retry_needed<br/>backoff_delay: 1s, 2s, 4s<br/>(± 20% jitter)"]
+    RetryNeeded["status: retry_needed<br/>retry_count: 1<br/>backoff_delay: about 1s<br/>(± 20% jitter)"]
     Permanent["status: permanent_failure"]
 
     %% Routing
@@ -287,7 +287,7 @@ graph TB
     class Failed errorTopic
 ```
 
-Note that this example only **decides** whether an operation should be retried and calculates the delay: it simulates the outcome of a retry within the same function call. Messages with `status: retry_needed` are written to `failed_operations` together with their `retry_count` and `backoff_delay`, and are not sent through the pipeline again.
+Note that this example only **decides** whether an operation should be retried and calculates the delay: it simulates the outcome of a retry within the same function call. Messages with `status: retry_needed` are written to `failed_operations` together with their `retry_count` and `backoff_delay`, and are not sent through the pipeline again. The example producer always sends `retry_count: 0`, so the delay is always about 1 second. The 2 and 4 second delays only happen for messages that arrive with a `retry_count` of 1 or 2.
 
 ### 5. Circuit Breaker Pattern
 

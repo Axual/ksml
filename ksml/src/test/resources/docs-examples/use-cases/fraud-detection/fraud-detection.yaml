@@ -13,12 +13,12 @@ streams:
 
   unusual_location_alerts:
     topic: unusual_location_alerts
-    keyType: string  # card_id
+    keyType: string  # transaction_id
     valueType: json  # alert data
 
   velocity_alerts:
     topic: transaction_velocity_alerts
-    keyType: string  # card_id
+    keyType: string  # transaction_id
     valueType: json  # alert data
 
   fraud_alerts:
