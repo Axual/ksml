@@ -22,26 +22,40 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.aggregations;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.graalvm.home.Version;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Test for cogroup aggregation with custom aggregator in KSML.
+ * Test for cogroup aggregation with custom aggregators in KSML.
  * <p>
  * The cogroup operation demonstrates:
- * 1. groupByKey to group orders by customer
- * 2. cogroup with custom aggregator function
- * 3. aggregate with initializer to materialize the aggregation
+ * 1. groupByKey to group refunds by customer, saved with "as" for the next pipeline
+ * 2. groupByKey to group orders by customer
+ * 3. cogroup with an aggregator for orders, then cogroup with "stream" and an aggregator for refunds
+ * 4. aggregate with initializer to materialize the aggregation
  * <p>
  * What these Tests Validate (KSML Translation):
  * <p>
@@ -49,6 +63,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 2. testCogroupIncrementsCounts: cogroup tracks order counts per customer
  * 3. testCogroupMultipleCustomers: cogroup maintains separate aggregates per key
  * 4. testCogroupInitializer: initializer creates correct initial state
+ * 5. testCogroupCombinesOrdersAndRefunds: orders and refunds update one aggregate, each with its own aggregator
+ * 6. testCogroupRefundsPerCustomer: refunds only update the aggregate of their own key
+ * 7. testCogroupStreamSavedByLaterPipelineIsRejected: a stream saved by a later pipeline fails the topology build
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -59,6 +76,9 @@ public class CogroupTest {
 
     @KSMLTopic(topic = "customer_orders")
     TestInputTopic<String, String> ordersInput;
+
+    @KSMLTopic(topic = "customer_refunds")
+    TestInputTopic<String, String> refundsInput;
 
     @KSMLTopic(topic = "customer_totals")
     TestOutputTopic<String, String> outputTopic;
@@ -152,6 +172,69 @@ public class CogroupTest {
         assertThat(json.get("order_count").asInt()).isEqualTo(1);
     }
 
+    @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")
+    void testCogroupCombinesOrdersAndRefunds() throws Exception {
+        String customer = "diana";
+
+        // Send orders and refunds for the same customer
+        ordersInput.pipeInput(customer, createOrderJson("ORD010", customer, 100.00));
+        refundsInput.pipeInput(customer, createRefundJson("REF001", customer, 30.00));
+        ordersInput.pipeInput(customer, createOrderJson("ORD011", customer, 50.00));
+
+        assertThat(outputTopic.getQueueSize()).isEqualTo(3);
+
+        // Read final result
+        String result = outputTopic.readValuesToList().getLast();
+        JsonNode json = objectMapper.readTree(result);
+
+        // Verify both streams updated the same aggregate
+        assertThat(json.get("total_amount").asDouble()).isEqualTo(120.00);
+        assertThat(json.get("order_count").asInt()).isEqualTo(2);
+        assertThat(json.get("refund_count").asInt()).isEqualTo(1);
+        assertThat(json.get("customer").asString()).isEqualTo(customer);
+    }
+
+    @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")
+    void testCogroupRefundsPerCustomer() throws Exception {
+        // Send an order for each customer and a refund for one of them
+        ordersInput.pipeInput("alice", createOrderJson("ORD012", "alice", 100.00));
+        ordersInput.pipeInput("bob", createOrderJson("ORD013", "bob", 200.00));
+        refundsInput.pipeInput("bob", createRefundJson("REF002", "bob", 25.00));
+
+        assertThat(outputTopic.getQueueSize()).isEqualTo(3);
+        outputTopic.readRecord();
+        outputTopic.readRecord();
+
+        // The refund only updates bob's aggregate
+        var refundRecord = outputTopic.readRecord();
+        assertThat(refundRecord.getKey()).isEqualTo("bob");
+        JsonNode json = objectMapper.readTree(refundRecord.getValue());
+        assertThat(json.get("total_amount").asDouble()).isEqualTo(175.00);
+        assertThat(json.get("order_count").asInt()).isEqualTo(1);
+        assertThat(json.get("refund_count").asInt()).isEqualTo(1);
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    void testCogroupStreamSavedByLaterPipelineIsRejected() throws Exception {
+        final var uri = ClassLoader.getSystemResource("pipelines/test-cogroup-wrong-order.yaml").toURI();
+        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
+        final var definitions = ImmutableMap.of("definition",
+                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
+        final var topologyGenerator = new TopologyGenerator("cogroup.wrong.order.app");
+        final var streamsBuilder = new StreamsBuilder();
+
+        assertThatThrownBy(() -> topologyGenerator.create(streamsBuilder, definitions))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("grouped_refunds")
+                .hasMessageContaining("not found")
+                .hasMessageContaining("defined before this one");
+    }
+
+    static boolean isRunningOnGraalVM() {
+        return Version.getCurrent().isRelease();
+    }
+
     private String createOrderJson(String orderId, String customer, double amount) throws Exception {
         Map<String, Object> order = new HashMap<>();
         order.put("order_id", orderId);
@@ -160,5 +243,15 @@ public class CogroupTest {
         order.put("timestamp", System.currentTimeMillis());
 
         return objectMapper.writeValueAsString(order);
+    }
+
+    private String createRefundJson(String refundId, String customer, double amount) throws Exception {
+        Map<String, Object> refund = new HashMap<>();
+        refund.put("refund_id", refundId);
+        refund.put("customer", customer);
+        refund.put("amount", amount);
+        refund.put("timestamp", System.currentTimeMillis());
+
+        return objectMapper.writeValueAsString(refund);
     }
 }
