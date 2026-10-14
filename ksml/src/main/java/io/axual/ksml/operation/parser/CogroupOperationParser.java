@@ -40,9 +40,10 @@ public class CogroupOperationParser extends OperationParser<CogroupOperation> {
         return FieldParsers.structsParser(
                 CogroupOperation.class,
                 "",
-                "A cogroup operation",
+                "A cogroup operation, which combines one or more grouped streams into a single aggregation",
                 operationNameField(),
+                FieldParsers.optional(FieldParsers.stringField(Operations.Cogroup.STREAM, false, "The name of a grouped stream, saved with \"as\" in an earlier pipeline, to add to the cogroup. Only allowed on a cogroup that follows another cogroup")),
                 functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser(false)),
-                (name, aggr, tags) -> new CogroupOperation(operationConfig(name, tags), aggr));
+                (name, stream, aggr, tags) -> new CogroupOperation(operationConfig(name, tags), stream, aggr));
     }
 }

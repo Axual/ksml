@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 class CogroupOperationTest extends OperationTestBase {
 
     private CogroupOperation operation() {
-        return new CogroupOperation(operationConfig("cogroup"), aggregator());
+        return new CogroupOperation(operationConfig("cogroup"), null, aggregator());
     }
 
     @Test

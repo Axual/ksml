@@ -28,14 +28,19 @@ import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserAggregator;
+import lombok.Getter;
 import org.apache.kafka.streams.kstream.CogroupedKStream;
 
 public class CogroupOperation extends BaseOperation {
     private static final String AGGREGATOR_NAME = "Aggregator";
+    // Name of a grouped stream, registered with "as" by another pipeline, to add to an existing cogroup
+    @Getter
+    private final String stream;
     private final FunctionDefinition aggregator;
 
-    public CogroupOperation(OperationConfig config, FunctionDefinition aggregator) {
+    public CogroupOperation(OperationConfig config, String stream, FunctionDefinition aggregator) {
         super(config);
+        this.stream = stream;
         this.aggregator = aggregator;
     }
 

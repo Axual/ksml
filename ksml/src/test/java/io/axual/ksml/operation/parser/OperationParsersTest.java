@@ -23,6 +23,7 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.operation.CogroupOperation;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.operation.FilterNotOperation;
 import io.axual.ksml.operation.MergeOperation;
@@ -157,6 +158,23 @@ class OperationParsersTest {
         final var op = new MergeOperationParser(resources).parser()
                 .parse(nodeOf("stream:\n  topic: other\n  keyType: string\n  valueType: string"));
         assertThat(op).isInstanceOf(MergeOperation.class);
+    }
+
+    @Test
+    @DisplayName("a cogroup configuration without a stream parses into a cogroup operation without a stream")
+    void parsesCogroupWithoutStream() throws Exception {
+        final var op = new CogroupOperationParser(resources).parser()
+                .parse(nodeOf("aggregator:\n  expression: aggregatedValue\n  resultType: string"));
+        assertThat(op).isInstanceOf(CogroupOperation.class);
+        assertThat(op.stream()).isNull();
+    }
+
+    @Test
+    @DisplayName("a cogroup configuration with a stream parses into a cogroup operation with that stream")
+    void parsesCogroupWithStream() throws Exception {
+        final var op = new CogroupOperationParser(resources).parser()
+                .parse(nodeOf("stream: grouped_refunds\naggregator:\n  expression: aggregatedValue\n  resultType: string"));
+        assertThat(op.stream()).isEqualTo("grouped_refunds");
     }
 
     @Test
