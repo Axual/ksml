@@ -792,7 +792,7 @@ temp002 | 29.8
 
 ## Advanced: Cogroup Operation
 
-Cogroup allows combining multiple grouped streams into a single aggregation. This is useful when you need to aggregate data from different sources into one unified result.
+Cogroup is meant to combine several grouped streams into one aggregation, with a separate aggregator for each stream. KSML supports only one stream in a `cogroup` today (see [#728](https://github.com/Axual/ksml/issues/728)), so the example below uses one stream.
 
 ??? info "Customer orders producer (click to expand)"
 
@@ -808,14 +808,13 @@ Cogroup allows combining multiple grouped streams into a single aggregation. Thi
 
 ### How Cogroup Works
 
-The cogroup operation:
+The cogroup pipeline:
 
-1. Groups each stream independently by key
-2. Combines the grouped streams using cogroup operations
-3. Each stream contributes to the aggregate with its own aggregator function
-4. Final aggregate operation computes the combined result
+1. Groups the stream by key with `groupByKey`
+2. Adds the grouped stream to the cogroup with its own aggregator function
+3. Runs the final `aggregate` operation, which uses the initializer to compute the result
 
-The example above uses only one stream, `customer_orders`, so it shows the order of the operations rather than the combining of streams. The diagram below follows two orders from the example producer through the pipeline:
+The example above uses only one stream, `customer_orders`. KSML does not support more than one stream in a `cogroup` yet (see [#728](https://github.com/Axual/ksml/issues/728)). The diagram below follows two example orders through the pipeline:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -850,7 +849,7 @@ graph LR
     class Result result
 ```
 
-> **Note:** Cogroup is an advanced feature that requires careful coordination between multiple streams. Ensure all streams are properly grouped and that aggregator functions handle null values appropriately.
+> **Note:** A second `cogroup` step in the same pipeline fails at startup with a `TopologyException`. Make sure the aggregator function handles null values.
 
 ## Complex Example: Regional Sales Analytics
 
