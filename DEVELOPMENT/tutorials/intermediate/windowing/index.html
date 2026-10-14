@@ -2480,6 +2480,24 @@
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5m</span><span class="w">      </span><span class="c1"># Window size</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">grace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span><span class="w">        </span><span class="c1"># Accept late data up to 30 seconds</span>
 </code></pre></div>
+<p>Each event falls into exactly one window, based on its timestamp:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+gantt
+    title Tumbling windows (duration 5m)
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Windows
+    Window 1 :w1, 10:00, 5m
+    Window 2 :w2, 10:05, 5m
+    Window 3 :w3, 10:10, 5m
+
+    section Events
+    Event A (window 1) :milestone, 10:01, 0m
+    Event B (window 1) :milestone, 10:03, 0m
+    Event C (window 2) :milestone, 10:07, 0m
+    Event D (window 3) :milestone, 10:12, 0m</code></pre>
 <p><strong>Characteristics</strong>:</p>
 <ul>
 <li>No overlap between windows</li>
@@ -2503,6 +2521,23 @@
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">advanceBy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2m</span><span class="w">     </span><span class="c1"># Advance every 2 minutes (overlap control)</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">grace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span><span class="w">         </span><span class="c1"># Late data tolerance</span>
 </code></pre></div>
+<p>A new window starts every 2 minutes and each one lasts 10 minutes, so a single event falls into <code>duration / advanceBy</code> = 5 windows at the same time:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+gantt
+    title Hopping windows (duration 10m, advanceBy 2m)
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Windows
+    Window 1 :w1, 10:00, 10m
+    Window 2 :w2, 10:02, 10m
+    Window 3 :w3, 10:04, 10m
+    Window 4 :w4, 10:06, 10m
+    Window 5 :w5, 10:08, 10m
+
+    section Events
+    Event A (windows 1 to 5) :milestone, 10:09, 0m</code></pre>
 <p><strong>Characteristics</strong>:</p>
 <ul>
 <li>Windows overlap (each record appears in multiple windows)</li>
@@ -2524,6 +2559,25 @@
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">inactivityGap</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30m</span><span class="w">  </span><span class="c1"># Close window after 30 minutes of no activity</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">grace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10s</span><span class="w">          </span><span class="c1"># Accept late arrivals</span>
 </code></pre></div>
+<p>A session starts with the first event for a key and grows with every event that follows within 30 minutes. A gap longer than 30 minutes closes the session, and the next event starts a new one:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+gantt
+    title Session windows for one user (inactivityGap 30m)
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Sessions
+    Session 1 :s1, 10:00, 25m
+    Gap longer than 30m :crit, gap, 10:25, 55m
+    Session 2 :s2, 11:20, 10m
+
+    section Events
+    User click :milestone, 10:00, 0m
+    User click :milestone, 10:10, 0m
+    User click :milestone, 10:25, 0m
+    User click :milestone, 11:20, 0m
+    User click :milestone, 11:30, 0m</code></pre>
 <p><strong>Characteristics</strong>:</p>
 <ul>
 <li>Variable window sizes based on activity</li>
@@ -2557,6 +2611,76 @@
 <li><code>convertKey</code> for windowed key compatibility</li>
 <li>Grace periods for late-arriving data</li>
 </ul>
+<p>The diagram below follows six example clicks through the same pipeline, showing how the messages are grouped at each step: first by user, then by 5-minute window. Every click sends an updated count for its window. The diagram shows the last one:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with six clicks
+    Topic[(user_clicks)]
+    Clicks@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt; click at 10:01&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; click at 10:02&lt;br/&gt;&lt;b&gt;key: alice&lt;/b&gt; click at 10:03&lt;br/&gt;&lt;b&gt;key: alice&lt;/b&gt; click at 10:06&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; click at 10:07&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; click at 10:08" }
+
+    %% Step 1: group by key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by key"]
+        Alice@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt;&lt;br/&gt;10:01, 10:03, 10:06" }
+        Bob@{ shape: docs, label: "&lt;b&gt;key: bob&lt;/b&gt;&lt;br/&gt;10:02, 10:07, 10:08" }
+    end
+
+    %% Step 2: split each group into 5-minute windows
+    Window["&lt;code&gt;windowByTime&lt;/code&gt;&lt;br/&gt;tumbling 5m"]
+    subgraph ByWindow["Grouped by key and window"]
+        Alice1@{ shape: docs, label: "&lt;b&gt;alice&lt;/b&gt; 10:00 to 10:05&lt;br/&gt;10:01, 10:03" }
+        Alice2@{ shape: doc, label: "&lt;b&gt;alice&lt;/b&gt; 10:05 to 10:10&lt;br/&gt;10:06" }
+        Bob1@{ shape: doc, label: "&lt;b&gt;bob&lt;/b&gt; 10:00 to 10:05&lt;br/&gt;10:02" }
+        Bob2@{ shape: docs, label: "&lt;b&gt;bob&lt;/b&gt; 10:05 to 10:10&lt;br/&gt;10:07, 10:08" }
+    end
+
+    %% Step 3: one count per key and window
+    Count[&lt;code&gt;count&lt;/code&gt;]
+    subgraph Counts["Latest result per key and window"]
+        AliceCount1["&lt;b&gt;alice&lt;/b&gt; 10:00 to 10:05&lt;br/&gt;count: 2"]
+        AliceCount2["&lt;b&gt;alice&lt;/b&gt; 10:05 to 10:10&lt;br/&gt;count: 1"]
+        BobCount1["&lt;b&gt;bob&lt;/b&gt; 10:00 to 10:05&lt;br/&gt;count: 1"]
+        BobCount2["&lt;b&gt;bob&lt;/b&gt; 10:05 to 10:10&lt;br/&gt;count: 2"]
+    end
+
+    %% Step 4: write to the output topic with a JSON window key
+    Convert["&lt;code&gt;toStream&lt;/code&gt; + &lt;code&gt;convertKey&lt;/code&gt;&lt;br/&gt;json:windowed(string)"]
+    Output[(user_click_counts_5min)]
+
+    %% Data Flow
+    Topic --&gt; Clicks
+    Clicks --&gt; Group
+    Group --&gt; Alice &amp; Bob
+    Alice &amp; Bob --&gt; Window
+    Window --&gt; Alice1 &amp; Alice2 &amp; Bob1 &amp; Bob2
+    Alice1 &amp; Alice2 &amp; Bob1 &amp; Bob2 --&gt; Count
+    Count --&gt; AliceCount1 &amp; AliceCount2 &amp; BobCount1 &amp; BobCount2
+    AliceCount1 &amp; AliceCount2 &amp; BobCount1 &amp; BobCount2 --&gt; Convert
+    Convert --&gt;|"key: {key: alice, startTime: 10:00, endTime: 10:05, ...}&lt;br/&gt;value: 2"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Group,Window,Count,Convert operation
+    class Clicks,Alice,Bob,Alice1,Alice2,Bob1,Bob2 message
+    class AliceCount1,AliceCount2,BobCount1,BobCount2 result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style ByWindow fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Counts fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <details class="info">
 <summary>User clicks producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">functions</span><span class="p">:</span>
@@ -2676,6 +2800,87 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <li><code>mapValues</code> for post-aggregation processing</li>
 <li>Multiple overlapping windows for the same data</li>
 </ul>
+<p>The diagram below follows five example readings through the same pipeline. Because the windows overlap, the same reading is counted in several windows, so each window has its own average. Every reading sends an updated average for each of its windows, and the diagram shows the last one. To keep the diagram readable, it only follows <code>temp_01</code> and shows three of its windows:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with five readings
+    Topic[(sensor_readings)]
+    Readings@{ shape: docs, label: "&lt;b&gt;temp_01&lt;/b&gt;: 21.0 at 10:00:10&lt;br/&gt;&lt;b&gt;humidity_01&lt;/b&gt;: 45.0 at 10:00:20&lt;br/&gt;&lt;b&gt;temp_01&lt;/b&gt;: 22.0 at 10:00:40&lt;br/&gt;&lt;b&gt;temp_01&lt;/b&gt;: 23.0 at 10:01:20&lt;br/&gt;&lt;b&gt;temp_01&lt;/b&gt;: 24.0 at 10:02:10" }
+
+    %% Step 1: group by key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by key"]
+        Temp@{ shape: docs, label: "&lt;b&gt;key: temp_01&lt;/b&gt;&lt;br/&gt;21.0, 22.0, 23.0, 24.0" }
+        Humidity@{ shape: doc, label: "&lt;b&gt;key: humidity_01&lt;/b&gt;&lt;br/&gt;45.0" }
+    end
+
+    %% Step 2: overlapping 2-minute windows, a new one every 30 seconds
+    Window["&lt;code&gt;windowByTime&lt;/code&gt;&lt;br/&gt;hopping 2m, advanceBy 30s"]
+    subgraph ByWindow["Grouped by key and window (overlapping)"]
+        Temp1@{ shape: docs, label: "&lt;b&gt;temp_01&lt;/b&gt; 10:00:00 to 10:02:00&lt;br/&gt;21.0, 22.0, 23.0" }
+        Temp2@{ shape: docs, label: "&lt;b&gt;temp_01&lt;/b&gt; 10:00:30 to 10:02:30&lt;br/&gt;22.0, 23.0, 24.0" }
+        Temp3@{ shape: docs, label: "&lt;b&gt;temp_01&lt;/b&gt; 10:01:00 to 10:03:00&lt;br/&gt;23.0, 24.0" }
+        NotShown["Other windows and&lt;br/&gt;humidity_01: not shown"]
+    end
+
+    %% Step 3: sum and count per window
+    Aggregate["&lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;update_average"]
+    subgraph Sums["One sum and count per key and window"]
+        Sum1["&lt;b&gt;temp_01&lt;/b&gt; 10:00:00 to 10:02:00&lt;br/&gt;sum: 66.0, count: 3"]
+        Sum2["&lt;b&gt;temp_01&lt;/b&gt; 10:00:30 to 10:02:30&lt;br/&gt;sum: 69.0, count: 3"]
+        Sum3["&lt;b&gt;temp_01&lt;/b&gt; 10:01:00 to 10:03:00&lt;br/&gt;sum: 47.0, count: 2"]
+    end
+
+    %% Step 4: turn sum and count into an average
+    Average["&lt;code&gt;toStream&lt;/code&gt; + &lt;code&gt;convertKey&lt;/code&gt;&lt;br/&gt;+ &lt;code&gt;mapValues&lt;/code&gt; calculate_final_average"]
+    subgraph Averages["Latest average per key and window"]
+        Avg1["&lt;b&gt;temp_01&lt;/b&gt; 10:00:00 to 10:02:00&lt;br/&gt;average: 22.0"]
+        Avg2["&lt;b&gt;temp_01&lt;/b&gt; 10:00:30 to 10:02:30&lt;br/&gt;average: 23.0"]
+        Avg3["&lt;b&gt;temp_01&lt;/b&gt; 10:01:00 to 10:03:00&lt;br/&gt;average: 23.5"]
+    end
+
+    %% Output
+    Output[(sensor_moving_averages)]
+
+    %% Data Flow
+    Topic --&gt; Readings
+    Readings --&gt; Group
+    Group --&gt; Temp &amp; Humidity
+    Temp &amp; Humidity --&gt; Window
+    Window --&gt; Temp1 &amp; Temp2 &amp; Temp3
+    Window -.-&gt; NotShown
+    Temp1 &amp; Temp2 &amp; Temp3 --&gt; Aggregate
+    Aggregate --&gt; Sum1 &amp; Sum2 &amp; Sum3
+    Sum1 &amp; Sum2 &amp; Sum3 --&gt; Average
+    Average --&gt; Avg1 &amp; Avg2 &amp; Avg3
+    Avg1 --&gt;|"key: {key: temp_01, startTime: 10:00:00, endTime: 10:02:00, ...}&lt;br/&gt;value: {average: 22.0, sample_count: 3, total_sum: 66.0}"| Output
+    Avg2 &amp; Avg3 --&gt; Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Group,Window,Aggregate,Average operation
+    class Readings,Temp,Humidity,Temp1,Temp2,Temp3 message
+    class Sum1,Sum2,Sum3,Avg1,Avg2,Avg3 result
+    class NotShown note
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style ByWindow fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Sums fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Averages fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <details class="info">
 <summary>Sensor data producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">functions</span><span class="p">:</span>
@@ -2856,6 +3061,76 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <li><strong>Activity-based</strong>: Perfect for user behavior analysis</li>
 <li><strong>Variable retention</strong>: Different sessions can have different lifespans</li>
 </ul>
+<p>The diagram below follows seven example clicks through the same pipeline. Alice pauses for more than 2 minutes between 10:01:30 and 10:05:00, so her clicks form two separate sessions. Bob never pauses that long, so all his clicks stay in one session that keeps growing. Every click sends an updated count for its session, and the diagram shows the last one. When a click extends a session, the session gets a new end time and so a new key. The old session key then gets a <code>null</code> value:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with seven clicks
+    Topic[(user_clicks)]
+    Clicks@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt; click at 10:00:00&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; click at 10:00:20&lt;br/&gt;&lt;b&gt;key: alice&lt;/b&gt; click at 10:00:40&lt;br/&gt;&lt;b&gt;key: alice&lt;/b&gt; click at 10:01:30&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; click at 10:01:50&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; click at 10:03:10&lt;br/&gt;&lt;b&gt;key: alice&lt;/b&gt; click at 10:05:00" }
+
+    %% Step 1: group by key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by key"]
+        Alice@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt;&lt;br/&gt;10:00:00, 10:00:40,&lt;br/&gt;10:01:30, 10:05:00" }
+        Bob@{ shape: docs, label: "&lt;b&gt;key: bob&lt;/b&gt;&lt;br/&gt;10:00:20, 10:01:50, 10:03:10" }
+    end
+
+    %% Step 2: split each group into sessions at gaps longer than 2 minutes
+    Window["&lt;code&gt;windowBySession&lt;/code&gt;&lt;br/&gt;inactivityGap 2m"]
+    subgraph BySession["Grouped by key and session"]
+        Alice1@{ shape: docs, label: "&lt;b&gt;alice&lt;/b&gt; 10:00:00 to 10:01:30&lt;br/&gt;10:00:00, 10:00:40, 10:01:30" }
+        Alice2@{ shape: doc, label: "&lt;b&gt;alice&lt;/b&gt; 10:05:00 to 10:05:00&lt;br/&gt;10:05:00" }
+        Bob1@{ shape: docs, label: "&lt;b&gt;bob&lt;/b&gt; 10:00:20 to 10:03:10&lt;br/&gt;10:00:20, 10:01:50, 10:03:10" }
+    end
+
+    %% Step 3: one count per key and session
+    Count[&lt;code&gt;count&lt;/code&gt;]
+    subgraph Counts["Latest result per key and session"]
+        AliceCount1["&lt;b&gt;alice&lt;/b&gt; 10:00:00 to 10:01:30&lt;br/&gt;count: 3"]
+        AliceCount2["&lt;b&gt;alice&lt;/b&gt; 10:05:00 to 10:05:00&lt;br/&gt;count: 1"]
+        BobCount1["&lt;b&gt;bob&lt;/b&gt; 10:00:20 to 10:03:10&lt;br/&gt;count: 3"]
+    end
+
+    %% Step 4: write to the output topic with a JSON session key
+    Convert["&lt;code&gt;toStream&lt;/code&gt; + &lt;code&gt;convertKey&lt;/code&gt;&lt;br/&gt;json:windowed(string)"]
+    Output[(user_session_summary)]
+
+    %% Data Flow
+    Topic --&gt; Clicks
+    Clicks --&gt; Group
+    Group --&gt; Alice &amp; Bob
+    Alice &amp; Bob --&gt; Window
+    Window --&gt;|"gap under 2m"| Alice1
+    Window --&gt;|"gap of 3m30s:&lt;br/&gt;new session"| Alice2
+    Window --&gt;|"gaps under 2m"| Bob1
+    Alice1 &amp; Alice2 &amp; Bob1 --&gt; Count
+    Count --&gt; AliceCount1 &amp; AliceCount2 &amp; BobCount1
+    AliceCount1 &amp; AliceCount2 &amp; BobCount1 --&gt; Convert
+    Convert --&gt;|"key: {key: alice, startTime: 10:00:00, endTime: 10:01:30, ...}&lt;br/&gt;value: 3"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Group,Window,Count,Convert operation
+    class Clicks,Alice,Bob,Alice1,Alice2,Bob1 message
+    class AliceCount1,AliceCount2,BobCount1 result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style BySession fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Counts fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <details class="info">
 <summary>User clicks producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">functions</span><span class="p">:</span>
@@ -2981,6 +3256,42 @@ To view the complete data for the target topic user_click_counts_5min, run:
 <li><strong>caching</strong>: Enable for better performance with frequent updates</li>
 </ul>
 <p><strong>Example</strong>: A 5-minute window ending at 10:05 AM will accept data timestamped before 10:05 AM until 10:06 AM (1-minute grace), then close permanently.</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Late event
+    LateEvent[/"Late event&lt;br/&gt;timestamp 10:04"/]
+
+    %% Decision
+    Check{"Stream time before&lt;br/&gt;10:06?&lt;br/&gt;(window end + grace)"}
+
+    %% Outcomes
+    Accepted[Added to window&lt;br/&gt;10:00 to 10:05]
+    Drop[❌ Dropped]
+
+    %% Data Flow
+    LateEvent --&gt; Check
+    Check --&gt;|"yes"| Accepted
+    Check -.-&gt;|"no: window closed"| Drop
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Check,Accepted operation
+    class LateEvent external
+    class Drop dropped</code></pre>
 <h3 id="window-state-management">Window State Management</h3>
 <p>Windowed operations require persistent state to:</p>
 <ul>

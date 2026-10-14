@@ -2085,6 +2085,49 @@
 <li><strong>Persist state</strong> for fault tolerance and recovery</li>
 </ul>
 <p>KSML provides built-in state store capabilities that integrate seamlessly with Kafka Streams, offering exactly-once processing guarantees and automatic state management.</p>
+<p>All examples in this tutorial use the same pipeline shape. A Python function reads and updates one or more state stores for every incoming message, and returns either a result or <code>None</code>. A <code>filter</code> then drops the <code>None</code> results:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(Input topic)]
+
+    %% Pipeline Operations
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;Python function&lt;br/&gt;declares &lt;code&gt;stores:&lt;/code&gt;"]
+    Store[("keyValue state store&lt;br/&gt;JSON string per key")]
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+
+    %% Outputs
+    Output[(Output topic)]
+    Drop[❌ Dropped]
+
+    %% Data Flow
+    Input --&gt; Function
+    Function &lt;-.-&gt;|"get &amp; put"| Store
+    Function --&gt;|"result or None"| Filter
+    Filter --&gt;|"result"| Output
+    Filter -.-&gt;|"None"| Drop
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Output topic
+    class Function,Filter operation
+    class Store store
+    class Drop dropped</code></pre>
+<p>All examples use a <code>keyValue</code> store, including the "Window Store" and "Session Store" examples: those implement time windows and sessions themselves in Python, by choosing the store key and deciding when a window or session ends.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>Before starting this tutorial:</p>
 <ul>
@@ -2116,6 +2159,60 @@
 <li><strong>Tracks comprehensive stats</strong>: Updates action counters, adds new pages/devices/countries to lists, calculates total time across all sessions</li>
 <li><strong>Outputs session updates</strong>: Returns enriched user profile showing current session, lifetime statistics, and behavioral patterns whenever activity occurs</li>
 </ul>
+<p>The diagram below follows three example activities for one user. Every activity updates the stored profile and produces an updated profile as output:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example events
+    Topic[(user_activity)]
+    Events@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt;&lt;br/&gt;login, session_alice_0, 2s&lt;br/&gt;page_view, session_alice_0, 5s&lt;br/&gt;click, session_alice_1, 1s" }
+
+    %% Processing function and its store
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;track_user_sessions"]
+    Store[("user_session_store&lt;br/&gt;key: alice&lt;br/&gt;value: profile as JSON")]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["&lt;b&gt;login&lt;/b&gt;, session_alice_0&lt;br/&gt;current_session: session_alice_0&lt;br/&gt;total_sessions: 0&lt;br/&gt;actions: login 1&lt;br/&gt;total_time: 2s"]
+        Step2["&lt;b&gt;page_view&lt;/b&gt;, session_alice_0&lt;br/&gt;same session&lt;br/&gt;actions: login 1, page_view 1&lt;br/&gt;total_time: 7s"]
+        Step3["&lt;b&gt;click&lt;/b&gt;, session_alice_1&lt;br/&gt;session changed: session_alice_0 ended&lt;br/&gt;total_sessions: 1&lt;br/&gt;current_session: session_alice_1&lt;br/&gt;total_time: 8s"]
+        Step1 --&gt; Step2 --&gt; Step3
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(user_session_stats)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Function
+    Function &lt;-.-&gt;|"read &amp; update"| Store
+    Function --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"3 updated profiles,&lt;br/&gt;one per activity"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class Store store
+    class Step1,Step2 message
+    class Step3 partial
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The <code>total_sessions</code> counter only counts sessions that have ended: it goes up when a new <code>session_id</code> arrives for the user.</p>
 <details class="info">
 <summary>User Activity Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Producer for user session tracking - generates user activity events</span>
@@ -2339,11 +2436,66 @@
 <p><strong>What it does</strong>:</p>
 <ul>
 <li><strong>Produces server metrics</strong>: Creates metrics like cpu_usage, memory_usage, disk_io with varying values (base + sine wave + noise) for different servers</li>
-<li><strong>Creates time windows</strong>: Divides timestamps into 5-minute buckets (300,000ms), creates unique window keys like "server1:cpu_usage:1640995200000" </li>
+<li><strong>Creates time windows</strong>: Divides timestamps into 5-minute buckets (300,000ms), creates unique window keys like "server_001:cpu_usage:1640995200000" </li>
 <li><strong>Accumulates window stats</strong>: For each metric in a time window, stores running count, sum, min, max, and recent sample list in state store</li>
 <li><strong>Calculates aggregates</strong>: When outputting, computes average from sum/count, range from max-min, tracks categorical data like datacenter/environment</li>
-<li><strong>Outputs window results</strong>: Returns complete window statistics only when window has enough samples, showing aggregated metrics with alerting thresholds and metadata</li>
+<li><strong>Outputs window results</strong>: Returns the current window statistics for every metric, with alerting thresholds and metadata</li>
 </ul>
+<p>The diagram below follows four example metrics for one server. The function puts the 5-minute window start into the store key, so every combination of server, metric and window gets its own entry in a <code>keyValue</code> store. The diagram shows times as <code>10:00</code>; the real keys contain the window start in epoch milliseconds:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example events
+    Topic[(server_metrics)]
+    Events@{ shape: docs, label: "&lt;b&gt;key: server_001&lt;/b&gt;&lt;br/&gt;cpu_usage 40 at 10:01&lt;br/&gt;memory_usage 70 at 10:02&lt;br/&gt;cpu_usage 60 at 10:03&lt;br/&gt;cpu_usage 50 at 10:06" }
+
+    %% Processing function and its store
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;aggregate_metrics"]
+    Store[("metrics_window_store&lt;br/&gt;key: server:metric:window_start&lt;br/&gt;value: window statistics as JSON")]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["&lt;b&gt;cpu_usage 40&lt;/b&gt; at 10:01&lt;br/&gt;key server_001:cpu_usage:10:00&lt;br/&gt;new window&lt;br/&gt;count 1, avg 40"]
+        Step2["&lt;b&gt;memory_usage 70&lt;/b&gt; at 10:02&lt;br/&gt;key server_001:memory_usage:10:00&lt;br/&gt;new window&lt;br/&gt;count 1, avg 70"]
+        Step3["&lt;b&gt;cpu_usage 60&lt;/b&gt; at 10:03&lt;br/&gt;key server_001:cpu_usage:10:00&lt;br/&gt;same window&lt;br/&gt;count 2, avg 50, min 40, max 60"]
+        Step4["&lt;b&gt;cpu_usage 50&lt;/b&gt; at 10:06&lt;br/&gt;key server_001:cpu_usage:10:05&lt;br/&gt;new window&lt;br/&gt;count 1, avg 50"]
+        Step1 --&gt; Step2 --&gt; Step3 --&gt; Step4
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(windowed_metrics)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Function
+    Function &lt;-.-&gt;|"read &amp; update"| Store
+    Function --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"4 window updates,&lt;br/&gt;one per metric"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class Store store
+    class Step1,Step2,Step4 message
+    class Step3 partial
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>Every metric produces an output message with the current statistics of its window, so the same window can appear several times in the output topic, each time with more samples.</p>
 <details class="info">
 <summary>Metrics Data Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Producer for window store demo - generates time-series metrics</span>
@@ -2618,6 +2770,61 @@
 <li><strong>Detects session boundaries</strong>: When timeout exceeded, logs session end, resets counters, starts fresh session with new session ID</li>
 <li><strong>Outputs session analytics</strong>: Returns comprehensive session data showing current session metrics, lifetime totals, device/page patterns, and conversion events</li>
 </ul>
+<p>The diagram below follows four example clicks for one user. The function compares each click with the time of the previous one: a gap of more than 30 seconds ends the current session and starts a new one:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example events
+    Topic[(user_clicks)]
+    Events@{ shape: docs, label: "&lt;b&gt;key: user_A&lt;/b&gt;&lt;br/&gt;click at 10:00:00&lt;br/&gt;click at 10:00:20&lt;br/&gt;click at 10:01:30&lt;br/&gt;click at 10:01:40" }
+
+    %% Processing function and its store
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;track_user_sessions"]
+    Store[("user_session_store&lt;br/&gt;key: user_A&lt;br/&gt;value: session state as JSON")]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["&lt;b&gt;10:00:00&lt;/b&gt;&lt;br/&gt;no session yet&lt;br/&gt;start session_user_A_10:00:00&lt;br/&gt;page_count 1"]
+        Step2["&lt;b&gt;10:00:20&lt;/b&gt;&lt;br/&gt;20s since last click&lt;br/&gt;same session&lt;br/&gt;page_count 2"]
+        Step3["&lt;b&gt;10:01:30&lt;/b&gt;&lt;br/&gt;70s since last click&lt;br/&gt;more than 30s: session ended&lt;br/&gt;start session_user_A_10:01:30&lt;br/&gt;total_sessions 1, page_count 1"]
+        Step4["&lt;b&gt;10:01:40&lt;/b&gt;&lt;br/&gt;10s since last click&lt;br/&gt;same session&lt;br/&gt;page_count 2"]
+        Step1 --&gt; Step2 --&gt; Step3 --&gt; Step4
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(session_analytics)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Function
+    Function &lt;-.-&gt;|"read &amp; update"| Store
+    Function --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"4 session updates,&lt;br/&gt;one per click"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class Store store
+    class Step1,Step2,Step4 message
+    class Step3 partial
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The new session ID is built from the user and the timestamp of the click that starts it.</p>
 <details class="info">
 <summary>User Clicks Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Producer for session store demo - generates user click events with gaps</span>
@@ -2917,6 +3124,65 @@
 <li><strong>Optimizes for volume</strong>: Uses efficient JSON storage, processes fast, emits only critical alerts to reduce downstream message volume  </li>
 <li><strong>Tracks device health</strong>: Monitors temperature trends, error accumulation, heartbeat patterns, status transitions with location context</li>
 </ul>
+<p>The diagram below follows five example events for one device. The device state is updated for every event, but only some events produce an alert:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example events
+    Topic[(device_events)]
+    Events@{ shape: docs, label: "&lt;b&gt;key: device_001&lt;/b&gt;&lt;br/&gt;sensor_reading 72&lt;br/&gt;sensor_reading 78&lt;br/&gt;heartbeat&lt;br/&gt;error&lt;br/&gt;status_update: maintenance" }
+
+    %% Processing function and its store
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;process_device_events"]
+    Store[("device_state_store&lt;br/&gt;key: device_001&lt;br/&gt;value: compact state as JSON")]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["&lt;b&gt;sensor_reading 72&lt;/b&gt;&lt;br/&gt;last_temp 72, status active&lt;br/&gt;75 or lower: returns None"]
+        Step2["&lt;b&gt;sensor_reading 78&lt;/b&gt;&lt;br/&gt;last_temp 78&lt;br/&gt;above 75:&lt;br/&gt;TEMPERATURE_ALERT"]
+        Step3["&lt;b&gt;heartbeat&lt;/b&gt;&lt;br/&gt;heartbeat_count 1, status online&lt;br/&gt;not a 10th heartbeat:&lt;br/&gt;returns None"]
+        Step4["&lt;b&gt;error&lt;/b&gt;&lt;br/&gt;error_count 1, status error&lt;br/&gt;ERROR alert"]
+        Step5["&lt;b&gt;status_update&lt;/b&gt;&lt;br/&gt;status maintenance&lt;br/&gt;STATUS_UPDATE alert"]
+        Step1 --&gt; Step2 --&gt; Step3 --&gt; Step4 --&gt; Step5
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(device_alerts)]
+    Drop["❌ Dropped&lt;br/&gt;sensor_reading 72, heartbeat"]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Function
+    Function &lt;-.-&gt;|"read &amp; update"| Store
+    Function --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"3 alerts"| Output
+    Filter -.-&gt;|"None"| Drop
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class Store store
+    class Step1,Step3 message
+    class Step2,Step4,Step5 result
+    class Drop dropped
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>Every 10th heartbeat also produces a <code>HEARTBEAT_SUMMARY</code>. Because the state is updated even when nothing is emitted, the next alert for the device always has the latest temperature, error count and status.</p>
 <details class="info">
 <summary>High Volume Events Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Producer for optimized store demo - generates high-volume events</span>
@@ -3139,12 +3405,63 @@
 <p>Complex applications often require multiple state stores working together to manage different aspects of state.</p>
 <p><strong>What it does</strong>:</p>
 <ul>
-<li><strong>Produces order events</strong>: Creates order status updates (created, shipped, delivered) with product IDs, quantities, prices as pipe-delimited strings</li>
+<li><strong>Produces order events</strong>: Creates order status updates (created, shipped, delivered) with product IDs, quantities, prices as colon-separated strings</li>
 <li><strong>Uses three state stores</strong>: Updates order_state_store (current order status), customer_metrics_store (totals per customer), product_inventory_store (stock levels)</li>
 <li><strong>Coordinates updates</strong>: For each order event, atomically updates all three stores - order status, customer spending totals, inventory levels</li>
 <li><strong>Tracks relationships</strong>: Maps orders to customers via hash function, maintains order history lists, tracks inventory changes per product</li>
 <li><strong>Outputs comprehensive results</strong>: Returns formatted string combining data from all three stores showing order details, customer analytics, and inventory impact</li>
 </ul>
+<p>The diagram below follows two example events for the same order. The example producer gives every event a new order ID and a random status, so it never sends two events for the same order: the diagram only shows what would happen if it did. Each event is a colon-separated string, and the function updates all three stores for every event:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with two events for one order
+    Topic[(order_events)]
+    Events@{ shape: docs, label: "&lt;b&gt;key: order_0001&lt;/b&gt;&lt;br/&gt;created:prod_A:2:19.99:...&lt;br/&gt;shipped:prod_A:2:19.99:..." }
+
+    %% Processing function
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;process_order_with_multiple_stores"]
+
+    %% Store updates per event
+    subgraph Steps["Event by event, all three stores are updated"]
+        direction LR
+        Created["&lt;b&gt;created&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;order_state_store&lt;/b&gt;&lt;br/&gt;order_0001: created&lt;br/&gt;&lt;br/&gt;&lt;b&gt;customer_metrics_store&lt;/b&gt;&lt;br/&gt;customer of order_0001: total_orders + 1&lt;br/&gt;&lt;br/&gt;&lt;b&gt;product_inventory_store&lt;/b&gt;&lt;br/&gt;prod_A: reserved 2, available 100 → 98"]
+        Shipped["&lt;b&gt;shipped&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;order_state_store&lt;/b&gt;&lt;br/&gt;order_0001: shipped&lt;br/&gt;&lt;br/&gt;&lt;b&gt;customer_metrics_store&lt;/b&gt;&lt;br/&gt;no change&lt;br/&gt;&lt;br/&gt;&lt;b&gt;product_inventory_store&lt;/b&gt;&lt;br/&gt;prod_A: reserved 2 → 0, sold 2"]
+        Created --&gt; Shipped
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(order_processing_results)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Function
+    Function --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"ORDER_PROCESSED:order_0001:status=shipped:&lt;br/&gt;customer_orders=...:stock_left=98"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class Created,Shipped result
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>Each event also produces one output string, so the two events above produce two <code>ORDER_PROCESSED</code> messages. The customer is derived from a hash of the order ID, and a product that is seen for the first time starts with a stock of 100.</p>
 <details class="info">
 <summary>Order Events Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Producer for multi-store demo - generates order processing events as pipe-delimited strings</span>
@@ -3163,14 +3480,14 @@
 <a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
 <a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">      </span><span class="no">order_counter += 1</span>
 <a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>
-<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">      </span><span class="no"># Generate order event as pipe-delimited string: "status:product_id:quantity:price:timestamp"</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">      </span><span class="no"># Generate order event as colon-separated string: "status:product_id:quantity:price:timestamp"</span>
 <a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">      </span><span class="no">status = random.choice(statuses)</span>
 <a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">      </span><span class="no">product_id = random.choice(products)</span>
 <a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">      </span><span class="no">quantity = random.randint(1, 5)</span>
 <a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">      </span><span class="no">price = round(random.uniform(10.0, 100.0), 2)</span>
 <a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">      </span><span class="no">timestamp = int(time.time() * 1000)</span>
 <a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
-<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="w">      </span><span class="no"># Create pipe-delimited string format expected by processor</span>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="w">      </span><span class="no"># Create colon-separated string format expected by processor</span>
 <a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">      </span><span class="no">order_value = f"{status}:{product_id}:{quantity}:{price}:{timestamp}"</span>
 <a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="w">      </span><span class="no">order_key = f"order_{order_counter:04d}"</span>
 <a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>

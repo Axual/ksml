@@ -2289,6 +2289,57 @@ received raw bytes:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>     <span class="c1"># "123.45"</span>
 </code></pre></div>
 <p>Text is used rather than a Python float so that no digit is ever lost.</p>
+<p>The diagram below follows the decimal <code>123.45</code> from the producer to your Python code, before and after KSML 2.0.0:</p>
+<div class="diagram-w80">
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Writing
+    Producer["Producer writes&lt;br/&gt;&amp;quot;123.45&amp;quot;"]
+    Topic[("Kafka topic&lt;br/&gt;bytes 0x3039&lt;br/&gt;(the digits 12345)")]
+    Schema["Schema&lt;br/&gt;bytes, logicalType decimal&lt;br/&gt;scale 2"]
+
+    %% Reading
+    subgraph New["Since 2.0.0"]
+        NewRead["KSML reads logicalType,&lt;br/&gt;moves the point 2 places"]
+        NewPy["Python gets&lt;br/&gt;&amp;quot;123.45&amp;quot;"]
+        NewRead --&gt; NewPy
+    end
+    subgraph Old["Before 2.0.0"]
+        OldRead["KSML ignores&lt;br/&gt;logicalType"]
+        OldPy["Python gets&lt;br/&gt;b'\x30\x39'"]
+        OldRead --&gt; OldPy
+    end
+
+    %% Data Flow
+    Producer --&gt; Topic
+    Schema -.-&gt;|"describes"| Topic
+    Topic --&gt; NewRead
+    Topic --&gt; OldRead
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Producer,OldRead,NewRead operation
+    class Topic topic
+    class Schema external
+    class OldPy alert
+    class NewPy result
+    style Old fill:none,stroke:#616161,stroke-dasharray:5 5
+    style New fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+</div>
 <h2 id="why-this-is-a-breaking-change">Why this is a breaking change</h2>
 <p>"Breaking" means existing code stops working after an upgrade, without you changing anything
 yourself. Python that treated <code>value["value"]</code> as bytes breaks, because the field is now a string.</p>
@@ -2361,6 +2412,49 @@ between <code>0</code> and <code>86399999</code>, and a <code>decimal</code> mus
 <p>Reading an invalid value only writes a warning to the log and passes the value on. That is
 deliberate. A bad record in a topic comes from another system, and the default consume error handler
 is <code>stopOnFail</code>. So failing on read would stop your application because of someone else's data.</p>
+<div class="diagram-w70">
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Writing
+    subgraph Write["Write: strict"]
+        direction TB
+        W1["Your pipeline writes&lt;br/&gt;readingId &amp;quot;not-a-uuid&amp;quot;"]
+        W2["❌ The write fails&lt;br/&gt;with an error"]
+        W1 --&gt; W2
+    end
+
+    %% Reading
+    subgraph Read["Read: forgiving"]
+        direction TB
+        R1["Another system wrote&lt;br/&gt;a bad uuid to the topic"]
+        R2["⚠️ KSML logs a warning&lt;br/&gt;and passes the value on"]
+        R1 --&gt; R2
+    end
+
+    Write ~~~ Read
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class W1,R1 message
+    class W2 dropped
+    class R2 partial
+    style Write fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Read fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+</div>
 <h2 id="run-the-example">Run the example</h2>
 <p>You need Docker and a local build of KSML, because logical types are a 2.0.0 feature and the
 published image is older.</p>
@@ -2596,6 +2690,52 @@ registry's Confluent-compatible endpoint.</p>
 <p>This is the whole point of the tutorial in one line. The producer wrote <code>"123.45"</code>, the schema stored
 it as exact bytes, KSML gave Python the string <code>"123.45"</code>, Python added <code>0.05</code> with <code>Decimal</code>, and
 <code>"123.50"</code> came out. No digit was lost anywhere.</p>
+<p>The diagram below follows the decimal through the example:</p>
+<div class="diagram-w55">
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Producer
+    Producer["&lt;b&gt;producer-logical-types.yaml&lt;/b&gt;&lt;br/&gt;value: &amp;quot;123.45&amp;quot; (text)"]
+    AvroTopic[("logical_types_avro&lt;br/&gt;Avro, value stored as&lt;br/&gt;exact bytes")]
+    Registry["Schema registry&lt;br/&gt;SensorReading.avsc"]
+
+    %% Processor
+    Peek1["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;logs what Python receives&lt;br/&gt;value = &amp;quot;123.45&amp;quot;"]
+    Calibrate["&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;apply_calibration&lt;br/&gt;Decimal(&amp;quot;123.45&amp;quot;) + Decimal(&amp;quot;0.05&amp;quot;)"]
+    Peek2["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;calibrated value = &amp;quot;123.50&amp;quot;"]
+    Convert["&lt;code&gt;convertValue&lt;/code&gt;&lt;br/&gt;Avro to JSON"]
+    JsonTopic[("logical_types_json&lt;br/&gt;value: &amp;quot;123.50&amp;quot;")]
+
+    %% Data Flow
+    Producer --&gt; AvroTopic
+    Registry -.-&gt;|"schema"| AvroTopic
+    AvroTopic --&gt; Peek1
+    Peek1 --&gt; Calibrate
+    Calibrate --&gt; Peek2
+    Peek2 --&gt; Convert
+    Convert --&gt; JsonTopic
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class AvroTopic,JsonTopic topic
+    class Peek1,Calibrate,Peek2,Convert operation
+    class Producer message
+    class Registry external</code></pre>
+</div>
 <p>You can also browse the messages in Kowl at <a href="http://localhost:8080">http://localhost:8080</a>.</p>
 <h3 id="9-clean-up">9. Clean up</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>down<span class="w"> </span>--volumes

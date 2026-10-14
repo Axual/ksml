@@ -353,6 +353,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-runs-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Runs Locally
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2028,6 +2039,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-runs-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Runs Locally
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2204,6 +2226,50 @@
 <li><strong>Alerts</strong> on specific issues like low battery or poor signal</li>
 </ul>
 <p>All with just YAML configuration and clear Python logic.</p>
+<h2 id="what-runs-locally">What Runs Locally</h2>
+<p>The examples run on your machine using Docker Compose. A single <code>docker compose up -d</code> starts a small Kafka environment with KSML connected to it. All containers share one Docker network, so they reach the Kafka broker by its name (<code>broker:9093</code>), while you reach it from your machine through <code>localhost</code>.</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Your machine
+    You[💻 You&lt;br/&gt;terminal &amp; browser]
+    Examples[📁 ./examples&lt;br/&gt;KSML definitions]
+
+    %% Docker Compose services
+    subgraph Docker["Docker Compose (network: ksml)"]
+        Setup[&lt;code&gt;kafka-setup&lt;/code&gt;&lt;br/&gt;creates topics, then exits]
+        Broker[(&lt;code&gt;broker&lt;/code&gt;&lt;br/&gt;Apache Kafka)]
+        KSML[&lt;code&gt;ksml&lt;/code&gt;&lt;br/&gt;KSML runner]
+        UI[&lt;code&gt;kafka-ui&lt;/code&gt;&lt;br/&gt;Kafka UI]
+    end
+
+    %% Connections
+    Setup --&gt;|"create topics"| Broker
+    KSML &lt;--&gt;|"consume &amp; produce"| Broker
+    UI --&gt;|"read topics"| Broker
+    Examples -.-&gt;|"mounted as /ksml"| KSML
+    You --&gt;|"localhost:9092"| Broker
+    You --&gt;|"localhost:8080"| UI
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Broker topic
+    class KSML operation
+    class Setup,UI external
+    class You,Examples host</code></pre>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>You'll need:</p>
 <ul>
@@ -2494,6 +2560,52 @@ Follow the detailed instructions below to create everything from scratch.</p>
 <li><strong>Categorized</strong> devices as "healthy" or "needs attention" </li>
 <li><strong>Identified</strong> specific issues (low battery, poor signal, high errors)</li>
 </ol>
+<div class="diagram-w40">
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input
+    Producer[IoT Devices]
+    InputTopic[(iot_sensor_data)]
+
+    %% Pipeline Operations
+    Filter{&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;status == 'online'}
+    Transform[&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;Add health status]
+    Peek[&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log device health]
+
+    %% Output
+    OutputTopic[(device_health_alerts)]
+    AlertSystem[Alert System]
+
+    %% Data Flow
+    Producer --&gt;|"All devices"| InputTopic
+    InputTopic --&gt; Filter
+    Filter --&gt;|"Online only"| Transform
+    Filter -.-&gt;|"Offline - drop"| Drop[❌ Dropped]
+    Transform --&gt;|"Enriched with health status"| Peek
+    Peek --&gt; OutputTopic
+    OutputTopic --&gt; AlertSystem
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class InputTopic,OutputTopic topic
+    class Filter,Transform,Peek operation
+    class Producer,AlertSystem external
+    class Drop dropped</code></pre>
+</div>
 <p>Check the KSML logs to see the real-time analysis:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>ksml<span class="w"> </span>-f
 </code></pre></div>

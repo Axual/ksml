@@ -2140,7 +2140,6 @@
 <li>Total sales by product category</li>
 <li>Average order value</li>
 <li>Transaction volume by region</li>
-<li>Conversion rates from different marketing channels</li>
 </ul>
 <h2 id="define-the-topics-for-the-use-case">Define the topics for the use case</h2>
 <p>In earlier tutorials, you created a Docker Compose file with all the necessary containers. For this use case guide, some other topics
@@ -2319,9 +2318,135 @@ Change the definition so that the startup command for the setup container (the <
 <a id="__codelineno-2-141" name="__codelineno-2-141" href="#__codelineno-2-141"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transactions_by_region</span>
 </code></pre></div>
 </details>
+<p>The definition runs three independent pipelines on the same <code>ecommerce_transactions</code> topic. Each pipeline chooses its own grouping key and calculates one metric. The diagram below follows the four transactions from the example producer (further down this page):</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example transactions
+    Topic[(ecommerce_transactions)]
+    Events@{ shape: docs, label: "&lt;b&gt;12345&lt;/b&gt;: electronics&lt;br/&gt;499.99, north_america&lt;br/&gt;&lt;b&gt;12346&lt;/b&gt;: gardening&lt;br/&gt;229.99, europe&lt;br/&gt;&lt;b&gt;12349&lt;/b&gt;: electronics&lt;br/&gt;229.99, europe&lt;br/&gt;&lt;b&gt;12347&lt;/b&gt;: gardening&lt;br/&gt;12.99, north_america" }
+
+    %% Sales by category
+    subgraph C["sales_by_category_pipeline"]
+        direction TB
+        CKey["&lt;code&gt;selectKey&lt;/code&gt;&lt;br/&gt;key: product_category"]
+        CAgg["&lt;code&gt;groupByKey&lt;/code&gt; + &lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;total_sales, count"]
+        CResult@{ shape: docs, label: "&lt;b&gt;electronics&lt;/b&gt;&lt;br/&gt;499.99, count 1&lt;br/&gt;729.98, count 2&lt;br/&gt;&lt;b&gt;gardening&lt;/b&gt;&lt;br/&gt;229.99, count 1&lt;br/&gt;242.98, count 2" }
+        CKey --&gt; CAgg --&gt; CResult
+    end
+
+    %% Average order value
+    subgraph A["avg_order_value_pipeline"]
+        direction TB
+        AKey["&lt;code&gt;groupBy&lt;/code&gt;&lt;br/&gt;key: all"]
+        AWin["&lt;code&gt;windowByTime&lt;/code&gt;&lt;br/&gt;tumbling, 10 seconds"]
+        AAgg["&lt;code&gt;aggregate&lt;/code&gt; + &lt;code&gt;suppress&lt;/code&gt;&lt;br/&gt;one result per closed window"]
+        AAvg["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;total_sales / count"]
+        AResult@{ shape: docs, label: "&lt;b&gt;key: all + window&lt;/b&gt;&lt;br/&gt;avg_order_value&lt;br/&gt;per 10-second window" }
+        AKey --&gt; AWin --&gt; AAgg --&gt; AAvg --&gt; AResult
+    end
+
+    %% Transactions by region
+    subgraph R["transactions_by_region_pipeline"]
+        direction TB
+        RKey["&lt;code&gt;selectKey&lt;/code&gt;&lt;br/&gt;key: region"]
+        RCount["&lt;code&gt;groupByKey&lt;/code&gt; + &lt;code&gt;count&lt;/code&gt;"]
+        RResult@{ shape: docs, label: "&lt;b&gt;europe&lt;/b&gt;: 2&lt;br/&gt;&lt;b&gt;north_america&lt;/b&gt;: 2" }
+        RKey --&gt; RCount --&gt; RResult
+    end
+
+    %% Outputs
+    Sales[(sales_by_category)]
+    Avg[(avg_order_value)]
+    Region[(transactions_by_region)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; C &amp; A &amp; R
+    C --&gt; Sales
+    A --&gt; Avg
+    R --&gt; Region
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Sales,Avg,Region topic
+    class CKey,CAgg,AKey,AWin,AAgg,AAvg,RKey,RCount operation
+    class Events message
+    class CResult,AResult,RResult result
+    style C fill:none,stroke:#616161,stroke-dasharray:5 5
+    style A fill:none,stroke:#616161,stroke-dasharray:5 5
+    style R fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The category and region pipelines update their result with every transaction. The category pipeline declares its own store, and KSML stores have caching off by default, so every update is written. The region pipeline uses the default Kafka Streams store, which caches updates until the next commit (30 seconds by default), so you may only see the final counts. The counts are written as strings (<code>"2"</code>), because the pipeline converts them with <code>convertValue</code>.</p>
+<p>The average order value pipeline works differently: <code>suppress</code> holds back the result of a window until the window has closed, so <code>avg_order_value</code> receives one final result per 10-second window.</p>
+<p>The windows are based on the time the transactions are written to Kafka, not on the <code>timestamp</code> field in the data, and they start at whole multiples of 10 seconds. The example producer writes a transaction every 7 seconds, so a window contains one or two transactions. Which transactions share a window depends on when the producer starts. The diagram below shows the windows from one test run:</p>
+<div class="diagram-w80">
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Windows
+    subgraph W3["Window 13:58:00–13:58:10"]
+        direction TB
+        T4["&lt;b&gt;13:58:06&lt;/b&gt;: 12347&lt;br/&gt;12.99"]
+    end
+    subgraph W2["Window 13:57:50–13:58:00"]
+        direction TB
+        T2["&lt;b&gt;13:57:52&lt;/b&gt;: 12346&lt;br/&gt;229.99"]
+        T3["&lt;b&gt;13:57:59&lt;/b&gt;: 12349&lt;br/&gt;229.99"]
+        T2 ~~~ T3
+    end
+    subgraph W1["Window 13:57:40–13:57:50"]
+        direction TB
+        T1["&lt;b&gt;13:57:45&lt;/b&gt;: 12345&lt;br/&gt;499.99"]
+    end
+
+    %% Results
+    R1["avg_order_value&lt;br/&gt;499.99"]
+    R2["avg_order_value&lt;br/&gt;229.99"]
+    R3["no result:&lt;br/&gt;no later transaction&lt;br/&gt;arrives to close&lt;br/&gt;the window"]
+
+    %% Data Flow
+    W3 -.-&gt; R3
+    W2 --&gt; R2
+    W1 --&gt; R1
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class T1,T2,T3,T4 message
+    class R1,R2 result
+    class R3 partial
+    style W1 fill:none,stroke:#616161,stroke-dasharray:5 5
+    style W2 fill:none,stroke:#616161,stroke-dasharray:5 5
+    style W3 fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+</div>
+<p>A window only closes when a transaction with a later time arrives. The example producer stops after four transactions, so the last window never produces a result.</p>
 <h2 id="running-the-application">Running the Application</h2>
-<p>You can use the following producer pipeline example as a starting point to write some simulated sale data; it will write
-four hard coded sales records into the input stream and exit.</p>
+<p>You can use the following producer pipeline example as a starting point to write some simulated sale data. It writes four hard-coded transactions to the input topic, one every 7 seconds, using the <code>transaction_id</code> as the message key, and then stops.</p>
 <details class="info">
 <summary>Transaction data producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json</span>
@@ -2412,17 +2537,41 @@ four hard coded sales records into the input stream and exit.</p>
 <a id="__codelineno-3-86" name="__codelineno-3-86" href="#__codelineno-3-86"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span>
 <a id="__codelineno-3-87" name="__codelineno-3-87" href="#__codelineno-3-87"></a><span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <a id="__codelineno-3-88" name="__codelineno-3-88" href="#__codelineno-3-88"></a><span class="w">        </span><span class="no">order = nextOrder()</span>
-<a id="__codelineno-3-89" name="__codelineno-3-89" href="#__codelineno-3-89"></a><span class="w">      </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'(str(count),</span><span class="nv"> </span><span class="s">order)'</span>
+<a id="__codelineno-3-89" name="__codelineno-3-89" href="#__codelineno-3-89"></a><span class="w">      </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'(order.get("transaction_id"),</span><span class="nv"> </span><span class="s">order)'</span>
 <a id="__codelineno-3-90" name="__codelineno-3-90" href="#__codelineno-3-90"></a><span class="w">      </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
 </code></pre></div>
 </details>
 <p>To run the application:</p>
 <ol>
-<li>Save the KSML definition to <code>definitions/analytics.yaml</code></li>
-<li>Add the <code>example-data-producer.yaml</code> above if desired, or create test data in some other way</li>
-<li>Create a configuration file at <code>config/application.properties</code> with your Kafka connection details</li>
-<li>Start the Docker Compose environment: <code>docker-compose up -d</code></li>
-<li>Monitor the output topics to see the real-time analytics results</li>
+<li>Create the topics as described in <a href="#define-the-topics-for-the-use-case">Define the topics for the use case</a>.</li>
+<li>Save the processor definition to <code>analytics.yaml</code> and the producer to <code>example-producer.yaml</code> in your <code>examples</code> directory.</li>
+<li>
+<p>Set up your <code>ksml-runner.yaml</code> configuration to load both definitions:</p>
+<details class="info">
+<summary>KSML runner configuration (click to expand)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">ksml</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="c1"># Section where you specify which KSML definitions to load, parse and execute.</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">definitions</span><span class="p">:</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="c1"># Format is &lt;namespace&gt;: &lt;ksml_definition_filename&gt;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nt">realtime_analytics</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analytics.yaml</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">test_producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example-producer.yaml</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">storageDirectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/ksml/state</span><span class="w">  </span><span class="c1"># Directory for state stores (inside /ksml which is writable because /ksml is the mounted working directory)</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="nt">createStorageDirectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">    </span><span class="c1"># Create the directory if it doesn't exist</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># This setup connects to the Kafka broker and schema registry started with the example docker-compose file</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1"># These examples are intended to run from a inside a container on the same network</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="nt">kafka</span><span class="p">:</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">  </span><span class="nt">bootstrap.servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">broker:9093</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="nt">application.id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.ksml.example.producer</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="nt">security.protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PLAINTEXT</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="nt">acks</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span>
+</code></pre></div>
+</details>
+</li>
+<li>
+<p>Start the Docker Compose environment: <code>docker compose up -d</code></p>
+</li>
+<li>Monitor the <code>sales_by_category</code>, <code>avg_order_value</code> and <code>transactions_by_region</code> topics to see the results.</li>
 </ol>
 <h2 id="visualizing-the-results">Visualizing the Results</h2>
 <p>Setting up visualizations is outside the scope of this tutorial. You can connect the output topics to visualization tools like:</p>
@@ -2434,11 +2583,12 @@ four hard coded sales records into the input stream and exit.</p>
 <p>For example, to create a simple dashboard with Grafana:</p>
 <ol>
 <li>Set up Grafana to connect to your Kafka topics</li>
-<li>Create dashboards for each metric:</li>
+<li>Create dashboards for each metric:<ul>
 <li>Bar chart for sales by category</li>
 <li>Line chart for average order value over time</li>
 <li>Map visualization for transactions by region</li>
-<li>Gauge charts for conversion rates</li>
+</ul>
+</li>
 </ol>
 <h2 id="extending-the-application">Extending the Application</h2>
 <p>You can extend this application in several ways:</p>
@@ -2447,6 +2597,7 @@ four hard coded sales records into the input stream and exit.</p>
 <li>Implement trend analysis to detect changing consumer behavior</li>
 <li>Create alerts for specific conditions (e.g., sales dropping below a threshold)</li>
 <li>Enrich the data with additional information from reference data sources</li>
+<li>Calculate conversion rates per marketing channel, using the <code>marketing_channel</code> field in the transactions</li>
 </ul>
 <h2 id="conclusion">Conclusion</h2>
 <p>In this tutorial, you've learned how to:</p>

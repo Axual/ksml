@@ -2211,6 +2211,53 @@
 <li><strong>State Management</strong>: Persist application state across restarts</li>
 </ul>
 <p>State stores can be backed by RocksDB (persistent) or kept in memory (non-persistent). Both types can optionally use changelog topics for fault tolerance and recovery.</p>
+<p>The diagram below shows where a state store lives and how the optional settings fit together. The store itself is local to the KSML application; the changelog topic in Kafka is its backup:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(Input topic)]
+
+    %% Inside the KSML application
+    subgraph App["KSML application"]
+        Operation["Stateful operation&lt;br/&gt;&lt;code&gt;count&lt;/code&gt;, &lt;code&gt;aggregate&lt;/code&gt;, &lt;code&gt;join&lt;/code&gt;, ..."]
+        Cache["Cache&lt;br/&gt;(caching: true)"]
+        Store[("State store&lt;br/&gt;RocksDB on disk (persistent: true)&lt;br/&gt;or in memory (persistent: false)")]
+    end
+
+    %% In Kafka
+    Changelog[("Changelog topic&lt;br/&gt;(logging: true)")]
+    Output[(Output topic)]
+
+    %% Data Flow
+    Input --&gt; Operation
+    Operation &lt;--&gt;|"read &amp; update"| Cache
+    Cache &lt;--&gt;|"flush"| Store
+    Operation --&gt;|"results"| Output
+    Store -.-&gt;|"every change"| Changelog
+    Changelog -.-&gt;|"restore after restart&lt;br/&gt;or moving to another instance"| Store
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Output,Changelog topic
+    class Operation operation
+    class Cache external
+    class Store store
+    style App fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>Without caching, the operation reads and writes the store directly. Without logging, there is no changelog topic: a persistent store still survives a restart on the same machine, but its state is lost if the application moves to another machine or the local files are deleted.</p>
 <h2 id="state-store-types">State Store Types</h2>
 <p>KSML supports three types of state stores. For detailed information about each type and their parameters, see the <a href="../../../reference/state-store-reference/#state-store-types">State Store Reference</a>.</p>
 <h2 id="configuration-methods">Configuration Methods</h2>
@@ -2317,6 +2364,55 @@
 <li><strong>Persistent storage</strong>: Data survives application restarts (<code>persistent: true</code>)</li>
 <li><strong>Changelog logging</strong>: State changes are replicated to a Kafka changelog topic for fault tolerance and recovery (<code>logging: true</code>)</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(sensor_ownership_data&lt;br/&gt;key: sensor_id)]
+
+    %% Pipeline Operations
+    Group["&lt;code&gt;groupBy&lt;/code&gt;&lt;br/&gt;owner from value"]
+    Count["&lt;code&gt;count&lt;/code&gt;&lt;br/&gt;store: owner_count_store"]
+    ToStream[&lt;code&gt;toStream&lt;/code&gt;]
+    Log["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log count"]
+
+    %% Store defined in the global stores section
+    subgraph Stores["stores section"]
+        Store[("owner_count_store&lt;br/&gt;keyValue, persistent: true&lt;br/&gt;caching: false, logging: true")]
+    end
+    Changelog[(Changelog topic)]
+
+    %% Output
+    Output[(owner_sensor_counts&lt;br/&gt;key: owner)]
+
+    %% Data Flow
+    Input --&gt; Group
+    Group --&gt;|"key: owner"| Count
+    Count &lt;-.-&gt;|"read &amp; update"| Store
+    Store -.-&gt;|"every change"| Changelog
+    Count --&gt;|"count per owner"| ToStream
+    ToStream --&gt; Log
+    Log --&gt; Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Output,Changelog topic
+    class Group,Count,ToStream,Log operation
+    class Store store
+    style Stores fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <p>You won't be able to read the output in <code>owner_sensor_counts</code> topic because it is binary, to read it you can consume the messages like this:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Read owner sensor counts (Long values require specific deserializer)</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>broker<span class="w"> </span>/opt/bitnami/kafka/bin/kafka-console-consumer.sh<span class="w"> </span><span class="se">\</span>
@@ -2456,6 +2552,53 @@
 <li><strong>Memory-only storage</strong>: Non-persistent storage for temporary calculations (<code>persistent: false</code>)</li>
 <li><strong>Caching enabled</strong>: Improves performance by batching state updates (<code>caching: true</code>)</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(sensor_ownership_data&lt;br/&gt;key: sensor_id)]
+
+    %% Pipeline Operations
+    Group["&lt;code&gt;groupBy&lt;/code&gt;&lt;br/&gt;sensor_type from value"]
+    Aggregate["&lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;initialize_sum + update_sum&lt;br/&gt;with inline store"]
+    ToStream[&lt;code&gt;toStream&lt;/code&gt;]
+    Log["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log totals"]
+
+    %% Inline store, part of the aggregate operation
+    Cache["Cache&lt;br/&gt;(caching: true)"]
+    Store[("sensor_type_aggregates&lt;br/&gt;keyValue, in memory (persistent: false)&lt;br/&gt;no changelog (logging: false)")]
+
+    %% Output
+    Output[(sensor_type_totals&lt;br/&gt;key: sensor_type)]
+
+    %% Data Flow
+    Input --&gt; Group
+    Group --&gt;|"key: sensor_type"| Aggregate
+    Aggregate &lt;-.-&gt;|"read &amp; update"| Cache
+    Cache &lt;-.-&gt;|"flush"| Store
+    Aggregate --&gt;|"total, count, average&lt;br/&gt;per sensor type"| ToStream
+    ToStream --&gt; Log
+    Log --&gt; Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Output topic
+    class Group,Aggregate,ToStream,Log operation
+    class Cache,Store store</code></pre>
+<p>Compared to the predefined store above, this store has no changelog topic and lives only in memory: after a restart, the totals start again from zero.</p>
 <h2 id="configuration-parameters">Configuration Parameters</h2>
 <p>For a complete list of configuration parameters for all store types, see the <a href="../../../reference/state-store-reference/#configuration-parameters">State Store Reference - Configuration Parameters</a>.</p>
 <h2 id="best-practices">Best Practices</h2>

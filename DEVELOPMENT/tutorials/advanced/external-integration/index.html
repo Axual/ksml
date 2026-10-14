@@ -2185,6 +2185,54 @@
 </code></pre></div>
 </details>
 <h2 id="integration-patterns">Integration Patterns</h2>
+<p>The examples below show three ways to bring external data into a stream. They differ in when the external system is contacted and who waits for it:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    subgraph API["API enrichment"]
+        direction TB
+        A1[(Input topic)] --&gt; A2["Python function"]
+        A2 &lt;--&gt;|"call per event,&lt;br/&gt;wait for the answer"| A3["External API"]
+        A2 --&gt; A4[(Enriched topic)]
+    end
+    subgraph DB["Database lookup"]
+        direction TB
+        B0["Database"] -.-&gt;|"load once"| B3[("Local state store")]
+        B1[(Input topic)] --&gt; B2["Python function"]
+        B2 &lt;--&gt;|"local lookup&lt;br/&gt;per event"| B3
+        B2 --&gt; B4[(Enriched topic)]
+    end
+    subgraph ASYNC["Async integration"]
+        direction TB
+        C1[(Input topic)] --&gt; C2["Python function"]
+        C2 --&gt; C3[(Request topic)]
+        C3 --&gt; C4["External system"]
+        C4 --&gt; C5[(Response topic)]
+    end
+    API ~~~ DB ~~~ ASYNC
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class A1,A4,B1,B4,C1,C3,C5 topic
+    class A2,B2,C2 operation
+    class A3,B0,C4 external
+    class B3 store
+    style API fill:none,stroke:#616161,stroke-dasharray:5 5
+    style DB fill:none,stroke:#616161,stroke-dasharray:5 5
+    style ASYNC fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <h3 id="api-enrichment-pattern">API Enrichment Pattern</h3>
 <p>The API enrichment pattern calls external REST APIs to add additional data to streaming events. This is useful when you need real-time data that can't be cached locally.</p>
 <p><strong>What it does:</strong></p>
@@ -2195,6 +2243,60 @@
 <li><strong>Enriches with profiles</strong>: Combines original event data with fetched profile (name, tier, location, preferences, lifetime_value) </li>
 <li><strong>Outputs enriched events</strong>: Returns JSON combining event details with user profile, API call timing, and computed recommendations</li>
 </ul>
+<p>The diagram below follows two example events. Each event waits for its own API call before the next one is processed:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example events
+    Topic[(user_events)]
+    Events@{ shape: docs, label: "&lt;b&gt;event_000001&lt;/b&gt;&lt;br/&gt;login, user_001&lt;br/&gt;&lt;b&gt;event_000002&lt;/b&gt;&lt;br/&gt;purchase, user_004" }
+
+    %% Processing function and the API it calls
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;enrich_with_api_data"]
+    API["Mock user profile API&lt;br/&gt;&lt;code&gt;get_user_profile(user_id)&lt;/code&gt;&lt;br/&gt;about 100 ms per call"]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["&lt;b&gt;event_000001&lt;/b&gt;&lt;br/&gt;login, user_001&lt;br/&gt;profile: Alice Johnson&lt;br/&gt;premium, New York&lt;br/&gt;tier level 3, high value&lt;br/&gt;status SUCCESS"]
+        Step2["&lt;b&gt;event_000002&lt;/b&gt;&lt;br/&gt;purchase, user_004&lt;br/&gt;profile: Diana Wilson&lt;br/&gt;basic, Sydney&lt;br/&gt;tier level 1, not high value&lt;br/&gt;status SUCCESS"]
+        Step3["&lt;b&gt;if the API call fails&lt;/b&gt;&lt;br/&gt;no profile&lt;br/&gt;fallback: basic tier&lt;br/&gt;status FAILED"]
+        Step1 --&gt; Step2 --&gt; Step3
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(enriched_user_events)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Function
+    Function &lt;-.-&gt;|"call &amp; wait"| API
+    Function --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"event + profile,&lt;br/&gt;metrics, recommendations"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class API external
+    class Step1,Step2 result
+    class Step3 partial
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The API latency adds up: with a 100 ms call per event, one stream thread can enrich at most about 10 events per second.</p>
 <p><strong>Key concepts demonstrated:</strong></p>
 <ul>
 <li>Making external API calls from KSML functions with JSON data structures</li>
@@ -2482,6 +2584,65 @@
 </code></pre></div></li>
 </ol>
 <p>This way you get rich product information without hitting a database for every single event.</p>
+<p>The diagram below follows three example events. The first event also triggers loading the catalog into the state store; after that, every event is enriched with a local lookup:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example events
+    Topic[(product_events)]
+    Events@{ shape: docs, label: "&lt;b&gt;key: PROD001&lt;/b&gt;&lt;br/&gt;purchased, quantity 2&lt;br/&gt;&lt;b&gt;key: PROD002&lt;/b&gt;&lt;br/&gt;viewed, quantity 1&lt;br/&gt;&lt;b&gt;key: PROD005&lt;/b&gt;&lt;br/&gt;added_to_cart, quantity 3" }
+
+    %% Loading and lookup
+    Load["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;load_product_reference_data&lt;br/&gt;first event only"]
+    Catalog["Product catalog&lt;br/&gt;simulated database&lt;br/&gt;PROD001 ... PROD005"]
+    Store[("product_reference_store&lt;br/&gt;key: product_id&lt;br/&gt;value: name, price, category")]
+    Function["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;enrich_with_product_data"]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["&lt;b&gt;PROD001&lt;/b&gt;&lt;br/&gt;purchased, quantity 2&lt;br/&gt;Wireless Headphones&lt;br/&gt;99.99 × 2&lt;br/&gt;total_price 199.98"]
+        Step2["&lt;b&gt;PROD002&lt;/b&gt;&lt;br/&gt;viewed, quantity 1&lt;br/&gt;Coffee Mug&lt;br/&gt;no purchase or cart event&lt;br/&gt;total_price 0.0"]
+        Step3["&lt;b&gt;PROD005&lt;/b&gt;&lt;br/&gt;added_to_cart, quantity 3&lt;br/&gt;Smartphone&lt;br/&gt;699.99 × 3&lt;br/&gt;total_price 2099.9700000000003"]
+        Step1 --&gt; Step2 --&gt; Step3
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(enriched_product_events)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Load
+    Catalog -.-&gt;|"read once"| Load
+    Load -.-&gt;|"put 5 products"| Store
+    Load --&gt; Function
+    Function &lt;-.-&gt;|"get product_id"| Store
+    Function --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"3 enriched events"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Load,Function,Filter operation
+    class Events message
+    class Catalog external
+    class Store store
+    class Step1,Step2,Step3 result
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The <code>total_price</code> is not rounded, so a multiplication like 699.99 × 3 can give a long floating point number such as <code>2099.9700000000003</code>.</p>
 <details class="info">
 <summary>Product Events Producer (database lookup demo) - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Producer for database lookup demo - generates product events</span>
@@ -2703,9 +2864,69 @@
 <li><strong>Produces order events</strong>: Creates orders with status (created, paid, shipped) containing customer info, amounts, payment methods, business context</li>
 <li><strong>Filters paid orders</strong>: Only processes orders with status="paid", creates external payment processing requests with correlation IDs</li>
 <li><strong>Sends to request topic</strong>: Outputs JSON payment requests to external_requests topic with order details, customer tier, processing priority</li>
-<li><strong>Processes responses</strong>: Reads responses from external_responses topic, matches by correlation_id, handles success/failure scenarios</li>
+<li><strong>Simulates responses</strong>: A second pipeline reads the requests, simulates a payment result, and writes it to <code>external_responses</code></li>
 <li><strong>Outputs results</strong>: Returns JSON combining original order with external processing results, transaction IDs, and follow-up actions</li>
 </ul>
+<p>The example runs two pipelines. The first one (<code>external_request_pipeline</code>) turns paid orders into payment requests. The second one (<code>external_response_pipeline</code>) stands in for the external payment system: it reads the requests, simulates a payment result and writes the responses. The diagram below follows four example orders:</p>
+<div class="diagram-w55">
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with example events
+    Topic[(order_events)]
+    Events@{ shape: docs, label: "&lt;b&gt;ORDER_0001&lt;/b&gt;&lt;br/&gt;created, 80.00&lt;br/&gt;&lt;b&gt;ORDER_0002&lt;/b&gt;&lt;br/&gt;paid, 250.00&lt;br/&gt;&lt;b&gt;ORDER_0003&lt;/b&gt;&lt;br/&gt;shipped, 120.00&lt;br/&gt;&lt;b&gt;ORDER_0004&lt;/b&gt;&lt;br/&gt;paid, 420.00" }
+
+    %% Request pipeline
+    subgraph Requests["external_request_pipeline"]
+        Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;filter_paid_orders&lt;br/&gt;status == paid"}
+        Create["&lt;code&gt;transformKeyValue&lt;/code&gt;&lt;br/&gt;create_external_request&lt;br/&gt;new key REQ_order_timestamp"]
+    end
+    Drop["❌ Dropped&lt;br/&gt;ORDER_0001, ORDER_0003"]
+    RequestCards@{ shape: docs, label: "&lt;b&gt;REQ_ORDER_0002_...&lt;/b&gt;&lt;br/&gt;250.00&lt;br/&gt;priority normal, high value&lt;br/&gt;&lt;b&gt;REQ_ORDER_0004_...&lt;/b&gt;&lt;br/&gt;420.00&lt;br/&gt;priority high, high value" }
+    RequestTopic[(external_requests)]
+
+    %% Simulated external system
+    subgraph Payment["simulated payment system"]
+        Process["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;process_external_response&lt;br/&gt;random result, approved:&lt;br/&gt;90% if high value&lt;br/&gt;95% otherwise"]
+    end
+    ResponseCards@{ shape: docs, label: "for example:&lt;br/&gt;&lt;b&gt;REQ_ORDER_0002_...&lt;/b&gt;&lt;br/&gt;success, TXN_..., fee 7.25&lt;br/&gt;&lt;b&gt;REQ_ORDER_0004_...&lt;/b&gt;&lt;br/&gt;failed, Insufficient funds" }
+    ResponseTopic[(external_responses)]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Filter
+    Filter --&gt;|"paid"| Create
+    Filter -.-&gt;|"other status"| Drop
+    Create --&gt; RequestCards
+    RequestCards --&gt; RequestTopic
+    RequestTopic --&gt; Process
+    Process --&gt; ResponseCards
+    ResponseCards --&gt; ResponseTopic
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,RequestTopic,ResponseTopic topic
+    class Filter,Create,Process operation
+    class Events,RequestCards message
+    class ResponseCards result
+    class Drop dropped
+    style Requests fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Payment fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+</div>
+<p>Both pipelines keep the request key (<code>REQ_...</code>), and each response carries the <code>correlation_id</code> of its order. In a real setup, the second pipeline is replaced by the external system, and another KSML pipeline reads <code>external_responses</code>.</p>
 <p><strong>Key concepts demonstrated:</strong></p>
 <ul>
 <li>Creating request topics for external system communication with JSON payloads</li>

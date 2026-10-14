@@ -2585,6 +2585,51 @@
 <a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">      </span><span class="c1"># Default branch: Everything else</span>
 <a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default_output_topic</span>
 </code></pre></div>
+<p>Each message goes to <strong>one</strong> branch only: the first branch whose condition matches. KSML checks the conditions from top to bottom, and the default branch (a branch without <code>if</code>) catches everything that matched none of them:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    InputStream[(input_stream)]
+    Via[some_transformer]
+
+    %% Branch conditions, checked in order
+    Condition1{"&lt;code&gt;branch&lt;/code&gt; 1&lt;br/&gt;if: condition_predicate"}
+    Condition2{"&lt;code&gt;branch&lt;/code&gt; 2&lt;br/&gt;if: another_predicate"}
+    Branch1[branch1_transformer]
+
+    %% Outputs
+    Output1[(output_topic_1)]
+    Output2[(output_topic_2)]
+    DefaultOutput[(default_output_topic)]
+
+    %% Data Flow
+    InputStream --&gt; Via
+    Via --&gt; Condition1
+    Condition1 --&gt;|"yes"| Branch1
+    Branch1 --&gt; Output1
+    Condition1 --&gt;|"no"| Condition2
+    Condition2 --&gt;|"yes"| Output2
+    Condition2 --&gt;|"no: default branch"| DefaultOutput
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class InputStream,Output1,Output2,DefaultOutput topic
+    class Via,Condition1,Condition2,Branch1 operation</code></pre>
+<p>Without a default branch, messages that match no condition are dropped.</p>
 <h2 id="example-1-simple-content-based-routing">Example 1: Simple Content-Based Routing</h2>
 <p>Let's start with a basic example that routes sensor data based on location.</p>
 <h3 id="producer-definition">Producer Definition</h3>
@@ -2730,6 +2775,46 @@
 <li>Messages from "office" are routed to <code>office_sensors</code> topic</li>
 <li>All other locations are routed to <code>unknown_sensors</code> topic</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    InputTopic[(sensor_input)]
+    LogLocation[&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log location]
+    Branch{"&lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;on location"}
+
+    %% Outputs
+    DataCenter[(datacenter_sensors)]
+    Warehouse[(warehouse_sensors)]
+    Office[(office_sensors)]
+    Unknown[(unknown_sensors)]
+
+    %% Data Flow
+    InputTopic --&gt; LogLocation
+    LogLocation --&gt; Branch
+    Branch --&gt;|"is_datacenter"| DataCenter
+    Branch --&gt;|"is_warehouse"| Warehouse
+    Branch --&gt;|"is_office"| Office
+    Branch -.-&gt;|"default"| Unknown
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class InputTopic,DataCenter,Warehouse,Office,Unknown topic
+    class LogLocation,Branch operation</code></pre>
+<p>Each branch also has its own <code>peek</code> operation that logs the routed message before writing it to its topic.</p>
 <h2 id="example-2-multi-condition-data-processing-pipeline">Example 2: Multi-Condition Data Processing Pipeline</h2>
 <p>This example shows more complex branching with data transformation and business logic.</p>
 <h3 id="producer-definition_1">Producer Definition</h3>
@@ -2931,6 +3016,58 @@
 <li>US/EU orders (not priority) are routed to <code>regional_orders</code> topic  </li>
 <li>International orders (APAC/LATAM) are routed to <code>international_orders</code> topic</li>
 </ul>
+<p>Because the conditions are checked in order, a high-value order from a premium customer goes to <code>priority_orders</code> even if it comes from an international region:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input
+    InputTopic[(order_input)]
+    LogOrder[&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log order]
+
+    %% Branch conditions, checked in order
+    IsPriority{"&lt;code&gt;branch&lt;/code&gt; 1: is_priority&lt;br/&gt;premium and &gt; $1000"}
+    IsRegional{"&lt;code&gt;branch&lt;/code&gt; 2: is_regional&lt;br/&gt;US or EU"}
+    IsInternational{"&lt;code&gt;branch&lt;/code&gt; 3: is_international&lt;br/&gt;other regions"}
+
+    %% Branch transformations
+    Priority["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;tier: priority, SLA 4h"]
+    Regional["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;tier: regional, SLA 24h"]
+    International["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;tier: international, SLA 72h,&lt;br/&gt;customs required"]
+
+    %% Outputs
+    PriorityOrders[(priority_orders)]
+    RegionalOrders[(regional_orders)]
+    InternationalOrders[(international_orders)]
+
+    %% Data Flow
+    InputTopic --&gt; LogOrder
+    LogOrder --&gt; IsPriority
+    IsPriority --&gt;|"yes"| Priority
+    Priority --&gt; PriorityOrders
+    IsPriority --&gt;|"no"| IsRegional
+    IsRegional --&gt;|"yes"| Regional
+    Regional --&gt; RegionalOrders
+    IsRegional --&gt;|"no"| IsInternational
+    IsInternational --&gt;|"yes"| International
+    International --&gt; InternationalOrders
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class InputTopic,PriorityOrders,RegionalOrders,InternationalOrders topic
+    class LogOrder,IsPriority,IsRegional,IsInternational,Priority,Regional,International operation</code></pre>
 <h2 id="advanced-branching-patterns">Advanced Branching Patterns</h2>
 <h3 id="nested-branching">Nested Branching</h3>
 <p>You can create nested branching by having branches that contain their own branching logic:</p>
@@ -2953,6 +3090,48 @@
 <a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value.get("category") == "clothing"</span><span class="w"> </span>
 <a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">clothing_items</span>
 </code></pre></div>
+<p>The electronics branch has its own <code>branch</code> section that splits electronics by price. The outer branching has no default branch, so messages from any other category are dropped:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    InputStream[(input_stream)]
+    Category{"&lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;on category"}
+    Enrich[&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;enrich_electronics]
+    Price{"nested &lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;price &gt; 500"}
+
+    %% Outputs
+    Expensive[(expensive_electronics)]
+    Affordable[(affordable_electronics)]
+    Clothing[(clothing_items)]
+
+    %% Data Flow
+    InputStream --&gt; Category
+    Category --&gt;|"electronics"| Enrich
+    Enrich --&gt; Price
+    Price --&gt;|"yes"| Expensive
+    Price -.-&gt;|"no: default"| Affordable
+    Category --&gt;|"clothing"| Clothing
+    Category -.-&gt;|"other"| Drop[❌ Dropped]
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class InputStream,Expensive,Affordable,Clothing topic
+    class Category,Enrich,Price operation
+    class Drop dropped</code></pre>
 <h3 id="multiple-output-topics">Multiple Output Topics</h3>
 <p>A single branch can route to multiple topics:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">branch</span><span class="p">:</span>

@@ -5049,8 +5049,8 @@ the latest schema from the registry at startup using the topic name:</p>
 <a id="__codelineno-75-37" name="__codelineno-75-37" href="#__codelineno-75-37"></a><span class="w">      </span><span class="no"># Generate sensor reading data that will be output as Avro</span>
 <a id="__codelineno-75-38" name="__codelineno-75-38" href="#__codelineno-75-38"></a><span class="w">      </span><span class="no">reading = {</span>
 <a id="__codelineno-75-39" name="__codelineno-75-39" href="#__codelineno-75-39"></a><span class="w">        </span><span class="no">"name": key,</span>
-<a id="__codelineno-75-40" name="__codelineno-75-40" href="#__codelineno-75-40"></a><span class="w">        </span><span class="no">"timestamp": str(round(time.time() * 1000)),</span>
-<a id="__codelineno-75-41" name="__codelineno-75-41" href="#__codelineno-75-41"></a><span class="w">        </span><span class="no">"type": random.choice(["TEMPERATURE", "HUMIDITY", "PRESSURE"]),</span>
+<a id="__codelineno-75-40" name="__codelineno-75-40" href="#__codelineno-75-40"></a><span class="w">        </span><span class="no">"timestamp": round(time.time() * 1000),</span>
+<a id="__codelineno-75-41" name="__codelineno-75-41" href="#__codelineno-75-41"></a><span class="w">        </span><span class="no">"type": random.choice(["AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE"]),</span>
 <a id="__codelineno-75-42" name="__codelineno-75-42" href="#__codelineno-75-42"></a><span class="w">        </span><span class="no">"unit": random.choice(["C", "F", "%", "Pa"]),</span>
 <a id="__codelineno-75-43" name="__codelineno-75-43" href="#__codelineno-75-43"></a><span class="w">        </span><span class="no">"value": str(random.randrange(0, 100)),</span>
 <a id="__codelineno-75-44" name="__codelineno-75-44" href="#__codelineno-75-44"></a><span class="w">        </span><span class="no">"color": random.choice(["black", "blue", "red", "yellow", "white"]),</span>

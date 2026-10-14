@@ -2007,6 +2007,42 @@
 <p>KSML is a declarative language that makes stream processing accessible to data analysts, data engineers, and other professionals - no Java expertise required.</p>
 <p>Simply define your data processing pipelines in easy-to-read YAML files and write custom logic using Python. KSML handles all the complexity of Kafka Streams behind the scenes, translating your definitions into production-ready streaming applications.</p>
 <p>Whether you're filtering data, transforming events, performing aggregations, or building real-time analytics, KSML lets you focus on your business logic without worrying about Java code, compilation, or complex build pipelines.</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% What you write, and where the data comes from
+    Definition["&lt;b&gt;What you write&lt;/b&gt;&lt;br/&gt;YAML definition&lt;br/&gt;+ Python functions"]
+    Input[(Input topics)]
+
+    %% What KSML does
+    KSML["&lt;b&gt;KSML&lt;/b&gt;&lt;br/&gt;builds and runs a&lt;br/&gt;Kafka Streams application"]
+
+    %% Where the results go
+    Output[(Output topics)]
+
+    %% Data Flow
+    Definition --&gt; KSML
+    Input --&gt;|"consume"| KSML
+    KSML --&gt;|"produce"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Output topic
+    class KSML operation
+    class Definition external</code></pre>
 <h2 id="1-getting-started">1. Getting Started</h2>
 <ul>
 <li><a href="getting-started/quick-start/">Quick Start</a></li>

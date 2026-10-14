@@ -2411,6 +2411,54 @@
 <li><strong>Categorizes errors</strong>: Adds specific error_reason (malformed_data, missing_required_fields, invalid_quantity, validation_failed) to invalid orders</li>
 <li><strong>Logs decisions</strong>: Tracks processing with logging for valid/invalid determinations and specific error reasons for debugging</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(incoming_orders)]
+    LogIn["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log order"]
+
+    %% Validation
+    Branch{"&lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;valid order?"}
+
+    %% Valid path
+    AddStatus["&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;add_validation_status"]
+    LogValid["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log valid"]
+    Valid[(valid_orders)]
+
+    %% Invalid path
+    AddError["&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;add_error_details&lt;br/&gt;error_reason: malformed_data,&lt;br/&gt;missing_required_fields,&lt;br/&gt;invalid_quantity, validation_failed"]
+    LogInvalid["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log error reason"]
+    Invalid[(invalid_orders)]
+
+    %% Data Flow
+    Input --&gt; LogIn
+    LogIn --&gt; Branch
+    Branch --&gt;|"not malformed, has product_id,&lt;br/&gt;quantity &gt; 0"| AddStatus
+    AddStatus --&gt; LogValid
+    LogValid --&gt; Valid
+    Branch --&gt;|"default branch"| AddError
+    AddError --&gt; LogInvalid
+    LogInvalid --&gt; Invalid
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Valid topic
+    class LogIn,Branch,AddStatus,LogValid,AddError,LogInvalid operation
+    class Invalid errorTopic</code></pre>
 <h3 id="2-try-catch-error-handling">2. Try-Catch Error Handling</h3>
 <p>Use try-catch blocks in Python functions to handle exceptions gracefully and provide fallback behavior.</p>
 <details class="info">
@@ -2572,6 +2620,49 @@
 <li><strong>Creates error objects</strong>: When exceptions occur, returns error object with sensor_id, error message, status="error", original_data for debugging</li>
 <li><strong>Routes by success</strong>: Uses branch to send successful processing to processed_sensors, errors to sensor_errors topic based on status field</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(sensor_readings)]
+
+    %% Processing with try/except inside the function
+    Process["&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;process_sensor_reading&lt;br/&gt;&lt;br/&gt;&lt;b&gt;try&lt;/b&gt;: convert temperature,&lt;br/&gt;validate sensor_id, set defaults&lt;br/&gt;&lt;b&gt;except&lt;/b&gt; ValueError, TypeError:&lt;br/&gt;return an error object"]
+    Log["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log result"]
+
+    %% Routing by status
+    Branch{"&lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;status != error?"}
+
+    %% Outputs
+    Processed[(processed_sensors)]
+    Errors[(sensor_errors)]
+
+    %% Data Flow
+    Input --&gt; Process
+    Process --&gt; Log
+    Log --&gt; Branch
+    Branch --&gt;|"yes"| Processed
+    Branch --&gt;|"default branch:&lt;br/&gt;error object with&lt;br/&gt;original_data"| Errors
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Processed topic
+    class Process,Log,Branch operation
+    class Errors errorTopic</code></pre>
+<p>The exception never leaves the function: instead of crashing the pipeline, the function returns a normal message with <code>status: "error"</code>, and the <code>branch</code> decides where it goes.</p>
 <h3 id="3-dead-letter-queue-pattern">3. Dead Letter Queue Pattern</h3>
 <p>Route messages that cannot be processed to dedicated error topics for later analysis or reprocessing.</p>
 <details class="info">
@@ -2755,11 +2846,53 @@
 <p><strong>What it does:</strong></p>
 <ul>
 <li><strong>Produces payment requests</strong>: Creates payment events with varying scenarios - some successful, some with insufficient funds, some with invalid cards, some with network issues</li>
-<li><strong>Simulates processing</strong>: Mock payment processing with different failure types - permanent (invalid_card, insufficient_funds) vs transient (network_error, timeout)</li>
+<li><strong>Simulates processing</strong>: Mock payment processing with different failure types - permanent (malformed_request, invalid_amount, missing_required_fields, unsupported_currency) vs temporary (network_timeout)</li>
 <li><strong>Classifies errors</strong>: Determines retry eligibility based on error type - network/timeout errors are retryable, invalid card/insufficient funds are permanent</li>
 <li><strong>Enriches with context</strong>: Adds processing metadata, error classification, retry recommendations, original request data to failed messages</li>
 <li><strong>Routes by result</strong>: Uses branch to send successful payments to processed_payments, failures to failed_payments topic with full error context</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(payment_requests)]
+
+    %% Processing and classification
+    Process["&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;process_payment"]
+    Log["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log result"]
+    Branch{"&lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;status == processed?"}
+
+    %% Outputs
+    Processed[(processed_payments)]
+    Failed[("failed_payments&lt;br/&gt;(dead letter queue)")]
+
+    %% Data Flow
+    Input --&gt; Process
+    Process --&gt; Log
+    Log --&gt; Branch
+    Branch --&gt;|"processed"| Processed
+    Branch --&gt;|"permanent_failure, retry_eligible: false&lt;br/&gt;malformed_request, invalid_amount,&lt;br/&gt;missing_required_fields, unsupported_currency"| Failed
+    Branch --&gt;|"temporary_failure, retry_eligible: true&lt;br/&gt;network_timeout"| Failed
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Processed topic
+    class Process,Log,Branch operation
+    class Failed errorTopic</code></pre>
+<p>Every failed payment ends up in the same dead letter queue, but the <code>retry_eligible</code> field tells a later consumer which messages are worth sending again.</p>
 <h3 id="4-retry-strategies-with-exponential-backoff">4. Retry Strategies with Exponential Backoff</h3>
 <p>Implement sophisticated retry logic for transient failures with exponential backoff and jitter.</p>
 <details class="info">
@@ -2969,10 +3102,64 @@
 <ul>
 <li><strong>Produces API operations</strong>: Creates operations (fetch_user, update_profile, delete_account) with deliberate failures for some operations to test retry logic</li>
 <li><strong>Simulates API calls</strong>: Mock external API with different failure scenarios (timeout, rate_limit, server_error) and success cases  </li>
-<li><strong>Implements retry logic</strong>: Calculates exponential backoff delays (1s, 2s, 4s, 8s) with added jitter to prevent retry storms</li>
+<li><strong>Implements retry logic</strong>: Calculates exponential backoff delays (1s, 2s, 4s) with added jitter to prevent retry storms</li>
 <li><strong>Tracks attempts</strong>: Maintains retry count, determines retry eligibility based on error type and max attempts (3), stores original operation data</li>
 <li><strong>Routes by outcome</strong>: Successful operations go to successful_operations, failed/exhausted retries go to failed_operations with retry history</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input
+    Input[(api_operations)]
+
+    %% Processing with retry decision
+    Process["&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;process_with_retry"]
+    Decide{"Operation&lt;br/&gt;failed?"}
+    Retryable{"Retryable error&lt;br/&gt;and retry_count &lt; 3?"}
+
+    %% Outcomes
+    Success["status: success"]
+    SuccessRetry["status: success_after_retry"]
+    RetryNeeded["status: retry_needed&lt;br/&gt;retry_count: 1&lt;br/&gt;backoff_delay: about 1s&lt;br/&gt;(± 20% jitter)"]
+    Permanent["status: permanent_failure"]
+
+    %% Routing
+    Branch{"&lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;success or&lt;br/&gt;success_after_retry?"}
+    Succeeded[(successful_operations)]
+    Failed[(failed_operations)]
+
+    %% Data Flow
+    Input --&gt; Process
+    Process --&gt; Decide
+    Decide --&gt;|"no"| Success
+    Decide --&gt;|"yes"| Retryable
+    Retryable --&gt;|"yes, simulated retry works"| SuccessRetry
+    Retryable --&gt;|"yes, still failing"| RetryNeeded
+    Retryable --&gt;|"no"| Permanent
+    Success &amp; SuccessRetry &amp; RetryNeeded &amp; Permanent --&gt; Branch
+    Branch --&gt;|"yes"| Succeeded
+    Branch --&gt;|"default branch"| Failed
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Succeeded topic
+    class Process,Decide,Retryable,Branch operation
+    class Success,SuccessRetry,RetryNeeded,Permanent message
+    class Failed errorTopic</code></pre>
+<p>Note that this example only <strong>decides</strong> whether an operation should be retried and calculates the delay: it simulates the outcome of a retry within the same function call. Messages with <code>status: retry_needed</code> are written to <code>failed_operations</code> together with their <code>retry_count</code> and <code>backoff_delay</code>, and are not sent through the pipeline again. The example producer always sends <code>retry_count: 0</code>, so the delay is always about 1 second. The 2 and 4 second delays only happen for messages that arrive with a <code>retry_count</code> of 1 or 2.</p>
 <h3 id="5-circuit-breaker-pattern">5. Circuit Breaker Pattern</h3>
 <p>Prevent cascading failures by temporarily stopping calls to failing services, allowing them to recover.</p>
 <details class="info">
@@ -3169,10 +3356,79 @@
 <ul>
 <li><strong>Produces service requests</strong>: Creates requests with request_ids, some designed to fail to trigger circuit breaker state changes  </li>
 <li><strong>Tracks circuit state</strong>: Uses global variables (failure_count, circuit_state) to maintain CLOSED/OPEN/HALF_OPEN states across all requests</li>
-<li><strong>Opens on failures</strong>: After 3 consecutive failures, circuit transitions from CLOSED to OPEN state to protect failing service</li>
+<li><strong>Opens on failures</strong>: After 3 failures, circuit transitions from CLOSED to OPEN state to protect failing service</li>
 <li><strong>Rejects when open</strong>: In OPEN state, immediately returns circuit_open status without attempting processing, showing current failure count</li>
 <li><strong>Processes requests</strong>: In CLOSED state, simulates service calls with success/failure scenarios, updating failure counter and circuit state accordingly</li>
 </ul>
+<p>The circuit breaker is a state machine that is shared by all requests. The diagram below shows its states and the events that move it from one state to another:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Circuit states
+    Start(( )) --&gt; Closed
+    Closed(["CLOSED&lt;br/&gt;requests are processed"])
+    Open(["OPEN&lt;br/&gt;requests are rejected"])
+    HalfOpen(["HALF_OPEN&lt;br/&gt;requests are processed again"])
+
+    %% Transitions
+    Closed --&gt;|"success, or failure&lt;br/&gt;with failure_count below 3"| Closed
+    Closed --&gt;|"failure_count reaches 3"| Open
+    Open --&gt;|"request rejected&lt;br/&gt;(status circuit_open)"| Open
+    Open --&gt;|"next request more than&lt;br/&gt;10s after the last failure"| HalfOpen
+    HalfOpen --&gt;|"2 successes,&lt;br/&gt;counters reset"| Closed
+    HalfOpen --&gt;|"failure"| Open
+
+    %% Styling
+    classDef closed fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef open fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef halfOpen fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef start fill:#616161,stroke:#616161
+
+    class Closed closed
+    class Open open
+    class HalfOpen halfOpen
+    class Start start</code></pre>
+<p>Every request then goes through the same pipeline, and the <code>status</code> set by the circuit breaker decides where it goes:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(service_requests)]
+
+    %% Processing
+    Handler["&lt;code&gt;transformValue&lt;/code&gt;&lt;br/&gt;circuit_breaker_handler"]
+    Log["&lt;code&gt;peek&lt;/code&gt;&lt;br/&gt;Log status and state"]
+    Branch{"&lt;code&gt;branch&lt;/code&gt;&lt;br/&gt;status == success?"}
+
+    %% Outputs
+    Responses[(service_responses)]
+    Events[(circuit_events)]
+
+    %% Data Flow
+    Input --&gt; Handler
+    Handler --&gt; Log
+    Log --&gt; Branch
+    Branch --&gt;|"success"| Responses
+    Branch --&gt;|"failure or circuit_open"| Events
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Responses topic
+    class Handler,Log,Branch operation
+    class Events errorTopic</code></pre>
 <h2 id="error-handling-best-practices">Error Handling Best Practices</h2>
 <h3 id="data-type-recommendations">Data Type Recommendations</h3>
 <ul>

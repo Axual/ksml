@@ -3007,6 +3007,54 @@
 </code></pre></div>
 </details>
 <h2 id="core-aggregation-concepts">Core Aggregation Concepts</h2>
+<p>Every aggregation in KSML follows the same flow: group the messages by key, optionally split them into time windows, and then aggregate them. The aggregation keeps its running result in a state store and emits an updated result for each change. If the store caches updates, the topic only gets the latest result at each commit (by default every 30 seconds). You turn the results back into a stream with <code>toStream</code> to write them to a topic:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    InputTopic[(Input topic)]
+
+    %% Pipeline Operations
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;&lt;br/&gt;or &lt;code&gt;groupBy&lt;/code&gt;]
+    Window[&lt;code&gt;windowByTime&lt;/code&gt;&lt;br/&gt;or &lt;code&gt;windowBySession&lt;/code&gt;]
+    Aggregate[&lt;code&gt;count&lt;/code&gt;, &lt;code&gt;reduce&lt;/code&gt;&lt;br/&gt;or &lt;code&gt;aggregate&lt;/code&gt;]
+    ToStream[&lt;code&gt;toStream&lt;/code&gt;]
+
+    %% State
+    Store[(State store)]
+    Changelog[(Changelog topic)]
+
+    %% Output
+    OutputTopic[(Output topic)]
+
+    %% Data Flow
+    InputTopic --&gt; Group
+    Group --&gt;|"regular"| Aggregate
+    Group -.-&gt;|"windowed"| Window
+    Window -.-&gt; Aggregate
+    Aggregate --&gt;|"updated result"| ToStream
+    ToStream --&gt; OutputTopic
+    Aggregate &lt;--&gt;|"read &amp; update"| Store
+    Store -.-&gt;|"every change"| Changelog
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class InputTopic,OutputTopic,Changelog topic
+    class Group,Window,Aggregate,ToStream operation
+    class Store store</code></pre>
 <h3 id="grouping-requirements">Grouping Requirements</h3>
 <p>All aggregations require data to be grouped by key first:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Group by existing key</span>
@@ -3197,6 +3245,62 @@ Combines two values of the same type into a single value, used when no initializ
 <li>Increments the counter for each message</li>
 <li>Outputs the current count as a KTable</li>
 </ol>
+<p>The diagram below follows five example actions through the pipeline. Unlike a windowed count, the count for a user never resets: every new action updates the stored count. This store caches updates, so the topic gets the latest count about every 30 seconds:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with five actions
+    Topic[(user_actions)]
+    Actions@{ shape: docs, label: "&lt;b&gt;alice&lt;/b&gt;: login&lt;br/&gt;&lt;b&gt;bob&lt;/b&gt;: view&lt;br/&gt;&lt;b&gt;alice&lt;/b&gt;: click&lt;br/&gt;&lt;b&gt;alice&lt;/b&gt;: purchase&lt;br/&gt;&lt;b&gt;bob&lt;/b&gt;: logout" }
+
+    %% Step 1: group by key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by key"]
+        Alice@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt;&lt;br/&gt;login, click, purchase" }
+        Bob@{ shape: docs, label: "&lt;b&gt;key: bob&lt;/b&gt;&lt;br/&gt;view, logout" }
+    end
+
+    %% Step 2: running count per key
+    Count[&lt;code&gt;count&lt;/code&gt;]
+    subgraph Counts["Running count per key, updated with every action"]
+        AliceCount["&lt;b&gt;alice&lt;/b&gt;&lt;br/&gt;count 1, then 2, then 3"]
+        BobCount["&lt;b&gt;bob&lt;/b&gt;&lt;br/&gt;count 1, then 2"]
+    end
+
+    %% Step 3: write to the output topic
+    Convert["&lt;code&gt;toStream&lt;/code&gt; + &lt;code&gt;convertValue&lt;/code&gt;&lt;br/&gt;into string"]
+    Output[(user_action_counts)]
+
+    %% Data Flow
+    Topic --&gt; Actions
+    Actions --&gt; Group
+    Group --&gt; Alice &amp; Bob
+    Alice &amp; Bob --&gt; Count
+    Count --&gt; AliceCount &amp; BobCount
+    AliceCount &amp; BobCount --&gt; Convert
+    Convert --&gt;|"latest message for alice&lt;br/&gt;key: alice, value: 3"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Group,Count,Convert operation
+    class Actions,Alice,Bob message
+    class AliceCount,BobCount result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Counts fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <h2 id="reduce-example">Reduce Example</h2>
 <p>The <code>reduce</code> operation combines values without initialization, making it perfect for operations like summing, finding minimums/maximums, or concatenating strings. This section shows two approaches: a simple binary format for efficiency, and a JSON format for human readability.</p>
 <h3 id="simple-reduce-binary-format">Simple Reduce (Binary Format)</h3>
@@ -3214,6 +3318,63 @@ Combines two values of the same type into a single value, used when no initializ
 <li><code>reduce</code> operation for stateful aggregation</li>
 <li>Binary data types for processing efficiency</li>
 </ul>
+<p>The diagram below follows four example transactions (amounts in cents) through the pipeline. The reducer has no initial value: the first amount for an account is stored as is, and every next amount is added to it:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with four transactions
+    Topic[(financial_transactions)]
+    Transactions@{ shape: docs, label: "&lt;b&gt;ACC001&lt;/b&gt;: 1500&lt;br/&gt;&lt;b&gt;ACC002&lt;/b&gt;: 2000&lt;br/&gt;&lt;b&gt;ACC001&lt;/b&gt;: 500&lt;br/&gt;&lt;b&gt;ACC001&lt;/b&gt;: 3000" }
+
+    %% Step 1: group by key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by key"]
+        Acc1@{ shape: docs, label: "&lt;b&gt;key: ACC001&lt;/b&gt;&lt;br/&gt;1500, 500, 3000" }
+        Acc2@{ shape: doc, label: "&lt;b&gt;key: ACC002&lt;/b&gt;&lt;br/&gt;2000" }
+    end
+
+    %% Step 2: combine values pairwise
+    Reduce["&lt;code&gt;reduce&lt;/code&gt;&lt;br/&gt;sum_amounts: value1 + value2"]
+    subgraph Totals["Running total per key"]
+        Acc1Total["&lt;b&gt;ACC001&lt;/b&gt;&lt;br/&gt;1500 (first value, stored as is)&lt;br/&gt;1500 + 500 = 2000&lt;br/&gt;2000 + 3000 = 5000"]
+        Acc2Total["&lt;b&gt;ACC002&lt;/b&gt;&lt;br/&gt;2000 (first value, stored as is)"]
+    end
+
+    %% Step 3: write to the output topic
+    ToStream[&lt;code&gt;toStream&lt;/code&gt;]
+    Output[(transaction_sums)]
+
+    %% Data Flow
+    Topic --&gt; Transactions
+    Transactions --&gt; Group
+    Group --&gt; Acc1 &amp; Acc2
+    Acc1 &amp; Acc2 --&gt; Reduce
+    Reduce --&gt; Acc1Total &amp; Acc2Total
+    Acc1Total &amp; Acc2Total --&gt; ToStream
+    ToStream --&gt;|"latest message for ACC001&lt;br/&gt;key: ACC001, value: 5000"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Group,Reduce,ToStream operation
+    class Transactions,Acc1,Acc2 message
+    class Acc1Total,Acc2Total result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Totals fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The JSON version below works the same way, with one <code>transformValue</code> before grouping to extract <code>amount_cents</code> from each message, and one after <code>toStream</code> to format the total as JSON.</p>
 <details class="info">
 <summary>Simple producer (binary long values) - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">functions</span><span class="p">:</span>
@@ -3557,6 +3718,62 @@ Combines two values of the same type into a single value, used when no initializ
 <li><strong>Calculates average</strong>: Dynamically computes the average amount per customer</li>
 <li><strong>Outputs comprehensive stats</strong>: Produces JSON messages with complete payment statistics</li>
 </ol>
+<p>The diagram below follows four example payments through the pipeline. The initializer creates an empty statistics object for each new account, and the aggregator updates all fields with every payment:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with four payments
+    Topic[(payment_stream)]
+    Payments@{ shape: docs, label: "&lt;b&gt;ACC001&lt;/b&gt;: amount 25.00&lt;br/&gt;&lt;b&gt;ACC002&lt;/b&gt;: amount 40.00&lt;br/&gt;&lt;b&gt;ACC001&lt;/b&gt;: amount 75.00&lt;br/&gt;&lt;b&gt;ACC001&lt;/b&gt;: amount 50.00" }
+
+    %% Step 1: group by key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by key"]
+        Acc1@{ shape: docs, label: "&lt;b&gt;key: ACC001&lt;/b&gt;&lt;br/&gt;25.00, 75.00, 50.00" }
+        Acc2@{ shape: doc, label: "&lt;b&gt;key: ACC002&lt;/b&gt;&lt;br/&gt;40.00" }
+    end
+
+    %% Step 2: update statistics per key
+    Aggregate["&lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;init_stats + update_stats"]
+    subgraph Stats["Statistics per key, updated with every payment"]
+        Acc1Stats["&lt;b&gt;ACC001&lt;/b&gt;&lt;br/&gt;start: count 0, total 0.0&lt;br/&gt;&lt;br/&gt;&lt;b&gt;+ 25.00&lt;/b&gt;: count 1, total 25.00&lt;br/&gt;min 25.00, max 25.00, avg 25.00&lt;br/&gt;&lt;br/&gt;&lt;b&gt;+ 75.00&lt;/b&gt;: count 2, total 100.00&lt;br/&gt;min 25.00, max 75.00, avg 50.00&lt;br/&gt;&lt;br/&gt;&lt;b&gt;+ 50.00&lt;/b&gt;: count 3, total 150.00&lt;br/&gt;min 25.00, max 75.00, avg 50.00"]
+        Acc2Stats["&lt;b&gt;ACC002&lt;/b&gt;&lt;br/&gt;start: count 0, total 0.0&lt;br/&gt;&lt;br/&gt;&lt;b&gt;+ 40.00&lt;/b&gt;: count 1, total 40.00&lt;br/&gt;min 40.00, max 40.00, avg 40.00"]
+    end
+
+    %% Step 3: write to the output topic
+    ToStream[&lt;code&gt;toStream&lt;/code&gt;]
+    Output[(payment_statistics)]
+
+    %% Data Flow
+    Topic --&gt; Payments
+    Payments --&gt; Group
+    Group --&gt; Acc1 &amp; Acc2
+    Acc1 &amp; Acc2 --&gt; Aggregate
+    Aggregate --&gt; Acc1Stats &amp; Acc2Stats
+    Acc1Stats &amp; Acc2Stats --&gt; ToStream
+    ToStream --&gt;|"latest message for ACC001&lt;br/&gt;key: ACC001&lt;br/&gt;value: {count: 3, total_amount: 150.0, min_amount: 25.0,&lt;br/&gt;max_amount: 75.0, average_amount: 50.0}"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Group,Aggregate,ToStream operation
+    class Payments,Acc1,Acc2 message
+    class Acc1Stats,Acc2Stats result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Stats fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <details class="info">
 <summary>JSON payment events producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">functions</span><span class="p">:</span>
@@ -3689,6 +3906,54 @@ Combines two values of the same type into a single value, used when no initializ
 <li><strong>Aggregator</strong>: Updates state with each new value</li>
 <li><strong>Result</strong>: Continuously updated aggregate in state store</li>
 </ol>
+<p>The diagram below shows how this works for the simple sum example, with three payments arriving for the same customer. The initializer runs once for the first payment, and every payment after that updates the stored total and emits it:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Incoming payments for one key
+    Payment1[/"CUST001: 5000"/]
+    Payment2[/"CUST001: 2500"/]
+    Payment3[/"CUST001: 1000"/]
+
+    %% Aggregation steps
+    Init["&lt;code&gt;initializer&lt;/code&gt;&lt;br/&gt;total = 0"]
+    Step1["&lt;code&gt;aggregator&lt;/code&gt;&lt;br/&gt;0 + 5000 = 5000"]
+    Step2["&lt;code&gt;aggregator&lt;/code&gt;&lt;br/&gt;5000 + 2500 = 7500"]
+    Step3["&lt;code&gt;aggregator&lt;/code&gt;&lt;br/&gt;7500 + 1000 = 8500"]
+
+    %% Output
+    OutputTopic[(payment_totals)]
+
+    %% Data Flow
+    Init --&gt; Step1
+    Payment1 --&gt; Step1
+    Step1 --&gt;|"state: 5000"| Step2
+    Payment2 --&gt; Step2
+    Step2 --&gt;|"state: 7500"| Step3
+    Payment3 --&gt; Step3
+    Step1 -.-&gt;|"emit 5000"| OutputTopic
+    Step2 -.-&gt;|"emit 7500"| OutputTopic
+    Step3 -.-&gt;|"emit 8500"| OutputTopic
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class OutputTopic topic
+    class Init,Step1,Step2,Step3 operation
+    class Payment1,Payment2,Payment3 external</code></pre>
+<p>With caching enabled on the store, Kafka Streams may combine several updates and emit only the latest total.</p>
 <h2 id="windowed-aggregations">Windowed Aggregations</h2>
 <p>Aggregations can be windowed to compute time-based analytics:</p>
 <h3 id="window-types">Window Types</h3>
@@ -3734,6 +3999,74 @@ Combines two values of the same type into a single value, used when no initializ
 <li>Transforming WindowedString keys using <code>map</code> with <code>keyValueMapper</code></li>
 <li>Complex aggregation state using JSON</li>
 </ul>
+<p>The diagram below follows four example readings through the pipeline. Each sensor's readings are split into 30-second windows, and every window gets its own statistics. Every reading sends updated statistics for its window, and the diagram shows the last one:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with four readings
+    Topic[(sensor_temperatures)]
+    Readings@{ shape: docs, label: "&lt;b&gt;temp001&lt;/b&gt;: 24.5 at 18:58:05&lt;br/&gt;&lt;b&gt;temp002&lt;/b&gt;: 31.2 at 18:58:10&lt;br/&gt;&lt;b&gt;temp001&lt;/b&gt;: 26.3 at 18:58:20&lt;br/&gt;&lt;b&gt;temp001&lt;/b&gt;: 22.7 at 18:58:40" }
+
+    %% Step 1: group by key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by key"]
+        Temp1@{ shape: docs, label: "&lt;b&gt;key: temp001&lt;/b&gt;&lt;br/&gt;24.5, 26.3, 22.7" }
+        Temp2@{ shape: doc, label: "&lt;b&gt;key: temp002&lt;/b&gt;&lt;br/&gt;31.2" }
+    end
+
+    %% Step 2: split each group into 30-second windows
+    Window["&lt;code&gt;windowByTime&lt;/code&gt;&lt;br/&gt;tumbling 30s"]
+    subgraph ByWindow["Grouped by key and window"]
+        Temp1W1@{ shape: docs, label: "&lt;b&gt;temp001&lt;/b&gt; 18:58:00 to 18:58:30&lt;br/&gt;24.5, 26.3" }
+        Temp1W2@{ shape: doc, label: "&lt;b&gt;temp001&lt;/b&gt; 18:58:30 to 18:59:00&lt;br/&gt;22.7" }
+        Temp2W1@{ shape: doc, label: "&lt;b&gt;temp002&lt;/b&gt; 18:58:00 to 18:58:30&lt;br/&gt;31.2" }
+    end
+
+    %% Step 3: statistics per key and window
+    Aggregate["&lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;init_stats + update_stats"]
+    subgraph Stats["Latest result per key and window"]
+        Temp1W1Stats["&lt;b&gt;temp001&lt;/b&gt; 18:58:00 to 18:58:30&lt;br/&gt;count 2, avg 25.4, min 24.5, max 26.3"]
+        Temp1W2Stats["&lt;b&gt;temp001&lt;/b&gt; 18:58:30 to 18:59:00&lt;br/&gt;count 1, avg 22.7, min 22.7, max 22.7"]
+        Temp2W1Stats["&lt;b&gt;temp002&lt;/b&gt; 18:58:00 to 18:58:30&lt;br/&gt;count 1, avg 31.2, min 31.2, max 31.2"]
+    end
+
+    %% Step 4: replace the windowed key with a string key
+    Map["&lt;code&gt;toStream&lt;/code&gt; + &lt;code&gt;map&lt;/code&gt;&lt;br/&gt;transform_window_key"]
+    Output[(sensor_window_stats)]
+
+    %% Data Flow
+    Topic --&gt; Readings
+    Readings --&gt; Group
+    Group --&gt; Temp1 &amp; Temp2
+    Temp1 &amp; Temp2 --&gt; Window
+    Window --&gt; Temp1W1 &amp; Temp1W2 &amp; Temp2W1
+    Temp1W1 &amp; Temp1W2 &amp; Temp2W1 --&gt; Aggregate
+    Aggregate --&gt; Temp1W1Stats &amp; Temp1W2Stats &amp; Temp2W1Stats
+    Temp1W1Stats &amp; Temp1W2Stats &amp; Temp2W1Stats --&gt; Map
+    Map --&gt;|"key: temp001_...T18:58:00Z_...T18:58:30Z&lt;br/&gt;value: {sensor_id: temp001, window_start, window_end,&lt;br/&gt;stats: {count: 2, avg: 25.4, min: 24.5, max: 26.3}}"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Group,Window,Aggregate,Map operation
+    class Readings,Temp1,Temp2,Temp1W1,Temp1W2,Temp2W1 message
+    class Temp1W1Stats,Temp1W2Stats,Temp2W1Stats result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style ByWindow fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Stats fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <details class="info">
 <summary>Temperature sensor producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nt">functions</span><span class="p">:</span>
@@ -3930,9 +4263,9 @@ Combines two values of the same type into a single value, used when no initializ
 <a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>temp002 | 29.8
 </code></pre></div></p>
 <h2 id="advanced-cogroup-operation">Advanced: Cogroup Operation</h2>
-<p>Cogroup allows combining multiple grouped streams into a single aggregation. This is useful when you need to aggregate data from different sources into one unified result.</p>
+<p>Cogroup is meant to combine several grouped streams into one aggregation, with a separate aggregator for each stream. KSML supports only one stream in a <code>cogroup</code> today (see <a href="https://github.com/Axual/ksml/issues/728">#728</a>), so the example below uses one stream.</p>
 <details class="info">
-<summary>Orders, Refunds, and Bonuses Producer (click to expand)</summary>
+<summary>Customer orders producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">  </span><span class="nt">generate_order</span><span class="p">:</span>
 <a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
@@ -4031,15 +4364,58 @@ Combines two values of the same type into a single value, used when no initializ
 </code></pre></div>
 </details>
 <h3 id="how-cogroup-works">How Cogroup Works</h3>
-<p>The cogroup operation:</p>
+<p>The cogroup pipeline:</p>
 <ol>
-<li>Groups each stream independently by key</li>
-<li>Combines the grouped streams using cogroup operations</li>
-<li>Each stream contributes to the aggregate with its own aggregator function</li>
-<li>Final aggregate operation computes the combined result</li>
+<li>Groups the stream by key with <code>groupByKey</code></li>
+<li>Adds the grouped stream to the cogroup with its own aggregator function</li>
+<li>Runs the final <code>aggregate</code> operation, which uses the initializer to compute the result</li>
 </ol>
+<p>The example above uses only one stream, <code>customer_orders</code>. KSML does not support more than one stream in a <code>cogroup</code> yet (see <a href="https://github.com/Axual/ksml/issues/728">#728</a>). The diagram below follows two example orders through the pipeline:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input topic with example orders
+    Topic[(customer_orders)]
+    Orders@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt; amount 50.0&lt;br/&gt;&lt;b&gt;key: alice&lt;/b&gt; amount 30.0" }
+
+    %% Grouping and cogrouping
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    Cogroup["&lt;code&gt;cogroup&lt;/code&gt;&lt;br/&gt;aggregator: aggregate_orders"]
+    Aggregate["&lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;initializer: init_order_stats"]
+
+    %% State and output
+    Store[(customer_totals_store)]
+    Result["&lt;b&gt;alice&lt;/b&gt;&lt;br/&gt;total_amount: 80.0&lt;br/&gt;order_count: 2"]
+    OutputTopic[(customer_totals)]
+
+    %% Data Flow
+    Topic --&gt; Orders --&gt; Group --&gt; Cogroup --&gt; Aggregate
+    Aggregate &lt;--&gt;|"one result per key"| Store
+    Aggregate --&gt; Result
+    Result --&gt;|"&lt;code&gt;toStream&lt;/code&gt;"| OutputTopic
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,OutputTopic topic
+    class Group,Cogroup,Aggregate operation
+    class Store store
+    class Orders message
+    class Result result</code></pre>
 <blockquote>
-<p><strong>Note:</strong> Cogroup is an advanced feature that requires careful coordination between multiple streams. Ensure all streams are properly grouped and that aggregator functions handle null values appropriately.</p>
+<p><strong>Note:</strong> A second <code>cogroup</code> step in the same pipeline fails at startup with a <code>TopologyException</code>. Make sure the aggregator function handles null values.</p>
 </blockquote>
 <h2 id="complex-example-regional-sales-analytics">Complex Example: Regional Sales Analytics</h2>
 <p>This example demonstrates rekeying (changing the grouping key) and windowed aggregation to calculate regional sales statistics:</p>
@@ -4053,7 +4429,7 @@ Combines two values of the same type into a single value, used when no initializ
 </ol>
 <p><strong>Key KSML concepts demonstrated:</strong></p>
 <ul>
-<li><code>map</code> with <code>keyValueMapper</code> to change the message key (rekeying)</li>
+<li><code>selectKey</code> to change the message key (rekeying)</li>
 <li><code>groupByKey</code> after rekeying to group by the new key</li>
 <li><code>windowByTime</code> for time-based regional analytics</li>
 <li>Complex aggregation state with nested data structures</li>
@@ -4216,12 +4592,86 @@ Combines two values of the same type into a single value, used when no initializ
 <p><strong>Pipeline flow:</strong></p>
 <ol>
 <li><strong>Input</strong>: Sales events with product_id as key</li>
-<li><strong>Rekey</strong>: Map operation changes key to region</li>
+<li><strong>Rekey</strong>: <code>selectKey</code> changes the key to the region</li>
 <li><strong>Group</strong>: Group by the new region key</li>
 <li><strong>Window</strong>: Apply 1-minute tumbling windows</li>
 <li><strong>Aggregate</strong>: Calculate regional statistics per window</li>
 <li><strong>Output</strong>: Windowed regional sales summaries</li>
 </ol>
+<p>The diagram below follows four example sales through the pipeline. The messages arrive keyed by product, so the pipeline first replaces the key with the region. Only then can <code>groupByKey</code> collect all sales of one region together. Every sale sends an updated result for its region and window, and the diagram shows the last one:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with four sales, keyed by product
+    Topic[(retail_sales)]
+    Sales@{ shape: docs, label: "&lt;b&gt;key: laptop&lt;/b&gt; North, 1200.00 at 10:00:10&lt;br/&gt;&lt;b&gt;key: phone&lt;/b&gt; South, 800.00 at 10:00:20&lt;br/&gt;&lt;b&gt;key: tablet&lt;/b&gt; North, 500.00 at 10:00:40&lt;br/&gt;&lt;b&gt;key: mouse&lt;/b&gt; North, 25.00 at 10:01:15" }
+
+    %% Step 1: rekey by region
+    SelectKey["&lt;code&gt;selectKey&lt;/code&gt;&lt;br/&gt;extract_region"]
+    Rekeyed@{ shape: docs, label: "&lt;b&gt;key: North&lt;/b&gt; laptop, 1200.00&lt;br/&gt;&lt;b&gt;key: South&lt;/b&gt; phone, 800.00&lt;br/&gt;&lt;b&gt;key: North&lt;/b&gt; tablet, 500.00&lt;br/&gt;&lt;b&gt;key: North&lt;/b&gt; mouse, 25.00" }
+
+    %% Step 2: group by the new key
+    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
+    subgraph ByKey["Grouped by region"]
+        North@{ shape: docs, label: "&lt;b&gt;key: North&lt;/b&gt;&lt;br/&gt;laptop, tablet, mouse" }
+        South@{ shape: doc, label: "&lt;b&gt;key: South&lt;/b&gt;&lt;br/&gt;phone" }
+    end
+
+    %% Step 3: split each region into 1-minute windows
+    Window["&lt;code&gt;windowByTime&lt;/code&gt;&lt;br/&gt;tumbling 1m"]
+    subgraph ByWindow["Grouped by region and window"]
+        NorthW1@{ shape: docs, label: "&lt;b&gt;North&lt;/b&gt; 10:00 to 10:01&lt;br/&gt;laptop, tablet" }
+        NorthW2@{ shape: doc, label: "&lt;b&gt;North&lt;/b&gt; 10:01 to 10:02&lt;br/&gt;mouse" }
+        SouthW1@{ shape: doc, label: "&lt;b&gt;South&lt;/b&gt; 10:00 to 10:01&lt;br/&gt;phone" }
+    end
+
+    %% Step 4: sales statistics per region and window
+    Aggregate["&lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;aggregate_sales"]
+    subgraph Stats["Latest result per region and window"]
+        NorthW1Stats["&lt;b&gt;North&lt;/b&gt; 10:00 to 10:01&lt;br/&gt;total_sales 1700.00, transactions 2&lt;br/&gt;products: laptop, tablet"]
+        NorthW2Stats["&lt;b&gt;North&lt;/b&gt; 10:01 to 10:02&lt;br/&gt;total_sales 25.00, transactions 1&lt;br/&gt;products: mouse"]
+        SouthW1Stats["&lt;b&gt;South&lt;/b&gt; 10:00 to 10:01&lt;br/&gt;total_sales 800.00, transactions 1&lt;br/&gt;products: phone"]
+    end
+
+    %% Step 5: write to the output topic
+    Convert["&lt;code&gt;toStream&lt;/code&gt; + &lt;code&gt;convertKey&lt;/code&gt;&lt;br/&gt;+ &lt;code&gt;transformValue&lt;/code&gt; transform_window_key"]
+    Output[(sales_by_region)]
+
+    %% Data Flow
+    Topic --&gt; Sales
+    Sales --&gt; SelectKey
+    SelectKey --&gt; Rekeyed
+    Rekeyed --&gt; Group
+    Group --&gt; North &amp; South
+    North &amp; South --&gt; Window
+    Window --&gt; NorthW1 &amp; NorthW2 &amp; SouthW1
+    NorthW1 &amp; NorthW2 &amp; SouthW1 --&gt; Aggregate
+    Aggregate --&gt; NorthW1Stats &amp; NorthW2Stats &amp; SouthW1Stats
+    NorthW1Stats &amp; NorthW2Stats &amp; SouthW1Stats --&gt; Convert
+    Convert --&gt;|"key: {key: North, startTime: 10:00, endTime: 10:01, ...}&lt;br/&gt;value: {region: North, window_start, window_end, stats: {...}}"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class SelectKey,Group,Window,Aggregate,Convert operation
+    class Sales,Rekeyed,North,South,NorthW1,NorthW2,SouthW1 message
+    class NorthW1Stats,NorthW2Stats,SouthW1Stats result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style ByWindow fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Stats fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <h2 id="performance-considerations">Performance Considerations</h2>
 <h3 id="state-store-types">State Store Types</h3>
 <p><strong>RocksDB (default)</strong></p>

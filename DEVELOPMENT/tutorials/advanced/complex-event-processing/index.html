@@ -2063,6 +2063,49 @@
 <li><strong>Anomaly detection</strong>: Identify unusual patterns or deviations</li>
 <li><strong>Stateful processing</strong>: Maintain context across multiple events</li>
 </ul>
+<p>Most examples in this tutorial share the same pipeline shape. A Python function remembers what it has seen so far in a state store, and returns a result only when it recognizes a pattern. For all other events it returns <code>None</code>, and a <code>filter</code> drops those:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Input
+    Input[(Input topic)]
+
+    %% Pipeline Operations
+    Detect["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;detection function in Python"]
+    Store[("State store&lt;br/&gt;what was seen so far, per key")]
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+
+    %% Outputs
+    Output[(Output topic)]
+    Drop[❌ Dropped]
+
+    %% Data Flow
+    Input --&gt; Detect
+    Detect &lt;-.-&gt;|"read &amp; update"| Store
+    Detect --&gt;|"result or None"| Filter
+    Filter --&gt;|"pattern found"| Output
+    Filter -.-&gt;|"None"| Drop
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Input,Output topic
+    class Detect,Filter operation
+    class Store store
+    class Drop dropped</code></pre>
+<p>The sections below show, for each example, what the detection function keeps in its state store and when it returns a result.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>Before starting this tutorial:</p>
 <ul>
@@ -2095,6 +2138,63 @@
 <li><strong>Outputs results</strong>: Only emits a detection message when the complete pattern A→B→C is found, otherwise filters out partial matches</li>
 <li><strong>Resets state</strong>: Clears the pattern tracking after successful detection or if the sequence breaks (e.g., gets A→D instead of A→B)</li>
 </ul>
+<p>The diagram below follows an example sequence of six events for the same session through the pipeline (the producer sends its own sequence). The <code>pattern_tracker</code> store keeps the progress for each key (session), and every event either moves the pattern forward, starts it over, or breaks it:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Input topic with six events for one session
+    Topic[(pattern_events)]
+    Events@{ shape: docs, label: "&lt;b&gt;key: session_001&lt;/b&gt; (all six events)&lt;br/&gt;A, B, D, A, B, C" }
+
+    %% detect_abc_pattern, one event at a time
+    Detect["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;detect_abc_pattern"]
+    subgraph Steps["Event by event, with the state stored in pattern_tracker"]
+        direction LR
+        Step1["&lt;b&gt;A&lt;/b&gt;&lt;br/&gt;state: none → A&lt;br/&gt;returns None"]
+        Step2["&lt;b&gt;B&lt;/b&gt;&lt;br/&gt;state: A → AB&lt;br/&gt;returns None"]
+        Step3["&lt;b&gt;D&lt;/b&gt;&lt;br/&gt;sequence broken&lt;br/&gt;state: AB → deleted&lt;br/&gt;returns None"]
+        Step4["&lt;b&gt;A&lt;/b&gt;&lt;br/&gt;state: none → A&lt;br/&gt;returns None"]
+        Step5["&lt;b&gt;B&lt;/b&gt;&lt;br/&gt;state: A → AB&lt;br/&gt;returns None"]
+        Step6["&lt;b&gt;C&lt;/b&gt;&lt;br/&gt;A → B → C complete&lt;br/&gt;state: AB → deleted&lt;br/&gt;returns ABC_SEQUENCE"]
+        Step1 --&gt; Step2 --&gt; Step3 --&gt; Step4 --&gt; Step5 --&gt; Step6
+    end
+
+    %% Filter and output
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(detected_patterns)]
+    Drop["❌ Dropped&lt;br/&gt;events A, B, D, A, B"]
+
+    %% Data Flow
+    Topic --&gt; Events
+    Events --&gt; Detect
+    Detect --&gt; Steps
+    Steps --&gt; Filter
+    Filter --&gt;|"key: session_001&lt;br/&gt;value: {pattern_type: ABC_SEQUENCE, status: DETECTED,&lt;br/&gt;completing_event: {event_type: C, ...}, ...}"| Output
+    Filter -.-&gt;|"None"| Drop
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Topic,Output topic
+    class Detect,Filter operation
+    class Events,Step1,Step2,Step4,Step5 message
+    class Step3 partial
+    class Step6 result
+    class Drop dropped
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>Out of six events, only the <code>C</code> that completes <code>A → B → C</code> produces an output message. Event <code>D</code> breaks the first attempt, so the pattern has to start again from <code>A</code>.</p>
 <details class="info">
 <summary>Pattern Events Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Producer for pattern detection example - generates event sequences</span>
@@ -2275,6 +2375,59 @@
 <li><strong>Classifies by speed</strong>: If checkout happens within 5 minutes (300,000ms) = "QUICK_CHECKOUT", otherwise "SLOW_CHECKOUT"</li>
 <li><strong>Outputs results</strong>: Only emits a message when both cart and checkout events are found, showing the time difference and classification</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Incoming event
+    Event[/"Event for a user"/]
+    Action{"action?"}
+
+    %% Cart handling
+    SaveCart["Store cart event&lt;br/&gt;with its timestamp&lt;br/&gt;in temporal_state"]
+    NoOutput1["No output"]
+
+    %% Checkout handling
+    HasCart{"Cart event&lt;br/&gt;stored?"}
+    TimeCheck{"checkout - cart&lt;br/&gt;≤ 5 minutes?"}
+    Quick["QUICK_CHECKOUT"]
+    Slow["SLOW_CHECKOUT"]
+    NoOutput2["No output"]
+
+    %% Other actions
+    NoOutput3["No output"]
+
+    %% Data Flow
+    Event --&gt; Action
+    Action --&gt;|"add_to_cart"| SaveCart
+    SaveCart --&gt; NoOutput1
+    Action --&gt;|"checkout"| HasCart
+    HasCart --&gt;|"yes"| TimeCheck
+    HasCart -.-&gt;|"no"| NoOutput2
+    Action -.-&gt;|"login, view_product,&lt;br/&gt;logout"| NoOutput3
+    TimeCheck --&gt;|"yes"| Quick
+    TimeCheck --&gt;|"no"| Slow
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Event message
+    class Action,HasCart,TimeCheck,SaveCart operation
+    class Quick external
+    class Slow partial
+    class NoOutput1,NoOutput2,NoOutput3 dropped</code></pre>
+<p>In both cases the stored cart event is deleted after the checkout, so the next checkout needs a new <code>add_to_cart</code>.</p>
 <details class="info">
 <summary>Temporal Events Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Producer for temporal pattern matching - generates time-sensitive events</span>
@@ -2487,6 +2640,110 @@
 <li><strong>Measures timing</strong>: Calculates milliseconds between user action and system response to determine correlation strength (HIGH/MEDIUM)</li>
 <li><strong>Outputs correlations</strong>: Only emits results when it finds the specific patterns, showing both events with timing analysis and relationship details</li>
 </ul>
+<p>Unlike the other examples, this pipeline uses a join instead of its own state store. The <code>user_events</code> topic is read as a table, so for each user it always holds the latest user activity. The diagram below follows three example system events through the pipeline:</p>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% User activity, read as a table
+    UserTopic[(user_events)]
+    UserEvents@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt; form_submit at 10:00:00&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; page_view at 10:00:01&lt;br/&gt;&lt;b&gt;key: charlie&lt;/b&gt; scroll at 10:00:02" }
+    UserContext@{ shape: docs, label: "&lt;b&gt;Table user_context&lt;/b&gt;&lt;br/&gt;latest activity per user&lt;br/&gt;&lt;b&gt;alice&lt;/b&gt;: form_submit&lt;br/&gt;&lt;b&gt;bob&lt;/b&gt;: page_view&lt;br/&gt;&lt;b&gt;charlie&lt;/b&gt;: scroll" }
+
+    %% System events
+    SystemTopic[(system_events)]
+    SystemEvents@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt; error at 10:00:03&lt;br/&gt;&lt;b&gt;key: bob&lt;/b&gt; db_query at 10:00:04&lt;br/&gt;&lt;b&gt;key: charlie&lt;/b&gt; api_call at 10:00:05" }
+
+    %% Step 1: join each system event with the latest user activity
+    Join["&lt;code&gt;leftJoin&lt;/code&gt; with table&lt;br/&gt;join_events"]
+    subgraph Joined["System event + latest user activity"]
+        JoinAlice["&lt;b&gt;alice&lt;/b&gt;&lt;br/&gt;error + form_submit"]
+        JoinBob["&lt;b&gt;bob&lt;/b&gt;&lt;br/&gt;db_query + page_view"]
+        JoinCharlie["&lt;b&gt;charlie&lt;/b&gt;&lt;br/&gt;api_call + scroll"]
+    end
+
+    %% Step 2: look for known combinations
+    Correlate["&lt;code&gt;mapValues&lt;/code&gt;&lt;br/&gt;correlate_events"]
+    subgraph Results["Correlation results"]
+        ResultAlice["&lt;b&gt;alice&lt;/b&gt;&lt;br/&gt;FORM_ERROR_CORRELATION&lt;br/&gt;status CRITICAL&lt;br/&gt;processed 3s after&lt;br/&gt;activity: HIGH"]
+        ResultBob["&lt;b&gt;bob&lt;/b&gt;&lt;br/&gt;PAGE_LOAD_CORRELATION&lt;br/&gt;status NORMAL&lt;br/&gt;processed 3s after&lt;br/&gt;activity: MEDIUM"]
+        ResultCharlie["&lt;b&gt;charlie&lt;/b&gt;&lt;br/&gt;scroll + api_call is not&lt;br/&gt;a known combination:&lt;br/&gt;returns None"]
+    end
+
+    %% Step 3: drop the None results
+    Filter{"&lt;code&gt;filter&lt;/code&gt;&lt;br/&gt;value is not None"}
+    Output[(correlated_events)]
+    Drop[❌ Dropped]
+
+    %% Data Flow
+    UserTopic --&gt; UserEvents
+    UserEvents --&gt; UserContext
+    SystemTopic --&gt; SystemEvents
+    SystemEvents --&gt; Join
+    UserContext -.-&gt;|"lookup by user"| Join
+    Join --&gt; JoinAlice &amp; JoinBob &amp; JoinCharlie
+    JoinAlice &amp; JoinBob &amp; JoinCharlie --&gt; Correlate
+    Correlate --&gt; ResultAlice &amp; ResultBob &amp; ResultCharlie
+    ResultAlice &amp; ResultBob --&gt; Filter
+    ResultCharlie -.-&gt;|"None: dropped by the filter"| Drop
+    Filter --&gt;|"key: alice&lt;br/&gt;value: {pattern_type: FORM_ERROR_CORRELATION, ...}&lt;br/&gt;key: bob&lt;br/&gt;value: {pattern_type: PAGE_LOAD_CORRELATION, ...}"| Output
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class UserTopic,SystemTopic,Output topic
+    class Join,Correlate,Filter operation
+    class UserEvents,UserContext,SystemEvents,JoinAlice,JoinBob,JoinCharlie message
+    class ResultAlice,ResultBob result
+    class ResultCharlie,Drop dropped
+    style Joined fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The <code>correlate_events</code> function only reports three combinations of user activity and system event. The correlation strength depends on how soon the system event is processed after the user activity. The time is measured from the <code>timestamp</code> of the user activity to the moment the join runs, not to the <code>timestamp</code> of the system event:</p>
+<table>
+<thead>
+<tr>
+<th>User activity</th>
+<th>System event</th>
+<th>Pattern type</th>
+<th>Status</th>
+<th>HIGH strength if within</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>form_submit</code></td>
+<td><code>error</code></td>
+<td><code>FORM_ERROR_CORRELATION</code></td>
+<td>CRITICAL</td>
+<td>5 seconds</td>
+</tr>
+<tr>
+<td><code>page_view</code></td>
+<td><code>db_query</code></td>
+<td><code>PAGE_LOAD_CORRELATION</code></td>
+<td>NORMAL</td>
+<td>2 seconds</td>
+</tr>
+<tr>
+<td><code>click</code></td>
+<td><code>api_call</code></td>
+<td><code>USER_API_CORRELATION</code></td>
+<td>NORMAL</td>
+<td>1 second</td>
+</tr>
+</tbody>
+</table>
 <details class="info">
 <summary>Correlation Events Producer (generates both user and system events) - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Producer for event correlation - generates events from multiple sources</span>
@@ -2819,10 +3076,58 @@
 <ul>
 <li><strong>Produces sensor readings</strong>: Creates temperature values that are normally 40-60°C, but every 20th reading is a spike (90-100°C) and every 25th is a drop (0-10°C)</li>
 <li><strong>Tracks statistics per sensor</strong>: Stores running count, sum, sum-of-squares, min, max in state store to calculate mean and standard deviation</li>
-<li><strong>Calculates z-scores</strong>: After 10+ readings, computes how many standard deviations each new reading is from the mean</li>
+<li><strong>Calculates z-scores</strong>: Once more than 10 readings are stored for a sensor, computes how many standard deviations each new reading is from the mean</li>
 <li><strong>Detects outliers</strong>: When z-score &gt; 3.0, flags as anomaly (spike if above mean, drop if below mean)</li>
 <li><strong>Outputs anomalies</strong>: Only emits detection messages when statistical threshold is exceeded, showing z-score, mean, and severity level</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph TB
+    %% Incoming reading
+    Reading[/"Sensor reading"/]
+    Stats["Load running statistics for this sensor&lt;br/&gt;from stats_store: count, sum, sum of squares"]
+
+    %% Detection
+    Enough{"More than 10&lt;br/&gt;readings so far?"}
+    ZScore["z = | value − mean | / standard deviation"]
+    Outlier{"z &gt; 3?"}
+    Anomaly["Anomaly detected&lt;br/&gt;spike if above mean, drop if below&lt;br/&gt;severity HIGH if z &gt; 5, else MEDIUM"]
+    NoOutput["No output"]
+
+    %% Update
+    Update["Add this reading&lt;br/&gt;to the statistics"]
+
+    %% Data Flow
+    Reading --&gt; Stats
+    Stats --&gt; Enough
+    Enough --&gt;|"yes"| ZScore
+    Enough -.-&gt;|"no: still learning"| NoOutput
+    ZScore --&gt; Outlier
+    Outlier --&gt;|"yes"| Anomaly
+    Outlier -.-&gt;|"no"| NoOutput
+    Anomaly --&gt; Update
+    NoOutput --&gt; Update
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Reading message
+    class Stats,Enough,ZScore,Outlier,Update operation
+    class Anomaly partial
+    class NoOutput dropped</code></pre>
+<p>Every reading, including an anomaly, is added to the statistics afterwards, so the mean and standard deviation keep adapting to the sensor.</p>
 <details class="info">
 <summary>Metrics Producer (with occasional anomalies) - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Producer for anomaly detection - generates metrics with occasional anomalies</span>
@@ -3021,9 +3326,60 @@
 <li><strong>Produces transactions</strong>: Creates credit card purchases with amounts, merchants, locations - deliberately generates suspicious patterns (high amounts every 15th, rapid transactions every 20th)</li>
 <li><strong>Stores transaction history</strong>: Keeps last location, timestamp, and totals for each card number in state store</li>
 <li><strong>Scores fraud risk</strong>: Adds points for patterns: +40 for amounts &gt;$5000, +30 for transactions &lt;60s apart, +20 for location changes &lt;1hr, +20 for suspicious merchants</li>
-<li><strong>Classifies threats</strong>: If score ≥70 = "FRAUD_ALERT", if 30-69 = "SUSPICIOUS_TRANSACTION", otherwise no output</li>
+<li><strong>Classifies threats</strong>: If score ≥50 = "FRAUD_ALERT", if 30-49 = "SUSPICIOUS_TRANSACTION", otherwise no output</li>
 <li><strong>Outputs alerts</strong>: Only emits results when fraud score thresholds are met, showing detected patterns, risk factors, and recommended actions</li>
 </ul>
+<pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
+
+graph LR
+    %% Incoming transaction
+    Txn[/"Transaction for a card"/]
+    History["Load last location and time&lt;br/&gt;from transaction_history"]
+
+    %% Risk checks
+    subgraph Checks["Risk checks, points are added up"]
+        Amount["amount &gt; 5000&lt;br/&gt;+40"]
+        Rapid["less than 60s since&lt;br/&gt;previous transaction&lt;br/&gt;+30"]
+        Location["different location&lt;br/&gt;within 1 hour&lt;br/&gt;+20"]
+        Merchant["luxury_goods, online_gambling&lt;br/&gt;or crypto_exchange&lt;br/&gt;+20"]
+    end
+
+    %% Classification
+    Score{"Total score"}
+    Alert["FRAUD_ALERT&lt;br/&gt;HIGH_RISK"]
+    Suspicious["SUSPICIOUS_TRANSACTION&lt;br/&gt;MEDIUM_RISK"]
+    NoOutput["No output"]
+
+    %% Data Flow
+    Txn --&gt; History
+    History --&gt; Amount &amp; Rapid &amp; Location &amp; Merchant
+    Amount &amp; Rapid &amp; Location &amp; Merchant --&gt; Score
+    Score --&gt;|"50 or more"| Alert
+    Score --&gt;|"30 to 49"| Suspicious
+    Score -.-&gt;|"below 30"| NoOutput
+
+    %% Styling
+    classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef errorTopic fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000
+    classDef operation fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef store fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
+    classDef external fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef message fill:#ffffff,stroke:#616161,stroke-width:1px,color:#000
+    classDef result fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef partial fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef dropped fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    classDef alert fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef note fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:3 3,color:#616161
+    classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
+
+
+    class Txn message
+    class History,Amount,Rapid,Location,Merchant,Score operation
+    class Alert alert
+    class Suspicious partial
+    class NoOutput message
+    style Checks fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>After the checks, the transaction's location and time are stored as the new "last" values for the card, whatever the score.</p>
 <details class="info">
 <summary>Credit Card Transactions Producer - click to expand</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Producer for fraud detection - generates credit card transactions</span>
