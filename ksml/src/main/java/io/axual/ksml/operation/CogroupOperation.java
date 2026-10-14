@@ -51,6 +51,9 @@ public class CogroupOperation extends BaseOperation {
          *          final Aggregator<? super K, ? super V, VOut> aggregator)
          */
 
+        if (stream != null) {
+            throw topologyError("Cogroup \"stream\" can only be used on a cogroup that follows another cogroup, found \"" + stream + "\" on the first cogroup");
+        }
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
@@ -69,11 +72,31 @@ public class CogroupOperation extends BaseOperation {
          *          final Aggregator<? super K, ? super VIn, VOut> aggregator)
          */
 
-        // This is a method that we do not support currently. Due to the pipeline nature of KSML, we can at most ask
-        // for a reference to a KGroupedStream as parameter. That parameter could currently only come from the result
-        // of another pipeline, which then happens to be of Java-type KGroupedStream. It seems a little far-fetched
-        // for KSML users to grasp the technicalities under the hood well enough to use this properly. Therefore, this
-        // is unsupported for now and we throw an exception with this explicit message.
-        throw new TopologyException("Cogroup operations are not supported for CogroupedStreams");
+        if (stream == null) {
+            throw topologyError("Cogroup on a cogrouped stream requires \"stream\": the name of a grouped stream saved with \"as\" in an earlier pipeline");
+        }
+        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
+        final var other = lookupGroupedStream(context);
+        final var k = input.keyType();
+        final var vIn = other.valueType();
+        final var vOut = input.valueType();
+        checkType("Cogroup stream \"" + stream + "\" keyType", other.keyType(), equalTo(k));
+        final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vOut, superOf(k), superOf(vIn), equalTo(vOut));
+        final var userAggr = new UserAggregator(aggr, tags);
+        final CogroupedKStream<Object, Object> output = input.cogroupedStream.cogroup(other.groupedStream, userAggr);
+        return new CogroupedKStreamWrapper(output, k, vOut);
+    }
+
+    // Grouped streams can only be referenced by the name they were saved under with "as", which is registered in the
+    // build context when the saving pipeline is built. So that pipeline must come before this one in the definition.
+    private KGroupedStreamWrapper lookupGroupedStream(TopologyBuildContext context) {
+        final StreamWrapper wrapper;
+        try {
+            wrapper = context.getStreamWrapper(stream, null);
+        } catch (TopologyException e) {
+            throw topologyError("Cogroup stream \"" + stream + "\" not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition");
+        }
+        if (wrapper instanceof KGroupedStreamWrapper grouped) return grouped;
+        throw topologyError("Cogroup stream \"" + stream + "\" must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
     }
 }
