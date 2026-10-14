@@ -29,7 +29,6 @@ Imagine you're running an e-commerce platform and want to analyze transaction da
 - Total sales by product category
 - Average order value
 - Transaction volume by region
-- Conversion rates from different marketing channels
 
 ## Define the topics for the use case
 
@@ -78,10 +77,123 @@ Now, let's create our KSML definition file:
     {% include "../../ksml/src/test/resources/docs-examples/use-cases/real-time-analytics/analytics.yaml" %}
     ```
 
+The definition runs three independent pipelines on the same `ecommerce_transactions` topic. Each pipeline chooses its own grouping key and calculates one metric. The diagram below follows the four transactions from the example producer (further down this page):
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with example transactions
+    Topic[(ecommerce_transactions)]
+    Events@{ shape: docs, label: "<b>12345</b>: electronics<br/>499.99, north_america<br/><b>12346</b>: gardening<br/>229.99, europe<br/><b>12349</b>: electronics<br/>229.99, europe<br/><b>12347</b>: gardening<br/>12.99, north_america" }
+
+    %% Sales by category
+    subgraph C["sales_by_category_pipeline"]
+        direction TB
+        CKey["<code>selectKey</code><br/>key: product_category"]
+        CAgg["<code>groupByKey</code> + <code>aggregate</code><br/>total_sales, count"]
+        CResult@{ shape: docs, label: "<b>electronics</b><br/>499.99, count 1<br/>729.98, count 2<br/><b>gardening</b><br/>229.99, count 1<br/>242.98, count 2" }
+        CKey --> CAgg --> CResult
+    end
+
+    %% Average order value
+    subgraph A["avg_order_value_pipeline"]
+        direction TB
+        AKey["<code>groupBy</code><br/>key: all"]
+        AWin["<code>windowByTime</code><br/>tumbling, 10 seconds"]
+        AAgg["<code>aggregate</code> + <code>suppress</code><br/>one result per closed window"]
+        AAvg["<code>mapValues</code><br/>total_sales / count"]
+        AResult@{ shape: docs, label: "<b>key: all + window</b><br/>avg_order_value<br/>per 10-second window" }
+        AKey --> AWin --> AAgg --> AAvg --> AResult
+    end
+
+    %% Transactions by region
+    subgraph R["transactions_by_region_pipeline"]
+        direction TB
+        RKey["<code>selectKey</code><br/>key: region"]
+        RCount["<code>groupByKey</code> + <code>count</code>"]
+        RResult@{ shape: docs, label: "<b>europe</b>: 2<br/><b>north_america</b>: 2" }
+        RKey --> RCount --> RResult
+    end
+
+    %% Outputs
+    Sales[(sales_by_category)]
+    Avg[(avg_order_value)]
+    Region[(transactions_by_region)]
+
+    %% Data Flow
+    Topic --> Events
+    Events --> C & A & R
+    C --> Sales
+    A --> Avg
+    R --> Region
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Sales,Avg,Region topic
+    class CKey,CAgg,AKey,AWin,AAgg,AAvg,RKey,RCount operation
+    class Events message
+    class CResult,AResult,RResult result
+    style C fill:none,stroke:#616161,stroke-dasharray:5 5
+    style A fill:none,stroke:#616161,stroke-dasharray:5 5
+    style R fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+The category and region pipelines update their result with every transaction. The category pipeline declares its own store, and KSML stores have caching off by default, so every update is written. The region pipeline uses the default Kafka Streams store, which caches updates until the next commit (30 seconds by default), so you may only see the final counts. The counts are written as strings (`"2"`), because the pipeline converts them with `convertValue`.
+
+The average order value pipeline works differently: `suppress` holds back the result of a window until the window has closed, so `avg_order_value` receives one final result per 10-second window.
+
+The windows are based on the time the transactions are written to Kafka, not on the `timestamp` field in the data, and they start at whole multiples of 10 seconds. The example producer writes a transaction every 7 seconds, so a window contains one or two transactions. Which transactions share a window depends on when the producer starts. The diagram below shows the windows from one test run:
+
+<div class="diagram-w80" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Windows
+    subgraph W3["Window 13:58:00–13:58:10"]
+        direction TB
+        T4["<b>13:58:06</b>: 12347<br/>12.99"]
+    end
+    subgraph W2["Window 13:57:50–13:58:00"]
+        direction TB
+        T2["<b>13:57:52</b>: 12346<br/>229.99"]
+        T3["<b>13:57:59</b>: 12349<br/>229.99"]
+        T2 ~~~ T3
+    end
+    subgraph W1["Window 13:57:40–13:57:50"]
+        direction TB
+        T1["<b>13:57:45</b>: 12345<br/>499.99"]
+    end
+
+    %% Results
+    R1["avg_order_value<br/>499.99"]
+    R2["avg_order_value<br/>229.99"]
+    R3["no result:<br/>no later transaction<br/>arrives to close<br/>the window"]
+
+    %% Data Flow
+    W3 -.-> R3
+    W2 --> R2
+    W1 --> R1
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class T1,T2,T3,T4 message
+    class R1,R2 result
+    class R3 partial
+    style W1 fill:none,stroke:#616161,stroke-dasharray:5 5
+    style W2 fill:none,stroke:#616161,stroke-dasharray:5 5
+    style W3 fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+</div>
+
+A window only closes when a transaction with a later time arrives. The example producer stops after four transactions, so the last window never produces a result.
+
 ## Running the Application
 
-You can use the following producer pipeline example as a starting point to write some simulated sale data; it will write
-four hard coded sales records into the input stream and exit.
+You can use the following producer pipeline example as a starting point to write some simulated sale data. It writes four hard-coded transactions to the input topic, one every 7 seconds, using the `transaction_id` as the message key, and then stops.
 
 ??? info "Transaction data producer (click to expand)"
 
@@ -91,11 +203,18 @@ four hard coded sales records into the input stream and exit.
 
 To run the application:
 
-1. Save the KSML definition to `definitions/analytics.yaml`
-2. Add the `example-data-producer.yaml` above if desired, or create test data in some other way
-3. Create a configuration file at `config/application.properties` with your Kafka connection details
-4. Start the Docker Compose environment: `docker-compose up -d`
-5. Monitor the output topics to see the real-time analytics results
+1. Create the topics as described in [Define the topics for the use case](#define-the-topics-for-the-use-case).
+2. Save the processor definition to `analytics.yaml` and the producer to `example-producer.yaml` in your `examples` directory.
+3. Set up your `ksml-runner.yaml` configuration to load both definitions:
+
+    ??? info "KSML runner configuration (click to expand)"
+
+        ```yaml
+        {% include "../../ksml/src/test/resources/docs-examples/use-cases/real-time-analytics/ksml-runner.yaml" %}
+        ```
+
+4. Start the Docker Compose environment: `docker compose up -d`
+5. Monitor the `sales_by_category`, `avg_order_value` and `transactions_by_region` topics to see the results.
 
 ## Visualizing the Results
 
@@ -109,10 +228,9 @@ For example, to create a simple dashboard with Grafana:
 
 1. Set up Grafana to connect to your Kafka topics
 2. Create dashboards for each metric:
-   - Bar chart for sales by category
-   - Line chart for average order value over time
-   - Map visualization for transactions by region
-   - Gauge charts for conversion rates
+    - Bar chart for sales by category
+    - Line chart for average order value over time
+    - Map visualization for transactions by region
 
 ## Extending the Application
 
@@ -122,6 +240,7 @@ You can extend this application in several ways:
 - Implement trend analysis to detect changing consumer behavior
 - Create alerts for specific conditions (e.g., sales dropping below a threshold)
 - Enrich the data with additional information from reference data sources
+- Calculate conversion rates per marketing channel, using the `marketing_channel` field in the transactions
 
 ## Conclusion
 

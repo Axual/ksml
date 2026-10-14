@@ -7,7 +7,7 @@ streams:
   inventory_updates:
     topic: inventory_updates
     keyType: string  # product_id
-    valueType: json  # alert data
+    valueType: json  # inventory data
 
   reorder_events:
     topic: reorder_events
@@ -16,7 +16,7 @@ streams:
 
   inventory_alerts:
     topic: inventory_alerts
-    keyType: string  # alert_id
+    keyType: string  # product_id
     valueType: json  # alert data
 
 tables:

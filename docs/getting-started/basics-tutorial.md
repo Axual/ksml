@@ -15,10 +15,36 @@ In this tutorial, you'll build a simple data pipeline that:
 
 Here's a visual representation of what we'll build:
 
-```
-Input Topic → Filter → Transform → Output Topic
-                ↓
-              Logging
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input
+    InputTopic[(temperature_data)]
+
+    %% Pipeline Operations
+    Filter{"<code>filter</code><br/>temperature > 70"}
+    Transform[<code>transformValue</code><br/>Fahrenheit → Celsius]
+    Peek[<code>peek</code><br/>Log message]
+
+    %% Output
+    OutputTopic[(temperature_data_converted)]
+    Logs[KSML logs]
+
+    %% Data Flow
+    InputTopic --> Filter
+    Filter -->|"Above 70°F"| Transform
+    Filter -.->|"70°F or lower - drop"| Drop[❌ Dropped]
+    Transform -->|"Adds temp_celsius"| Peek
+    Peek --> OutputTopic
+    Peek -.->|"log.info"| Logs
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class InputTopic,OutputTopic topic
+    class Filter,Transform,Peek operation
+    class Logs external
+    class Drop dropped
 ```
 
 ## Prerequisites
@@ -51,6 +77,44 @@ A KSML definition file consists of three main sections:
 1. **Streams**: Define the input and output Kafka topics
 2. **Functions**: Define reusable code snippets
 3. **Pipelines**: Define the data processing flow
+
+The pipeline ties the other two sections together: it refers to streams and functions by their names. The diagram below shows how the pipeline in this tutorial uses the streams and functions you'll define in the next steps.
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Streams section
+    subgraph Streams["streams"]
+        InputStream[(<code>input_stream</code><br/>topic: temperature_data)]
+        OutputStream[(<code>output_stream</code><br/>topic: temperature_data_converted)]
+    end
+
+    %% Pipelines section
+    subgraph Pipelines["pipelines"]
+        Pipeline[<code>tutorial_pipeline</code>]
+    end
+
+    %% Functions section
+    subgraph Functions["functions"]
+        Threshold[<code>temperature_above_threshold</code>]
+        Converter[<code>fahrenheit_to_celsius</code>]
+        Logger[<code>log_message</code>]
+    end
+
+    %% References
+    Pipeline -->|"from"| InputStream
+    Pipeline -->|"to"| OutputStream
+    Pipeline -->|"filter uses"| Threshold
+    Pipeline -->|"transformValue uses"| Converter
+    Pipeline -->|"peek calls"| Logger
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class InputStream,OutputStream topic
+    class Pipeline operation
+    class Threshold,Converter,Logger external
+```
 
 Let's create each section step by step.
 
@@ -283,8 +347,8 @@ You can also view the topics and messages in the Kafka UI at http://localhost:80
 You should see messages like:
 
 ```
-{"sensor":"sensor1",temp_fahrenheit":75,"temp_celsius":23.88888888888889}
-{"sensor":"sensor3",temp_fahrenheit":80,"temp_celsius":26.666666666666668}
+{"sensor":"sensor1","temp_fahrenheit":75,"temp_celsius":23.88888888888889}
+{"sensor":"sensor3","temp_fahrenheit":80,"temp_celsius":26.666666666666668}
 ```
 
 Notice that:
@@ -302,7 +366,7 @@ When you run your KSML definition:
 3. The topology starts consuming from the input topic
 4. Each message flows through the operations you defined:
     - The filter operation drops messages with temperatures ≤ 70°F
-    - The mapValues operation transforms the remaining messages
+    - The transformValue operation transforms the remaining messages
     - The peek operation logs each message
     - The messages are written to the output topic
 
@@ -338,6 +402,31 @@ docker compose restart ksml
 You can check the runner logs (`docker compose logs ksml`) or go to the Kafka UI at [http://localhost:8080](http://localhost:8080)
 to verify that new messages are generated every 3 seconds in the `temperature_data` topic. The filtered and converted
 messages will appear on the `temperature_data_converted` topic.
+
+With both definitions loaded, the KSML runner now produces the test data and processes it:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Definitions run by the KSML runner
+    Producer[<code>temperature_producer</code><br/>producer.yaml]
+    Pipeline[<code>tutorial_pipeline</code><br/>tutorial.yaml<br/>processor.yaml in Option A]
+
+    %% Topics
+    InputTopic[(temperature_data)]
+    OutputTopic[(temperature_data_converted)]
+
+    %% Data Flow
+    Producer -->|"writes a random<br/>temperature every 3s"| InputTopic
+    InputTopic --> Pipeline
+    Pipeline -->|"Filtered & converted"| OutputTopic
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class InputTopic,OutputTopic topic
+    class Producer,Pipeline operation
+```
 
 ## Next Steps
 

@@ -49,6 +49,27 @@ KSML supports three types of time windows, each suited for different use cases:
   grace: 30s        # Accept late data up to 30 seconds
 ```
 
+Each event falls into exactly one window, based on its timestamp:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+gantt
+    title Tumbling windows (duration 5m)
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Windows
+    Window 1 :w1, 10:00, 5m
+    Window 2 :w2, 10:05, 5m
+    Window 3 :w3, 10:10, 5m
+
+    section Events
+    Event A (window 1) :milestone, 10:01, 0m
+    Event B (window 1) :milestone, 10:03, 0m
+    Event C (window 2) :milestone, 10:07, 0m
+    Event D (window 3) :milestone, 10:12, 0m
+```
+
 **Characteristics**:
 
 - No overlap between windows
@@ -77,6 +98,26 @@ KSML supports three types of time windows, each suited for different use cases:
   grace: 1m         # Late data tolerance
 ```
 
+A new window starts every 2 minutes and each one lasts 10 minutes, so a single event falls into `duration / advanceBy` = 5 windows at the same time:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+gantt
+    title Hopping windows (duration 10m, advanceBy 2m)
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Windows
+    Window 1 :w1, 10:00, 10m
+    Window 2 :w2, 10:02, 10m
+    Window 3 :w3, 10:04, 10m
+    Window 4 :w4, 10:06, 10m
+    Window 5 :w5, 10:08, 10m
+
+    section Events
+    Event A (windows 1 to 5) :milestone, 10:09, 0m
+```
+
 **Characteristics**:
 
 - Windows overlap (each record appears in multiple windows)
@@ -101,6 +142,28 @@ KSML supports three types of time windows, each suited for different use cases:
 - type: windowBySession
   inactivityGap: 30m  # Close window after 30 minutes of no activity
   grace: 10s          # Accept late arrivals
+```
+
+A session starts with the first event for a key and grows with every event that follows within 30 minutes. A gap longer than 30 minutes closes the session, and the next event starts a new one:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+gantt
+    title Session windows for one user (inactivityGap 30m)
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Sessions
+    Session 1 :s1, 10:00, 25m
+    Gap longer than 30m :crit, gap, 10:25, 55m
+    Session 2 :s2, 11:20, 10m
+
+    section Events
+    User click :milestone, 10:00, 0m
+    User click :milestone, 10:10, 0m
+    User click :milestone, 10:25, 0m
+    User click :milestone, 11:20, 0m
+    User click :milestone, 11:30, 0m
 ```
 
 **Characteristics**:
@@ -139,6 +202,67 @@ This example demonstrates tumbling windows by counting user clicks in 5-minute n
 - Window state stores with retention policies
 - `convertKey` for windowed key compatibility
 - Grace periods for late-arriving data
+
+The diagram below follows six example clicks through the same pipeline, showing how the messages are grouped at each step: first by user, then by 5-minute window. Every click sends an updated count for its window. The diagram shows the last one:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with six clicks
+    Topic[(user_clicks)]
+    Clicks@{ shape: docs, label: "<b>key: alice</b> click at 10:01<br/><b>key: bob</b> click at 10:02<br/><b>key: alice</b> click at 10:03<br/><b>key: alice</b> click at 10:06<br/><b>key: bob</b> click at 10:07<br/><b>key: bob</b> click at 10:08" }
+
+    %% Step 1: group by key
+    Group[<code>groupByKey</code>]
+    subgraph ByKey["Grouped by key"]
+        Alice@{ shape: docs, label: "<b>key: alice</b><br/>10:01, 10:03, 10:06" }
+        Bob@{ shape: docs, label: "<b>key: bob</b><br/>10:02, 10:07, 10:08" }
+    end
+
+    %% Step 2: split each group into 5-minute windows
+    Window["<code>windowByTime</code><br/>tumbling 5m"]
+    subgraph ByWindow["Grouped by key and window"]
+        Alice1@{ shape: docs, label: "<b>alice</b> 10:00 to 10:05<br/>10:01, 10:03" }
+        Alice2@{ shape: doc, label: "<b>alice</b> 10:05 to 10:10<br/>10:06" }
+        Bob1@{ shape: doc, label: "<b>bob</b> 10:00 to 10:05<br/>10:02" }
+        Bob2@{ shape: docs, label: "<b>bob</b> 10:05 to 10:10<br/>10:07, 10:08" }
+    end
+
+    %% Step 3: one count per key and window
+    Count[<code>count</code>]
+    subgraph Counts["Latest result per key and window"]
+        AliceCount1["<b>alice</b> 10:00 to 10:05<br/>count: 2"]
+        AliceCount2["<b>alice</b> 10:05 to 10:10<br/>count: 1"]
+        BobCount1["<b>bob</b> 10:00 to 10:05<br/>count: 1"]
+        BobCount2["<b>bob</b> 10:05 to 10:10<br/>count: 2"]
+    end
+
+    %% Step 4: write to the output topic with a JSON window key
+    Convert["<code>toStream</code> + <code>convertKey</code><br/>json:windowed(string)"]
+    Output[(user_click_counts_5min)]
+
+    %% Data Flow
+    Topic --> Clicks
+    Clicks --> Group
+    Group --> Alice & Bob
+    Alice & Bob --> Window
+    Window --> Alice1 & Alice2 & Bob1 & Bob2
+    Alice1 & Alice2 & Bob1 & Bob2 --> Count
+    Count --> AliceCount1 & AliceCount2 & BobCount1 & BobCount2
+    AliceCount1 & AliceCount2 & BobCount1 & BobCount2 --> Convert
+    Convert -->|"key: {key: alice, startTime: 10:00, endTime: 10:05, ...}<br/>value: 2"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Output topic
+    class Group,Window,Count,Convert operation
+    class Clicks,Alice,Bob,Alice1,Alice2,Bob1,Bob2 message
+    class AliceCount1,AliceCount2,BobCount1,BobCount2 result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style ByWindow fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Counts fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 ??? info "User clicks producer (click to expand)"
 
@@ -201,6 +325,78 @@ This example calculates moving averages using overlapping 2-minute windows that 
 - Custom aggregation with initialization and aggregator functions
 - `mapValues` for post-aggregation processing
 - Multiple overlapping windows for the same data
+
+The diagram below follows five example readings through the same pipeline. Because the windows overlap, the same reading is counted in several windows, so each window has its own average. Every reading sends an updated average for each of its windows, and the diagram shows the last one. To keep the diagram readable, it only follows `temp_01` and shows three of its windows:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with five readings
+    Topic[(sensor_readings)]
+    Readings@{ shape: docs, label: "<b>temp_01</b>: 21.0 at 10:00:10<br/><b>humidity_01</b>: 45.0 at 10:00:20<br/><b>temp_01</b>: 22.0 at 10:00:40<br/><b>temp_01</b>: 23.0 at 10:01:20<br/><b>temp_01</b>: 24.0 at 10:02:10" }
+
+    %% Step 1: group by key
+    Group[<code>groupByKey</code>]
+    subgraph ByKey["Grouped by key"]
+        Temp@{ shape: docs, label: "<b>key: temp_01</b><br/>21.0, 22.0, 23.0, 24.0" }
+        Humidity@{ shape: doc, label: "<b>key: humidity_01</b><br/>45.0" }
+    end
+
+    %% Step 2: overlapping 2-minute windows, a new one every 30 seconds
+    Window["<code>windowByTime</code><br/>hopping 2m, advanceBy 30s"]
+    subgraph ByWindow["Grouped by key and window (overlapping)"]
+        Temp1@{ shape: docs, label: "<b>temp_01</b> 10:00:00 to 10:02:00<br/>21.0, 22.0, 23.0" }
+        Temp2@{ shape: docs, label: "<b>temp_01</b> 10:00:30 to 10:02:30<br/>22.0, 23.0, 24.0" }
+        Temp3@{ shape: docs, label: "<b>temp_01</b> 10:01:00 to 10:03:00<br/>23.0, 24.0" }
+        NotShown["Other windows and<br/>humidity_01: not shown"]
+    end
+
+    %% Step 3: sum and count per window
+    Aggregate["<code>aggregate</code><br/>update_average"]
+    subgraph Sums["One sum and count per key and window"]
+        Sum1["<b>temp_01</b> 10:00:00 to 10:02:00<br/>sum: 66.0, count: 3"]
+        Sum2["<b>temp_01</b> 10:00:30 to 10:02:30<br/>sum: 69.0, count: 3"]
+        Sum3["<b>temp_01</b> 10:01:00 to 10:03:00<br/>sum: 47.0, count: 2"]
+    end
+
+    %% Step 4: turn sum and count into an average
+    Average["<code>toStream</code> + <code>convertKey</code><br/>+ <code>mapValues</code> calculate_final_average"]
+    subgraph Averages["Latest average per key and window"]
+        Avg1["<b>temp_01</b> 10:00:00 to 10:02:00<br/>average: 22.0"]
+        Avg2["<b>temp_01</b> 10:00:30 to 10:02:30<br/>average: 23.0"]
+        Avg3["<b>temp_01</b> 10:01:00 to 10:03:00<br/>average: 23.5"]
+    end
+
+    %% Output
+    Output[(sensor_moving_averages)]
+
+    %% Data Flow
+    Topic --> Readings
+    Readings --> Group
+    Group --> Temp & Humidity
+    Temp & Humidity --> Window
+    Window --> Temp1 & Temp2 & Temp3
+    Window -.-> NotShown
+    Temp1 & Temp2 & Temp3 --> Aggregate
+    Aggregate --> Sum1 & Sum2 & Sum3
+    Sum1 & Sum2 & Sum3 --> Average
+    Average --> Avg1 & Avg2 & Avg3
+    Avg1 -->|"key: {key: temp_01, startTime: 10:00:00, endTime: 10:02:00, ...}<br/>value: {average: 22.0, sample_count: 3, total_sum: 66.0}"| Output
+    Avg2 & Avg3 --> Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Output topic
+    class Group,Window,Aggregate,Average operation
+    class Readings,Temp,Humidity,Temp1,Temp2,Temp3 message
+    class Sum1,Sum2,Sum3,Avg1,Avg2,Avg3 result
+    class NotShown note
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style ByWindow fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Sums fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Averages fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 ??? info "Sensor data producer (click to expand)"
 
@@ -265,6 +461,67 @@ This example uses session windows to analyze user browsing patterns by grouping 
 - **Automatic merging**: Late-arriving data can extend or merge sessions
 - **Activity-based**: Perfect for user behavior analysis
 - **Variable retention**: Different sessions can have different lifespans
+
+The diagram below follows seven example clicks through the same pipeline. Alice pauses for more than 2 minutes between 10:01:30 and 10:05:00, so her clicks form two separate sessions. Bob never pauses that long, so all his clicks stay in one session that keeps growing. Every click sends an updated count for its session, and the diagram shows the last one. When a click extends a session, the session gets a new end time and so a new key. The old session key then gets a `null` value:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with seven clicks
+    Topic[(user_clicks)]
+    Clicks@{ shape: docs, label: "<b>key: alice</b> click at 10:00:00<br/><b>key: bob</b> click at 10:00:20<br/><b>key: alice</b> click at 10:00:40<br/><b>key: alice</b> click at 10:01:30<br/><b>key: bob</b> click at 10:01:50<br/><b>key: bob</b> click at 10:03:10<br/><b>key: alice</b> click at 10:05:00" }
+
+    %% Step 1: group by key
+    Group[<code>groupByKey</code>]
+    subgraph ByKey["Grouped by key"]
+        Alice@{ shape: docs, label: "<b>key: alice</b><br/>10:00:00, 10:00:40,<br/>10:01:30, 10:05:00" }
+        Bob@{ shape: docs, label: "<b>key: bob</b><br/>10:00:20, 10:01:50, 10:03:10" }
+    end
+
+    %% Step 2: split each group into sessions at gaps longer than 2 minutes
+    Window["<code>windowBySession</code><br/>inactivityGap 2m"]
+    subgraph BySession["Grouped by key and session"]
+        Alice1@{ shape: docs, label: "<b>alice</b> 10:00:00 to 10:01:30<br/>10:00:00, 10:00:40, 10:01:30" }
+        Alice2@{ shape: doc, label: "<b>alice</b> 10:05:00 to 10:05:00<br/>10:05:00" }
+        Bob1@{ shape: docs, label: "<b>bob</b> 10:00:20 to 10:03:10<br/>10:00:20, 10:01:50, 10:03:10" }
+    end
+
+    %% Step 3: one count per key and session
+    Count[<code>count</code>]
+    subgraph Counts["Latest result per key and session"]
+        AliceCount1["<b>alice</b> 10:00:00 to 10:01:30<br/>count: 3"]
+        AliceCount2["<b>alice</b> 10:05:00 to 10:05:00<br/>count: 1"]
+        BobCount1["<b>bob</b> 10:00:20 to 10:03:10<br/>count: 3"]
+    end
+
+    %% Step 4: write to the output topic with a JSON session key
+    Convert["<code>toStream</code> + <code>convertKey</code><br/>json:windowed(string)"]
+    Output[(user_session_summary)]
+
+    %% Data Flow
+    Topic --> Clicks
+    Clicks --> Group
+    Group --> Alice & Bob
+    Alice & Bob --> Window
+    Window -->|"gap under 2m"| Alice1
+    Window -->|"gap of 3m30s:<br/>new session"| Alice2
+    Window -->|"gaps under 2m"| Bob1
+    Alice1 & Alice2 & Bob1 --> Count
+    Count --> AliceCount1 & AliceCount2 & BobCount1
+    AliceCount1 & AliceCount2 & BobCount1 --> Convert
+    Convert -->|"key: {key: alice, startTime: 10:00:00, endTime: 10:01:30, ...}<br/>value: 3"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Output topic
+    class Group,Window,Count,Convert operation
+    class Clicks,Alice,Bob,Alice1,Alice2,Bob1 message
+    class AliceCount1,AliceCount2,BobCount1 result
+    style ByKey fill:none,stroke:#616161,stroke-dasharray:5 5
+    style BySession fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Counts fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 ??? info "User clicks producer (click to expand)"
 
@@ -339,6 +596,32 @@ The session summary shows:
 - **caching**: Enable for better performance with frequent updates
 
 **Example**: A 5-minute window ending at 10:05 AM will accept data timestamped before 10:05 AM until 10:06 AM (1-minute grace), then close permanently.
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Late event
+    LateEvent[/"Late event<br/>timestamp 10:04"/]
+
+    %% Decision
+    Check{"Stream time before<br/>10:06?<br/>(window end + grace)"}
+
+    %% Outcomes
+    Accepted[Added to window<br/>10:00 to 10:05]
+    Drop[❌ Dropped]
+
+    %% Data Flow
+    LateEvent --> Check
+    Check -->|"yes"| Accepted
+    Check -.->|"no: window closed"| Drop
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Check,Accepted operation
+    class LateEvent external
+    class Drop dropped
+```
 
 ### Window State Management
 

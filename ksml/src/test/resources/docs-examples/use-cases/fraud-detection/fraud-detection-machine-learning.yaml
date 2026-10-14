@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
 streams:
   transactions:
@@ -11,20 +11,10 @@ streams:
     keyType: string  # transaction_id
     valueType: json  # consolidated alert data
 
-stores:
-  customer_transaction_history:
-    type: keyValue
-    persistent: true
-    keyType: string
-    valueType: json
-
 ## Functions
 functions:
   ml_fraud_prediction:
     type: valueTransformer
-    parameters:
-      - name: value
-        type: object
     code: |
       # In a real implementation, you would call an external ML service
       # This is a simplified example
@@ -35,9 +25,7 @@ functions:
         "is_international": value.get("merchant", {}).get("location", {}).get("country") != "US",
         "is_online": value.get("transaction_type") == "online",
         "high_risk_merchant": value.get("merchant", {}).get("category") in ["electronics", "jewelry", "digital_goods"],
-        "transaction_hour": (value.get("timestamp", 0) / 3600000) % 24,  # Hour of day
-        "transaction_count_1h": value.get("transactions_last_hour", 1),
-        "transaction_count_24h": value.get("transactions_last_day", 1)
+        "transaction_hour": int(value.get("timestamp", 0) / 3600000) % 24  # Hour of day (UTC)
       }
       
       # Simple rule-based model (in reality, this would be a trained ML model)
@@ -46,9 +34,7 @@ functions:
       if features["is_international"]: score += 15
       if features["is_online"]: score += 10
       if features["high_risk_merchant"]: score += 15
-      if features["transaction_hour"] > 22 or features["transaction_hour"] < 6: score += 10
-      if features["transaction_count_1h"] > 3: score += 15
-      if features["transaction_count_24h"] > 10: score += 15
+      if features["transaction_hour"] >= 22 or features["transaction_hour"] < 6: score += 10
       
       # Normalize score to 0-100
       score = min(100, score)
@@ -57,13 +43,18 @@ functions:
       value["ml_fraud_score"] = score
       value["ml_fraud_probability"] = score / 100.0
       value["ml_is_fraud"] = score > 60
+
+      # Fields used by the alerting pipeline
+      value["alert_type"] = "ml_fraud_prediction"
+      value["final_risk_score"] = score
       
       return value
+    resultType: json
 ## End of Functions
 
 pipelines:
-  # Pipeline for high-value transaction detection
-  high_value_detection:
+  # Pipeline for machine learning based fraud detection
+  ml_fraud_detection:
     from: transactions
     via:
       - type: transformValue

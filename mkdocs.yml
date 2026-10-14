@@ -5,6 +5,7 @@ site_description: Documentation for the KSML project
 site_dir: _site
 exclude_docs: |
   ksml-language-spec.md
+  snippets/
 theme:
   name: material
   features:
@@ -37,8 +38,13 @@ markdown_extensions:
         - ksml-integration-tests/src/test/resources      # integration test resources
         - ksml-test-runner/src/test/resources             # test runner resources
       check_paths: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.details
+  - md_in_html
   - admonition
 
 extra_css:

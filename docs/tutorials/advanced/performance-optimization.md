@@ -60,6 +60,56 @@ This example demonstrates optimized Python code and efficient data handling tech
 - **Processes with JSON**: Extracts fields from JSON using `.get()`, builds result objects for Kowl UI readability
 - **Logs selectively**: Only logs high-score events to reduce I/O overhead while maintaining performance visibility
 
+The diagram below follows four example events. Scroll and hover events are discarded before any other field is read; the other events get a score from the pre-computed tables:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with example events
+    Topic[(high_volume_events)]
+    Events@{ shape: docs, label: "user_0001: view, electronics<br/>user_0002: scroll<br/>user_0003: purchase, books, value 50<br/>user_0004: hover" }
+
+    %% Processing function with pre-computed tables
+    Function["<code>mapValues</code><br/>efficient_event_processor"]
+    Tables["globalCode, computed once<br/>PRIORITY_EVENTS: purchase, search<br/>MULTIPLIERS: electronics 1.5, books 1.0, ..."]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["<b>view</b>, electronics<br/>not a priority event: base 5<br/>score 5 × 1.5 = 7.5"]
+        Step2["<b>scroll</b><br/>discarded first thing<br/>returns None"]
+        Step3["<b>purchase</b>, books, value 50<br/>priority event: base 10<br/>score 10 × 1.0 + 5 = 15.0<br/>logged"]
+        Step4["<b>hover</b><br/>discarded first thing<br/>returns None"]
+        Step1 --> Step2 --> Step3 --> Step4
+    end
+
+    %% Filter and output
+    Filter{"<code>filter</code><br/>value is not None"}
+    Output[(processed_events)]
+    Drop["❌ Dropped<br/>scroll, hover"]
+
+    %% Data Flow
+    Topic --> Events
+    Events --> Function
+    Tables -.->|"used by"| Function
+    Function --> Steps
+    Steps --> Filter
+    Filter -->|"2 scored events"| Output
+    Filter -.->|"None"| Drop
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class Tables external
+    class Drop dropped
+    class Step1,Step3 result
+    class Step2,Step4 dropped
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+Score = base score × category multiplier + value × 0.1 (at most 10). Only purchase and search events are logged.
+
 ??? info "High-volume producer (compact format) - click to expand"
 
     ```yaml
@@ -89,6 +139,49 @@ This example shows how to configure and use state stores efficiently for high-pe
 - **Updates efficiently**: Parses compact string to array, updates counters by index mapping, avoids object creation during updates
 - **Uses optimized store**: Configures state store with increased cache size (16MB) and segments (32) for better performance
 - **Outputs JSON summaries**: Returns readable JSON results with averages and totals while keeping internal storage compact
+
+The diagram below follows three example activities for one user. The store keeps one short string per user; the output is a readable JSON summary built from it:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with example events
+    Topic[(user_activity)]
+    Events@{ shape: docs, label: "<b>key: user_001</b><br/>login, score 40<br/>page_view, score 20<br/>purchase, score 90" }
+
+    %% Processing function and its store
+    Function["<code>mapValues</code><br/>update_user_metrics"]
+    Store[("user_metrics_store<br/>key: user_001<br/>value: compact string<br/>e.g. 3:1:1:0:1:0:150")]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["<b>login</b>, score 40<br/>no entry yet: start from zeros<br/>stored: 1:1:0:0:0:0:40<br/>avg_score 40"]
+        Step2["<b>page_view</b>, score 20<br/>stored: 2:1:1:0:0:0:60<br/>avg_score 30"]
+        Step3["<b>purchase</b>, score 90<br/>stored: 3:1:1:0:1:0:150<br/>avg_score 50"]
+        Step1 --> Step2 --> Step3
+    end
+
+    %% Filter and output
+    Filter{"<code>filter</code><br/>value is not None"}
+    Output[(user_metrics_summary)]
+
+    %% Data Flow
+    Topic --> Events
+    Events --> Function
+    Function <-.->|"parse & update string"| Store
+    Function --> Steps
+    Steps --> Filter
+    Filter -->|"3 JSON summaries,<br/>one per activity"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Output topic
+    class Function,Filter operation
+    class Events message
+    class Store store
+    class Step1,Step2,Step3 message
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 ??? info "User metrics producer (activity data) - click to expand"
 
@@ -122,6 +215,99 @@ This example demonstrates optimized pipeline design with early filtering and sta
 - **Separates concerns**: Lightweight operations (field extraction) happen first, expensive operations (calculations) happen on filtered data only
 - **Outputs progressively**: filtered_events → enriched_events → final_processed_events, each stage adds more data while maintaining JSON readability
 
+The example runs three pipelines connected through topics. Each stage reads the output topic of the previous stage, so the expensive stage only sees events that passed the filter:
+
+<div class="diagram-w50" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Topics
+    Input[(mixed_quality_events)]
+    Filtered[(filtered_events)]
+    Enriched[(enriched_events)]
+    Final[(final_processed_events)]
+
+    %% Pipelines
+    subgraph S1["filter_stage"]
+        Filter{"<code>filter</code><br/>early_filter"}
+    end
+    subgraph S2["enrich_stage"]
+        Enrich["<code>mapValues</code><br/>lightweight_enricher"]
+    end
+    subgraph S3["process_stage"]
+        Heavy["<code>mapValues</code><br/>heavy_processor"]
+    end
+    Drop[❌ Dropped<br/>invalid, spam, bots]
+
+    %% Data Flow
+    Input --> Filter
+    Filter -->|"valid events"| Filtered
+    Filter -.-> Drop
+    Filtered --> Enrich
+    Enrich -->|"+ status ENRICHED"| Enriched
+    Enriched --> Heavy
+    Heavy -->|"+ complex_score"| Final
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Input,Filtered,Enriched,Final topic
+    class Filter,Enrich,Heavy operation
+    class Drop dropped
+    style S1 fill:none,stroke:#616161,stroke-dasharray:5 5
+    style S2 fill:none,stroke:#616161,stroke-dasharray:5 5
+    style S3 fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+</div>
+
+The diagram below follows four example events through the three stages. Two of them never reach the expensive calculation:
+
+<div class="diagram-w60" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with example events
+    Topic[(mixed_quality_events)]
+    Events@{ shape: docs, label: "<b>event_000001</b><br/>valid_purchase, high, score 100<br/><b>event_000002</b><br/>spam, low, score 400<br/><b>event_000003</b><br/>valid_view, spam, score 700<br/><b>event_000004</b><br/>valid_view, medium, score 200" }
+
+    %% Stage 1
+    Filter{"<code>filter</code><br/>early_filter<br/>is_valid<br/>type starts with valid<br/>priority is not spam"}
+    Passed@{ shape: docs, label: "<b>event_000001</b><br/>valid_purchase, high<br/><b>event_000004</b><br/>valid_view, medium" }
+    Drop["❌ Dropped<br/><b>event_000002</b>: spam type<br/><b>event_000003</b>: spam priority"]
+
+    %% Stages 2 and 3
+    Enrich["<code>mapValues</code><br/>lightweight_enricher<br/>copies fields, adds status ENRICHED"]
+    Heavy["<code>mapValues</code><br/>heavy_processor<br/>calculates complex_score"]
+    Results@{ shape: docs, label: "<b>event_000001</b><br/>complex_score 370<br/>100 × 3 + 50 + 20<br/><b>event_000004</b><br/>complex_score 430<br/>200 × 2 + 10 + 20" }
+    Output[(final_processed_events)]
+
+    %% Data Flow
+    Topic --> Events
+    Events --> Filter
+    Filter -->|"2 of 4 pass"| Passed
+    Filter -.-> Drop
+    Passed -->|"via filtered_events"| Enrich
+    Enrich -->|"via enriched_events"| Heavy
+    Heavy --> Results
+    Results --> Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Output topic
+    class Filter,Enrich,Heavy operation
+    class Events,Passed message
+    class Results result
+    class Drop dropped
+```
+
+</div>
+
+The score is base score × priority multiplier (high 3, medium 2, low 1) + type bonus (50 for purchases, 10 otherwise). The extra 20 comes from the loop that simulates an expensive calculation.
+
 ??? info "Mixed events producer (quality testing) - click to expand"
 
     ```yaml
@@ -150,6 +336,64 @@ This example shows efficient data format usage and minimal serialization overhea
 - **Uses lookup tables**: Pre-computes event type mappings in globalCode for fast ID-to-name conversions without string operations
 - **Filters by score**: Early filtering discards events with score <10 to reduce processing volume
 - **Processes by type**: Applies different logic based on event_type_id (purchases get 10% value bonus + 20 score bonus)
+
+The example runs two pipelines. The first one filters and processes the events, the second one turns the result into a readable summary. The diagram below follows three example events:
+
+<div class="diagram-w75" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topic with example events
+    Topic[(binary_events)]
+    Events@{ shape: docs, label: "<b>key 42</b><br/>event_type_id 3, value 1000, score 50<br/><b>key 7</b><br/>event_type_id 2, value 300, score 5<br/><b>key 15</b><br/>event_type_id 1, value 250, score 40" }
+
+    %% First pipeline
+    Function["<code>mapValues</code><br/>efficient_binary_processor"]
+    Lookup["globalCode lookup table<br/>EVENT_TYPES<br/>1 view, 2 click, 3 purchase<br/>4 search, 5 logout"]
+    subgraph Steps["Event by event"]
+        direction LR
+        Step1["<b>user 42</b>, type_id 3<br/>purchase: value × 1.1, score + 20<br/>value 1100, score 70"]
+        Step2["<b>user 7</b>, type_id 2<br/>score 5 is below 10<br/>returns None"]
+        Step3["<b>user 15</b>, type_id 1<br/>view: values unchanged<br/>value 250, score 40"]
+        Step1 --> Step2 --> Step3
+    end
+    Filter{"<code>filter</code><br/>value is not None"}
+    Optimized[(optimized_events)]
+    Drop["❌ Dropped<br/>score below 10"]
+
+    %% Second pipeline
+    Convert["<code>mapValues</code><br/>convert_to_readable"]
+    Readable@{ shape: docs, label: "EVENT:purchase USER:42 VALUE:1100 SCORE:70<br/>EVENT:view USER:15 VALUE:250 SCORE:40" }
+    Output[(readable_events)]
+
+    %% Data Flow
+    Topic --> Events
+    Events --> Function
+    Lookup -.->|"used by"| Function
+    Function --> Steps
+    Steps --> Filter
+    Filter -->|"2 events"| Optimized
+    Filter -.->|"None"| Drop
+    Optimized --> Convert
+    Convert -->|"summary + details"| Readable
+    Readable --> Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Topic,Optimized,Output topic
+    class Function,Filter,Convert operation
+    class Events message
+    class Lookup external
+    class Readable result
+    class Drop dropped
+    class Step1,Step3 result
+    class Step2 dropped
+    style Steps fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+</div>
 
 ??? info "Binary data producer (compact format) - click to expand"
 
@@ -306,6 +550,39 @@ stores:
 - **versioned**: 
       - `true`: Maintains multiple versions of values with configurable retention
       - `false`: Single version only, more memory efficient
+
+The diagram below shows what the `caching`, `persistent` and `logging` options control when a Python function writes to a store:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Writer
+    Function["Python function<br/><code>store.put(key, value)</code>"]
+
+    %% Store layers
+    subgraph Store["State store"]
+        Cache["Record cache<br/><code>caching: true</code><br/>keeps the latest value per key"]
+        Local[("Local store<br/><code>persistent: true</code><br/>RocksDB on disk<br/><code>persistent: false</code><br/>in memory")]
+    end
+    Changelog[(Changelog topic<br/><code>logging: true</code>)]
+
+    %% Data Flow
+    Function -->|"put"| Cache
+    Cache -->|"flush on commit<br/>or when full"| Local
+    Cache -->|"flush on commit<br/>or when full"| Changelog
+    Changelog -.->|"restore after restart<br/>or rebalance"| Local
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Function operation
+    class Cache partial
+    class Local store
+    class Changelog topic
+    style Store fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+With caching, several updates of the same key between commits are written to the local store and the changelog only once. Without logging, there is no changelog to restore from, so an in-memory store starts empty after a restart.
 
 **KSML Store Optimizations:**
 

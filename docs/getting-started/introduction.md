@@ -69,6 +69,39 @@ KSML provides access to the full power of Kafka Streams, including:
 
 ## Key Concepts and Terminology
 
+A KSML definition is built from four concepts that work together: **streams** connect to Kafka topics, a **pipeline** moves data from one stream to another through a series of **operations**, and operations can call your own Python **functions**. The diagram below shows how they fit together, using the example definitions from this section.
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Streams
+    InputStream[(Stream<br/><code>my_input_stream</code>)]
+    OutputStream[(Stream<br/><code>my_output_stream</code>)]
+
+    %% Pipeline with its operations
+    subgraph Pipeline["Pipeline: my_pipeline"]
+        Filter{Operation<br/><code>filter</code>}
+        MapValues[Operation<br/><code>mapValues</code>]
+    end
+
+    %% Python code
+    Functions[[Python functions<br/>and expressions]]
+
+    %% Data Flow
+    InputStream -->|"from"| Filter
+    Filter -->|"via"| MapValues
+    MapValues -->|"to"| OutputStream
+    Functions -.->|"called by"| Filter
+    Functions -.->|"called by"| MapValues
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class InputStream,OutputStream topic
+    class Filter,MapValues operation
+    class Functions external
+```
+
 ### Streams
 
 In KSML, a stream represents a flow of data from or to a Kafka topic. Streams are defined with a name, a topic, and data
@@ -120,6 +153,38 @@ When you run a KSML definition, the KSML runner:
 1. Parses your YAML definition
 2. Translates it into a Kafka Streams topology
 3. Executes the topology using the Kafka Streams runtime
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Your files
+    Definition[KSML definition<br/>YAML + Python]
+    Config[Runner configuration<br/><code>ksml-runner.yaml</code>]
+
+    %% KSML runner steps
+    subgraph Runner["KSML runner"]
+        Parse[1. Parse<br/>YAML definition]
+        Translate[2. Translate into<br/>Kafka Streams topology]
+        Execute[3. Execute with<br/>Kafka Streams runtime]
+    end
+
+    %% Kafka
+    Kafka[(Kafka<br/>topics)]
+
+    %% Flow
+    Config -->|"which definitions,<br/>Kafka connection"| Parse
+    Definition --> Parse
+    Parse --> Translate
+    Translate --> Execute
+    Execute <-->|"consume & produce"| Kafka
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Kafka topic
+    class Parse,Translate,Execute operation
+    class Definition,Config external
+```
 
 This translation happens automatically, allowing you to focus on your business logic rather than the details of a normal
 Kafka Streams implementation.

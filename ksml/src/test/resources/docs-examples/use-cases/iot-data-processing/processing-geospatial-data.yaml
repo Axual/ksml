@@ -52,6 +52,7 @@ functions:
         value["distance_from_reference"] = distance
 
       return value
+    resultType: json
 
 pipelines:
   proximity_analysis:
