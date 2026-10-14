@@ -38,6 +38,7 @@ KSML supports 28 operations for stream processing. Each operation serves a speci
 | | | |
 | **Stateful Aggregation Operations** | | |
 | [aggregate](#aggregate) | Build custom aggregations | Complex calculations, custom state |
+| [cogroup](#cogroup) | Combine several grouped streams into one aggregation | Totals from orders, refunds and bonuses |
 | [count](#count) | Count records per key | Track occurrences |
 | [reduce](#reduce) | Combine records with same key | Accumulate values |
 | | | |
@@ -531,6 +532,35 @@ Both `initializer` and `aggregator` can be defined using:
 **Full example for `aggregate`**:
 
 - [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#complex-example-regional-sales-analytics)
+
+### `cogroup`
+
+Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A `cogroup` is always followed by `aggregate`, which provides the initializer, optionally after `windowByTime` or `windowBySession`.
+
+#### Parameters
+
+| Parameter    | Type   | Required | Description                                                                                     |
+|--------------|--------|----------|-------------------------------------------------------------------------------------------------|
+| `aggregator` | Object | Yes      | Specifies how to combine a record of this stream with the aggregate                             |
+| `stream`     | String | No       | The name of a grouped stream, saved with `as` in an earlier pipeline, to add to the cogroup     |
+
+The first `cogroup` in a pipeline applies to the grouped stream of that pipeline and must not have `stream`. Each following `cogroup` adds another grouped stream and must have `stream`.
+
+The streams in a cogroup:
+
+- must have the same key type, and may have different value types
+- must be co-partitioned: their topics need the same number of partitions and the same partitioning
+- must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
+
+#### Example
+
+```yaml
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml:58:72"
+```
+
+**Full example for `cogroup`**:
+
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#advanced-cogroup-operation)
 
 ### `count`
 
@@ -1060,7 +1090,8 @@ KSML operations are YAML-based wrappers around Kafka Streams topology operations
 #### Stateful Aggregation Operations
 | KSML Operation | Kafka Streams Method | Purpose |
 |---|---|---|
-| aggregate | `KGroupedStream.aggregate()` / `KGroupedTable.aggregate()` | Custom aggregation logic |
+| aggregate | `KGroupedStream.aggregate()` / `KGroupedTable.aggregate()` / `CogroupedKStream.aggregate()` | Custom aggregation logic |
+| cogroup | `KGroupedStream.cogroup()` / `CogroupedKStream.cogroup()` | Combine grouped streams into one aggregation |
 | count | `KGroupedStream.count()` / `KGroupedTable.count()` | Count records per key |
 | reduce | `KGroupedStream.reduce()` / `KGroupedTable.reduce()` | Reduce to single value per key |
 

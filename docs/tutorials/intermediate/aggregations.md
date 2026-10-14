@@ -792,9 +792,9 @@ temp002 | 29.8
 
 ## Advanced: Cogroup Operation
 
-Cogroup is meant to combine several grouped streams into one aggregation, with a separate aggregator for each stream. KSML supports only one stream in a `cogroup` today (see [#728](https://github.com/Axual/ksml/issues/728)), so the example below uses one stream.
+Cogroup combines several grouped streams into one aggregation, with a separate aggregator for each stream. The example below combines customer orders and refunds into one total per customer. The value types of the streams may differ, which is the main difference from merging the streams and using a single `aggregate`.
 
-??? info "Customer orders producer (click to expand)"
+??? info "Customer orders and refunds producer (click to expand)"
 
     ```yaml
     {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-cogroup.yaml" %}
@@ -808,33 +808,40 @@ Cogroup is meant to combine several grouped streams into one aggregation, with a
 
 ### How Cogroup Works
 
-The cogroup pipeline:
+The example has two pipelines:
 
-1. Groups the stream by key with `groupByKey`
-2. Adds the grouped stream to the cogroup with its own aggregator function
-3. Runs the final `aggregate` operation, which uses the initializer to compute the result
+1. `grouped_refunds` groups the refunds by key with `groupByKey` and saves the grouped stream with `as: grouped_refunds`
+2. `customer_order_totals` groups the orders by key with `groupByKey`, then:
+    1. The first `cogroup` adds the grouped orders with the `aggregate_orders` aggregator
+    2. The second `cogroup` adds the saved grouped refunds with `stream: grouped_refunds` and the `aggregate_refunds` aggregator
+    3. The final `aggregate` operation uses the initializer and keeps one result per key
 
-The example above uses only one stream, `customer_orders`. KSML does not support more than one stream in a `cogroup` yet (see [#728](https://github.com/Axual/ksml/issues/728)). The diagram below follows two example orders through the pipeline:
+Each message updates the same aggregate with the aggregator of its own stream. The diagram below follows two orders and a refund for the same customer through the pipelines:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph LR
-    %% Input topic with example orders
-    Topic[(customer_orders)]
+    %% Input topics with example messages
+    OrdersTopic[(customer_orders)]
     Orders@{ shape: docs, label: "<b>key: alice</b> amount 50.0<br/><b>key: alice</b> amount 30.0" }
+    RefundsTopic[(customer_refunds)]
+    Refunds@{ shape: doc, label: "<b>key: alice</b> amount 20.0" }
 
     %% Grouping and cogrouping
-    Group[<code>groupByKey</code>]
-    Cogroup["<code>cogroup</code><br/>aggregator: aggregate_orders"]
+    GroupOrders[<code>groupByKey</code>]
+    GroupRefunds["<code>groupByKey</code><br/>as: grouped_refunds"]
+    CogroupOrders["<code>cogroup</code><br/>aggregator: aggregate_orders"]
+    CogroupRefunds["<code>cogroup</code><br/>stream: grouped_refunds<br/>aggregator: aggregate_refunds"]
     Aggregate["<code>aggregate</code><br/>initializer: init_order_stats"]
 
     %% State and output
     Store[(customer_totals_store)]
-    Result["<b>alice</b><br/>total_amount: 80.0<br/>order_count: 2"]
+    Result["<b>alice</b><br/>total_amount: 60.0<br/>order_count: 2<br/>refund_count: 1"]
     OutputTopic[(customer_totals)]
 
     %% Data Flow
-    Topic --> Orders --> Group --> Cogroup --> Aggregate
+    OrdersTopic --> Orders --> GroupOrders --> CogroupOrders --> CogroupRefunds --> Aggregate
+    RefundsTopic --> Refunds --> GroupRefunds --> CogroupRefunds
     Aggregate <-->|"one result per key"| Store
     Aggregate --> Result
     Result -->|"<code>toStream</code>"| OutputTopic
@@ -842,14 +849,14 @@ graph LR
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
 
-    class Topic,OutputTopic topic
-    class Group,Cogroup,Aggregate operation
+    class OrdersTopic,RefundsTopic,OutputTopic topic
+    class GroupOrders,GroupRefunds,CogroupOrders,CogroupRefunds,Aggregate operation
     class Store store
-    class Orders message
+    class Orders,Refunds message
     class Result result
 ```
 
-> **Note:** A second `cogroup` step in the same pipeline fails at startup with a `TopologyException`. Make sure the aggregator function handles null values.
+> **Note:** The pipeline that saves a grouped stream with `as` must be defined before the pipeline that uses it in a `cogroup`, in the same definition file. All cogrouped streams must have the same key type, and their topics must be co-partitioned. Make sure the aggregator functions handle null values.
 
 ## Complex Example: Regional Sales Analytics
 
