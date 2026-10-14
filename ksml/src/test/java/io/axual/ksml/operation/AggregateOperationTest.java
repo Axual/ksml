@@ -40,6 +40,8 @@ import org.apache.kafka.streams.kstream.TimeWindowedKStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static io.axual.ksml.operation.OperationTestSupport.aggregator;
 import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
@@ -118,7 +120,7 @@ class AggregateOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToCogroupedStreamCallsAggregate() {
         final CogroupedKStream<Object, Object> cogrouped = mock(CogroupedKStream.class);
-        final var input = new CogroupedKStreamWrapper(cogrouped, key(), value());
+        final var input = new CogroupedKStreamWrapper(cogrouped, List.of(), key(), value());
 
         assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         verify(cogrouped).aggregate(any(Initializer.class), any(Named.class));

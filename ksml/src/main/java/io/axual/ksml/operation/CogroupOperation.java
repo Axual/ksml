@@ -31,6 +31,9 @@ import io.axual.ksml.user.UserAggregator;
 import lombok.Getter;
 import org.apache.kafka.streams.kstream.CogroupedKStream;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CogroupOperation extends BaseOperation {
     private static final String AGGREGATOR_NAME = "Aggregator";
     // Name of a grouped stream, registered with "as" by another pipeline, to add to an existing cogroup
@@ -61,7 +64,7 @@ public class CogroupOperation extends BaseOperation {
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vOut, superOf(k), superOf(v), equalTo(vOut));
         final var userAggr = new UserAggregator(aggr, tags);
         final CogroupedKStream<Object, Object> output = input.groupedStream.cogroup(userAggr);
-        return new CogroupedKStreamWrapper(output, k, vOut);
+        return new CogroupedKStreamWrapper(output, List.of(input.groupedStream), k, vOut);
     }
 
     @Override
@@ -77,6 +80,9 @@ public class CogroupOperation extends BaseOperation {
         }
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         final var other = lookupGroupedStream(context);
+        if (input.contains(other.groupedStream)) {
+            throw topologyError("Cogroup stream \"" + stream + "\" is already part of this cogroup. Each grouped stream can be added only once, with one aggregator");
+        }
         final var k = input.keyType();
         final var vIn = other.valueType();
         final var vOut = input.valueType();
@@ -84,7 +90,9 @@ public class CogroupOperation extends BaseOperation {
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vOut, superOf(k), superOf(vIn), equalTo(vOut));
         final var userAggr = new UserAggregator(aggr, tags);
         final CogroupedKStream<Object, Object> output = input.cogroupedStream.cogroup(other.groupedStream, userAggr);
-        return new CogroupedKStreamWrapper(output, k, vOut);
+        final var groupedStreams = new ArrayList<>(input.groupedStreams);
+        groupedStreams.add(other.groupedStream);
+        return new CogroupedKStreamWrapper(output, groupedStreams, k, vOut);
     }
 
     // Grouped streams can only be referenced by the name they were saved under with "as", which is registered in the

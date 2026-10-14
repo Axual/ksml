@@ -35,6 +35,8 @@ import org.apache.kafka.streams.kstream.KGroupedStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static io.axual.ksml.operation.OperationTestSupport.aggregator;
 import static io.axual.ksml.operation.OperationTestSupport.cogroupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.genericFunction;
@@ -50,6 +52,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +80,7 @@ class CogroupOperationTest extends OperationTestBase {
     private static CogroupedKStreamWrapper cogroupedStreamReturning(CogroupedKStream<Object, Object> result, StreamDataType k, StreamDataType v) {
         final CogroupedKStream<Object, Object> cogrouped = mock(CogroupedKStream.class);
         when(cogrouped.cogroup(any(KGroupedStream.class), any(Aggregator.class))).thenReturn(result);
-        return new CogroupedKStreamWrapper(cogrouped, k, v);
+        return new CogroupedKStreamWrapper(cogrouped, List.of(), k, v);
     }
 
     @Test
@@ -88,7 +91,10 @@ class CogroupOperationTest extends OperationTestBase {
         when(grouped.cogroup(any(Aggregator.class))).thenReturn(mock(CogroupedKStream.class));
         final var input = new KGroupedStreamWrapper(grouped, key(), value());
 
-        assertThat(operation().apply(input, mockContext())).isInstanceOf(CogroupedKStreamWrapper.class);
+        final var output = operation().apply(input, mockContext());
+
+        assertThat(output).isInstanceOf(CogroupedKStreamWrapper.class);
+        assertThat(((CogroupedKStreamWrapper) output).groupedStreams).containsExactly(grouped);
         verify(grouped).cogroup(any(Aggregator.class));
     }
 
@@ -117,7 +123,40 @@ class CogroupOperationTest extends OperationTestBase {
 
         assertThat(output).isInstanceOf(CogroupedKStreamWrapper.class);
         assertThat(((CogroupedKStreamWrapper) output).cogroupedStream).isSameAs(result);
+        assertThat(((CogroupedKStreamWrapper) output).groupedStreams).containsExactly(saved.groupedStream);
         verify(input.cogroupedStream).cogroup(eq(saved.groupedStream), any(Aggregator.class));
+    }
+
+    @Test
+    @DisplayName("cogroup with a stream that is already part of the cogroup is rejected")
+    @SuppressWarnings("unchecked")
+    void applyToCogroupedStreamWithDuplicateStreamIsRejected() {
+        final var operation = operation(SAVED_STREAM);
+        final var saved = groupedStream();
+        final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), List.of(saved.groupedStream), key(), value());
+        final var context = mockContext();
+        when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already part of this cogroup");
+        verify(input.cogroupedStream, never()).cogroup(any(KGroupedStream.class), any(Aggregator.class));
+    }
+
+    @Test
+    @DisplayName("adding the same saved stream twice is rejected on the second cogroup")
+    @SuppressWarnings("unchecked")
+    void addingSameSavedStreamTwiceIsRejected() {
+        final var saved = groupedStream();
+        final var context = mockContext();
+        when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
+        final var input = cogroupedStreamReturning(mock(CogroupedKStream.class), key(), value());
+
+        final var afterFirst = (CogroupedKStreamWrapper) operation(SAVED_STREAM).apply(input, context);
+        final var second = operation(SAVED_STREAM);
+
+        assertThatThrownBy(() -> second.apply(afterFirst, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already part of this cogroup");
     }
 
     @Test
@@ -179,7 +218,7 @@ class CogroupOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToCogroupedStreamWithOtherKeyTypeIsRejected() {
         final var operation = operation(SAVED_STREAM);
-        final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), typed(DataString.DATATYPE, true), value());
+        final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), List.of(), typed(DataString.DATATYPE, true), value());
         final var saved = new KGroupedStreamWrapper(mock(KGroupedStream.class), typed(DataInteger.DATATYPE, true), value());
         final var context = mockContext();
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
@@ -193,7 +232,7 @@ class CogroupOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToCogroupedStreamWithOtherAggregatorResultTypeIsRejected() {
         final var operation = operation(SAVED_STREAM, new UserType(DataInteger.DATATYPE));
-        final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), key(), typed(DataString.DATATYPE, false));
+        final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), List.of(), key(), typed(DataString.DATATYPE, false));
         final var context = mockContext();
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(groupedStream());
         assertThatThrownBy(() -> operation.apply(input, context))

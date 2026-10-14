@@ -360,7 +360,7 @@ final class OperationTestSupport {
 
     @SuppressWarnings("unchecked")
     static CogroupedKStreamWrapper cogroupedStream() {
-        return new CogroupedKStreamWrapper(mock(CogroupedKStream.class), key(), value());
+        return new CogroupedKStreamWrapper(mock(CogroupedKStream.class), List.of(), key(), value());
     }
 
     @SuppressWarnings("unchecked")

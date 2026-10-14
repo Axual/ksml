@@ -25,13 +25,24 @@ import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
 import org.apache.kafka.streams.kstream.CogroupedKStream;
+import org.apache.kafka.streams.kstream.KGroupedStream;
+
+import java.util.List;
 
 public class CogroupedKStreamWrapper extends BaseStreamWrapper {
     public final CogroupedKStream<Object, Object> cogroupedStream;
+    // The grouped streams in this cogroup. Kafka Streams keeps one aggregator per grouped stream, so adding the same
+    // grouped stream again would silently replace its aggregator.
+    public final List<KGroupedStream<Object, Object>> groupedStreams;
 
-    public CogroupedKStreamWrapper(CogroupedKStream<Object, Object> cogroupedStream, StreamDataType key, StreamDataType value) {
+    public CogroupedKStreamWrapper(CogroupedKStream<Object, Object> cogroupedStream, List<KGroupedStream<Object, Object>> groupedStreams, StreamDataType key, StreamDataType value) {
         super("CogroupedStream", key, value);
         this.cogroupedStream = cogroupedStream;
+        this.groupedStreams = List.copyOf(groupedStreams);
+    }
+
+    public boolean contains(KGroupedStream<Object, Object> groupedStream) {
+        return groupedStreams.stream().anyMatch(s -> s == groupedStream);
     }
 
     @Override

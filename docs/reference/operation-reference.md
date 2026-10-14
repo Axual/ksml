@@ -549,6 +549,7 @@ The first `cogroup` in a pipeline applies to the grouped stream of that pipeline
 The streams in a cogroup:
 
 - must have the same key type, and may have different value types
+- can each be added only once, with one aggregator
 - must be co-partitioned: their topics need the same number of partitions and the same partitioning
 - must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
 
