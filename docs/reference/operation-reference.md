@@ -513,11 +513,12 @@ Aggregates records by key using a custom aggregation function.
 
 #### Parameters
 
-| Parameter     | Type   | Required                    | Description                                                                                                                             |
-|---------------|--------|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `initializer` | Object | Yes                         | Specifies the initial value for the aggregation                                                                                         |
-| `aggregator`  | Object | Yes, except after `cogroup` | Specifies how to combine the current record with the aggregate. Not used after `cogroup`, because each `cogroup` has its own aggregator |
-| `store`       | Object | Yes                         | The state store that keeps the aggregation result                                                                                       |
+| Parameter     | Type   | Required                     | Description                                                                                                                             |
+|---------------|--------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `initializer` | Object | Yes                          | Specifies the initial value for the aggregation                                                                                         |
+| `aggregator`  | Object | Yes, except after `cogroup`  | Specifies how to combine the current record with the aggregate. Not used after `cogroup`, because each `cogroup` has its own aggregator |
+| `store`       | Object | Yes                          | The state store that keeps the aggregation result                                                                                       |
+| `merger`      | Object | Only after `windowBySession` | Specifies how to combine two session results when sessions merge                                                                        |
 
 Both `initializer` and `aggregator` can be defined using:
 
@@ -540,10 +541,10 @@ Combines one or more grouped streams into one aggregation per key. Each stream h
 
 #### Parameters
 
-| Parameter    | Type   | Required | Description                                                                                     |
-|--------------|--------|----------|-------------------------------------------------------------------------------------------------|
-| `aggregator` | Object | Yes      | Specifies how to combine a record of this stream with the aggregate                             |
-| `stream`     | String | No       | The name of a grouped stream, saved with `as` in an earlier pipeline, to add to the cogroup     |
+| Parameter    | Type   | Required                           | Description                                                                       |
+|--------------|--------|------------------------------------|-----------------------------------------------------------------------------------|
+| `aggregator` | Object | Yes                                | Specifies how to combine a record of this stream with the aggregate               |
+| `stream`     | String | Yes, except on the first `cogroup` | The `as` name of a grouped stream from an earlier pipeline, to add to the cogroup |
 
 Unlike `merge` and `join`, `stream` is not a name from `streams:`. It is the `as` name of a grouped stream.
 
