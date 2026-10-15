@@ -520,7 +520,7 @@ Aggregates records by key using a custom aggregation function.
 | `store`       | Object | Yes                          | The state store that keeps the aggregation result                                                                                       |
 | `merger`      | Object | Only after `windowBySession` | Specifies how to combine two session results when sessions merge                                                                        |
 
-Both `initializer` and `aggregator` can be defined using:
+The `initializer`, `aggregator` and `merger` can be defined using:
 
 - `expression`: A simple expression
 - `code`: A Python code block
@@ -555,8 +555,8 @@ The streams in a cogroup:
 - must have the same key type, and may have different value types
 - can each be added only once, with one aggregator
 - must be co-partitioned: their topics need the same number of partitions and the same partitioning. Kafka Streams does not always check this. If the partition counts differ, one key can get two separate totals, without any error
-- must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
-- must all be added in one pipeline. After a pipeline adds a stream to a saved cogroup, later pipelines cannot use that cogroup
+- except the first one, must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
+- can be added to a saved cogroup by only one later pipeline. After that pipeline adds a stream, other later pipelines cannot use that cogroup
 
 #### Example
 
