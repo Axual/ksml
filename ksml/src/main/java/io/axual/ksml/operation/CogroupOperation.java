@@ -102,7 +102,7 @@ public class CogroupOperation extends BaseOperation {
         try {
             wrapper = context.getStreamWrapper(stream, null);
         } catch (TopologyException e) {
-            throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition", e);
+            throw topologyError(streamLabel() + " not found as a grouped stream saved with \"as\". Group a stream with groupBy or groupByKey and save it with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition", e);
         }
         if (wrapper instanceof KGroupedStreamWrapper grouped) return grouped;
         throw topologyError(streamLabel() + " must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
