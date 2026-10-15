@@ -101,7 +101,7 @@ class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("a pipeline that continues from a cogrouped stream that another pipeline added a stream to fails the topology build")
     void cogroupedStreamExtendedByOtherPipelineIsRejected() throws Exception {
-        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-used-twice.yaml"))
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-extended-twice.yaml"))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("with_third")
                 .hasMessageContaining("already has a stream added by another pipeline");
