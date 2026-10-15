@@ -75,6 +75,7 @@ public class WindowByTimeOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(CogroupedKStreamWrapper input, TopologyBuildContext context) {
+        input.markUsed();
         final var k = input.keyType();
         final var v = input.valueType();
 

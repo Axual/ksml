@@ -90,17 +90,29 @@ class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("cogroup with a stream that a later pipeline saves fails the topology build")
     void cogroupStreamSavedByLaterPipelineIsRejected() throws Exception {
-        final var uri = ClassLoader.getSystemResource("pipelines/test-cogroup-wrong-order.yaml").toURI();
-        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
-        final var definitions = ImmutableMap.of("definition",
-                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
-        final var topologyGenerator = new TopologyGenerator("cogroup.wrong.order.app");
-
-        assertThatThrownBy(() -> topologyGenerator.create(streamsBuilder, definitions))
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-wrong-order.yaml"))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("grouped_refunds")
                 .hasMessageContaining("not found")
                 .hasMessageContaining("defined before this one");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("two pipelines that continue from the same cogrouped stream fail the topology build")
+    void cogroupedStreamUsedByTwoPipelinesIsRejected() throws Exception {
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-used-twice.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("with_third")
+                .hasMessageContaining("already used by another pipeline");
+    }
+
+    private void createTopology(String resource) throws Exception {
+        final var uri = ClassLoader.getSystemResource(resource).toURI();
+        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
+        final var definitions = ImmutableMap.of("definition",
+                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
+        new TopologyGenerator("some.app.id").create(streamsBuilder, definitions);
     }
 
     /**

@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
@@ -43,6 +44,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.axual.ksml.operation.OperationTestSupport.aggregator;
+import static io.axual.ksml.operation.OperationTestSupport.cogroupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
 import static io.axual.ksml.operation.OperationTestSupport.initializer;
@@ -57,6 +59,7 @@ import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.windowStore;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -124,6 +127,19 @@ class AggregateOperationTest extends OperationTestBase {
 
         assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         verify(cogrouped).aggregate(any(Initializer.class), any(Named.class));
+    }
+
+    @Test
+    @DisplayName("aggregate on a cogrouped stream that another pipeline already continued from is rejected")
+    void applyToUsedCogroupedStreamIsRejected() {
+        final var input = cogroupedStream();
+        final var context = mockContext();
+        operation().apply(input, context);
+        final var second = operation();
+
+        assertThatThrownBy(() -> second.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already used by another pipeline");
     }
 
     @Test

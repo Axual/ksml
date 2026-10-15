@@ -165,6 +165,21 @@ class CogroupOperationTest extends OperationTestBase {
     }
 
     @Test
+    @DisplayName("cogroup on a cogrouped stream that another pipeline already continued from is rejected")
+    @SuppressWarnings("unchecked")
+    void applyToUsedCogroupedStreamIsRejected() {
+        final var context = mockContext();
+        when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(groupedStream());
+        final var input = cogroupedStreamReturning(mock(CogroupedKStream.class), key(), value());
+        operation(SAVED_STREAM).apply(input, context);
+        final var second = operation(SAVED_STREAM);
+
+        assertThatThrownBy(() -> second.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already used by another pipeline");
+    }
+
+    @Test
     @DisplayName("the added grouped stream may have a different value type than the cogrouped stream")
     @SuppressWarnings("unchecked")
     void applyToCogroupedStreamAcceptsOtherValueType() {

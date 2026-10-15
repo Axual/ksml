@@ -21,6 +21,7 @@ package io.axual.ksml.stream;
  */
 
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
@@ -34,6 +35,9 @@ public class CogroupedKStreamWrapper extends BaseStreamWrapper {
     // The grouped streams in this cogroup. Kafka Streams keeps one aggregator per grouped stream, so adding the same
     // grouped stream again would silently replace its aggregator.
     public final List<KGroupedStream<Object, Object>> groupedStreams;
+    // Kafka Streams changes a cogrouped stream in place, so a second pipeline that continues from the same cogrouped
+    // stream (saved with "as") would also change the result of the first one
+    private boolean used = false;
 
     public CogroupedKStreamWrapper(CogroupedKStream<Object, Object> cogroupedStream, List<KGroupedStream<Object, Object>> groupedStreams, StreamDataType key, StreamDataType value) {
         super("CogroupedStream", key, value);
@@ -42,7 +46,14 @@ public class CogroupedKStreamWrapper extends BaseStreamWrapper {
     }
 
     public boolean contains(KGroupedStream<Object, Object> groupedStream) {
-        return groupedStreams.stream().anyMatch(s -> s == groupedStream);
+        return groupedStreams.contains(groupedStream);
+    }
+
+    public void markUsed() {
+        if (used) {
+            throw new TopologyException(this + " is already used by another pipeline. Add all streams to a cogroup in one pipeline");
+        }
+        used = true;
     }
 
     @Override

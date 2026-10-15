@@ -1,0 +1,84 @@
+# Two pipelines continue from the same cogrouped stream, saved with "as". Kafka Streams changes a cogrouped stream in
+# place, so the grouped stream added by the first pipeline would also be part of the second one.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  third_stream:
+    topic: third_topic
+    keyType: string
+    valueType: long
+  first_output:
+    topic: first_output_topic
+    keyType: string
+    valueType: long
+  second_output:
+    topic: second_output_topic
+    keyType: string
+    valueType: long
+
+functions:
+  init_total:
+    type: initializer
+    expression: 0
+    resultType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupByKey
+    as: grouped_second
+
+  grouped_third:
+    from: third_stream
+    via:
+      - type: groupByKey
+    as: grouped_third
+
+  cogrouped_first:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+    as: cogrouped_first
+
+  with_second:
+    from: cogrouped_first
+    via:
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: first_store
+          type: keyValue
+      - type: toStream
+    to: first_output
+
+  with_third:
+    from: cogrouped_first
+    via:
+      - type: cogroup
+        stream: grouped_third
+        aggregator:
+          expression: aggregatedValue + value * 100
+          resultType: long
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: second_store
+          type: keyValue
+      - type: toStream
+    to: second_output

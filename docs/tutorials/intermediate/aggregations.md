@@ -880,7 +880,7 @@ graph TB
 
 The output topic gets `alice` with totals −20.0, 30.0 and 23.0. Other keys have their own value in the store and are updated the same way. Because the store has `caching: true`, updates to the same key that happen close together may be combined, so the output can skip some intermediate values. The store itself is always updated by every message.
 
-> **Note:** The pipeline that saves a grouped stream with `as` must be defined before the pipeline that uses it in a `cogroup`, in the same definition file. All cogrouped streams must have the same key type, and their topics must be co-partitioned. Make sure the aggregator functions handle null values.
+> **Note:** The pipeline that saves a grouped stream with `as` must be defined before the pipeline that uses it in a `cogroup`, in the same definition file. All cogrouped streams must have the same key type, and their topics must be co-partitioned. Add all streams to a cogroup in one pipeline.
 
 ## Complex Example: Regional Sales Analytics
 
