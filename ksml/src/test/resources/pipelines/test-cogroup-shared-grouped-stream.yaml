@@ -1,0 +1,79 @@
+# One saved grouped stream is added to two separate cogroups, each with its own aggregator.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  third_stream:
+    topic: third_topic
+    keyType: string
+    valueType: long
+  first_output:
+    topic: first_output_topic
+    keyType: string
+    valueType: long
+  second_output:
+    topic: second_output_topic
+    keyType: string
+    valueType: long
+
+functions:
+  init_total:
+    type: initializer
+    expression: 0
+    resultType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupByKey
+    as: grouped_second
+
+  first_with_second:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: first_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: first_output
+
+  third_with_second:
+    from: third_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 100
+          resultType: long
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: second_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: second_output

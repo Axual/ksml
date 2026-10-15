@@ -114,4 +114,19 @@ class KSMLCogroupTest {
                 new KeyValue<>("key1", 1001L),
                 new KeyValue<>("key1", 1003L));
     }
+
+    @KSMLTest(topology = "pipelines/test-cogroup-shared-grouped-stream.yaml")
+    @DisplayName("one saved grouped stream can be added to two separate cogroups, each with its own aggregator")
+    void testCogroupSharedGroupedStream() {
+        firstInput.pipeInput("key1", 1L);
+        secondInput.pipeInput("key1", 2L);
+        thirdInput.pipeInput("key1", 3L);
+
+        assertThat(firstOutputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", 1L),
+                new KeyValue<>("key1", 21L));
+        assertThat(secondOutputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", 200L),
+                new KeyValue<>("key1", 203L));
+    }
 }
