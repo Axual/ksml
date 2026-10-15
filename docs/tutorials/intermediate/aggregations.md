@@ -816,13 +816,13 @@ The example has two pipelines:
 2. `customer_order_totals` groups the orders by key with `groupByKey`, then:
     1. The first `cogroup` adds the grouped orders with the `aggregate_orders` aggregator
     2. The second `cogroup` adds the saved grouped refunds with `stream: grouped_refunds` and the `aggregate_refunds` aggregator
-    3. The final `aggregate` operation creates the result table and its store. It takes only the initializer, because the aggregators are already set in the `cogroup` steps
+    3. The final `aggregate` operation creates the result table and its store. It takes the initializer and the store, but no aggregator, because the aggregators are already set in the `cogroup` steps
 
 The `groupByKey` and `cogroup` steps do not store messages or run one after another for each message. Together with `aggregate`, they build a single aggregation with two inputs. Each message is handled as soon as it arrives:
 
 1. If the store has no value for the key yet, `init_order_stats` creates the start value. This happens once per key, for the first message from either stream
 2. Only the aggregator of the message's own stream runs: `aggregate_orders` for an order, `aggregate_refunds` for a refund. It updates the stored value of the key
-3. The updated value is sent to the output topic
+3. The store keeps the updated value. `toStream` sends it to the output topic (see the note on caching below)
 
 The diagram below follows three messages for `alice` in the order they arrive. The first one is a refund, so the total goes below zero before the first order arrives:
 
