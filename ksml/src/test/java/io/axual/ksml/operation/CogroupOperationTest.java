@@ -218,7 +218,8 @@ class CogroupOperationTest extends OperationTestBase {
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining(SAVED_STREAM)
                 .hasMessageContaining("not found")
-                .hasMessageContaining("defined before this one");
+                .hasMessageContaining("defined before this one")
+                .hasNoCause();
     }
 
     @Test
