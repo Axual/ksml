@@ -814,75 +814,71 @@ The example has two pipelines:
 2. `customer_order_totals` groups the orders by key with `groupByKey`, then:
     1. The first `cogroup` adds the grouped orders with the `aggregate_orders` aggregator
     2. The second `cogroup` adds the saved grouped refunds with `stream: grouped_refunds` and the `aggregate_refunds` aggregator
-    3. The final `aggregate` operation uses the initializer and keeps one result per key
+    3. The final `aggregate` operation creates the result table and its store. It takes only the initializer, because the aggregators are already set in the `cogroup` steps
 
-Each message updates the aggregate of its key, using the aggregator of its own stream. The diagram below follows three orders and two refunds through the pipelines. It shows how the messages are grouped by key in each stream, how `cogroup` combines the groups with the same key, and which aggregator handles each message. Every message sends an updated total for its key. The diagram shows the last one:
+The `groupByKey` and `cogroup` steps do not store messages or run one after another for each message. Together with `aggregate`, they build a single aggregation with two inputs. Each message is handled as soon as it arrives:
+
+1. If the store has no value for the key yet, `init_order_stats` creates the start value. This happens once per key, for the first message from either stream
+2. Only the aggregator of the message's own stream runs: `aggregate_orders` for an order, `aggregate_refunds` for a refund. It updates the stored value of the key
+3. The updated value is sent to the output topic
+
+The diagram below follows three messages for `alice` in the order they arrive. The first one is a refund, so the total goes below zero before the first order arrives:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
 graph TB
-    %% Input topics with example messages
+    %% Input topics with example messages, numbered in arrival order
     OrdersTopic[(customer_orders)]
-    Orders@{ shape: docs, label: "<b>key: alice</b> amount 50.0<br/><b>key: bob</b> amount 40.0<br/><b>key: alice</b> amount 30.0" }
+    Orders@{ shape: doc, label: "② <b>key: alice</b> amount 50.0" }
     RefundsTopic[(customer_refunds)]
-    Refunds@{ shape: docs, label: "<b>key: alice</b> amount 20.0<br/><b>key: bob</b> amount 10.0" }
+    Refunds@{ shape: docs, label: "① <b>key: alice</b> amount 20.0<br/>③ <b>key: alice</b> amount 7.0" }
 
-    %% Step 1: group each stream by key
+    %% Group each stream by key, without storing the messages
     GroupOrders[<code>groupByKey</code>]
     GroupRefunds["<code>groupByKey</code><br/>as: grouped_refunds"]
-    subgraph OrdersByKey["Orders grouped by key"]
-        AliceOrders@{ shape: docs, label: "<b>key: alice</b><br/>50.0, 30.0" }
-        BobOrders@{ shape: doc, label: "<b>key: bob</b><br/>40.0" }
-    end
-    subgraph RefundsByKey["Refunds grouped by key"]
-        AliceRefunds@{ shape: doc, label: "<b>key: alice</b><br/>20.0" }
-        BobRefunds@{ shape: doc, label: "<b>key: bob</b><br/>10.0" }
-    end
 
-    %% Step 2: cogroup the grouped streams, each with its own aggregator
-    CogroupOrders["<code>cogroup</code><br/>aggregator: aggregate_orders"]
-    CogroupRefunds["<code>cogroup</code><br/>stream: grouped_refunds<br/>aggregator: aggregate_refunds"]
-    subgraph Cogrouped["Cogrouped by key"]
-        AliceCogrouped@{ shape: docs, label: "<b>key: alice</b><br/>order 50.0 → aggregate_orders<br/>order 30.0 → aggregate_orders<br/>refund 20.0 → aggregate_refunds" }
-        BobCogrouped@{ shape: docs, label: "<b>key: bob</b><br/>order 40.0 → aggregate_orders<br/>refund 10.0 → aggregate_refunds" }
+    %% One aggregation with two inputs, each with its own aggregator
+    subgraph Aggregation["<code>cogroup</code> + <code>aggregate</code>: one aggregation, two inputs"]
+        Init["<code>init_order_stats</code><br/>start value for a new key"]
+        AggOrders["<code>aggregate_orders</code><br/>from the first <code>cogroup</code>"]
+        AggRefunds["<code>aggregate_refunds</code><br/>from the second <code>cogroup</code>"]
     end
-
-    %% Step 3: one aggregate per key, starting from the initializer
-    Aggregate["<code>aggregate</code><br/>initializer: init_order_stats"]
     Store[(customer_totals_store)]
-    subgraph Totals["Latest result per key"]
-        AliceResult["<b>alice</b><br/>0.0 + 50.0 + 30.0 − 20.0<br/>total_amount: 60.0<br/>order_count: 2<br/>refund_count: 1"]
-        BobResult["<b>bob</b><br/>0.0 + 40.0 − 10.0<br/>total_amount: 30.0<br/>order_count: 1<br/>refund_count: 1"]
+
+    %% Value of alice in the store after each message
+    subgraph Updates["alice in customer_totals_store after each message"]
+        direction LR
+        Step1["① refund 20.0<br/>new key: start from 0.0<br/>0.0 − 20.0<br/>total_amount: −20.0<br/>order_count: 0<br/>refund_count: 1"]
+        Step2["② order 50.0<br/>−20.0 + 50.0<br/>total_amount: 30.0<br/>order_count: 1<br/>refund_count: 1"]
+        Step3["③ refund 7.0<br/>30.0 − 7.0<br/>total_amount: 23.0<br/>order_count: 1<br/>refund_count: 2"]
+        Step1 --> Step2 --> Step3
     end
 
-    %% Step 4: write to the output topic
     OutputTopic[(customer_totals)]
 
     %% Data Flow
-    OrdersTopic --> Orders --> GroupOrders --> AliceOrders & BobOrders
-    RefundsTopic --> Refunds --> GroupRefunds --> AliceRefunds & BobRefunds
-    AliceOrders & BobOrders --> CogroupOrders
-    CogroupOrders --> CogroupRefunds
-    AliceRefunds & BobRefunds --> CogroupRefunds
-    CogroupRefunds --> AliceCogrouped & BobCogrouped
-    AliceCogrouped & BobCogrouped --> Aggregate
-    Aggregate <-->|"one result per key"| Store
-    Aggregate --> AliceResult & BobResult
-    AliceResult & BobResult -->|"<code>toStream</code>"| OutputTopic
+    OrdersTopic --> Orders --> GroupOrders -->|"each order"| AggOrders
+    RefundsTopic --> Refunds --> GroupRefunds -->|"each refund"| AggRefunds
+    Init -.->|"first message of a key"| AggOrders & AggRefunds
+    AggOrders <-->|"read and update alice"| Store
+    AggRefunds <-->|"read and update alice"| Store
+    Store --> Updates
+    Updates -->|"<code>toStream</code>: every update"| OutputTopic
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
 
     class OrdersTopic,RefundsTopic,OutputTopic topic
-    class GroupOrders,GroupRefunds,CogroupOrders,CogroupRefunds,Aggregate operation
+    class GroupOrders,GroupRefunds,Init,AggOrders,AggRefunds operation
     class Store store
-    class Orders,Refunds,AliceOrders,BobOrders,AliceRefunds,BobRefunds,AliceCogrouped,BobCogrouped message
-    class AliceResult,BobResult result
-    style OrdersByKey fill:none,stroke:#616161,stroke-dasharray:5 5
-    style RefundsByKey fill:none,stroke:#616161,stroke-dasharray:5 5
-    style Cogrouped fill:none,stroke:#616161,stroke-dasharray:5 5
-    style Totals fill:none,stroke:#616161,stroke-dasharray:5 5
+    class Orders,Refunds message
+    class Step1,Step2 partial
+    class Step3 result
+    style Aggregation fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Updates fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
+
+The output topic gets `alice` with totals −20.0, 30.0 and 23.0. Other keys have their own value in the store and are updated the same way. Because the store has `caching: true`, updates to the same key that happen close together may be combined, so the output can skip some intermediate values. The store itself is always updated by every message.
 
 > **Note:** The pipeline that saves a grouped stream with `as` must be defined before the pipeline that uses it in a `cogroup`, in the same definition file. All cogrouped streams must have the same key type, and their topics must be co-partitioned. Make sure the aggregator functions handle null values.
 
