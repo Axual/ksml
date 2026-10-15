@@ -554,7 +554,7 @@ The streams in a cogroup:
 - can each be added only once, with one aggregator
 - must be co-partitioned: their topics need the same number of partitions and the same partitioning
 - must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
-- must all be added in one pipeline: a cogrouped stream saved with `as` can be continued by only one other pipeline
+- must all be added in one pipeline: after a pipeline adds a stream to a cogrouped stream saved with `as`, no other pipeline can use that cogrouped stream
 
 #### Example
 

@@ -79,7 +79,7 @@ public class CogroupOperation extends BaseOperation {
             throw topologyError("Cogroup on a cogrouped stream requires \"stream\": the name of a grouped stream saved with \"as\" in an earlier pipeline");
         }
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
-        input.markUsed();
+        input.markExtended();
         final var other = lookupGroupedStream(context);
         if (input.contains(other.groupedStream)) {
             throw topologyError(streamLabel() + " is already part of this cogroup. Each grouped stream can be added only once, with one aggregator");

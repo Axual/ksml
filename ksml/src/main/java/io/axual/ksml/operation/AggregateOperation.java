@@ -216,7 +216,7 @@ public class AggregateOperation extends StoreOperation {
          *          final Materialized<K, VOut, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
-        input.markUsed();
+        input.checkNotExtended();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var vout = input.valueType();

@@ -1,5 +1,5 @@
-# Two pipelines continue from the same cogrouped stream, saved with "as". Kafka Streams changes a cogrouped stream in
-# place, so the grouped stream added by the first pipeline would also be part of the second one.
+# Two pipelines continue from the same cogrouped stream, saved with "as", and both add a stream. Kafka Streams changes a
+# cogrouped stream in place, so the grouped stream added by the first pipeline would also be part of the second one.
 streams:
   first_stream:
     topic: first_topic

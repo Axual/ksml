@@ -130,16 +130,26 @@ class AggregateOperationTest extends OperationTestBase {
     }
 
     @Test
-    @DisplayName("aggregate on a cogrouped stream that another pipeline already continued from is rejected")
-    void applyToUsedCogroupedStreamIsRejected() {
+    @DisplayName("aggregate on a cogrouped stream that another pipeline added a stream to is rejected")
+    void applyToExtendedCogroupedStreamIsRejected() {
+        final var input = cogroupedStream();
+        input.markExtended();
+        final var operation = operation();
+        final var context = mockContext();
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already has a stream added by another pipeline");
+    }
+
+    @Test
+    @DisplayName("two aggregates on the same cogrouped stream are allowed")
+    void applyTwiceToCogroupedStreamIsAllowed() {
         final var input = cogroupedStream();
         final var context = mockContext();
         operation().apply(input, context);
-        final var second = operation();
 
-        assertThatThrownBy(() -> second.apply(input, context))
-                .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("already used by another pipeline");
+        assertThat(operation().apply(input, context)).isInstanceOf(KTableWrapper.class);
     }
 
     @Test
