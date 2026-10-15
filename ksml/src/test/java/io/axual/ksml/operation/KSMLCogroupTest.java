@@ -79,4 +79,19 @@ class KSMLCogroupTest {
                 new KeyValue<>("key1@120000", 3L),
                 new KeyValue<>("key1@120000", 43L));
     }
+
+    @KSMLTest(topology = "pipelines/test-cogroup-session-windowed.yaml")
+    @DisplayName("cogroup followed by windowBySession aggregates both streams per session")
+    void testCogroupWindowBySession() {
+        final var start = Instant.ofEpochMilli(60_000);
+        firstInput.pipeInput("key1", 1L, start);
+        secondInput.pipeInput("key1", 2L, start.plusSeconds(10));
+        firstInput.pipeInput("key1", 3L, start.plusSeconds(300));
+
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1@60000", 1L),
+                new KeyValue<>("key1@60000", null),
+                new KeyValue<>("key1@60000", 21L),
+                new KeyValue<>("key1@360000", 3L));
+    }
 }

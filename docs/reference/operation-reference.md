@@ -535,7 +535,7 @@ Both `initializer` and `aggregator` can be defined using:
 
 ### `cogroup`
 
-Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A `cogroup` is always followed by `aggregate`, which provides the initializer, optionally after `windowByTime` or `windowBySession`.
+Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A `cogroup` is always followed by `aggregate`, which provides the initializer, optionally after `windowByTime` or `windowBySession`. After `windowBySession`, `aggregate` also needs a `merger`.
 
 #### Parameters
 

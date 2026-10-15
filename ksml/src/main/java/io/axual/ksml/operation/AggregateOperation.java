@@ -255,7 +255,7 @@ public class AggregateOperation extends StoreOperation {
         final var v = input.valueType();
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
         final var userInit = new UserInitializer(init, tags);
-        final var merg = userFunctionOf(context, MERGER_NAME, merger, v);
+        final var merg = userFunctionOf(context, MERGER_NAME, merger, v, superOf(k), equalTo(v), superOf(v));
         final var userMerg = new UserMerger(merg, tags);
         final var sessionStore = validateSessionStore(store(), k, v);
         final var mat = materializedOf(context, sessionStore);

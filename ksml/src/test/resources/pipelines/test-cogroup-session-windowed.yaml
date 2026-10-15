@@ -1,0 +1,60 @@
+# Cogroup two grouped streams and aggregate them in session windows.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+functions:
+  merge_totals:
+    type: merger
+    expression: value1 + value2
+    resultType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupByKey
+    as: grouped_second
+
+  main:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+      - type: windowBySession
+        inactivityGap: 1m
+        grace: 0s
+      - type: aggregate
+        initializer:
+          expression: 0
+          resultType: long
+        merger: merge_totals
+        store:
+          name: cogroup_session_store
+          type: session
+          retention: 10m
+          caching: false
+      - type: toStream
+      - type: mapKey
+        mapper:
+          expression: key["key"] + "@" + str(key["start"])
+          resultType: string
+    to: output_stream
