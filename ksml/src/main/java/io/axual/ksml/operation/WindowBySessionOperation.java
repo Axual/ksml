@@ -61,6 +61,6 @@ public class WindowBySessionOperation extends BaseOperation {
          *          final SessionWindows windows)
          */
 
-        return new SessionWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(sessionWindows), k, v);
+        return new SessionWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(sessionWindows), input, k, v);
     }
 }

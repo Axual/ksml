@@ -249,6 +249,7 @@ public class AggregateOperation extends StoreOperation {
          *          final Materialized<K, V, SessionStore<Bytes, byte[]>> materialized)
          */
 
+        input.source.checkNotExtended();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         checkNotNull(merger, MERGER_NAME.toLowerCase());
         final var k = input.keyType();
@@ -283,6 +284,7 @@ public class AggregateOperation extends StoreOperation {
          *          final Materialized<K, V, WindowStore<Bytes, byte[]>> materialized)
          */
 
+        input.source.checkNotExtended();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();

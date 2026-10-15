@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.SlidingWindows;
@@ -34,6 +35,7 @@ import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class WindowByTimeOperationTest extends OperationTestBase {
 
@@ -64,5 +66,25 @@ class WindowByTimeOperationTest extends OperationTestBase {
     void applyTimeWindowsToCogroupedStreamReturnsTimeWindowedCogrouped() {
         final var operation = new WindowByTimeOperation(operationConfig("windowByTime"), timeWindows());
         assertThat(operation.apply(cogroupedStream(), mockContext())).isInstanceOf(TimeWindowedCogroupedKStreamWrapper.class);
+    }
+
+    @Test
+    @DisplayName("windowing a cogrouped stream keeps the cogrouped stream as its source")
+    void applyToCogroupedStreamKeepsSource() {
+        final var operation = new WindowByTimeOperation(operationConfig("windowByTime"), timeWindows());
+        final var input = cogroupedStream();
+        assertThat(((TimeWindowedCogroupedKStreamWrapper) operation.apply(input, mockContext())).source).isSameAs(input);
+    }
+
+    @Test
+    @DisplayName("windowByTime on a cogrouped stream that another pipeline added a stream to is rejected")
+    void applyToExtendedCogroupedStreamIsRejected() {
+        final var operation = new WindowByTimeOperation(operationConfig("windowByTime"), timeWindows());
+        final var input = cogroupedStream();
+        input.markExtended();
+        final var context = mockContext();
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already has a stream added by another pipeline");
     }
 }

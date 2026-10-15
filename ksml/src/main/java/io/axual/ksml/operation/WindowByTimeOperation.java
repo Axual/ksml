@@ -85,7 +85,7 @@ public class WindowByTimeOperation extends BaseOperation {
              *          final SlidingWindows windows)
              */
 
-            return new TimeWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(slidingWindows), k, v);
+            return new TimeWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(slidingWindows), input, k, v);
         }
 
         if (timeWindows != null) {
@@ -94,7 +94,7 @@ public class WindowByTimeOperation extends BaseOperation {
              *          final Windows<W> windows)
              */
 
-            return new TimeWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(timeWindows), k, v);
+            return new TimeWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(timeWindows), input, k, v);
         }
 
         throw new TopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);

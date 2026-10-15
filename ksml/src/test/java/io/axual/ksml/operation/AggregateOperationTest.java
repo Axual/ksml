@@ -57,6 +57,7 @@ import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowedCogrouped;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
+import static io.axual.ksml.operation.OperationTestSupport.timeWindowedCogrouped;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.windowStore;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -168,10 +169,36 @@ class AggregateOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToTimeWindowedCogroupedCallsAggregate() {
         final TimeWindowedCogroupedKStream<Object, Object> cogrouped = mock(TimeWindowedCogroupedKStream.class);
-        final var input = new TimeWindowedCogroupedKStreamWrapper(cogrouped, key(), value());
+        final var input = new TimeWindowedCogroupedKStreamWrapper(cogrouped, cogroupedStream(), key(), value());
 
         assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         verify(cogrouped).aggregate(any(Initializer.class), any(Named.class));
+    }
+
+    @Test
+    @DisplayName("aggregate on a time-windowed cogrouped stream whose cogroup another pipeline added a stream to is rejected")
+    void applyToTimeWindowedCogroupedOfExtendedCogroupIsRejected() {
+        final var input = timeWindowedCogrouped();
+        input.source.markExtended();
+        final var operation = operation();
+        final var context = mockContext();
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already has a stream added by another pipeline");
+    }
+
+    @Test
+    @DisplayName("aggregate on a session-windowed cogrouped stream whose cogroup another pipeline added a stream to is rejected")
+    void applyToSessionWindowedCogroupedOfExtendedCogroupIsRejected() {
+        final var input = sessionWindowedCogrouped();
+        input.source.markExtended();
+        final var operation = operation();
+        final var context = mockContext();
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already has a stream added by another pipeline");
     }
 
     @Test

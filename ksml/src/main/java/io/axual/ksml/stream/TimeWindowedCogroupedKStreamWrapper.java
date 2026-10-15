@@ -28,10 +28,13 @@ import org.apache.kafka.streams.kstream.TimeWindowedCogroupedKStream;
 
 public class TimeWindowedCogroupedKStreamWrapper extends BaseStreamWrapper {
     public final TimeWindowedCogroupedKStream<Object, Object> timeWindowedCogroupedKStream;
+    // The cogrouped stream this window is made from. Kafka Streams shares its grouped streams with this window
+    public final CogroupedKStreamWrapper source;
 
-    public TimeWindowedCogroupedKStreamWrapper(TimeWindowedCogroupedKStream<Object, Object> timeWindowedCogroupedKStream, StreamDataType key, StreamDataType value) {
+    public TimeWindowedCogroupedKStreamWrapper(TimeWindowedCogroupedKStream<Object, Object> timeWindowedCogroupedKStream, CogroupedKStreamWrapper source, StreamDataType key, StreamDataType value) {
         super("TimeWindowedCogroupedStream", key, value);
         this.timeWindowedCogroupedKStream = timeWindowedCogroupedKStream;
+        this.source = source;
     }
 
     @Override

@@ -107,6 +107,16 @@ class TopologyGeneratorBasicTest {
                 .hasMessageContaining("already has a stream added by another pipeline");
     }
 
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("aggregating a saved window of a cogroup that another pipeline added a stream to fails the topology build")
+    void windowedCogroupOfExtendedCogroupIsRejected() throws Exception {
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-windowed-extended.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("windowed_totals")
+                .hasMessageContaining("already has a stream added by another pipeline");
+    }
+
     private void createTopology(String resource) throws Exception {
         final var uri = ClassLoader.getSystemResource(resource).toURI();
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);

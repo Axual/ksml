@@ -28,10 +28,13 @@ import org.apache.kafka.streams.kstream.SessionWindowedCogroupedKStream;
 
 public class SessionWindowedCogroupedKStreamWrapper extends BaseStreamWrapper {
     public final SessionWindowedCogroupedKStream<Object, Object> sessionWindowedCogroupedKStream;
+    // The cogrouped stream this window is made from. Kafka Streams shares its grouped streams with this window
+    public final CogroupedKStreamWrapper source;
 
-    public SessionWindowedCogroupedKStreamWrapper(SessionWindowedCogroupedKStream<Object, Object> sessionWindowedCogroupedKStream, StreamDataType key, StreamDataType value) {
+    public SessionWindowedCogroupedKStreamWrapper(SessionWindowedCogroupedKStream<Object, Object> sessionWindowedCogroupedKStream, CogroupedKStreamWrapper source, StreamDataType key, StreamDataType value) {
         super("SessionWindowedCogroupedStream", key, value);
         this.sessionWindowedCogroupedKStream = sessionWindowedCogroupedKStream;
+        this.source = source;
     }
 
     @Override

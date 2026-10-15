@@ -365,11 +365,11 @@ final class OperationTestSupport {
 
     @SuppressWarnings("unchecked")
     static SessionWindowedCogroupedKStreamWrapper sessionWindowedCogrouped() {
-        return new SessionWindowedCogroupedKStreamWrapper(mock(SessionWindowedCogroupedKStream.class), key(), value());
+        return new SessionWindowedCogroupedKStreamWrapper(mock(SessionWindowedCogroupedKStream.class), cogroupedStream(), key(), value());
     }
 
     @SuppressWarnings("unchecked")
     static TimeWindowedCogroupedKStreamWrapper timeWindowedCogrouped() {
-        return new TimeWindowedCogroupedKStreamWrapper(mock(TimeWindowedCogroupedKStream.class), key(), value());
+        return new TimeWindowedCogroupedKStreamWrapper(mock(TimeWindowedCogroupedKStream.class), cogroupedStream(), key(), value());
     }
 }
