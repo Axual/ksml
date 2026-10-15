@@ -48,6 +48,12 @@ class KSMLCogroupTest {
     @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
     TestOutputTopic<String, Long> outputTopic;
 
+    @KSMLTopic(topic = "first_output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> firstOutputTopic;
+
+    @KSMLTopic(topic = "second_output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> secondOutputTopic;
+
     @KSMLTest(topology = "pipelines/test-cogroup-three-streams.yaml")
     @DisplayName("cogroup of three streams applies the aggregator of each stream to one aggregate")
     void testCogroupThreeStreams() {
@@ -93,5 +99,19 @@ class KSMLCogroupTest {
                 new KeyValue<>("key1@60000", null),
                 new KeyValue<>("key1@60000", 21L),
                 new KeyValue<>("key1@360000", 3L));
+    }
+
+    @KSMLTest(topology = "pipelines/test-cogroup-two-aggregates.yaml")
+    @DisplayName("two pipelines can each aggregate the same saved cogrouped stream")
+    void testCogroupTwoAggregates() {
+        firstInput.pipeInput("key1", 1L);
+        firstInput.pipeInput("key1", 2L);
+
+        assertThat(firstOutputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", 1L),
+                new KeyValue<>("key1", 3L));
+        assertThat(secondOutputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", 1001L),
+                new KeyValue<>("key1", 1003L));
     }
 }

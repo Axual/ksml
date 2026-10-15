@@ -1,0 +1,53 @@
+# Two pipelines aggregate the same cogrouped stream, saved with "as". Neither adds a stream, so both are allowed.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  first_output:
+    topic: first_output_topic
+    keyType: string
+    valueType: long
+  second_output:
+    topic: second_output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  cogrouped_first:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+    as: cogrouped_first
+
+  total_from_zero:
+    from: cogrouped_first
+    via:
+      - type: aggregate
+        initializer:
+          expression: 0
+          resultType: long
+        store:
+          name: first_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: first_output
+
+  total_from_thousand:
+    from: cogrouped_first
+    via:
+      - type: aggregate
+        initializer:
+          expression: 1000
+          resultType: long
+        store:
+          name: second_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: second_output
