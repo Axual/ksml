@@ -32,6 +32,7 @@ import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,13 +70,7 @@ class TopologyGeneratorBasicTest {
         ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
-        final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
-        final var path = Paths.get(uri);
-        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
-        final var definitions = ImmutableMap.of("definition",
-                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
-        final var topologyGenerator = new TopologyGenerator("some.app.id");
-        final var topology = topologyGenerator.create(streamsBuilder, definitions);
+        final var topology = createTopology("pipelines/" + nr + "-demo.yaml");
         final TopologyDescription description = topology.describe();
         log.info("{}", description);
 
@@ -117,12 +112,12 @@ class TopologyGeneratorBasicTest {
                 .hasMessageContaining("already has a stream added by another pipeline");
     }
 
-    private void createTopology(String resource) throws Exception {
+    private Topology createTopology(String resource) throws Exception {
         final var uri = ClassLoader.getSystemResource(resource).toURI();
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
-        new TopologyGenerator("some.app.id").create(streamsBuilder, definitions);
+        return new TopologyGenerator("some.app.id").create(streamsBuilder, definitions);
     }
 
     /**
