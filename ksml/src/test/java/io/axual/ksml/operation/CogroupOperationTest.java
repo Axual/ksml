@@ -76,11 +76,15 @@ class CogroupOperationTest extends OperationTestBase {
         return new StreamDataType(new UserType(type), isKey);
     }
 
-    @SuppressWarnings("unchecked")
     private static CogroupedKStreamWrapper cogroupedStreamReturning(CogroupedKStream<Object, Object> result, StreamDataType k, StreamDataType v) {
+        return cogroupedStreamReturning(result, List.of(), k, v);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static CogroupedKStreamWrapper cogroupedStreamReturning(CogroupedKStream<Object, Object> result, List<KGroupedStream<Object, Object>> groupedStreams, StreamDataType k, StreamDataType v) {
         final CogroupedKStream<Object, Object> cogrouped = mock(CogroupedKStream.class);
         when(cogrouped.cogroup(any(KGroupedStream.class), any(Aggregator.class))).thenReturn(result);
-        return new CogroupedKStreamWrapper(cogrouped, List.of(), k, v);
+        return new CogroupedKStreamWrapper(cogrouped, groupedStreams, k, v);
     }
 
     @Test
@@ -114,7 +118,8 @@ class CogroupOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToCogroupedStreamAddsSavedGroupedStream() {
         final CogroupedKStream<Object, Object> result = mock(CogroupedKStream.class);
-        final var input = cogroupedStreamReturning(result, key(), value());
+        final var first = groupedStream();
+        final var input = cogroupedStreamReturning(result, List.of(first.groupedStream), key(), value());
         final var saved = groupedStream();
         final var context = mockContext();
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
@@ -123,7 +128,7 @@ class CogroupOperationTest extends OperationTestBase {
 
         assertThat(output).isInstanceOf(CogroupedKStreamWrapper.class);
         assertThat(((CogroupedKStreamWrapper) output).cogroupedStream).isSameAs(result);
-        assertThat(((CogroupedKStreamWrapper) output).groupedStreams).containsExactly(saved.groupedStream);
+        assertThat(((CogroupedKStreamWrapper) output).groupedStreams).containsExactly(first.groupedStream, saved.groupedStream);
         verify(input.cogroupedStream).cogroup(eq(saved.groupedStream), any(Aggregator.class));
     }
 
