@@ -513,10 +513,10 @@ Aggregates records by key using a custom aggregation function.
 
 #### Parameters
 
-| Parameter     | Type   | Required | Description                                                    |
-|---------------|--------|----------|----------------------------------------------------------------|
-| `initializer` | Object | Yes      | Specifies the initial value for the aggregation                |
-| `aggregator`  | Object | Yes      | Specifies how to combine the current record with the aggregate |
+| Parameter     | Type   | Required                    | Description                                                                                                                             |
+|---------------|--------|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `initializer` | Object | Yes                         | Specifies the initial value for the aggregation                                                                                         |
+| `aggregator`  | Object | Yes, except after `cogroup` | Specifies how to combine the current record with the aggregate. Not used after `cogroup`, because each `cogroup` has its own aggregator |
 
 Both `initializer` and `aggregator` can be defined using:
 
@@ -556,7 +556,7 @@ The streams in a cogroup:
 #### Example
 
 ```yaml
---8<-- "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml:58:72"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml:58:78"
 ```
 
 **Full example for `cogroup`**:
