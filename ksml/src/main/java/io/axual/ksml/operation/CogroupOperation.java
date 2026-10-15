@@ -113,4 +113,9 @@ public class CogroupOperation extends BaseOperation {
     private String streamLabel() {
         return "Cogroup stream \"" + stream + "\"";
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + (stream != null ? " [stream=\"" + stream + "\"]" : "");
+    }
 }

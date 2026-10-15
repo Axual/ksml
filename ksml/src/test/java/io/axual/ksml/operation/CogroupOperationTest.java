@@ -223,6 +223,13 @@ class CogroupOperationTest extends OperationTestBase {
     }
 
     @Test
+    @DisplayName("toString shows the stream, so each cogroup step can be told apart in the topology log")
+    void toStringShowsStream() {
+        assertThat(operation(SAVED_STREAM).toString()).endsWith("operation Cogroup [stream=\"" + SAVED_STREAM + "\"]");
+        assertThat(operation().toString()).endsWith("operation Cogroup");
+    }
+
+    @Test
     @DisplayName("cogroup with a stream that is not grouped is rejected")
     void applyToCogroupedStreamWithUngroupedStreamIsRejected() {
         final var operation = operation(SAVED_STREAM);
