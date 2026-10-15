@@ -54,6 +54,7 @@ import static io.axual.ksml.operation.OperationTestSupport.merger;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.sessionStore;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
+import static io.axual.ksml.operation.OperationTestSupport.sessionWindowedCogrouped;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.value;
@@ -150,6 +151,16 @@ class AggregateOperationTest extends OperationTestBase {
         operation().apply(input, context);
 
         assertThat(operation().apply(input, context)).isInstanceOf(KTableWrapper.class);
+    }
+
+    @Test
+    @DisplayName("applying to a session-windowed cogrouped stream invokes aggregate with the merger and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToSessionWindowedCogroupedCallsAggregate() {
+        final var input = sessionWindowedCogrouped();
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(input.sessionWindowedCogroupedKStream).aggregate(any(Initializer.class), any(Merger.class), any(Named.class));
     }
 
     @Test
