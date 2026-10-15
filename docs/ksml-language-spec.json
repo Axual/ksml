@@ -396,7 +396,7 @@
             "$ref" : "#/$defs/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
+          "description" : "(GroupedStream, CogroupedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
         },
         "name" : {
           "description" : "*(optional)* The name of the operation processor",
