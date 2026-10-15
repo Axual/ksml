@@ -403,7 +403,7 @@
           "type" : "string"
         },
         "stream" : {
-          "description" : "*(optional)* The name of a grouped stream, saved with \"as\" in an earlier pipeline, to add to the cogroup. Only allowed on a cogroup that follows another cogroup",
+          "description" : "*(optional)* Name of a grouped stream saved with \"as\" in an earlier pipeline. Required on each cogroup after the first, not allowed on the first",
           "type" : "string"
         },
         "type" : {
