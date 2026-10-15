@@ -22,8 +22,11 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.parser.FieldParsers;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.type.UserType;
 
@@ -45,12 +48,7 @@ public class GlobalTableDefinitionParser extends BaseTableDefinitionParser<Globa
                 timestampExtractorField(),
                 partitionerField(),
                 storeField(),
-                (topic, keyType, valueType, resetPolicy, tsExtractor, partitioner, store, tags) -> {
-                    keyType = resolveUserType(keyType != null ? keyType : UserType.UNKNOWN, topic, true);
-                    valueType = resolveUserType(valueType != null ? valueType : UserType.UNKNOWN, topic, false);
-                    final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
-                    return new GlobalTableDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
-                });
+                this::buildDefinition);
 
         return FieldParsers.structsParser(
                 GlobalTableDefinition.class,
@@ -61,11 +59,31 @@ public class GlobalTableDefinitionParser extends BaseTableDefinitionParser<Globa
                 FieldParsers.optional(valueField()),
                 partitionerField(),
                 storeField(),
-                (topic, keyType, valueType, partitioner, store, tags) -> {
-                    keyType = resolveUserType(keyType != null ? keyType : UserType.UNKNOWN, topic, true);
-                    valueType = resolveUserType(valueType != null ? valueType : UserType.UNKNOWN, topic, false);
-                    // If a backing store is used, then align its name, keyType and valueType to the topic
-                    return new GlobalTableDefinition(topic, keyType, valueType, null, null, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
-                });
+                this::buildJoinTargetDefinition);
+    }
+
+    /**
+     * Builds a {@link GlobalTableDefinition} from its parsed fields, resolving unset key/value
+     * types and aligning a backing store (if any) to the topic's own key/value types.
+     */
+    private GlobalTableDefinition buildDefinition(String topic, UserType keyType, UserType valueType, String resetPolicy,
+                                                  FunctionDefinition tsExtractor, FunctionDefinition partitioner,
+                                                  KeyValueStateStoreDefinition store, MetricTags tags) {
+        keyType = resolveUserType(keyType != null ? keyType : UserType.UNKNOWN, topic, true);
+        valueType = resolveUserType(valueType != null ? valueType : UserType.UNKNOWN, topic, false);
+        final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
+        return new GlobalTableDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
+    }
+
+    /**
+     * Builds a {@link GlobalTableDefinition} referencing an existing table as a join target, with
+     * no reset policy or timestamp extractor of its own.
+     */
+    private GlobalTableDefinition buildJoinTargetDefinition(String topic, UserType keyType, UserType valueType,
+                                                            FunctionDefinition partitioner, KeyValueStateStoreDefinition store, MetricTags tags) {
+        keyType = resolveUserType(keyType != null ? keyType : UserType.UNKNOWN, topic, true);
+        valueType = resolveUserType(valueType != null ? valueType : UserType.UNKNOWN, topic, false);
+        // If a backing store is used, then align its name, keyType and valueType to the topic
+        return new GlobalTableDefinition(topic, keyType, valueType, null, null, partitioner, store != null ? store.with(topic).with(keyType, valueType) : null);
     }
 }

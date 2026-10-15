@@ -152,6 +152,52 @@ class NativeDataObjectMapperTest {
     }
 
     @Test
+    @DisplayName("convertListToDataTuple / convertTupleToDataTuple infer element types when no TupleType is given")
+    void convertToDataTupleInfersElementTypesWhenExpectedIsNull() {
+        log.info("start: convertToDataTupleInfersElementTypesWhenExpectedIsNull");
+        final List<Object> elements = Arrays.asList(
+                null,
+                true,
+                (byte) 1,
+                (short) 2,
+                3,
+                4L,
+                5.0,
+                6.0f,
+                new byte[]{7, 8},
+                "nine",
+                List.of(10, 20),
+                Map.of("key", "value"),
+                new Tuple<Object>(11, "twelve"));
+
+        final var fromList = mapper.convertListToDataTuple(elements, null);
+        assertInferredElementTypes(fromList);
+
+        final var fromTuple = mapper.convertTupleToDataTuple(new Tuple<>(elements.toArray()), null);
+        assertInferredElementTypes(fromTuple);
+        log.info("end: convertToDataTupleInfersElementTypesWhenExpectedIsNull");
+    }
+
+    private void assertInferredElementTypes(DataTuple tuple) {
+        final var softly = new SoftAssertions();
+        final var elts = tuple.elements();
+        softly.assertThat(elts.get(0)).isInstanceOf(DataNull.class);
+        softly.assertThat(elts.get(1)).isInstanceOf(DataBoolean.class);
+        softly.assertThat(elts.get(2)).isInstanceOf(DataByte.class);
+        softly.assertThat(elts.get(3)).isInstanceOf(DataShort.class);
+        softly.assertThat(elts.get(4)).isInstanceOf(DataInteger.class);
+        softly.assertThat(elts.get(5)).isInstanceOf(DataLong.class);
+        softly.assertThat(elts.get(6)).isInstanceOf(DataDouble.class);
+        softly.assertThat(elts.get(7)).isInstanceOf(DataFloat.class);
+        softly.assertThat(elts.get(8)).isInstanceOf(DataBytes.class);
+        softly.assertThat(elts.get(9)).isInstanceOf(DataString.class);
+        softly.assertThat(elts.get(10)).isInstanceOf(DataList.class);
+        softly.assertThat(elts.get(11)).isInstanceOf(DataStruct.class);
+        softly.assertThat(elts.get(12)).isInstanceOf(DataTuple.class);
+        softly.assertAll();
+    }
+
+    @Test
     @DisplayName("fromDataObject returns native for primitives and delegates collections to helper methods")
     void fromDataObjectPrimitiveAndCollections() {
         log.info("start: fromDataObjectPrimitiveAndCollections");
@@ -167,7 +213,7 @@ class NativeDataObjectMapperTest {
         assertThat(unwrappedList).isInstanceOf(List.class);
         final var asList = (List<?>) unwrappedList;
         assertThat(asList).hasSize(1);
-        assertThat(asList.get(0)).isEqualTo("a");
+        assertThat(asList.getFirst()).isEqualTo("a");
 
         final var map = new DataMap(DataType.UNKNOWN);
         map.put("k", new DataInteger(1));
@@ -188,20 +234,24 @@ class NativeDataObjectMapperTest {
         final var actualNative = mapper.fromDataObject(dataInput);
 
         // Special handling for collections and tuple to assert content
-        if (expectedNative instanceof List<?> expectedList) {
-            assertThat(actualNative).isInstanceOf(List.class);
-            assertThat(actualNative).isEqualTo(expectedList);
-        } else if (expectedNative instanceof Map<?, ?> expectedMap) {
-            assertThat(actualNative).isInstanceOf(Map.class);
-            assertThat(actualNative).isEqualTo(expectedMap);
-        } else if (expectedNative instanceof Tuple<?> expectedTuple) {
-            assertThat(actualNative).isInstanceOf(Tuple.class);
-            assertThat(actualNative).isEqualTo(expectedTuple);
-        } else if (expectedNative instanceof byte[] expectedBytes) {
-            assertThat(actualNative).isInstanceOf(byte[].class);
-            assertThat((byte[]) actualNative).isEqualTo(expectedBytes);
-        } else {
-            assertThat(actualNative).isEqualTo(expectedNative);
+        switch (expectedNative) {
+            case List<?> expectedList -> {
+                assertThat(actualNative).isInstanceOf(List.class);
+                assertThat(actualNative).isEqualTo(expectedList);
+            }
+            case Map<?, ?> expectedMap -> {
+                assertThat(actualNative).isInstanceOf(Map.class);
+                assertThat(actualNative).isEqualTo(expectedMap);
+            }
+            case Tuple<?> expectedTuple -> {
+                assertThat(actualNative).isInstanceOf(Tuple.class);
+                assertThat(actualNative).isEqualTo(expectedTuple);
+            }
+            case byte[] expectedBytes -> {
+                assertThat(actualNative).isInstanceOf(byte[].class);
+                assertThat((byte[]) actualNative).isEqualTo(expectedBytes);
+            }
+            case null, default -> assertThat(actualNative).isEqualTo(expectedNative);
         }
         log.info("end: fromDataObjectParameterized - {}", description);
     }
