@@ -10,7 +10,7 @@ Understanding the different types of operations and when to use them is crucial 
 
 ## Operations Overview
 
-KSML supports 28 operations for stream processing. Each operation serves a specific purpose in transforming, filtering, aggregating, or routing data:
+KSML supports 30 operations for stream processing. Each operation serves a specific purpose in transforming, filtering, aggregating, or routing data:
 
 | Operation | Purpose | Common Use Cases |
 |-----------|---------|------------------|
@@ -543,6 +543,8 @@ Combines one or more grouped streams into one aggregation per key. Each stream h
 |--------------|--------|----------|-------------------------------------------------------------------------------------------------|
 | `aggregator` | Object | Yes      | Specifies how to combine a record of this stream with the aggregate                             |
 | `stream`     | String | No       | The name of a grouped stream, saved with `as` in an earlier pipeline, to add to the cogroup     |
+
+Unlike `merge` and `join`, `stream` is not a name from `streams:`. It is the `as` name of a grouped stream.
 
 The first `cogroup` in a pipeline applies to the grouped stream of that pipeline and must not have `stream`. Each following `cogroup` adds another grouped stream and must have `stream`.
 
