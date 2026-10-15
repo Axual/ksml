@@ -90,6 +90,10 @@ public class TopologyBuildContext {
         return resources.namespace();
     }
 
+    public boolean isTopicDefinition(String name) {
+        return resources.topic(name) != null;
+    }
+
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
         resources.register(store.name(), store);
         return StoreUtil.<V>materialize(store).materialized();

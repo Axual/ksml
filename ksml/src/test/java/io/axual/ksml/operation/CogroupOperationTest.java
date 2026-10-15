@@ -218,8 +218,35 @@ class CogroupOperationTest extends OperationTestBase {
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining(SAVED_STREAM)
                 .hasMessageContaining("not found")
-                .hasMessageContaining("defined before this one")
+                .hasMessageContaining("defined before this one, in the same definition file")
                 .hasNoCause();
+    }
+
+    @Test
+    @DisplayName("cogroup with an unknown stream name that is a \"streams:\" entry explains the mistake")
+    void applyToCogroupedStreamWithUnknownStreamsEntryIsRejected() {
+        final var operation = operation(SAVED_STREAM);
+        final var input = cogroupedStream();
+        final var context = mockContext();
+        when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenThrow(new TopologyException("Stream '" + SAVED_STREAM + "' not found"));
+        when(context.isTopicDefinition(SAVED_STREAM)).thenReturn(true);
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("is a stream from \"streams:\", but cogroup needs a grouped stream")
+                .hasNoCause();
+    }
+
+    @Test
+    @DisplayName("cogroup with a \"streams:\" entry that an earlier pipeline reads explains the mistake")
+    void applyToCogroupedStreamWithReadStreamsEntryIsRejected() {
+        final var operation = operation(SAVED_STREAM);
+        final var input = cogroupedStream();
+        final var context = mockContext();
+        when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(kStream());
+        when(context.isTopicDefinition(SAVED_STREAM)).thenReturn(true);
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("is a stream from \"streams:\", but cogroup needs a grouped stream");
     }
 
     @Test

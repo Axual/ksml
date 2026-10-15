@@ -104,10 +104,17 @@ public class CogroupOperation extends BaseOperation {
             wrapper = context.getStreamWrapper(stream, null);
         } catch (TopologyException _) {
             // Not passed on as the cause: the runner prints the deepest cause first, which would hide this message
-            throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one");
+            if (context.isTopicDefinition(stream)) throw notGroupedTopicError();
+            throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition file");
         }
         if (wrapper instanceof KGroupedStreamWrapper grouped) return grouped;
+        if (context.isTopicDefinition(stream)) throw notGroupedTopicError();
         throw topologyError(streamLabel() + " must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
+    }
+
+    // Unlike in merge and join, "stream" is not a name from "streams:", so explain the likely mistake
+    private TopologyException notGroupedTopicError() {
+        return topologyError(streamLabel() + " is a stream from \"streams:\", but cogroup needs a grouped stream. Save \"" + stream + "\" with groupByKey or groupBy and \"as\" in a pipeline before this one");
     }
 
     private String streamLabel() {

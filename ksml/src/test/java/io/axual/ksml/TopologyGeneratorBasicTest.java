@@ -27,6 +27,7 @@ import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
@@ -112,12 +113,34 @@ class TopologyGeneratorBasicTest {
                 .hasMessageContaining("already has a stream added by another pipeline");
     }
 
-    private Topology createTopology(String resource) throws Exception {
-        final var uri = ClassLoader.getSystemResource(resource).toURI();
-        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
-        final var definitions = ImmutableMap.of("definition",
-                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
-        return new TopologyGenerator("some.app.id").create(streamsBuilder, definitions);
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("cogroup with a stream from \"streams:\" fails the topology build with a hint")
+    void cogroupWithStreamsEntryIsRejected() throws Exception {
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-streams-entry.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Cogroup stream \"refunds\" is a stream from \"streams:\"");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("cogroup with a stream that another definition file saves fails the topology build")
+    void cogroupStreamSavedInOtherFileIsRejected() throws Exception {
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-other-file-saves.yaml", "pipelines/test-cogroup-other-file-uses.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("grouped_refunds")
+                .hasMessageContaining("in the same definition file");
+    }
+
+    // Each resource is a separate definition file, built in the given order
+    private Topology createTopology(String... resources) throws Exception {
+        final var definitions = ImmutableMap.<String, TopologyDefinition>builder();
+        for (final var resource : resources) {
+            final var uri = ClassLoader.getSystemResource(resource).toURI();
+            final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
+            definitions.put(resource, new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
+        }
+        return new TopologyGenerator("some.app.id").create(streamsBuilder, definitions.build());
     }
 
     /**
