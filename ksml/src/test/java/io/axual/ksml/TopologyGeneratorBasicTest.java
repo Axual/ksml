@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
@@ -46,6 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
 class TopologyGeneratorBasicTest {
@@ -84,8 +86,25 @@ class TopologyGeneratorBasicTest {
         assertThat(cleanDescription(description.toString())).isEqualTo(reference);
     }
 
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("cogroup with a stream that a later pipeline saves fails the topology build")
+    void cogroupStreamSavedByLaterPipelineIsRejected() throws Exception {
+        final var uri = ClassLoader.getSystemResource("pipelines/test-cogroup-wrong-order.yaml").toURI();
+        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
+        final var definitions = ImmutableMap.of("definition",
+                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
+        final var topologyGenerator = new TopologyGenerator("cogroup.wrong.order.app");
+
+        assertThatThrownBy(() -> topologyGenerator.create(streamsBuilder, definitions))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("grouped_refunds")
+                .hasMessageContaining("not found")
+                .hasMessageContaining("defined before this one");
+    }
+
     /**
-     * Evaluates the condition for the test above.
+     * Evaluates the condition for the tests above.
      */
     static boolean isRunningOnGraalVM() {
         return Version.getCurrent().isRelease();

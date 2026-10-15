@@ -22,31 +22,18 @@ package io.axual.ksml.docs.examples.intermediate_tutorial.aggregations;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
-import org.graalvm.home.Version;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Test for cogroup aggregation with custom aggregators in KSML.
@@ -65,7 +52,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * 4. testCogroupInitializer: initializer creates correct initial state
  * 5. testCogroupCombinesOrdersAndRefunds: orders and refunds update one aggregate, each with its own aggregator
  * 6. testCogroupRefundsPerCustomer: refunds only update the aggregate of their own key
- * 7. testCogroupStreamSavedByLaterPipelineIsRejected: a stream saved by a later pipeline fails the topology build
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -212,27 +198,6 @@ public class CogroupTest {
         assertThat(json.get("total_amount").asDouble()).isEqualTo(175.00);
         assertThat(json.get("order_count").asInt()).isEqualTo(1);
         assertThat(json.get("refund_count").asInt()).isEqualTo(1);
-    }
-
-    @Test
-    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-    void testCogroupStreamSavedByLaterPipelineIsRejected() throws Exception {
-        final var uri = ClassLoader.getSystemResource("pipelines/test-cogroup-wrong-order.yaml").toURI();
-        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
-        final var definitions = ImmutableMap.of("definition",
-                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
-        final var topologyGenerator = new TopologyGenerator("cogroup.wrong.order.app");
-        final var streamsBuilder = new StreamsBuilder();
-
-        assertThatThrownBy(() -> topologyGenerator.create(streamsBuilder, definitions))
-                .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("grouped_refunds")
-                .hasMessageContaining("not found")
-                .hasMessageContaining("defined before this one");
-    }
-
-    static boolean isRunningOnGraalVM() {
-        return Version.getCurrent().isRelease();
     }
 
     private String createOrderJson(String orderId, String customer, double amount) throws Exception {
