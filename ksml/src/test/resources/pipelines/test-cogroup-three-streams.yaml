@@ -1,0 +1,60 @@
+# Cogroup three grouped streams. Each stream has its own aggregator, so the result shows which stream added a value.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  third_stream:
+    topic: third_topic
+    keyType: string
+    valueType: long
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupByKey
+    as: grouped_second
+
+  grouped_third:
+    from: third_stream
+    via:
+      - type: groupByKey
+    as: grouped_third
+
+  main:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+      - type: cogroup
+        stream: grouped_third
+        aggregator:
+          expression: aggregatedValue + value * 100
+          resultType: long
+      - type: aggregate
+        initializer:
+          expression: 0
+          resultType: long
+        store:
+          name: cogroup_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: output_stream
