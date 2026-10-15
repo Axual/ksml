@@ -535,7 +535,7 @@ Both `initializer` and `aggregator` can be defined using:
 
 ### `cogroup`
 
-Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A `cogroup` is always followed by `aggregate`, which provides the initializer, optionally after `windowByTime` or `windowBySession`. After `windowBySession`, `aggregate` also needs a `merger`.
+Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A `cogroup` is always followed by `aggregate`, optionally after `windowByTime` or `windowBySession`. That `aggregate` takes the `initializer` and the `store`, plus a `merger` after `windowBySession`. It does not take an `aggregator`.
 
 #### Parameters
 
@@ -552,7 +552,7 @@ The streams in a cogroup:
 
 - must have the same key type, and may have different value types
 - can each be added only once, with one aggregator
-- must be co-partitioned: their topics need the same number of partitions and the same partitioning
+- must be co-partitioned: their topics need the same number of partitions and the same partitioning. Kafka Streams does not always check this. If the partition counts differ, one key can get two separate totals, without any error
 - must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
 - must all be added in one pipeline: after a pipeline adds a stream to a cogrouped stream saved with `as`, no other pipeline can use that cogrouped stream
 
