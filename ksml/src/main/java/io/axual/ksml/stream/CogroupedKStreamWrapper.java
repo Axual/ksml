@@ -51,7 +51,7 @@ public class CogroupedKStreamWrapper extends BaseStreamWrapper {
 
     public void checkNotExtended() {
         if (extended) {
-            throw new TopologyException(this + " already has a stream added by another pipeline. Add all streams to a cogroup in one pipeline");
+            throw new TopologyException(this + " (or a window of it) already has a stream added by another pipeline. Add all streams to a cogroup in one pipeline");
         }
     }
 
