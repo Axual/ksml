@@ -129,4 +129,17 @@ class KSMLCogroupTest {
                 new KeyValue<>("key1", 200L),
                 new KeyValue<>("key1", 203L));
     }
+
+    @KSMLTest(topology = "pipelines/test-cogroup-chain.yaml")
+    @DisplayName("a saved cogroup can be extended by a later pipeline")
+    void testCogroupChain() {
+        firstInput.pipeInput("key1", 1L);
+        secondInput.pipeInput("key1", 1L);
+        thirdInput.pipeInput("key1", 1L);
+
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", 1L),
+                new KeyValue<>("key1", 11L),
+                new KeyValue<>("key1", 111L));
+    }
 }

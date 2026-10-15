@@ -1,0 +1,66 @@
+# A cogroup is extended over two pipelines: the first adds a stream and saves the cogroup with "as", the second adds
+# another stream and aggregates.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  third_stream:
+    topic: third_topic
+    keyType: string
+    valueType: long
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupByKey
+    as: grouped_second
+
+  grouped_third:
+    from: third_stream
+    via:
+      - type: groupByKey
+    as: grouped_third
+
+  first_with_second:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+    as: first_with_second
+
+  with_third:
+    from: first_with_second
+    via:
+      - type: cogroup
+        stream: grouped_third
+        aggregator:
+          expression: aggregatedValue + value * 100
+          resultType: long
+      - type: aggregate
+        initializer:
+          expression: 0
+          resultType: long
+        store:
+          name: cogroup_chain_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: output_stream
