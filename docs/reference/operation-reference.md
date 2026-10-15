@@ -517,6 +517,7 @@ Aggregates records by key using a custom aggregation function.
 |---------------|--------|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | `initializer` | Object | Yes                         | Specifies the initial value for the aggregation                                                                                         |
 | `aggregator`  | Object | Yes, except after `cogroup` | Specifies how to combine the current record with the aggregate. Not used after `cogroup`, because each `cogroup` has its own aggregator |
+| `store`       | Object | Yes                         | The state store that keeps the aggregation result                                                                                       |
 
 Both `initializer` and `aggregator` can be defined using:
 
@@ -554,7 +555,7 @@ The streams in a cogroup:
 - can each be added only once, with one aggregator
 - must be co-partitioned: their topics need the same number of partitions and the same partitioning. Kafka Streams does not always check this. If the partition counts differ, one key can get two separate totals, without any error
 - must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
-- must all be added in one pipeline: after a pipeline adds a stream to a cogrouped stream saved with `as`, no other pipeline can use that cogrouped stream
+- must all be added in one pipeline. After a pipeline adds a stream to a saved cogroup, later pipelines cannot use that cogroup
 
 #### Example
 
