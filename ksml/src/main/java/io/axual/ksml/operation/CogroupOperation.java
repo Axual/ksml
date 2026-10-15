@@ -81,12 +81,12 @@ public class CogroupOperation extends BaseOperation {
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         final var other = lookupGroupedStream(context);
         if (input.contains(other.groupedStream)) {
-            throw topologyError("Cogroup stream \"" + stream + "\" is already part of this cogroup. Each grouped stream can be added only once, with one aggregator");
+            throw topologyError(streamLabel() + " is already part of this cogroup. Each grouped stream can be added only once, with one aggregator");
         }
         final var k = input.keyType();
         final var vIn = other.valueType();
         final var vOut = input.valueType();
-        checkType("Cogroup stream \"" + stream + "\" keyType", other.keyType(), equalTo(k));
+        checkType(streamLabel() + " keyType", other.keyType(), equalTo(k));
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vOut, superOf(k), superOf(vIn), equalTo(vOut));
         final var userAggr = new UserAggregator(aggr, tags);
         final CogroupedKStream<Object, Object> output = input.cogroupedStream.cogroup(other.groupedStream, userAggr);
@@ -102,9 +102,13 @@ public class CogroupOperation extends BaseOperation {
         try {
             wrapper = context.getStreamWrapper(stream, null);
         } catch (TopologyException e) {
-            throw topologyError("Cogroup stream \"" + stream + "\" not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition");
+            throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition", e);
         }
         if (wrapper instanceof KGroupedStreamWrapper grouped) return grouped;
-        throw topologyError("Cogroup stream \"" + stream + "\" must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
+        throw topologyError(streamLabel() + " must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
+    }
+
+    private String streamLabel() {
+        return "Cogroup stream \"" + stream + "\"";
     }
 }

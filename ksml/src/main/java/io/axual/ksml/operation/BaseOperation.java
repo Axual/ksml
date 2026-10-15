@@ -133,6 +133,10 @@ public abstract class BaseOperation implements StreamOperation {
         return new TopologyException(ERROR_IN_TOPOLOGY + ": " + message);
     }
 
+    protected TopologyException topologyError(String message, Throwable cause) {
+        return new TopologyException(ERROR_IN_TOPOLOGY + ": " + message, cause);
+    }
+
     private UserType[] arrayFrom(UserType element, UserType[] elements) {
         final var result = new UserType[elements.length + 1];
         result[0] = element;
