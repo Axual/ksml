@@ -794,6 +794,8 @@ temp002 | 29.8
 
 Cogroup combines several grouped streams into one aggregation, with a separate aggregator for each stream. The example below combines customer orders and refunds into one total per customer. The value types of the streams may differ, which is the main difference from merging the streams and using a single `aggregate`.
 
+> **Note:** Cogroup with more than one stream needs KSML 2.0.0 or later. Older versions fail at startup with "Cogroup operations are not supported for CogroupedStreams".
+
 ??? info "Customer orders and refunds producer (click to expand)"
 
     ```yaml
@@ -863,7 +865,7 @@ graph TB
     AggOrders <-->|"read and update alice"| Store
     AggRefunds <-->|"read and update alice"| Store
     Store --> Updates
-    Updates -->|"<code>toStream</code>: every update"| OutputTopic
+    Updates -->|"<code>toStream</code>: latest value at each commit"| OutputTopic
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
@@ -878,7 +880,7 @@ graph TB
     style Updates fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The output topic gets `alice` with totals −20.0, 30.0 and 23.0. Other keys have their own value in the store and are updated the same way. Because the store has `caching: true`, updates to the same key that happen close together may be combined, so the output can skip some intermediate values. The store itself is always updated by every message.
+The store gets −20.0, 30.0 and 23.0 for `alice`. Other keys have their own value in the store and are updated the same way. Because the store has `caching: true`, the output topic gets only the latest value at each commit, by default every 30 seconds. So it can get just 23.0. Set `caching: false` to send every update.
 
 > **Note:** The pipeline that saves a grouped stream with `as` must be defined before the pipeline that uses it in a `cogroup`, in the same definition file. All cogrouped streams must have the same key type, and their topics must be co-partitioned. Add all streams to a cogroup in one pipeline.
 
