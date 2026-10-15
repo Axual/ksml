@@ -20,44 +20,28 @@ package io.axual.ksml.data.compare;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Getter;
 import lombok.NonNull;
 
 /**
  * Represents the result of an assignability check (typically used by isAssignableFrom-like methods).
  * <p>
- * The result can be in two states:
+ * The result is one of two states:
  * <ul>
- *   <li>OK — the source type/value can be assigned to the target type/value.</li>
- *   <li>Not OK — the assignment is invalid, accompanied by a human-readable explanation, optionally with a cause chain.</li>
+ *   <li>{@link Ok} — the source type/value can be assigned to the target type/value.</li>
+ *   <li>{@link NotAssignable} — the assignment is invalid, accompanied by a human-readable explanation, optionally with a cause chain.</li>
  * </ul>
  * Failures can be chained using a cause, enabling hierarchical explanations of why assignability does not hold.
- * To optimize for the common success case, the OK state is implemented as a singleton instance (message is {@code null}).
+ * A {@link NotAssignable}'s cause can only ever be another {@link NotAssignable}, so an OK result carrying a cause,
+ * or a failure "caused by" a success, are unrepresentable rather than merely disallowed at runtime.
  */
-@Getter
-public class Assignable {
-    private static final Assignable ASSIGNABLE = new Assignable(null, null);
-    private final String message;
-    private final Assignable cause;
-
-    /**
-     * Creates a new Assignable result.
-     *
-     * @param message a human-readable explanation of the failed assignment; {@code null} means assignment is allowed
-     * @param cause   an optional underlying reason; only stored when it represents a non-assignable state
-     */
-    private Assignable(String message, Assignable cause) {
-        this.message = message;
-        this.cause = cause != null && cause.isNotAssignable() ? cause : null;
-    }
-
+public sealed interface Assignable {
     /**
      * Returns the singleton instance representing a successful assignability check.
      *
      * @return the OK Assignable instance
      */
-    public static Assignable assignable() {
-        return ASSIGNABLE;
+    static Assignable assignable() {
+        return Ok.INSTANCE;
     }
 
     /**
@@ -66,20 +50,23 @@ public class Assignable {
      * @param message explanation of why the assignment is invalid
      * @return a new Assignable instance representing a failure
      */
-    public static Assignable notAssignable(String message) {
+    static Assignable notAssignable(String message) {
         return notAssignable(message, null);
     }
 
     /**
      * Creates a not-assignable result with a message and an optional underlying cause.
      *
+     * <p>A cause that is itself an {@link Ok} is discarded: chaining a successful assignability
+     * check as the "cause" of a failed one is meaningless.</p>
+     *
      * @param message explanation of why the assignment is invalid
      * @param cause   an optional underlying reason providing more detail
      * @return a new Assignable instance representing a failure
      * @throws NullPointerException if {@code message} is {@code null}
      */
-    public static Assignable notAssignable(@NonNull String message, Assignable cause) {
-        return new Assignable(message, cause);
+    static Assignable notAssignable(@NonNull String message, Assignable cause) {
+        return new NotAssignable(message, cause instanceof NotAssignable notAssignableCause ? notAssignableCause : null);
     }
 
     /**
@@ -87,26 +74,34 @@ public class Assignable {
      *
      * @return {@code true} if assignment is allowed; {@code false} otherwise
      */
-    public boolean isAssignable() {
-        return message == null;
-    }
+    boolean isAssignable();
 
     /**
      * Indicates whether assignment is not allowed.
      *
      * @return {@code true} if assignment is not allowed; {@code false} otherwise
      */
-    public boolean isNotAssignable() {
-        return message != null;
-    }
+    boolean isNotAssignable();
+
+    /**
+     * A human-readable explanation of why assignment is invalid, or {@code null} when assignable.
+     *
+     * @return the explanation, or {@code null}
+     */
+    String message();
+
+    /**
+     * The underlying reason for this result, or {@code null} when assignable or when there is no further cause.
+     *
+     * @return the cause, or {@code null}
+     */
+    Assignable cause();
 
     /**
      * Returns the explanation chain as a single line (no prefix on the first line).
      */
     @Override
-    public String toString() {
-        return toString(false);
-    }
+    String toString();
 
     /**
      * Returns the explanation chain as a String, optionally prefixing the first line.
@@ -114,30 +109,103 @@ public class Assignable {
      * @param prefixFirstLine whether to prefix the first line as well
      * @return the formatted explanation chain
      */
-    public String toString(boolean prefixFirstLine) {
-        return toString("caused by: ", prefixFirstLine);
-    }
+    String toString(boolean prefixFirstLine);
 
     /**
      * Returns the explanation chain as a String with a custom line prefix.
      * Each cause is placed on a new line, prefixed with {@code linePrefix}. The first
      * line is only prefixed when {@code prefixFirstLine} is {@code true}.
      *
-     * @param linePrefix       the prefix to prepend to each line
-     * @param prefixFirstLine  whether to prefix the first line as well
+     * @param linePrefix      the prefix to prepend to each line
+     * @param prefixFirstLine whether to prefix the first line as well
      * @return the formatted explanation chain
      */
-    public String toString(String linePrefix, boolean prefixFirstLine) {
-        if (isAssignable()) {
+    String toString(String linePrefix, boolean prefixFirstLine);
+
+    /**
+     * The successful assignability result. A single shared instance, since there is nothing to
+     * distinguish between successful checks.
+     */
+    final class Ok implements Assignable {
+        private static final Ok INSTANCE = new Ok();
+
+        private Ok() {
+        }
+
+        @Override
+        public boolean isAssignable() {
+            return true;
+        }
+
+        @Override
+        public boolean isNotAssignable() {
+            return false;
+        }
+
+        @Override
+        public String message() {
+            return null;
+        }
+
+        @Override
+        public Assignable cause() {
+            return null;
+        }
+
+        @Override
+        public String toString() {
             return "ASSIGNABLE";
         }
 
-        final var builder = new StringBuilder();
-        for (var i = this; i != null; i = i.cause) {
-            if (i != this) builder.append("\n");
-            if (i != this || prefixFirstLine) builder.append(linePrefix);
-            builder.append(i.message);
+        @Override
+        public String toString(boolean prefixFirstLine) {
+            return "ASSIGNABLE";
         }
-        return builder.toString();
+
+        @Override
+        public String toString(String linePrefix, boolean prefixFirstLine) {
+            return "ASSIGNABLE";
+        }
+    }
+
+    /**
+     * A failed assignability result, carrying a human-readable explanation and an optional chain of
+     * underlying causes. A cause, when present, is itself always a {@link NotAssignable} — an
+     * {@link Ok} can never be the cause of a failure.
+     */
+    record NotAssignable(String message, NotAssignable cause) implements Assignable {
+        @Override
+        public boolean isAssignable() {
+            return false;
+        }
+
+        @Override
+        public boolean isNotAssignable() {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return toString(false);
+        }
+
+        @Override
+        public String toString(boolean prefixFirstLine) {
+            return toString("caused by: ", prefixFirstLine);
+        }
+
+        @Override
+        public String toString(String linePrefix, boolean prefixFirstLine) {
+            final var builder = new StringBuilder();
+            if (prefixFirstLine) builder.append(linePrefix);
+            builder.append(message);
+            if (cause != null) cause.appendCauseChain(builder, linePrefix);
+            return builder.toString();
+        }
+
+        private void appendCauseChain(StringBuilder builder, String linePrefix) {
+            builder.append('\n').append(linePrefix).append(message);
+            if (cause != null) cause.appendCauseChain(builder, linePrefix);
+        }
     }
 }
