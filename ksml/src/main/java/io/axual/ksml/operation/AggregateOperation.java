@@ -35,9 +35,11 @@ import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import io.axual.ksml.user.UserAggregator;
 import io.axual.ksml.user.UserInitializer;
 import io.axual.ksml.user.UserMerger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Windowed;
 
+@Slf4j
 public class AggregateOperation extends StoreOperation {
     private static final String ADDER_NAME = "Adder";
     private static final String AGGREGATOR_NAME = "Aggregator";
@@ -217,6 +219,7 @@ public class AggregateOperation extends StoreOperation {
          */
 
         input.checkNotExtended();
+        warnIfAggregatorIgnored();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var vout = input.valueType();
@@ -250,6 +253,7 @@ public class AggregateOperation extends StoreOperation {
          */
 
         input.source.checkNotExtended();
+        warnIfAggregatorIgnored();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         checkNotNull(merger, MERGER_NAME.toLowerCase());
         final var k = input.keyType();
@@ -285,6 +289,7 @@ public class AggregateOperation extends StoreOperation {
          */
 
         input.source.checkNotExtended();
+        warnIfAggregatorIgnored();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
@@ -304,5 +309,11 @@ public class AggregateOperation extends StoreOperation {
                     : input.timeWindowedCogroupedKStream.aggregate(userInit);
         }
         return new KTableWrapper((KTable) output, windowed(k), v);
+    }
+
+    private void warnIfAggregatorIgnored() {
+        if (aggregator != null) {
+            log.warn("Ignoring the aggregator of {}: after cogroup, each cogroup has its own aggregator", this);
+        }
     }
 }
