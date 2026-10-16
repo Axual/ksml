@@ -106,6 +106,11 @@ public class KSMLDSL {
             public static final String SUBTRACTOR = "subtractor";
         }
 
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Cogroup {
+            public static final String STREAM = "stream";
+        }
+
         public static final String AS = "as";
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)

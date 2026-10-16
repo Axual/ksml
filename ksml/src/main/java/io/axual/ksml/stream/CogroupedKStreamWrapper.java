@@ -21,17 +21,40 @@ package io.axual.ksml.stream;
  */
 
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
 import org.apache.kafka.streams.kstream.CogroupedKStream;
+import org.apache.kafka.streams.kstream.KGroupedStream;
+
+import java.util.List;
 
 public class CogroupedKStreamWrapper extends BaseStreamWrapper {
     public final CogroupedKStream<Object, Object> cogroupedStream;
+    // Kafka Streams keeps one aggregator per grouped stream, so a duplicate would replace it
+    public final List<KGroupedStream<Object, Object>> groupedStreams;
+    // Kafka Streams changes a cogroup in place, so other pipelines would also get an added stream
+    private boolean extended = false;
 
-    public CogroupedKStreamWrapper(CogroupedKStream<Object, Object> cogroupedStream, StreamDataType key, StreamDataType value) {
+    public CogroupedKStreamWrapper(CogroupedKStream<Object, Object> cogroupedStream, List<KGroupedStream<Object, Object>> groupedStreams, StreamDataType key, StreamDataType value) {
         super("CogroupedStream", key, value);
         this.cogroupedStream = cogroupedStream;
+        this.groupedStreams = List.copyOf(groupedStreams);
+    }
+
+    public boolean contains(KGroupedStream<Object, Object> groupedStream) {
+        return groupedStreams.contains(groupedStream);
+    }
+
+    public void checkNotExtended() {
+        if (extended) {
+            throw new TopologyException("This cogroup (or its window) already has a stream added by another pipeline. Only one later pipeline can add streams to a saved cogroup");
+        }
+    }
+
+    public void markExtended() {
+        extended = true;
     }
 
     @Override

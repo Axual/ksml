@@ -1,0 +1,62 @@
+# A grouped stream from groupBy is used in a cogroup and also in count. Both would need the same repartition.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+functions:
+  init_total:
+    type: initializer
+    expression: 0
+    resultType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupBy
+        mapper:
+          expression: key.upper()
+          resultType: string
+    as: grouped_second
+
+  cogrouped:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: total_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: output_stream
+
+  counted:
+    from: grouped_second
+    via:
+      - type: count
+        store:
+          name: count_store
+          type: keyValue
+      - type: toStream
+    to: output_stream

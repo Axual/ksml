@@ -4,6 +4,11 @@ streams:
     keyType: string
     valueType: json
 
+  refunds:
+    topic: customer_refunds
+    keyType: string
+    valueType: json
+
   customer_totals:
     topic: customer_totals
     keyType: string
@@ -16,6 +21,7 @@ functions:
       result = {
         "total_amount": 0.0,
         "order_count": 0,
+        "refund_count": 0,
         "customer": ""
       }
     expression: result
@@ -24,7 +30,7 @@ functions:
   aggregate_orders:
     type: aggregator
     code: |
-      # Add order amount and increment count
+      # Add order amount and increment order count
       if value is not None:
         aggregatedValue["total_amount"] = aggregatedValue.get("total_amount", 0) + value.get("amount", 0)
         aggregatedValue["order_count"] = aggregatedValue.get("order_count", 0) + 1
@@ -34,13 +40,36 @@ functions:
     expression: result
     resultType: json
 
+  aggregate_refunds:
+    type: aggregator
+    code: |
+      # Subtract refund amount and increment refund count
+      if value is not None:
+        aggregatedValue["total_amount"] = aggregatedValue.get("total_amount", 0) - value.get("amount", 0)
+        aggregatedValue["refund_count"] = aggregatedValue.get("refund_count", 0) + 1
+        aggregatedValue["customer"] = key
+
+      result = aggregatedValue
+    expression: result
+    resultType: json
+
 pipelines:
+  # Group the refunds by customer and save the grouped stream for the next pipeline
+  grouped_refunds:
+    from: refunds
+    via:
+      - type: groupByKey
+    as: grouped_refunds
+
   customer_order_totals:
     from: orders
     via:
       - type: groupByKey
       - type: cogroup
         aggregator: aggregate_orders
+      - type: cogroup
+        stream: grouped_refunds
+        aggregator: aggregate_refunds
       - type: aggregate
         initializer: init_order_stats
         store:
@@ -51,8 +80,9 @@ pipelines:
       - type: peek
         forEach:
           code: |
-            log.info("CUSTOMER ORDER TOTALS - Customer: {}, Total: ${}, Count: {}",
+            log.info("CUSTOMER ORDER TOTALS - Customer: {}, Total: ${}, Orders: {}, Refunds: {}",
                      key,
                      value.get("total_amount", 0),
-                     value.get("order_count", 0))
+                     value.get("order_count", 0),
+                     value.get("refund_count", 0))
     to: customer_totals

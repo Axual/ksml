@@ -792,9 +792,11 @@ temp002 | 29.8
 
 ## Advanced: Cogroup Operation
 
-Cogroup is meant to combine several grouped streams into one aggregation, with a separate aggregator for each stream. KSML supports only one stream in a `cogroup` today (see [#728](https://github.com/Axual/ksml/issues/728)), so the example below uses one stream.
+Cogroup combines several grouped streams into one aggregation, with a separate aggregator for each stream. The example below combines customer orders and refunds into one total per customer. Unlike `merge` and one `aggregate`, each stream has its own aggregator, and the value types of the streams may differ.
 
-??? info "Customer orders producer (click to expand)"
+> **Note:** Cogroup with more than one stream needs KSML 2.0.0 or later. Older versions fail at startup with "Cogroup operations are not supported for CogroupedStreams".
+
+??? info "Customer orders and refunds producer (click to expand)"
 
     ```yaml
     {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/aggregations/producer-cogroup.yaml" %}
@@ -808,48 +810,79 @@ Cogroup is meant to combine several grouped streams into one aggregation, with a
 
 ### How Cogroup Works
 
-The cogroup pipeline:
+The example has two pipelines:
 
-1. Groups the stream by key with `groupByKey`
-2. Adds the grouped stream to the cogroup with its own aggregator function
-3. Runs the final `aggregate` operation, which uses the initializer to compute the result
+1. `grouped_refunds` groups the refunds by key with `groupByKey` and saves the grouped stream with `as: grouped_refunds`
+2. `customer_order_totals` groups the orders by key with `groupByKey`, then:
+    1. The first `cogroup` adds the grouped orders with the `aggregate_orders` aggregator
+    2. The second `cogroup` adds the saved grouped refunds with `stream: grouped_refunds` and the `aggregate_refunds` aggregator
+    3. The final `aggregate` operation creates the result table and its store. It takes the initializer and the store, but no aggregator, because the aggregators are already set in the `cogroup` steps
 
-The example above uses only one stream, `customer_orders`. KSML does not support more than one stream in a `cogroup` yet (see [#728](https://github.com/Axual/ksml/issues/728)). The diagram below follows two example orders through the pipeline:
+Together, `cogroup` and `aggregate` build one aggregation with two inputs. Each message is handled as soon as it arrives:
+
+1. If the store has no value for the key yet, `init_order_stats` creates the start value. This happens once per key, for the first message from either stream
+2. Only the aggregator of the message's own stream runs: `aggregate_orders` for an order, `aggregate_refunds` for a refund. It updates the stored value of the key
+3. The store keeps the updated value. `toStream` sends it to the output topic (see the note on caching below)
+
+The diagram below follows three messages for `alice` in the order they arrive. The first one is a refund, so the total goes below zero before the first order arrives:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
-graph LR
-    %% Input topic with example orders
-    Topic[(customer_orders)]
-    Orders@{ shape: docs, label: "<b>key: alice</b> amount 50.0<br/><b>key: alice</b> amount 30.0" }
+graph TB
+    %% Input topics with example messages, numbered in arrival order
+    OrdersTopic[(customer_orders)]
+    Orders@{ shape: doc, label: "② <b>key: alice</b> amount 50.0" }
+    RefundsTopic[(customer_refunds)]
+    Refunds@{ shape: docs, label: "① <b>key: alice</b> amount 20.0<br/>③ <b>key: alice</b> amount 7.0" }
 
-    %% Grouping and cogrouping
-    Group[<code>groupByKey</code>]
-    Cogroup["<code>cogroup</code><br/>aggregator: aggregate_orders"]
-    Aggregate["<code>aggregate</code><br/>initializer: init_order_stats"]
+    %% Group each stream by key, without storing the messages
+    GroupOrders[<code>groupByKey</code>]
+    GroupRefunds["<code>groupByKey</code><br/>as: grouped_refunds"]
 
-    %% State and output
+    %% One aggregation with two inputs, each with its own aggregator
+    subgraph Aggregation["<code>cogroup</code> + <code>aggregate</code>: one aggregation, two inputs"]
+        Init["<code>init_order_stats</code><br/>start value for a new key"]
+        AggOrders["<code>aggregate_orders</code><br/>from the first <code>cogroup</code>"]
+        AggRefunds["<code>aggregate_refunds</code><br/>from the second <code>cogroup</code>"]
+    end
     Store[(customer_totals_store)]
-    Result["<b>alice</b><br/>total_amount: 80.0<br/>order_count: 2"]
+
+    %% Value of alice in the store after each message
+    subgraph Updates["alice in customer_totals_store after each message"]
+        direction LR
+        Step1["① refund 20.0<br/>new key: start from 0.0<br/>0.0 − 20.0<br/>total_amount: −20.0<br/>order_count: 0<br/>refund_count: 1"]
+        Step2["② order 50.0<br/>−20.0 + 50.0<br/>total_amount: 30.0<br/>order_count: 1<br/>refund_count: 1"]
+        Step3["③ refund 7.0<br/>30.0 − 7.0<br/>total_amount: 23.0<br/>order_count: 1<br/>refund_count: 2"]
+        Step1 --> Step2 --> Step3
+    end
+
     OutputTopic[(customer_totals)]
 
     %% Data Flow
-    Topic --> Orders --> Group --> Cogroup --> Aggregate
-    Aggregate <-->|"one result per key"| Store
-    Aggregate --> Result
-    Result -->|"<code>toStream</code>"| OutputTopic
+    OrdersTopic --> Orders --> GroupOrders -->|"each order"| AggOrders
+    RefundsTopic --> Refunds --> GroupRefunds -->|"each refund"| AggRefunds
+    Init -.->|"first message of a key"| AggOrders & AggRefunds
+    AggOrders <-->|"read and update alice"| Store
+    AggRefunds <-->|"read and update alice"| Store
+    Store --> Updates
+    Updates -->|"<code>toStream</code>: latest value at each commit"| OutputTopic
 
     %% Styling
     --8<-- "snippets/mermaid-classes.txt"
 
-    class Topic,OutputTopic topic
-    class Group,Cogroup,Aggregate operation
+    class OrdersTopic,RefundsTopic,OutputTopic topic
+    class GroupOrders,GroupRefunds,Init,AggOrders,AggRefunds operation
     class Store store
-    class Orders message
-    class Result result
+    class Orders,Refunds message
+    class Step1,Step2 partial
+    class Step3 result
+    style Aggregation fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Updates fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-> **Note:** A second `cogroup` step in the same pipeline fails at startup with a `TopologyException`. Make sure the aggregator function handles null values.
+The store gets −20.0, 30.0 and 23.0 for `alice`. Other keys have their own value in the store and are updated the same way. With `caching: true`, the output topic may get only the latest value, for example just 23.0. Set `caching: false` to send every update.
+
+> **Note:** The pipeline with `as` must come before the pipeline that uses it, in the same file. See [cogroup](../../reference/operation-reference.md#cogroup) for all rules.
 
 ## Complex Example: Regional Sales Analytics
 
