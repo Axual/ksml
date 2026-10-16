@@ -85,7 +85,7 @@ class TopologyGeneratorBasicTest {
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("cogroup with a stream that a later pipeline saves fails the topology build")
-    void cogroupStreamSavedByLaterPipelineIsRejected() throws Exception {
+    void cogroupStreamSavedByLaterPipelineIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-wrong-order.yaml"))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("grouped_refunds")
@@ -96,7 +96,7 @@ class TopologyGeneratorBasicTest {
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("a pipeline that continues from a cogrouped stream that another pipeline added a stream to fails the topology build")
-    void cogroupedStreamExtendedByOtherPipelineIsRejected() throws Exception {
+    void cogroupedStreamExtendedByOtherPipelineIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-extended-twice.yaml"))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("with_third")
@@ -106,7 +106,7 @@ class TopologyGeneratorBasicTest {
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("aggregating a saved window of a cogroup that another pipeline added a stream to fails the topology build")
-    void windowedCogroupOfExtendedCogroupIsRejected() throws Exception {
+    void windowedCogroupOfExtendedCogroupIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-windowed-extended.yaml"))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("windowed_totals")
@@ -116,7 +116,7 @@ class TopologyGeneratorBasicTest {
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("cogroup with a stream from \"streams:\" fails the topology build with a hint")
-    void cogroupWithStreamsEntryIsRejected() throws Exception {
+    void cogroupWithStreamsEntryIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-streams-entry.yaml"))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("Cogroup stream \"refunds\" is a stream from \"streams:\"");
@@ -125,7 +125,7 @@ class TopologyGeneratorBasicTest {
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("cogroup with a stream that another definition file saves fails the topology build")
-    void cogroupStreamSavedInOtherFileIsRejected() throws Exception {
+    void cogroupStreamSavedInOtherFileIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-other-file-saves.yaml", "pipelines/test-cogroup-other-file-uses.yaml"))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("grouped_refunds")
