@@ -90,6 +90,10 @@ public class TopologyBuildContext {
         return resources.namespace();
     }
 
+    public boolean hasStreamWrapper(String name) {
+        return streamWrappersByName.containsKey(name);
+    }
+
     public boolean isTopicDefinition(String name) {
         return resources.topic(name) != null;
     }

@@ -818,7 +818,7 @@ The example has two pipelines:
     2. The second `cogroup` adds the saved grouped refunds with `stream: grouped_refunds` and the `aggregate_refunds` aggregator
     3. The final `aggregate` operation creates the result table and its store. It takes the initializer and the store, but no aggregator, because the aggregators are already set in the `cogroup` steps
 
-The `groupByKey` and `cogroup` steps do not store messages or run one after another for each message. Together with `aggregate`, they build a single aggregation with two inputs. Each message is handled as soon as it arrives:
+Together, `cogroup` and `aggregate` build one aggregation with two inputs. Each message is handled as soon as it arrives:
 
 1. If the store has no value for the key yet, `init_order_stats` creates the start value. This happens once per key, for the first message from either stream
 2. Only the aggregator of the message's own stream runs: `aggregate_orders` for an order, `aggregate_refunds` for a refund. It updates the stored value of the key
@@ -882,7 +882,7 @@ graph TB
 
 The store gets −20.0, 30.0 and 23.0 for `alice`. Other keys have their own value in the store and are updated the same way. Because the store has `caching: true`, the output topic gets only the latest value at each commit, by default every 30 seconds. So it can get just 23.0. Set `caching: false` to send every update.
 
-> **Note:** The pipeline that saves a grouped stream with `as` must be defined before the pipeline that uses it in a `cogroup`, in the same definition file. All cogrouped streams must have the same key type, and their topics must be co-partitioned. Add all streams to a cogroup in one pipeline.
+> **Note:** The pipeline with `as` must come before the pipeline that uses it, in the same file. See [cogroup](../../reference/operation-reference.md#cogroup) for all rules.
 
 ## Complex Example: Regional Sales Analytics
 

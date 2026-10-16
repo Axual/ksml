@@ -537,18 +537,18 @@ The `initializer`, `aggregator` and `merger` can be defined using:
 
 ### `cogroup`
 
-Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A `cogroup` is always followed by `aggregate`, optionally after `windowByTime` or `windowBySession`. That `aggregate` takes the `initializer` and the `store`, plus a `merger` after `windowBySession`. It does not take an `aggregator`.
+Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A chain of `cogroup` steps ends with `aggregate`, optionally after `windowByTime` or `windowBySession`. That `aggregate` takes the `initializer` and the `store`, plus a `merger` after `windowBySession`. It does not take an `aggregator`.
 
 #### Parameters
 
-| Parameter    | Type   | Required                           | Description                                                                       |
-|--------------|--------|------------------------------------|-----------------------------------------------------------------------------------|
-| `aggregator` | Object | Yes                                | Specifies how to combine a record of this stream with the aggregate               |
-| `stream`     | String | Yes, except on the first `cogroup` | The `as` name of a grouped stream from an earlier pipeline, to add to the cogroup |
+| Parameter    | Type   | Required                      | Description                                                                       |
+|--------------|--------|-------------------------------|-----------------------------------------------------------------------------------|
+| `aggregator` | Object | Yes                           | Specifies how to combine a record of this stream with the aggregate               |
+| `stream`     | String | Only on a cogrouped stream    | The `as` name of a grouped stream from an earlier pipeline, to add to the cogroup |
 
 Unlike `merge` and `join`, `stream` is not a name from `streams:`. It is the `as` name of a grouped stream.
 
-The first `cogroup` in a pipeline applies to the grouped stream of that pipeline and must not have `stream`. Each following `cogroup` adds another grouped stream and must have `stream`.
+A `cogroup` on a grouped stream must not have `stream`. A `cogroup` on a cogrouped stream (after another `cogroup`, or `from` a saved cogroup) must have `stream`.
 
 The streams in a cogroup:
 
@@ -556,7 +556,8 @@ The streams in a cogroup:
 - can each be added only once, with one aggregator
 - must be co-partitioned: their topics need the same number of partitions and the same partitioning. Kafka Streams does not always check this. If the partition counts differ, one key can get two separate totals, without any error
 - except the first one, must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
-- can be added to a saved cogroup by only one later pipeline. After that pipeline adds a stream, other later pipelines cannot use that cogroup
+- can be added to a saved cogroup by only one later pipeline. After that pipeline adds a stream, other later pipelines cannot use that cogroup. A pipeline defined before it can still use the cogroup. Its result does not include the added stream
+- that need a repartition (for example after `groupBy`) cannot be used by any other operation, also not by another cogroup. Use a separate `groupBy` for each use
 
 #### Example
 

@@ -142,4 +142,28 @@ class KSMLCogroupTest {
                 new KeyValue<>("key1", 11L),
                 new KeyValue<>("key1", 111L));
     }
+
+    @KSMLTest(topology = "pipelines/test-cogroup-aggregate-before-extend.yaml")
+    @DisplayName("an aggregate of a saved cogroup does not get a stream that a later pipeline adds")
+    void testCogroupAggregateBeforeExtend() {
+        firstInput.pipeInput("key1", 1L);
+        secondInput.pipeInput("key1", 2L);
+
+        assertThat(firstOutputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", 1L),
+                new KeyValue<>("key1", 21L));
+        assertThat(secondOutputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", 1L));
+    }
+
+    @KSMLTest(topology = "pipelines/test-cogroup-group-by.yaml")
+    @DisplayName("cogroup can add a grouped stream from groupBy, which is repartitioned")
+    void testCogroupGroupBy() {
+        firstInput.pipeInput("A", 1L);
+        secondInput.pipeInput("a", 2L);
+
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("A", 1L),
+                new KeyValue<>("A", 21L));
+    }
 }

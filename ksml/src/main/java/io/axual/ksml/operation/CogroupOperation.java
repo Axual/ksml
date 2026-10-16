@@ -36,7 +36,7 @@ import java.util.List;
 
 public class CogroupOperation extends BaseOperation {
     private static final String AGGREGATOR_NAME = "Aggregator";
-    // Name of a grouped stream, registered with "as" by another pipeline, to add to an existing cogroup
+    // "as" name of the grouped stream to add
     @Getter
     private final String stream;
     private final FunctionDefinition aggregator;
@@ -55,7 +55,7 @@ public class CogroupOperation extends BaseOperation {
          */
 
         if (stream != null) {
-            throw topologyError("Cogroup \"stream\" can only be used on a cogroup that follows another cogroup, found \"" + stream + "\" on the first cogroup");
+            throw topologyError("Cogroup \"stream\" is not allowed on a grouped stream, found \"" + stream + "\"");
         }
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         final var k = input.keyType();
@@ -76,10 +76,10 @@ public class CogroupOperation extends BaseOperation {
          */
 
         if (stream == null) {
-            throw topologyError("Cogroup on a cogrouped stream requires \"stream\": the name of a grouped stream saved with \"as\" in an earlier pipeline");
+            throw topologyError("This cogroup needs \"stream\": the \"as\" name of a grouped stream from an earlier pipeline");
         }
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
-        input.markExtended();
+        input.checkNotExtended();
         final var other = lookupGroupedStream(context);
         if (input.contains(other.groupedStream)) {
             throw topologyError(streamLabel() + " is already part of this cogroup. Each grouped stream can be added only once, with one aggregator");
@@ -90,31 +90,28 @@ public class CogroupOperation extends BaseOperation {
         checkType(streamLabel() + " keyType", other.keyType(), equalTo(k));
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vOut, superOf(k), superOf(vIn), equalTo(vOut));
         final var userAggr = new UserAggregator(aggr, tags);
+        input.markExtended();
         final CogroupedKStream<Object, Object> output = input.cogroupedStream.cogroup(other.groupedStream, userAggr);
         final var groupedStreams = new ArrayList<>(input.groupedStreams);
         groupedStreams.add(other.groupedStream);
         return new CogroupedKStreamWrapper(output, groupedStreams, k, vOut);
     }
 
-    // Grouped streams can only be referenced by the name they were saved under with "as", which is registered in the
-    // build context when the saving pipeline is built. So that pipeline must come before this one in the definition.
+    // An "as" name exists only after its pipeline is built, so that pipeline must come first
     private KGroupedStreamWrapper lookupGroupedStream(TopologyBuildContext context) {
-        final StreamWrapper wrapper;
-        try {
-            wrapper = context.getStreamWrapper(stream, null);
-        } catch (TopologyException _) {
-            // Not passed on as the cause: the runner prints the deepest cause first, which would hide this message
+        if (!context.hasStreamWrapper(stream)) {
             if (context.isTopicDefinition(stream)) throw notGroupedTopicError();
             throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition file");
         }
+        final var wrapper = context.getStreamWrapper(stream, null);
         if (wrapper instanceof KGroupedStreamWrapper grouped) return grouped;
         if (context.isTopicDefinition(stream)) throw notGroupedTopicError();
         throw topologyError(streamLabel() + " must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
     }
 
-    // Unlike in merge and join, "stream" is not a name from "streams:", so explain the likely mistake
+    // Unlike in merge and join, "stream" is not a topic definition, so explain the likely mistake
     private TopologyException notGroupedTopicError() {
-        return topologyError(streamLabel() + " is a stream from \"streams:\", but cogroup needs a grouped stream. Save \"" + stream + "\" with groupByKey or groupBy and \"as\" in a pipeline before this one");
+        return topologyError(streamLabel() + " is a topic definition, but cogroup needs a grouped stream. Save it with groupByKey or groupBy and \"as\" in a pipeline before this one");
     }
 
     private String streamLabel() {

@@ -403,7 +403,7 @@
           "type" : "string"
         },
         "stream" : {
-          "description" : "*(optional)* Name of a grouped stream saved with \"as\" in an earlier pipeline. Required on each cogroup after the first, not allowed on the first",
+          "description" : "*(optional)* The \"as\" name of a grouped stream from an earlier pipeline. Not allowed on a grouped stream, needed on a cogrouped stream",
           "type" : "string"
         },
         "type" : {

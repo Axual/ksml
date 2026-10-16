@@ -110,7 +110,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var context = mockContext();
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("follows another cogroup");
+                .hasMessageContaining("Cogroup \"stream\" is not allowed on a grouped stream");
     }
 
     @Test
@@ -122,6 +122,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var input = cogroupedStreamReturning(result, List.of(first.groupedStream), key(), value());
         final var saved = groupedStream();
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
 
         final var output = operation(SAVED_STREAM).apply(input, context);
@@ -140,6 +141,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var saved = groupedStream();
         final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), List.of(saved.groupedStream), key(), value());
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
@@ -153,6 +155,7 @@ class CogroupOperationTest extends OperationTestBase {
     void addingSameSavedStreamTwiceIsRejected() {
         final var saved = groupedStream();
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
         final var input = cogroupedStreamReturning(mock(CogroupedKStream.class), key(), value());
 
@@ -169,6 +172,7 @@ class CogroupOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToExtendedCogroupedStreamIsRejected() {
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(groupedStream());
         final var input = cogroupedStreamReturning(mock(CogroupedKStream.class), key(), value());
         operation(SAVED_STREAM).apply(input, context);
@@ -188,6 +192,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var input = cogroupedStreamReturning(mock(CogroupedKStream.class), k, vOut);
         final var saved = new KGroupedStreamWrapper(mock(KGroupedStream.class), k, typed(DataInteger.DATATYPE, false));
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
 
         final var output = operation(SAVED_STREAM, vOut.userType()).apply(input, context);
@@ -204,7 +209,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var context = mockContext();
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("requires \"stream\"");
+                .hasMessageContaining("This cogroup needs \"stream\"");
     }
 
     @Test
@@ -213,7 +218,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var operation = operation(SAVED_STREAM);
         final var input = cogroupedStream();
         final var context = mockContext();
-        when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenThrow(new TopologyException("Stream '" + SAVED_STREAM + "' not found"));
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(false);
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining(SAVED_STREAM)
@@ -228,11 +233,11 @@ class CogroupOperationTest extends OperationTestBase {
         final var operation = operation(SAVED_STREAM);
         final var input = cogroupedStream();
         final var context = mockContext();
-        when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenThrow(new TopologyException("Stream '" + SAVED_STREAM + "' not found"));
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(false);
         when(context.isTopicDefinition(SAVED_STREAM)).thenReturn(true);
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("is a stream from \"streams:\", but cogroup needs a grouped stream")
+                .hasMessageContaining("is a topic definition, but cogroup needs a grouped stream")
                 .hasNoCause();
     }
 
@@ -242,11 +247,12 @@ class CogroupOperationTest extends OperationTestBase {
         final var operation = operation(SAVED_STREAM);
         final var input = cogroupedStream();
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(kStream());
         when(context.isTopicDefinition(SAVED_STREAM)).thenReturn(true);
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("is a stream from \"streams:\", but cogroup needs a grouped stream");
+                .hasMessageContaining("is a topic definition, but cogroup needs a grouped stream");
     }
 
     @Test
@@ -262,6 +268,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var operation = operation(SAVED_STREAM);
         final var input = cogroupedStream();
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(kStream());
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
@@ -276,6 +283,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), List.of(), typed(DataString.DATATYPE, true), value());
         final var saved = new KGroupedStreamWrapper(mock(KGroupedStream.class), typed(DataInteger.DATATYPE, true), value());
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(saved);
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
@@ -289,6 +297,7 @@ class CogroupOperationTest extends OperationTestBase {
         final var operation = operation(SAVED_STREAM, new UserType(DataInteger.DATATYPE));
         final var input = new CogroupedKStreamWrapper(mock(CogroupedKStream.class), List.of(), key(), typed(DataString.DATATYPE, false));
         final var context = mockContext();
+        when(context.hasStreamWrapper(SAVED_STREAM)).thenReturn(true);
         when(context.getStreamWrapper(eq(SAVED_STREAM), isNull())).thenReturn(groupedStream());
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)

@@ -105,6 +105,16 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("aggregating a saved cogroup after another pipeline added a stream to it fails the topology build")
+    void aggregateOfExtendedCogroupIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-extend-before-aggregate.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("only_first")
+                .hasMessageContaining("already has a stream added by another pipeline");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("aggregating a saved window of a cogroup that another pipeline added a stream to fails the topology build")
     void windowedCogroupOfExtendedCogroupIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-windowed-extended.yaml"))
@@ -119,7 +129,16 @@ class TopologyGeneratorBasicTest {
     void cogroupWithStreamsEntryIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-streams-entry.yaml"))
                 .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("Cogroup stream \"refunds\" is a stream from \"streams:\"");
+                .hasMessageContaining("Cogroup stream \"refunds\" is a topic definition");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("cogroup with a table from \"tables:\" fails the topology build with a hint")
+    void cogroupWithTablesEntryIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-tables-entry.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Cogroup stream \"refunds\" is a topic definition");
     }
 
     @Test
@@ -130,6 +149,15 @@ class TopologyGeneratorBasicTest {
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("grouped_refunds")
                 .hasMessageContaining("in the same definition file");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("a grouped stream from groupBy in a cogroup and also in count fails the topology build with a hint")
+    void repartitionedStreamInCogroupAndCountIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-group-by-shared.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("can not be used in a cogroup and also in another operation");
     }
 
     // Each resource is a separate definition file, built in the given order

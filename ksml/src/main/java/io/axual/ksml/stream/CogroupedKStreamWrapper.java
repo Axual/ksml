@@ -32,11 +32,9 @@ import java.util.List;
 
 public class CogroupedKStreamWrapper extends BaseStreamWrapper {
     public final CogroupedKStream<Object, Object> cogroupedStream;
-    // The grouped streams in this cogroup. Kafka Streams keeps one aggregator per grouped stream, so adding the same
-    // grouped stream again would silently replace its aggregator.
+    // Kafka Streams keeps one aggregator per grouped stream, so a duplicate would replace it
     public final List<KGroupedStream<Object, Object>> groupedStreams;
-    // Kafka Streams changes a cogrouped stream in place. After a stream is added, other pipelines that continue from
-    // this cogrouped stream (saved with "as") would also get the added stream
+    // Kafka Streams changes a cogroup in place, so other pipelines would also get an added stream
     private boolean extended = false;
 
     public CogroupedKStreamWrapper(CogroupedKStream<Object, Object> cogroupedStream, List<KGroupedStream<Object, Object>> groupedStreams, StreamDataType key, StreamDataType value) {
@@ -51,12 +49,11 @@ public class CogroupedKStreamWrapper extends BaseStreamWrapper {
 
     public void checkNotExtended() {
         if (extended) {
-            throw new TopologyException(this + " (or a window of it) already has a stream added by another pipeline. Add all streams to a cogroup in one pipeline");
+            throw new TopologyException("This cogroup (or its window) already has a stream added by another pipeline. Add all streams to a cogroup in one pipeline");
         }
     }
 
     public void markExtended() {
-        checkNotExtended();
         extended = true;
     }
 
