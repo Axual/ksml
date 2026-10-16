@@ -52,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 4. testCogroupInitializer: initializer creates correct initial state
  * 5. testCogroupCombinesOrdersAndRefunds: orders and refunds update one aggregate, each with its own aggregator
  * 6. testCogroupRefundsPerCustomer: refunds only update the aggregate of their own key
+ * 7. testCogroupRefundBeforeOrder: a refund before any order starts from the initializer
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -156,6 +157,18 @@ public class CogroupTest {
 
         assertThat(json.get("total_amount").asDouble()).isEqualTo(75.00);
         assertThat(json.get("order_count").asInt()).isEqualTo(1);
+        assertThat(json.get("refund_count").asInt()).isZero();
+    }
+
+    @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")
+    void testCogroupRefundBeforeOrder() throws Exception {
+        // A refund before any order starts from the initializer, as in the tutorial diagram
+        refundsInput.pipeInput("alice", createRefundJson("REF003", "alice", 20.00));
+
+        JsonNode json = objectMapper.readTree(outputTopic.readValue());
+        assertThat(json.get("total_amount").asDouble()).isEqualTo(-20.00);
+        assertThat(json.get("order_count").asInt()).isZero();
+        assertThat(json.get("refund_count").asInt()).isEqualTo(1);
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")

@@ -556,8 +556,8 @@ The streams in a cogroup:
 - can each be added only once, with one aggregator
 - must be co-partitioned: their topics need the same number of partitions and the same partitioning. Kafka Streams does not always check this. If the partition counts differ, one key can get two separate totals, without any error
 - except the first one, must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
-- can be added to a saved cogroup by only one later pipeline. After that pipeline adds a stream, other later pipelines cannot use that cogroup. A pipeline defined before it can still use the cogroup. Its result does not include the added stream
-- that need a repartition (for example after `groupBy`) cannot be used by any other operation, also not by another cogroup, when `topology.optimization` is `none`. With `all`, the KSML runner default, Kafka Streams shares one repartition. A separate `groupBy` for each use works with any setting
+- can be added to a saved cogroup by only one later pipeline. Other later pipelines then cannot use that cogroup. Earlier pipelines can, but without the added stream
+- that need a repartition (for example after `groupBy`) can be used by another operation only with `topology.optimization: all` (the KSML runner default). Or use a separate `groupBy` for each use
 
 #### Example
 

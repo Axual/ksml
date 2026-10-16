@@ -99,13 +99,10 @@ public class CogroupOperation extends BaseOperation {
 
     // An "as" name exists only after its pipeline is built, so that pipeline must come first
     private KGroupedStreamWrapper lookupGroupedStream(TopologyBuildContext context) {
-        if (!context.hasStreamWrapper(stream)) {
-            if (context.isTopicDefinition(stream)) throw notGroupedTopicError();
-            throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition file");
-        }
-        final var wrapper = context.getStreamWrapper(stream, null);
+        final var wrapper = context.hasStreamWrapper(stream) ? context.getStreamWrapper(stream, null) : null;
         if (wrapper instanceof KGroupedStreamWrapper grouped) return grouped;
         if (context.isTopicDefinition(stream)) throw notGroupedTopicError();
+        if (wrapper == null) throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition file");
         throw topologyError(streamLabel() + " must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
     }
 

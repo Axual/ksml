@@ -792,7 +792,7 @@ temp002 | 29.8
 
 ## Advanced: Cogroup Operation
 
-Cogroup combines several grouped streams into one aggregation, with a separate aggregator for each stream. The example below combines customer orders and refunds into one total per customer. The value types of the streams may differ, which is the main difference from merging the streams and using a single `aggregate`.
+Cogroup combines several grouped streams into one aggregation, with a separate aggregator for each stream. The example below combines customer orders and refunds into one total per customer. Unlike `merge` and one `aggregate`, each stream has its own aggregator, and the value types of the streams may differ.
 
 > **Note:** Cogroup with more than one stream needs KSML 2.0.0 or later. Older versions fail at startup with "Cogroup operations are not supported for CogroupedStreams".
 
@@ -880,7 +880,7 @@ graph TB
     style Updates fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The store gets −20.0, 30.0 and 23.0 for `alice`. Other keys have their own value in the store and are updated the same way. Because the store has `caching: true`, the output topic gets only the latest value at each commit, by default every 30 seconds. So it can get just 23.0. Set `caching: false` to send every update.
+The store gets −20.0, 30.0 and 23.0 for `alice`. Other keys have their own value in the store and are updated the same way. With `caching: true`, the output topic may get only the latest value, for example just 23.0. Set `caching: false` to send every update.
 
 > **Note:** The pipeline with `as` must come before the pipeline that uses it, in the same file. See [cogroup](../../reference/operation-reference.md#cogroup) for all rules.
 
