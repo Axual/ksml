@@ -4263,9 +4263,12 @@ graph TB
 <a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>temp002 | 29.8
 </code></pre></div></p>
 <h2 id="advanced-cogroup-operation">Advanced: Cogroup Operation</h2>
-<p>Cogroup is meant to combine several grouped streams into one aggregation, with a separate aggregator for each stream. KSML supports only one stream in a <code>cogroup</code> today (see <a href="https://github.com/Axual/ksml/issues/728">#728</a>), so the example below uses one stream.</p>
+<p>Cogroup combines several grouped streams into one aggregation, with a separate aggregator for each stream. The example below combines customer orders and refunds into one total per customer. Unlike <code>merge</code> and one <code>aggregate</code>, each stream has its own aggregator, and the value types of the streams may differ.</p>
+<blockquote>
+<p><strong>Note:</strong> Cogroup with more than one stream needs KSML 2.0.0 or later. Older versions fail at startup with "Cogroup operations are not supported for CogroupedStreams".</p>
+</blockquote>
 <details class="info">
-<summary>Customer orders producer (click to expand)</summary>
+<summary>Customer orders and refunds producer (click to expand)</summary>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nt">functions</span><span class="p">:</span>
 <a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">  </span><span class="nt">generate_order</span><span class="p">:</span>
 <a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
@@ -4291,14 +4294,46 @@ graph TB
 <a id="__codelineno-27-23" name="__codelineno-27-23" href="#__codelineno-27-23"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value)</span>
 <a id="__codelineno-27-24" name="__codelineno-27-24" href="#__codelineno-27-24"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
 <a id="__codelineno-27-25" name="__codelineno-27-25" href="#__codelineno-27-25"></a>
-<a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a><span class="nt">producers</span><span class="p">:</span>
-<a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a><span class="w">  </span><span class="nt">order_producer</span><span class="p">:</span>
-<a id="__codelineno-27-28" name="__codelineno-27-28" href="#__codelineno-27-28"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_order</span>
-<a id="__codelineno-27-29" name="__codelineno-27-29" href="#__codelineno-27-29"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2s</span>
-<a id="__codelineno-27-30" name="__codelineno-27-30" href="#__codelineno-27-30"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
-<a id="__codelineno-27-31" name="__codelineno-27-31" href="#__codelineno-27-31"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_orders</span>
-<a id="__codelineno-27-32" name="__codelineno-27-32" href="#__codelineno-27-32"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-27-33" name="__codelineno-27-33" href="#__codelineno-27-33"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a><span class="w">  </span><span class="nt">generate_refund</span><span class="p">:</span>
+<a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span>
+<a id="__codelineno-27-28" name="__codelineno-27-28" href="#__codelineno-27-28"></a><span class="w">    </span><span class="nt">globalCode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-27-29" name="__codelineno-27-29" href="#__codelineno-27-29"></a><span class="w">      </span><span class="no">import random</span>
+<a id="__codelineno-27-30" name="__codelineno-27-30" href="#__codelineno-27-30"></a><span class="w">      </span><span class="no">import time</span>
+<a id="__codelineno-27-31" name="__codelineno-27-31" href="#__codelineno-27-31"></a><span class="w">      </span><span class="no">refund_counter = 0</span>
+<a id="__codelineno-27-32" name="__codelineno-27-32" href="#__codelineno-27-32"></a><span class="w">      </span><span class="no">customers = ["alice", "bob", "charlie", "diana", "eve"]</span>
+<a id="__codelineno-27-33" name="__codelineno-27-33" href="#__codelineno-27-33"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-27-34" name="__codelineno-27-34" href="#__codelineno-27-34"></a><span class="w">      </span><span class="no">global refund_counter, customers</span>
+<a id="__codelineno-27-35" name="__codelineno-27-35" href="#__codelineno-27-35"></a>
+<a id="__codelineno-27-36" name="__codelineno-27-36" href="#__codelineno-27-36"></a><span class="w">      </span><span class="no">refund_counter += 1</span>
+<a id="__codelineno-27-37" name="__codelineno-27-37" href="#__codelineno-27-37"></a><span class="w">      </span><span class="no">customer = random.choice(customers)</span>
+<a id="__codelineno-27-38" name="__codelineno-27-38" href="#__codelineno-27-38"></a>
+<a id="__codelineno-27-39" name="__codelineno-27-39" href="#__codelineno-27-39"></a><span class="w">      </span><span class="no">value = {</span>
+<a id="__codelineno-27-40" name="__codelineno-27-40" href="#__codelineno-27-40"></a><span class="w">        </span><span class="no">"refund_id": f"REF{refund_counter:04d}",</span>
+<a id="__codelineno-27-41" name="__codelineno-27-41" href="#__codelineno-27-41"></a><span class="w">        </span><span class="no">"customer": customer,</span>
+<a id="__codelineno-27-42" name="__codelineno-27-42" href="#__codelineno-27-42"></a><span class="w">        </span><span class="no">"amount": round(random.uniform(5, 100), 2),</span>
+<a id="__codelineno-27-43" name="__codelineno-27-43" href="#__codelineno-27-43"></a><span class="w">        </span><span class="no">"timestamp": int(time.time() * 1000)</span>
+<a id="__codelineno-27-44" name="__codelineno-27-44" href="#__codelineno-27-44"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-27-45" name="__codelineno-27-45" href="#__codelineno-27-45"></a>
+<a id="__codelineno-27-46" name="__codelineno-27-46" href="#__codelineno-27-46"></a><span class="w">      </span><span class="no">key = customer</span>
+<a id="__codelineno-27-47" name="__codelineno-27-47" href="#__codelineno-27-47"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(key, value)</span>
+<a id="__codelineno-27-48" name="__codelineno-27-48" href="#__codelineno-27-48"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">(string, json)</span>
+<a id="__codelineno-27-49" name="__codelineno-27-49" href="#__codelineno-27-49"></a>
+<a id="__codelineno-27-50" name="__codelineno-27-50" href="#__codelineno-27-50"></a><span class="nt">producers</span><span class="p">:</span>
+<a id="__codelineno-27-51" name="__codelineno-27-51" href="#__codelineno-27-51"></a><span class="w">  </span><span class="nt">order_producer</span><span class="p">:</span>
+<a id="__codelineno-27-52" name="__codelineno-27-52" href="#__codelineno-27-52"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_order</span>
+<a id="__codelineno-27-53" name="__codelineno-27-53" href="#__codelineno-27-53"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2s</span>
+<a id="__codelineno-27-54" name="__codelineno-27-54" href="#__codelineno-27-54"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-27-55" name="__codelineno-27-55" href="#__codelineno-27-55"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_orders</span>
+<a id="__codelineno-27-56" name="__codelineno-27-56" href="#__codelineno-27-56"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-27-57" name="__codelineno-27-57" href="#__codelineno-27-57"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-27-58" name="__codelineno-27-58" href="#__codelineno-27-58"></a>
+<a id="__codelineno-27-59" name="__codelineno-27-59" href="#__codelineno-27-59"></a><span class="w">  </span><span class="nt">refund_producer</span><span class="p">:</span>
+<a id="__codelineno-27-60" name="__codelineno-27-60" href="#__codelineno-27-60"></a><span class="w">    </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generate_refund</span>
+<a id="__codelineno-27-61" name="__codelineno-27-61" href="#__codelineno-27-61"></a><span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7s</span>
+<a id="__codelineno-27-62" name="__codelineno-27-62" href="#__codelineno-27-62"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span>
+<a id="__codelineno-27-63" name="__codelineno-27-63" href="#__codelineno-27-63"></a><span class="w">      </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_refunds</span>
+<a id="__codelineno-27-64" name="__codelineno-27-64" href="#__codelineno-27-64"></a><span class="w">      </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-27-65" name="__codelineno-27-65" href="#__codelineno-27-65"></a><span class="w">      </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 </code></pre></div>
 </details>
 <details class="info">
@@ -4309,90 +4344,148 @@ graph TB
 <a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>
-<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="w">  </span><span class="nt">customer_totals</span><span class="p">:</span>
-<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="w">  </span><span class="nt">refunds</span><span class="p">:</span>
+<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_refunds</span>
 <a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 <a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>
-<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="nt">functions</span><span class="p">:</span>
-<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="w">  </span><span class="nt">init_order_stats</span><span class="p">:</span>
-<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
-<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a><span class="w">      </span><span class="no">result = {</span>
-<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="w">        </span><span class="no">"total_amount": 0.0,</span>
-<a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a><span class="w">        </span><span class="no">"order_count": 0,</span>
-<a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a><span class="w">        </span><span class="no">"customer": ""</span>
-<a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a><span class="w">      </span><span class="no">}</span>
-<a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a>
-<a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a><span class="w">  </span><span class="nt">aggregate_orders</span><span class="p">:</span>
-<a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
-<a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-27" name="__codelineno-28-27" href="#__codelineno-28-27"></a><span class="w">      </span><span class="no"># Add order amount and increment count</span>
-<a id="__codelineno-28-28" name="__codelineno-28-28" href="#__codelineno-28-28"></a><span class="w">      </span><span class="no">if value is not None:</span>
-<a id="__codelineno-28-29" name="__codelineno-28-29" href="#__codelineno-28-29"></a><span class="w">        </span><span class="no">aggregatedValue["total_amount"] = aggregatedValue.get("total_amount", 0) + value.get("amount", 0)</span>
-<a id="__codelineno-28-30" name="__codelineno-28-30" href="#__codelineno-28-30"></a><span class="w">        </span><span class="no">aggregatedValue["order_count"] = aggregatedValue.get("order_count", 0) + 1</span>
-<a id="__codelineno-28-31" name="__codelineno-28-31" href="#__codelineno-28-31"></a><span class="w">        </span><span class="no">aggregatedValue["customer"] = key</span>
-<a id="__codelineno-28-32" name="__codelineno-28-32" href="#__codelineno-28-32"></a>
-<a id="__codelineno-28-33" name="__codelineno-28-33" href="#__codelineno-28-33"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
-<a id="__codelineno-28-34" name="__codelineno-28-34" href="#__codelineno-28-34"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
-<a id="__codelineno-28-35" name="__codelineno-28-35" href="#__codelineno-28-35"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-28-36" name="__codelineno-28-36" href="#__codelineno-28-36"></a>
-<a id="__codelineno-28-37" name="__codelineno-28-37" href="#__codelineno-28-37"></a><span class="nt">pipelines</span><span class="p">:</span>
-<a id="__codelineno-28-38" name="__codelineno-28-38" href="#__codelineno-28-38"></a><span class="w">  </span><span class="nt">customer_order_totals</span><span class="p">:</span>
-<a id="__codelineno-28-39" name="__codelineno-28-39" href="#__codelineno-28-39"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
-<a id="__codelineno-28-40" name="__codelineno-28-40" href="#__codelineno-28-40"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-28-41" name="__codelineno-28-41" href="#__codelineno-28-41"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
-<a id="__codelineno-28-42" name="__codelineno-28-42" href="#__codelineno-28-42"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cogroup</span>
-<a id="__codelineno-28-43" name="__codelineno-28-43" href="#__codelineno-28-43"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_orders</span>
-<a id="__codelineno-28-44" name="__codelineno-28-44" href="#__codelineno-28-44"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
-<a id="__codelineno-28-45" name="__codelineno-28-45" href="#__codelineno-28-45"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_order_stats</span>
-<a id="__codelineno-28-46" name="__codelineno-28-46" href="#__codelineno-28-46"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
-<a id="__codelineno-28-47" name="__codelineno-28-47" href="#__codelineno-28-47"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals_store</span>
-<a id="__codelineno-28-48" name="__codelineno-28-48" href="#__codelineno-28-48"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
-<a id="__codelineno-28-49" name="__codelineno-28-49" href="#__codelineno-28-49"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-28-50" name="__codelineno-28-50" href="#__codelineno-28-50"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
-<a id="__codelineno-28-51" name="__codelineno-28-51" href="#__codelineno-28-51"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
-<a id="__codelineno-28-52" name="__codelineno-28-52" href="#__codelineno-28-52"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
-<a id="__codelineno-28-53" name="__codelineno-28-53" href="#__codelineno-28-53"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-28-54" name="__codelineno-28-54" href="#__codelineno-28-54"></a><span class="w">            </span><span class="no">log.info("CUSTOMER ORDER TOTALS - Customer: {}, Total: ${}, Count: {}",</span>
-<a id="__codelineno-28-55" name="__codelineno-28-55" href="#__codelineno-28-55"></a><span class="w">                     </span><span class="no">key,</span>
-<a id="__codelineno-28-56" name="__codelineno-28-56" href="#__codelineno-28-56"></a><span class="w">                     </span><span class="no">value.get("total_amount", 0),</span>
-<a id="__codelineno-28-57" name="__codelineno-28-57" href="#__codelineno-28-57"></a><span class="w">                     </span><span class="no">value.get("order_count", 0))</span>
-<a id="__codelineno-28-58" name="__codelineno-28-58" href="#__codelineno-28-58"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
+<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="w">  </span><span class="nt">customer_totals</span><span class="p">:</span>
+<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
+<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>
+<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="nt">functions</span><span class="p">:</span>
+<a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a><span class="w">  </span><span class="nt">init_order_stats</span><span class="p">:</span>
+<a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initializer</span>
+<a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a><span class="w">      </span><span class="no">result = {</span>
+<a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a><span class="w">        </span><span class="no">"total_amount": 0.0,</span>
+<a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a><span class="w">        </span><span class="no">"order_count": 0,</span>
+<a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a><span class="w">        </span><span class="no">"refund_count": 0,</span>
+<a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a><span class="w">        </span><span class="no">"customer": ""</span>
+<a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a><span class="w">      </span><span class="no">}</span>
+<a id="__codelineno-28-27" name="__codelineno-28-27" href="#__codelineno-28-27"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-28-28" name="__codelineno-28-28" href="#__codelineno-28-28"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-28-29" name="__codelineno-28-29" href="#__codelineno-28-29"></a>
+<a id="__codelineno-28-30" name="__codelineno-28-30" href="#__codelineno-28-30"></a><span class="w">  </span><span class="nt">aggregate_orders</span><span class="p">:</span>
+<a id="__codelineno-28-31" name="__codelineno-28-31" href="#__codelineno-28-31"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
+<a id="__codelineno-28-32" name="__codelineno-28-32" href="#__codelineno-28-32"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-28-33" name="__codelineno-28-33" href="#__codelineno-28-33"></a><span class="w">      </span><span class="no"># Add order amount and increment order count</span>
+<a id="__codelineno-28-34" name="__codelineno-28-34" href="#__codelineno-28-34"></a><span class="w">      </span><span class="no">if value is not None:</span>
+<a id="__codelineno-28-35" name="__codelineno-28-35" href="#__codelineno-28-35"></a><span class="w">        </span><span class="no">aggregatedValue["total_amount"] = aggregatedValue.get("total_amount", 0) + value.get("amount", 0)</span>
+<a id="__codelineno-28-36" name="__codelineno-28-36" href="#__codelineno-28-36"></a><span class="w">        </span><span class="no">aggregatedValue["order_count"] = aggregatedValue.get("order_count", 0) + 1</span>
+<a id="__codelineno-28-37" name="__codelineno-28-37" href="#__codelineno-28-37"></a><span class="w">        </span><span class="no">aggregatedValue["customer"] = key</span>
+<a id="__codelineno-28-38" name="__codelineno-28-38" href="#__codelineno-28-38"></a>
+<a id="__codelineno-28-39" name="__codelineno-28-39" href="#__codelineno-28-39"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
+<a id="__codelineno-28-40" name="__codelineno-28-40" href="#__codelineno-28-40"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-28-41" name="__codelineno-28-41" href="#__codelineno-28-41"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-28-42" name="__codelineno-28-42" href="#__codelineno-28-42"></a>
+<a id="__codelineno-28-43" name="__codelineno-28-43" href="#__codelineno-28-43"></a><span class="w">  </span><span class="nt">aggregate_refunds</span><span class="p">:</span>
+<a id="__codelineno-28-44" name="__codelineno-28-44" href="#__codelineno-28-44"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregator</span>
+<a id="__codelineno-28-45" name="__codelineno-28-45" href="#__codelineno-28-45"></a><span class="w">    </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-28-46" name="__codelineno-28-46" href="#__codelineno-28-46"></a><span class="w">      </span><span class="no"># Subtract refund amount and increment refund count</span>
+<a id="__codelineno-28-47" name="__codelineno-28-47" href="#__codelineno-28-47"></a><span class="w">      </span><span class="no">if value is not None:</span>
+<a id="__codelineno-28-48" name="__codelineno-28-48" href="#__codelineno-28-48"></a><span class="w">        </span><span class="no">aggregatedValue["total_amount"] = aggregatedValue.get("total_amount", 0) - value.get("amount", 0)</span>
+<a id="__codelineno-28-49" name="__codelineno-28-49" href="#__codelineno-28-49"></a><span class="w">        </span><span class="no">aggregatedValue["refund_count"] = aggregatedValue.get("refund_count", 0) + 1</span>
+<a id="__codelineno-28-50" name="__codelineno-28-50" href="#__codelineno-28-50"></a><span class="w">        </span><span class="no">aggregatedValue["customer"] = key</span>
+<a id="__codelineno-28-51" name="__codelineno-28-51" href="#__codelineno-28-51"></a>
+<a id="__codelineno-28-52" name="__codelineno-28-52" href="#__codelineno-28-52"></a><span class="w">      </span><span class="no">result = aggregatedValue</span>
+<a id="__codelineno-28-53" name="__codelineno-28-53" href="#__codelineno-28-53"></a><span class="w">    </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<a id="__codelineno-28-54" name="__codelineno-28-54" href="#__codelineno-28-54"></a><span class="w">    </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-28-55" name="__codelineno-28-55" href="#__codelineno-28-55"></a>
+<a id="__codelineno-28-56" name="__codelineno-28-56" href="#__codelineno-28-56"></a><span class="nt">pipelines</span><span class="p">:</span>
+<a id="__codelineno-28-57" name="__codelineno-28-57" href="#__codelineno-28-57"></a><span class="w">  </span><span class="c1"># Group the refunds by customer and save the grouped stream for the next pipeline</span>
+<a id="__codelineno-28-58" name="__codelineno-28-58" href="#__codelineno-28-58"></a><span class="w">  </span><span class="nt">grouped_refunds</span><span class="p">:</span>
+<a id="__codelineno-28-59" name="__codelineno-28-59" href="#__codelineno-28-59"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">refunds</span>
+<a id="__codelineno-28-60" name="__codelineno-28-60" href="#__codelineno-28-60"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-28-61" name="__codelineno-28-61" href="#__codelineno-28-61"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
+<a id="__codelineno-28-62" name="__codelineno-28-62" href="#__codelineno-28-62"></a><span class="w">    </span><span class="nt">as</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grouped_refunds</span>
+<a id="__codelineno-28-63" name="__codelineno-28-63" href="#__codelineno-28-63"></a>
+<a id="__codelineno-28-64" name="__codelineno-28-64" href="#__codelineno-28-64"></a><span class="w">  </span><span class="nt">customer_order_totals</span><span class="p">:</span>
+<a id="__codelineno-28-65" name="__codelineno-28-65" href="#__codelineno-28-65"></a><span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
+<a id="__codelineno-28-66" name="__codelineno-28-66" href="#__codelineno-28-66"></a><span class="w">    </span><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-28-67" name="__codelineno-28-67" href="#__codelineno-28-67"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
+<a id="__codelineno-28-68" name="__codelineno-28-68" href="#__codelineno-28-68"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cogroup</span>
+<a id="__codelineno-28-69" name="__codelineno-28-69" href="#__codelineno-28-69"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_orders</span>
+<a id="__codelineno-28-70" name="__codelineno-28-70" href="#__codelineno-28-70"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cogroup</span>
+<a id="__codelineno-28-71" name="__codelineno-28-71" href="#__codelineno-28-71"></a><span class="w">        </span><span class="nt">stream</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grouped_refunds</span>
+<a id="__codelineno-28-72" name="__codelineno-28-72" href="#__codelineno-28-72"></a><span class="w">        </span><span class="nt">aggregator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate_refunds</span>
+<a id="__codelineno-28-73" name="__codelineno-28-73" href="#__codelineno-28-73"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aggregate</span>
+<a id="__codelineno-28-74" name="__codelineno-28-74" href="#__codelineno-28-74"></a><span class="w">        </span><span class="nt">initializer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">init_order_stats</span>
+<a id="__codelineno-28-75" name="__codelineno-28-75" href="#__codelineno-28-75"></a><span class="w">        </span><span class="nt">store</span><span class="p">:</span>
+<a id="__codelineno-28-76" name="__codelineno-28-76" href="#__codelineno-28-76"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals_store</span>
+<a id="__codelineno-28-77" name="__codelineno-28-77" href="#__codelineno-28-77"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-28-78" name="__codelineno-28-78" href="#__codelineno-28-78"></a><span class="w">          </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-28-79" name="__codelineno-28-79" href="#__codelineno-28-79"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+<a id="__codelineno-28-80" name="__codelineno-28-80" href="#__codelineno-28-80"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">peek</span>
+<a id="__codelineno-28-81" name="__codelineno-28-81" href="#__codelineno-28-81"></a><span class="w">        </span><span class="nt">forEach</span><span class="p">:</span>
+<a id="__codelineno-28-82" name="__codelineno-28-82" href="#__codelineno-28-82"></a><span class="w">          </span><span class="nt">code</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-28-83" name="__codelineno-28-83" href="#__codelineno-28-83"></a><span class="w">            </span><span class="no">log.info("CUSTOMER ORDER TOTALS - Customer: {}, Total: ${}, Orders: {}, Refunds: {}",</span>
+<a id="__codelineno-28-84" name="__codelineno-28-84" href="#__codelineno-28-84"></a><span class="w">                     </span><span class="no">key,</span>
+<a id="__codelineno-28-85" name="__codelineno-28-85" href="#__codelineno-28-85"></a><span class="w">                     </span><span class="no">value.get("total_amount", 0),</span>
+<a id="__codelineno-28-86" name="__codelineno-28-86" href="#__codelineno-28-86"></a><span class="w">                     </span><span class="no">value.get("order_count", 0),</span>
+<a id="__codelineno-28-87" name="__codelineno-28-87" href="#__codelineno-28-87"></a><span class="w">                     </span><span class="no">value.get("refund_count", 0))</span>
+<a id="__codelineno-28-88" name="__codelineno-28-88" href="#__codelineno-28-88"></a><span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_totals</span>
 </code></pre></div>
 </details>
 <h3 id="how-cogroup-works">How Cogroup Works</h3>
-<p>The cogroup pipeline:</p>
+<p>The example has two pipelines:</p>
 <ol>
-<li>Groups the stream by key with <code>groupByKey</code></li>
-<li>Adds the grouped stream to the cogroup with its own aggregator function</li>
-<li>Runs the final <code>aggregate</code> operation, which uses the initializer to compute the result</li>
+<li><code>grouped_refunds</code> groups the refunds by key with <code>groupByKey</code> and saves the grouped stream with <code>as: grouped_refunds</code></li>
+<li><code>customer_order_totals</code> groups the orders by key with <code>groupByKey</code>, then:<ol>
+<li>The first <code>cogroup</code> adds the grouped orders with the <code>aggregate_orders</code> aggregator</li>
+<li>The second <code>cogroup</code> adds the saved grouped refunds with <code>stream: grouped_refunds</code> and the <code>aggregate_refunds</code> aggregator</li>
+<li>The final <code>aggregate</code> operation creates the result table and its store. It takes the initializer and the store, but no aggregator, because the aggregators are already set in the <code>cogroup</code> steps</li>
 </ol>
-<p>The example above uses only one stream, <code>customer_orders</code>. KSML does not support more than one stream in a <code>cogroup</code> yet (see <a href="https://github.com/Axual/ksml/issues/728">#728</a>). The diagram below follows two example orders through the pipeline:</p>
+</li>
+</ol>
+<p>Together, <code>cogroup</code> and <code>aggregate</code> build one aggregation with two inputs. Each message is handled as soon as it arrives:</p>
+<ol>
+<li>If the store has no value for the key yet, <code>init_order_stats</code> creates the start value. This happens once per key, for the first message from either stream</li>
+<li>Only the aggregator of the message's own stream runs: <code>aggregate_orders</code> for an order, <code>aggregate_refunds</code> for a refund. It updates the stored value of the key</li>
+<li>The store keeps the updated value. <code>toStream</code> sends it to the output topic (see the note on caching below)</li>
+</ol>
+<p>The diagram below follows three messages for <code>alice</code> in the order they arrive. The first one is a refund, so the total goes below zero before the first order arrives:</p>
 <pre class="mermaid"><code>%%{init: {'themeVariables': {'textColor': '#000000', 'nodeTextColor': '#000000', 'primaryTextColor': '#000000'}}}%%
 
-graph LR
-    %% Input topic with example orders
-    Topic[(customer_orders)]
-    Orders@{ shape: docs, label: "&lt;b&gt;key: alice&lt;/b&gt; amount 50.0&lt;br/&gt;&lt;b&gt;key: alice&lt;/b&gt; amount 30.0" }
+graph TB
+    %% Input topics with example messages, numbered in arrival order
+    OrdersTopic[(customer_orders)]
+    Orders@{ shape: doc, label: "② &lt;b&gt;key: alice&lt;/b&gt; amount 50.0" }
+    RefundsTopic[(customer_refunds)]
+    Refunds@{ shape: docs, label: "① &lt;b&gt;key: alice&lt;/b&gt; amount 20.0&lt;br/&gt;③ &lt;b&gt;key: alice&lt;/b&gt; amount 7.0" }
 
-    %% Grouping and cogrouping
-    Group[&lt;code&gt;groupByKey&lt;/code&gt;]
-    Cogroup["&lt;code&gt;cogroup&lt;/code&gt;&lt;br/&gt;aggregator: aggregate_orders"]
-    Aggregate["&lt;code&gt;aggregate&lt;/code&gt;&lt;br/&gt;initializer: init_order_stats"]
+    %% Group each stream by key, without storing the messages
+    GroupOrders[&lt;code&gt;groupByKey&lt;/code&gt;]
+    GroupRefunds["&lt;code&gt;groupByKey&lt;/code&gt;&lt;br/&gt;as: grouped_refunds"]
 
-    %% State and output
+    %% One aggregation with two inputs, each with its own aggregator
+    subgraph Aggregation["&lt;code&gt;cogroup&lt;/code&gt; + &lt;code&gt;aggregate&lt;/code&gt;: one aggregation, two inputs"]
+        Init["&lt;code&gt;init_order_stats&lt;/code&gt;&lt;br/&gt;start value for a new key"]
+        AggOrders["&lt;code&gt;aggregate_orders&lt;/code&gt;&lt;br/&gt;from the first &lt;code&gt;cogroup&lt;/code&gt;"]
+        AggRefunds["&lt;code&gt;aggregate_refunds&lt;/code&gt;&lt;br/&gt;from the second &lt;code&gt;cogroup&lt;/code&gt;"]
+    end
     Store[(customer_totals_store)]
-    Result["&lt;b&gt;alice&lt;/b&gt;&lt;br/&gt;total_amount: 80.0&lt;br/&gt;order_count: 2"]
+
+    %% Value of alice in the store after each message
+    subgraph Updates["alice in customer_totals_store after each message"]
+        direction LR
+        Step1["① refund 20.0&lt;br/&gt;new key: start from 0.0&lt;br/&gt;0.0 − 20.0&lt;br/&gt;total_amount: −20.0&lt;br/&gt;order_count: 0&lt;br/&gt;refund_count: 1"]
+        Step2["② order 50.0&lt;br/&gt;−20.0 + 50.0&lt;br/&gt;total_amount: 30.0&lt;br/&gt;order_count: 1&lt;br/&gt;refund_count: 1"]
+        Step3["③ refund 7.0&lt;br/&gt;30.0 − 7.0&lt;br/&gt;total_amount: 23.0&lt;br/&gt;order_count: 1&lt;br/&gt;refund_count: 2"]
+        Step1 --&gt; Step2 --&gt; Step3
+    end
+
     OutputTopic[(customer_totals)]
 
     %% Data Flow
-    Topic --&gt; Orders --&gt; Group --&gt; Cogroup --&gt; Aggregate
-    Aggregate &lt;--&gt;|"one result per key"| Store
-    Aggregate --&gt; Result
-    Result --&gt;|"&lt;code&gt;toStream&lt;/code&gt;"| OutputTopic
+    OrdersTopic --&gt; Orders --&gt; GroupOrders --&gt;|"each order"| AggOrders
+    RefundsTopic --&gt; Refunds --&gt; GroupRefunds --&gt;|"each refund"| AggRefunds
+    Init -.-&gt;|"first message of a key"| AggOrders &amp; AggRefunds
+    AggOrders &lt;--&gt;|"read and update alice"| Store
+    AggRefunds &lt;--&gt;|"read and update alice"| Store
+    Store --&gt; Updates
+    Updates --&gt;|"&lt;code&gt;toStream&lt;/code&gt;: latest value at each commit"| OutputTopic
 
     %% Styling
     classDef topic fill:#e1f5ff,stroke:#0277bd,stroke-width:2px,color:#000
@@ -4409,13 +4502,17 @@ graph LR
     classDef host fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5,color:#000
 
 
-    class Topic,OutputTopic topic
-    class Group,Cogroup,Aggregate operation
+    class OrdersTopic,RefundsTopic,OutputTopic topic
+    class GroupOrders,GroupRefunds,Init,AggOrders,AggRefunds operation
     class Store store
-    class Orders message
-    class Result result</code></pre>
+    class Orders,Refunds message
+    class Step1,Step2 partial
+    class Step3 result
+    style Aggregation fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Updates fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
+<p>The store gets −20.0, 30.0 and 23.0 for <code>alice</code>. Other keys have their own value in the store and are updated the same way. With <code>caching: true</code>, the output topic may get only the latest value, for example just 23.0. Set <code>caching: false</code> to send every update.</p>
 <blockquote>
-<p><strong>Note:</strong> A second <code>cogroup</code> step in the same pipeline fails at startup with a <code>TopologyException</code>. Make sure the aggregator function handles null values.</p>
+<p><strong>Note:</strong> The pipeline with <code>as</code> must come before the pipeline that uses it, in the same file. See <a href="../../../reference/operation-reference/#cogroup">cogroup</a> for all rules.</p>
 </blockquote>
 <h2 id="complex-example-regional-sales-analytics">Complex Example: Regional Sales Analytics</h2>
 <p>This example demonstrates rekeying (changing the grouping key) and windowed aggregation to calculate regional sales statistics:</p>

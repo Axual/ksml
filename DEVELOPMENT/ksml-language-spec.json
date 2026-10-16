@@ -387,7 +387,7 @@
     },
     "CogroupOperation" : {
       "additionalProperties" : false,
-      "description" : "A cogroup operation",
+      "description" : "A cogroup operation, which combines one or more grouped streams into a single aggregation",
       "properties" : {
         "aggregator" : {
           "anyOf" : [ {
@@ -396,10 +396,14 @@
             "$ref" : "#/$defs/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
+          "description" : "(GroupedStream, CogroupedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
         },
         "name" : {
           "description" : "*(optional)* The name of the operation processor",
+          "type" : "string"
+        },
+        "stream" : {
+          "description" : "*(optional)* The \"as\" name of a grouped stream from an earlier pipeline. Not allowed on a grouped stream, needed on a cogrouped stream",
           "type" : "string"
         },
         "type" : {
