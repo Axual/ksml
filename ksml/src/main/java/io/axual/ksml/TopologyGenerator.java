@@ -107,9 +107,9 @@ public class TopologyGenerator {
         try {
             return streamsBuilder.build(optimization);
         } catch (org.apache.kafka.streams.errors.TopologyException e) {
-            // Kafka Streams gives each cogroup its own repartition, which clashes with any other use of that grouped stream
+            // Without optimization, each cogroup gets its own repartition, which clashes with any other use of that grouped stream
             if (e.getMessage() != null && e.getMessage().contains("-repartition-filter is already added")) {
-                throw new TopologyException("A grouped stream that needs a repartition, for example after groupBy, can not be used in a cogroup and also in another operation. Use a separate groupBy for each. " + e.getMessage());
+                throw new TopologyException("A grouped stream that needs a repartition, for example after groupBy, can not be used in a cogroup and also in another operation when topology.optimization is not all. Use a separate groupBy for each. " + e.getMessage());
             }
             throw e;
         }

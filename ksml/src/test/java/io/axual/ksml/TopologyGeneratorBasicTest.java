@@ -32,9 +32,16 @@ import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.apache.kafka.common.serialization.LongSerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
+import org.apache.kafka.streams.TopologyTestDriver;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +54,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -153,22 +161,48 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-    @DisplayName("a grouped stream from groupBy in a cogroup and also in count fails the topology build with a hint")
-    void repartitionedStreamInCogroupAndCountIsRejected() {
+    @DisplayName("without optimization, a grouped stream from groupBy in a cogroup and also in count fails the topology build with a hint")
+    void repartitionedStreamInCogroupAndCountIsRejectedWithoutOptimization() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-group-by-shared.yaml"))
                 .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("can not be used in a cogroup and also in another operation");
+                .hasMessageContaining("can not be used in a cogroup and also in another operation when topology.optimization is not all");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("with optimization, a grouped stream from groupBy in a cogroup and also in count shares one repartition")
+    void repartitionedStreamInCogroupAndCountWorksWithOptimization() throws Exception {
+        final var topology = createTopologyWithOptimization(StreamsConfig.OPTIMIZE, "pipelines/test-cogroup-group-by-shared.yaml");
+        final var props = new Properties();
+        props.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
+        try (final var driver = new TopologyTestDriver(topology, props)) {
+            final var first = driver.createInputTopic("first_topic", new StringSerializer(), new LongSerializer());
+            final var second = driver.createInputTopic("second_topic", new StringSerializer(), new LongSerializer());
+            final var output = driver.createOutputTopic("output_topic", new StringDeserializer(), new LongDeserializer());
+            first.pipeInput("A", 1L);
+            second.pipeInput("a", 2L);
+
+            // The cogroup total, then the cogroup total and the count after the record from second_topic
+            assertThat(output.readKeyValuesToList()).containsExactly(
+                    new KeyValue<>("A", 1L),
+                    new KeyValue<>("A", 21L),
+                    new KeyValue<>("A", 1L));
+        }
     }
 
     // Each resource is a separate definition file, built in the given order
     private Topology createTopology(String... resources) throws Exception {
+        return createTopologyWithOptimization(null, resources);
+    }
+
+    private Topology createTopologyWithOptimization(String optimization, String... resources) throws Exception {
         final var definitions = ImmutableMap.<String, TopologyDefinition>builder();
         for (final var resource : resources) {
             final var uri = ClassLoader.getSystemResource(resource).toURI();
             final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
             definitions.put(resource, new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
         }
-        return new TopologyGenerator("some.app.id").create(streamsBuilder, definitions.build());
+        return new TopologyGenerator("some.app.id", optimization, null).create(streamsBuilder, definitions.build());
     }
 
     /**
