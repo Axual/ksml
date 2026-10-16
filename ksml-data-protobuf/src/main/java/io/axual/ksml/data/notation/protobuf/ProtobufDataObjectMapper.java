@@ -143,28 +143,25 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             final var fieldName = oneOf.getName();
             final var fieldValue = struct.get(fieldName);
             if (fieldValue != null) {
-                final var fieldSchema = dataSchema.field(fieldName).schema();
-                if (fieldSchema instanceof UnionSchema unionSchema) {
-                    var assigned = false;
-                    var index = 0;
-                    while (!assigned && index < unionSchema.members().length) {
-                        final var memberSchema = unionSchema.members()[index];
-                        final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
-                        if (memberType.isAssignableFrom(fieldValue).isAssignable()) {
-                            setMessageFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
-                            assigned = true;
-                        }
-                        index++;
-                    }
-                    if (!assigned) {
-                        throw new DataException("Value of type " + fieldValue.getClass().getSimpleName()
-                                + " does not match any branch of PROTOBUF oneOf '" + fieldName + "'");
-                    }
-                } else {
-                    throw new SchemaException("PROTOBUF oneOf does not match data field: schema=" + (fieldSchema != null ? fieldSchema.type() : "null"));
-                }
+                assignOneOfField(msg, msgDescriptor, dataSchema, fieldName, fieldValue);
             }
         }
+    }
+
+    private void assignOneOfField(DynamicMessage.Builder msg, Descriptors.Descriptor msgDescriptor, StructSchema dataSchema, String fieldName, DataObject fieldValue) {
+        final var fieldSchema = dataSchema.field(fieldName).schema();
+        if (!(fieldSchema instanceof UnionSchema unionSchema)) {
+            throw new SchemaException("PROTOBUF oneOf does not match data field: schema=" + (fieldSchema != null ? fieldSchema.type() : "null"));
+        }
+        for (final var memberSchema : unionSchema.members()) {
+            final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
+            if (memberType.isAssignableFrom(fieldValue).isAssignable()) {
+                setMessageFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
+                return;
+            }
+        }
+        throw new DataException("Value of type " + fieldValue.getClass().getSimpleName()
+                + " does not match any branch of PROTOBUF oneOf '" + fieldName + "'");
     }
 
     // Package-private to allow unit testing. Wraps setField so type mismatches surface with

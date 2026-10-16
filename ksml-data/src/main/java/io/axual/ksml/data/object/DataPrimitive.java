@@ -96,25 +96,35 @@ public class DataPrimitive<T> implements DataObject {
 
         final var that = (DataPrimitive<?>) other;
 
-        // Compare type
-        if (!flags.isSet(IGNORE_DATA_PRIMITIVE_TYPE)) {
-            final var typeEqual = type.equals(that.type, flags);
-            if (typeEqual.isNotEqual())
-                return fieldNotEqual("type", this, type, that, that.type, typeEqual);
-        }
+        final var typeEquality = compareType(that, flags);
+        if (typeEquality != null) return typeEquality;
 
-        // Compare value
-        if (!flags.isSet(IGNORE_DATA_PRIMITIVE_VALUE) && (value != null || that.value != null)) {
-            if (value == null || that.value == null) return EqualUtil.objectNotEqual(this, that);
-            if (value instanceof DataObject dataValue) {
-                final var valueEqual = dataValue.equals(that.value, flags);
-                if (valueEqual.isNotEqual())
-                    return fieldNotEqual("value", this, dataValue, that, that.value, valueEqual);
-            } else {
-                if (!value.equals(that.value)) return fieldNotEqual("value", this, value, that, that.value);
-            }
-        }
+        final var valueEquality = compareValue(that, flags);
+        if (valueEquality != null) return valueEquality;
 
         return Equality.equal();
+    }
+
+    private Equality compareType(DataPrimitive<?> that, EqualityFlags flags) {
+        if (flags.isSet(IGNORE_DATA_PRIMITIVE_TYPE)) return null;
+        final var typeEqual = type.equals(that.type, flags);
+        if (typeEqual.isNotEqual()) return fieldNotEqual("type", this, type, that, that.type, typeEqual);
+        return null;
+    }
+
+    private Equality compareValue(DataPrimitive<?> that, EqualityFlags flags) {
+        if (flags.isSet(IGNORE_DATA_PRIMITIVE_VALUE)) return null;
+        // Exactly one of the two values is null: not equal. Both null: equal, nothing more to compare.
+        if ((value == null) != (that.value == null)) return EqualUtil.objectNotEqual(this, that);
+        if (value == null) return null;
+
+        if (value instanceof DataObject dataValue) {
+            final var valueEqual = dataValue.equals(that.value, flags);
+            if (valueEqual.isNotEqual())
+                return fieldNotEqual("value", this, dataValue, that, that.value, valueEqual);
+            return null;
+        }
+        if (!value.equals(that.value)) return fieldNotEqual("value", this, value, that, that.value);
+        return null;
     }
 }

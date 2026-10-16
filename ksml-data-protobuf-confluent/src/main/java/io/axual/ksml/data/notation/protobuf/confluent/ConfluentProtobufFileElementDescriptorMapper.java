@@ -23,6 +23,7 @@ package io.axual.ksml.data.notation.protobuf.confluent;
 import com.google.protobuf.Descriptors;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.internal.parser.EnumElement;
+import com.squareup.wire.schema.internal.parser.FieldElement;
 import com.squareup.wire.schema.internal.parser.MessageElement;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
@@ -51,8 +52,12 @@ public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFil
     private static class ElementToDescriptorConverter {
         private final Set<String> types = new HashSet<>();
 
+        private static String qualifiedName(String namespace, String name) {
+            return (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + name;
+        }
+
         private boolean notDuplicateType(String namespace, TypeElement type) {
-            final var fullName = (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + type.getName();
+            final var fullName = qualifiedName(namespace, type.getName());
             final var result = !types.contains(fullName);
             types.add(fullName);
             return result;
@@ -84,27 +89,36 @@ public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFil
             }
         }
 
-        @SuppressWarnings("java:S3358")
         private MessageDefinition toMessageDefinition(String namespace, MessageElement messageElement) {
             // Mark the namespace + message name as done
-            final var fullName = (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + messageElement.getName();
+            final var fullName = qualifiedName(namespace, messageElement.getName());
             types.add(fullName);
 
-            // Convert nested types
+            // Convert nested types, oneOfs and fields
             final var msgBuilder = MessageDefinition.newBuilder(messageElement.getName());
+            addNestedTypes(fullName, messageElement, msgBuilder);
+            addOneOfs(messageElement, msgBuilder);
+            addFields(messageElement, msgBuilder);
+
+            // Return definition
+            return msgBuilder.build();
+        }
+
+        private void addNestedTypes(String fullName, MessageElement messageElement, MessageDefinition.Builder msgBuilder) {
             for (final var nestedType : messageElement.getNestedTypes()) {
                 if (!notDuplicateType(fullName, nestedType)) {
                     continue;
                 }
-                if (nestedType instanceof MessageElement nestedMessage){
+                if (nestedType instanceof MessageElement nestedMessage) {
                     msgBuilder.addMessageDefinition(toMessageDefinition(fullName, nestedMessage));
                 }
                 if (nestedType instanceof EnumElement nestedEnum) {
                     msgBuilder.addEnumDefinition(toEnumDefinition(fullName, nestedEnum));
                 }
             }
+        }
 
-            // Convert oneOfs
+        private void addOneOfs(MessageElement messageElement, MessageDefinition.Builder msgBuilder) {
             for (final var oneOf : messageElement.getOneOfs()) {
                 final var oneOfBuilder = msgBuilder.addOneof(oneOf.getName());
                 for (final var oneOfField : oneOf.getFields()) {
@@ -112,24 +126,27 @@ public class ConfluentProtobufFileElementDescriptorMapper implements ProtobufFil
                     oneOfBuilder.addField(fld);
                 }
             }
+        }
 
-            // Convert fields
+        private void addFields(MessageElement messageElement, MessageDefinition.Builder msgBuilder) {
             for (final var field : messageElement.getFields()) {
-                final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
-                final var repeated = field.getLabel() == Field.Label.REPEATED;
-                final var label = required ? null
-                        : repeated ? "repeated" : "optional";
-                final var fldBuilder = FieldDefinition.newBuilder(new Context(), field.getName(), field.getTag(), field.getType());
-                msgBuilder.addField(label != null ? fldBuilder.setLabel(label).build() : fldBuilder.build());
+                msgBuilder.addField(buildFieldDefinition(field));
             }
+        }
 
-            // Return definition
-            return msgBuilder.build();
+        @SuppressWarnings("java:S3358")
+        private FieldDefinition buildFieldDefinition(FieldElement field) {
+            final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
+            final var repeated = field.getLabel() == Field.Label.REPEATED;
+            final var label = required ? null
+                    : repeated ? "repeated" : "optional";
+            final var fldBuilder = FieldDefinition.newBuilder(new Context(), field.getName(), field.getTag(), field.getType());
+            return label != null ? fldBuilder.setLabel(label).build() : fldBuilder.build();
         }
 
         private EnumDefinition toEnumDefinition(String namespace, EnumElement enumElement) {
             // Mark the namespace + enum name as done
-            final var fullName = (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + enumElement.getName();
+            final var fullName = qualifiedName(namespace, enumElement.getName());
             types.add(fullName);
 
             final var enumBuilder = EnumDefinition.newBuilder(enumElement.getName());

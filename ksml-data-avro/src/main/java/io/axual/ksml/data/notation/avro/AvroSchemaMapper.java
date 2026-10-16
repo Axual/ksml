@@ -297,18 +297,10 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private Schema convertDataSchemaToAvroSchema(DataSchema schema) {
         if (schema instanceof LogicalSchema logical)
             return AvroLogicalTypes.apply(convertDataSchemaToAvroSchema(logical.baseSchema()), logical.logicalType());
-        if (schema == DataSchema.ANY_SCHEMA) throw new SchemaException("AVRO schema do not support ANY types");
-        if (schema == DataSchema.NULL_SCHEMA) return Schema.create(Schema.Type.NULL);
-        if (schema == DataSchema.BOOLEAN_SCHEMA) return Schema.create(Schema.Type.BOOLEAN);
-        if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA)
-            return Schema.create(Schema.Type.INT);
-        if (schema == DataSchema.LONG_SCHEMA) return Schema.create(Schema.Type.LONG);
-        if (schema == DataSchema.FLOAT_SCHEMA) return Schema.create(Schema.Type.FLOAT);
-        if (schema == DataSchema.DOUBLE_SCHEMA) return Schema.create(Schema.Type.DOUBLE);
-        if (schema == DataSchema.BYTES_SCHEMA) return Schema.create(Schema.Type.BYTES);
+
+        // Structural types need the narrowed reference, so these stay instanceof checks
         if (schema instanceof FixedSchema fixedSchema)
             return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
-        if (schema == DataSchema.STRING_SCHEMA) return Schema.create(Schema.Type.STRING);
         if (schema instanceof EnumSchema enumSchema)
             return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), enumSchema.symbols().stream().map(EnumSchema.Symbol::name).toList(), enumSchema.defaultValue() == null ? null : enumSchema.defaultValue().name());
         if (schema instanceof ListSchema listSchema)
@@ -320,8 +312,24 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (schema instanceof UnionSchema unionSchema)
             return Schema.createUnion(convertUnionMemberSchemasToAvro(Arrays.stream(unionSchema.members()).map(UnionSchema.Member::schema).toArray(DataSchema[]::new)));
 
+        // Remaining schemas are primitives (or ANY); DataSchema already exposes its canonical type
+        // name, so switch on that instead of a chain of reference-equality checks.
+        return switch (schema.type()) {
+            case DataSchemaConstants.ANY_TYPE ->
+                throw new SchemaException("AVRO schema do not support ANY types");
+            case DataSchemaConstants.NULL_TYPE -> Schema.create(Schema.Type.NULL);
+            case DataSchemaConstants.BOOLEAN_TYPE -> Schema.create(Schema.Type.BOOLEAN);
+            case DataSchemaConstants.BYTE_TYPE, DataSchemaConstants.SHORT_TYPE,
+                 DataSchemaConstants.INTEGER_TYPE -> Schema.create(Schema.Type.INT);
+            case DataSchemaConstants.LONG_TYPE -> Schema.create(Schema.Type.LONG);
+            case DataSchemaConstants.FLOAT_TYPE -> Schema.create(Schema.Type.FLOAT);
+            case DataSchemaConstants.DOUBLE_TYPE -> Schema.create(Schema.Type.DOUBLE);
+            case DataSchemaConstants.BYTES_TYPE -> Schema.create(Schema.Type.BYTES);
+            case DataSchemaConstants.STRING_TYPE -> Schema.create(Schema.Type.STRING);
+            default -> throw new SchemaException("Can not convert schema to AVRO: " + schema);
+        };
+
         // the above is currently exhaustive, so this should never occur:
-        throw new SchemaException("Can not convert schema to AVRO: " + schema);
     }
 
     private Schema convertDataSchemaToAvroSchema(DataSchema schema, boolean required, boolean nullDefault) {

@@ -38,6 +38,7 @@ import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
 import io.axual.ksml.data.schema.ListSchema;
@@ -99,7 +100,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         // Get the list of fields for this message
         final var messageFields = new ArrayList<>(message.getFields());
         // Remove the oneOf fields from the message fields
-        oneOfMap.forEach((key, value) -> messageFields.removeAll(value));
+        oneOfMap.forEach((_, value) -> messageFields.removeAll(value));
 
         // Convert the list of message fields and oneOfs
         final var result = new ArrayList<StructSchema.Field>(messageFields.size());
@@ -277,46 +278,68 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     private String convertDataSchemaToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String parentName, DataSchema schema) {
         // A logical type carries a base primitive; PROTOBUF has no notion of it, so map the base.
         if (schema instanceof LogicalSchema logical) schema = logical.baseSchema();
-        if (schema == DataSchema.BOOLEAN_SCHEMA) return "boolean";
-        if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA)
-            return "int32";
-        if (schema == DataSchema.LONG_SCHEMA) return "int64";
-        if (schema == DataSchema.FLOAT_SCHEMA) return "float";
-        if (schema == DataSchema.DOUBLE_SCHEMA) return "double";
-        if (schema == DataSchema.BYTES_SCHEMA || schema instanceof FixedSchema) return "bytes";
-        if (schema == DataSchema.STRING_SCHEMA) return "string";
-        if (schema instanceof EnumSchema enumSchema) {
-            final var enm = convertEnumSchemaToEnumElement(enumSchema);
-            // Find out if the enum is nested or defined at the top level
-            if (enumSchema.namespace() != null && enumSchema.namespace().equals(context.namespace + "." + parentName)) {
-                if (context.notDuplicate(enumSchema.fullName())) {
-                    parentNestedTypes.add(enm);
-                }
-            } else {
-                context.addType(parentName, enm);
-            }
-            return enumSchema.name();
-        }
+
+        // Structural types need the narrowed reference, so these stay instanceof checks
+        if (schema instanceof FixedSchema) return "bytes";
+        if (schema instanceof EnumSchema enumSchema) return convertEnumSchemaToProtoType(context, parentNestedTypes, parentName, enumSchema);
         if (schema instanceof ListSchema listSchema) {
             // The repeated label is caught above, so only convert the value schema to a type
             return convertDataSchemaToProtoType(context, parentNestedTypes, parentName, listSchema.valueSchema());
         }
-        if (schema instanceof MapSchema)
-            return null;
-        if (schema instanceof StructSchema structSchema) {
-            final var message = convertStructSchemaToMessageElement(context, structSchema);
-            // Find out if the message is nested or defined at the top level
-            if (structSchema.namespace() != null && structSchema.namespace().equals(context.namespace + "." + parentName)) {
-                if (context.notDuplicate(structSchema.fullName()))
-                    parentNestedTypes.add(message);
-            } else {
-                context.addType(parentName, message);
+        if (schema instanceof MapSchema) return null;
+        if (schema instanceof StructSchema structSchema) return convertStructSchemaToProtoType(context, parentNestedTypes, parentName, structSchema);
+        if (schema instanceof UnionSchema) return null;
+
+        // Remaining schemas are primitives; DataSchema already exposes its canonical type name,
+        // so switch on that
+        return switch (schema.type()) {
+            case DataSchemaConstants.BOOLEAN_TYPE -> "boolean";
+            case DataSchemaConstants.BYTE_TYPE, DataSchemaConstants.SHORT_TYPE,
+                 DataSchemaConstants.INTEGER_TYPE -> "int32";
+            case DataSchemaConstants.LONG_TYPE -> "int64";
+            case DataSchemaConstants.FLOAT_TYPE -> "float";
+            case DataSchemaConstants.DOUBLE_TYPE -> "double";
+            case DataSchemaConstants.BYTES_TYPE -> "bytes";
+            case DataSchemaConstants.STRING_TYPE -> "string";
+            default ->
+                throw new SchemaException("Can not convert schema type " + schema.type() + " to PROTOBUF type");
+        };
+
+    }
+
+    /**
+     * Converts an {@link EnumSchema} to its PROTOBUF enum type name, registering the generated
+     * {@link EnumElement} as either a nested type (if it belongs to {@code parentName}) or a
+     * top-level type in {@code context}.
+     */
+    private String convertEnumSchemaToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String parentName, EnumSchema enumSchema) {
+        final var enm = convertEnumSchemaToEnumElement(enumSchema);
+        // Find out if the enum is nested or defined at the top level
+        if (enumSchema.namespace() != null && enumSchema.namespace().equals(context.namespace + "." + parentName)) {
+            if (context.notDuplicate(enumSchema.fullName())) {
+                parentNestedTypes.add(enm);
             }
-            return structSchema.name();
+        } else {
+            context.addType(parentName, enm);
         }
-        if (schema instanceof UnionSchema)
-            return null;
-        throw new SchemaException("Can not convert schema type " + schema.type() + " to PROTOBUF type");
+        return enumSchema.name();
+    }
+
+    /**
+     * Converts a {@link StructSchema} to its PROTOBUF message type name, registering the generated
+     * {@link MessageElement} as either a nested type (if it belongs to {@code parentName}) or a
+     * top-level type in {@code context}.
+     */
+    private String convertStructSchemaToProtoType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String parentName, StructSchema structSchema) {
+        final var message = convertStructSchemaToMessageElement(context, structSchema);
+        // Find out if the message is nested or defined at the top level
+        if (structSchema.namespace() != null && structSchema.namespace().equals(context.namespace + "." + parentName)) {
+            if (context.notDuplicate(structSchema.fullName()))
+                parentNestedTypes.add(message);
+        } else {
+            context.addType(parentName, message);
+        }
+        return structSchema.name();
     }
 
     private EnumElement convertEnumSchemaToEnumElement(EnumSchema schema) {

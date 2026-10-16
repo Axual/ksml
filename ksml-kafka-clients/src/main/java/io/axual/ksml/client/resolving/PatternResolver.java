@@ -40,22 +40,19 @@ import java.util.regex.Pattern;
 public class PatternResolver implements Resolver {
     protected static final String FIELD_NAME_PREFIX = "{";
     protected static final String FIELD_NAME_SUFFIX = "}";
-    private static final String ALPHANUM_CHARACTERS = "a-zA-Z0-9_";
-    private static final String DASH_CHARACTER = "-";
-    private static final String DOT_CHARACTER = ".";
-    private static final String LITERAL_CHARACTERS = "$#-";
-    private static final String LITERAL_REGEX = characterRegex(LITERAL_CHARACTERS, true);
-    private static final String FIELD_NAME_CHARACTERS = ALPHANUM_CHARACTERS + DOT_CHARACTER;
-    private static final String FIELD_VALUE_CHARACTERS = ALPHANUM_CHARACTERS + DOT_CHARACTER;
-    private static final String FIELD_VALUE_REGEX = characterRegex(FIELD_VALUE_CHARACTERS, true);
-    private static final String DEFAULT_FIELD_VALUE_CHARACTERS = FIELD_VALUE_CHARACTERS + DASH_CHARACTER;
-    private static final String DEFAULT_FIELD_VALUE_REGEX = characterRegex(DEFAULT_FIELD_VALUE_CHARACTERS, true);
-    private static final String FIELD_NAME_REGEX = escape(FIELD_NAME_PREFIX) + characterRegex(FIELD_NAME_CHARACTERS, true) + escape(FIELD_NAME_SUFFIX);
+    // Matches a literal separator run of $, # or - characters, e.g. "--" or "$#"
+    private static final String LITERAL_REGEX = "[$#-]+";
+    // Matches a field value: alphanumeric, underscore or dot
+    private static final String FIELD_VALUE_REGEX = "[a-zA-Z0-9_.]+";
+    // Like FIELD_VALUE_REGEX, but also allows '-' since the default field (e.g. a topic name) may contain dashes
+    private static final String DEFAULT_FIELD_VALUE_REGEX = "[a-zA-Z0-9_.-]+";
+    // Matches a {fieldName} placeholder, e.g. "{tenant}"
+    private static final String FIELD_NAME_REGEX = "\\{[a-zA-Z0-9_.]+\\}";
     private static final String FIELD_NAME_OR_LITERAL_MATCH_REGEX = "(" + FIELD_NAME_REGEX + "|" + LITERAL_REGEX + ")";
     private static final Pattern FIELD_NAME_OR_LITERAL_PATTERN = Pattern.compile(FIELD_NAME_OR_LITERAL_MATCH_REGEX);
     private final Map<String, String> defaultFieldValues;
     @Getter(value = AccessLevel.PACKAGE)
-    private final String defaultFieldName;
+    private final String resourceFieldName;
     private final List<String> fields;
     private final String resolvePattern;
     private final Pattern unresolvePattern;
@@ -83,35 +80,38 @@ public class PatternResolver implements Resolver {
      * }</pre>
      *
      * @param pattern          the pattern to use
-     * @param defaultFieldName the resource type that the pattern should end with
+     * @param resourceFieldName the resource type that the pattern should end with
      * @throws InvalidPatternException thrown when the pattern is null or malformed
-     * @throws IllegalArgumentException thrown the defaultFieldName is null or malformed
+     * @throws IllegalArgumentException thrown the resourceFieldName is null or malformed
      */
-    public PatternResolver(final String pattern, final String defaultFieldName, Map<String, String> defaultFieldValues) {
+    public PatternResolver(final String pattern, final String resourceFieldName, Map<String, String> defaultFieldValues) {
         if (pattern == null || pattern.trim().isEmpty()) {
             throw new InvalidPatternException(pattern, "pattern cannot be null or empty");
         }
 
-        if (defaultFieldName == null || defaultFieldName.trim().isEmpty()) {
-            throw new IllegalArgumentException("defaultFieldName cannot be null, an empty string or only containing whitespace characters");
+        if (resourceFieldName == null || resourceFieldName.trim().isEmpty()) {
+            throw new IllegalArgumentException("resourceFieldName cannot be null, an empty string or only containing whitespace characters");
         }
 
-        if (defaultFieldName.contains(FIELD_NAME_PREFIX) || defaultFieldName.contains(FIELD_NAME_SUFFIX)) {
-            throw new IllegalArgumentException("defaultFieldName cannot contain opening or closing braces");
+        if (resourceFieldName.contains(FIELD_NAME_PREFIX) || resourceFieldName.contains(FIELD_NAME_SUFFIX)) {
+            throw new IllegalArgumentException("resourceFieldName cannot contain opening or closing braces");
         }
-        final PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
+
+        checkBraceBalanced(pattern);
+
+        final PatternParseResult parseResult = parsePattern(pattern, resourceFieldName);
 
         this.resolvePattern = parseResult.resolvePattern;
         this.unresolvePattern = parseResult.unresolvePattern;
         this.fields = Collections.unmodifiableList(parseResult.fields);
 
-        // Validate that the defaultFieldName is used in the pattern
-        if (!this.fields.contains(defaultFieldName)) {
-            throw new InvalidPatternException(pattern, "The defaultFieldName %s is not used in the pattern".formatted(defaultFieldName));
+        // Validate that the resourceFieldName is used in the pattern
+        if (!this.fields.contains(resourceFieldName)) {
+            throw new InvalidPatternException(pattern, "The resourceFieldName %s is not used in the pattern".formatted(resourceFieldName));
         }
         final var validFieldNames = new HashSet<>(defaultFieldValues.keySet());
-        // Add defaultFieldName to the list of valid names
-        validFieldNames.add(defaultFieldName);
+        // Add resourceFieldName to the list of valid names
+        validFieldNames.add(resourceFieldName);
 
         // Check for unknown field names in the pattern,
         var unknownFieldNames = new ArrayList<>(parseResult.fields);
@@ -120,19 +120,19 @@ public class PatternResolver implements Resolver {
             throw new InvalidPatternException(pattern, "Unknown field names used in the pattern: %s".formatted(unknownFieldNames));
         }
 
-        this.defaultFieldName = defaultFieldName;
+        this.resourceFieldName = resourceFieldName;
         this.defaultFieldValues = Collections.unmodifiableMap(new HashMap<>(defaultFieldValues));
     }
 
     /**
      * Translates the internal representation of a name to the external one.
      *
-     * @param defaultFieldValue the name to resolve
+     * @param resourceFieldValue the name to resolve
      * @return the resolved name
      */
-    public String resolve(String defaultFieldValue) {
+    public String resolve(String resourceFieldValue) {
         var resolveFields = new HashMap<>(defaultFieldValues);
-        resolveFields.put(defaultFieldName, defaultFieldValue);
+        resolveFields.put(resourceFieldName, resourceFieldValue);
         return new StringSubstitutor(resolveFields, FIELD_NAME_PREFIX, FIELD_NAME_SUFFIX)
                 .setEnableUndefinedVariableException(true)
                 .replace(resolvePattern);
@@ -146,7 +146,7 @@ public class PatternResolver implements Resolver {
      */
     @Override
     public String unresolve(String name) {
-        return unresolveContext(name).get(defaultFieldName);
+        return unresolveContext(name).get(resourceFieldName);
     }
 
     /**
@@ -192,12 +192,81 @@ public class PatternResolver implements Resolver {
         return result.toString();
     }
 
-    private static String characterRegex(String characters, boolean oneOrMore) {
-        return "[" + escape(characters) + "]" + (oneOrMore ? "+" : "");
+    /**
+     * Parses a pattern string into the pieces needed to resolve and unresolve names against it.
+     *
+     * @param pattern           the pattern to parse, e.g. {@code "{tenant}--{instance}--{topic}"}.
+     * @param resourceFieldName the placeholder in {@code pattern} that identifies the resource field.
+     * @return the parsed pattern: the original pattern string (used by {@link #resolve}), a compiled
+     * regex that extracts field values from a resolved name (used by {@link #unresolveContext}),
+     * and the ordered list of field names the pattern declares.
+     * @throws InvalidPatternException if the pattern is not a valid, gapless sequence of alternating
+     *                                 placeholders and literals.
+     */
+    private static PatternParseResult parsePattern(final String pattern, final String resourceFieldName) {
+        // Check that placeholders and literals strictly alternate, with no gaps between them
+        checkTokensAlternate(pattern);
+
+        var matcher = FIELD_NAME_OR_LITERAL_PATTERN.matcher(pattern);
+
+        var fields = new ArrayList<String>();
+        var pat = new StringBuilder("^");
+        while (matcher.find()) {
+            var element = matcher.group();
+            if (element.startsWith(FIELD_NAME_PREFIX) && element.endsWith(FIELD_NAME_SUFFIX)) {
+                // Treat the element as a placeholder
+                var field = element.substring(1, element.length() - 1);
+                fields.add(field);
+                pat.append("(").append(field.equals(resourceFieldName) ? DEFAULT_FIELD_VALUE_REGEX : FIELD_VALUE_REGEX).append(")");
+            } else {
+                // Treat the element as a string literal
+                pat.append(escape(element));
+            }
+        }
+        pat.append("$");
+
+        return PatternParseResult.builder()
+                .resolvePattern(pattern)
+                .unresolvePattern(Pattern.compile(pat.toString()))
+                .fields(fields)
+                .build();
     }
 
-    private static PatternParseResult parsePattern(final String pattern, final String defaultFieldName) {
-        // Check for unbalanced braces
+    /**
+     * Validate that the pattern tokenizes into a gapless, strictly alternating sequence of
+     * placeholders and literals (e.g. placeholder-literal-placeholder, never placeholder-placeholder),
+     * and that at least one token is found.
+     */
+    private static void checkTokensAlternate(String pattern) {
+        var matcher = FIELD_NAME_OR_LITERAL_PATTERN.matcher(pattern);
+        var count = 0;
+        var pos = 0;
+        var lastElementWasPlaceholder = false;
+        while (matcher.find()) {
+            count++;
+            if (matcher.start() != pos) {
+                throw new InvalidPatternException(pattern, "Faulty characters detected at position %d".formatted(pos));
+            }
+            var element = matcher.group();
+            pos += element.length();
+            var isPlaceholder = element.startsWith(FIELD_NAME_PREFIX) && element.endsWith(FIELD_NAME_SUFFIX);
+            if (isPlaceholder == lastElementWasPlaceholder) {
+                throw new InvalidPatternException(pattern, isPlaceholder ? "Two consecutive placeholders found" : "Two consecutive literals found");
+            }
+            lastElementWasPlaceholder = isPlaceholder;
+        }
+
+        if (count == 0) {
+            throw new InvalidPatternException(pattern, "No fields found");
+        }
+    }
+
+    /**
+     * Check that the pattern has balanced braces, i.e. that each opening brace has a corresponding closing brace.
+     * @param pattern the pattern to check.
+     * @throws InvalidPatternException if unbalanced braces were found in the pattern.
+     */
+    private static void checkBraceBalanced(String pattern) {
         var openPosition = Integer.MIN_VALUE;
         for (int position = 0; position < pattern.length(); position++) {
             final var character = pattern.charAt(position);
@@ -218,50 +287,5 @@ public class PatternResolver implements Resolver {
         if (openPosition >= 0) {
             throw new InvalidPatternException(pattern, "Found open brace at position %d with no corresponding close brace".formatted(openPosition));
         }
-
-        var matcher = FIELD_NAME_OR_LITERAL_PATTERN.matcher(pattern);
-
-        var fields = new ArrayList<String>();
-        var pat = new StringBuilder();
-        var count = 0;
-        var pos = 0;
-        var lastElementWasPlaceholder = false;
-        pat.append("^");
-        while (matcher.find()) {
-            count++;
-            if (matcher.start() != pos) {
-                throw new InvalidPatternException(pattern, "Faulty characters detected at position %d".formatted(pos));
-            }
-            var element = matcher.group();
-            pos += element.length();
-            if (element.startsWith(FIELD_NAME_PREFIX) && element.endsWith(FIELD_NAME_SUFFIX)) {
-                // Treat the element as a placeholder
-                if (lastElementWasPlaceholder) {
-                    throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
-                }
-                var field = element.substring(1, element.length() - 1);
-                fields.add(field);
-                pat.append("(").append(field.equals(defaultFieldName) ? DEFAULT_FIELD_VALUE_REGEX : FIELD_VALUE_REGEX).append(")");
-                lastElementWasPlaceholder = true;
-            } else {
-                // Treat the element as a string literal
-                if (!lastElementWasPlaceholder) {
-                    throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
-                }
-                pat.append(escape(element));
-                lastElementWasPlaceholder = false;
-            }
-        }
-        pat.append("$");
-
-        if (count == 0) {
-            throw new InvalidPatternException(pattern, "No fields found");
-        }
-
-        return PatternParseResult.builder()
-                .resolvePattern(pattern)
-                .unresolvePattern(Pattern.compile(pat.toString()))
-                .fields(fields)
-                .build();
     }
 }

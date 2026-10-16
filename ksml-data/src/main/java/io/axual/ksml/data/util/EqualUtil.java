@@ -41,16 +41,16 @@ public class EqualUtil {
     }
 
     /**
-     * Create an Equal result indicating the other object was null while this object was not.
+     * Create an Equality.notEqual() result indicating the other object was null while this object was not.
      *
-     * @param thisObject the non-null lhs object participating in the comparison
+     * @param presentObject the non-null object being compared against null
      * @return a non-equal result explaining the null mismatch
-     * @throws io.axual.ksml.data.exception.DataException if thisObject is null (logic error)
+     * @throws io.axual.ksml.data.exception.DataException if presentObject is null (logic error)
      */
-    public static Equality otherIsNull(Object thisObject) {
-        if (thisObject == null)
+    public static Equality otherIsNull(Object presentObject) {
+        if (presentObject == null)
             throw new DataException("Can not handle NULL object, this is a bug in KSML");
-        return Equality.notEqual("Cannot compare " + strOf(thisObject) + " to null");
+        return Equality.notEqual("Cannot compare " + strOf(presentObject) + " to null");
     }
 
     /**

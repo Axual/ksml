@@ -32,7 +32,9 @@ import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.lang.reflect.Field;
 import java.util.function.Function;
 
 import static io.axual.ksml.operation.OperationTestSupport.foreignKeyExtractor;
@@ -91,6 +93,29 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         // Foreign-key join with a materialized store and both partitioners.
         verify(table).leftJoin(any(KTable.class), any(Function.class), any(ValueJoiner.class), any(TableJoined.class), any(Materialized.class));
+    }
+
+    @Test
+    @DisplayName("foreign-key left-join wires in the other-table partitioner even when the primary partitioner is absent")
+    @SuppressWarnings("unchecked")
+    void applyToTableUsesOtherPartitionerWithoutPrimaryPartitioner() throws NoSuchFieldException, IllegalAccessException {
+        final KTable<Object, Object> table = mock(KTable.class);
+        final var input = new KTableWrapper(table, key(), value());
+        final var operation = new LeftJoinWithTableOperation(
+                storeConfig("leftJoin"), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                null, null, streamPartitioner());
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+
+        final var tableJoinedCaptor = ArgumentCaptor.forClass(TableJoined.class);
+        verify(table).leftJoin(any(KTable.class), any(Function.class), any(ValueJoiner.class), tableJoinedCaptor.capture());
+
+        // Regression check: userOtherPart used to be derived from the wrong null-check (part != null
+        // instead of otherPart != null), silently dropping a present otherPartitioner whenever the
+        // primary partitioner was absent.
+        final Field otherPartitionerField = TableJoined.class.getDeclaredField("otherPartitioner");
+        otherPartitionerField.setAccessible(true);
+        assertThat(otherPartitionerField.get(tableJoinedCaptor.getValue())).isNotNull();
     }
 
     @Test

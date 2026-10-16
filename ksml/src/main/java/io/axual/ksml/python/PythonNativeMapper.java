@@ -105,12 +105,8 @@ public class PythonNativeMapper {
         // so the producer sees a pointed, actionable error.
         try {
             if (expected != null) {
-                if (expected == DataByte.DATATYPE) return object.asByte();
-                if (expected == DataShort.DATATYPE) return object.asShort();
-                if (expected == DataInteger.DATATYPE) return object.asInt();
-                if (expected == DataLong.DATATYPE) return object.asLong();
-                if (expected == DataFloat.DATATYPE) return object.asFloat();
-                if (expected == DataDouble.DATATYPE) return object.asDouble();
+                final var result = polyglotExpectedNumberToNative(expected, object);
+                if (result != null) return result;
             }
             // Return a long by default
             return object.asLong();
@@ -120,40 +116,71 @@ public class PythonNativeMapper {
         }
     }
 
-    private Object polyglotArrayToNative(DataType expected, Value object) {
-        if (expected == DataBytes.DATATYPE) {
-            final var bytes = new byte[(int) object.getArraySize()];
-            for (var index = 0; index < object.getArraySize(); index++) {
-                // Raw byte arrays are conventionally written using either signed (-128..127) or
-                // unsigned (0..255) representation in Python, so we accept both. Out-of-range values
-                // (e.g. 300) would otherwise silently truncate to a wrong byte (300 → 44).
-                final var element = object.getArrayElement(index).asInt();
-                if (element < Byte.MIN_VALUE || element > NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE) {
-                    throw new DataException("Python value " + element + " at index " + index
-                            + " does not fit in a byte (allowed range: " + (int) Byte.MIN_VALUE + ".."
-                            + NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE + ")");
-                }
-                bytes[index] = (byte) element;
-            }
-            return bytes;
-        }
-        if (expected instanceof TupleType expectedTuple) {
-            final var elements = new Object[(int) object.getArraySize()];
-            for (var index = 0; index < object.getArraySize(); index++) {
-                var subType = expectedTuple.subType(index);
-                elements[index] = fromPython(subType, object.getArrayElement(index));
-            }
-            return new Tuple<>(elements);
-        }
-        if (expected == null || expected == DataType.UNKNOWN || expected instanceof ListType) {
-            final var valueType = expected != null && expected != DataType.UNKNOWN ? ((ListType) expected).valueType() : DataType.UNKNOWN;
-            final var result = new ArrayList<>();
-            for (var index = 0; index < object.getArraySize(); index++) {
-                result.add(fromPython(valueType, object.getArrayElement(index)));
-            }
-            return result;
-        }
+    /**
+     * Converts a Python number to the specific Java primitive wrapper {@code expected} names.
+     *
+     * @return the converted value, or {@code null} if {@code expected} names no known numeric type
+     */
+    private Object polyglotExpectedNumberToNative(DataType expected, Value object) {
+        if (expected == DataByte.DATATYPE) return object.asByte();
+        if (expected == DataShort.DATATYPE) return object.asShort();
+        if (expected == DataInteger.DATATYPE) return object.asInt();
+        if (expected == DataLong.DATATYPE) return object.asLong();
+        if (expected == DataFloat.DATATYPE) return object.asFloat();
+        if (expected == DataDouble.DATATYPE) return object.asDouble();
         return null;
+    }
+
+    private Object polyglotArrayToNative(DataType expected, Value object) {
+        if (expected == DataBytes.DATATYPE) return polyglotArrayToByteArray(object);
+        if (expected instanceof TupleType expectedTuple) return polyglotArrayToTuple(expectedTuple, object);
+        if (expected == null || expected == DataType.UNKNOWN || expected instanceof ListType)
+            return polyglotArrayToList(expected, object);
+        return null;
+    }
+
+    /**
+     * Converts a Python array to a Java {@code byte[]}, accepting both signed and unsigned Python byte values.
+     */
+    private Object polyglotArrayToByteArray(Value object) {
+        final var bytes = new byte[(int) object.getArraySize()];
+        for (var index = 0; index < object.getArraySize(); index++) {
+            // Raw byte arrays are conventionally written using either signed (-128..127) or
+            // unsigned (0..255) representation in Python, so we accept both. Out-of-range values
+            // (e.g. 300) would otherwise silently truncate to a wrong byte (300 → 44).
+            final var element = object.getArrayElement(index).asInt();
+            if (element < Byte.MIN_VALUE || element > NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE) {
+                throw new DataException("Python value " + element + " at index " + index
+                        + " does not fit in a byte (allowed range: " + (int) Byte.MIN_VALUE + ".."
+                        + NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE + ")");
+            }
+            bytes[index] = (byte) element;
+        }
+        return bytes;
+    }
+
+    /**
+     * Converts a Python array to a {@link Tuple}, converting each element to its expected sub-type.
+     */
+    private Object polyglotArrayToTuple(TupleType expectedTuple, Value object) {
+        final var elements = new Object[(int) object.getArraySize()];
+        for (var index = 0; index < object.getArraySize(); index++) {
+            var subType = expectedTuple.subType(index);
+            elements[index] = fromPython(subType, object.getArrayElement(index));
+        }
+        return new Tuple<>(elements);
+    }
+
+    /**
+     * Converts a Python array to a Java {@link ArrayList}, converting each element to {@code expected}'s value type.
+     */
+    private Object polyglotArrayToList(DataType expected, Value object) {
+        final var valueType = expected != null && expected != DataType.UNKNOWN ? ((ListType) expected).valueType() : DataType.UNKNOWN;
+        final var result = new ArrayList<>();
+        for (var index = 0; index < object.getArraySize(); index++) {
+            result.add(fromPython(valueType, object.getArrayElement(index)));
+        }
+        return result;
     }
 
     @Nullable

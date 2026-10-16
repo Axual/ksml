@@ -123,44 +123,67 @@ public class TopologyBuildContext {
     }
 
     public StreamWrapper getStreamWrapper(final String name, final TopicDefinition topicDefinition) {
-        // First do a lookup by name
-        if (name != null) {
-            if (streamWrappersByName.containsKey(name)) {
-                final var expectedResultClass = getStreamWrapperClass(topicDefinition, BaseStreamWrapper.class);
-                return validateStreamWrapper(streamWrappersByName.get(name), topicDefinition, expectedResultClass);
-            }
-            if (topicDefinition == null) {
-                throw new TopologyException("Stream '" + name + "' not found");
-            }
-        }
+        final var byName = lookupStreamWrapperByName(name, topicDefinition);
+        if (byName != null) return byName;
 
-        // Then do a lookup by topic
-        if (topicDefinition != null) {
-            if (topicDefinition.topic() == null) {
-                throw new TopologyException("Topic definition does not contain a topic name");
-            }
-
-            // Get the wrapper from the lookup table, or by creating a new instance
-            final Class<? extends BaseStreamWrapper> expectedResultClass;
-            final StreamWrapper result;
-            if (streamWrappersByTopic.containsKey(topicDefinition.topic())) {
-                expectedResultClass = getStreamWrapperClass(topicDefinition, BaseStreamWrapper.class);
-                result = streamWrappersByTopic.get(topicDefinition.topic());
-            } else {
-                expectedResultClass = getStreamWrapperClass(topicDefinition, KStreamWrapper.class);
-                if (topicDefinition instanceof StreamDefinition || topicDefinition instanceof TableDefinition || topicDefinition instanceof GlobalTableDefinition) {
-                    result = getStreamWrapper(topicDefinition, getStreamWrapperClass(topicDefinition, null));
-                } else {
-                    result = getStreamWrapper(new StreamDefinition(topicDefinition.topic(), topicDefinition.keyType(), topicDefinition.valueType(), topicDefinition.resetPolicy(), topicDefinition.tsExtractor(), topicDefinition.partitioner()));
-                }
-            }
-
-            // If the name was not yet registered, do that here
-            if (name != null) streamWrappersByName.put(name, result);
-            return validateStreamWrapper(result, topicDefinition, expectedResultClass);
-        }
+        if (topicDefinition != null) return lookupStreamWrapperByTopic(name, topicDefinition);
 
         throw new TopologyException("Failed to lookup nameless stream for nameless topic");
+    }
+
+    /**
+     * Looks up a stream wrapper by its registered name.
+     *
+     * @return the wrapper if {@code name} is registered; {@code null} if it is not and a topic-based
+     * lookup should be tried instead
+     * @throws TopologyException if {@code name} is not registered and no topic definition was given to fall back on
+     */
+    private StreamWrapper lookupStreamWrapperByName(String name, TopicDefinition topicDefinition) {
+        if (name == null) return null;
+        if (streamWrappersByName.containsKey(name)) {
+            final var expectedResultClass = getStreamWrapperClass(topicDefinition, BaseStreamWrapper.class);
+            return validateStreamWrapper(streamWrappersByName.get(name), topicDefinition, expectedResultClass);
+        }
+        if (topicDefinition == null) {
+            throw new TopologyException("Stream '" + name + "' not found");
+        }
+        return null;
+    }
+
+    /**
+     * Looks up a stream wrapper by its topic, building and registering one if none is cached yet.
+     *
+     * @throws TopologyException if {@code topicDefinition} has no topic name
+     */
+    private StreamWrapper lookupStreamWrapperByTopic(String name, TopicDefinition topicDefinition) {
+        if (topicDefinition.topic() == null) {
+            throw new TopologyException("Topic definition does not contain a topic name");
+        }
+
+        // Get the wrapper from the lookup table, or by creating a new instance
+        final Class<? extends BaseStreamWrapper> expectedResultClass;
+        final StreamWrapper result;
+        if (streamWrappersByTopic.containsKey(topicDefinition.topic())) {
+            expectedResultClass = getStreamWrapperClass(topicDefinition, BaseStreamWrapper.class);
+            result = streamWrappersByTopic.get(topicDefinition.topic());
+        } else {
+            expectedResultClass = getStreamWrapperClass(topicDefinition, KStreamWrapper.class);
+            result = buildOrWrapStreamWrapper(topicDefinition);
+        }
+
+        // If the name was not yet registered, do that here
+        if (name != null) streamWrappersByName.put(name, result);
+        return validateStreamWrapper(result, topicDefinition, expectedResultClass);
+    }
+
+    /**
+     * Builds a new stream wrapper for a topic definition that was not found in the topic cache.
+     */
+    private StreamWrapper buildOrWrapStreamWrapper(TopicDefinition topicDefinition) {
+        if (topicDefinition instanceof StreamDefinition || topicDefinition instanceof TableDefinition || topicDefinition instanceof GlobalTableDefinition) {
+            return getStreamWrapper(topicDefinition, getStreamWrapperClass(topicDefinition, null));
+        }
+        return getStreamWrapper(new StreamDefinition(topicDefinition.topic(), topicDefinition.keyType(), topicDefinition.valueType(), topicDefinition.resetPolicy(), topicDefinition.tsExtractor(), topicDefinition.partitioner()));
     }
 
     private static Class<? extends BaseStreamWrapper> getStreamWrapperClass(TopicDefinition topicDefinition, Class<? extends BaseStreamWrapper> defaultClass) {

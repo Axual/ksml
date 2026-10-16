@@ -127,15 +127,45 @@ public class ConvertUtil {
 
         // If a union type is expected, then recurse into it before checking compatibility below
         if (targetType instanceof UnionType targetUnionType) {
-            // Check if the value is already compatible with the union type
-            if (targetType.isAssignableFrom(value).isAssignable()) return value;
-            // Convert the value to the first compatible member type
-            for (int index = 0; index < targetUnionType.members().length; index++) {
-                var convertedValue = convert(sourceNotation, targetNotation, targetUnionType.members()[index].type(), value, true);
-                if (convertedValue != null) return convertedValue;
-            }
+            final var convertedValue = convertToUnionMember(sourceNotation, targetNotation, targetUnionType, value);
+            if (convertedValue != null) return convertedValue;
         }
 
+        // Recurse into lists, maps, structs and tuples
+        final var complexValue = convertComplexType(targetType, value, allowFail);
+        if (complexValue != null) return complexValue;
+
+        // When we reach this point, real data conversion needs to happen
+
+        // The first step is to use the converters from the notations to convert the type into the desired target type
+        var convertedValue = applyNotationConverters(sourceNotation, targetNotation, targetType, value);
+
+        // If the notation conversion was good enough, then return that result
+        if (targetType.isAssignableFrom(convertedValue).isAssignable()) return convertedValue;
+
+        // As a final attempt to convert to the right type, run it through the compatibility converter
+        convertedValue = convertDataObject(targetType, convertedValue, allowFail);
+        if (convertedValue != null) return convertedValue;
+
+        // If we are okay with failing a conversion, then return null
+        if (allowFail) return null;
+
+        // We can't perform the conversion, so report a fatal error
+        throw new DataException("Can not convert value to " + targetType);
+    }
+
+    private DataObject convertToUnionMember(Notation sourceNotation, Notation targetNotation, UnionType targetUnionType, DataObject value) {
+        // Check if the value is already compatible with the union type
+        if (targetUnionType.isAssignableFrom(value).isAssignable()) return value;
+        // Convert the value to the first compatible member type
+        for (final var member : targetUnionType.members()) {
+            final var convertedValue = convert(sourceNotation, targetNotation, member.type(), value, true);
+            if (convertedValue != null) return convertedValue;
+        }
+        return null;
+    }
+
+    private DataObject convertComplexType(DataType targetType, DataObject value, boolean allowFail) {
         // Recurse into lists
         if (targetType instanceof ListType targetListType && value instanceof DataList valueList) {
             return convertList(targetListType, valueList, allowFail);
@@ -158,23 +188,7 @@ public class ConvertUtil {
             return convertTuple(targetTupleType, valueTuple, allowFail);
         }
 
-        // When we reach this point, real data conversion needs to happen
-
-        // The first step is to use the converters from the notations to convert the type into the desired target type
-        var convertedValue = applyNotationConverters(sourceNotation, targetNotation, targetType, value);
-
-        // If the notation conversion was good enough, then return that result
-        if (targetType.isAssignableFrom(convertedValue).isAssignable()) return convertedValue;
-
-        // As a final attempt to convert to the right type, run it through the compatibility converter
-        convertedValue = convertDataObject(targetType, convertedValue, allowFail);
-        if (convertedValue != null) return convertedValue;
-
-        // If we are okay with failing a conversion, then return null
-        if (allowFail) return null;
-
-        // We can't perform the conversion, so report a fatal error
-        throw new DataException("Can not convert value to " + targetType);
+        return null;
     }
 
     private DataObject applyNotationConverters(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value) {

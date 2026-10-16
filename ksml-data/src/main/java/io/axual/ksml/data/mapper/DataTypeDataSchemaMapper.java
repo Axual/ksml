@@ -77,25 +77,34 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (type == DataBytes.DATATYPE) return DataSchema.BYTES_SCHEMA;
         if (type == DataString.DATATYPE) return DataSchema.STRING_SCHEMA;
 
+        final var structuralSchema = convertStructuralTypeToSchema(namespace, name, type);
+        if (structuralSchema != null) return structuralSchema;
+
+        throw new SchemaException("Can not convert dataType " + type + " to a schema");
+    }
+
+    private DataSchema convertStructuralTypeToSchema(String namespace, String name, DataType type) {
         if (type instanceof EnumType enumType) return enumType.schema();
         if (type instanceof ListType listType) return new ListSchema(toDataSchema(listType.valueType()));
         if (type instanceof MapType mapType) return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
         if (type instanceof StructType structType)
             return structType.schema() != null ? new StructSchema(structType.schema()) : StructSchema.SCHEMALESS;
         if (type instanceof TupleType tupleType) return new TupleSchema(tupleType, this);
-        if (type instanceof UnionType unionType) {
-            var members = new UnionSchema.Member[unionType.members().length];
-            for (int index = 0; index < unionType.members().length; index++) {
-                final var memberType = unionType.members()[index];
-                members[index] = new UnionSchema.Member(
-                        memberType.name(),
-                        toDataSchema(memberType.type()),
-                        memberType.doc(),
-                        memberType.tag());
-            }
-            return new UnionSchema(members);
+        if (type instanceof UnionType unionType) return convertUnionTypeToSchema(unionType);
+        return null;
+    }
+
+    private DataSchema convertUnionTypeToSchema(UnionType unionType) {
+        var members = new UnionSchema.Member[unionType.members().length];
+        for (int index = 0; index < unionType.members().length; index++) {
+            final var memberType = unionType.members()[index];
+            members[index] = new UnionSchema.Member(
+                    memberType.name(),
+                    toDataSchema(memberType.type()),
+                    memberType.doc(),
+                    memberType.tag());
         }
-        throw new SchemaException("Can not convert dataType " + type + " to a schema");
+        return new UnionSchema(members);
     }
 
     /**

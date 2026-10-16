@@ -245,16 +245,27 @@ public class StructSchema extends NamedSchema {
 
             final var that = (Field) obj;
 
+            final var schemaMismatch = compareSchema(that, flags);
+            if (schemaMismatch != null) return schemaMismatch;
+
+            final var attributeMismatch = compareAttributes(that, flags);
+            if (attributeMismatch != null) return attributeMismatch;
+
+            return Equality.equal();
+        }
+
+        private Equality compareSchema(Field that, EqualityFlags flags) {
+            if (flags.isSet(IGNORE_STRUCT_FIELD_SCHEMA)) return null;
+            final var schemaEqual = schema.equals(that.schema, flags);
+            if (schemaEqual.isNotEqual())
+                return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
+            return null;
+        }
+
+        private Equality compareAttributes(Field that, EqualityFlags flags) {
             // Compare name
             if (!flags.isSet(IGNORE_STRUCT_FIELD_NAME) && !Objects.equals(name, that.name))
                 return fieldNotEqual("name", this, name, that, that.name);
-
-            // Compare schema
-            if (!flags.isSet(IGNORE_STRUCT_FIELD_SCHEMA)) {
-                final var schemaEqual = schema.equals(that.schema, flags);
-                if (schemaEqual.isNotEqual())
-                    return fieldNotEqual("schema", this, schema, that, that.schema, schemaEqual);
-            }
 
             // Compare doc
             if (!flags.isSet(IGNORE_STRUCT_FIELD_DOC) && !Objects.equals(doc, that.doc))
@@ -280,7 +291,7 @@ public class StructSchema extends NamedSchema {
             if (!flags.isSet(IGNORE_STRUCT_FIELD_ORDER) && !Objects.equals(order, that.order))
                 return fieldNotEqual("order", this, order, that, that.order);
 
-            return Equality.equal();
+            return null;
         }
     }
 
@@ -387,7 +398,7 @@ public class StructSchema extends NamedSchema {
      * @param additionalFieldsSchema  Use a {@link DataSchema} to limit any additional fields to a specific schema
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
-    @Builder(builderMethodName = "builder")
+    @Builder
     public StructSchema(String namespace, String name, String doc, @Singular List<Field> fields, Boolean additionalFieldsAllowed, DataSchema additionalFieldsSchema) {
         super(DataSchemaConstants.STRUCT_TYPE, namespace, name, doc);
         if (fields != null) {
@@ -498,27 +509,38 @@ public class StructSchema extends NamedSchema {
         if (!flags.isSet(IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_ALLOWED) && !Objects.equals(additionalFieldsAllowed, that.additionalFieldsAllowed))
             return fieldNotEqual("additionalFieldsAllowed", this, additionalFieldsAllowed, that, that.additionalFieldsAllowed);
 
-        // Compare additionalFieldsSchema
-        if (!flags.isSet(IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA) && (additionalFieldsSchema != null || that.additionalFieldsSchema != null)) {
-            if (additionalFieldsSchema == null || that.additionalFieldsSchema == null)
-                return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema);
-            final var additionalFieldsSchemaEqual = additionalFieldsSchema.equals(that.additionalFieldsSchema, flags);
-            if (additionalFieldsSchemaEqual.isNotEqual())
-                return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema, additionalFieldsSchemaEqual);
-        }
+        final var additionalFieldsSchemaMismatch = compareAdditionalFieldsSchema(that, flags);
+        if (additionalFieldsSchemaMismatch != null) return additionalFieldsSchemaMismatch;
 
-        // Compare fields
-        if (!flags.isSet(IGNORE_STRUCT_SCHEMA_FIELDS)) {
-            if (fields.size() != that.fields.size())
-                return fieldNotEqual("fieldCount", this, fields.size(), that, that.fields.size());
-
-            for (int i = 0; i < fields.size(); i++) {
-                final var fieldEqual = fields.get(i).equals(that.fields.get(i), flags);
-                if (fieldEqual.isNotEqual())
-                    return fieldNotEqual("field[" + i + "]", this, fields.get(i), that, that.fields.get(i), fieldEqual);
-            }
-        }
+        final var fieldsMismatch = compareFields(that, flags);
+        if (fieldsMismatch != null) return fieldsMismatch;
 
         return Equality.equal();
+    }
+
+    private Equality compareAdditionalFieldsSchema(StructSchema that, EqualityFlags flags) {
+        if (flags.isSet(IGNORE_STRUCT_SCHEMA_ADDITIONAL_FIELDS_SCHEMA)) return null;
+        // Exactly one of the two schemas is null: not equal. Both null: equal, nothing more to compare.
+        if ((additionalFieldsSchema == null) != (that.additionalFieldsSchema == null))
+            return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema);
+        if (additionalFieldsSchema == null) return null;
+
+        final var additionalFieldsSchemaEqual = additionalFieldsSchema.equals(that.additionalFieldsSchema, flags);
+        if (additionalFieldsSchemaEqual.isNotEqual())
+            return fieldNotEqual("additionalFieldsSchema", this, additionalFieldsSchema, that, that.additionalFieldsSchema, additionalFieldsSchemaEqual);
+        return null;
+    }
+
+    private Equality compareFields(StructSchema that, EqualityFlags flags) {
+        if (flags.isSet(IGNORE_STRUCT_SCHEMA_FIELDS)) return null;
+        if (fields.size() != that.fields.size())
+            return fieldNotEqual("fieldCount", this, fields.size(), that, that.fields.size());
+
+        for (int i = 0; i < fields.size(); i++) {
+            final var fieldEqual = fields.get(i).equals(that.fields.get(i), flags);
+            if (fieldEqual.isNotEqual())
+                return fieldNotEqual("field[" + i + "]", this, fields.get(i), that, that.fields.get(i), fieldEqual);
+        }
+        return null;
     }
 }
