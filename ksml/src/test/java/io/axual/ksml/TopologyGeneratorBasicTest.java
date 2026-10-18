@@ -92,6 +92,24 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("saving a result with an \"as\" name that is defined under tables fails the topology build")
+    void asNameDefinedAsTableIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-as-name-clashes-with-table.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("as \"orders\": this name is already defined under \"tables\". Use another name");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("a pipeline without sink named like a defined stream fails the topology build")
+    void pipelineNameDefinedAsStreamIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-pipeline-name-clashes-with-stream.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("as \"order_events\": this name is already defined under \"streams\". Use another name");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("cogroup with a stream that a later pipeline saves fails the topology build")
     void cogroupStreamSavedByLaterPipelineIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-wrong-order.yaml"))

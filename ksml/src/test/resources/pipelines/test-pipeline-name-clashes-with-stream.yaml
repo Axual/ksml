@@ -1,0 +1,13 @@
+# The pipeline has no sink, so its result is saved under the pipeline name "order_events",
+# which is already defined under "streams".
+streams:
+  order_events:
+    topic: order_events
+    keyType: string
+    valueType: json
+
+pipelines:
+  order_events:
+    from: order_events
+    via:
+      - type: toTable
