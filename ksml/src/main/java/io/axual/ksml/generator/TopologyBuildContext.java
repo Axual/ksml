@@ -275,10 +275,21 @@ public class TopologyBuildContext {
         if (name == null) {
             throw new TopologyException("Can not register " + wrapper.toString() + " without a name");
         }
+        // References to the name could then mean either the defined topic or the saved result
+        final var topic = resources.topic(name);
+        if (topic != null) {
+            throw new TopologyException("Can not save " + wrapper.toString() + " as \"" + name + "\": this name is already defined under \"" + sectionOf(topic) + "\". Use another name");
+        }
         if (streamWrappersByName.containsKey(name)) {
             throw new TopologyException("Can not register " + wrapper.toString() + " as " + name + ": name must be unique");
         }
         streamWrappersByName.put(name, wrapper);
+    }
+
+    private static String sectionOf(TopicDefinition topic) {
+        if (topic instanceof TableDefinition) return "tables";
+        if (topic instanceof GlobalTableDefinition) return "globalTables";
+        return "streams";
     }
 
     public MetricTags defaultMetricTags() {
