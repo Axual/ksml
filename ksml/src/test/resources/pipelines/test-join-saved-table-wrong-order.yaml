@@ -1,0 +1,44 @@
+# The pipeline that joins with "table: t2joined" is defined before the pipeline that saves it with "as",
+# so the table is not yet known when the join is built.
+streams:
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tables:
+  table_j1:
+    topic: table_j1_topic
+    keyType: string
+    valueType: string
+  table_j2:
+    topic: table_j2_topic
+    keyType: string
+    valueType: string
+
+functions:
+  simple_joiner:
+    type: valueJoiner
+    expression: value1 + "+" + value2
+    resultType: string
+
+pipelines:
+  join_pipeline:
+    from: input_stream
+    via:
+      - type: join
+        table: t2joined
+        valueJoiner: simple_joiner
+    to: output_stream
+
+  table2table:
+    from: table_j1
+    via:
+      - type: join
+        table: table_j2
+        valueJoiner: simple_joiner
+    as: t2joined

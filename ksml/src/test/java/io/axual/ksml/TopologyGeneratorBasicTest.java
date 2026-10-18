@@ -92,6 +92,35 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("join with a table that a later pipeline saves fails the topology build")
+    void joinTableSavedByLaterPipelineIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-table-wrong-order.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Join table \"t2joined\" not found")
+                .hasMessageContaining("in a pipeline defined before this one");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("join with \"table\" naming a saved stream fails the topology build")
+    void joinTableNamingSavedStreamIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-stream-as-table.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Join table \"filtered_other\" must be a table, but found");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("join with \"globalTable\" naming a saved table fails parsing")
+    void joinGlobalTableNamingSavedTableIsRejected() {
+        // The parse error only names the pipeline; JoinOperationParsersTest checks the detailed message
+        assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-table-as-globaltable.yaml"))
+                .hasMessageContaining("KSML parse error")
+                .hasMessageContaining("Error in pipeline definition \"join_pipeline\"");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("saving a result with an \"as\" name that is defined under tables fails the topology build")
     void asNameDefinedAsTableIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-as-name-clashes-with-table.yaml"))
