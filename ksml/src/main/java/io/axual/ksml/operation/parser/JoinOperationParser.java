@@ -36,7 +36,6 @@ import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
@@ -79,17 +78,9 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
                 if (node == null) return null;
 
                 final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
-                if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
-                if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
-                if (joinTopic.definition() instanceof GlobalTableDefinition) return joinGlobalTableParser.parse(node);
-                // A name that is not defined refers to a stream or table saved with "as", so the key tells which join it is
-                if (joinTopic.definition() == null && node.get(Operations.Join.WITH_STREAM) != null) return joinStreamParser.parse(node);
-                if (joinTopic.definition() == null && node.get(Operations.Join.WITH_TABLE) != null) return joinTableParser.parse(node);
-
-                // Note: the above instanceof checks always return something, but Java can't infer that, hence we throw an exception here:
-                final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
-                final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
-                throw new ParseException(node, "Join stream not found: " + description);
+                final var variant = joinVariantOf(joinTopic, node, joinStreamParser, joinTableParser, joinGlobalTableParser);
+                if (variant != null) return variant.parse(node);
+                throw joinTargetNotFound(node, "Join", joinTopic);
             }
 
             @Override
