@@ -79,7 +79,7 @@ public class SavedTableJoinTest {
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-join-saved-table.yaml")
-    void testCustomerWithoutLoyaltyIsNotEnriched() throws Exception {
+    void testCustomerWithoutLoyaltyIsNotEnriched() {
         customersInput.pipeInput("CUST005", toJson(Map.of("name", "Eva Brown", "region", "EU-CENTRAL")));
         ordersInput.pipeInput("ORD0002", toJson(Map.of("order_id", "ORD0002", "customer_id", "CUST005", "amount", 50.0)));
 
@@ -87,7 +87,7 @@ public class SavedTableJoinTest {
     }
 
     @KSMLTest(topology = "docs-examples/intermediate-tutorial/joins/processor-join-saved-table.yaml")
-    void testLoyaltyUpdateIsUsedByLaterOrders() throws Exception {
+    void testLoyaltyUpdateIsUsedByLaterOrders() {
         customersInput.pipeInput("CUST002", toJson(Map.of("name", "Bob Smith", "region", "US-EAST")));
         loyaltyInput.pipeInput("CUST002", toJson(Map.of("tier", "silver", "points", 450)));
         ordersInput.pipeInput("ORD0003", toJson(Map.of("order_id", "ORD0003", "customer_id", "CUST002", "amount", 20.0)));

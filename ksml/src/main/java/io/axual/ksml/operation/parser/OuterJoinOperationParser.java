@@ -30,7 +30,6 @@ import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.OuterJoinWithStreamOperation;
@@ -62,15 +61,9 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
             public BaseOperation parse(ParseNode node) {
                 if (node == null) return null;
                 final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
-                if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
-                if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
-                // A name that is not defined refers to a stream or table saved with "as", so the key tells which join it is
-                if (joinTopic.definition() == null && node.get(KSMLDSL.Operations.Join.WITH_STREAM) != null) return joinStreamParser.parse(node);
-                if (joinTopic.definition() == null && node.get(KSMLDSL.Operations.Join.WITH_TABLE) != null) return joinTableParser.parse(node);
-
-                final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
-                final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
-                throw new ParseException(node, "OuterJoin stream not found: " + description);
+                final var variant = joinVariantOf(joinTopic, node, joinStreamParser, joinTableParser, null);
+                if (variant != null) return variant.parse(node);
+                throw joinTargetNotFound(node, "OuterJoin", joinTopic);
             }
 
             @Override
