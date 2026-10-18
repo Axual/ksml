@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -33,11 +34,11 @@ import java.time.Duration;
 
 public class LeftJoinWithStreamOperation extends DualStoreOperation {
     private static final String VALUEJOINER_NAME = "ValueJoiner";
-    private final StreamDefinition joinStream;
+    private final TopologyResource<StreamDefinition> joinStream;
     private final FunctionDefinition valueJoiner;
     private final JoinWindows joinWindows;
 
-    public LeftJoinWithStreamOperation(DualStoreOperationConfig config, StreamDefinition joinStream, FunctionDefinition valueJoiner, Duration timeDifference, Duration gracePeriod) {
+    public LeftJoinWithStreamOperation(DualStoreOperationConfig config, TopologyResource<StreamDefinition> joinStream, FunctionDefinition valueJoiner, Duration timeDifference, Duration gracePeriod) {
         super(config);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
@@ -57,7 +58,7 @@ public class LeftJoinWithStreamOperation extends DualStoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherStream = context.getStreamWrapper(joinStream);
+        final var otherStream = lookupStream(context, joinStream, "Join stream");
         final var ko = otherStream.keyType();
         final var vo = otherStream.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);

@@ -110,7 +110,7 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the leftJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
-                        return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), streamDef, valueJoiner, timeDifference, grace);
+                        return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), topicTarget(streamDef, tags), valueJoiner, timeDifference, grace);
                     }
                     throw new TopologyException("LeftJoin stream not correct, should be a defined stream");
                 });
@@ -131,7 +131,7 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 storeField(false, "Materialized view of the leftJoined table (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
                 (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
                     if (table instanceof TableDefinition tableDef) {
-                        return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), tableDef, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
+                        return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), topicTarget(tableDef, tags), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
                     }
                     throw new TopologyException("LeftJoin table not correct, should be a defined table");
                 });

@@ -27,10 +27,13 @@ import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
+import static io.axual.ksml.operation.OperationTestSupport.saveStream;
+import static io.axual.ksml.operation.OperationTestSupport.savedTarget;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
-import static io.axual.ksml.operation.OperationTestSupport.tableDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.tableTarget;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,9 +49,23 @@ class OuterJoinWithTableOperationTest extends OperationTestBase {
     void applyToTableReturnsTable() {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
-        final var operation = new OuterJoinWithTableOperation(storeConfig("outerJoin"), tableDefinition(), valueJoiner());
+        final var operation = new OuterJoinWithTableOperation(storeConfig("outerJoin"), tableTarget(), valueJoiner());
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(table).outerJoin(any(KTable.class), any(ValueJoiner.class), any(Named.class));
+    }
+
+    @Test
+    @DisplayName("outer join with a table saved with \"as\" looks the table up by name")
+    @SuppressWarnings("unchecked")
+    void applyToTableWithSavedTable() {
+        final KTable<Object, Object> table = mock(KTable.class);
+        final var input = new KTableWrapper(table, key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_table", kTable());
+        final var operation = new OuterJoinWithTableOperation(storeConfig("outerJoin"), savedTarget("saved_table"), valueJoiner());
+
+        assertThat(operation.apply(input, context)).isInstanceOf(KTableWrapper.class);
         verify(table).outerJoin(any(KTable.class), any(ValueJoiner.class), any(Named.class));
     }
 }

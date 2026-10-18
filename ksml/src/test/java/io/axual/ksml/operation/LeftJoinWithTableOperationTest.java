@@ -38,12 +38,15 @@ import java.lang.reflect.Field;
 import java.util.function.Function;
 
 import static io.axual.ksml.operation.OperationTestSupport.foreignKeyExtractor;
+import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
+import static io.axual.ksml.operation.OperationTestSupport.saveStream;
+import static io.axual.ksml.operation.OperationTestSupport.savedTarget;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.streamPartitioner;
-import static io.axual.ksml.operation.OperationTestSupport.tableDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.tableTarget;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +63,7 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         final KStream<Object, Object> stream = mock(KStream.class);
         final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new LeftJoinWithTableOperation(
-                storeConfig("leftJoin"), tableDefinition(), foreignKeyExtractor(), valueJoiner(), null, null, null);
+                storeConfig("leftJoin"), tableTarget(), foreignKeyExtractor(), valueJoiner(), null, null, null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
         verify(stream).leftJoin(any(KTable.class), any(ValueJoinerWithKey.class), any(Joined.class));
@@ -73,7 +76,7 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new LeftJoinWithTableOperation(
-                storeConfig("leftJoin"), tableDefinition(), foreignKeyExtractor(), valueJoiner(), null, null, null);
+                storeConfig("leftJoin"), tableTarget(), foreignKeyExtractor(), valueJoiner(), null, null, null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         // Foreign-key join without a store, so no Materialized, no partitioners.
@@ -87,7 +90,7 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new LeftJoinWithTableOperation(
-                storeConfig("leftJoin", keyValueStore("store")), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                storeConfig("leftJoin", keyValueStore("store")), tableTarget(), foreignKeyExtractor(), valueJoiner(),
                 null, streamPartitioner(), streamPartitioner());
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
@@ -102,7 +105,7 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new LeftJoinWithTableOperation(
-                storeConfig("leftJoin"), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                storeConfig("leftJoin"), tableTarget(), foreignKeyExtractor(), valueJoiner(),
                 null, null, streamPartitioner());
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
@@ -125,7 +128,7 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new LeftJoinWithTableOperation(
-                storeConfig("leftJoin"), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                storeConfig("leftJoin"), tableTarget(), foreignKeyExtractor(), valueJoiner(),
                 null, streamPartitioner(), null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
@@ -149,10 +152,25 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new LeftJoinWithTableOperation(
-                storeConfig("leftJoin", keyValueStore("store")), tableDefinition(), null, valueJoiner(), null, null, null);
+                storeConfig("leftJoin", keyValueStore("store")), tableTarget(), null, valueJoiner(), null, null, null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         // Primary-key join uses the named + materialized overload.
         verify(table).leftJoin(any(KTable.class), any(ValueJoiner.class), any(Named.class), any(Materialized.class));
+    }
+
+    @Test
+    @DisplayName("left-joining a stream with a table saved with \"as\" looks the table up by name")
+    @SuppressWarnings("unchecked")
+    void applyToStreamWithSavedTable() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_table", kTable());
+        final var operation = new LeftJoinWithTableOperation(
+                storeConfig("leftJoin"), savedTarget("saved_table"), null, valueJoiner(), null, null, null);
+
+        assertThat(operation.apply(input, context)).isInstanceOf(KStreamWrapper.class);
+        verify(stream).leftJoin(any(KTable.class), any(ValueJoinerWithKey.class), any(Joined.class));
     }
 }

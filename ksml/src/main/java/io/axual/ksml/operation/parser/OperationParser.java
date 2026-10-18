@@ -25,6 +25,7 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
@@ -66,6 +67,11 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
 
     protected StructsParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
         return resourceFields.topicField(childName, doc, parser);
+    }
+
+    // A defined stream or table as join or merge target. It is looked up by topic, so its name is not used
+    protected <D extends TopicDefinition> TopologyResource<D> topicTarget(D definition, MetricTags tags) {
+        return new TopologyResource<>(definition.topic(), definition, tags);
     }
 
     protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<? extends S> parser) {
