@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -30,10 +31,10 @@ import org.apache.kafka.streams.kstream.KTable;
 
 public class OuterJoinWithTableOperation extends StoreOperation {
     private static final String VALUEJOINER_NAME = "ValueJoiner";
-    private final TableDefinition joinTable;
+    private final TopologyResource<TableDefinition> joinTable;
     private final FunctionDefinition valueJoiner;
 
-    public OuterJoinWithTableOperation(StoreOperationConfig config, TableDefinition joinTable, FunctionDefinition valueJoiner) {
+    public OuterJoinWithTableOperation(StoreOperationConfig config, TopologyResource<TableDefinition> joinTable, FunctionDefinition valueJoiner) {
         super(config);
         this.joinTable = joinTable;
         this.valueJoiner = valueJoiner;
@@ -52,7 +53,7 @@ public class OuterJoinWithTableOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = context.getStreamWrapper(joinTable);
+        final var otherTable = lookupTable(context, joinTable, "Join table");
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var ko = otherTable.keyType();
         final var vo = otherTable.valueType();

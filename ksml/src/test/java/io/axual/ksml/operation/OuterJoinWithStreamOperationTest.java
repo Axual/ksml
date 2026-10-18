@@ -31,9 +31,12 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import static io.axual.ksml.operation.OperationTestSupport.dualStoreConfig;
+import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
-import static io.axual.ksml.operation.OperationTestSupport.streamDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.saveStream;
+import static io.axual.ksml.operation.OperationTestSupport.savedTarget;
+import static io.axual.ksml.operation.OperationTestSupport.streamTarget;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,9 +53,24 @@ class OuterJoinWithStreamOperationTest extends OperationTestBase {
         final KStream<Object, Object> stream = mock(KStream.class);
         final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new OuterJoinWithStreamOperation(
-                dualStoreConfig("outerJoin"), streamDefinition(), valueJoiner(), Duration.ofSeconds(1), null);
+                dualStoreConfig("outerJoin"), streamTarget(), valueJoiner(), Duration.ofSeconds(1), null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
+        verify(stream).outerJoin(any(KStream.class), any(ValueJoiner.class), any(JoinWindows.class), any(StreamJoined.class));
+    }
+
+    @Test
+    @DisplayName("outer join with a stream saved with \"as\" looks the stream up by name")
+    @SuppressWarnings("unchecked")
+    void applyToStreamWithSavedStream() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_stream", kStream());
+        final var operation = new OuterJoinWithStreamOperation(
+                dualStoreConfig("outerJoin"), savedTarget("saved_stream"), valueJoiner(), Duration.ofSeconds(1), null);
+
+        assertThat(operation.apply(input, context)).isInstanceOf(KStreamWrapper.class);
         verify(stream).outerJoin(any(KStream.class), any(ValueJoiner.class), any(JoinWindows.class), any(StreamJoined.class));
     }
 }

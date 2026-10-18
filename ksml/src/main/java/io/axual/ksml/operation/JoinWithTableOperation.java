@@ -24,6 +24,7 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -39,14 +40,14 @@ public class JoinWithTableOperation extends StoreOperation {
     private static final String FOREIGN_KEY_EXTRACTOR_NAME = "ForeignKeyExtractor";
     private static final String PARTITIONER_NAME = "Partitioner";
     private static final String VALUEJOINER_NAME = "ValueJoiner";
-    private final TableDefinition joinTable;
+    private final TopologyResource<TableDefinition> joinTable;
     private final FunctionDefinition foreignKeyExtractor;
     private final FunctionDefinition valueJoiner;
     private final Duration gracePeriod;
     private final FunctionDefinition partitioner;
     private final FunctionDefinition otherPartitioner;
 
-    public JoinWithTableOperation(StoreOperationConfig config, TableDefinition joinTable, FunctionDefinition foreignKeyExtractor, FunctionDefinition valueJoiner, Duration gracePeriod, FunctionDefinition partitioner, FunctionDefinition otherPartitioner) {
+    public JoinWithTableOperation(StoreOperationConfig config, TopologyResource<TableDefinition> joinTable, FunctionDefinition foreignKeyExtractor, FunctionDefinition valueJoiner, Duration gracePeriod, FunctionDefinition partitioner, FunctionDefinition otherPartitioner) {
         super(config);
         this.joinTable = joinTable;
         this.foreignKeyExtractor = foreignKeyExtractor;
@@ -68,7 +69,7 @@ public class JoinWithTableOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = context.getStreamWrapper(joinTable);
+        final var otherTable = lookupTable(context, joinTable, "Join table");
         final var kt = otherTable.keyType();
         final var vt = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
@@ -87,7 +88,7 @@ public class JoinWithTableOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = context.getStreamWrapper(joinTable);
+        final var otherTable = lookupTable(context, joinTable, "Join table");
         final var ko = otherTable.keyType();
         final var vo = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);

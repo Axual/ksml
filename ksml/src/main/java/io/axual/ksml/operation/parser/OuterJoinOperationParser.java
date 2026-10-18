@@ -92,7 +92,7 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
-                        return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), streamDef, valueJoiner, timeDifference, grace);
+                        return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), topicTarget(streamDef, tags), valueJoiner, timeDifference, grace);
                     }
                     throw new TopologyException("OuterJoin stream not correct, should be a defined stream");
                 });
@@ -109,7 +109,7 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 storeField(false, "Materialized view of the outerJoined table", StoreType.KEYVALUE_STORE),
                 (name, table, valueJoiner, store, tags) -> {
                     if (table instanceof TableDefinition tableDef) {
-                        return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), tableDef, valueJoiner);
+                        return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), topicTarget(tableDef, tags), valueJoiner);
                     }
                     throw new TopologyException("OuterJoin table not correct, should be a defined table");
                 });

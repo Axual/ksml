@@ -31,6 +31,9 @@ import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
@@ -38,6 +41,8 @@ import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.store.StoreUtil;
+import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
@@ -144,6 +149,23 @@ public abstract class BaseOperation implements StreamOperation {
         if (expectedClass.isInstance(wrapper)) return expectedClass.cast(wrapper);
         if (wrapper == null) throw topologyError(label + " not found. " + notFoundHint);
         throw topologyError(label + " must be " + expectedKind + ", but found " + wrapper);
+    }
+
+    // A join or merge target is a defined stream, looked up by topic, or the "as" name of an earlier pipeline
+    protected KStreamWrapper lookupStream(TopologyBuildContext context, TopologyResource<StreamDefinition> target, String label) {
+        if (target.definition() != null) return context.getStreamWrapper(target.definition());
+        return lookupSavedTarget(context, target.name(), KStreamWrapper.class, label, "a stream", "streams");
+    }
+
+    // A join target is a defined table, looked up by topic, or the "as" name of an earlier pipeline
+    protected KTableWrapper lookupTable(TopologyBuildContext context, TopologyResource<TableDefinition> target, String label) {
+        if (target.definition() != null) return context.getStreamWrapper(target.definition());
+        return lookupSavedTarget(context, target.name(), KTableWrapper.class, label, "a table", "tables");
+    }
+
+    private <W extends StreamWrapper> W lookupSavedTarget(TopologyBuildContext context, String name, Class<W> expectedClass, String label, String expectedKind, String section) {
+        return requireSavedStream(findSavedStream(context, name), expectedClass, label + " \"" + name + "\"", expectedKind,
+                "Define it under \"" + section + "\", or save " + expectedKind + " with \"as: " + name + "\" in a pipeline defined before this one, in the same definition file");
     }
 
     private UserType[] arrayFrom(UserType element, UserType[] elements) {
