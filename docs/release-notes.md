@@ -48,6 +48,8 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * An Avro `decimal` may grow its precision between schema versions as long as the scale stays the same. Narrowing the precision or changing the scale is rejected.
 * JSON Schema now reads the `format: uuid` string format as a `uuid` logical type and keeps it on read and write.
 * `cogroup` can now combine more than one grouped stream. A new optional `stream` field on `cogroup` adds a grouped stream that an earlier pipeline saved with `as`, each with its own aggregator. See [issue #728](https://github.com/Axual/ksml/issues/728).
+* `join`, `leftJoin`, `outerJoin` and `merge` can now use the result of an earlier pipeline, saved with `as`, as the `stream` or `table` to join or merge with. See [issue #286](https://github.com/Axual/ksml/issues/286).
+* An `as` name, or the name of a pipeline without a sink, can no longer be the same as a name under `streams`, `tables` or `globalTables`. KSML now fails at startup with a clear error, because a reference to such a name could mean either one.
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
 
 ## 1.3.0 (2026-06-23)

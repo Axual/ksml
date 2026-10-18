@@ -42,7 +42,7 @@ Each pipeline in the `pipelines` section has these main properties:
 | `from`                 | String/Object  | Yes      | The source stream(s), table(s), or pipeline(s). Can be a reference or inline definition |
 | `via`                  | Array          | No       | List of operations to apply to the data                                                 |
 | `to`                   | String/Object  | No*      | The destination stream or topic. Can be a reference or inline definition                |
-| `as`                   | String         | No*      | Name to save the result for later pipelines                                             |
+| `as`                   | String         | No*      | Name to save the result for later pipelines, to use in `from`, as join or merge target, or in `cogroup` |
 | `branch`               | Array          | No*      | Split the pipeline based on conditions                                                  |
 | `forEach`              | Object         | No*      | Process each message with a function                                                    |
 | `print`                | Boolean/Object | No*      | Output messages for debugging (simple boolean or complex object)                        |
@@ -300,6 +300,35 @@ pipelines:
         mapper:
           expression: {"orderId": value.get('id'), "amount": value.get('total'), "priority": "high"}
     to: priority_orders_stream
+```
+
+A saved result can be used in later pipelines of the same definition file:
+
+- as the source in `from`
+- as the `stream` or `table` to join with in `join`, `leftJoin` and `outerJoin`, and as the `stream` in `merge`
+- as the grouped `stream` in `cogroup`
+
+The pipeline that saves the result must come before the pipelines that use it. An `as` name can not be the same as a name under `streams`, `tables` or `globalTables`.
+
+```yaml
+pipelines:
+  # Pipeline 1: join two tables and save the result
+  enrich_customers:
+    from: customers_table
+    via:
+      - type: join
+        table: loyalty_table
+        valueJoiner: join_customer_with_loyalty
+    as: customers_with_loyalty  # ← Save the joined table
+
+  # Pipeline 2: join with the saved table
+  enrich_orders:
+    from: orders_stream
+    via:
+      - type: join
+        table: customers_with_loyalty  # ← Reference the saved table
+        valueJoiner: join_order_with_customer
+    to: enriched_orders_stream
 ```
 
 **When to connect pipelines:**

@@ -28,6 +28,8 @@ Before starting this tutorial:
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic customer_data && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic enriched_orders && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_customer_data && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic customer_loyalty && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_customer_loyalty && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_catalog && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_product_details && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_activity_events && \
@@ -649,6 +651,92 @@ graph TB
     class Bob,Frank partial
     style Results fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
+
+## Joining with the Result of Another Pipeline
+
+The `stream` and `table` of `join`, `leftJoin` and `outerJoin` can also be the result of an earlier pipeline, saved with `as`. This lets you build a join in stages: compute an intermediate result once, then join other data with it. The same works for the `stream` of `merge`.
+
+### Use Case: Orders with Customer Loyalty
+
+Enrich orders with customer details and the customer's loyalty tier. The customer details and the loyalty records are two tables, so the first pipeline joins them and saves the result. The second pipeline joins each order with that saved table.
+
+**What it does:**
+
+- **Joins two tables**: The `enrich_customers` pipeline joins the `customers` table with the `loyalty` table on the customer ID, and saves the result with `as: customers_with_loyalty`
+- **Joins with the saved table**: The `enrich_orders` pipeline rekeys each order by customer ID and joins it with `table: customers_with_loyalty`, the name saved by the first pipeline
+- **Drops orders without a match**: Both joins are inner joins, so an order is only enriched when its customer has both customer details and a loyalty record
+- **Restores the order key**: The order key is restored after the join, as in the [stream-table join](#use-case-order-enrichment)
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Input
+    Customers[(customer_data table<br/>key: customer_id)]
+    Loyalty[(customer_loyalty table<br/>key: customer_id)]
+    Orders[(new_orders<br/>key: order_id)]
+
+    %% Pipeline 1: enrich_customers
+    CustomerJoin["<code>join</code> with table<br/>join_customer_with_loyalty"]
+    Saved["as: customers_with_loyalty"]
+
+    %% Pipeline 2: enrich_orders
+    Rekey["<code>transformKey</code><br/>extract_customer_id"]
+    OrderJoin["<code>join</code> with table<br/>join_order_with_customer"]
+    Restore["<code>transformKey</code><br/>restore_order_key"]
+
+    %% Output
+    Output[(orders_with_customer_loyalty<br/>key: order_id)]
+
+    %% Data Flow
+    Customers --> CustomerJoin
+    Loyalty -.->|"loyalty for<br/>this customer"| CustomerJoin
+    CustomerJoin --> Saved
+    Orders --> Rekey
+    Rekey -->|"key: customer_id"| OrderJoin
+    Saved -.->|"customer with loyalty<br/>for this key"| OrderJoin
+    OrderJoin -->|"key: customer_id"| Restore
+    Restore -->|"key: order_id"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Customers,Loyalty,Orders,Output topic
+    class CustomerJoin,Rekey,OrderJoin,Restore operation
+    class Saved store
+```
+
+??? info "Producer: Orders (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-orders.yaml" %}
+    ```
+
+??? info "Producer: Customers (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-customers.yaml" %}
+    ```
+
+??? info "Producer: Customer Loyalty (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-customer-loyalty.yaml" %}
+    ```
+
+??? info "Processor: Join with a Saved Table (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-join-saved-table.yaml" %}
+    ```
+
+### Rules for Joining with a Saved Result
+
+- **Define the saving pipeline first**: The pipeline with `as: <name>` must come before the pipeline that joins with `<name>`, in the same definition file. Otherwise the topology fails to start with `Join table "<name>" not found`.
+- **Use the right key**: Use `stream:` for a saved stream and `table:` for a saved table. Joining with a saved stream as `table:`, or the other way round, fails with `must be a table` or `must be a stream`. To join a stream as a table, add `toTable` before `as`.
+- **No saved globalTables**: Kafka Streams can not make a GlobalKTable from a pipeline result, so `globalTable:` only accepts names defined under `globalTables`. Use `table:` to join with a saved table.
+- **Unique names**: An `as` name can not be the same as a name under `streams`, `tables` or `globalTables`.
+- **No store needed**: A table saved after a table-table join can be joined with directly. You only need a `store` on the join if you want to query the saved table.
+- **Co-partitioning still applies**: If the saved result changed its key, for example with `transformKey` or `groupBy`, it must still be co-partitioned with the stream or table it is joined with. See [Co-partitioning Requirements](#co-partitioning-requirements).
 
 ## Join Type Variants
 

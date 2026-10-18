@@ -616,6 +616,8 @@ The `reducer` can be defined using:
 
 Join operations combine data from multiple streams or tables based on matching keys, enabling you to correlate related events from different data sources.
 
+The stream or table to join with can be defined under `streams` or `tables`, or be the result of an earlier pipeline in the same definition file, saved with `as`. A `globalTable` must always be defined under `globalTables`, because Kafka Streams can not make a GlobalKTable from a pipeline result. See [Joining with the Result of Another Pipeline](../tutorials/intermediate/joins.md#joining-with-the-result-of-another-pipeline).
+
 ### `join`
 
 Performs an inner join between two streams.
@@ -624,8 +626,8 @@ Performs an inner join between two streams.
 
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
-| `stream`         | String   | Yes      | The name of the stream to join with                                   |
-| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins)          |
+| `stream`         | String   | Yes      | The name of the stream to join with: a defined stream, or a stream saved with `as` by an earlier pipeline |
+| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins): a defined table, or a table saved with `as` by an earlier pipeline |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
@@ -651,8 +653,8 @@ Performs a left join between two streams.
 
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
-| `stream`         | String   | Yes      | The name of the stream to join with                                   |
-| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins)          |
+| `stream`         | String   | Yes      | The name of the stream to join with: a defined stream, or a stream saved with `as` by an earlier pipeline |
+| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins): a defined table, or a table saved with `as` by an earlier pipeline |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
@@ -678,7 +680,7 @@ Merges multiple streams with identical key and value types into a single unified
 
 | Parameter | Type   | Required | Description                                          |
 |-----------|--------|----------|------------------------------------------------------|
-| `stream`  | String | Yes      | The name of the stream to merge with the main stream |
+| `stream`  | String | Yes      | The name of the stream to merge with the main stream: a defined stream, or a stream saved with `as` by an earlier pipeline |
 
 #### Example
 
@@ -735,8 +737,8 @@ Performs an outer join between two streams.
 
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
-| `stream`         | String   | Yes      | The name of the stream to join with                                   |
-| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins)          |
+| `stream`         | String   | Yes      | The name of the stream to join with: a defined stream, or a stream saved with `as` by an earlier pipeline |
+| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins): a defined table, or a table saved with `as` by an earlier pipeline |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
