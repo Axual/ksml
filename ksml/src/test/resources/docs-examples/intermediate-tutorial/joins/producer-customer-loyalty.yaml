@@ -1,0 +1,36 @@
+functions:
+  generate_loyalty:
+    type: generator
+    globalCode: |
+      # CUST005 has no loyalty record, so its orders are not enriched
+      loyalty_data = [
+        {"id": "CUST001", "tier": "gold", "points": 1200},
+        {"id": "CUST002", "tier": "silver", "points": 450},
+        {"id": "CUST003", "tier": "bronze", "points": 80},
+        {"id": "CUST004", "tier": "silver", "points": 610}
+      ]
+      loyalty_index = 0
+    code: |
+      global loyalty_data, loyalty_index
+
+      # Cycle through loyalty records
+      loyalty = loyalty_data[loyalty_index % len(loyalty_data)]
+      loyalty_index += 1
+
+      value = {
+        "tier": loyalty["tier"],
+        "points": loyalty["points"]
+      }
+
+      key = loyalty["id"]
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  loyalty_producer:
+    generator: generate_loyalty
+    interval: 10s
+    to:
+      topic: customer_loyalty
+      keyType: string
+      valueType: json
