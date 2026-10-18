@@ -161,6 +161,24 @@ class OperationParsersTest {
     }
 
     @Test
+    @DisplayName("a merge with a stream that is not defined parses, as it can refer to a stream saved with \"as\"")
+    void parsesMergeWithSavedStream() throws Exception {
+        final var op = new MergeOperationParser(resources).parser()
+                .parse(nodeOf("stream: saved_stream"));
+        assertThat(op).isInstanceOf(MergeOperation.class);
+    }
+
+    @Test
+    @DisplayName("a merge configuration without a stream is rejected")
+    void rejectsMergeWithoutStream() throws Exception {
+        final var parser = new MergeOperationParser(resources).parser();
+        final var node = nodeOf("name: mergeOp");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Merge stream not correct");
+    }
+
+    @Test
     @DisplayName("a cogroup configuration without a stream parses into a cogroup operation without a stream")
     void parsesCogroupWithoutStream() throws Exception {
         final var op = new CogroupOperationParser(resources).parser()

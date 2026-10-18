@@ -82,6 +82,9 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
                 if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
                 if (joinTopic.definition() instanceof GlobalTableDefinition) return joinGlobalTableParser.parse(node);
+                // A name that is not defined refers to a stream or table saved with "as", so the key tells which join it is
+                if (joinTopic.definition() == null && node.get(Operations.Join.WITH_STREAM) != null) return joinStreamParser.parse(node);
+                if (joinTopic.definition() == null && node.get(Operations.Join.WITH_TABLE) != null) return joinTableParser.parse(node);
 
                 // Note: the above instanceof checks always return something, but Java can't infer that, hence we throw an exception here:
                 final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
@@ -102,17 +105,14 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 "",
                 "Operation to leftJoin with a stream",
                 operationNameField(),
-                topicField(Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to leftJoin with", new StreamDefinitionParser(resources(), true)),
+                targetField(Operations.Join.WITH_STREAM, "A reference to a defined stream or to a stream saved with \"as\" in an earlier pipeline, or an inline definition of the stream to leftJoin with", new StreamDefinitionParser(resources(), true)),
                 valueJoinerField,
                 FieldParsers.durationField(Operations.Join.TIME_DIFFERENCE, "The maximum time difference for a leftJoin over two streams on the same key"),
                 FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the leftJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
-                    if (stream instanceof StreamDefinition streamDef) {
-                        return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), topicTarget(streamDef, tags), valueJoiner, timeDifference, grace);
-                    }
-                    throw new TopologyException("LeftJoin stream not correct, should be a defined stream");
+                    return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "LeftJoin stream not correct, should be a defined stream"), valueJoiner, timeDifference, grace);
                 });
     }
 
@@ -122,7 +122,7 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 "",
                 "Operation to leftJoin with a table",
                 operationNameField(),
-                topicField(Operations.Join.WITH_TABLE, "A reference to the table, or an inline definition of the table to join with", new TableDefinitionParser(resources(), true)),
+                targetField(Operations.Join.WITH_TABLE, "A reference to a defined table or to a table saved with \"as\" in an earlier pipeline, or an inline definition of the table to join with", new TableDefinitionParser(resources(), true)),
                 FieldParsers.optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ForeignKeyExtractorDefinitionParser(false))),
                 valueJoinerField,
                 FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
@@ -130,10 +130,7 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
                 storeField(false, "Materialized view of the leftJoined table (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
                 (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
-                    if (table instanceof TableDefinition tableDef) {
-                        return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), topicTarget(tableDef, tags), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
-                    }
-                    throw new TopologyException("LeftJoin table not correct, should be a defined table");
+                    return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "LeftJoin table not correct, should be a defined table"), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
                 });
     }
 

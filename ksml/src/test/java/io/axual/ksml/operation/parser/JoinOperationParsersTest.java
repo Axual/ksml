@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.JoinWithGlobalTableOperation;
@@ -46,6 +47,7 @@ import java.util.stream.Stream;
 import static io.axual.ksml.operation.parser.OperationParserTestSupport.nodeOf;
 import static io.axual.ksml.operation.parser.OperationParserTestSupport.registerNotations;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class JoinOperationParsersTest {
@@ -99,6 +101,30 @@ class JoinOperationParsersTest {
               resultType: string
             """;
 
+    // Not defined under streams or tables, so these refer to results saved with "as" in an earlier pipeline
+    private static final String SAVED_STREAM_JOIN = """
+            name: joinOp
+            stream: saved_stream
+            valueJoiner:
+              expression: value1
+              resultType: string
+            timeDifference: 10s
+            thisStore:
+              type: window
+              name: thisStore
+            otherStore:
+              type: window
+              name: otherStore
+            """;
+
+    private static final String SAVED_TABLE_JOIN = """
+            name: joinOp
+            table: saved_table
+            valueJoiner:
+              expression: value1
+              resultType: string
+            """;
+
     static Stream<Arguments> joinCases() {
         final Function<TopologyResources, OperationParser<BaseOperation>> inner = JoinOperationParser::new;
         final Function<TopologyResources, OperationParser<BaseOperation>> left = LeftJoinOperationParser::new;
@@ -111,7 +137,13 @@ class JoinOperationParsersTest {
                 arguments("left table", left, TABLE_JOIN, LeftJoinWithTableOperation.class),
                 arguments("left global table", left, GLOBAL_TABLE_JOIN, LeftJoinWithGlobalTableOperation.class),
                 arguments("outer stream", outer, STREAM_JOIN, OuterJoinWithStreamOperation.class),
-                arguments("outer table", outer, TABLE_JOIN, OuterJoinWithTableOperation.class));
+                arguments("outer table", outer, TABLE_JOIN, OuterJoinWithTableOperation.class),
+                arguments("inner saved stream", inner, SAVED_STREAM_JOIN, JoinWithStreamOperation.class),
+                arguments("inner saved table", inner, SAVED_TABLE_JOIN, JoinWithTableOperation.class),
+                arguments("left saved stream", left, SAVED_STREAM_JOIN, LeftJoinWithStreamOperation.class),
+                arguments("left saved table", left, SAVED_TABLE_JOIN, LeftJoinWithTableOperation.class),
+                arguments("outer saved stream", outer, SAVED_STREAM_JOIN, OuterJoinWithStreamOperation.class),
+                arguments("outer saved table", outer, SAVED_TABLE_JOIN, OuterJoinWithTableOperation.class));
     }
 
     @ParameterizedTest(name = "parses {0} join")
@@ -131,5 +163,15 @@ class JoinOperationParsersTest {
         assertThat(new JoinOperationParser(resources).parser().parse(null)).isNull();
         assertThat(new LeftJoinOperationParser(resources).parser().parse(null)).isNull();
         assertThat(new OuterJoinOperationParser(resources).parser().parse(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("a globalTable that is not defined is rejected, because a saved result can not be a globalTable")
+    void rejectsGlobalTableThatIsNotDefined() throws Exception {
+        final var node = nodeOf(GLOBAL_TABLE_JOIN.replace("theGlobalTable", "saved_table"));
+        assertThatThrownBy(() -> new JoinOperationParser(resources).parser().parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Unknown globalTable \"saved_table\"")
+                .hasMessageContaining("join with it using \"table\" instead");
     }
 }

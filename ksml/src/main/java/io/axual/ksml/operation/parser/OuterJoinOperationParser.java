@@ -31,7 +31,6 @@ import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.OuterJoinWithStreamOperation;
@@ -65,6 +64,9 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
                 if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
                 if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
+                // A name that is not defined refers to a stream or table saved with "as", so the key tells which join it is
+                if (joinTopic.definition() == null && node.get(KSMLDSL.Operations.Join.WITH_STREAM) != null) return joinStreamParser.parse(node);
+                if (joinTopic.definition() == null && node.get(KSMLDSL.Operations.Join.WITH_TABLE) != null) return joinTableParser.parse(node);
 
                 final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
                 final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
@@ -84,17 +86,14 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 "",
                 "Operation to outerJoin with a stream",
                 operationNameField(),
-                topicField(KSMLDSL.Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to outerJoin with", new StreamDefinitionParser(resources(), true)),
+                targetField(KSMLDSL.Operations.Join.WITH_STREAM, "A reference to a defined stream or to a stream saved with \"as\" in an earlier pipeline, or an inline definition of the stream to outerJoin with", new StreamDefinitionParser(resources(), true)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 FieldParsers.durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "The maximum time difference for an outerJoin over two streams on the same key"),
                 FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(KSMLDSL.Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
-                    if (stream instanceof StreamDefinition streamDef) {
-                        return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), topicTarget(streamDef, tags), valueJoiner, timeDifference, grace);
-                    }
-                    throw new TopologyException("OuterJoin stream not correct, should be a defined stream");
+                    return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "OuterJoin stream not correct, should be a defined stream"), valueJoiner, timeDifference, grace);
                 });
     }
 
@@ -104,14 +103,11 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 "",
                 "Operation to outerJoin with a table",
                 operationNameField(),
-                topicField(KSMLDSL.Operations.Join.WITH_TABLE, "A reference to the table, or an inline definition of the table to outerJoin with", new TableDefinitionParser(resources(), true)),
+                targetField(KSMLDSL.Operations.Join.WITH_TABLE, "A reference to a defined table or to a table saved with \"as\" in an earlier pipeline, or an inline definition of the table to outerJoin with", new TableDefinitionParser(resources(), true)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 storeField(false, "Materialized view of the outerJoined table", StoreType.KEYVALUE_STORE),
                 (name, table, valueJoiner, store, tags) -> {
-                    if (table instanceof TableDefinition tableDef) {
-                        return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), topicTarget(tableDef, tags), valueJoiner);
-                    }
-                    throw new TopologyException("OuterJoin table not correct, should be a defined table");
+                    return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "OuterJoin table not correct, should be a defined table"), valueJoiner);
                 });
     }
 }
