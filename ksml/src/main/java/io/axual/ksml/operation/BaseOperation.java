@@ -38,6 +38,7 @@ import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.store.StoreUtil;
+import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueJoiner;
@@ -131,6 +132,18 @@ public abstract class BaseOperation implements StreamOperation {
 
     protected TopologyException topologyError(String message) {
         return new TopologyException(ERROR_IN_TOPOLOGY + ": " + message);
+    }
+
+    // Returns the stream saved with "as" under this name, or null. An "as" name exists only after its pipeline is
+    // built, so that pipeline must come first
+    protected StreamWrapper findSavedStream(TopologyBuildContext context, String name) {
+        return context.hasStreamWrapper(name) ? context.getStreamWrapper(name, null) : null;
+    }
+
+    protected <W extends StreamWrapper> W requireSavedStream(StreamWrapper wrapper, Class<W> expectedClass, String label, String expectedKind, String notFoundHint) {
+        if (expectedClass.isInstance(wrapper)) return expectedClass.cast(wrapper);
+        if (wrapper == null) throw topologyError(label + " not found. " + notFoundHint);
+        throw topologyError(label + " must be " + expectedKind + ", but found " + wrapper);
     }
 
     private UserType[] arrayFrom(UserType element, UserType[] elements) {
