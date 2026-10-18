@@ -41,14 +41,21 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
     @Override
     public TopologyResource<TopicDefinition> parse(ParseNode node) {
         if (node == null) return null;
+        // A stream or table that is not defined can be saved with "as" in an earlier pipeline, so it is looked up by
+        // name when building
         if (node.get(Operations.Join.WITH_STREAM) != null) {
-            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, true)).parse(node);
+            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, true), true).parse(node);
         }
         if (node.get(Operations.Join.WITH_TABLE) != null) {
-            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, true)).parse(node);
+            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, true), true).parse(node);
         }
         if (node.get(Operations.Join.WITH_GLOBAL_TABLE) != null) {
-            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(resources, true)).parse(node);
+            final var result = new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(resources, true), true).parse(node);
+            // Kafka Streams can not make a GlobalKTable from a pipeline result, so only defined globalTables work
+            if (result.definition() == null) {
+                throw new ParseException(node, "Unknown globalTable \"" + result.name() + "\". Define it under \"globalTables\". A stream or table saved with \"as\" can not be used as globalTable, join with it using \"table\" instead");
+            }
+            return result;
         }
         throw new ParseException(node, "Stream definition missing");
     }

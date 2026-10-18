@@ -29,6 +29,7 @@ import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.BaseOperation;
@@ -69,9 +70,21 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
         return resourceFields.topicField(childName, doc, parser);
     }
 
-    // A defined stream or table as join or merge target. It is looked up by topic, so its name is not used
-    protected <D extends TopicDefinition> TopologyResource<D> topicTarget(D definition, MetricTags tags) {
-        return new TopologyResource<>(definition.topic(), definition, tags);
+    // A join or merge target: a defined stream or table, an inline definition, or the "as" name of an earlier
+    // pipeline. A name that is not defined is kept without definition and looked up by name when building
+    protected <F extends TopicDefinition> StructsParser<TopologyResource<TopicDefinition>> targetField(String childName, String doc, DefinitionParser<F> parser) {
+        final var resourceParser = new TopologyResourceParser<>(childName, childName, doc, (name, tags) -> resources().topic(name), parser, true);
+        // Without the field, the resource parser would return a made-up name, so return null to report it as missing
+        return StructsParser.of(node -> node != null && node.get(childName) != null ? resourceParser.parse(node) : null, resourceParser.schemas());
+    }
+
+    // Checks the definition type of a target. A target without definition is checked when building, because the
+    // stream or table saved with "as" only exists then
+    protected <D extends TopicDefinition> TopologyResource<D> targetOf(TopologyResource<TopicDefinition> target, Class<D> expectedType, String error) {
+        if (target == null || (target.definition() != null && !expectedType.isInstance(target.definition()))) {
+            throw new TopologyException(error);
+        }
+        return new TopologyResource<>(target.name(), expectedType.cast(target.definition()), target.tags());
     }
 
     protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<? extends S> parser) {
