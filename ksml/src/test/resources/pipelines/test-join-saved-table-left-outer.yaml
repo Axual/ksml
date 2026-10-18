@@ -1,0 +1,54 @@
+# A table saved with "as" (here: made from a stream with toTable) is used by leftJoin and outerJoin.
+streams:
+  updates_stream:
+    topic: updates_topic
+    keyType: string
+    valueType: string
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  left_joined:
+    topic: leftjoin_topic
+    keyType: string
+    valueType: string
+  outer_joined:
+    topic: outerjoin_topic
+    keyType: string
+    valueType: string
+
+tables:
+  input_table:
+    topic: input_table_topic
+    keyType: string
+    valueType: string
+
+functions:
+  joiner:
+    type: valueJoiner
+    expression: str(value1) + "+" + str(value2)
+    resultType: string
+
+pipelines:
+  saved_updates:
+    from: updates_stream
+    via:
+      - type: toTable
+    as: updates_table
+
+  left_join_with_saved:
+    from: input_stream
+    via:
+      - type: leftJoin
+        table: updates_table
+        valueJoiner: joiner
+    to: left_joined
+
+  outer_join_with_saved:
+    from: input_table
+    via:
+      - type: outerJoin
+        table: updates_table
+        valueJoiner: joiner
+      - type: toStream
+    to: outer_joined

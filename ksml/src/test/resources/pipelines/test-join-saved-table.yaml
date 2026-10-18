@@ -1,0 +1,44 @@
+# The example from GitHub issue 286: a stream joins with a table that an earlier pipeline saved with "as".
+# The saved table is the result of a table-table join without a store.
+streams:
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tables:
+  table_j1:
+    topic: table_j1_topic
+    keyType: string
+    valueType: string
+  table_j2:
+    topic: table_j2_topic
+    keyType: string
+    valueType: string
+
+functions:
+  simple_joiner:
+    type: valueJoiner
+    expression: value1 + "+" + value2
+    resultType: string
+
+pipelines:
+  table2table:
+    from: table_j1
+    via:
+      - type: join
+        table: table_j2
+        valueJoiner: simple_joiner
+    as: t2joined
+
+  join_pipeline:
+    from: input_stream
+    via:
+      - type: join
+        table: t2joined
+        valueJoiner: simple_joiner
+    to: output_stream

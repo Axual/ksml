@@ -1,0 +1,39 @@
+# The join uses "globalTable:" with a name that an earlier pipeline saved with "as". Kafka Streams can not make
+# a GlobalKTable from a pipeline result, so only globalTables defined under "globalTables" can be used.
+streams:
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  updates_stream:
+    topic: updates_topic
+    keyType: string
+    valueType: string
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+functions:
+  simple_joiner:
+    type: valueJoiner
+    expression: value1 + "+" + value2
+    resultType: string
+
+pipelines:
+  saved_updates:
+    from: updates_stream
+    via:
+      - type: toTable
+    as: updates_table
+
+  join_pipeline:
+    from: input_stream
+    via:
+      - type: join
+        globalTable: updates_table
+        mapper:
+          expression: key
+          resultType: string
+        valueJoiner: simple_joiner
+    to: output_stream
