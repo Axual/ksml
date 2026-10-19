@@ -118,7 +118,7 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
         // as identifier.
         final var section = shortName != null ? resourceFields.resources().sectionOf(shortName) : null;
         if (section != null) {
-            log.warn("Pipeline \"{}\" has no sink and its name is also defined under \"{}\". A later \"from: {}\" gets this pipeline's result. Rename the pipeline to avoid this", shortName, section, shortName);
+            log.warn("Pipeline \"{}\" has no sink and its name is also defined under \"{}\": a later \"from: {}\" gets the pipeline result, but joins and merges get the defined one. Rename the pipeline to avoid this", shortName, section, shortName);
         }
         if (shortName != null) {
             final var earlier = resourceFields.resources().pipelineSaving(shortName);
