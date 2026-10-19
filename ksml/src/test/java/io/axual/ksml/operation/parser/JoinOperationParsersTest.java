@@ -206,6 +206,6 @@ class JoinOperationParsersTest {
         assertThatThrownBy(() -> new JoinOperationParser(resources).parser().parse(node))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Unknown globalTable \"saved_table\"")
-                .hasMessageContaining("join with it using \"table\" instead");
+                .hasMessageContaining("For a table saved with \"as\", use \"table\" instead");
     }
 }

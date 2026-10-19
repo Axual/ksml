@@ -73,8 +73,7 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
     // Like topicField, but keeps an unknown name if an earlier pipeline saved it with "as"
     protected <F extends TopicDefinition> StructsParser<TopologyResource<TopicDefinition>> targetField(String childName, String section, String doc, DefinitionParser<F> parser) {
         final var resourceParser = new TopologyResourceParser<>(childName, childName, doc, (name, tags) -> resources().topic(name), parser, true);
-        // Return null when the field is missing, not a made-up name
-        // Also checked by JoinTargetDefinitionParser for joins; merge needs it here
+        // Null when the field is missing, not a made-up name
         return StructsParser.of(node -> node != null && node.get(childName) != null ? resourceFields.requireDefinedOrSaved(node, resourceParser.parse(node), childName, section) : null, resourceParser.schemas());
     }
 

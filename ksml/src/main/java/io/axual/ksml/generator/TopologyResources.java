@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricTag;
 import io.axual.ksml.metric.MetricTags;
@@ -37,12 +38,15 @@ import java.util.Set;
 public class TopologyResources extends TopologyBaseResources {
     // Where an "as" name must be saved to be found, used in error messages
     public static final String SAVED_EARLIER = "in a pipeline defined before this one, in the same definition file";
+    // Metric tag keys of pipelines and branches, read by pipelineOf
+    public static final String PIPELINE_TAG = "pipeline";
+    public static final String BRANCH_TAG = "branch";
 
     // All registered KStreams, KTables and KGlobalTables
     private final Map<String, TopicDefinition> topics = new HashMap<>();
     // All registered operation names
     private final Set<String> operationNames = new HashSet<>();
-    // All names that parsed pipelines save their result under, with "as" or by their own name, and where
+    // Saved result names ("as" or the name of a pipeline without a sink), mapped to where they are saved
     private final Map<String, String> savedNames = new HashMap<>();
 
     public TopologyResources(String namespace) {
@@ -68,12 +72,11 @@ public class TopologyResources extends TopologyBaseResources {
     public String sectionOf(String name) {
         final var topic = topic(name);
         if (topic == null) return null;
-        if (topic instanceof TableDefinition) return "tables";
-        if (topic instanceof GlobalTableDefinition) return "globalTables";
-        return "streams";
+        if (topic instanceof TableDefinition) return KSMLDSL.TABLES;
+        if (topic instanceof GlobalTableDefinition) return KSMLDSL.GLOBAL_TABLES;
+        return KSMLDSL.STREAMS;
     }
 
-    // The tags of the node that saves the result tell where it is saved
     public void registerSavedName(String name, MetricTags tags) {
         savedNames.put(name, pipelineOf(tags));
     }
@@ -92,8 +95,8 @@ public class TopologyResources extends TopologyBaseResources {
         String pipeline = null;
         final var branches = new ArrayList<String>();
         for (final var tag : tags) {
-            if (tag.key().equals("pipeline")) pipeline = tag.value();
-            if (tag.key().equals("branch")) branches.add(tag.value());
+            if (tag.key().equals(PIPELINE_TAG)) pipeline = tag.value();
+            if (tag.key().equals(BRANCH_TAG)) branches.add(tag.value());
         }
         if (pipeline == null) return "an earlier pipeline";
         return "pipeline \"" + pipeline + "\"" + (branches.isEmpty() ? "" : " (" + String.join(", ", branches) + ")");
