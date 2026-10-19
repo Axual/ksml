@@ -27,11 +27,16 @@ import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.operation.BaseOperation;
+import io.axual.ksml.operation.JoinWithTableOperation;
+import io.axual.ksml.operation.parser.JoinOperationParser;
+import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.AutoOffsetReset;
@@ -160,5 +165,86 @@ class DefinitionParsersTest {
                 .parse(nodeOf("topic: my_global_table\nkeyType: string\nvalueType: string"));
         assertThat(globalTable).isInstanceOf(GlobalTableDefinition.class);
         assertThat(((GlobalTableDefinition) globalTable).topic()).isEqualTo("my_global_table");
+    }
+
+    // --- Names saved with "as" -------------------------------------------------------------------
+
+    private static final String JOIN_WITH_SAVED_CUSTOMERS = """
+            name: joinOp
+            type: join
+            table: saved_customers
+            valueJoiner:
+              expression: value1
+              resultType: string
+            """;
+
+    // Parses the pipelines like TopologyDefinitionParser does, so their saved names are registered in the resources
+    private Object parsePipelines(String yaml) throws Exception {
+        resources.register("orders", new StreamDefinition("orders", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null));
+        resources.register("customers", new StreamDefinition("customers", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null));
+        return new MapParser<>("pipeline", "pipeline definition", new PipelineDefinitionParser(resources)).parse(nodeOf(yaml));
+    }
+
+    private BaseOperation parseJoinWithSavedCustomers() throws Exception {
+        return new JoinOperationParser(resources).parser().parse(nodeOf(JOIN_WITH_SAVED_CUSTOMERS));
+    }
+
+    @Test
+    @DisplayName("a join can use a table that a parsed pipeline saved with \"as\"")
+    void joinWithTableSavedWithAsParses() throws Exception {
+        parsePipelines("""
+                save_pipeline:
+                  from: customers
+                  via:
+                    - type: toTable
+                  as: saved_customers
+                """);
+        assertThat(parseJoinWithSavedCustomers()).isInstanceOf(JoinWithTableOperation.class);
+    }
+
+    @Test
+    @DisplayName("a join can use the result of a parsed pipeline without a sink, by the pipeline name")
+    void joinWithResultOfPipelineWithoutSinkParses() throws Exception {
+        parsePipelines("""
+                saved_customers:
+                  from: customers
+                  via:
+                    - type: toTable
+                """);
+        assertThat(parseJoinWithSavedCustomers()).isInstanceOf(JoinWithTableOperation.class);
+    }
+
+    @Test
+    @DisplayName("a join can not use a name before the pipeline that saves it is parsed, so the saving pipeline must come first")
+    void joinBeforeSavingPipelineIsRejected() throws Exception {
+        assertThatThrownBy(this::parseJoinWithSavedCustomers)
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Unknown table \"saved_customers\". Define it under \"tables\", or save a table with \"as: saved_customers\" in a pipeline defined before this one");
+
+        parsePipelines("""
+                save_pipeline:
+                  from: customers
+                  via:
+                    - type: toTable
+                  as: saved_customers
+                """);
+        assertThat(parseJoinWithSavedCustomers()).isInstanceOf(JoinWithTableOperation.class);
+    }
+
+    @Test
+    @DisplayName("an \"as\" name that is defined under tables is rejected")
+    void asNameDefinedAsTableIsRejected() throws Exception {
+        resources.register("orders_table", new TableDefinition("orders_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
+        final var yaml = """
+                latest_orders:
+                  from: orders
+                  via:
+                    - type: toTable
+                  as: orders_table
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
+                .hasStackTraceContaining("\"as: orders_table\" is already defined under \"tables\". Use another name");
     }
 }
