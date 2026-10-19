@@ -86,7 +86,7 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 storeField(KSMLDSL.Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
-                    return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "OuterJoin stream not correct, should be a defined stream"), valueJoiner, timeDifference, grace);
+                    return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "OuterJoin stream not correct, should be a stream"), valueJoiner, timeDifference, grace);
                 });
     }
 
@@ -100,7 +100,7 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 storeField(false, "Materialized view of the outerJoined table", StoreType.KEYVALUE_STORE),
                 (name, table, valueJoiner, store, tags) -> {
-                    return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "OuterJoin table not correct, should be a defined table"), valueJoiner);
+                    return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "OuterJoin table not correct, should be a table"), valueJoiner);
                 });
     }
 }
