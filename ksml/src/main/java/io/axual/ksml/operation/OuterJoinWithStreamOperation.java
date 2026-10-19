@@ -62,7 +62,7 @@ public class OuterJoinWithStreamOperation extends DualStoreOperation {
         final var ko = otherStream.keyType();
         final var vo = otherStream.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-        checkType("Join stream keyType", ko, equalTo(k));
+        checkType("OuterJoin stream keyType", ko, equalTo(k));
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
         final var thisStore = validateWindowStore(thisStore(), k, vr);
         final var otherStore = validateWindowStore(otherStore(), k, vr);

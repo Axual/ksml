@@ -74,7 +74,7 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         final var kt = otherTable.keyType();
         final var vt = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
-        checkType("Join table keyType", kt, equalTo(k));
+        checkType("LeftJoin table keyType", kt, equalTo(k));
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
         final var joined = joinedOf(k, v, vt, gracePeriod);
         final var userJoiner = valueJoinerWithKey(joiner, tags);
@@ -93,7 +93,7 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         final var ko = otherTable.keyType();
         final var vo = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-        checkType("Join table keyType", ko, equalTo(k));
+        checkType("LeftJoin table keyType", ko, equalTo(k));
         final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, v, equalTo(ko));
         if (fkExtract != null) {
             /*    Kafka Streams method signature:

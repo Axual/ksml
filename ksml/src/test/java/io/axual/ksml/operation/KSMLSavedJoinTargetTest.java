@@ -113,6 +113,16 @@ class KSMLSavedJoinTargetTest {
     @KSMLTopic(topic = "input_table_topic")
     TestInputTopic<String, String> inputTable;
 
+    // test-pipeline-name-clash-lookup.yaml
+    @KSMLTopic(topic = "raw_orders_topic")
+    TestInputTopic<String, String> rawOrders;
+
+    @KSMLTopic(topic = "order_events_topic")
+    TestInputTopic<String, String> orderEvents;
+
+    @KSMLTopic(topic = "from_topic")
+    TestOutputTopic<String, String> fromResult;
+
     @KSMLTest(topology = "pipelines/test-join-saved-table.yaml")
     @DisplayName("a stream joins with a table that an earlier table-table join saved with \"as\"")
     void testJoinWithSavedTable() {
@@ -185,5 +195,20 @@ class KSMLSavedJoinTargetTest {
         assertThat(outerJoined.readKeyValuesToList()).containsExactly(
                 new KeyValue<>("key1", "None+u"),
                 new KeyValue<>("key1", "t+u"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-pipeline-name-clash-lookup.yaml")
+    @DisplayName("for a pipeline without a sink named like a defined stream, from gets the pipeline result, but join and merge get the defined stream")
+    void testPipelineNameClashLookup() {
+        final var time = Instant.ofEpochMilli(60_000);
+        rawOrders.pipeInput("key1", "raw", time);
+        orderEvents.pipeInput("key1", "topic", time);
+        left.pipeInput("key1", "l", time);
+
+        assertThat(fromResult.readKeyValuesToList()).containsExactly(new KeyValue<>("key1", "pipeline:raw"));
+        assertThat(joined.readKeyValuesToList()).containsExactly(new KeyValue<>("key1", "l+topic"));
+        assertThat(merged.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", "topic"),
+                new KeyValue<>("key1", "l"));
     }
 }
