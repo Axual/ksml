@@ -108,9 +108,9 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
                     if (shortName != null) {
                         final var earlier = resourceFields.resources().pipelineSaving(shortName);
                         if (earlier != null) {
-                            throw new TopologyException("Pipeline \"" + shortName + "\" has no sink, so its result is saved under its name, which is already used by pipeline \"" + earlier + "\". Use another name, or add a sink");
+                            throw new TopologyException("Without a sink, " + TopologyResources.pipelineOf(tags) + " saves its result under \"" + shortName + "\", which is already used by " + earlier + ". Add a sink, or rename the pipeline");
                         }
-                        resourceFields.resources().registerSavedName(shortName, shortName);
+                        resourceFields.resources().registerSavedName(shortName, tags);
                     }
                     var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
                     return new PipelineDefinition(name, from, via, sinkOperation);

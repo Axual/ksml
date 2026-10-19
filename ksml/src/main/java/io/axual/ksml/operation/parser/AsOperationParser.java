@@ -49,9 +49,9 @@ public class AsOperationParser extends OperationParser<AsOperation> {
             if (result != null) {
                 final var earlier = resources().pipelineSaving(result.targetName);
                 if (earlier != null) {
-                    throw new ParseException(node, "\"as: " + result.targetName + "\" is already used by pipeline \"" + earlier + "\". Use another name");
+                    throw new ParseException(node, "\"as: " + result.targetName + "\" is already used by " + earlier + ". Use another name");
                 }
-                resources().registerSavedName(result.targetName, node.name());
+                resources().registerSavedName(result.targetName, node.tags());
             }
             return result;
         }, parser.schemas());
