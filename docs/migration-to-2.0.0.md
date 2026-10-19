@@ -18,6 +18,7 @@ Before you upgrade, check each item below:
 * If you read an Avro `decimal` field in Python, change the code to expect a string instead of bytes.
 * If a `streamPartitioner` or `valueJoiner` function uses a global variable called `headers` or `mappedKey`, rename it.
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
+* Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -123,6 +124,20 @@ Could not read the KSML definition: Duplicate field 'topic'
 This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.
 
 What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.
+
+## An `as` name can not be a defined stream or table name
+
+KSML now stops with a parse error when a pipeline saves its result with `as` under a name that is also defined under `streams`, `tables` or `globalTables`:
+
+```
+"as: orders" is already defined under "tables". Use another name
+```
+
+On the 1.x line this was accepted. A later `from` with that name then silently got the saved result, not the defined stream or table, because `from` looks for a saved result first.
+
+A pipeline without a sink saves its result under the pipeline name. If that name is also defined under `streams`, `tables` or `globalTables`, KSML only logs a warning, so these definitions still start.
+
+What you need to do: rename the `as` name, and every `from`, `join`, `merge` or `cogroup` that uses it.
 
 ## Avro logical types
 
