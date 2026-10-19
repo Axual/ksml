@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
@@ -32,6 +33,7 @@ import java.time.Duration;
 
 import static io.axual.ksml.operation.OperationTestSupport.dualStoreConfig;
 import static io.axual.ksml.operation.OperationTestSupport.kStream;
+import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.saveStream;
@@ -40,6 +42,7 @@ import static io.axual.ksml.operation.OperationTestSupport.streamTarget;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -72,5 +75,32 @@ class LeftJoinWithStreamOperationTest extends OperationTestBase {
 
         assertThat(operation.apply(input, context)).isInstanceOf(KStreamWrapper.class);
         verify(stream).leftJoin(any(KStream.class), any(ValueJoinerWithKey.class), any(JoinWindows.class), any(StreamJoined.class));
+    }
+
+    @Test
+    @DisplayName("leftJoin with an unknown saved stream explains how to define or save it")
+    void unknownSavedStreamIsNotFound() {
+        final var input = new KStreamWrapper(mock(KStream.class), key(), value());
+        final var operation = new LeftJoinWithStreamOperation(
+                dualStoreConfig("leftJoin"), savedTarget("missing"), valueJoiner(), Duration.ofSeconds(1), null);
+
+        assertThatThrownBy(() -> operation.apply(input, mockContext()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("LeftJoin stream \"missing\" not found")
+                .hasMessageContaining("Define it under \"streams\", or save a stream with \"as: missing\" in a pipeline defined before this one");
+    }
+
+    @Test
+    @DisplayName("leftJoin with a saved table as stream is rejected")
+    void savedTableIsNotAStream() {
+        final var input = new KStreamWrapper(mock(KStream.class), key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_table", kTable());
+        final var operation = new LeftJoinWithStreamOperation(
+                dualStoreConfig("leftJoin"), savedTarget("saved_table"), valueJoiner(), Duration.ofSeconds(1), null);
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("LeftJoin stream \"saved_table\" must be a stream, but found");
     }
 }

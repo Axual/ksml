@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.KTableWrapper;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
@@ -27,6 +28,7 @@ import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
@@ -37,6 +39,7 @@ import static io.axual.ksml.operation.OperationTestSupport.tableTarget;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,5 +70,30 @@ class OuterJoinWithTableOperationTest extends OperationTestBase {
 
         assertThat(operation.apply(input, context)).isInstanceOf(KTableWrapper.class);
         verify(table).outerJoin(any(KTable.class), any(ValueJoiner.class), any(Named.class));
+    }
+
+    @Test
+    @DisplayName("outerJoin with an unknown saved table explains how to define or save it")
+    void unknownSavedTableIsNotFound() {
+        final var input = new KTableWrapper(mock(KTable.class), key(), value());
+        final var operation = new OuterJoinWithTableOperation(storeConfig("outerJoin"), savedTarget("missing"), valueJoiner());
+
+        assertThatThrownBy(() -> operation.apply(input, mockContext()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("OuterJoin table \"missing\" not found")
+                .hasMessageContaining("Define it under \"tables\", or save a table with \"as: missing\" in a pipeline defined before this one");
+    }
+
+    @Test
+    @DisplayName("outerJoin with a saved stream as table is rejected")
+    void savedStreamIsNotATable() {
+        final var input = new KTableWrapper(mock(KTable.class), key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_stream", kStream());
+        final var operation = new OuterJoinWithTableOperation(storeConfig("outerJoin"), savedTarget("saved_stream"), valueJoiner());
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("OuterJoin table \"saved_stream\" must be a table, but found");
     }
 }

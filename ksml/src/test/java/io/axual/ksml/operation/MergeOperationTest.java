@@ -82,4 +82,16 @@ class MergeOperationTest extends OperationTestBase {
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("Merge stream \"saved_table\" must be a stream, but found");
     }
+
+    @Test
+    @DisplayName("merge with an unknown saved stream explains how to define or save it")
+    void unknownSavedStreamIsNotFound() {
+        final var input = new KStreamWrapper(mock(KStream.class), key(), value());
+        final var operation = new MergeOperation(operationConfig("merge"), savedTarget("missing"));
+
+        assertThatThrownBy(() -> operation.apply(input, mockContext()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Merge stream \"missing\" not found")
+                .hasMessageContaining("Define it under \"streams\", or save a stream with \"as: missing\" in a pipeline defined before this one");
+    }
 }
