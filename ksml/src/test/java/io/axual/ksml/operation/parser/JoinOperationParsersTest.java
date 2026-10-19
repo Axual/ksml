@@ -33,6 +33,7 @@ import io.axual.ksml.operation.LeftJoinWithStreamOperation;
 import io.axual.ksml.operation.LeftJoinWithTableOperation;
 import io.axual.ksml.operation.OuterJoinWithStreamOperation;
 import io.axual.ksml.operation.OuterJoinWithTableOperation;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,6 +62,9 @@ class JoinOperationParsersTest {
                 new TableDefinition("the_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         resources.register("theGlobalTable",
                 new GlobalTableDefinition("the_global_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
+        // As if earlier pipelines saved these with "as"
+        resources.registerSavedName("saved_stream");
+        resources.registerSavedName("saved_table");
     }
 
     private static final String STREAM_JOIN = """
@@ -101,7 +105,7 @@ class JoinOperationParsersTest {
               resultType: string
             """;
 
-    // Not defined under streams or tables, so these refer to results saved with "as" in an earlier pipeline
+    // Not defined under streams or tables, but saved with "as" in an earlier pipeline
     private static final String SAVED_STREAM_JOIN = """
             name: joinOp
             stream: saved_stream
@@ -163,6 +167,35 @@ class JoinOperationParsersTest {
         assertThat(new JoinOperationParser(resources).parser().parse(null)).isNull();
         assertThat(new LeftJoinOperationParser(resources).parser().parse(null)).isNull();
         assertThat(new OuterJoinOperationParser(resources).parser().parse(null)).isNull();
+    }
+
+    static Stream<Arguments> unknownTargetCases() {
+        final Function<TopologyResources, StructsParser<? extends BaseOperation>> inner = r -> new JoinOperationParser(r).parser();
+        final Function<TopologyResources, StructsParser<? extends BaseOperation>> left = r -> new LeftJoinOperationParser(r).parser();
+        final Function<TopologyResources, StructsParser<? extends BaseOperation>> outer = r -> new OuterJoinOperationParser(r).parser();
+        final var unknownStream = SAVED_STREAM_JOIN.replace("saved_stream", "typo_stream");
+        final var unknownTable = SAVED_TABLE_JOIN.replace("saved_table", "typo_table");
+        return Stream.of(
+                arguments("inner stream", inner, unknownStream, "Unknown stream \"typo_stream\". Define it under \"streams\", or save a stream with \"as: typo_stream\""),
+                arguments("inner table", inner, unknownTable, "Unknown table \"typo_table\". Define it under \"tables\", or save a table with \"as: typo_table\""),
+                arguments("left stream", left, unknownStream, "Unknown stream \"typo_stream\""),
+                arguments("left table", left, unknownTable, "Unknown table \"typo_table\""),
+                arguments("outer stream", outer, unknownStream, "Unknown stream \"typo_stream\""),
+                arguments("outer table", outer, unknownTable, "Unknown table \"typo_table\""));
+    }
+
+    @ParameterizedTest(name = "rejects unknown {0}")
+    @DisplayName("a name that is neither defined nor saved by an earlier pipeline is rejected when parsing")
+    @MethodSource("unknownTargetCases")
+    void rejectsUnknownTarget(String description,
+                              Function<TopologyResources, StructsParser<? extends BaseOperation>> parserFactory,
+                              String yaml,
+                              String expectedMessage) throws Exception {
+        final var parser = parserFactory.apply(resources);
+        final var node = nodeOf(yaml);
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining(expectedMessage);
     }
 
     @Test

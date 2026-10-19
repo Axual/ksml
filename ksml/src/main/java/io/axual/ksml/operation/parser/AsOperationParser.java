@@ -48,6 +48,7 @@ public class AsOperationParser extends OperationParser<AsOperation> {
             if (section != null) {
                 throw new ParseException(node, "\"as: " + result.targetName + "\" is already defined under \"" + section + "\". Use another name");
             }
+            if (result != null) resources().registerSavedName(result.targetName);
             return result;
         }, parser.schemas());
     }

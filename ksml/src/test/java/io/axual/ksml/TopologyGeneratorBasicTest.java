@@ -93,12 +93,12 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-    @DisplayName("join with a table that a later pipeline saves fails the topology build")
+    @DisplayName("join with a table that a later pipeline saves fails parsing")
     void joinTableSavedByLaterPipelineIsRejected() {
+        // The parse error only names the pipeline; JoinOperationParsersTest checks the detailed message
         assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-table-wrong-order.yaml"))
-                .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("Join table \"t2joined\" not found")
-                .hasMessageContaining("in a pipeline defined before this one");
+                .hasMessageContaining("KSML parse error")
+                .hasMessageContaining("Error in pipeline definition \"join_pipeline\"");
     }
 
     @Test

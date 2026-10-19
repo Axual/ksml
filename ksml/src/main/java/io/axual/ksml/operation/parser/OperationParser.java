@@ -29,6 +29,7 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
@@ -74,11 +75,11 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
     }
 
     // A join or merge target: a defined stream or table, an inline definition, or the "as" name of an earlier
-    // pipeline. A name that is not defined is kept without definition and looked up by name when building
+    // pipeline. A name that is not defined must be saved by an earlier pipeline, and is looked up by name when building
     protected <F extends TopicDefinition> StructsParser<TopologyResource<TopicDefinition>> targetField(String childName, String doc, DefinitionParser<F> parser) {
         final var resourceParser = new TopologyResourceParser<>(childName, childName, doc, (name, tags) -> resources().topic(name), parser, true);
         // Without the field, the resource parser would return a made-up name, so return null to report it as missing
-        return StructsParser.of(node -> node != null && node.get(childName) != null ? resourceParser.parse(node) : null, resourceParser.schemas());
+        return StructsParser.of(node -> node != null && node.get(childName) != null ? JoinTargetDefinitionParser.requireDefinedOrSaved(node, resources(), resourceParser.parse(node), childName, childName + "s") : null, resourceParser.schemas());
     }
 
     // Chooses the join variant. A defined target decides by its type. A name that is not defined refers to a stream
