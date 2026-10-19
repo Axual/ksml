@@ -41,6 +41,7 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -85,8 +86,6 @@ import static io.axual.ksml.definition.DefinitionConstants.HEADERS_TYPE;
 public abstract class BaseOperation implements StreamOperation {
     private static final String ERROR_IN_TOPOLOGY = "Error in topology";
     private static final String PARTITIONER_NAME = "Partitioner";
-    // Where an "as" name must be saved to be found, used in error messages
-    public static final String SAVED_EARLIER = "in a pipeline defined before this one, in the same definition file";
 
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
@@ -175,7 +174,7 @@ public abstract class BaseOperation implements StreamOperation {
 
     private <W extends StreamWrapper> W lookupSavedTarget(TopologyBuildContext context, String name, Class<W> expectedClass, String label, String expectedKind, String section) {
         return requireSavedStream(findSavedStream(context, name), expectedClass, label + " \"" + name + "\"", expectedKind,
-                "Define it under \"" + section + "\", or save " + expectedKind + " with \"as: " + name + "\" " + SAVED_EARLIER);
+                "Define it under \"" + section + "\", or save " + expectedKind + " with \"as: " + name + "\" " + TopologyResources.SAVED_EARLIER);
     }
 
     private UserType[] arrayFrom(UserType element, UserType[] elements) {

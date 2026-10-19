@@ -21,6 +21,8 @@ package io.axual.ksml.generator;
  */
 
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricTag;
@@ -32,6 +34,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class TopologyResources extends TopologyBaseResources {
+    // Where an "as" name must be saved to be found, used in error messages
+    public static final String SAVED_EARLIER = "in a pipeline defined before this one, in the same definition file";
+
     // All registered KStreams, KTables and KGlobalTables
     private final Map<String, TopicDefinition> topics = new HashMap<>();
     // All registered operation names
@@ -56,6 +61,15 @@ public class TopologyResources extends TopologyBaseResources {
 
     public Map<String, TopicDefinition> topics() {
         return ImmutableMap.copyOf(topics);
+    }
+
+    // The section that defines the name, or null if it is not defined
+    public String sectionOf(String name) {
+        final var topic = topic(name);
+        if (topic == null) return null;
+        if (topic instanceof TableDefinition) return "tables";
+        if (topic instanceof GlobalTableDefinition) return "globalTables";
+        return "streams";
     }
 
     public void registerSavedName(String name) {

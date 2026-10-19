@@ -41,7 +41,7 @@ public class MergeOperationParser extends OperationParser<MergeOperation> {
                 "",
                 "A merge operation to join two Streams",
                 operationNameField(),
-                targetField(KSMLDSL.Operations.Merge.STREAM, "The stream to merge with: a reference to a defined stream or to a stream saved with \"as\" in an earlier pipeline, or an inline definition of the stream", new StreamDefinitionParser(resources(), false)),
+                targetField(KSMLDSL.Operations.Merge.STREAM, "streams", "The stream to merge with: a reference to a defined stream or to a stream saved with \"as\" in an earlier pipeline, or an inline definition of the stream", new StreamDefinitionParser(resources(), false)),
                 (name, stream, tags) -> {
                     return new MergeOperation(operationConfig(name, tags), targetOf(stream, StreamDefinition.class, "Merge stream not correct, should be a stream"));
                 });
