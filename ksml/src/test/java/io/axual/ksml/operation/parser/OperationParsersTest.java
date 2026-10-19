@@ -163,11 +163,22 @@ class OperationParsersTest {
     }
 
     @Test
-    @DisplayName("a merge with a stream that is not defined parses, as it can refer to a stream saved with \"as\"")
+    @DisplayName("a merge with a stream that is not defined, but saved with \"as\" by an earlier pipeline, parses")
     void parsesMergeWithSavedStream() throws Exception {
+        resources.registerSavedName("saved_stream");
         final var op = new MergeOperationParser(resources).parser()
                 .parse(nodeOf("stream: saved_stream"));
         assertThat(op).isInstanceOf(MergeOperation.class);
+    }
+
+    @Test
+    @DisplayName("a merge with a stream that is neither defined nor saved by an earlier pipeline is rejected")
+    void rejectsMergeWithUnknownStream() throws Exception {
+        final var parser = new MergeOperationParser(resources).parser();
+        final var node = nodeOf("stream: typo_stream");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Unknown stream \"typo_stream\". Define it under \"streams\", or save a stream with \"as: typo_stream\"");
     }
 
     @Test

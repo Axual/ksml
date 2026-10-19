@@ -36,6 +36,8 @@ public class TopologyResources extends TopologyBaseResources {
     private final Map<String, TopicDefinition> topics = new HashMap<>();
     // All registered operation names
     private final Set<String> operationNames = new HashSet<>();
+    // All names that parsed pipelines save their result under, with "as" or by their own name
+    private final Set<String> savedNames = new HashSet<>();
 
     public TopologyResources(String namespace) {
         super(namespace);
@@ -54,6 +56,14 @@ public class TopologyResources extends TopologyBaseResources {
 
     public Map<String, TopicDefinition> topics() {
         return ImmutableMap.copyOf(topics);
+    }
+
+    public void registerSavedName(String name) {
+        savedNames.add(name);
+    }
+
+    public boolean isSavedName(String name) {
+        return savedNames.contains(name);
     }
 
     public String getUniqueOperationName(MetricTags tags) {

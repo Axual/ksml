@@ -104,6 +104,7 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
                     if (section != null) {
                         log.warn("Pipeline \"{}\" has no sink, so its result is saved under its name, which is also defined under \"{}\". A \"from: {}\" in a later pipeline gets this result, not the defined one. Use another pipeline name to avoid this", shortName, section, shortName);
                     }
+                    if (shortName != null) resourceFields.resources().registerSavedName(shortName);
                     var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
                     return new PipelineDefinition(name, from, via, sinkOperation);
                 });

@@ -44,10 +44,12 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
         // A stream or table that is not defined can be saved with "as" in an earlier pipeline, so it is looked up by
         // name when building
         if (node.get(Operations.Join.WITH_STREAM) != null) {
-            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, true), true).parse(node);
+            final var result = new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, true), true).parse(node);
+            return requireDefinedOrSaved(node, resources, result, "stream", "streams");
         }
         if (node.get(Operations.Join.WITH_TABLE) != null) {
-            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, true), true).parse(node);
+            final var result = new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, true), true).parse(node);
+            return requireDefinedOrSaved(node, resources, result, "table", "tables");
         }
         if (node.get(Operations.Join.WITH_GLOBAL_TABLE) != null) {
             final var result = new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(resources, true), true).parse(node);
@@ -58,5 +60,12 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
             return result;
         }
         throw new ParseException(node, "Stream definition missing");
+    }
+
+    // A name that is not defined must be saved by an earlier pipeline, the same rule as when building. Checking it
+    // here gives typos the YAML location
+    public static <T extends TopicDefinition> TopologyResource<T> requireDefinedOrSaved(ParseNode node, TopologyResources resources, TopologyResource<T> target, String kind, String section) {
+        if (target == null || target.definition() != null || resources.isSavedName(target.name())) return target;
+        throw new ParseException(node, "Unknown " + kind + " \"" + target.name() + "\". Define it under \"" + section + "\", or save a " + kind + " with \"as: " + target.name() + "\" in a pipeline defined before this one, in the same definition file");
     }
 }
