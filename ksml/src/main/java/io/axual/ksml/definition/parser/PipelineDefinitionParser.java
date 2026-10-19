@@ -101,18 +101,20 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
-                    final var section = shortName != null ? resourceFields.resources().sectionOf(shortName) : null;
+                    if (shortName == null) return new PipelineDefinition(name, from, via, null);
+                    final var resources = resourceFields.resources();
+                    final var section = resources.sectionOf(shortName);
                     if (section != null) {
                         log.warn("Pipeline \"{}\" has no sink and its name is also defined under \"{}\": a later \"from: {}\" gets the pipeline result, but joins and merges get the defined one. Rename the pipeline to avoid this", shortName, section, shortName);
                     }
-                    if (shortName != null) {
-                        final var earlier = resourceFields.resources().pipelineSaving(shortName);
-                        if (earlier != null) {
-                            throw new TopologyException("Without a sink, " + TopologyResources.pipelineOf(tags) + " saves its result under \"" + shortName + "\", which is already used by " + earlier + ". Add a sink, or rename the pipeline");
-                        }
-                        resourceFields.resources().registerSavedName(shortName, tags);
+                    final var earlier = resources.pipelineSaving(shortName);
+                    if (earlier != null) {
+                        // No parse node here, so a ParseException would point at the root. The pipeline map wraps
+                        // this error with the pipeline name
+                        throw new TopologyException("Without a sink, " + TopologyResources.pipelineOf(tags) + " saves its result under \"" + shortName + "\", which is already used by " + earlier + ". Add a sink, or rename the pipeline");
                     }
-                    var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
+                    resources.registerSavedName(shortName, tags);
+                    final var sinkOperation = new AsOperation(new OperationConfig(resources.getUniqueOperationName(longName), tags), shortName);
                     return new PipelineDefinition(name, from, via, sinkOperation);
                 });
     }

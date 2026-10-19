@@ -35,6 +35,7 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
@@ -154,13 +155,13 @@ public abstract class BaseOperation implements StreamOperation {
     // A defined stream (by topic) or an "as" name
     protected KStreamWrapper lookupStream(TopologyBuildContext context, TopologyResource<StreamDefinition> target, String label) {
         if (target.definition() != null) return context.getStreamWrapper(target.definition());
-        return lookupSavedTarget(context, target.name(), KStreamWrapper.class, label, "a stream", "streams");
+        return lookupSavedTarget(context, target.name(), KStreamWrapper.class, label, "a stream", KSMLDSL.STREAMS);
     }
 
     // A defined table (by topic) or an "as" name
     protected KTableWrapper lookupTable(TopologyBuildContext context, TopologyResource<TableDefinition> target, String label) {
         if (target.definition() != null) return context.getStreamWrapper(target.definition());
-        return lookupSavedTarget(context, target.name(), KTableWrapper.class, label, "a table", "tables");
+        return lookupSavedTarget(context, target.name(), KTableWrapper.class, label, "a table", KSMLDSL.TABLES);
     }
 
     private <W extends StreamWrapper> W lookupSavedTarget(TopologyBuildContext context, String name, Class<W> expectedClass, String label, String expectedKind, String section) {

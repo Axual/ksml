@@ -41,18 +41,14 @@ public class AsOperationParser extends OperationParser<AsOperation> {
                 (name, tags) -> name != null ? new AsOperation(operationConfig(name, tags), name) : null);
         return StructsParser.of(node -> {
             final var result = parser.parse(node);
-            // A "from" with this name would get the saved result instead of the defined stream or table
-            final var section = result != null ? resources().sectionOf(result.targetName) : null;
-            if (section != null) {
-                throw new ParseException(node, "\"as: " + result.targetName + "\" is already defined under \"" + section + "\". Use another name");
-            }
-            if (result != null) {
-                final var earlier = resources().pipelineSaving(result.targetName);
-                if (earlier != null) {
-                    throw new ParseException(node, "\"as: " + result.targetName + "\" is already used by " + earlier + ". Use another name");
-                }
-                resources().registerSavedName(result.targetName, node.tags());
-            }
+            if (result == null) return null;
+            final var name = result.targetName;
+            // A "from" with this name would get the saved result, not the defined one
+            final var section = resources().sectionOf(name);
+            if (section != null) throw new ParseException(node, "\"as: " + name + "\" is already defined under \"" + section + "\". Use another name");
+            final var earlier = resources().pipelineSaving(name);
+            if (earlier != null) throw new ParseException(node, "\"as: " + name + "\" is already used by " + earlier + ". Use another name");
+            resources().registerSavedName(name, node.tags());
             return result;
         }, parser.schemas());
     }

@@ -132,7 +132,7 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-    @DisplayName("a pipeline without sink named like a defined stream still builds, with a warning")
+    @DisplayName("a pipeline without sink named like a defined stream still builds")
     void pipelineNameDefinedAsStreamIsAccepted() {
         assertThatCode(() -> createTopology("pipelines/test-pipeline-name-clashes-with-stream.yaml"))
                 .doesNotThrowAnyException();
