@@ -95,7 +95,7 @@ class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("join with a table that a later pipeline saves fails parsing")
     void joinTableSavedByLaterPipelineIsRejected() {
-        // The parse error only names the pipeline; JoinOperationParsersTest checks the detailed message
+        // FatalError drops the cause, so this error only names the pipeline; DefinitionParsersTest checks the order rule
         assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-table-wrong-order.yaml"))
                 .hasMessageContaining("KSML parse error")
                 .hasMessageContaining("Error in pipeline definition \"join_pipeline\"");
@@ -114,7 +114,7 @@ class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("join with \"globalTable\" naming a saved table fails parsing")
     void joinGlobalTableNamingSavedTableIsRejected() {
-        // The parse error only names the pipeline; JoinOperationParsersTest checks the detailed message
+        // FatalError drops the cause, so this error only names the pipeline; JoinOperationParsersTest checks the cause
         assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-table-as-globaltable.yaml"))
                 .hasMessageContaining("KSML parse error")
                 .hasMessageContaining("Error in pipeline definition \"join_pipeline\"");
@@ -124,7 +124,7 @@ class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("saving a result with an \"as\" name that is defined under tables fails parsing")
     void asNameDefinedAsTableIsRejected() {
-        // The parse error only names the pipeline; OperationParsersTest checks the detailed message
+        // FatalError drops the cause, so this error only names the pipeline; DefinitionParsersTest checks the cause
         assertThatThrownBy(() -> createTopology("pipelines/test-as-name-clashes-with-table.yaml"))
                 .hasMessageContaining("KSML parse error")
                 .hasMessageContaining("Error in pipeline definition \"latest_orders\"");
