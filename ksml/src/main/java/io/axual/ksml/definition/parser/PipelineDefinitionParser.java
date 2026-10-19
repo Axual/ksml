@@ -47,10 +47,12 @@ import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceFields;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinition> implements NamedObjectParser {
     private final TopologyResourceFields resourceFields;
     private final boolean parseSource;
@@ -113,6 +115,10 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
         // If no sink operation was specified, then we create an AS operation here with the name provided.
         // This means that pipeline results can be referred to by other pipelines using the pipeline's name
         // as identifier.
+        final var section = shortName != null ? AsOperationParser.definedSection(resourceFields.resources(), shortName) : null;
+        if (section != null) {
+            log.warn("Pipeline \"{}\" has no sink, so its result is saved under its name, which is also defined under \"{}\". A \"from: {}\" in a later pipeline gets this result, not the defined one. Use another pipeline name to avoid this", shortName, section, shortName);
+        }
         var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
         return new PipelineDefinition(shortName, from, via, sinkOperation);
     }

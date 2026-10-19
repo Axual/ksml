@@ -20,6 +20,9 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -32,11 +35,29 @@ public class AsOperationParser extends OperationParser<AsOperation> {
     }
 
     public StructsParser<AsOperation> parser() {
-        return FieldParsers.structsParser(
+        final var parser = FieldParsers.structsParser(
                 AsOperation.class,
                 "",
                 "An operation to close the pipeline and save the result under a given name",
                 FieldParsers.stringField(KSMLDSL.Operations.AS, "The name to register the pipeline result under, which can be used as source by follow-up pipelines"),
                 (name, tags) -> name != null ? new AsOperation(operationConfig(name, tags), name) : null);
+        return StructsParser.of(node -> {
+            final var result = parser.parse(node);
+            // A "from" with this name would get the saved result instead of the defined stream or table
+            final var section = result != null ? definedSection(resources(), result.targetName) : null;
+            if (section != null) {
+                throw new ParseException(node, "\"as: " + result.targetName + "\" is already defined under \"" + section + "\". Use another name");
+            }
+            return result;
+        }, parser.schemas());
+    }
+
+    // The section that defines the name, or null if it is not defined
+    public static String definedSection(TopologyResources resources, String name) {
+        final var topic = resources.topic(name);
+        if (topic == null) return null;
+        if (topic instanceof TableDefinition) return "tables";
+        if (topic instanceof GlobalTableDefinition) return "globalTables";
+        return "streams";
     }
 }

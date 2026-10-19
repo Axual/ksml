@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
@@ -31,6 +32,7 @@ import io.axual.ksml.operation.ReduceOperation;
 import io.axual.ksml.operation.SuppressOperation;
 import io.axual.ksml.operation.WindowBySessionOperation;
 import io.axual.ksml.operation.WindowByTimeOperation;
+import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -176,6 +178,24 @@ class OperationParsersTest {
         assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Merge stream not correct");
+    }
+
+    @Test
+    @DisplayName("an as name that is not defined parses into an as operation")
+    void parsesAsWithNewName() throws Exception {
+        final var op = new AsOperationParser(resources).parser().parse(nodeOf("as: latest_orders"));
+        assertThat(op.targetName).isEqualTo("latest_orders");
+    }
+
+    @Test
+    @DisplayName("an as name that is defined under tables is rejected")
+    void rejectsAsWithDefinedName() throws Exception {
+        resources.register("orders", new TableDefinition("orders", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
+        final var parser = new AsOperationParser(resources).parser();
+        final var node = nodeOf("as: orders");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("\"as: orders\" is already defined under \"tables\". Use another name");
     }
 
     @Test

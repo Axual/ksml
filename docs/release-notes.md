@@ -53,7 +53,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Fixed `partitioner` and `otherPartitioner` in a foreign-key `join` and `leftJoin` between tables. `otherPartitioner` was ignored when `partitioner` was not set, and setting only `partitioner` failed with "Invoker: function can not be null".
 * `cogroup` can now combine more than one grouped stream. A new optional `stream` field on `cogroup` adds a grouped stream that an earlier pipeline saved with `as`, each with its own aggregator. See [issue #728](https://github.com/Axual/ksml/issues/728).
 * `join`, `leftJoin`, `outerJoin` and `merge` can now use the result of an earlier pipeline, saved with `as`, as the `stream` or `table` to join or merge with. See [issue #286](https://github.com/Axual/ksml/issues/286).
-* An `as` name, or the name of a pipeline without a sink, can no longer be the same as a name under `streams`, `tables` or `globalTables`. KSML now fails at startup with a clear error, because a reference to such a name could mean either one.
+* An `as` name can no longer be the same as a name under `streams`, `tables` or `globalTables`. KSML now fails with a parse error, because a `from` with that name would get the saved result instead of the defined stream or table. A pipeline without a sink, whose result is saved under the pipeline name, only logs a warning for such a name.
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
 
 ## 1.3.0 (2026-06-23)

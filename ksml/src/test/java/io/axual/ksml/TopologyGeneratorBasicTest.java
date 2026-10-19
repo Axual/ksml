@@ -57,6 +57,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
@@ -121,20 +122,20 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-    @DisplayName("saving a result with an \"as\" name that is defined under tables fails the topology build")
+    @DisplayName("saving a result with an \"as\" name that is defined under tables fails parsing")
     void asNameDefinedAsTableIsRejected() {
+        // The parse error only names the pipeline; OperationParsersTest checks the detailed message
         assertThatThrownBy(() -> createTopology("pipelines/test-as-name-clashes-with-table.yaml"))
-                .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("as \"orders\": this name is already defined under \"tables\". Use another name");
+                .hasMessageContaining("KSML parse error")
+                .hasMessageContaining("Error in pipeline definition \"latest_orders\"");
     }
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-    @DisplayName("a pipeline without sink named like a defined stream fails the topology build")
-    void pipelineNameDefinedAsStreamIsRejected() {
-        assertThatThrownBy(() -> createTopology("pipelines/test-pipeline-name-clashes-with-stream.yaml"))
-                .isInstanceOf(TopologyException.class)
-                .hasMessageContaining("as \"order_events\": this name is already defined under \"streams\". Use another name");
+    @DisplayName("a pipeline without sink named like a defined stream still builds, with a warning")
+    void pipelineNameDefinedAsStreamIsAccepted() {
+        assertThatCode(() -> createTopology("pipelines/test-pipeline-name-clashes-with-stream.yaml"))
+                .doesNotThrowAnyException();
     }
 
     @Test
