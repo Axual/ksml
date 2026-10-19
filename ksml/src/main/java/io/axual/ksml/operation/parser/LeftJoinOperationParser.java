@@ -103,7 +103,7 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 storeField(Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the leftJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
-                    return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "LeftJoin stream not correct, should be a defined stream"), valueJoiner, timeDifference, grace);
+                    return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "LeftJoin stream not correct, should be a stream"), valueJoiner, timeDifference, grace);
                 });
     }
 
@@ -121,7 +121,7 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
                 storeField(false, "Materialized view of the leftJoined table (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
                 (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
-                    return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "LeftJoin table not correct, should be a defined table"), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
+                    return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "LeftJoin table not correct, should be a table"), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
                 });
     }
 

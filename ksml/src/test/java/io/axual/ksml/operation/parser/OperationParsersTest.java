@@ -188,7 +188,7 @@ class OperationParsersTest {
         final var node = nodeOf("name: mergeOp");
         assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
-                .hasMessageContaining("Merge stream not correct");
+                .hasMessageContaining("Merge stream not correct, should be a stream");
     }
 
     @Test
