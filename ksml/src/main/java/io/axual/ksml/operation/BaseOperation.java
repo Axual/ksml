@@ -85,6 +85,8 @@ import static io.axual.ksml.definition.DefinitionConstants.HEADERS_TYPE;
 public abstract class BaseOperation implements StreamOperation {
     private static final String ERROR_IN_TOPOLOGY = "Error in topology";
     private static final String PARTITIONER_NAME = "Partitioner";
+    // Where an "as" name must be saved to be found, used in error messages
+    public static final String SAVED_EARLIER = "in a pipeline defined before this one, in the same definition file";
 
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
@@ -148,8 +150,7 @@ public abstract class BaseOperation implements StreamOperation {
         return new TopologyException(ERROR_IN_TOPOLOGY + ": " + message);
     }
 
-    // Returns the stream saved with "as" under this name, or null. An "as" name exists only after its pipeline is
-    // built, so that pipeline must come first
+    // The stream saved with "as: name" by an earlier pipeline, or null
     protected StreamWrapper findSavedStream(TopologyBuildContext context, String name) {
         return context.hasStreamWrapper(name) ? context.getStreamWrapper(name, null) : null;
     }
@@ -160,13 +161,13 @@ public abstract class BaseOperation implements StreamOperation {
         throw topologyError(label + " must be " + expectedKind + ", but found " + wrapper);
     }
 
-    // A join or merge target is a defined stream, looked up by topic, or the "as" name of an earlier pipeline
+    // A defined stream (by topic) or an "as" name
     protected KStreamWrapper lookupStream(TopologyBuildContext context, TopologyResource<StreamDefinition> target, String label) {
         if (target.definition() != null) return context.getStreamWrapper(target.definition());
         return lookupSavedTarget(context, target.name(), KStreamWrapper.class, label, "a stream", "streams");
     }
 
-    // A join target is a defined table, looked up by topic, or the "as" name of an earlier pipeline
+    // A defined table (by topic) or an "as" name
     protected KTableWrapper lookupTable(TopologyBuildContext context, TopologyResource<TableDefinition> target, String label) {
         if (target.definition() != null) return context.getStreamWrapper(target.definition());
         return lookupSavedTarget(context, target.name(), KTableWrapper.class, label, "a table", "tables");
@@ -174,7 +175,7 @@ public abstract class BaseOperation implements StreamOperation {
 
     private <W extends StreamWrapper> W lookupSavedTarget(TopologyBuildContext context, String name, Class<W> expectedClass, String label, String expectedKind, String section) {
         return requireSavedStream(findSavedStream(context, name), expectedClass, label + " \"" + name + "\"", expectedKind,
-                "Define it under \"" + section + "\", or save " + expectedKind + " with \"as: " + name + "\" in a pipeline defined before this one, in the same definition file");
+                "Define it under \"" + section + "\", or save " + expectedKind + " with \"as: " + name + "\" " + SAVED_EARLIER);
     }
 
     private UserType[] arrayFrom(UserType element, UserType[] elements) {
