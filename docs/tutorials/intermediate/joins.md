@@ -732,7 +732,20 @@ graph LR
 ### Rules for Joining with a Saved Result
 
 - **Define the saving pipeline first**: The pipeline with `as: <name>` must come before the pipeline that joins with `<name>`, in the same definition file. Otherwise KSML fails with the parse error `Unknown table "<name>"`.
-- **Use the right key**: Use `stream:` for a saved stream and `table:` for a saved table. Joining with a saved stream as `table:`, or the other way round, fails with `must be a table` or `must be a stream`. To join a stream as a table, add `toTable` before `as`.
+- **Use the right key**: Use `stream:` for a saved stream and `table:` for a saved table. Joining with a saved stream as `table:`, or the other way round, fails with `must be a table` or `must be a stream`. To join a stream as a table, add `toTable` with a `store` before `as`. Without a `store`, the table can miss the serdes it needs, and the join fails at runtime:
+
+    ```yaml
+    via:
+      - type: filter
+        if:
+          expression: value is not None
+      - type: toTable
+        store:
+          type: keyValue
+          name: valid_orders_store
+    as: valid_orders_table
+    ```
+
 - **No saved globalTables**: Kafka Streams can not make a GlobalKTable from a pipeline result, so `globalTable:` only accepts names defined under `globalTables`. Use `table:` to join with a saved table.
 - **Unique names**: An `as` name can not be the same as a name under `streams`, `tables` or `globalTables`. For a pipeline without a sink, which saves its result under the pipeline name, KSML logs a warning.
 - **No store needed**: A table saved after a table-table join can be joined with directly. You only need a `store` on the join if you want to query the saved table.
