@@ -24,6 +24,7 @@ import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.CogroupOperation;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.operation.FilterNotOperation;
@@ -165,7 +166,7 @@ class OperationParsersTest {
     @Test
     @DisplayName("a merge with a stream that is not defined, but saved with \"as\" by an earlier pipeline, parses")
     void parsesMergeWithSavedStream() throws Exception {
-        resources.registerSavedName("saved_stream", "earlier_pipeline");
+        resources.registerSavedName("saved_stream", new MetricTags().append("pipeline", "earlier_pipeline"));
         final var op = new MergeOperationParser(resources).parser()
                 .parse(nodeOf("stream: saved_stream"));
         assertThat(op).isInstanceOf(MergeOperation.class);

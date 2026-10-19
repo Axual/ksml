@@ -24,6 +24,7 @@ import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.JoinWithGlobalTableOperation;
 import io.axual.ksml.operation.JoinWithStreamOperation;
@@ -63,8 +64,8 @@ class JoinOperationParsersTest {
         resources.register("theGlobalTable",
                 new GlobalTableDefinition("the_global_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         // As if earlier pipelines saved these with "as"
-        resources.registerSavedName("saved_stream", "earlier_pipeline");
-        resources.registerSavedName("saved_table", "earlier_pipeline");
+        resources.registerSavedName("saved_stream", new MetricTags().append("pipeline", "earlier_pipeline"));
+        resources.registerSavedName("saved_table", new MetricTags().append("pipeline", "earlier_pipeline"));
     }
 
     private static final String STREAM_JOIN = """

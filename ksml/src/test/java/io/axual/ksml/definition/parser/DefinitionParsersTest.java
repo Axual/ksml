@@ -33,6 +33,7 @@ import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.JoinWithTableOperation;
 import io.axual.ksml.operation.parser.JoinOperationParser;
@@ -286,6 +287,79 @@ class DefinitionParsersTest {
         assertThatThrownBy(() -> parsePipelines(yaml))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
-                .hasStackTraceContaining("Pipeline \"latest_orders\" has no sink, so its result is saved under its name, which is already used by pipeline \"first\"");
+                .hasStackTraceContaining("Without a sink, pipeline \"latest_orders\" saves its result under \"latest_orders\", which is already used by pipeline \"first\". Add a sink, or rename the pipeline");
+    }
+
+    @Test
+    @DisplayName("an \"as\" name that a branch of an earlier pipeline already saves is rejected, naming the pipeline and branch")
+    void asNameSavedByEarlierBranchIsRejected() throws Exception {
+        final var yaml = """
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is not None
+                      as: dup
+                    - to: customers
+                later:
+                  from: customers
+                  as: dup
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"later\"")
+                .hasStackTraceContaining("\"as: dup\" is already used by pipeline \"splitter\" (branch1). Use another name");
+    }
+
+    @Test
+    @DisplayName("two branches of one pipeline with the same \"as\" name are rejected")
+    void asNameSavedByTwoBranchesIsRejected() throws Exception {
+        final var yaml = """
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is not None
+                      as: dup
+                    - as: dup
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"splitter\"")
+                // FatalError drops the cause below the branch entry, so only check which branch fails
+                .hasStackTraceContaining("Error in branch entry 2");
+    }
+
+    @Test
+    @DisplayName("an \"as\" name in a branch that an earlier pipeline already saves is rejected")
+    void asNameInBranchSavedByEarlierPipelineIsRejected() throws Exception {
+        final var yaml = """
+                first:
+                  from: customers
+                  as: dup
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is not None
+                      as: dup
+                    - to: customers
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"splitter\"")
+                // FatalError drops the cause below the branch entry, so only check which branch fails
+                .hasStackTraceContaining("Error in branch entry 1");
+    }
+
+    @Test
+    @DisplayName("the place where a name is saved is described by the pipeline and its branches")
+    void describesWhereANameIsSaved() {
+        assertThat(TopologyResources.pipelineOf(new MetricTags().append("pipeline", "orders")))
+                .isEqualTo("pipeline \"orders\"");
+        assertThat(TopologyResources.pipelineOf(new MetricTags().append("pipeline", "splitter").append("branch", "branch2").append("branch", "branch1")))
+                .isEqualTo("pipeline \"splitter\" (branch2, branch1)");
+        assertThat(TopologyResources.pipelineOf(new MetricTags()))
+                .isEqualTo("an earlier pipeline");
     }
 }

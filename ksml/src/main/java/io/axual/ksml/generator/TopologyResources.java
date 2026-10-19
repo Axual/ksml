@@ -28,6 +28,7 @@ import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricTag;
 import io.axual.ksml.metric.MetricTags;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -41,7 +42,7 @@ public class TopologyResources extends TopologyBaseResources {
     private final Map<String, TopicDefinition> topics = new HashMap<>();
     // All registered operation names
     private final Set<String> operationNames = new HashSet<>();
-    // All names that parsed pipelines save their result under, with "as" or by their own name, and the pipeline
+    // All names that parsed pipelines save their result under, with "as" or by their own name, and where
     private final Map<String, String> savedNames = new HashMap<>();
 
     public TopologyResources(String namespace) {
@@ -72,17 +73,30 @@ public class TopologyResources extends TopologyBaseResources {
         return "streams";
     }
 
-    public void registerSavedName(String name, String pipeline) {
-        savedNames.put(name, pipeline);
+    // The tags of the node that saves the result tell where it is saved
+    public void registerSavedName(String name, MetricTags tags) {
+        savedNames.put(name, pipelineOf(tags));
     }
 
     public boolean isSavedName(String name) {
         return savedNames.containsKey(name);
     }
 
-    // The pipeline that saves its result under the name, or null
+    // Where the result under the name is saved, for example: pipeline "orders" (branch2), or null
     public String pipelineSaving(String name) {
         return savedNames.get(name);
+    }
+
+    // For example: pipeline "orders", or pipeline "orders" (branch2, branch1) for a nested branch
+    public static String pipelineOf(MetricTags tags) {
+        String pipeline = null;
+        final var branches = new ArrayList<String>();
+        for (final var tag : tags) {
+            if (tag.key().equals("pipeline")) pipeline = tag.value();
+            if (tag.key().equals("branch")) branches.add(tag.value());
+        }
+        if (pipeline == null) return "an earlier pipeline";
+        return "pipeline \"" + pipeline + "\"" + (branches.isEmpty() ? "" : " (" + String.join(", ", branches) + ")");
     }
 
     public String getUniqueOperationName(MetricTags tags) {
