@@ -102,7 +102,7 @@ public class CogroupOperation extends BaseOperation {
         if (!(wrapper instanceof KGroupedStreamWrapper) && context.isTopicDefinition(stream)) throw notGroupedTopicError();
         return requireSavedStream(wrapper, KGroupedStreamWrapper.class, streamLabel(),
                 "a grouped stream (the result of groupBy or groupByKey)",
-                "Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition file");
+                "Save a grouped stream with \"as: " + stream + "\" " + SAVED_EARLIER);
     }
 
     // Unlike in merge and join, "stream" is not a topic definition, so explain the likely mistake

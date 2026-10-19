@@ -25,7 +25,6 @@ import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
@@ -41,7 +40,7 @@ import io.axual.ksml.store.StoreType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
+public class OuterJoinOperationParser extends BaseJoinOperationParser {
     private final StructsParser<OuterJoinWithStreamOperation> joinStreamParser;
     private final StructsParser<OuterJoinWithTableOperation> joinTableParser;
     private final List<StructSchema> schemas = new ArrayList<>();
@@ -59,11 +58,7 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
         return new StructsParser<>() {
             @Override
             public BaseOperation parse(ParseNode node) {
-                if (node == null) return null;
-                final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
-                final var variant = joinVariantOf(joinTopic, node, joinStreamParser, joinTableParser, null);
-                if (variant != null) return variant.parse(node);
-                throw joinTargetNotFound(node, "OuterJoin", joinTopic);
+                return parseJoin(node, "OuterJoin", joinStreamParser, joinTableParser);
             }
 
             @Override

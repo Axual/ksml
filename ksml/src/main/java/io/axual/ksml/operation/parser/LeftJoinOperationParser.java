@@ -29,7 +29,6 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.ForeignKeyExtractorDefinitionParser;
 import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
-import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
@@ -51,7 +50,7 @@ import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
-public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
+public class LeftJoinOperationParser extends BaseJoinOperationParser {
     private final StructsParser<LeftJoinWithStreamOperation> joinStreamParser;
     private final StructsParser<LeftJoinWithTableOperation> joinTableParser;
     private final StructsParser<LeftJoinWithGlobalTableOperation> joinGlobalTableParser;
@@ -76,11 +75,7 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
         return new StructsParser<>() {
             @Override
             public BaseOperation parse(ParseNode node) {
-                if (node == null) return null;
-                final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
-                final var variant = joinVariantOf(joinTopic, node, joinStreamParser, joinTableParser, joinGlobalTableParser);
-                if (variant != null) return variant.parse(node);
-                throw joinTargetNotFound(node, "LeftJoin", joinTopic);
+                return parseJoin(node, "LeftJoin", joinStreamParser, joinTableParser, joinGlobalTableParser);
             }
 
             @Override

@@ -24,9 +24,6 @@ import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.definition.GlobalTableDefinition;
-import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
@@ -74,38 +71,14 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
         return resourceFields.topicField(childName, doc, parser);
     }
 
-    // A join or merge target: a defined stream or table, an inline definition, or the "as" name of an earlier
-    // pipeline. A name that is not defined must be saved by an earlier pipeline, and is looked up by name when building
+    // Like topicField, but keeps an unknown name if an earlier pipeline saved it with "as"
     protected <F extends TopicDefinition> StructsParser<TopologyResource<TopicDefinition>> targetField(String childName, String doc, DefinitionParser<F> parser) {
         final var resourceParser = new TopologyResourceParser<>(childName, childName, doc, (name, tags) -> resources().topic(name), parser, true);
-        // Without the field, the resource parser would return a made-up name, so return null to report it as missing
+        // Return null when the field is missing, not a made-up name
         return StructsParser.of(node -> node != null && node.get(childName) != null ? JoinTargetDefinitionParser.requireDefinedOrSaved(node, resources(), resourceParser.parse(node), childName, childName + "s") : null, resourceParser.schemas());
     }
 
-    // Chooses the join variant. A defined target decides by its type. A name that is not defined refers to a stream
-    // or table saved with "as", so the key decides. Returns null when no variant fits
-    protected StructsParser<? extends BaseOperation> joinVariantOf(TopologyResource<TopicDefinition> target, ParseNode node,
-                                                                 StructsParser<? extends BaseOperation> streamParser,
-                                                                 StructsParser<? extends BaseOperation> tableParser,
-                                                                 StructsParser<? extends BaseOperation> globalTableParser) {
-        final var definition = target.definition();
-        if (definition instanceof StreamDefinition) return streamParser;
-        if (definition instanceof TableDefinition) return tableParser;
-        if (definition instanceof GlobalTableDefinition) return globalTableParser;
-        if (definition != null) return null;
-        if (node.get(KSMLDSL.Operations.Join.WITH_STREAM) != null) return streamParser;
-        if (node.get(KSMLDSL.Operations.Join.WITH_TABLE) != null) return tableParser;
-        return null;
-    }
-
-    protected ParseException joinTargetNotFound(ParseNode node, String operation, TopologyResource<TopicDefinition> target) {
-        final var separator = target.name() != null && target.definition() != null ? ", " : "";
-        final var description = (target.name() != null ? target.name() : "") + separator + (target.definition() != null ? target.definition() : "");
-        return new ParseException(node, operation + " stream not found: " + description);
-    }
-
-    // Checks the definition type of a target. A target without definition is checked when building, because the
-    // stream or table saved with "as" only exists then
+    // An "as" name has no definition yet, so it is checked when building
     protected <D extends TopicDefinition> TopologyResource<D> targetOf(TopologyResource<TopicDefinition> target, Class<D> expectedType, String error) {
         if (target == null || (target.definition() != null && !expectedType.isInstance(target.definition()))) {
             throw new TopologyException(error);

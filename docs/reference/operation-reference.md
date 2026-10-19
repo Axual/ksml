@@ -626,8 +626,8 @@ Performs an inner join between two streams.
 
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
-| `stream`         | String   | Yes      | The name of the stream to join with: a defined stream, or a stream saved with `as` by an earlier pipeline |
-| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins): a defined table, or a table saved with `as` by an earlier pipeline |
+| `stream`         | String   | Yes      | The stream to join with, defined or saved with `as`                   |
+| `table`          | String   | Yes      | The table for stream-table joins, defined or saved with `as`          |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
@@ -653,8 +653,8 @@ Performs a left join between two streams.
 
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
-| `stream`         | String   | Yes      | The name of the stream to join with: a defined stream, or a stream saved with `as` by an earlier pipeline |
-| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins): a defined table, or a table saved with `as` by an earlier pipeline |
+| `stream`         | String   | Yes      | The stream to join with, defined or saved with `as`                   |
+| `table`          | String   | Yes      | The table for stream-table joins, defined or saved with `as`          |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
@@ -680,7 +680,7 @@ Merges multiple streams with identical key and value types into a single unified
 
 | Parameter | Type   | Required | Description                                          |
 |-----------|--------|----------|------------------------------------------------------|
-| `stream`  | String | Yes      | The name of the stream to merge with the main stream: a defined stream, or a stream saved with `as` by an earlier pipeline |
+| `stream`  | String | Yes      | The stream to merge with, defined or saved with `as` |
 
 #### Example
 
@@ -737,8 +737,8 @@ Performs an outer join between two streams.
 
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
-| `stream`         | String   | Yes      | The name of the stream to join with: a defined stream, or a stream saved with `as` by an earlier pipeline |
-| `table`          | String   | Yes      | The name of the table to join with (for stream-table joins): a defined table, or a table saved with `as` by an earlier pipeline |
+| `stream`         | String   | Yes      | The stream to join with, defined or saved with `as`                   |
+| `table`          | String   | Yes      | The table for stream-table joins, defined or saved with `as`          |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
