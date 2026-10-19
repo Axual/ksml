@@ -140,6 +140,14 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("a pipeline with a sink named like a defined stream builds, because it saves nothing under its name")
+    void pipelineWithSinkNamedLikeStreamIsAccepted() {
+        assertThatCode(() -> createTopology("pipelines/test-pipeline-with-sink-named-like-stream.yaml"))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @DisplayName("cogroup with a stream that a later pipeline saves fails the topology build")
     void cogroupStreamSavedByLaterPipelineIsRejected() {
         assertThatThrownBy(() -> createTopology("pipelines/test-cogroup-wrong-order.yaml"))

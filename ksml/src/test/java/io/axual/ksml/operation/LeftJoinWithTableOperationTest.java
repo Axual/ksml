@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import org.apache.kafka.streams.kstream.Joined;
@@ -38,6 +39,7 @@ import java.lang.reflect.Field;
 import java.util.function.Function;
 
 import static io.axual.ksml.operation.OperationTestSupport.foreignKeyExtractor;
+import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
@@ -50,6 +52,7 @@ import static io.axual.ksml.operation.OperationTestSupport.tableTarget;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -172,5 +175,32 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
 
         assertThat(operation.apply(input, context)).isInstanceOf(KStreamWrapper.class);
         verify(stream).leftJoin(any(KTable.class), any(ValueJoinerWithKey.class), any(Joined.class));
+    }
+
+    @Test
+    @DisplayName("leftJoin with an unknown saved table explains how to define or save it")
+    void unknownSavedTableIsNotFound() {
+        final var input = new KStreamWrapper(mock(KStream.class), key(), value());
+        final var operation = new LeftJoinWithTableOperation(
+                storeConfig("leftJoin"), savedTarget("missing"), null, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, mockContext()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("LeftJoin table \"missing\" not found")
+                .hasMessageContaining("Define it under \"tables\", or save a table with \"as: missing\" in a pipeline defined before this one");
+    }
+
+    @Test
+    @DisplayName("leftJoin with a saved stream as table is rejected")
+    void savedStreamIsNotATable() {
+        final var input = new KStreamWrapper(mock(KStream.class), key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_stream", kStream());
+        final var operation = new LeftJoinWithTableOperation(
+                storeConfig("leftJoin"), savedTarget("saved_stream"), null, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("LeftJoin table \"saved_stream\" must be a table, but found");
     }
 }

@@ -1,0 +1,15 @@
+# The pipeline is named like a defined stream, but has a sink, so it does not save its result under its name.
+streams:
+  raw_orders:
+    topic: raw_orders
+    keyType: string
+    valueType: json
+  order_events:
+    topic: order_events
+    keyType: string
+    valueType: json
+
+pipelines:
+  order_events:
+    from: raw_orders
+    to: order_events

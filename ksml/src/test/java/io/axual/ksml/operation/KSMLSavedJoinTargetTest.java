@@ -29,6 +29,7 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -157,11 +158,17 @@ class KSMLSavedJoinTargetTest {
 
         assertThat(joined.readKeyValuesToList()).containsExactly(new KeyValue<>("key1", "l+r"));
         assertThat(leftJoined.readKeyValuesToList()).containsExactly(new KeyValue<>("key1", "l+r"));
-        // An outer join may also emit unmatched records when the window closes, so only check the match
-        assertThat(outerJoined.readValuesToList()).contains("l+r").noneMatch(value -> value.contains("skip"));
         assertThat(merged.readKeyValuesToList()).containsExactly(
                 new KeyValue<>("key1", "r"),
                 new KeyValue<>("key1", "l"));
+
+        // The outer join emits records without a match only after the window and grace (1m + 1m) have passed, so
+        // add one without a match and move the time past that
+        left.pipeInput("key2", "alone", time);
+        left.pipeInput("key3", "later", time.plus(Duration.ofMinutes(5)));
+        assertThat(outerJoined.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("key1", "l+r"),
+                new KeyValue<>("key2", "alone+None"));
     }
 
     @KSMLTest(topology = "pipelines/test-join-saved-table-left-outer.yaml")
