@@ -53,7 +53,7 @@ public class OuterJoinWithTableOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = lookupTable(context, joinTable, "Join table");
+        final var otherTable = lookupTable(context, joinTable, "OuterJoin table");
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var ko = otherTable.keyType();
         final var vo = otherTable.valueType();

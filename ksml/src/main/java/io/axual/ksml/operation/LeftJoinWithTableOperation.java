@@ -70,7 +70,7 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = lookupTable(context, joinTable, "Join table");
+        final var otherTable = lookupTable(context, joinTable, "LeftJoin table");
         final var kt = otherTable.keyType();
         final var vt = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
@@ -89,7 +89,7 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = lookupTable(context, joinTable, "Join table");
+        final var otherTable = lookupTable(context, joinTable, "LeftJoin table");
         final var ko = otherTable.keyType();
         final var vo = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);

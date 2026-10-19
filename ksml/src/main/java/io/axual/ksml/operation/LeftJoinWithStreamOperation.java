@@ -58,7 +58,7 @@ public class LeftJoinWithStreamOperation extends DualStoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherStream = lookupStream(context, joinStream, "Join stream");
+        final var otherStream = lookupStream(context, joinStream, "LeftJoin stream");
         final var ko = otherStream.keyType();
         final var vo = otherStream.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
