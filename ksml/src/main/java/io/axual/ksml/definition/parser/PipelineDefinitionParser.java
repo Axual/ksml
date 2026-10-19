@@ -25,6 +25,7 @@ import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.AsOperation;
@@ -119,7 +120,13 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
         if (section != null) {
             log.warn("Pipeline \"{}\" has no sink and its name is also defined under \"{}\". A later \"from: {}\" gets this pipeline's result. Rename the pipeline to avoid this", shortName, section, shortName);
         }
-        if (shortName != null) resourceFields.resources().registerSavedName(shortName);
+        if (shortName != null) {
+            final var earlier = resourceFields.resources().pipelineSaving(shortName);
+            if (earlier != null) {
+                throw new TopologyException("Pipeline \"" + shortName + "\" has no sink, so its result is saved under its name, which is already used by pipeline \"" + earlier + "\". Use another name, or add a sink");
+            }
+            resourceFields.resources().registerSavedName(shortName, shortName);
+        }
         var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
         return new PipelineDefinition(shortName, from, via, sinkOperation);
     }

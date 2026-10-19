@@ -247,4 +247,45 @@ class DefinitionParsersTest {
                 .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
                 .hasStackTraceContaining("\"as: orders_table\" is already defined under \"tables\". Use another name");
     }
+
+    @Test
+    @DisplayName("an \"as\" name that an earlier pipeline already saves is rejected")
+    void duplicateAsNameIsRejected() throws Exception {
+        final var yaml = """
+                first:
+                  from: orders
+                  via:
+                    - type: toTable
+                  as: latest_orders
+                second:
+                  from: customers
+                  via:
+                    - type: toTable
+                  as: latest_orders
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"second\"")
+                .hasStackTraceContaining("\"as: latest_orders\" is already used by pipeline \"first\". Use another name");
+    }
+
+    @Test
+    @DisplayName("a pipeline without a sink, named like a name that an earlier pipeline already saves, is rejected")
+    void pipelineNameSavedByEarlierPipelineIsRejected() throws Exception {
+        final var yaml = """
+                first:
+                  from: orders
+                  via:
+                    - type: toTable
+                  as: latest_orders
+                latest_orders:
+                  from: customers
+                  via:
+                    - type: toTable
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
+                .hasStackTraceContaining("Pipeline \"latest_orders\" has no sink, so its result is saved under its name, which is already used by pipeline \"first\"");
+    }
 }

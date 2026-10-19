@@ -41,8 +41,8 @@ public class TopologyResources extends TopologyBaseResources {
     private final Map<String, TopicDefinition> topics = new HashMap<>();
     // All registered operation names
     private final Set<String> operationNames = new HashSet<>();
-    // All names that parsed pipelines save their result under, with "as" or by their own name
-    private final Set<String> savedNames = new HashSet<>();
+    // All names that parsed pipelines save their result under, with "as" or by their own name, and the pipeline
+    private final Map<String, String> savedNames = new HashMap<>();
 
     public TopologyResources(String namespace) {
         super(namespace);
@@ -72,12 +72,17 @@ public class TopologyResources extends TopologyBaseResources {
         return "streams";
     }
 
-    public void registerSavedName(String name) {
-        savedNames.add(name);
+    public void registerSavedName(String name, String pipeline) {
+        savedNames.put(name, pipeline);
     }
 
     public boolean isSavedName(String name) {
-        return savedNames.contains(name);
+        return savedNames.containsKey(name);
+    }
+
+    // The pipeline that saves its result under the name, or null
+    public String pipelineSaving(String name) {
+        return savedNames.get(name);
     }
 
     public String getUniqueOperationName(MetricTags tags) {
