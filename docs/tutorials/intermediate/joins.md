@@ -734,7 +734,7 @@ graph LR
 - **Define the saving pipeline first**: The pipeline with `as: <name>` must come before the pipeline that joins with `<name>`, in the same definition file. Otherwise the topology fails to start with `Join table "<name>" not found`.
 - **Use the right key**: Use `stream:` for a saved stream and `table:` for a saved table. Joining with a saved stream as `table:`, or the other way round, fails with `must be a table` or `must be a stream`. To join a stream as a table, add `toTable` before `as`.
 - **No saved globalTables**: Kafka Streams can not make a GlobalKTable from a pipeline result, so `globalTable:` only accepts names defined under `globalTables`. Use `table:` to join with a saved table.
-- **Unique names**: An `as` name can not be the same as a name under `streams`, `tables` or `globalTables`.
+- **Unique names**: An `as` name can not be the same as a name under `streams`, `tables` or `globalTables`. For a pipeline without a sink, which saves its result under the pipeline name, KSML logs a warning.
 - **No store needed**: A table saved after a table-table join can be joined with directly. You only need a `store` on the join if you want to query the saved table.
 - **Co-partitioning still applies**: If the saved result changed its key, for example with `transformKey` or `groupBy`, it must still be co-partitioned with the stream or table it is joined with. See [Co-partitioning Requirements](#co-partitioning-requirements).
 
