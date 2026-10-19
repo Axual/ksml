@@ -63,8 +63,8 @@ class JoinOperationParsersTest {
         resources.register("theGlobalTable",
                 new GlobalTableDefinition("the_global_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         // As if earlier pipelines saved these with "as"
-        resources.registerSavedName("saved_stream");
-        resources.registerSavedName("saved_table");
+        resources.registerSavedName("saved_stream", "earlier_pipeline");
+        resources.registerSavedName("saved_table", "earlier_pipeline");
     }
 
     private static final String STREAM_JOIN = """

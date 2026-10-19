@@ -165,7 +165,7 @@ class OperationParsersTest {
     @Test
     @DisplayName("a merge with a stream that is not defined, but saved with \"as\" by an earlier pipeline, parses")
     void parsesMergeWithSavedStream() throws Exception {
-        resources.registerSavedName("saved_stream");
+        resources.registerSavedName("saved_stream", "earlier_pipeline");
         final var op = new MergeOperationParser(resources).parser()
                 .parse(nodeOf("stream: saved_stream"));
         assertThat(op).isInstanceOf(MergeOperation.class);
