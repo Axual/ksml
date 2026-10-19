@@ -100,9 +100,9 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
-                    final var section = shortName != null ? AsOperationParser.definedSection(resourceFields.resources(), shortName) : null;
+                    final var section = shortName != null ? resourceFields.resources().sectionOf(shortName) : null;
                     if (section != null) {
-                        log.warn("Pipeline \"{}\" has no sink, so its result is saved under its name, which is also defined under \"{}\". A \"from: {}\" in a later pipeline gets this result, not the defined one. Use another pipeline name to avoid this", shortName, section, shortName);
+                        log.warn("Pipeline \"{}\" has no sink and its name is also defined under \"{}\". A later \"from: {}\" gets this pipeline's result. Rename the pipeline to avoid this", shortName, section, shortName);
                     }
                     if (shortName != null) resourceFields.resources().registerSavedName(shortName);
                     var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;

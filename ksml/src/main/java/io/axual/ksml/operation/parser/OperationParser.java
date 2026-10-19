@@ -26,7 +26,6 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
@@ -72,10 +71,11 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
     }
 
     // Like topicField, but keeps an unknown name if an earlier pipeline saved it with "as"
-    protected <F extends TopicDefinition> StructsParser<TopologyResource<TopicDefinition>> targetField(String childName, String doc, DefinitionParser<F> parser) {
+    protected <F extends TopicDefinition> StructsParser<TopologyResource<TopicDefinition>> targetField(String childName, String section, String doc, DefinitionParser<F> parser) {
         final var resourceParser = new TopologyResourceParser<>(childName, childName, doc, (name, tags) -> resources().topic(name), parser, true);
         // Return null when the field is missing, not a made-up name
-        return StructsParser.of(node -> node != null && node.get(childName) != null ? JoinTargetDefinitionParser.requireDefinedOrSaved(node, resources(), resourceParser.parse(node), childName, childName + "s") : null, resourceParser.schemas());
+        // Also checked by JoinTargetDefinitionParser for joins; merge needs it here
+        return StructsParser.of(node -> node != null && node.get(childName) != null ? resourceFields.requireDefinedOrSaved(node, resourceParser.parse(node), childName, section) : null, resourceParser.schemas());
     }
 
     // An "as" name has no definition yet, so it is checked when building

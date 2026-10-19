@@ -24,6 +24,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -102,7 +103,7 @@ public class CogroupOperation extends BaseOperation {
         if (!(wrapper instanceof KGroupedStreamWrapper) && context.isTopicDefinition(stream)) throw notGroupedTopicError();
         return requireSavedStream(wrapper, KGroupedStreamWrapper.class, streamLabel(),
                 "a grouped stream (the result of groupBy or groupByKey)",
-                "Save a grouped stream with \"as: " + stream + "\" " + SAVED_EARLIER);
+                "Save a grouped stream with \"as: " + stream + "\" " + TopologyResources.SAVED_EARLIER);
     }
 
     // Unlike in merge and join, "stream" is not a topic definition, so explain the likely mistake

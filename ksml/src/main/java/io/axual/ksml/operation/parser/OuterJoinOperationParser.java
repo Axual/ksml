@@ -74,7 +74,7 @@ public class OuterJoinOperationParser extends BaseJoinOperationParser {
                 "",
                 "Operation to outerJoin with a stream",
                 operationNameField(),
-                targetField(KSMLDSL.Operations.Join.WITH_STREAM, "A reference to a defined stream or to a stream saved with \"as\" in an earlier pipeline, or an inline definition of the stream to outerJoin with", new StreamDefinitionParser(resources(), true)),
+                targetField(KSMLDSL.Operations.Join.WITH_STREAM, "streams", "A reference to a defined stream or to a stream saved with \"as\" in an earlier pipeline, or an inline definition of the stream to outerJoin with", new StreamDefinitionParser(resources(), true)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 FieldParsers.durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "The maximum time difference for an outerJoin over two streams on the same key"),
                 FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
@@ -91,7 +91,7 @@ public class OuterJoinOperationParser extends BaseJoinOperationParser {
                 "",
                 "Operation to outerJoin with a table",
                 operationNameField(),
-                targetField(KSMLDSL.Operations.Join.WITH_TABLE, "A reference to a defined table or to a table saved with \"as\" in an earlier pipeline, or an inline definition of the table to outerJoin with", new TableDefinitionParser(resources(), true)),
+                targetField(KSMLDSL.Operations.Join.WITH_TABLE, "tables", "A reference to a defined table or to a table saved with \"as\" in an earlier pipeline, or an inline definition of the table to outerJoin with", new TableDefinitionParser(resources(), true)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 storeField(false, "Materialized view of the outerJoined table", StoreType.KEYVALUE_STORE),
                 (name, table, valueJoiner, store, tags) -> {
