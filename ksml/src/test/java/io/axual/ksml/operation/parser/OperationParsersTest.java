@@ -200,14 +200,12 @@ class OperationParsersTest {
     }
 
     @Test
-    @DisplayName("an as name that is defined under tables is rejected")
-    void rejectsAsWithDefinedName() throws Exception {
+    @DisplayName("an as name that is defined under tables parses, with only a warning, and is saved")
+    void parsesAsWithDefinedName() throws Exception {
         resources.register("orders", new TableDefinition("orders", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
-        final var parser = new AsOperationParser(resources).parser();
-        final var node = nodeOf("as: orders");
-        assertThatThrownBy(() -> parser.parse(node))
-                .isInstanceOf(ParseException.class)
-                .hasMessageContaining("\"as: orders\" is already defined under \"tables\". Use another name");
+        final var op = new AsOperationParser(resources).parser().parse(nodeOf("as: orders"));
+        assertThat(op.targetName).isEqualTo("orders");
+        assertThat(resources.isSavedName("orders")).isTrue();
     }
 
     @Test

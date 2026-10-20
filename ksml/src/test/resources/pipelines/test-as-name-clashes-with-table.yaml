@@ -1,5 +1,5 @@
-# The pipeline saves its result with "as: orders", but "orders" is already defined under "tables",
-# so a later reference to "orders" could mean either one.
+# The pipeline saves its result with "as: orders", but "orders" is already defined under "tables".
+# KSML only logs a warning: a later "from: orders" gets the saved result, joins and merges get the table.
 streams:
   order_events:
     topic: order_events

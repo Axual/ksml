@@ -233,8 +233,8 @@ class DefinitionParsersTest {
     }
 
     @Test
-    @DisplayName("an \"as\" name that is defined under tables is rejected")
-    void asNameDefinedAsTableIsRejected() throws Exception {
+    @DisplayName("an \"as\" name that is defined under tables parses, with only a warning")
+    void asNameDefinedAsTableParses() throws Exception {
         resources.register("orders_table", new TableDefinition("orders_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         final var yaml = """
                 latest_orders:
@@ -243,10 +243,8 @@ class DefinitionParsersTest {
                     - type: toTable
                   as: orders_table
                 """;
-        assertThatThrownBy(() -> parsePipelines(yaml))
-                .isInstanceOf(ParseException.class)
-                .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
-                .hasStackTraceContaining("\"as: orders_table\" is already defined under \"tables\". Use another name");
+        assertThat(parsePipelines(yaml)).isNotNull();
+        assertThat(resources.isSavedName("orders_table")).isTrue();
     }
 
     @Test

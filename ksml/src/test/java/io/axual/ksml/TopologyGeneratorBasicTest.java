@@ -122,12 +122,10 @@ class TopologyGeneratorBasicTest {
 
     @Test
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-    @DisplayName("saving a result with an \"as\" name that is defined under tables fails parsing")
-    void asNameDefinedAsTableIsRejected() {
-        // FatalError drops the cause, so this error only names the pipeline; DefinitionParsersTest checks the cause
-        assertThatThrownBy(() -> createTopology("pipelines/test-as-name-clashes-with-table.yaml"))
-                .hasMessageContaining("KSML parse error")
-                .hasMessageContaining("Error in pipeline definition \"latest_orders\"");
+    @DisplayName("saving a result with an \"as\" name that is defined under tables still builds")
+    void asNameDefinedAsTableIsAccepted() {
+        assertThatCode(() -> createTopology("pipelines/test-as-name-clashes-with-table.yaml"))
+                .doesNotThrowAnyException();
     }
 
     @Test

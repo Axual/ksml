@@ -26,7 +26,9 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
 import io.axual.ksml.parser.StructsParser;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AsOperationParser extends OperationParser<AsOperation> {
     public AsOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.AS, resources);
@@ -43,9 +45,12 @@ public class AsOperationParser extends OperationParser<AsOperation> {
             final var result = parser.parse(node);
             if (result == null) return null;
             final var name = result.targetName;
-            // A "from" with this name would get the saved result, not the defined one
+            // A "from" with this name gets the saved result, not the defined one. Only a warning, so existing
+            // definitions keep working
             final var section = resources().sectionOf(name);
-            if (section != null) throw new ParseException(node, "\"as: " + name + "\" is already defined under \"" + section + "\". Use another name");
+            if (section != null) {
+                log.warn("\"as: {}\" is also under \"{}\": \"from\" gets the saved result, joins and merges get the defined one. Use another name", name, section);
+            }
             final var earlier = resources().pipelineSaving(name);
             if (earlier != null) throw new ParseException(node, "\"as: " + name + "\" is already used by " + earlier + ". Use another name");
             resources().registerSavedName(name, node.tags());
