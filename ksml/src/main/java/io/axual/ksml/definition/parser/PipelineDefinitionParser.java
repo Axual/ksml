@@ -105,12 +105,11 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
                     final var resources = resourceFields.resources();
                     final var section = resources.sectionOf(shortName);
                     if (section != null) {
-                        log.warn("Pipeline \"{}\" has no sink and its name is also defined under \"{}\": a later \"from: {}\" gets the pipeline result, but joins and merges get the defined one. Rename the pipeline to avoid this", shortName, section, shortName);
+                        log.warn("Pipeline \"{}\" has no sink and its name is also under \"{}\": \"from\" gets the pipeline result, joins and merges get the defined one. Rename the pipeline", shortName, section);
                     }
                     final var earlier = resources.pipelineSaving(shortName);
                     if (earlier != null) {
-                        // No parse node here, so a ParseException would point at the root. The pipeline map wraps
-                        // this error with the pipeline name
+                        // No parse node here; the pipeline map adds the pipeline name to this error
                         throw new TopologyException("Without a sink, " + TopologyResources.pipelineOf(tags) + " saves its result under \"" + shortName + "\", which is already used by " + earlier + ". Add a sink, or rename the pipeline");
                     }
                     resources.registerSavedName(shortName, tags);

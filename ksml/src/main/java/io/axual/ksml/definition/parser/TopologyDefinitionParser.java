@@ -32,11 +32,11 @@ import io.axual.ksml.parser.StructsParser;
 
 import java.util.List;
 
+import static io.axual.ksml.dsl.KSMLDSL.PIPELINE;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES;
 import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS;
 
 public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinition> {
-    private static final String PIPELINE = "pipeline";
     private static final String PRODUCER = "producer";
     private final TopologyResourcesParser resourcesParser;
 
@@ -47,7 +47,7 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
     @Override
     public StructsParser<TopologyDefinition> parser() {
         final var dummyResources = new TopologyResources("dummy");
-        final var pipelinesParser = FieldParsers.optional(FieldParsers.mapField(PIPELINES, TopologyResources.PIPELINE_TAG, PIPELINE, "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
+        final var pipelinesParser = FieldParsers.optional(FieldParsers.mapField(PIPELINES, PIPELINE, PIPELINE, "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
         final var producersParser = FieldParsers.optional(FieldParsers.mapField(PRODUCERS, PRODUCER, PRODUCER, "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
 
         final var fields = resourcesParser.schemas().getFirst().fields();
@@ -69,7 +69,7 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
                 resources.stateStores().forEach(result::register);
                 resources.functions().forEach(result::register);
                 // Parse all defined pipelines, using this topology's name as operation prefix
-                new MapParser<>(TopologyResources.PIPELINE_TAG, "pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
+                new MapParser<>(PIPELINE, "pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
                 // Parse all defined producers, using this topology's name as operation prefix
                 new MapParser<>(PRODUCER, "producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS)).forEach(result::register);
                 return result;

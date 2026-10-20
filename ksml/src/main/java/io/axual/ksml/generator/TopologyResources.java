@@ -38,9 +38,6 @@ import java.util.Set;
 public class TopologyResources extends TopologyBaseResources {
     // Where an "as" name must be saved to be found, used in error messages
     public static final String SAVED_EARLIER = "in a pipeline defined before this one, in the same definition file";
-    // Metric tag keys of pipelines and branches, read by pipelineOf
-    public static final String PIPELINE_TAG = "pipeline";
-    public static final String BRANCH_TAG = "branch";
 
     // All registered KStreams, KTables and KGlobalTables
     private final Map<String, TopicDefinition> topics = new HashMap<>();
@@ -95,8 +92,9 @@ public class TopologyResources extends TopologyBaseResources {
         String pipeline = null;
         final var branches = new ArrayList<String>();
         for (final var tag : tags) {
-            if (tag.key().equals(PIPELINE_TAG)) pipeline = tag.value();
-            if (tag.key().equals(BRANCH_TAG)) branches.add(tag.value());
+            // The pipelines map and branches tag their nodes with these keys
+            if (tag.key().equals(KSMLDSL.PIPELINE)) pipeline = tag.value();
+            if (tag.key().equals(KSMLDSL.Operations.BRANCH)) branches.add(tag.value());
         }
         if (pipeline == null) return "an earlier pipeline";
         return "pipeline \"" + pipeline + "\"" + (branches.isEmpty() ? "" : " (" + String.join(", ", branches) + ")");
