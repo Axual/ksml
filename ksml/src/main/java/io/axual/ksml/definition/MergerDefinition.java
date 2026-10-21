@@ -22,13 +22,13 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.dsl.KSMLDSL;
 
-import static io.axual.ksml.definition.DefinitionConstants.KEY_AND_TWO_VALUE_PARAMETERS;
+import static io.axual.ksml.definition.DefinitionConstants.MERGER_PARAMETERS;
 
 public class MergerDefinition extends FunctionDefinition {
     public MergerDefinition(FunctionDefinition definition) {
         super(definition
                 .withType(KSMLDSL.Functions.TYPE_MERGER)
-                .withParameters(mergeParameters(KEY_AND_TWO_VALUE_PARAMETERS, definition.parameters()))
+                .withParameters(mergeParameters(MERGER_PARAMETERS, definition.parameters()))
                 .validateResultTypeDefined());
     }
 }

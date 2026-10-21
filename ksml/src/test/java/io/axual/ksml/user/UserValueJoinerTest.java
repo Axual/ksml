@@ -20,11 +20,14 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.definition.ValueJoinerDefinition;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.user.UserTestSupport.RecordingFunction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +39,7 @@ import static io.axual.ksml.user.UserTestSupport.functionReturning;
 import static io.axual.ksml.user.UserTestSupport.params;
 import static io.axual.ksml.user.UserTestSupport.tags;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserValueJoinerTest {
 
@@ -99,8 +103,64 @@ class UserValueJoinerTest {
                 new DataString("order1"), new DataString("orderValue"), new DataString("customerValue"));
     }
 
-    private static ParameterDefinition[] valueJoinerParameters() {
-        final var function = FunctionDefinition.as("generic", "fn", List.of(),
+    @Test
+    @DisplayName("a function with too few parameters is rejected with a clear message")
+    void rejectsTooFewParameters() {
+        final var function = functionReturning(UNKNOWN, 2, new DataString("joined"));
+
+        assertThatThrownBy(() -> new UserValueJoiner(function, tags()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Function needs at least 3 parameters, but has 2");
+    }
+
+    @Test
+    @DisplayName("a function with too many required parameters is rejected with a clear message")
+    void rejectsTooManyRequiredParameters() {
+        final var function = functionReturning(UNKNOWN, 4, new DataString("joined"));
+
+        assertThatThrownBy(() -> new UserValueJoiner(function, tags()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Function can have at most 3 required parameters, but has 4");
+    }
+
+    @Test
+    @DisplayName("a function whose fourth parameter has another name does not get the mapped key")
+    void doesNotPassMappedKeyToOtherFourthParameter() {
+        final var params = new ParameterDefinition[]{params(3)[0], params(3)[1], params(3)[2],
+                new ParameterDefinition("other", DataType.UNKNOWN, true, null)};
+        final var function = new RecordingFunction(UNKNOWN, params, new DataString("joined"));
+
+        new UserValueJoiner(function, tags()).apply("order1", "customer1", "orderValue", "customerValue");
+
+        assertThat(function.lastArguments).containsExactly(
+                new DataString("order1"), new DataString("orderValue"), new DataString("customerValue"));
+    }
+
+    @Test
+    @DisplayName("custom parameters come before the optional mappedKey parameter")
+    void customParametersComeBeforeMappedKey() {
+        assertThat(valueJoinerParameters(customPrefix())).extracting(ParameterDefinition::name)
+                .containsExactly("key", "value1", "value2", "prefix", "mappedKey");
+    }
+
+    @Test
+    @DisplayName("a function with a custom parameter gets None for it and the mapped key last")
+    void passesNoneForCustomParameterAndMappedKeyLast() {
+        final var function = new RecordingFunction(UNKNOWN, valueJoinerParameters(customPrefix()), new DataString("joined"));
+
+        new UserValueJoiner(function, tags()).apply("order1", "customer1", "orderValue", "customerValue");
+
+        assertThat(function.lastArguments).containsExactly(
+                new DataString("order1"), new DataString("orderValue"), new DataString("customerValue"),
+                DataNull.INSTANCE, new DataString("customer1"));
+    }
+
+    private static ParameterDefinition customPrefix() {
+        return new ParameterDefinition("prefix", DataString.DATATYPE, true, "D");
+    }
+
+    private static ParameterDefinition[] valueJoinerParameters(ParameterDefinition... customParameters) {
+        final var function = FunctionDefinition.as("generic", "fn", List.of(customParameters),
                 PythonSource.of((String) null, (String) null, (String) null), UNKNOWN, List.of());
         return new ValueJoinerDefinition(function).parameters();
     }

@@ -57,7 +57,7 @@ public class DefinitionConstants {
     protected static final ParameterDefinition[] NO_PARAMETERS = new ParameterDefinition[]{};
     protected static final ParameterDefinition[] FOREIGN_KEY_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN)};
-    protected static final ParameterDefinition[] KEY_AND_TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] MERGER_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};

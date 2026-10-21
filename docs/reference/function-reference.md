@@ -229,6 +229,8 @@ When calling this function from Python:
 configurable_logger(key, value, prefix="DEBUG")
 ```
 
+Custom parameters come right after the built-in ones. The optional built-in parameters `headers` (in a `streamPartitioner`) and `mappedKey` (in a `valueJoiner`) come last, after the custom parameters.
+
 ### Parameter Definition Structure
 
 When defining custom parameters:

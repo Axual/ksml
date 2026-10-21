@@ -140,9 +140,9 @@ public class FunctionDefinition extends AbstractDefinition {
         // The index value is the cursor into the result array that we fill below
         var index = 0;
 
-        // Copy every fixed parameter into the parameter array
+        // Copy every required fixed parameter into the parameter array
         for (final var param : fixedParams) {
-            result[index++] = param;
+            if (!param.isOptional()) result[index++] = param;
             // Remove from the list of "to do parameters"
             paramNames.remove(param.name());
         }
@@ -155,6 +155,11 @@ public class FunctionDefinition extends AbstractDefinition {
                 // Remove param name to prevent that doubly specified parameters lead to array overflows
                 paramNames.remove(param.name());
             }
+        }
+
+        // Copy the optional fixed parameters last, so specified parameters keep their position for positional calls
+        for (final var param : fixedParams) {
+            if (param.isOptional()) result[index++] = param;
         }
 
         // Return the integrated parameter list

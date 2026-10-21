@@ -1,0 +1,93 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Custom parameters keep their position before the optional built-in parameters mappedKey and headers.
+# A positional call from Python fills the custom parameter. When KSML calls the function itself, the
+# custom parameter gets its default value and the optional built-in parameter is still filled in.
+
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: string
+  tableJoinOut:
+    topic: tableJoinOut
+    keyType: string
+    valueType: string
+  globalJoinOut:
+    topic: globalJoinOut
+    keyType: string
+    valueType: string
+  events:
+    topic: events
+    keyType: string
+    valueType: string
+  routedEvents:
+    topic: routedEvents
+    keyType: string
+    valueType: string
+
+tables:
+  orderNotes:
+    topic: orderNotes
+    keyType: string
+    valueType: string
+
+globalTables:
+  customers:
+    topic: customers
+    keyType: string
+    valueType: string
+
+functions:
+  describe_join:
+    type: valueJoiner
+    parameters:
+      - name: prefix
+        type: string
+        defaultValue: "D"
+    expression: prefix + "|" + key + "|" + str(mappedKey) + "|" + value1 + "|" + value2
+    resultType: string
+
+  route_by_header:
+    type: streamPartitioner
+    parameters:
+      - name: dropValue
+        type: string
+        defaultValue: "drop"
+    code: |
+      route = None
+      for header in headers:
+        if header["key"] == "route":
+          route = header["value"]
+    expression: "[] if route == dropValue else [0]"
+    resultType: "[integer]"
+
+pipelines:
+  positional_call:
+    from: orders
+    via:
+      - type: join
+        table: orderNotes
+        valueJoiner:
+          resultType: string
+          expression: describe_join(key, value1, value2, "X")
+    to: tableJoinOut
+
+  called_by_ksml:
+    from: orders
+    via:
+      - type: join
+        globalTable: customers
+        mapper:
+          resultType: string
+          expression: value
+        valueJoiner: describe_join
+    to: globalJoinOut
+
+  route_events:
+    from: events
+    to:
+      topic: routedEvents
+      keyType: string
+      valueType: string
+      partitioner: route_by_header

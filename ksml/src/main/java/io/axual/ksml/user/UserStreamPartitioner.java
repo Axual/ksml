@@ -50,14 +50,13 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
             new UnionType.Member("setOfPartitions", new ListType(DataInteger.DATATYPE), "List of partition numbers", 2));
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
     private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
-    // A generic function used as partitioner may not declare the optional headers parameter
-    private final boolean passHeaders;
+    // Number of arguments: 4, or more when the function declares headers
+    private final int argumentCount;
 
     public UserStreamPartitioner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_STREAMPARTITIONER);
-        verifyParameterCount(4);
+        argumentCount = verifyParameterCount(4, PARAM_HEADERS);
         verifyResultType(EXPECTED_RESULT_TYPE);
-        passHeaders = function.parameters.length > 4 && PARAM_HEADERS.equals(function.parameters[4].name());
     }
 
     @Override
@@ -77,13 +76,8 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     }
 
     private DataObject[] arguments(String topic, Object key, Object value, Headers headers, int numPartitions) {
-        final var topicArg = new DataString(topic);
-        final var keyArg = NATIVE_MAPPER.toDataObject(key);
-        final var valueArg = NATIVE_MAPPER.toDataObject(value);
-        final var partitionsArg = new DataInteger(numPartitions);
-        if (!passHeaders) return new DataObject[]{topicArg, keyArg, valueArg, partitionsArg};
-        final var headersArg = HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new));
-        return new DataObject[]{topicArg, keyArg, valueArg, partitionsArg, headersArg};
+        return withOptionalArgument(argumentCount, () -> HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new)),
+                new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions));
     }
 
     // Still abstract in Kafka 4.4; Kafka 5.0 removes it.

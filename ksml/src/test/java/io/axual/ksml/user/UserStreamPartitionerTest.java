@@ -22,9 +22,11 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.PythonSource;
@@ -137,8 +139,45 @@ class UserStreamPartitionerTest {
         assertThat(function.lastArguments).hasSize(4);
     }
 
-    private static ParameterDefinition[] streamPartitionerParameters() {
-        final var function = FunctionDefinition.as("generic", "fn", List.of(),
+    @Test
+    @DisplayName("a function whose fifth parameter has another name does not get the headers")
+    void doesNotPassHeadersToOtherFifthParameter() {
+        final var params = new ParameterDefinition[]{params(4)[0], params(4)[1], params(4)[2], params(4)[3],
+                new ParameterDefinition("other", DataType.UNKNOWN, true, null)};
+        final var function = new RecordingFunction(PARTITIONS, params, new DataInteger(0));
+
+        new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", new RecordHeaders(), 4);
+
+        assertThat(function.lastArguments).hasSize(4);
+    }
+
+    @Test
+    @DisplayName("custom parameters come before the optional headers parameter")
+    void customParametersComeBeforeHeaders() {
+        assertThat(streamPartitionerParameters(customPrefix())).extracting(ParameterDefinition::name)
+                .containsExactly("topic", "key", "value", "numPartitions", "prefix", "headers");
+    }
+
+    @Test
+    @DisplayName("a function with a custom parameter gets None for it and the headers last")
+    void passesNoneForCustomParameterAndHeadersLast() {
+        final var function = new RecordingFunction(PARTITIONS, streamPartitionerParameters(customPrefix()), new DataInteger(0));
+        final var headers = new RecordHeaders();
+        headers.add("region", "eu".getBytes(StandardCharsets.UTF_8));
+
+        new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", headers, 4);
+
+        assertThat(function.lastArguments).hasSize(6);
+        assertThat(function.lastArguments[4]).isEqualTo(DataNull.INSTANCE);
+        assertThat(((DataStruct) ((DataList) function.lastArguments[5]).get(0)).get("key")).isEqualTo(new DataString("region"));
+    }
+
+    private static ParameterDefinition customPrefix() {
+        return new ParameterDefinition("prefix", DataString.DATATYPE, true, "D");
+    }
+
+    private static ParameterDefinition[] streamPartitionerParameters(ParameterDefinition... customParameters) {
+        final var function = FunctionDefinition.as("generic", "fn", List.of(customParameters),
                 PythonSource.of((String) null, (String) null, (String) null), PARTITIONS, List.of());
         return new StreamPartitionerDefinition(function).parameters();
     }
