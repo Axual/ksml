@@ -92,7 +92,7 @@
         <jackson.version>3.2.3</jackson.version>
         <!-- KSML itself is on Jackson 3. Apicurio, Confluent and victools still pull in Jackson 2,
              so that line has to stay version-aligned as well until they move over. -->
-        <jackson2.version>2.22.3</jackson2.version>
+        <jackson2.version>2.22.4</jackson2.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.3</jersey.version>
@@ -101,7 +101,7 @@
         <lombok.version>1.18.48</lombok.version>
         <picocli.version>4.7.7</picocli.version>
         <prometheus.version>1.0.1</prometheus.version>
-        <prometheus-instrumentation.version>1.9.0</prometheus-instrumentation.version>
+        <prometheus-instrumentation.version>1.10.0</prometheus-instrumentation.version>
         <protobuf.version>4.36.2</protobuf.version>
         <saaj.version>3.0.6</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
