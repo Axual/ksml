@@ -89,7 +89,7 @@ class BaseOperationTest {
 
         final var tableJoined = new TypeCheckingOperation().tableJoinedOf(partitioner, null);
 
-        assertThat(new TableJoinedView<>(tableJoined).partitioner().partitions("topic", "key", null, headers, 4))
+        assertThat(new TableJoinedView(tableJoined).partitioner().partitions("topic", "key", null, headers, 4))
                 .contains(Set.of(1));
     }
 
@@ -110,12 +110,12 @@ class BaseOperationTest {
     }
 
     /** TableJoined has no public getters; a subclass can read its protected fields. */
-    private static class TableJoinedView<K, KO> extends TableJoined<K, KO> {
-        TableJoinedView(TableJoined<K, KO> tableJoined) {
+    private static class TableJoinedView extends TableJoined<Object, Object> {
+        TableJoinedView(TableJoined<Object, Object> tableJoined) {
             super(tableJoined);
         }
 
-        StreamPartitioner<K, Void> partitioner() {
+        StreamPartitioner<Object, Void> partitioner() {
             return partitioner;
         }
     }
