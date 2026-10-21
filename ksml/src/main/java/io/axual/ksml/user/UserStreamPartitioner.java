@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.HeaderDataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
@@ -31,27 +32,37 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.axual.ksml.definition.DefinitionConstants.PARAM_HEADERS;
+
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
     public static final DataType EXPECTED_RESULT_TYPE = new UnionType(
             new UnionType.Member("singlePartition", DataInteger.DATATYPE, "Partition number", 1),
             new UnionType.Member("setOfPartitions", new ListType(DataInteger.DATATYPE), "List of partition numbers", 2));
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
+    private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
+    // A generic function used as partitioner may not declare the optional headers parameter
+    private final boolean passHeaders;
 
     public UserStreamPartitioner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_STREAMPARTITIONER);
         verifyParameterCount(4);
         verifyResultType(EXPECTED_RESULT_TYPE);
+        passHeaders = function.parameters.length > 4 && PARAM_HEADERS.equals(function.parameters[4].name());
     }
 
     @Override
-    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, int numPartitions) {
-        final var result = timeExecutionOf(() -> function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
+    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, Headers headers, int numPartitions) {
+        final var result = timeExecutionOf(() -> passHeaders
+                ? function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions), HEADER_MAPPER.toDataObject(headers != null ? headers : new RecordHeaders()))
+                : function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
         // Check for old-style partitioner return value (one partition number)
         if (result instanceof DataInteger dataInteger) {
             return Optional.of(Set.of(dataInteger.value()));
@@ -63,5 +74,12 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
             return Optional.of(parts);
         }
         return Optional.empty();
+    }
+
+    // Still abstract in Kafka 4.4; Kafka 5.0 removes it.
+    @Override
+    @SuppressWarnings("removal")
+    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, int numPartitions) {
+        return partitions(topic, key, value, new RecordHeaders(), numPartitions);
     }
 }

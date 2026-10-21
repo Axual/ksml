@@ -1,6 +1,6 @@
 # Upgrading to KSML 2.0.0
 
-KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). The Kafka client version is unchanged.
+KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). It also upgrades Kafka Streams and the Kafka clients from 4.3 to 4.4.0.
 
 Most of these upgrades are internal, but a few of them change how you configure KSML. Please read this page before you upgrade a running deployment.
 
@@ -172,7 +172,7 @@ because both can lose digits.
 
 ## Kafka Streams error handlers
 
-For pipeline authors who write KSML YAML, there is nothing to change here. The Kafka client version is unchanged in KSML 2.0.0: it stays on the same 4.x version that KSML 1.3.0 already used.
+For pipeline authors who write KSML YAML, there is nothing to change here. KSML 2.0.0 upgrades Kafka Streams and the Kafka clients from 4.3 (used by KSML 1.3.x) to 4.4.0.
 
 KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you implement your own Kafka Streams error handler against the KSML libraries, `handle` became `handleError`, and the enum results were replaced by `Response.resume()`, `Response.fail()` and `Response.retry()`.
 

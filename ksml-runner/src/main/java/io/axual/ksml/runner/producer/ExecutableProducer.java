@@ -189,7 +189,7 @@ public class ExecutableProducer {
         // A partitioner is defined, so call the function and generate a producer record for every
         // partition the message is sent to
         final var numPartitions = producer.partitionsFor(topic).size();
-        final Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.key(), message.value(), numPartitions);
+        final Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.key(), message.value(), message.headers(), numPartitions);
         if (partitions.isEmpty()) {
             return;
         }

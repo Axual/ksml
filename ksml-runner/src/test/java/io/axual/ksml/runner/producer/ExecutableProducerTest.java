@@ -26,7 +26,9 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.definition.DefinitionConstants;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.execution.ExecutionContext;
@@ -40,14 +42,17 @@ import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -259,6 +264,52 @@ class ExecutableProducerTest {
                 .hasSize(2)
                 .extracting(ProducerRecord::partition)
                 .containsExactlyInAnyOrder(0, 2);
+    }
+
+    @Test
+    @DisplayName("produceMessages passes the record headers to a partitioner that declares them")
+    void produceMessagesPassesHeadersToPartitioner() {
+        final var seenHeaders = new AtomicReference<DataObject>();
+        final var params = new ParameterDefinition[]{
+                new ParameterDefinition("topic", DataString.DATATYPE),
+                new ParameterDefinition("key", DataString.DATATYPE),
+                new ParameterDefinition("value", DataString.DATATYPE),
+                new ParameterDefinition("numPartitions", DataInteger.DATATYPE),
+                new ParameterDefinition(DefinitionConstants.PARAM_HEADERS, DefinitionConstants.HEADERS_TYPE, true, null)
+        };
+        final var partitioner = new UserFunction("ns", "partitioner", params, new UserType(UserStreamPartitioner.EXPECTED_RESULT_TYPE), List.of()) {
+            @Override
+            public DataObject call(StateStores stores, DataObject... parameters) {
+                seenHeaders.set(parameters[4]);
+                return new DataInteger(1);
+            }
+        };
+        // Like a schema registry serializer that writes the schema id into a header
+        final Serializer<Object> headerWritingSerializer = new Serializer<>() {
+            @Override
+            public byte[] serialize(String topic, Object data) {
+                return new byte[]{1, 2, 3};
+            }
+
+            @Override
+            public byte[] serialize(String topic, Headers headers, Object data) {
+                headers.add("schemaId", "42".getBytes(StandardCharsets.UTF_8));
+                return serialize(topic, data);
+            }
+        };
+        final var tags = new MetricTags();
+        final var target = new ExecutableProducer.ProducerTarget(
+                TOPIC, STRING_TYPE, STRING_TYPE, passthroughSerializer(), headerWritingSerializer);
+        final var producer = new ExecutableProducer(generatorReturning(sampleTuple()), onceStrategy(tags), tags, partitioner, target);
+        final var mockProducer = new MockProducer<>(true, null, new ByteArraySerializer(), new ByteArraySerializer());
+
+        producer.produceMessages(mockProducer);
+
+        assertThat(mockProducer.history()).hasSize(1);
+        final var headers = (DataList) seenHeaders.get();
+        assertThat(headers.size()).isEqualTo(1);
+        assertThat(((DataStruct) headers.get(0)).get("key")).isEqualTo(new DataString("schemaId"));
+        assertThat(((DataStruct) headers.get(0)).get("value")).isEqualTo(new DataString("42"));
     }
 
     @Test

@@ -897,6 +897,7 @@ Determines which partition a record should be sent to when writing to a Kafka to
 | key           | Any     | The key of the record being partitioned                               |
 | value         | Any     | The value of the record being partitioned                             |
 | numPartitions | Integer | The total number of partitions available in the target topic          |
+| headers       | List    | The headers of the record, as a list of `{"key": ..., "value": ...}`, the same format as in `metadataTransformer` |
 
 #### Return Value
 
@@ -969,9 +970,10 @@ outer). This function has access to the join key for context-aware value combina
 
 | Parameter | Type | Description                            |
 |-----------|------|----------------------------------------|
-| key       | Any  | The join key used to match records     |
+| key       | Any  | The key of the record. In a join with a globalTable, this is the key of the stream record, not the key used for the lookup. `None` in a join between two tables |
 | value1    | Any  | The value from the first stream/table  |
 | value2    | Any  | The value from the second stream/table |
+| mappedKey | Any  | Only in a join with a globalTable: the key that the `mapper` returned and that was looked up in the globalTable. `None` in all other joins |
 
 #### Return Value
 

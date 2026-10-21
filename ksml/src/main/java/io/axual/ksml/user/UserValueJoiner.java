@@ -30,15 +30,21 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.apache.kafka.streams.kstream.ValueJoinerWithStreamAndMappedKey;
 
-public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object>, ValueJoinerWithKey<Object, Object, Object, Object> {
+import static io.axual.ksml.definition.DefinitionConstants.PARAM_MAPPED_KEY;
+
+public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object>, ValueJoinerWithKey<Object, Object, Object, Object>, ValueJoinerWithStreamAndMappedKey<Object, Object, Object, Object, Object> {
     private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
+    // A generic function used as joiner may not declare the optional mappedKey parameter
+    private final boolean passMappedKey;
 
     public UserValueJoiner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_VALUEJOINER);
         verifyParameterCount(3);
         verifyResultType(EXPECTED_RESULT_TYPE);
+        passMappedKey = function.parameters.length > 3 && PARAM_MAPPED_KEY.equals(function.parameters[3].name());
     }
 
     @Override
@@ -51,5 +57,11 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
         return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2)));
+    }
+
+    @Override
+    public DataObject apply(Object streamKey, Object mappedKey, Object streamValue, Object tableValue) {
+        if (!passMappedKey) return apply(streamKey, streamValue, tableValue);
+        return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(streamKey), NATIVE_MAPPER.toDataObject(streamValue), NATIVE_MAPPER.toDataObject(tableValue), NATIVE_MAPPER.toDataObject(mappedKey)));
     }
 }

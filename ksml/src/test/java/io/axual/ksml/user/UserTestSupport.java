@@ -67,4 +67,21 @@ final class UserTestSupport {
             }
         };
     }
+
+    /** Returns a fixed result and keeps the arguments of the last call. */
+    static final class RecordingFunction extends UserFunction {
+        private final DataObject result;
+        DataObject[] lastArguments;
+
+        RecordingFunction(UserType resultType, ParameterDefinition[] params, DataObject result) {
+            super("ns", "fn", params, resultType, (String[]) null);
+            this.result = result;
+        }
+
+        @Override
+        public DataObject call(StateStores stores, DataObject... parameters) {
+            lastArguments = parameters;
+            return result;
+        }
+    }
 }

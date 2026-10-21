@@ -42,6 +42,8 @@ import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueJoiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.JoinWindows;
@@ -56,6 +58,7 @@ import org.apache.kafka.streams.kstream.StreamJoined;
 import org.apache.kafka.streams.kstream.TableJoined;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.apache.kafka.streams.kstream.ValueJoinerWithStreamAndMappedKey;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
@@ -434,8 +437,15 @@ public abstract class BaseOperation implements StreamOperation {
     private record WrapPartitioner(
             StreamPartitioner<Object, Object> partitioner) implements StreamPartitioner<Object, Void> {
         @Override
+        public Optional<Set<Integer>> partitions(String topic, Object key, Void value, Headers headers, int numPartitions) {
+            return partitioner.partitions(topic, key, value, headers, numPartitions);
+        }
+
+        // Still abstract in Kafka 4.4; Kafka 5.0 removes it.
+        @Override
+        @SuppressWarnings("removal")
         public Optional<Set<Integer>> partitions(String topic, Object key, Void value, int numPartitions) {
-            return partitioner.partitions(topic, key, value, numPartitions);
+            return partitions(topic, key, value, new RecordHeaders(), numPartitions);
         }
     }
 
@@ -457,6 +467,10 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected ValueJoinerWithKey<Object, Object, Object, Object> valueJoinerWithKey(UserFunction function, MetricTags tags) {
+        return new UserValueJoiner(function, tags);
+    }
+
+    protected ValueJoinerWithStreamAndMappedKey<Object, Object, Object, Object, Object> valueJoinerWithStreamAndMappedKey(UserFunction function, MetricTags tags) {
         return new UserValueJoiner(function, tags);
     }
 

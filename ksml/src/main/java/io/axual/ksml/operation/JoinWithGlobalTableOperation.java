@@ -48,7 +48,7 @@ public class JoinWithGlobalTableOperation extends BaseOperation {
          *    <GK, GV, RV> KStream<K, RV> join(
          *          final GlobalKTable<GK, GV> globalTable,
          *          final KeyValueMapper<? super K, ? super V, ? extends GK> keySelector,
-         *          final ValueJoinerWithKey<? super K, ? super V, ? super GV, ? extends RV> joiner,
+         *          final ValueJoinerWithStreamAndMappedKey<? super K, ? super GK, ? super V, ? super GV, ? extends RV> joiner,
          *          final Named named)
          */
 
@@ -64,7 +64,7 @@ public class JoinWithGlobalTableOperation extends BaseOperation {
         final var sel = userFunctionOf(context, KEYSELECTOR_NAME, keySelector, gk, superOf(k), superOf(v));
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, rv, superOf(k), superOf(v), superOf(gv));
         final var userSel = new UserKeyTransformer(sel, tags);
-        final var userJoiner = valueJoinerWithKey(joiner, tags);
+        final var userJoiner = valueJoinerWithStreamAndMappedKey(joiner, tags);
         final var named = namedOf();
         final KStream<Object, Object> output = named != null
                 ? input.stream.join(otherGlobalKTable.globalTable, userSel, userJoiner, named)
