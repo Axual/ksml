@@ -31,6 +31,8 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
 import java.util.HashSet;
@@ -50,7 +52,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     }
 
     @Override
-    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, int numPartitions) {
+    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, Headers headers, int numPartitions) {
         final var result = timeExecutionOf(() -> function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
         // Check for old-style partitioner return value (one partition number)
         if (result instanceof DataInteger dataInteger) {
@@ -63,5 +65,12 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
             return Optional.of(parts);
         }
         return Optional.empty();
+    }
+
+    // Still abstract in Kafka 4.4; Kafka 5.0 removes it.
+    @Override
+    @SuppressWarnings("removal")
+    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, int numPartitions) {
+        return partitions(topic, key, value, new RecordHeaders(), numPartitions);
     }
 }

@@ -25,7 +25,7 @@ import org.apache.kafka.streams.kstream.GlobalKTable;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.apache.kafka.streams.kstream.ValueJoinerWithStreamAndMappedKey;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +53,6 @@ class LeftJoinWithGlobalTableOperationTest extends OperationTestBase {
                 operationConfig("leftJoinGlobal"), globalTableDefinition(), keyValueMapper(), valueJoiner());
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
-        verify(stream).leftJoin(any(GlobalKTable.class), any(KeyValueMapper.class), any(ValueJoinerWithKey.class), any(Named.class));
+        verify(stream).leftJoin(any(GlobalKTable.class), any(KeyValueMapper.class), any(ValueJoinerWithStreamAndMappedKey.class), any(Named.class));
     }
 }

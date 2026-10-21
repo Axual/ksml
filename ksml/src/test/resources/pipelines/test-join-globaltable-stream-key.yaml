@@ -1,0 +1,50 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# The mapper turns the order key into a customer key. The valueJoiner must still get the order key.
+
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: string
+  joinOut:
+    topic: joinOut
+    keyType: string
+    valueType: string
+  leftJoinOut:
+    topic: leftJoinOut
+    keyType: string
+    valueType: string
+
+globalTables:
+  customers:
+    topic: customers
+    keyType: string
+    valueType: string
+
+pipelines:
+  join_with_customer:
+    from: orders
+    via:
+      - type: join
+        globalTable: customers
+        mapper:
+          resultType: string
+          expression: value
+        valueJoiner:
+          resultType: string
+          expression: key + "|" + value1 + "|" + value2
+    to: joinOut
+
+  left_join_with_customer:
+    from: orders
+    via:
+      - type: leftJoin
+        globalTable: customers
+        mapper:
+          resultType: string
+          expression: value
+        valueJoiner:
+          resultType: string
+          expression: key + "|" + value1 + "|" + str(value2)
+    to: leftJoinOut

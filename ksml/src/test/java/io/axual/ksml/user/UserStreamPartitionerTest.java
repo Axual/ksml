@@ -25,6 +25,7 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.type.UserType;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +46,7 @@ class UserStreamPartitionerTest {
     @Test
     @DisplayName("an integer result maps to a set with that single partition")
     void returnsSinglePartition() {
-        assertThat(partitioner(new DataInteger(2)).partitions("topic", "key", "value", 8))
+        assertThat(partitioner(new DataInteger(2)).partitions("topic", "key", "value", new RecordHeaders(), 8))
                 .contains(Set.of(2));
     }
 
@@ -56,14 +57,22 @@ class UserStreamPartitionerTest {
         list.add(new DataInteger(1));
         list.add(new DataInteger(3));
 
-        assertThat(partitioner(list).partitions("topic", "key", "value", 8))
+        assertThat(partitioner(list).partitions("topic", "key", "value", new RecordHeaders(), 8))
                 .contains(Set.of(1, 3));
     }
 
     @Test
     @DisplayName("a result that is neither integer nor list yields no partitions")
     void returnsEmptyWhenResultIsNeitherIntegerNorList() {
-        assertThat(partitioner(new DataString("nonsense")).partitions("topic", "key", "value", 8))
+        assertThat(partitioner(new DataString("nonsense")).partitions("topic", "key", "value", new RecordHeaders(), 8))
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("the old method without headers gives the same result as the new one")
+    @SuppressWarnings("removal")
+    void oldMethodWithoutHeadersGivesSameResult() {
+        assertThat(partitioner(new DataInteger(2)).partitions("topic", "key", "value", 8))
+                .contains(Set.of(2));
     }
 }
