@@ -37,6 +37,7 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,7 +62,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     @Override
     public Optional<Set<Integer>> partitions(String topic, Object key, Object value, Headers headers, int numPartitions) {
         final var result = timeExecutionOf(() -> passHeaders
-                ? function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions), HEADER_MAPPER.toDataObject(headers != null ? headers : new RecordHeaders()))
+                ? function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions), HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new)))
                 : function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
         // Check for old-style partitioner return value (one partition number)
         if (result instanceof DataInteger dataInteger) {
