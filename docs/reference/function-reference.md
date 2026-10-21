@@ -897,11 +897,11 @@ Determines which partition a record should be sent to when writing to a Kafka to
 | key           | Any     | The key of the record being partitioned                               |
 | value         | Any     | The value of the record being partitioned                             |
 | numPartitions | Integer | The total number of partitions available in the target topic          |
-| headers       | List    | The headers of the record, as a list of `{"key": ..., "value": ...}`, the same format as in `metadataTransformer` |
+| headers       | List    | The record headers, as a list of `{"key": ..., "value": ...}` like in `metadataTransformer` |
 
 #### Return Value
 
-An integer representing the partition number (0 to numPartitions-1) where the record should be sent
+An integer representing the partition number (0 to numPartitions-1) where the record should be sent, or a list of partition numbers to send it to several partitions. An empty list drops the record.
 
 #### Example
 
@@ -964,16 +964,16 @@ When running this example, you'll see log messages like:
 
 Combines values from two streams or tables during join operations, creating enriched records that contain data from both
 sources. The function must handle cases where one or both values might be null, depending on the join type (inner, left,
-outer). This function has access to the join key for context-aware value combination.
+outer).
 
 #### Parameters
 
 | Parameter | Type | Description                            |
 |-----------|------|----------------------------------------|
-| key       | Any  | The key of the record. In a join with a globalTable, this is the key of the stream record, not the key used for the lookup. `None` in a join between two tables |
+| key       | Any  | The key of the record. In a globalTable join, the key of the stream record. `None` in a join between two tables and in a stream-stream `outerJoin` |
 | value1    | Any  | The value from the first stream/table  |
 | value2    | Any  | The value from the second stream/table |
-| mappedKey | Any  | Only in a join with a globalTable: the key that the `mapper` returned and that was looked up in the globalTable. `None` in all other joins |
+| mappedKey | Any  | In a globalTable join, the key that the `mapper` returned. `None` in all other joins |
 
 #### Return Value
 
@@ -1193,7 +1193,7 @@ relationship helps you leverage Kafka Streams documentation and concepts:
 |---------------------|------------------------------------------------|------------------------------------|
 | foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
 | keyValueMapper      | `KeyValueMapper<K,V,VR>`                       | Convert key-value to single output |
-| valueJoiner         | `ValueJoiner<V1,V2,VR>`                        | Join values from two streams       |
+| valueJoiner         | `ValueJoiner`, `ValueJoinerWithKey` or `ValueJoinerWithStreamAndMappedKey`, by join type | Join values from two streams       |
 
 #### Stream Related Functions
 | KSML Function Type  | Kafka Streams Interface                        | Purpose                            |

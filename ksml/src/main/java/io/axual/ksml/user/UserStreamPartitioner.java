@@ -25,6 +25,7 @@ import io.axual.ksml.data.mapper.HeaderDataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -61,9 +62,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
 
     @Override
     public Optional<Set<Integer>> partitions(String topic, Object key, Object value, Headers headers, int numPartitions) {
-        final var result = timeExecutionOf(() -> passHeaders
-                ? function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions), HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new)))
-                : function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
+        final var result = timeExecutionOf(() -> function.call(arguments(topic, key, value, headers, numPartitions)));
         // Check for old-style partitioner return value (one partition number)
         if (result instanceof DataInteger dataInteger) {
             return Optional.of(Set.of(dataInteger.value()));
@@ -75,6 +74,16 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
             return Optional.of(parts);
         }
         return Optional.empty();
+    }
+
+    private DataObject[] arguments(String topic, Object key, Object value, Headers headers, int numPartitions) {
+        final var topicArg = new DataString(topic);
+        final var keyArg = NATIVE_MAPPER.toDataObject(key);
+        final var valueArg = NATIVE_MAPPER.toDataObject(value);
+        final var partitionsArg = new DataInteger(numPartitions);
+        if (!passHeaders) return new DataObject[]{topicArg, keyArg, valueArg, partitionsArg};
+        final var headersArg = HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new));
+        return new DataObject[]{topicArg, keyArg, valueArg, partitionsArg, headersArg};
     }
 
     // Still abstract in Kafka 4.4; Kafka 5.0 removes it.

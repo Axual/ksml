@@ -78,11 +78,14 @@ class UserStreamPartitionerTest {
     }
 
     @Test
-    @DisplayName("the old method without headers gives the same result as the new one")
+    @DisplayName("the old method without headers passes an empty headers list")
     @SuppressWarnings("removal")
-    void oldMethodWithoutHeadersGivesSameResult() {
-        assertThat(partitioner(new DataInteger(2)).partitions("topic", "key", "value", 8))
+    void oldMethodPassesEmptyHeaders() {
+        final var function = new RecordingFunction(PARTITIONS, streamPartitionerParameters(), new DataInteger(2));
+
+        assertThat(new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", 8))
                 .contains(Set.of(2));
+        assertThat((DataList) function.lastArguments[4]).isEmpty();
     }
 
     @Test
