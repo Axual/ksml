@@ -17,6 +17,7 @@ Before you upgrade, check each item below:
 * Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.
 * If you read an Avro `decimal` field in Python, change the code to expect a string instead of bytes.
 * If a `streamPartitioner` or `valueJoiner` function uses a global variable called `headers` or `mappedKey`, rename it.
+* If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -181,12 +182,15 @@ KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you 
 
 KSML 2.0.0 upgrades Kafka Streams and the Kafka clients from 4.3 (used by KSML 1.3.x) to 4.4.0. For pipeline authors, there is nothing to change.
 
-Two function types get a new optional parameter:
+Two function types get a new parameter:
 
-* A `streamPartitioner` gets the record headers in `headers`.
-* A `valueJoiner` in a join with a globalTable gets the key that the `mapper` returned in `mappedKey`.
+* A `streamPartitioner` gets the record headers in `headers`. Its parameters are now `topic`, `key`, `value`, `headers` and `numPartitions`, in the order that Kafka Streams uses.
+* A `valueJoiner` in a join with a globalTable gets the key that the `mapper` returned in `mappedKey`. This parameter is optional and comes last, so `key`, `value1` and `value2` keep their position.
 
-Existing functions work without changes. Only if such a function uses a global variable called `headers` or `mappedKey`, for example from `globalCode`, rename that variable. The new parameter hides it, and `global headers` in the function code fails at startup.
+Existing functions work without changes, with two exceptions:
+
+* If such a function uses a global variable called `headers` or `mappedKey`, for example from `globalCode`, rename that variable. The new parameter hides it, and `global headers` in the function code fails at startup.
+* If Python code calls a `streamPartitioner` function by position, for example `my_partitioner(topic, key, value, 4)`, pass `headers` before `numPartitions`, or call the function by name. A `generic` function with only `topic`, `key`, `value` and `numPartitions` still works as a partitioner.
 
 ## Protobuf and Wire
 

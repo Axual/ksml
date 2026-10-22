@@ -229,7 +229,7 @@ When calling this function from Python:
 configurable_logger(key, value, prefix="DEBUG")
 ```
 
-Custom parameters come right after the built-in ones. The optional built-in parameters `headers` (in a `streamPartitioner`) and `mappedKey` (in a `valueJoiner`) come last, after the custom parameters.
+Custom parameters come right after the built-in ones. Only the optional built-in parameter `mappedKey` (in a `valueJoiner`) comes last, after the custom parameters.
 
 ### Parameter Definition Structure
 
@@ -898,8 +898,8 @@ Determines which partition a record should be sent to when writing to a Kafka to
 | topic         | String  | The name of the topic the record is being sent to                     |
 | key           | Any     | The key of the record being partitioned                               |
 | value         | Any     | The value of the record being partitioned                             |
-| numPartitions | Integer | The total number of partitions available in the target topic          |
 | headers       | List    | The record headers, as a list of `{"key": ..., "value": ...}` like in `metadataTransformer` |
+| numPartitions | Integer | The total number of partitions available in the target topic          |
 
 #### Return Value
 

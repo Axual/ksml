@@ -82,8 +82,8 @@ public class DefinitionConstants {
             new ParameterDefinition(PARAM_TOPIC, DataString.DATATYPE),
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
-            new ParameterDefinition(PARAM_NUM_PARTITIONS, DataInteger.DATATYPE),
-            new ParameterDefinition(PARAM_HEADERS, HEADERS_TYPE, true, null)};
+            new ParameterDefinition(PARAM_HEADERS, HEADERS_TYPE),
+            new ParameterDefinition(PARAM_NUM_PARTITIONS, DataInteger.DATATYPE)};
     protected static final ParameterDefinition[] TOPIC_NAME_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),

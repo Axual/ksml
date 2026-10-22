@@ -22,7 +22,6 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -87,17 +86,17 @@ class UserStreamPartitionerTest {
 
         assertThat(new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", 8))
                 .contains(Set.of(2));
-        assertThat((DataList) function.lastArguments[4]).isEmpty();
+        assertThat((DataList) function.lastArguments[3]).isEmpty();
     }
 
     @Test
-    @DisplayName("a streamPartitioner function has an optional headers parameter after numPartitions")
-    void definitionHasOptionalHeadersParameter() {
+    @DisplayName("a streamPartitioner function has the Kafka parameter order, with headers before numPartitions")
+    void definitionHasKafkaParameterOrder() {
         final var params = streamPartitionerParameters();
 
         assertThat(params).extracting(ParameterDefinition::name)
-                .containsExactly("topic", "key", "value", "numPartitions", "headers");
-        assertThat(params[4].isOptional()).isTrue();
+                .containsExactly("topic", "key", "value", "headers", "numPartitions");
+        assertThat(params).noneMatch(ParameterDefinition::isOptional);
     }
 
     @Test
@@ -110,7 +109,8 @@ class UserStreamPartitionerTest {
         new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", headers, 4);
 
         assertThat(function.lastArguments).hasSize(5);
-        final var passedHeaders = (DataList) function.lastArguments[4];
+        assertThat(function.lastArguments[4]).isEqualTo(new DataInteger(4));
+        final var passedHeaders = (DataList) function.lastArguments[3];
         assertThat(passedHeaders.size()).isEqualTo(1);
         final var header = (DataStruct) passedHeaders.get(0);
         assertThat(header.get("key")).isEqualTo(new DataString("region"));
@@ -124,11 +124,11 @@ class UserStreamPartitionerTest {
 
         new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", null, 4);
 
-        assertThat((DataList) function.lastArguments[4]).isEmpty();
+        assertThat((DataList) function.lastArguments[3]).isEmpty();
     }
 
     @Test
-    @DisplayName("a function without a headers parameter gets only the first four arguments")
+    @DisplayName("a function with the parameters from before Kafka 4.4 gets topic, key, value and numPartitions")
     void doesNotPassHeadersToFunctionWithoutHeadersParameter() {
         final var function = new RecordingFunction(PARTITIONS, params(4), new DataInteger(0));
         final var headers = new RecordHeaders();
@@ -137,10 +137,11 @@ class UserStreamPartitionerTest {
         assertThat(new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", headers, 4))
                 .contains(Set.of(0));
         assertThat(function.lastArguments).hasSize(4);
+        assertThat(function.lastArguments[3]).isEqualTo(new DataInteger(4));
     }
 
     @Test
-    @DisplayName("a function whose fifth parameter has another name does not get the headers")
+    @DisplayName("a function with an extra parameter after numPartitions does not get the headers")
     void doesNotPassHeadersToOtherFifthParameter() {
         final var params = new ParameterDefinition[]{params(4)[0], params(4)[1], params(4)[2], params(4)[3],
                 new ParameterDefinition("other", DataType.UNKNOWN, true, null)};
@@ -152,24 +153,24 @@ class UserStreamPartitionerTest {
     }
 
     @Test
-    @DisplayName("custom parameters come before the optional headers parameter")
-    void customParametersComeBeforeHeaders() {
+    @DisplayName("custom parameters come after the built-in parameters")
+    void customParametersComeAfterBuiltIns() {
         assertThat(streamPartitionerParameters(customPrefix())).extracting(ParameterDefinition::name)
-                .containsExactly("topic", "key", "value", "numPartitions", "prefix", "headers");
+                .containsExactly("topic", "key", "value", "headers", "numPartitions", "prefix");
     }
 
     @Test
-    @DisplayName("a function with a custom parameter gets None for it and the headers last")
-    void passesNoneForCustomParameterAndHeadersLast() {
+    @DisplayName("a function with a custom parameter gets the five built-in arguments")
+    void passesBuiltInArgumentsToFunctionWithCustomParameter() {
         final var function = new RecordingFunction(PARTITIONS, streamPartitionerParameters(customPrefix()), new DataInteger(0));
         final var headers = new RecordHeaders();
         headers.add("region", "eu".getBytes(StandardCharsets.UTF_8));
 
         new UserStreamPartitioner(function, tags()).partitions("topic", "key", "value", headers, 4);
 
-        assertThat(function.lastArguments).hasSize(6);
-        assertThat(function.lastArguments[4]).isEqualTo(DataNull.INSTANCE);
-        assertThat(((DataStruct) ((DataList) function.lastArguments[5]).get(0)).get("key")).isEqualTo(new DataString("region"));
+        assertThat(function.lastArguments).hasSize(5);
+        assertThat(((DataStruct) ((DataList) function.lastArguments[3]).get(0)).get("key")).isEqualTo(new DataString("region"));
+        assertThat(function.lastArguments[4]).isEqualTo(new DataInteger(4));
     }
 
     private static ParameterDefinition customPrefix() {

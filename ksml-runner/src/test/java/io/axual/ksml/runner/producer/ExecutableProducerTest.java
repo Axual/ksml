@@ -274,13 +274,13 @@ class ExecutableProducerTest {
                 new ParameterDefinition("topic", DataString.DATATYPE),
                 new ParameterDefinition("key", DataString.DATATYPE),
                 new ParameterDefinition("value", DataString.DATATYPE),
-                new ParameterDefinition("numPartitions", DataInteger.DATATYPE),
-                new ParameterDefinition(DefinitionConstants.PARAM_HEADERS, DefinitionConstants.HEADERS_TYPE, true, null)
+                new ParameterDefinition(DefinitionConstants.PARAM_HEADERS, DefinitionConstants.HEADERS_TYPE),
+                new ParameterDefinition("numPartitions", DataInteger.DATATYPE)
         };
         final var partitioner = new UserFunction("ns", "partitioner", params, new UserType(UserStreamPartitioner.EXPECTED_RESULT_TYPE), List.of()) {
             @Override
             public DataObject call(StateStores stores, DataObject... parameters) {
-                seenHeaders.set(parameters[4]);
+                seenHeaders.set(parameters[3]);
                 return new DataInteger(1);
             }
         };

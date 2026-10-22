@@ -42,7 +42,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Runner config validation is strict again: an unknown or misspelled key in `ksml-runner.yaml` fails at startup instead of being silently ignored (Jackson 3 changed this default, so KSML re-enables the strict check).
 * Upgraded Kafka Streams and the Kafka clients from 4.3 to 4.4.0.
 * Moved off the deprecated Kafka Streams error-handler, admin, stream partitioner and globalTable join APIs.
-* A `streamPartitioner` function now gets the record headers in a new `headers` parameter.
+* A `streamPartitioner` function now gets the record headers in a new `headers` parameter, before `numPartitions`, in the order that Kafka Streams uses.
 * In a join with a globalTable, the `valueJoiner` now gets the key that the `mapper` returned in a new `mappedKey` parameter. `key` is still the key of the stream record.
 * Upgraded Protobuf and Wire to their 4.x and 6.x major versions.
 * Added first-class support for Avro logical types (`uuid`, `decimal`, `date`, `time-millis`, `time-micros`, `timestamp-millis`, `timestamp-micros`, `local-timestamp-millis`, `local-timestamp-micros`). KSML keeps the logical type on read and write. See [issue #415](https://github.com/Axual/ksml/issues/415) and [issue #583](https://github.com/Axual/ksml/issues/583).

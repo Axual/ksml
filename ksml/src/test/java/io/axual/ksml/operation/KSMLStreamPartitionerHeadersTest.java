@@ -47,6 +47,9 @@ class KSMLStreamPartitionerHeadersTest {
     @KSMLTopic(topic = "routedEvents")
     TestOutputTopic<String, String> routedEvents;
 
+    @KSMLTopic(topic = "oldStyleEvents")
+    TestOutputTopic<String, String> oldStyleEvents;
+
     @KSMLTest(topology = "pipelines/test-stream-partitioner-headers.yaml")
     void partitionerReadsHeaders() {
         events.pipeInput(new TestRecord<>("event1", "keep me", headers("route", "keep")));
@@ -54,6 +57,10 @@ class KSMLStreamPartitionerHeadersTest {
         events.pipeInput(new TestRecord<>("event3", "no headers"));
 
         assertThat(routedEvents.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("event1", "keep me"),
+                new KeyValue<>("event3", "no headers"));
+        // A generic partitioner without the headers parameter still works
+        assertThat(oldStyleEvents.readKeyValuesToList()).containsExactly(
                 new KeyValue<>("event1", "keep me"),
                 new KeyValue<>("event3", "no headers"));
     }

@@ -35,8 +35,8 @@ import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Custom parameters of a valueJoiner and a streamPartitioner keep their position before the optional
- * built-in parameters mappedKey and headers.
+ * Custom parameters of a valueJoiner come before the optional built-in parameter mappedKey. Custom
+ * parameters of a streamPartitioner come after its built-in parameters.
  */
 @ExtendWith(KSMLTestExtension.class)
 class KSMLCustomParametersTest {

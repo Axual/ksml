@@ -22,7 +22,9 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.WindowedType;
@@ -40,6 +42,7 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.user.UserStreamPartitioner;
 import io.axual.ksml.user.UserValueJoiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.header.Headers;
@@ -70,9 +73,12 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.axual.ksml.definition.DefinitionConstants.HEADERS_TYPE;
+
 @Slf4j
 public abstract class BaseOperation implements StreamOperation {
     private static final String ERROR_IN_TOPOLOGY = "Error in topology";
+    private static final String PARTITIONER_NAME = "Partitioner";
 
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
@@ -272,6 +278,15 @@ public abstract class BaseOperation implements StreamOperation {
             // mismatch reads as "Reading is not assignable from Reading" with no way to tell why.
             throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name() + " (" + assignable + ")");
         }
+    }
+
+    protected UserStreamPartitioner userStreamPartitionerOf(TopologyBuildContext context, FunctionDefinition partitioner, StreamDataType k, StreamDataType v) {
+        if (partitioner == null) return null;
+        // Kafka 4.4 order: topic, key, value, headers, numPartitions. A generic function may still have no headers.
+        final var function = UserStreamPartitioner.takesHeaders(partitioner.parameters())
+                ? userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(HEADERS_TYPE), equalTo(DataInteger.DATATYPE))
+                : userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        return new UserStreamPartitioner(function, tags);
     }
 
     protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, StreamDataType expectedResultType, TypeComparator... parameters) {

@@ -1,8 +1,9 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Custom parameters keep their position before the optional built-in parameters mappedKey and headers.
-# A positional call from Python fills the custom parameter. When KSML calls the function itself, the
-# custom parameter gets its default value and the optional built-in parameter is still filled in.
+# A valueJoiner keeps its custom parameters before the optional built-in parameter mappedKey. A positional
+# call from Python fills the custom parameter. When KSML calls the function itself, the custom parameter
+# gets its default value and mappedKey is still filled in. A streamPartitioner has its custom parameters
+# after all built-in parameters, and still gets the headers.
 
 streams:
   orders:

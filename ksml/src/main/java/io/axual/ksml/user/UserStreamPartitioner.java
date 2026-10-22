@@ -30,6 +30,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
@@ -50,13 +51,21 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
             new UnionType.Member("setOfPartitions", new ListType(DataInteger.DATATYPE), "List of partition numbers", 2));
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
     private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
-    // Number of arguments: 4, or more when the function declares headers
-    private final int argumentCount;
+    // A generic function may still have the parameters from before Kafka 4.4, without headers
+    private final boolean hasHeadersParameter;
 
     public UserStreamPartitioner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_STREAMPARTITIONER);
-        argumentCount = verifyParameterCount(4, PARAM_HEADERS);
+        hasHeadersParameter = takesHeaders(function.parameters);
+        verifyParameterCount(hasHeadersParameter ? 5 : 4);
         verifyResultType(EXPECTED_RESULT_TYPE);
+    }
+
+    /**
+     * Returns true when the parameters are in the Kafka 4.4 order: topic, key, value, headers, numPartitions.
+     */
+    public static boolean takesHeaders(ParameterDefinition[] parameters) {
+        return parameters.length > 3 && PARAM_HEADERS.equals(parameters[3].name());
     }
 
     @Override
@@ -76,8 +85,13 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     }
 
     private DataObject[] arguments(String topic, Object key, Object value, Headers headers, int numPartitions) {
-        return withOptionalArgument(argumentCount, () -> HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new)),
-                new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions));
+        final var topicArg = new DataString(topic);
+        final var keyArg = NATIVE_MAPPER.toDataObject(key);
+        final var valueArg = NATIVE_MAPPER.toDataObject(value);
+        final var partitionsArg = new DataInteger(numPartitions);
+        if (!hasHeadersParameter) return new DataObject[]{topicArg, keyArg, valueArg, partitionsArg};
+        final var headersArg = HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new));
+        return new DataObject[]{topicArg, keyArg, valueArg, headersArg, partitionsArg};
     }
 
     // Still abstract in Kafka 4.4; Kafka 5.0 removes it.

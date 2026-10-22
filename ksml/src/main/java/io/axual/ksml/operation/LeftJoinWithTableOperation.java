@@ -21,8 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.StreamDataType;
@@ -32,7 +30,6 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserForeignKeyExtractor;
 import io.axual.ksml.user.UserFunction;
-import io.axual.ksml.user.UserStreamPartitioner;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 
@@ -40,7 +37,6 @@ import java.time.Duration;
 
 public class LeftJoinWithTableOperation extends StoreOperation {
     private static final String FOREIGN_KEY_EXTRACTOR_NAME = "ForeignKeyExtractor";
-    private static final String PARTITIONER_NAME = "Partitioner";
     private static final String VALUEJOINER_NAME = "ValueJoiner";
     private final TableDefinition joinTable;
     private final FunctionDefinition foreignKeyExtractor;
@@ -115,10 +111,8 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
         final var userJoiner = valueJoiner(joiner, tags);
-        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
-        final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userOtherPart = otherPart != null ? new UserStreamPartitioner(otherPart, tags) : null;
+        final var userPart = userStreamPartitionerOf(context, partitioner, k, v);
+        final var userOtherPart = userStreamPartitionerOf(context, otherPartitioner, k, v);
         final var tableJoined = tableJoinedOf(userPart, userOtherPart);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);

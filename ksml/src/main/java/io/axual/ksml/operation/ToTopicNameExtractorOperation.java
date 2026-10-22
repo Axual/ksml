@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.definition.FunctionDefinition;
@@ -29,13 +28,11 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.type.UserType;
-import io.axual.ksml.user.UserStreamPartitioner;
 import io.axual.ksml.user.UserTopicNameExtractor;
 
 import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
 
 public class ToTopicNameExtractorOperation extends BaseOperation {
-    private static final String PARTITIONER_NAME = "Partitioner";
     private static final String TOPIC_NAME_EXTRACTOR_NAME = "TopicNameExtractor";
     private final FunctionDefinition topicNameExtractor;
     private final FunctionDefinition partitioner;
@@ -60,8 +57,7 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
         final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
         final var extract = userFunctionOf(context, TOPIC_NAME_EXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
         final var userExtract = new UserTopicNameExtractor(extract, tags);
-        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
+        final var userPart = userStreamPartitionerOf(context, partitioner, k, v);
         final var produced = producedOf(k, v, userPart);
         if (produced != null)
             input.stream.to(userExtract, produced);
