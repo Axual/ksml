@@ -14,9 +14,9 @@ functions:
       # Generate data matching SensorData schema
       value = {
         "name": key,
-        "timestamp": str(round(time.time()*1000)),
+        "timestamp": round(time.time()*1000),
         "value": str(random.randrange(0, 100)),
-        "type": random.choice(["TEMPERATURE", "HUMIDITY", "PRESSURE"]),
+        "type": random.choice(["AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE"]),
         "unit": random.choice(["C", "F", "%", "Pa"]),
         "color": random.choice(["black", "blue", "red", "yellow", "white"]),
         "owner": random.choice(["Alice", "Bob", "Charlie", "Dave", "Evan"]),

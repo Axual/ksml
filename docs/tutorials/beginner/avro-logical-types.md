@@ -45,6 +45,50 @@ amount = value["value"]     # "123.45"
 
 Text is used rather than a Python float so that no digit is ever lost.
 
+The diagram below follows the decimal `123.45` from the producer to your Python code, before and after KSML 2.0.0:
+
+<div class="diagram-w80" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Writing
+    Producer["Producer writes<br/>&quot;123.45&quot;"]
+    Topic[("Kafka topic<br/>bytes 0x3039<br/>(the digits 12345)")]
+    Schema["Schema<br/>bytes, logicalType decimal<br/>scale 2"]
+
+    %% Reading
+    subgraph New["Since 2.0.0"]
+        NewRead["KSML reads logicalType,<br/>moves the point 2 places"]
+        NewPy["Python gets<br/>&quot;123.45&quot;"]
+        NewRead --> NewPy
+    end
+    subgraph Old["Before 2.0.0"]
+        OldRead["KSML ignores<br/>logicalType"]
+        OldPy["Python gets<br/>b'\x30\x39'"]
+        OldRead --> OldPy
+    end
+
+    %% Data Flow
+    Producer --> Topic
+    Schema -.->|"describes"| Topic
+    Topic --> NewRead
+    Topic --> OldRead
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Producer,OldRead,NewRead operation
+    class Topic topic
+    class Schema external
+    class OldPy alert
+    class NewPy result
+    style Old fill:none,stroke:#616161,stroke-dasharray:5 5
+    style New fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+</div>
+
 ## Why this is a breaking change
 
 "Breaking" means existing code stops working after an upgrade, without you changing anything
@@ -81,6 +125,41 @@ Writing an invalid value fails. That points at the mistake in your own pipeline.
 Reading an invalid value only writes a warning to the log and passes the value on. That is
 deliberate. A bad record in a topic comes from another system, and the default consume error handler
 is `stopOnFail`. So failing on read would stop your application because of someone else's data.
+
+<div class="diagram-w70" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Writing
+    subgraph Write["Write: strict"]
+        direction TB
+        W1["Your pipeline writes<br/>readingId &quot;not-a-uuid&quot;"]
+        W2["❌ The write fails<br/>with an error"]
+        W1 --> W2
+    end
+
+    %% Reading
+    subgraph Read["Read: forgiving"]
+        direction TB
+        R1["Another system wrote<br/>a bad uuid to the topic"]
+        R2["⚠️ KSML logs a warning<br/>and passes the value on"]
+        R1 --> R2
+    end
+
+    Write ~~~ Read
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class W1,R1 message
+    class W2 dropped
+    class R2 partial
+    style Write fill:none,stroke:#616161,stroke-dasharray:5 5
+    style Read fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
+</div>
 
 ## Run the example
 
@@ -198,6 +277,45 @@ You should see something like this:
 This is the whole point of the tutorial in one line. The producer wrote `"123.45"`, the schema stored
 it as exact bytes, KSML gave Python the string `"123.45"`, Python added `0.05` with `Decimal`, and
 `"123.50"` came out. No digit was lost anywhere.
+
+The diagram below follows the decimal through the example:
+
+<div class="diagram-w55" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Producer
+    Producer["<b>producer-logical-types.yaml</b><br/>value: &quot;123.45&quot; (text)"]
+    AvroTopic[("logical_types_avro<br/>Avro, value stored as<br/>exact bytes")]
+    Registry["Schema registry<br/>SensorReading.avsc"]
+
+    %% Processor
+    Peek1["<code>peek</code><br/>logs what Python receives<br/>value = &quot;123.45&quot;"]
+    Calibrate["<code>transformValue</code><br/>apply_calibration<br/>Decimal(&quot;123.45&quot;) + Decimal(&quot;0.05&quot;)"]
+    Peek2["<code>peek</code><br/>calibrated value = &quot;123.50&quot;"]
+    Convert["<code>convertValue</code><br/>Avro to JSON"]
+    JsonTopic[("logical_types_json<br/>value: &quot;123.50&quot;")]
+
+    %% Data Flow
+    Producer --> AvroTopic
+    Registry -.->|"schema"| AvroTopic
+    AvroTopic --> Peek1
+    Peek1 --> Calibrate
+    Calibrate --> Peek2
+    Peek2 --> Convert
+    Convert --> JsonTopic
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class AvroTopic,JsonTopic topic
+    class Peek1,Calibrate,Peek2,Convert operation
+    class Producer message
+    class Registry external
+```
+
+</div>
 
 You can also browse the messages in Kowl at [http://localhost:8080](http://localhost:8080).
 

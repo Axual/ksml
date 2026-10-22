@@ -10,6 +10,32 @@ Simply define your data processing pipelines in easy-to-read YAML files and writ
 
 Whether you're filtering data, transforming events, performing aggregations, or building real-time analytics, KSML lets you focus on your business logic without worrying about Java code, compilation, or complex build pipelines.
 
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% What you write, and where the data comes from
+    Definition["<b>What you write</b><br/>YAML definition<br/>+ Python functions"]
+    Input[(Input topics)]
+
+    %% What KSML does
+    KSML["<b>KSML</b><br/>builds and runs a<br/>Kafka Streams application"]
+
+    %% Where the results go
+    Output[(Output topics)]
+
+    %% Data Flow
+    Definition --> KSML
+    Input -->|"consume"| KSML
+    KSML -->|"produce"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Input,Output topic
+    class KSML operation
+    class Definition external
+```
+
 ## 1. Getting Started
 - [Quick Start](getting-started/quick-start.md)
 - [Understanding KSML](getting-started/introduction.md)

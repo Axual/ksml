@@ -36,12 +36,13 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test for cogroup aggregation with custom aggregator in KSML.
+ * Test for cogroup aggregation with custom aggregators in KSML.
  * <p>
  * The cogroup operation demonstrates:
- * 1. groupByKey to group orders by customer
- * 2. cogroup with custom aggregator function
- * 3. aggregate with initializer to materialize the aggregation
+ * 1. groupByKey to group refunds by customer, saved with "as" for the next pipeline
+ * 2. groupByKey to group orders by customer
+ * 3. cogroup with an aggregator for orders, then cogroup with "stream" and an aggregator for refunds
+ * 4. aggregate with initializer to materialize the aggregation
  * <p>
  * What these Tests Validate (KSML Translation):
  * <p>
@@ -49,6 +50,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 2. testCogroupIncrementsCounts: cogroup tracks order counts per customer
  * 3. testCogroupMultipleCustomers: cogroup maintains separate aggregates per key
  * 4. testCogroupInitializer: initializer creates correct initial state
+ * 5. testCogroupCombinesOrdersAndRefunds: orders and refunds update one aggregate, each with its own aggregator
+ * 6. testCogroupRefundsPerCustomer: refunds only update the aggregate of their own key
+ * 7. testCogroupRefundBeforeOrder: a refund before any order starts from the initializer
  */
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -59,6 +63,9 @@ public class CogroupTest {
 
     @KSMLTopic(topic = "customer_orders")
     TestInputTopic<String, String> ordersInput;
+
+    @KSMLTopic(topic = "customer_refunds")
+    TestInputTopic<String, String> refundsInput;
 
     @KSMLTopic(topic = "customer_totals")
     TestOutputTopic<String, String> outputTopic;
@@ -150,6 +157,60 @@ public class CogroupTest {
 
         assertThat(json.get("total_amount").asDouble()).isEqualTo(75.00);
         assertThat(json.get("order_count").asInt()).isEqualTo(1);
+        assertThat(json.get("refund_count").asInt()).isZero();
+    }
+
+    @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")
+    void testCogroupRefundBeforeOrder() throws Exception {
+        // A refund before any order starts from the initializer, as in the tutorial diagram
+        refundsInput.pipeInput("alice", createRefundJson("REF003", "alice", 20.00));
+
+        JsonNode json = objectMapper.readTree(outputTopic.readValue());
+        assertThat(json.get("total_amount").asDouble()).isEqualTo(-20.00);
+        assertThat(json.get("order_count").asInt()).isZero();
+        assertThat(json.get("refund_count").asInt()).isEqualTo(1);
+    }
+
+    @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")
+    void testCogroupCombinesOrdersAndRefunds() throws Exception {
+        String customer = "diana";
+
+        // Send orders and refunds for the same customer
+        ordersInput.pipeInput(customer, createOrderJson("ORD010", customer, 100.00));
+        refundsInput.pipeInput(customer, createRefundJson("REF001", customer, 30.00));
+        ordersInput.pipeInput(customer, createOrderJson("ORD011", customer, 50.00));
+
+        assertThat(outputTopic.getQueueSize()).isEqualTo(3);
+
+        // Read final result
+        String result = outputTopic.readValuesToList().getLast();
+        JsonNode json = objectMapper.readTree(result);
+
+        // Verify both streams updated the same aggregate
+        assertThat(json.get("total_amount").asDouble()).isEqualTo(120.00);
+        assertThat(json.get("order_count").asInt()).isEqualTo(2);
+        assertThat(json.get("refund_count").asInt()).isEqualTo(1);
+        assertThat(json.get("customer").asString()).isEqualTo(customer);
+    }
+
+    @KSMLTest(topology = "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml")
+    void testCogroupRefundsPerCustomer() throws Exception {
+        // Send an order for each customer and a refund for one of them
+        ordersInput.pipeInput("alice", createOrderJson("ORD012", "alice", 100.00));
+        ordersInput.pipeInput("bob", createOrderJson("ORD013", "bob", 200.00));
+        refundsInput.pipeInput("bob", createRefundJson("REF002", "bob", 25.00));
+
+        assertThat(outputTopic.getQueueSize()).isEqualTo(3);
+        outputTopic.readRecord();
+        outputTopic.readRecord();
+
+        // The refund only updates bob's aggregate
+        var refundRecord = outputTopic.readRecord();
+        assertThat(refundRecord.getKey()).isEqualTo("bob");
+        JsonNode json = objectMapper.readTree(refundRecord.getValue());
+        assertThat(json.get("total_amount").asDouble()).isEqualTo(175.00);
+        assertThat(json.get("order_count").asInt()).isEqualTo(1);
+        assertThat(json.get("refund_count").asInt()).isEqualTo(1);
     }
 
     private String createOrderJson(String orderId, String customer, double amount) throws Exception {
@@ -160,5 +221,15 @@ public class CogroupTest {
         order.put("timestamp", System.currentTimeMillis());
 
         return objectMapper.writeValueAsString(order);
+    }
+
+    private String createRefundJson(String refundId, String customer, double amount) throws Exception {
+        Map<String, Object> refund = new HashMap<>();
+        refund.put("refund_id", refundId);
+        refund.put("customer", customer);
+        refund.put("amount", amount);
+        refund.put("timestamp", System.currentTimeMillis());
+
+        return objectMapper.writeValueAsString(refund);
     }
 }

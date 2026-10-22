@@ -1,0 +1,84 @@
+# A windowed cogrouped stream is saved with "as". Kafka Streams shares the grouped streams of a cogroup with its windows,
+# so the grouped stream that a later pipeline adds to the cogroup would also be part of the saved window.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  third_stream:
+    topic: third_topic
+    keyType: string
+    valueType: long
+  first_output:
+    topic: first_output_topic
+    keyType: string
+    valueType: long
+  second_output:
+    topic: second_output_topic
+    keyType: string
+    valueType: long
+
+functions:
+  init_total:
+    type: initializer
+    expression: 0
+    resultType: long
+
+pipelines:
+  grouped_third:
+    from: third_stream
+    via:
+      - type: groupByKey
+    as: grouped_third
+
+  cogrouped_first:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+    as: cogrouped_first
+
+  windowed_first:
+    from: cogrouped_first
+    via:
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+    as: windowed_first
+
+  with_third:
+    from: cogrouped_first
+    via:
+      - type: cogroup
+        stream: grouped_third
+        aggregator:
+          expression: aggregatedValue + value * 100
+          resultType: long
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: first_store
+          type: keyValue
+      - type: toStream
+    to: first_output
+
+  windowed_totals:
+    from: windowed_first
+    via:
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: second_store
+          type: window
+          windowSize: 1m
+          retention: 10m
+      - type: toStream
+      - type: mapKey
+        mapper:
+          expression: key["key"]
+          resultType: string
+    to: second_output

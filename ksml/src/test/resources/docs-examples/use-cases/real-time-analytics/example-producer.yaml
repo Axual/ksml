@@ -86,7 +86,7 @@ producers:
     generator:
       code: |
         order = nextOrder()
-      expression: '(str(count), order)'
+      expression: '(order.get("transaction_id"), order)'
       resultType: (string, json)
 
 

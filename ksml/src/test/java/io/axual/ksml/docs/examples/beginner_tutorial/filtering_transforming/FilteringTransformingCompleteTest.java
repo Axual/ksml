@@ -75,8 +75,8 @@ public class FilteringTransformingCompleteTest {
         // Verify humidity preserved
         assertThat(output.get("readings").get("humidity").asInt()).isEqualTo(88);
 
-        // Verify heat index calculated
-        assertThat(output.get("readings").has("heat_index")).isTrue();
+        // Verify heat index calculated (80F and 88% humidity)
+        assertThat(output.get("readings").get("heat_index").asDouble()).isCloseTo(78.55, offset(0.01));
 
         // Verify timestamp formatted
         assertThat(output.has("timestamp")).isTrue();

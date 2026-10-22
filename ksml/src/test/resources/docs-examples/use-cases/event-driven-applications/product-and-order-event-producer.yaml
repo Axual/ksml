@@ -68,5 +68,5 @@ producers:
     interval: 1s
     to:
       topic: order_events
-      keyType: string  # stock key (warehouse id + product id)
-      valueType: json  # JSON inventory data
+      keyType: string  # order_id
+      valueType: json  # order data with a list of items

@@ -32,4 +32,5 @@ pipelines:
               "temp": value.get("readings", {}).get("temperature"),
               "hum": value.get("readings", {}).get("humidity")
             }
+          resultType: json
     to: edge_processed_readings

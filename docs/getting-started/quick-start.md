@@ -13,6 +13,42 @@ A **real-time device health monitoring system** that:
 
 All with just YAML configuration and clear Python logic.
 
+## What Runs Locally
+
+The examples run on your machine using Docker Compose. A single `docker compose up -d` starts a small Kafka environment with KSML connected to it. All containers share one Docker network, so they reach the Kafka broker by its name (`broker:9093`), while you reach it from your machine through `localhost`.
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Your machine
+    You[💻 You<br/>terminal & browser]
+    Examples[📁 ./examples<br/>KSML definitions]
+
+    %% Docker Compose services
+    subgraph Docker["Docker Compose (network: ksml)"]
+        Setup[<code>kafka-setup</code><br/>creates topics, then exits]
+        Broker[(<code>broker</code><br/>Apache Kafka)]
+        KSML[<code>ksml</code><br/>KSML runner]
+        UI[<code>kafka-ui</code><br/>Kafka UI]
+    end
+
+    %% Connections
+    Setup -->|"create topics"| Broker
+    KSML <-->|"consume & produce"| Broker
+    UI -->|"read topics"| Broker
+    Examples -.->|"mounted as /ksml"| KSML
+    You -->|"localhost:9092"| Broker
+    You -->|"localhost:8080"| UI
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Broker topic
+    class KSML operation
+    class Setup,UI external
+    class You,Examples host
+```
+
 ## Prerequisites
 
 You'll need:
@@ -176,6 +212,44 @@ Your KSML pipeline performed **real-time device health monitoring** in just a fe
 2. **Analyzed** device health from battery, signal strength, and error metrics
 3. **Categorized** devices as "healthy" or "needs attention" 
 4. **Identified** specific issues (low battery, poor signal, high errors)
+
+<div class="diagram-w40" markdown>
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input
+    Producer[IoT Devices]
+    InputTopic[(iot_sensor_data)]
+
+    %% Pipeline Operations
+    Filter{<code>filter</code><br/>status == 'online'}
+    Transform[<code>transformValue</code><br/>Add health status]
+    Peek[<code>peek</code><br/>Log device health]
+
+    %% Output
+    OutputTopic[(device_health_alerts)]
+    AlertSystem[Alert System]
+
+    %% Data Flow
+    Producer -->|"All devices"| InputTopic
+    InputTopic --> Filter
+    Filter -->|"Online only"| Transform
+    Filter -.->|"Offline - drop"| Drop[❌ Dropped]
+    Transform -->|"Enriched with health status"| Peek
+    Peek --> OutputTopic
+    OutputTopic --> AlertSystem
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class InputTopic,OutputTopic topic
+    class Filter,Transform,Peek operation
+    class Producer,AlertSystem external
+    class Drop dropped
+```
+
+</div>
 
 Check the KSML logs to see the real-time analysis:
 

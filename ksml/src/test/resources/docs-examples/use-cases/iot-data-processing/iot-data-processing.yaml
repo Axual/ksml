@@ -21,11 +21,6 @@ streams:
     keyType: string  # location
     valueType: json  # aggregated energy data
 
-  building_analytics:
-    topic: building_analytics
-    keyType: string  # building/floor
-    valueType: json  # aggregated analytics
-
 functions:
   extract_temperature:
     type: valueTransformer

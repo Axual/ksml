@@ -1,0 +1,70 @@
+# A saved cogroup is aggregated before a later pipeline adds a stream to it, so that aggregate does not get the stream.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  first_output:
+    topic: first_output_topic
+    keyType: string
+    valueType: long
+  second_output:
+    topic: second_output_topic
+    keyType: string
+    valueType: long
+
+functions:
+  init_total:
+    type: initializer
+    expression: 0
+    resultType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupByKey
+    as: grouped_second
+
+  cogrouped_first:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+    as: cogrouped_first
+
+  only_first:
+    from: cogrouped_first
+    via:
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: only_first_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: second_output
+
+  with_second:
+    from: cogrouped_first
+    via:
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: with_second_store
+          type: keyValue
+          caching: false
+      - type: toStream
+    to: first_output
