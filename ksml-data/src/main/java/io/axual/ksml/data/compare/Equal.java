@@ -26,7 +26,7 @@ package io.axual.ksml.data.compare;
  */
 final class Equal extends Equality {
     static final Equal INSTANCE = new Equal();
-    private static final String EQUAL = "EQUAL";
+    private static final String ISEQUAL = "EQUAL";
 
     private Equal() {
     }
@@ -53,16 +53,16 @@ final class Equal extends Equality {
 
     @Override
     public String toString() {
-        return EQUAL;
+        return ISEQUAL;
     }
 
     @Override
     public String toString(boolean prefixFirstLine) {
-        return EQUAL;
+        return ISEQUAL;
     }
 
     @Override
     public String toString(String linePrefix, boolean prefixFirstLine) {
-        return EQUAL;
+        return ISEQUAL;
     }
 }

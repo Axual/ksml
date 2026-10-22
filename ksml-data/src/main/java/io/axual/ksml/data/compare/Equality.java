@@ -36,7 +36,7 @@ import lombok.NonNull;
  * <p>
  * This is a {@code sealed abstract class} rather than a sealed interface to maintain binary compatibility with older code.
  */
-public sealed abstract class Equality permits Equal, NotEqual {
+public abstract sealed class Equality permits Equal, NotEqual {
     /**
      * Returns the singleton instance representing a successful equality check (no differences).
      *
